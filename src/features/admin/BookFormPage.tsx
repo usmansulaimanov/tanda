@@ -13,15 +13,7 @@ const CATEGORIES = [
   'Психология',
 ];
 
-const GRADIENT_PRESETS = [
-  { name: 'Көк классика', value: 'linear-gradient(135deg, #005494, #002D50)' },
-  { name: 'Фирменный сары', value: 'linear-gradient(135deg, #EF7E00, #B85F00)' },
-  { name: 'Терең мұхит', value: 'linear-gradient(135deg, #0284C7, #0369A1)' },
-  { name: 'Изумруд жасыл', value: 'linear-gradient(135deg, #059669, #064E3B)' },
-  { name: 'Күлгін кеш', value: 'linear-gradient(135deg, #7C3AED, #4C1D95)' },
-  { name: 'Қоңыр кітап', value: 'linear-gradient(135deg, #B45309, #78350F)' },
-  { name: 'Қызыл екпін', value: 'linear-gradient(135deg, #DC2626, #7F1D1D)' },
-];
+const DEFAULT_COVER_GRADIENT = 'linear-gradient(135deg, #005494, #002D50)';
 
 export const BookFormPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -39,9 +31,9 @@ export const BookFormPage: React.FC = () => {
   const [pages, setPages] = useState<string>('');
   const [description, setDescription] = useState('');
   const [isFree, setIsFree] = useState(true);
-  const [gradient, setGradient] = useState(GRADIENT_PRESETS[0].value);
   const [coverImage, setCoverImage] = useState('');
 
+  // Audio settings
   const [hasAudio, setHasAudio] = useState(false);
   const [audioNarrator, setAudioNarrator] = useState('');
   const [audioDuration, setAudioDuration] = useState('');
@@ -56,7 +48,6 @@ export const BookFormPage: React.FC = () => {
       setPages(existingBook.pages ? String(existingBook.pages) : '');
       setDescription(existingBook.description);
       setIsFree(existingBook.isFree);
-      if (existingBook.gradient) setGradient(existingBook.gradient);
       if (existingBook.coverImage) setCoverImage(existingBook.coverImage);
       setHasAudio(Boolean(existingBook.hasAudio));
       setAudioNarrator(existingBook.audioNarrator || '');
@@ -126,8 +117,8 @@ export const BookFormPage: React.FC = () => {
       description: description.trim(),
       isFree,
       isArchived: existingBook ? existingBook.isArchived : false,
-      gradient,
-      coverImage,
+      gradient: existingBook?.gradient || DEFAULT_COVER_GRADIENT,
+      coverImage: coverImage.trim(),
       hasAudio,
       audioNarrator: hasAudio ? audioNarrator.trim() : undefined,
       audioDuration: hasAudio ? audioDuration.trim() : undefined,
@@ -149,6 +140,7 @@ export const BookFormPage: React.FC = () => {
   return (
     <div style={{ backgroundColor: '#F8FAFC', minHeight: 'calc(100vh - 80px)', padding: '32px 16px 80px' }}>
       <div style={{ maxWidth: '860px', margin: '0 auto' }}>
+        {/* Top Breadcrumb & Navigation */}
         <div
           style={{
             display: 'flex',
@@ -194,6 +186,7 @@ export const BookFormPage: React.FC = () => {
           </Link>
         </div>
 
+        {/* Main Card */}
         <div
           style={{
             background: '#FFFFFF',
@@ -203,6 +196,7 @@ export const BookFormPage: React.FC = () => {
             boxShadow: '0 4px 20px -2px rgba(0, 84, 148, 0.05), 0 2px 6px -1px rgba(0, 0, 0, 0.03)',
           }}
         >
+          {/* Form Header */}
           <div style={{ borderBottom: '1.5px solid #F1F5F9', paddingBottom: '20px', marginBottom: '28px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
               <span
@@ -226,6 +220,7 @@ export const BookFormPage: React.FC = () => {
           </div>
 
           <form onSubmit={handleSubmit}>
+            {/* Primary Details: Title & Author */}
             <div
               style={{
                 display: 'grid',
@@ -263,6 +258,7 @@ export const BookFormPage: React.FC = () => {
               </div>
             </div>
 
+            {/* Category and Pages */}
             <div
               style={{
                 display: 'grid',
@@ -297,6 +293,7 @@ export const BookFormPage: React.FC = () => {
               </div>
             </div>
 
+            {/* Description */}
             <div className="form-group">
               <label className="form-label">Кітап сипаттамасы / Аннотация</label>
               <textarea
@@ -309,6 +306,7 @@ export const BookFormPage: React.FC = () => {
               />
             </div>
 
+            {/* COVER IMAGE SECTION (File upload + Image URL) */}
             <div
               style={{
                 background: '#F8FAFC',
@@ -318,85 +316,113 @@ export const BookFormPage: React.FC = () => {
                 marginBottom: '24px',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px', flexWrap: 'wrap', gap: '8px' }}>
-                <div>
-                  <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
-                    Мұқаба дизайны мен безендіру
-                  </h3>
-                  <p style={{ fontSize: '12px', color: '#64748B', margin: '4px 0 0' }}>
-                    Дайын фирменный градиенттерді таңдаңыз немесе жеке мұқаба суретін жүктеңіз
-                  </p>
-                </div>
+              <div style={{ marginBottom: '18px' }}>
+                <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                  Мұқаба суреті
+                </h3>
+                <p style={{ fontSize: '12px', color: '#64748B', margin: '4px 0 0' }}>
+                  Кітаптың мұқаба суретін құрылғыңыздан жүктеңіз немесе интернеттегі тікелей сілтемесін (URL) көрсетіңіз
+                </p>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', alignItems: 'start' }}>
-                <div>
-                  <label className="form-label" style={{ fontSize: '12px', color: '#475569' }}>
-                    Фирменный түс палитрасы:
-                  </label>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '8px' }}>
-                    {GRADIENT_PRESETS.map((p) => {
-                      const isSelected = !coverImage && gradient === p.value;
-                      return (
-                        <button
-                          key={p.value}
-                          type="button"
-                          onClick={() => {
-                            setGradient(p.value);
-                            setCoverImage('');
-                          }}
-                          style={{
-                            background: p.value,
-                            color: '#FFFFFF',
-                            padding: '10px 8px',
-                            borderRadius: '8px',
-                            border: isSelected ? '2.5px solid #005494' : '1px solid rgba(0, 0, 0, 0.08)',
-                            boxShadow: isSelected ? '0 0 0 3px rgba(0, 84, 148, 0.25)' : 'none',
-                            fontSize: '11px',
-                            fontWeight: 700,
-                            cursor: 'pointer',
-                            textAlign: 'center',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '4px',
-                            transition: 'all 0.15s',
-                          }}
-                        >
-                          {isSelected && (
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                              <polyline points="20 6 9 17 4 12"></polyline>
-                            </svg>
-                          )}
-                          {p.name}
-                        </button>
-                      );
-                    })}
+                {/* Inputs: URL and File */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  {/* Image URL Input */}
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <label className="form-label" style={{ fontSize: '12px', color: '#475569' }}>
+                      Суреттің интернеттегі сілтемесі (URL):
+                    </label>
+                    <input
+                      type="url"
+                      value={coverImage.startsWith('data:') ? '' : coverImage}
+                      onChange={(e) => setCoverImage(e.target.value)}
+                      placeholder="https://мысал.kz/images/mukaaba.jpg"
+                      className="form-input"
+                    />
+                    <span className="form-hint">
+                      Интернеттен кез келген суреттің толық сілтемесін қоюға болады
+                    </span>
+                  </div>
+
+                  {/* Divider */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{ flex: 1, height: '1px', background: '#E2E8F0' }} />
+                    <span style={{ fontSize: '11px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase' }}>немесе</span>
+                    <div style={{ flex: 1, height: '1px', background: '#E2E8F0' }} />
+                  </div>
+
+                  {/* File Upload Button */}
+                  <div>
+                    <label className="form-label" style={{ fontSize: '12px', color: '#475569' }}>
+                      Құрылғыдан сурет файлын жүктеу:
+                    </label>
+
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      accept="image/*"
+                      onChange={handleImageFileChange}
+                      style={{ display: 'none' }}
+                      id="cover-file-upload"
+                    />
+
+                    <label
+                      htmlFor="cover-file-upload"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '10px 18px',
+                        background: '#FFFFFF',
+                        border: '1.5px solid #005494',
+                        color: '#005494',
+                        borderRadius: '8px',
+                        fontSize: '13px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        boxShadow: '0 1px 2px rgba(0, 84, 148, 0.08)',
+                      }}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                      </svg>
+                      Сурет файлын таңдау...
+                    </label>
+
+                    <span className="form-hint" style={{ marginTop: '6px' }}>
+                      Қолдау көрсетілетін форматтар: JPG, PNG, WEBP
+                    </span>
                   </div>
                 </div>
 
+                {/* Preview Card */}
                 <div>
                   <label className="form-label" style={{ fontSize: '12px', color: '#475569' }}>
-                    Мұқаба суреті немесе алдын ала көрініс:
+                    Алдын ала көрініс (Preview):
                   </label>
 
                   <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                    {/* 3D Realistic Book Cover Preview */}
                     <div
                       style={{
-                        width: '84px',
-                        height: '116px',
+                        width: '96px',
+                        height: '130px',
                         borderRadius: '6px',
-                        background: coverImage ? `url(${coverImage}) center/cover no-repeat` : gradient,
-                        boxShadow: '0 8px 18px rgba(0, 40, 80, 0.2), 0 2px 4px rgba(0, 0, 0, 0.08)',
+                        background: coverImage ? `url(${coverImage}) center/cover no-repeat` : DEFAULT_COVER_GRADIENT,
+                        boxShadow: '0 8px 20px rgba(0, 40, 80, 0.2), 0 2px 6px rgba(0, 0, 0, 0.08)',
                         display: 'flex',
                         flexDirection: 'column',
                         justifyContent: 'space-between',
-                        padding: '8px',
+                        padding: '10px',
                         color: '#FFFFFF',
                         flexShrink: 0,
                         position: 'relative',
                         overflow: 'hidden',
-                        borderLeft: '4px solid rgba(255, 255, 255, 0.2)',
+                        borderLeft: '4px solid rgba(255, 255, 255, 0.25)',
                       }}
                     >
                       {!coverImage && (
@@ -404,80 +430,59 @@ export const BookFormPage: React.FC = () => {
                           <div style={{ fontSize: '8px', fontWeight: 800, lineHeight: 1.1, textTransform: 'uppercase', letterSpacing: '0.04em', opacity: 0.9 }}>
                             {category}
                           </div>
-                          <div style={{ fontSize: '10px', fontWeight: 900, lineHeight: 1.2, margin: 'auto 0' }}>
+                          <div style={{ fontSize: '11px', fontWeight: 900, lineHeight: 1.2, margin: 'auto 0' }}>
                             {title || 'Кітап атауы'}
                           </div>
-                          <div style={{ fontSize: '8px', opacity: 0.85, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          <div style={{ fontSize: '9px', opacity: 0.85, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {author || 'Автор'}
                           </div>
                         </>
                       )}
                     </div>
 
-                    <div style={{ flex: 1 }}>
-                      <input
-                        type="file"
-                        ref={fileInputRef}
-                        accept="image/*"
-                        onChange={handleImageFileChange}
-                        style={{ display: 'none' }}
-                        id="cover-file-upload"
-                      />
-
-                      <label
-                        htmlFor="cover-file-upload"
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '8px',
-                          padding: '10px 16px',
-                          background: '#FFFFFF',
-                          border: '1.5px solid #005494',
-                          color: '#005494',
-                          borderRadius: '8px',
-                          fontSize: '13px',
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                          transition: 'all 0.2s',
-                        }}
-                      >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                          <polyline points="17 8 12 3 7 8"></polyline>
-                          <line x1="12" y1="3" x2="12" y2="15"></line>
-                        </svg>
-                        Сурет таңдау...
-                      </label>
-
-                      {coverImage && (
-                        <button
-                          type="button"
-                          onClick={removeCoverImage}
-                          style={{
-                            display: 'block',
-                            marginTop: '8px',
-                            background: 'none',
-                            border: 'none',
-                            color: '#DC2626',
-                            fontSize: '12px',
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                            padding: 0,
-                          }}
-                        >
-                          Суретті өшіру (Градиентке қайту)
-                        </button>
+                    <div>
+                      {coverImage ? (
+                        <div>
+                          <span style={{ display: 'inline-block', fontSize: '12px', fontWeight: 700, color: '#047857', marginBottom: '6px' }}>
+                            Сурет сәтті орнатылды
+                          </span>
+                          <button
+                            type="button"
+                            onClick={removeCoverImage}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              padding: '6px 12px',
+                              background: '#FEE2E2',
+                              border: 'none',
+                              borderRadius: '6px',
+                              color: '#DC2626',
+                              fontSize: '12px',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              transition: 'background 0.2s',
+                            }}
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <line x1="18" y1="6" x2="6" y2="18"></line>
+                              <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                            Суретті өшіру / тазарту
+                          </button>
+                        </div>
+                      ) : (
+                        <p style={{ fontSize: '12px', color: '#64748B', margin: 0, lineHeight: 1.5 }}>
+                          Сурет жүктелмесе, сайтта негізгі қарапайым фирменный фон көрсетіледі.
+                        </p>
                       )}
-
-                      <span className="form-hint" style={{ marginTop: '6px' }}>
-                        Форматтары: JPG, PNG, WEBP. Ұсынылатын өлшемі: 600x800 px
-                      </span>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
 
+            {/* AUDIOBOOK SETTINGS SECTION */}
             <div
               style={{
                 background: '#F8FAFC',
@@ -574,6 +579,7 @@ export const BookFormPage: React.FC = () => {
                     </div>
                   </div>
 
+                  {/* Chapters block */}
                   <div
                     style={{
                       background: '#FFFFFF',
@@ -690,6 +696,7 @@ export const BookFormPage: React.FC = () => {
               )}
             </div>
 
+            {/* FREE / PAID ACCESS */}
             <div
               style={{
                 background: isFree ? '#F0FDF4' : '#FFFBEB',
@@ -754,6 +761,7 @@ export const BookFormPage: React.FC = () => {
               </label>
             </div>
 
+            {/* ACTION BUTTONS */}
             <div
               style={{
                 display: 'flex',
