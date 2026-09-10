@@ -162,18 +162,20 @@ export const ProfilePage: React.FC = () => {
               >
                 ID: {user.idNumber || (user.role === 'admin' ? '000 001' : '001 001')}
               </span>
-              <span
-                style={{
-                  fontSize: '12px',
-                  fontWeight: 700,
-                  padding: '3px 10px',
-                  borderRadius: '50px',
-                  background: user.role === 'admin' ? 'rgba(0, 84, 148, 0.12)' : 'rgba(16, 185, 129, 0.12)',
-                  color: user.role === 'admin' ? 'var(--blue)' : '#047857',
-                }}
-              >
-                {user.role === 'admin' ? 'Әкімшілік (Админ)' : 'Оқырман'}
-              </span>
+              {user.role === 'admin' && (
+                <span
+                  style={{
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    padding: '3px 10px',
+                    borderRadius: '50px',
+                    background: 'rgba(0, 84, 148, 0.12)',
+                    color: 'var(--blue)',
+                  }}
+                >
+                  Әкімшілік (Админ)
+                </span>
+              )}
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px', color: 'var(--text-mid)', fontSize: '14px' }}>

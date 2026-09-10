@@ -334,9 +334,11 @@ export const Header: React.FC = () => {
                           >
                             ID: {user.idNumber || (user.role === 'admin' ? '000 001' : '001 001')}
                           </span>
-                          <span className={`profile-card-role-badge ${user.role === 'admin' ? 'admin' : 'client'}`}>
-                            {user.role === 'admin' ? 'Әкімші' : 'Оқырман'}
-                          </span>
+                          {user.role === 'admin' && (
+                            <span className="profile-card-role-badge admin">
+                              Әкімші
+                            </span>
+                          )}
                         </div>
                         <div className="profile-card-email" title={user.email}>
                           {user.email}
