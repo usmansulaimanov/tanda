@@ -108,8 +108,6 @@ export const AudioPlayerBar: React.FC = () => {
                 if (dur && !isNaN(dur) && dur > 0) {
                   setDuration(dur);
                 }
-              } else if (event.data === 2) {
-                setIsPlaying(false);
               } else if (event.data === 0) {
                 setIsPlaying(false);
                 nextChapter();
@@ -135,6 +133,32 @@ export const AudioPlayerBar: React.FC = () => {
     };
   }, [ytVideoId, isYouTube, showToast]);
 
+  // Handle browser autoplay policy by auto-resuming on first user interaction
+  useEffect(() => {
+    if (!isPlaying) return;
+
+    const handleFirstGesture = () => {
+      if (isYouTube && ytPlayerRef.current && typeof ytPlayerRef.current.playVideo === 'function') {
+        ytPlayerRef.current.playVideo();
+      } else if (audioRef.current) {
+        audioRef.current.play().catch(() => {});
+      }
+      window.removeEventListener('click', handleFirstGesture);
+      window.removeEventListener('touchstart', handleFirstGesture);
+      window.removeEventListener('keydown', handleFirstGesture);
+    };
+
+    window.addEventListener('click', handleFirstGesture);
+    window.addEventListener('touchstart', handleFirstGesture);
+    window.addEventListener('keydown', handleFirstGesture);
+
+    return () => {
+      window.removeEventListener('click', handleFirstGesture);
+      window.removeEventListener('touchstart', handleFirstGesture);
+      window.removeEventListener('keydown', handleFirstGesture);
+    };
+  }, [isPlaying, isYouTube]);
+
   // Sync play/pause with players
   useEffect(() => {
     if (isYouTube) {
@@ -142,10 +166,9 @@ export const AudioPlayerBar: React.FC = () => {
         audioRef.current.pause();
       }
       if (ytPlayerRef.current && typeof ytPlayerRef.current.playVideo === 'function') {
-        const state = typeof ytPlayerRef.current.getPlayerState === 'function' ? ytPlayerRef.current.getPlayerState() : -1;
-        if (isPlaying && state !== 1) {
+        if (isPlaying) {
           ytPlayerRef.current.playVideo();
-        } else if (!isPlaying && state === 1) {
+        } else {
           ytPlayerRef.current.pauseVideo();
         }
       }
