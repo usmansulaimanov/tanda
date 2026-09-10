@@ -79,6 +79,17 @@ export const LandingPage: React.FC = () => {
     <div>
       {/* HERO */}
       <section className="hero" id="hero">
+        {/* Full right-side cover image with smooth left fade */}
+        <div className="hero-bg-cover">
+          <img
+            src={heroReadingImg}
+            alt="Tanda"
+            className="hero-bg-cover-img"
+            loading="eager"
+          />
+          <div className="hero-bg-cover-overlay" />
+        </div>
+
         <div className="hero-container">
           <div className="hero-text">
             <span className="hero-tag">Қазақша контент платформасы</span>
@@ -107,19 +118,6 @@ export const LandingPage: React.FC = () => {
                 <div className="stat-num">{readersCount}</div>
                 <div className="stat-label">Оқырман</div>
               </div>
-            </div>
-          </div>
-
-          <div className="hero-image-wrap">
-            <div className="hero-image-glow" />
-            <div className="hero-image-frame">
-              <img
-                src={heroReadingImg}
-                alt="Tanda платформасында кітап оқу"
-                className="hero-image"
-                loading="eager"
-              />
-              <div className="hero-image-overlay" />
             </div>
           </div>
         </div>
