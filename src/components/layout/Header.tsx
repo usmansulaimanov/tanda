@@ -45,14 +45,16 @@ export const Header: React.FC = () => {
       return;
     }
     const q = val.toLowerCase();
-    // Exclude archived books: if a book is archived or deleted, it must not appear in search
-    const matches = books.filter(
-      (b) =>
-        !b.isArchived &&
-        (b.title.toLowerCase().includes(q) ||
-          b.author.toLowerCase().includes(q) ||
-          b.category.toLowerCase().includes(q))
-    );
+    // Exclude archived books: if a book is archived or deleted, it must NEVER appear in search results
+    const matches = books.filter((b) => {
+      const isArchived = Boolean(b.isArchived) || (b.isArchived as unknown) === 'true';
+      if (isArchived) return false;
+      return (
+        b.title.toLowerCase().includes(q) ||
+        b.author.toLowerCase().includes(q) ||
+        b.category.toLowerCase().includes(q)
+      );
+    });
     setSearchResults(matches.slice(0, 6));
     setShowResults(true);
   };
@@ -61,13 +63,15 @@ export const Header: React.FC = () => {
   useEffect(() => {
     if (!headerSearch.trim()) return;
     const q = headerSearch.toLowerCase();
-    const matches = books.filter(
-      (b) =>
-        !b.isArchived &&
-        (b.title.toLowerCase().includes(q) ||
-          b.author.toLowerCase().includes(q) ||
-          b.category.toLowerCase().includes(q))
-    );
+    const matches = books.filter((b) => {
+      const isArchived = Boolean(b.isArchived) || (b.isArchived as unknown) === 'true';
+      if (isArchived) return false;
+      return (
+        b.title.toLowerCase().includes(q) ||
+        b.author.toLowerCase().includes(q) ||
+        b.category.toLowerCase().includes(q)
+      );
+    });
     setSearchResults(matches.slice(0, 6));
   }, [books, headerSearch]);
 

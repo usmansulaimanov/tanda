@@ -63,7 +63,7 @@ export const INITIAL_BOOKS: Book[] = [
     audioUrl: "",
     coverImage: "",
     isFree: false,
-    isArchived: false,
+    isArchived: true,
     gradient: "linear-gradient(135deg, #1E3A8A, #172554)",
     description: "Қазақ әдебиетінің шыңы саналатын Мұхтар Әуезовтің әйгілі эпопеясы.",
     createdAt: "2026-09-04T13:00:00.000Z"
@@ -78,7 +78,7 @@ export const INITIAL_BOOKS: Book[] = [
     audioUrl: "",
     coverImage: "",
     isFree: true,
-    isArchived: false,
+    isArchived: true,
     gradient: "linear-gradient(135deg, #F08000, #c06800)",
     description: "Алдар Көсенің сараң байлар мен ашкөздерді тапқырлықпен жазалаған хикаялары.",
     createdAt: "2026-09-05T14:00:00.000Z"
