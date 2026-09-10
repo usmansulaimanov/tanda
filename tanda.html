@@ -1144,6 +1144,7 @@
         <table class="admin-table">
           <thead>
             <tr>
+              <th style="width:45px; text-align:center;">№</th>
               <th>Мұқаба</th>
               <th>Атауы мен авторы</th>
               <th>Жанры</th>
@@ -1157,6 +1158,16 @@
             <!-- Rendered via JS -->
           </tbody>
         </table>
+      </div>
+
+      <!-- Pagination Controls for Admin Books Table -->
+      <div id="adminBooksPaginationWrap" style="display:flex; justify-content:space-between; align-items:center; margin-top:20px; padding-top:16px; border-top:1px solid #E2E8F0; flex-wrap:wrap; gap:12px;">
+        <div style="font-size:13px; color:var(--text-mid); font-weight:600;" id="adminBooksPageInfo">
+          1-20 кітап көрсетілуде
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;" id="adminBooksPageButtons">
+          <!-- Rendered via JS -->
+        </div>
       </div>
     </div>
   </div>
@@ -1747,6 +1758,7 @@ function handleHeaderSearch(e) {
   if (!query) {
     resultsDropdown.style.display = 'none';
     resultsDropdown.innerHTML = '';
+    adminBooksCurrentPage = 1;
     renderSectionAdminBooks();
     return;
   }
@@ -1790,6 +1802,7 @@ function handleHeaderSearch(e) {
   }
 
   resultsDropdown.style.display = 'block';
+  adminBooksCurrentPage = 1;
   renderSectionAdminBooks(query);
 }
 
@@ -2636,6 +2649,9 @@ function openEditBookFromSection(bookId) {
   openEditBookModal(bookId);
 }
 
+let adminBooksCurrentPage = 1;
+const ADMIN_BOOKS_PER_PAGE = 20;
+
 function renderSectionAdminBooks(filterQuery = '') {
   const tableBody = document.getElementById('sectionAdminBooksTableBody');
   if (!tableBody) return;
@@ -2648,22 +2664,33 @@ function renderSectionAdminBooks(filterQuery = '') {
   if (archivedCountEl) archivedCountEl.textContent = archivedCount;
 
   const query = (filterQuery || '').toLowerCase().trim();
-  const displayBooks = query 
+  const filteredBooks = query 
     ? books.filter(b => b.title.toLowerCase().includes(query) || b.author.toLowerCase().includes(query) || (b.category && b.category.toLowerCase().includes(query)))
     : books;
 
-  if (displayBooks.length === 0) {
+  const totalFiltered = filteredBooks.length;
+  const totalPages = Math.max(1, Math.ceil(totalFiltered / ADMIN_BOOKS_PER_PAGE));
+
+  if (adminBooksCurrentPage > totalPages) adminBooksCurrentPage = totalPages;
+  if (adminBooksCurrentPage < 1) adminBooksCurrentPage = 1;
+
+  const startIndex = (adminBooksCurrentPage - 1) * ADMIN_BOOKS_PER_PAGE;
+  const pageBooks = filteredBooks.slice(startIndex, startIndex + ADMIN_BOOKS_PER_PAGE);
+
+  if (totalFiltered === 0) {
     tableBody.innerHTML = `
       <tr>
-        <td colspan="7" style="text-align:center; padding:32px; color:var(--text-mid); font-size:14px; font-weight:600;">
+        <td colspan="8" style="text-align:center; padding:32px; color:var(--text-mid); font-size:14px; font-weight:600;">
           ${query ? `«${filterQuery}» бойынша кітап табылмады` : 'Кітаптар қоры бос'}
         </td>
       </tr>
     `;
+    renderAdminBooksPagination(0, 0, 0, filterQuery);
     return;
   }
 
-  tableBody.innerHTML = displayBooks.map((b) => {
+  tableBody.innerHTML = pageBooks.map((b, idx) => {
+    const itemNumber = startIndex + idx + 1;
     const coverThumbnail = b.coverImage
       ? `<img src="${b.coverImage}" alt="${b.title}" style="width:38px; height:50px; object-fit:cover; border-radius:4px; border:1px solid #CBD5E1;">`
       : `<div style="width:38px; height:50px; border-radius:4px; background:${b.gradient || '#0057A8'}; display:flex; align-items:center; justify-content:center; color:#FFF; font-size:9px; font-weight:800; text-align:center; padding:2px;">${b.title.slice(0,6)}</div>`;
@@ -2685,6 +2712,9 @@ function renderSectionAdminBooks(filterQuery = '') {
 
     return `
       <tr style="${b.isArchived ? 'background:#F8FAFC; opacity:0.85;' : ''}">
+        <td style="text-align:center; font-weight:800; color:var(--text-mid); font-size:13px; width:45px;">
+          ${itemNumber}
+        </td>
         <td>${coverThumbnail}</td>
         <td>
           <div style="font-weight:700; color:var(--text-dark);">${b.title}</div>
@@ -2712,6 +2742,76 @@ function renderSectionAdminBooks(filterQuery = '') {
       </tr>
     `;
   }).join('');
+
+  renderAdminBooksPagination(totalFiltered, startIndex, pageBooks.length, filterQuery);
+}
+
+function renderAdminBooksPagination(totalItems, startIndex, currentCount, filterQuery = '') {
+  const wrap = document.getElementById('adminBooksPaginationWrap');
+  const infoEl = document.getElementById('adminBooksPageInfo');
+  const btnsEl = document.getElementById('adminBooksPageButtons');
+  if (!wrap || !infoEl || !btnsEl) return;
+
+  if (totalItems === 0) {
+    wrap.style.display = 'none';
+    return;
+  }
+
+  wrap.style.display = 'flex';
+  const totalPages = Math.ceil(totalItems / ADMIN_BOOKS_PER_PAGE);
+  const fromNum = startIndex + 1;
+  const toNum = startIndex + currentCount;
+
+  infoEl.textContent = `Көрсетілуде: ${fromNum}-${toNum} (барлығы: ${totalItems} кітап) • Бет ${adminBooksCurrentPage} / ${totalPages}`;
+
+  let buttonsHtml = '';
+
+  const isPrevDisabled = adminBooksCurrentPage <= 1;
+  buttonsHtml += `
+    <button 
+      style="padding:7px 14px; border-radius:8px; border:1.5px solid #CBD5E1; background:${isPrevDisabled ? '#F1F5F9' : '#FFFFFF'}; color:${isPrevDisabled ? '#94A3B8' : 'var(--text-dark)'}; font-size:12px; font-weight:700; cursor:${isPrevDisabled ? 'not-allowed' : 'pointer'}; transition:all 0.15s;" 
+      ${isPrevDisabled ? 'disabled' : `onclick="changeAdminBooksPage(${adminBooksCurrentPage - 1}, '${filterQuery}')"`}>
+      Алдыңғы бет
+    </button>
+  `;
+
+  for (let p = 1; p <= totalPages; p++) {
+    if (totalPages > 7 && (p < adminBooksCurrentPage - 2 || p > adminBooksCurrentPage + 2) && p !== 1 && p !== totalPages) {
+      if (p === adminBooksCurrentPage - 3 || p === adminBooksCurrentPage + 3) {
+        buttonsHtml += `<span style="padding:0 4px; color:#94A3B8; font-size:12px;">...</span>`;
+      }
+      continue;
+    }
+
+    const isActive = p === adminBooksCurrentPage;
+    buttonsHtml += `
+      <button 
+        style="width:34px; height:34px; border-radius:8px; border:1.5px solid ${isActive ? 'var(--blue)' : '#CBD5E1'}; background:${isActive ? 'var(--blue)' : '#FFFFFF'}; color:${isActive ? '#FFFFFF' : 'var(--text-dark)'}; font-size:12px; font-weight:800; cursor:pointer; transition:all 0.15s;" 
+        onclick="changeAdminBooksPage(${p}, '${filterQuery}')">
+        ${p}
+      </button>
+    `;
+  }
+
+  const isNextDisabled = adminBooksCurrentPage >= totalPages;
+  buttonsHtml += `
+    <button 
+      style="padding:7px 14px; border-radius:8px; border:1.5px solid #CBD5E1; background:${isNextDisabled ? '#F1F5F9' : '#FFFFFF'}; color:${isNextDisabled ? '#94A3B8' : 'var(--text-dark)'}; font-size:12px; font-weight:700; cursor:${isNextDisabled ? 'not-allowed' : 'pointer'}; transition:all 0.15s;" 
+      ${isNextDisabled ? 'disabled' : `onclick="changeAdminBooksPage(${adminBooksCurrentPage + 1}, '${filterQuery}')"`}>
+      Келесі бет
+    </button>
+  `;
+
+  btnsEl.innerHTML = buttonsHtml;
+}
+
+function changeAdminBooksPage(newPage, filterQuery = '') {
+  adminBooksCurrentPage = newPage;
+  renderSectionAdminBooks(filterQuery);
+  const adminSection = document.getElementById('admin-section');
+  if (adminSection) {
+    adminSection.scrollIntoView({ behavior: 'smooth' });
+  }
 }
 
 // INIT

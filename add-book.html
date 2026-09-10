@@ -855,7 +855,7 @@ function handleSubmitBook(e) {
       isArchived,
       gradient: gradients[Math.floor(Math.random() * gradients.length)]
     };
-    books.unshift(newBook);
+    books.push(newBook);
     alert(`«${title}» кітабы сайтқа сәтті қосылды!`);
   }
 
