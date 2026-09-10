@@ -162,52 +162,54 @@ export const BookDetailPage: React.FC = () => {
               </button>
             )}
 
-            {/* Read later / Bookmark button */}
-            <button
-              type="button"
-              onClick={handleToggleSave}
-              style={{
-                padding: '13px 24px',
-                fontSize: '14px',
-                fontWeight: 700,
-                borderRadius: '50px',
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                transition: 'all 0.2s',
-                background: isSaved ? 'rgba(239, 126, 0, 0.12)' : '#FFFFFF',
-                color: isSaved ? 'var(--orange)' : 'var(--text-dark)',
-                border: isSaved ? '1.5px solid var(--orange)' : '1.5px solid #CBD5E1',
-                boxShadow: isSaved ? '0 2px 8px rgba(239, 126, 0, 0.2)' : 'none',
-              }}
-              onMouseEnter={(e) => {
-                if (!isSaved) {
-                  e.currentTarget.style.borderColor = 'var(--blue)';
-                  e.currentTarget.style.color = 'var(--blue)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!isSaved) {
-                  e.currentTarget.style.borderColor = '#CBD5E1';
-                  e.currentTarget.style.color = 'var(--text-dark)';
-                }
-              }}
-            >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill={isSaved ? 'currentColor' : 'none'}
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+            {/* Read later / Bookmark button - only for readers */}
+            {role !== 'admin' && (
+              <button
+                type="button"
+                onClick={handleToggleSave}
+                style={{
+                  padding: '13px 24px',
+                  fontSize: '14px',
+                  fontWeight: 700,
+                  borderRadius: '50px',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  transition: 'all 0.2s',
+                  background: isSaved ? 'rgba(239, 126, 0, 0.12)' : '#FFFFFF',
+                  color: isSaved ? 'var(--orange)' : 'var(--text-dark)',
+                  border: isSaved ? '1.5px solid var(--orange)' : '1.5px solid #CBD5E1',
+                  boxShadow: isSaved ? '0 2px 8px rgba(239, 126, 0, 0.2)' : 'none',
+                }}
+                onMouseEnter={(e) => {
+                  if (!isSaved) {
+                    e.currentTarget.style.borderColor = 'var(--blue)';
+                    e.currentTarget.style.color = 'var(--blue)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isSaved) {
+                    e.currentTarget.style.borderColor = '#CBD5E1';
+                    e.currentTarget.style.color = 'var(--text-dark)';
+                  }
+                }}
               >
-                <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path>
-              </svg>
-              <span>{isSaved ? 'Сақталды (Кейін оқимын)' : 'Кейін оқимын'}</span>
-            </button>
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill={isSaved ? 'currentColor' : 'none'}
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path>
+                </svg>
+                <span>{isSaved ? 'Сақталды (Кейін оқимын)' : 'Кейін оқимын'}</span>
+              </button>
+            )}
           </div>
         </div>
       </div>

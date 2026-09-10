@@ -14,6 +14,13 @@ export const ProfilePage: React.FC = () => {
   const { playBook } = useAudioPlayerStore();
   const { showToast } = useToastStore();
 
+  // If user is admin, redirect to admin dashboard
+  React.useEffect(() => {
+    if (isAuthenticated && user?.role === 'admin') {
+      navigate('/admin', { replace: true });
+    }
+  }, [isAuthenticated, user, navigate]);
+
   // Filter saved books that exist and are not archived
   const savedBooks = useMemo(() => {
     return books.filter((b) => savedBookIds.includes(b.id) && !b.isArchived);

@@ -330,30 +330,32 @@ export const Header: React.FC = () => {
 
                     {/* Quick Navigation Links */}
                     <div className="profile-card-actions">
-                      <Link
-                        to="/profile"
-                        className="profile-menu-item"
-                        onClick={() => setProfileOpen(false)}
-                      >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path>
-                        </svg>
-                        <span style={{ flex: 1 }}>Сақталған кітаптар</span>
-                        {savedBookIds.length > 0 && (
-                          <span
-                            style={{
-                              background: 'var(--orange)',
-                              color: '#FFF',
-                              fontSize: '11px',
-                              fontWeight: 800,
-                              padding: '1px 7px',
-                              borderRadius: '50px',
-                            }}
-                          >
-                            {savedBookIds.length}
-                          </span>
-                        )}
-                      </Link>
+                      {user.role !== 'admin' && (
+                        <Link
+                          to="/profile"
+                          className="profile-menu-item"
+                          onClick={() => setProfileOpen(false)}
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path>
+                          </svg>
+                          <span style={{ flex: 1 }}>Сақталған кітаптар</span>
+                          {savedBookIds.length > 0 && (
+                            <span
+                              style={{
+                                background: 'var(--orange)',
+                                color: '#FFF',
+                                fontSize: '11px',
+                                fontWeight: 800,
+                                padding: '1px 7px',
+                                borderRadius: '50px',
+                              }}
+                            >
+                              {savedBookIds.length}
+                            </span>
+                          )}
+                        </Link>
+                      )}
 
                       {user.role === 'admin' ? (
                         <Link

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Book } from '../../types';
+import { useAuthStore } from '../../store/useAuthStore';
 import { useAudioPlayerStore } from '../../store/useAudioPlayerStore';
 import { useSavedBooksStore } from '../../store/useSavedBooksStore';
 import { useToastStore } from '../../store/useToastStore';
@@ -11,6 +12,7 @@ interface BookCardProps {
 
 export const BookCard: React.FC<BookCardProps> = ({ book }) => {
   const navigate = useNavigate();
+  const { role } = useAuthStore();
   const { playBook } = useAudioPlayerStore();
   const { isBookSaved, toggleSavedBook } = useSavedBooksStore();
   const { showToast } = useToastStore();
@@ -53,43 +55,45 @@ export const BookCard: React.FC<BookCardProps> = ({ book }) => {
           {book.isFree ? 'Тегін' : 'Премиум'}
         </span>
 
-        {/* Quick bookmark toggle on card */}
-        <button
-          type="button"
-          onClick={handleBookmarkClick}
-          title={isSaved ? 'Сақталғандардан өшіру' : 'Кейін оқимын (Сақтау)'}
-          style={{
-            position: 'absolute',
-            top: '12px',
-            left: '12px',
-            width: '32px',
-            height: '32px',
-            borderRadius: '50%',
-            background: isSaved ? 'var(--orange)' : 'rgba(0, 20, 45, 0.55)',
-            backdropFilter: 'blur(4px)',
-            border: isSaved ? 'none' : '1px solid rgba(255,255,255,0.3)',
-            color: '#FFFFFF',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-            zIndex: 3,
-          }}
-        >
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill={isSaved ? 'currentColor' : 'none'}
-            stroke="currentColor"
-            strokeWidth="2.2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+        {/* Quick bookmark toggle on card - only for readers */}
+        {role !== 'admin' && (
+          <button
+            type="button"
+            onClick={handleBookmarkClick}
+            title={isSaved ? 'Сақталғандардан өшіру' : 'Кейін оқимын (Сақтау)'}
+            style={{
+              position: 'absolute',
+              top: '12px',
+              left: '12px',
+              width: '32px',
+              height: '32px',
+              borderRadius: '50%',
+              background: isSaved ? 'var(--orange)' : 'rgba(0, 20, 45, 0.55)',
+              backdropFilter: 'blur(4px)',
+              border: isSaved ? 'none' : '1px solid rgba(255,255,255,0.3)',
+              color: '#FFFFFF',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+              zIndex: 3,
+            }}
           >
-            <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path>
-          </svg>
-        </button>
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill={isSaved ? 'currentColor' : 'none'}
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path>
+            </svg>
+          </button>
+        )}
 
         <div className="cover-title">{book.title}</div>
         <div className="cover-author-text">{book.author}</div>
