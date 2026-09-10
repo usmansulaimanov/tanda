@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useCallback } from 'react';
-import { Play, Pause, SkipBack, SkipForward, X, Headphones, Youtube, RotateCcw, RotateCw } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, X, Headphones, RotateCcw, RotateCw } from 'lucide-react';
 import { useAudioPlayerStore } from '../../store/useAudioPlayerStore';
 import { useToastStore } from '../../store/useToastStore';
 import { extractYouTubeVideoId, loadYouTubeIFrameApi } from '../../utils/youtube';
@@ -303,18 +303,7 @@ export const AudioPlayerBar: React.FC = () => {
                 )}
               </div>
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1.5">
-                  <h4 className="text-sm font-bold text-slate-900 truncate">{currentBook.title}</h4>
-                  {isYouTube && (
-                    <span
-                      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-50 text-red-600 border border-red-200 shrink-0"
-                      title="YouTube аудио форматы"
-                    >
-                      <Youtube className="w-3 h-3 text-red-600" />
-                      YouTube
-                    </span>
-                  )}
-                </div>
+                <h4 className="text-sm font-bold text-slate-900 truncate">{currentBook.title}</h4>
                 <p className="text-xs text-slate-500 truncate">
                   {currentBook.author} &bull; <span className="text-[#0057A8] font-medium">{currentChapterTitle}</span>
                 </p>
