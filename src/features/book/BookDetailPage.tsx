@@ -82,6 +82,7 @@ export const BookDetailPage: React.FC = () => {
         }}
       >
         {/* Cover */}
+        {/* Cover */}
         <div style={{ display: 'flex', justifyContent: 'center' }}>
           <div
             style={{
@@ -89,9 +90,7 @@ export const BookDetailPage: React.FC = () => {
               maxWidth: '300px',
               aspectRatio: '3/4',
               borderRadius: '12px',
-              background: book.coverImage
-                ? `url(${book.coverImage}) center/cover`
-                : (book.gradient || 'linear-gradient(135deg, #0057A8, #003d7a)'),
+              background: book.gradient || 'linear-gradient(135deg, #0057A8, #003d7a)',
               boxShadow: '0 12px 30px rgba(0,0,0,0.15)',
               display: 'flex',
               flexDirection: 'column',
@@ -99,16 +98,42 @@ export const BookDetailPage: React.FC = () => {
               padding: '24px',
               position: 'relative',
               color: '#FFF',
+              overflow: 'hidden',
             }}
           >
+            {book.coverImage && (
+              <img
+                src={book.coverImage}
+                alt={book.title}
+                referrerPolicy="no-referrer"
+                crossOrigin="anonymous"
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  zIndex: 1,
+                }}
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+            )}
             <span
               className={`cover-badge ${book.isFree ? 'badge-free' : 'badge-premium'}`}
-              style={{ position: 'absolute', top: '16px', right: '16px' }}
+              style={{ position: 'absolute', top: '16px', right: '16px', zIndex: 2 }}
             >
               {book.isFree ? 'Тегін' : 'Премиум'}
             </span>
-            <div className="cover-title" style={{ fontSize: '22px' }}>{book.title}</div>
-            <div className="cover-author-text" style={{ fontSize: '14px' }}>{book.author}</div>
+            <div style={{ position: 'relative', zIndex: 2 }}>
+              {!book.coverImage && (
+                <>
+                  <div className="cover-title" style={{ fontSize: '22px' }}>{book.title}</div>
+                  <div className="cover-author-text" style={{ fontSize: '14px' }}>{book.author}</div>
+                </>
+              )}
+            </div>
           </div>
         </div>
 

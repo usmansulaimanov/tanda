@@ -187,9 +187,7 @@ export const AdminDashboard: React.FC = () => {
                           width: '44px',
                           height: '58px',
                           borderRadius: '6px',
-                          background: book.coverImage
-                            ? `url(${book.coverImage}) center/cover`
-                            : (book.gradient || '#0057A8'),
+                          background: book.gradient || '#0057A8',
                           boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
                           display: 'flex',
                           alignItems: 'center',
@@ -200,8 +198,27 @@ export const AdminDashboard: React.FC = () => {
                           textAlign: 'center',
                           padding: '2px',
                           overflow: 'hidden',
+                          position: 'relative',
                         }}
                       >
+                        {book.coverImage && (
+                          <img
+                            src={book.coverImage}
+                            alt={book.title}
+                            referrerPolicy="no-referrer"
+                            crossOrigin="anonymous"
+                            style={{
+                              position: 'absolute',
+                              inset: 0,
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'cover',
+                            }}
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                            }}
+                          />
+                        )}
                         {!book.coverImage && book.title.slice(0, 10)}
                       </div>
                     </td>

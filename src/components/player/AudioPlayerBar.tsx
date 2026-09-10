@@ -272,14 +272,25 @@ export const AudioPlayerBar: React.FC = () => {
             {/* Left: Book Meta */}
             <div className="flex items-center gap-3 w-full sm:w-1/3 min-w-0">
               <div
-                className="w-12 h-12 rounded-xl flex items-center justify-center text-white shrink-0 shadow-sm overflow-hidden"
+                className="w-12 h-12 rounded-xl flex items-center justify-center text-white shrink-0 shadow-sm overflow-hidden relative"
                 style={{
-                  background: currentBook.coverImage
-                    ? `url(${currentBook.coverImage}) center/cover`
-                    : currentBook.gradient || '#0057A8',
+                  background: currentBook.gradient || '#0057A8',
                 }}
               >
-                {!currentBook.coverImage && <Headphones className="w-5 h-5 text-white/90" />}
+                {currentBook.coverImage ? (
+                  <img
+                    src={currentBook.coverImage}
+                    alt={currentBook.title}
+                    referrerPolicy="no-referrer"
+                    crossOrigin="anonymous"
+                    className="absolute inset-0 w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <Headphones className="w-5 h-5 text-white/90" />
+                )}
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5">

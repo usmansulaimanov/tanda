@@ -257,10 +257,25 @@ export const Header: React.FC = () => {
                             width: '28px',
                             height: '36px',
                             borderRadius: '4px',
-                            background: b.coverImage ? `url(${b.coverImage}) center/cover` : (b.gradient || '#0057A8'),
+                            background: b.gradient || '#0057A8',
                             flexShrink: 0,
+                            position: 'relative',
+                            overflow: 'hidden',
                           }}
-                        />
+                        >
+                          {b.coverImage && (
+                            <img
+                              src={b.coverImage}
+                              alt={b.title}
+                              referrerPolicy="no-referrer"
+                              crossOrigin="anonymous"
+                              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                              }}
+                            />
+                          )}
+                        </div>
                         <div style={{ minWidth: 0, flex: 1 }}>
                           <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-dark)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {b.title}

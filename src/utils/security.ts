@@ -1,3 +1,6 @@
+// Security and URL sanitization utility
+// Strictly no emojis
+
 export function sanitizeInput(input: string | undefined | null): string {
   if (!input) return '';
   return input
@@ -11,7 +14,13 @@ export function sanitizeInput(input: string | undefined | null): string {
 
 export function sanitizeUrl(url: string | undefined | null, fallback = ''): string {
   if (!url) return fallback;
-  const trimmed = url.trim();
+  let trimmed = url.trim();
+  if (!trimmed) return fallback;
+
+  if (trimmed.startsWith('//')) {
+    trimmed = 'https:' + trimmed;
+  }
+
   if (
     trimmed.startsWith('http://') ||
     trimmed.startsWith('https://') ||
@@ -21,5 +30,10 @@ export function sanitizeUrl(url: string | undefined | null, fallback = ''): stri
   ) {
     return trimmed;
   }
+
+  if (trimmed.includes('.') && !trimmed.includes(' ') && !trimmed.startsWith('javascript:')) {
+    return 'https://' + trimmed;
+  }
+
   return fallback;
 }

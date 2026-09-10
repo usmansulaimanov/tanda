@@ -45,13 +45,32 @@ export const BookCard: React.FC<BookCardProps> = ({ book }) => {
       <div
         className="book-cover"
         style={{
-          background: book.coverImage
-            ? `url(${book.coverImage}) center/cover`
-            : (book.gradient || 'linear-gradient(135deg, #0057A8, #003d7a)'),
+          background: book.gradient || 'linear-gradient(135deg, #0057A8, #003d7a)',
           position: 'relative',
+          overflow: 'hidden',
         }}
       >
-        <span className={`cover-badge ${book.isFree ? 'badge-free' : 'badge-premium'}`}>
+        {book.coverImage && (
+          <img
+            src={book.coverImage}
+            alt={book.title}
+            referrerPolicy="no-referrer"
+            crossOrigin="anonymous"
+            style={{
+              position: 'absolute',
+              inset: 0,
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              zIndex: 1,
+            }}
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
+            }}
+          />
+        )}
+
+        <span className={`cover-badge ${book.isFree ? 'badge-free' : 'badge-premium'}`} style={{ zIndex: 3 }}>
           {book.isFree ? 'Тегін' : 'Премиум'}
         </span>
 
@@ -95,8 +114,14 @@ export const BookCard: React.FC<BookCardProps> = ({ book }) => {
           </button>
         )}
 
-        <div className="cover-title">{book.title}</div>
-        <div className="cover-author-text">{book.author}</div>
+        <div style={{ position: 'relative', zIndex: 2 }}>
+          {!book.coverImage && (
+            <>
+              <div className="cover-title">{book.title}</div>
+              <div className="cover-author-text">{book.author}</div>
+            </>
+          )}
+        </div>
       </div>
 
       <div className="book-meta">
