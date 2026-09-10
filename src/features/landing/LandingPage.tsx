@@ -4,6 +4,7 @@ import { useBookStore } from '../../store/useBookStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { BookCard } from '../../components/ui/BookCard';
 import { AdminDashboard } from '../admin/AdminDashboard';
+import heroReadingImg from '../../assets/hero-reading.jpg';
 
 const CATEGORIES = [
   'Бәрі',
@@ -67,34 +68,49 @@ export const LandingPage: React.FC = () => {
 
   return (
     <div>
-      {/* HERO (Exact original markup & styling) */}
+      {/* HERO */}
       <section className="hero" id="hero">
-        <div className="hero-text">
-          <span className="hero-tag">Қазақша контент платформасы</span>
-          <h1>
-            Оқы. Тыңда.<br />
-            <span>Дамы.</span>
-          </h1>
-          <p className="hero-desc">
-            Мыңдаған қазақша аудиокітаптар мен электронды кітаптар — бір қолыңның астында. Кез келген уақытта, кез келген жерде.
-          </p>
-          <div className="hero-buttons">
-            <a href="#catalog" className="btn-primary">
-              Кітаптарды көру
-            </a>
+        <div className="hero-container">
+          <div className="hero-text">
+            <span className="hero-tag">Қазақша контент платформасы</span>
+            <h1>
+              Оқы. Тыңда.<br />
+              <span>Дамы.</span>
+            </h1>
+            <p className="hero-desc">
+              Мыңдаған қазақша аудиокітаптар мен электронды кітаптар — бір қолыңның астында. Кез келген уақытта, кез келген жерде.
+            </p>
+            <div className="hero-buttons">
+              <a href="#catalog" className="btn-primary">
+                Кітаптарды көру
+              </a>
+            </div>
+            <div className="hero-stats">
+              <div>
+                <div className="stat-num">{booksCount}</div>
+                <div className="stat-label">Кітап</div>
+              </div>
+              <div>
+                <div className="stat-num">{authorsCount}</div>
+                <div className="stat-label">Авторлар</div>
+              </div>
+              <div>
+                <div className="stat-num">{readersCount}</div>
+                <div className="stat-label">Оқырман</div>
+              </div>
+            </div>
           </div>
-          <div className="hero-stats">
-            <div>
-              <div className="stat-num">{booksCount}</div>
-              <div className="stat-label">Кітап</div>
-            </div>
-            <div>
-              <div className="stat-num">{authorsCount}</div>
-              <div className="stat-label">Авторлар</div>
-            </div>
-            <div>
-              <div className="stat-num">{readersCount}</div>
-              <div className="stat-label">Оқырман</div>
+
+          <div className="hero-image-wrap">
+            <div className="hero-image-glow" />
+            <div className="hero-image-frame">
+              <img
+                src={heroReadingImg}
+                alt="Tanda платформасында кітап оқу"
+                className="hero-image"
+                loading="eager"
+              />
+              <div className="hero-image-overlay" />
             </div>
           </div>
         </div>
