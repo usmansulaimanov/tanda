@@ -7,10 +7,12 @@ import sys
 PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 3000
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 BOOKS_FILE = os.path.join(BASE_DIR, 'books.json')
+DIST_DIR = os.path.join(BASE_DIR, 'dist')
 
 class TandaHandler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, directory=BASE_DIR, **kwargs)
+        serve_dir = DIST_DIR if os.path.isdir(DIST_DIR) else BASE_DIR
+        super().__init__(*args, directory=serve_dir, **kwargs)
 
     def end_headers(self):
         self.send_header('Access-Control-Allow-Origin', '*')
@@ -40,6 +42,18 @@ class TandaHandler(http.server.SimpleHTTPRequestHandler):
                     self.end_headers()
                     self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
                     return
+
+        # SPA fallback to dist/index.html if file doesn't exist
+        serve_dir = DIST_DIR if os.path.isdir(DIST_DIR) else BASE_DIR
+        requested_file = os.path.join(serve_dir, self.path.lstrip('/').split('?')[0])
+        if not os.path.exists(requested_file) and os.path.isfile(os.path.join(DIST_DIR, 'index.html')):
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/html; charset=utf-8')
+            self.end_headers()
+            with open(os.path.join(DIST_DIR, 'index.html'), 'rb') as f:
+                self.wfile.write(f.read())
+            return
+
         return super().do_GET()
 
     def do_POST(self):

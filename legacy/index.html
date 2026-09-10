@@ -1,0 +1,3114 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tanda — Қазақша аудио және электронды кітаптар</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --blue: #0057A8;
+    --orange: #F08000;
+    --white: #FFFFFF;
+    --blue-dark: #004080;
+    --blue-light: #E8F1FB;
+    --text-dark: #0D1B2A;
+    --text-mid: #3A5068;
+    --text-light: #7A93AC;
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color: var(--text-dark);
+    background: #FFFFFF;
+    overflow-x: hidden;
+    line-height: 1.5;
+  }
+
+  /* NAV */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 48px;
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(0,87,168,0.08);
+  }
+
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+  }
+
+  .nav-logo img {
+    height: 52px;
+    width: auto;
+    display: block;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 32px;
+    list-style: none;
+    align-items: center;
+  }
+
+  .nav-links a {
+    text-decoration: none;
+    color: var(--text-mid);
+    font-weight: 500;
+    font-size: 15px;
+    transition: color 0.2s;
+  }
+
+  .nav-links a:hover { color: var(--blue); }
+
+  .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .btn-nav-login {
+    background: transparent;
+    border: 1px solid var(--blue);
+    color: var(--blue);
+    padding: 8px 18px;
+    border-radius: 50px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-nav-login:hover {
+    background: var(--blue-light);
+  }
+
+  .btn-nav-reg {
+    background: var(--orange);
+    border: none;
+    color: var(--white);
+    padding: 8px 20px;
+    border-radius: 50px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(240,128,0,0.25);
+  }
+
+  .btn-nav-reg:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(240,128,0,0.35);
+  }
+
+  .user-badge {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--blue-light);
+    padding: 6px 14px;
+    border-radius: 50px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--blue);
+  }
+
+  .btn-admin-pill {
+    background: #0D1B2A;
+    color: #FFFFFF;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 50px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-admin-pill:hover {
+    background: #1A365D;
+  }
+
+  .btn-logout {
+    background: transparent;
+    border: none;
+    color: #E53E3E;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 4px 8px;
+  }
+
+  /* HERO */
+  .hero {
+    min-height: 80vh;
+    background: var(--blue);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 130px 24px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    left: 50%; top: -120px;
+    transform: translateX(-50%);
+    width: 650px; height: 650px;
+    background: radial-gradient(circle, rgba(240,128,0,0.18) 0%, rgba(240,128,0,0) 70%);
+    border-radius: 50%;
+  }
+
+  .hero-text {
+    position: relative;
+    z-index: 2;
+    max-width: 820px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .hero-tag {
+    display: inline-block;
+    background: rgba(240,128,0,0.2);
+    color: var(--orange);
+    padding: 6px 18px;
+    border-radius: 50px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    margin-bottom: 24px;
+  }
+
+  .hero h1 {
+    font-size: clamp(38px, 5.5vw, 68px);
+    font-weight: 900;
+    color: var(--white);
+    line-height: 1.15;
+    margin-bottom: 20px;
+  }
+
+  .hero h1 span { color: var(--orange); }
+
+  .hero-desc {
+    font-size: 19px;
+    color: rgba(255,255,255,0.85);
+    max-width: 620px;
+    margin: 0 auto 36px;
+    line-height: 1.7;
+  }
+
+  .hero-buttons {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 48px;
+  }
+
+  .btn-primary {
+    background: var(--orange);
+    color: var(--white);
+    padding: 16px 36px;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 16px;
+    text-decoration: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 20px rgba(240,128,0,0.4);
+    border: none;
+    cursor: pointer;
+    display: inline-block;
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(240,128,0,0.5);
+  }
+
+  .btn-outline {
+    background: transparent;
+    color: var(--white);
+    padding: 16px 36px;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 16px;
+    text-decoration: none;
+    border: 2px solid rgba(255,255,255,0.35);
+    transition: border-color 0.2s, background 0.2s;
+    display: inline-block;
+  }
+
+  .btn-outline:hover {
+    border-color: var(--white);
+    background: rgba(255,255,255,0.08);
+  }
+
+  .hero-stats {
+    display: flex;
+    gap: 48px;
+    justify-content: center;
+    border-top: 1px solid rgba(255,255,255,0.15);
+    padding-top: 32px;
+    width: 100%;
+    max-width: 520px;
+  }
+
+  .stat-num {
+    font-size: 32px;
+    font-weight: 900;
+    color: var(--white);
+  }
+
+  .stat-label {
+    font-size: 13px;
+    color: rgba(255,255,255,0.6);
+    margin-top: 2px;
+  }
+
+  /* SECTIONS */
+  section { padding: 90px 48px; }
+
+  .section-tag {
+    display: inline-block;
+    color: var(--blue);
+    background: var(--blue-light);
+    font-size: 13px;
+    font-weight: 700;
+    padding: 4px 14px;
+    border-radius: 50px;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .section-title {
+    font-size: clamp(28px, 4vw, 42px);
+    font-weight: 900;
+    color: var(--text-dark);
+    margin-bottom: 14px;
+    line-height: 1.2;
+  }
+
+  .section-sub {
+    font-size: 16px;
+    color: var(--text-mid);
+    max-width: 560px;
+    line-height: 1.6;
+  }
+
+  /* FEATURES */
+  .features-section { background: var(--white); }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
+    margin-top: 48px;
+  }
+
+  .feature-card {
+    background: #F7FAFD;
+    border: 1px solid rgba(0,87,168,0.08);
+    border-radius: var(--radius);
+    padding: 32px 28px;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .feature-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(0,87,168,0.08);
+  }
+
+  .feature-card.accent {
+    background: var(--blue);
+    color: var(--white);
+  }
+
+  .feature-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: var(--blue-light);
+    color: var(--blue);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+
+  .feature-card.accent .feature-icon {
+    background: rgba(255,255,255,0.15);
+    color: var(--white);
+  }
+
+  .feature-card h3 {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text-dark);
+    margin-bottom: 10px;
+  }
+
+  .feature-card.accent h3 { color: var(--white); }
+
+  .feature-card p {
+    font-size: 14px;
+    color: var(--text-mid);
+    line-height: 1.6;
+  }
+
+  .feature-card.accent p { color: rgba(255,255,255,0.8); }
+
+  /* CATALOG */
+  .catalog-section { background: #F7FAFD; }
+
+  .catalog-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 36px;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+
+  .catalog-tabs {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .tab {
+    padding: 8px 18px;
+    border-radius: 50px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    background: var(--white);
+    color: var(--text-mid);
+    border: 1px solid rgba(0,87,168,0.1);
+  }
+
+  .tab.active {
+    background: var(--blue);
+    color: var(--white);
+    border-color: var(--blue);
+  }
+
+  .search-input {
+    background: var(--white);
+    border: 1px solid rgba(0,87,168,0.15);
+    border-radius: 50px;
+    padding: 10px 20px;
+    font-size: 14px;
+    width: 240px;
+    outline: none;
+    color: var(--text-dark);
+  }
+
+  .search-input:focus {
+    border-color: var(--blue);
+  }
+
+  .books-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+  }
+
+  .book-card {
+    background: var(--white);
+    border: 1px solid rgba(0,87,168,0.08);
+    border-radius: var(--radius);
+    padding: 16px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .book-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+  }
+
+  .book-cover {
+    width: 100%;
+    aspect-ratio: 3/4;
+    border-radius: var(--radius-sm);
+    margin-bottom: 14px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 16px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+  }
+
+  .cover-badge {
+    position: absolute;
+    top: 10px; right: 10px;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 4px 10px;
+    border-radius: 50px;
+    text-transform: uppercase;
+  }
+
+  .badge-free {
+    background: #10B981;
+    color: var(--white);
+  }
+
+  .badge-premium {
+    background: var(--orange);
+    color: var(--white);
+  }
+
+  .cover-title {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--white);
+    line-height: 1.25;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.6);
+  }
+
+  .cover-author-text {
+    font-size: 12px;
+    color: rgba(255,255,255,0.85);
+    margin-top: 4px;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+  }
+
+  .book-meta {
+    margin-bottom: 14px;
+  }
+
+  .book-title {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--text-dark);
+    margin-bottom: 4px;
+    line-height: 1.3;
+  }
+
+  .book-author {
+    font-size: 13px;
+    color: var(--text-mid);
+    margin-bottom: 6px;
+  }
+
+  .book-category {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--blue);
+    background: var(--blue-light);
+    padding: 2px 8px;
+    border-radius: 6px;
+    display: inline-block;
+  }
+
+  .book-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .btn-book-action {
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    text-align: center;
+  }
+
+  .btn-read {
+    background: var(--blue-light);
+    color: var(--blue);
+  }
+
+  .btn-read:hover {
+    background: var(--blue);
+    color: var(--white);
+  }
+
+  .btn-listen {
+    background: var(--orange);
+    color: var(--white);
+  }
+
+  .btn-listen:hover {
+    background: #d87200;
+  }
+
+  /* HOW IT WORKS */
+  .how-section { background: var(--blue); }
+
+  .how-section .section-title,
+  .how-section .section-tag { color: var(--white); }
+
+  .how-section .section-sub { color: rgba(255,255,255,0.75); }
+
+  .how-section .section-tag { background: rgba(255,255,255,0.15); }
+
+  .how-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+    margin-top: 56px;
+  }
+
+  .how-card {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: var(--radius);
+    padding: 36px 30px;
+  }
+
+  .how-num {
+    font-size: 52px;
+    font-weight: 900;
+    color: var(--orange);
+    line-height: 1;
+    margin-bottom: 18px;
+  }
+
+  .how-card h3 {
+    font-size: 19px;
+    font-weight: 800;
+    color: var(--white);
+    margin-bottom: 10px;
+  }
+
+  .how-card p {
+    font-size: 14px;
+    color: rgba(255,255,255,0.75);
+    line-height: 1.65;
+  }
+
+  /* PRICING */
+  .pricing-section { background: var(--white); }
+
+  .pricing-header {
+    text-align: center;
+    margin-bottom: 56px;
+  }
+
+  .pricing-header .section-sub { margin: 0 auto; }
+
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    max-width: 1050px;
+    margin: 0 auto;
+  }
+
+  .price-card {
+    border: 2px solid rgba(0,87,168,0.1);
+    border-radius: var(--radius);
+    padding: 36px 30px;
+    position: relative;
+    transition: transform 0.2s;
+    background: #FFFFFF;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .price-card:hover { transform: translateY(-4px); }
+
+  .price-card.featured {
+    background: var(--blue);
+    border-color: var(--blue);
+    color: var(--white);
+  }
+
+  .price-badge {
+    position: absolute;
+    top: -14px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--orange);
+    color: var(--white);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 16px;
+    border-radius: 50px;
+  }
+
+  .price-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-mid);
+    margin-bottom: 14px;
+  }
+
+  .price-card.featured .price-name { color: rgba(255,255,255,0.85); }
+
+  .price-amount {
+    font-size: 42px;
+    font-weight: 900;
+    color: var(--text-dark);
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .price-card.featured .price-amount { color: var(--white); }
+
+  .price-period {
+    font-size: 13px;
+    color: var(--text-light);
+    margin-bottom: 24px;
+  }
+
+  .price-card.featured .price-period { color: rgba(255,255,255,0.7); }
+
+  .price-features {
+    list-style: none;
+    margin-bottom: 28px;
+  }
+
+  .price-features li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: var(--text-mid);
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(0,87,168,0.06);
+  }
+
+  .price-card.featured .price-features li {
+    color: rgba(255,255,255,0.9);
+    border-bottom-color: rgba(255,255,255,0.1);
+  }
+
+  .btn-plan {
+    width: 100%;
+    padding: 14px;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 15px;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+  }
+
+  .btn-plan-outline {
+    background: transparent;
+    border: 2px solid var(--blue);
+    color: var(--blue);
+  }
+
+  .btn-plan-outline:hover { background: var(--blue); color: var(--white); }
+
+  .btn-plan-filled {
+    background: var(--orange);
+    color: var(--white);
+  }
+
+  .btn-plan-filled:hover { background: #d87200; }
+
+  /* CTA */
+  .cta-section {
+    background: var(--orange);
+    text-align: center;
+    padding: 80px 48px;
+    color: var(--white);
+  }
+
+  .cta-section h2 {
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 900;
+    margin-bottom: 16px;
+  }
+
+  .cta-section p {
+    font-size: 17px;
+    color: rgba(255,255,255,0.9);
+    max-width: 520px;
+    margin: 0 auto 32px;
+  }
+
+  .btn-cta-white {
+    display: inline-block;
+    background: var(--white);
+    color: var(--orange);
+    padding: 16px 42px;
+    border-radius: 50px;
+    font-weight: 800;
+    font-size: 16px;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+
+  .btn-cta-white:hover { transform: translateY(-2px); }
+
+  /* FOOTER */
+  footer {
+    background: var(--text-dark);
+    color: rgba(255,255,255,0.6);
+    padding: 60px 48px 36px;
+  }
+
+  .footer-bottom {
+    border-top: 1px solid rgba(255,255,255,0.1);
+    padding-top: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    flex-wrap: gap;
+    gap: 16px;
+  }
+
+  /* MODALS */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(13,27,42,0.8);
+    backdrop-filter: blur(8px);
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .modal-overlay.active {
+    display: flex;
+  }
+
+  .modal-box {
+    background: #FFFFFF;
+    border-radius: var(--radius);
+    max-width: 480px;
+    width: 100%;
+    padding: 36px 32px;
+    position: relative;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.3);
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .modal-box.large {
+    max-width: 780px;
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 18px; right: 18px;
+    background: #F1F5F9;
+    border: none;
+    border-radius: 50%;
+    width: 36px; height: 36px;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-mid);
+    transition: all 0.2s;
+  }
+
+  .modal-close:hover { background: #E2E8F0; color: var(--text-dark); }
+
+  .form-group {
+    margin-bottom: 18px;
+  }
+
+  .form-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 6px;
+  }
+
+  .form-input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #CBD5E1;
+    border-radius: 10px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .form-input:focus {
+    border-color: var(--blue);
+  }
+
+  .btn-submit {
+    width: 100%;
+    padding: 14px;
+    border-radius: 50px;
+    background: var(--blue);
+    color: var(--white);
+    border: none;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .btn-submit:hover {
+    background: var(--blue-dark);
+  }
+
+  .auth-switch {
+    text-align: center;
+    margin-top: 18px;
+    font-size: 13px;
+    color: var(--text-mid);
+  }
+
+  .auth-switch a {
+    color: var(--blue);
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  /* READER */
+  .reader-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid #E2E8F0;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .reader-theme-btn {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid #CBD5E1;
+    background: #FFF;
+  }
+
+  .reader-theme-btn.active {
+    background: var(--blue);
+    color: #FFF;
+    border-color: var(--blue);
+  }
+
+  .reader-content {
+    line-height: 1.8;
+    font-size: 17px;
+    color: var(--text-dark);
+    padding: 12px 0;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .reader-content p {
+    margin-bottom: 18px;
+    text-indent: 24px;
+    text-align: justify;
+  }
+
+  /* THEMES IN READER */
+  .reader-mode-light { background: #FFFFFF; color: #0D1B2A; }
+  .reader-mode-sepia { background: #F8F1E5; color: #433422; }
+  .reader-mode-dark { background: #131B2E; color: #E2E8F0; }
+
+  /* AUDIO PLAYER BAR */
+  .audio-bar {
+    background: #F1F5F9;
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  /* ADMIN TABLE */
+  .admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-top: 16px;
+  }
+
+  .admin-table th {
+    background: #F8FAFC;
+    padding: 10px 12px;
+    text-align: left;
+    font-weight: 700;
+    color: var(--text-mid);
+    border-bottom: 1px solid #E2E8F0;
+  }
+
+  .admin-table td {
+    padding: 12px;
+    border-bottom: 1px solid #F1F5F9;
+  }
+
+  .badge-tag {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 700;
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 900px) {
+    nav { padding: 10px 20px; }
+    .nav-logo img { height: 42px; }
+    .nav-links { display: none; }
+    section { padding: 60px 20px; }
+    .features-grid { grid-template-columns: 1fr; }
+    .books-grid { grid-template-columns: repeat(2, 1fr); }
+    .how-grid { grid-template-columns: 1fr; }
+    .pricing-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div style="display:flex; align-items:center; gap:20px; flex:1; max-width:580px;">
+    <a class="nav-logo" href="#">
+      <img src="data:image/png;base64,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" alt="Tanda">
+    </a>
+
+    <!-- ЛОГОТИПТІҢ ОҢ ЖАҒЫНДАҒЫ ПОИСК (ІЗДЕУ) -->
+    <div id="navSearchWrap" style="position:relative; flex:1; max-width:320px;">
+      <div style="position:relative; width:100%;">
+        <input type="text" id="adminHeaderSearch" placeholder="Кітап атын іздеу..." oninput="handleHeaderSearch(event)" autocomplete="off" style="width:100%; padding:9px 14px 9px 36px; border:1.5px solid #CBD5E1; border-radius:50px; font-size:13px; font-weight:500; background:#F8FAFC; color:var(--text-dark); outline:none; transition:all 0.2s;">
+        <svg style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:#64748B; pointer-events:none;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      </div>
+      <!-- ІЗДЕУДЕ ШЫҚҚАН КІТАПТАР (БАССА ӨҢДЕУ БЕТІНЕ ӨТЕДІ) -->
+      <div id="navSearchResults" style="display:none; position:absolute; left:0; top:calc(100% + 8px); width:360px; max-height:380px; overflow-y:auto; background:#FFFFFF; border:1px solid #CBD5E1; border-radius:12px; box-shadow:0 12px 30px rgba(0,0,0,0.15); z-index:200; padding:6px;"></div>
+    </div>
+  </div>
+
+  <ul class="nav-links">
+    <li id="navCatalogLink"><a href="#catalog">Кітаптар қоры</a></li>
+    <li id="navFeaturesLink"><a href="#features">Мүмкіндіктер</a></li>
+  </ul>
+  <div class="nav-actions" id="navAuthArea">
+    <!-- Rendered via JS based on session -->
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="hero">
+  <div class="hero-text">
+    <span class="hero-tag">Қазақша контент платформасы</span>
+    <h1>Оқы. Тыңда.<br><span>Дамы.</span></h1>
+    <p class="hero-desc">Мыңдаған қазақша аудиокітаптар мен электронды кітаптар — бір қолыңның астында. Кез келген уақытта, кез келген жерде.</p>
+    <div class="hero-buttons">
+      <a href="#catalog" id="heroActionBtn" class="btn-primary">Кітаптарды көру</a>
+    </div>
+    <div class="hero-stats">
+      <div>
+        <div class="stat-num">5000+</div>
+        <div class="stat-label">Кітап</div>
+      </div>
+      <div>
+        <div class="stat-num">120+</div>
+        <div class="stat-label">Авторлар</div>
+      </div>
+      <div>
+        <div class="stat-num">50К+</div>
+        <div class="stat-label">Оқырман</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features-section" id="features">
+  <div style="max-width:1200px; margin:0 auto;">
+    <div style="text-align:center; margin-bottom:48px;">
+      <span class="section-tag">Неге Tanda?</span>
+      <h2 class="section-title">Бәрі бір жерде</h2>
+      <p class="section-sub" style="margin:0 auto;">Аудиокітаптар, электронды кітаптар, подкасттар — барлығы қазақ тілінде, сапалы дыбыс пен оқу тәжірибесімен.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card accent">
+        <div class="feature-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 18v-6a9 9 0 0 1 18 0v6"></path><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path></svg>
+        </div>
+        <h3>Аудиокітаптар</h3>
+        <p>Кәсіби дикторлар орындаған мыңдаған аудиокітап. Жолда, спортта, демалыста — қашан болса да тыңда.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+        </div>
+        <h3>Электронды кітаптар</h3>
+        <p>Ыңғайлы оқу режимі: шрифт өлшемі, сепия немесе түнгі фон түсі — бәрін өзіңізге ыңғайлап баптайсыз.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        </div>
+        <h3>Жылдамдық пен Таймер</h3>
+        <p>0.75x-тен 2x-ке дейін жылдамдықты таңдаңыз. Ұйықтар алдында автоматты өшетін ұйқы таймерін қосыңыз.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CATALOG -->
+<section class="catalog-section" id="catalog">
+  <div style="max-width:1200px; margin:0 auto;">
+    <div class="catalog-header">
+      <div>
+        <span class="section-tag">Кітап қоры</span>
+        <h2 class="section-title">Танымал кітаптар</h2>
+        <p class="section-sub">Қазақ әдебиетінің інжу-маржандары мен әлемдік үздік аудармалар</p>
+      </div>
+      <div style="display:flex; gap:16px; align-items:center; flex-wrap:wrap;">
+        <input type="text" id="catalogSearch" class="search-input" placeholder="Кітап немесе автор іздеу..." oninput="filterBooks()">
+        <div class="catalog-tabs">
+          <button class="tab active" onclick="setCategory('Бәрі', this)">Бәрі</button>
+          <button class="tab" onclick="setCategory('Классика', this)">Классика</button>
+          <button class="tab" onclick="setCategory('Тұлғалық даму', this)">Тұлғалық даму</button>
+          <button class="tab" onclick="setCategory('Тарих', this)">Тарих</button>
+          <button class="tab" onclick="setCategory('Ертегілер', this)">Ертегілер</button>
+          <button class="tab" onclick="setCategory('Бизнес', this)">Бизнес</button>
+          <button class="tab" onclick="setCategory('Психология', this)">Психология</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="books-grid" id="booksGrid">
+      <!-- Generated via JS -->
+    </div>
+  </div>
+</section>
+
+<!-- DEDICATED ADMIN BOOK MANAGEMENT SECTION (Сайттағы арнайы кітаптар тізімі және басқару панелі) -->
+<section class="admin-page-section" id="admin-section" style="display:none; padding:60px 24px; background:#F8FAFC; border-top:2px solid #E2E8F0; border-bottom:2px solid #E2E8F0;">
+  <div style="max-width:1200px; margin:0 auto;">
+    <!-- Admin Books Table (Өңдеу, Архивтеу, Өшіру кестесі және Қосу батырмасы) -->
+    <div style="background:#FFF; border:1px solid #CBD5E1; border-radius:16px; padding:32px; box-shadow:0 10px 25px rgba(0,0,0,0.04);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:16px;">
+        <div>
+          <h2 style="font-size:24px; font-weight:900; color:var(--text-dark); margin:0;">Кітаптар</h2>
+          <p style="font-size:13px; color:var(--text-mid); margin-top:4px;">Барлығы: <span id="sectionTotalBooksCount" style="font-weight:700; color:var(--blue);">0</span> кітап | Архивтелген (жасырын): <span id="sectionArchivedBooksCount" style="font-weight:700; color:#64748B;">0</span> кітап</p>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
+          <div style="display:flex; gap:8px;">
+            <button type="button" id="adminFilterAllBtn" onclick="setAdminBooksFilter('all')" style="display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:700; color:#FFFFFF; background:var(--blue); padding:6px 14px; border-radius:6px; border:1.5px solid var(--blue); cursor:pointer; transition:all 0.15s;">Барлығы</button>
+            <button type="button" id="adminFilterActiveBtn" onclick="setAdminBooksFilter('active')" style="display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:700; color:#047857; background:#ECFDF5; padding:6px 14px; border-radius:6px; border:1.5px solid #A7F3D0; cursor:pointer; transition:all 0.15s;"><span style="width:8px; height:8px; border-radius:50%; background:#10B981;"></span> Белсенді</button>
+            <button type="button" id="adminFilterArchivedBtn" onclick="setAdminBooksFilter('archived')" style="display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:700; color:#64748B; background:#F1F5F9; padding:6px 14px; border-radius:6px; border:1.5px solid #CBD5E1; cursor:pointer; transition:all 0.15s;"><span style="width:8px; height:8px; border-radius:50%; background:#94A3B8;"></span> Архивте (Жасырын)</button>
+          </div>
+          <!-- ҚОСУ БАТЫРМАСЫ ЖАҢА ПАРАҚШАҒА АПАРАДЫ -->
+          <a href="add-book.html" class="btn-primary" style="text-decoration:none; padding:10px 24px; font-size:14px; font-weight:800; display:inline-flex; align-items:center; gap:8px; box-shadow:0 4px 14px rgba(0,87,168,0.25);">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            Қосу
+          </a>
+        </div>
+      </div>
+
+      <div style="overflow-x:auto;">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th style="width:45px; text-align:center;">№</th>
+              <th>Мұқаба</th>
+              <th>Атауы мен авторы</th>
+              <th>Жанры</th>
+              <th>Бет / Файлдар</th>
+              <th>Қолжетімділік</th>
+              <th>Көрінуі</th>
+              <th style="text-align:right;">Әрекеттер</th>
+            </tr>
+          </thead>
+          <tbody id="sectionAdminBooksTableBody">
+            <!-- Rendered via JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination Controls for Admin Books Table -->
+      <div id="adminBooksPaginationWrap" style="display:flex; justify-content:space-between; align-items:center; margin-top:20px; padding-top:16px; border-top:1px solid #E2E8F0; flex-wrap:wrap; gap:12px;">
+        <div style="font-size:13px; color:var(--text-mid); font-weight:600;" id="adminBooksPageInfo">
+          1-20 кітап көрсетілуде
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;" id="adminBooksPageButtons">
+          <!-- Rendered via JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div style="max-width:1200px; margin:0 auto;">
+    <div class="footer-bottom">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span style="font-weight:900; color:#FFF; font-size:16px;">tanda</span>
+        <span>— Қазақша аудио және электронды кітаптар платформасы</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:16px;">
+        <span>© 2026 tanda.kz. Барлық құқықтар қорғалған.</span>
+        <button onclick="openAdminLoginModal()" style="background:none; border:none; color:rgba(255,255,255,0.4); font-size:12px; cursor:pointer; text-decoration:underline;">Әкімші</button>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- AUTH MODAL (Эл.почта арқылы тіркелу және кіру) -->
+<div class="modal-overlay" id="authModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeAuthModal()">✕</button>
+    <div style="text-align:center; margin-bottom:24px;">
+      <h3 style="font-size:22px; font-weight:800; color:var(--text-dark);" id="authModalTitle">Кітапты оқу үшін тіркеліңіз</h3>
+      <p style="font-size:13px; color:var(--text-mid); margin-top:4px;" id="authModalSubtitle">Электронды почтаңыз арқылы кіріп, кітаптарға қол жеткізіңіз</p>
+    </div>
+
+    <div style="display:flex; gap:8px; margin-bottom:20px; border-bottom:1px solid #E2E8F0; padding-bottom:8px;">
+      <button id="tabAuthSignup" style="flex:1; padding:8px; border:none; background:none; font-weight:700; font-size:14px; color:var(--blue); border-bottom:2px solid var(--blue); cursor:pointer;" onclick="switchAuthMode('signup')">Тіркелу</button>
+      <button id="tabAuthLogin" style="flex:1; padding:8px; border:none; background:none; font-weight:600; font-size:14px; color:var(--text-mid); cursor:pointer;" onclick="switchAuthMode('login')">Кіру</button>
+    </div>
+
+    <form id="authForm" onsubmit="handleAuthSubmit(event)">
+      <div class="form-group" id="groupName">
+        <label class="form-label">Аты-жөніңіз</label>
+        <input type="text" id="authName" class="form-input" placeholder="Мысалы: Азамат Серікұлы">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Электронды почта (Email) *</label>
+        <input type="email" required id="authEmail" class="form-input" placeholder="sizdin.email@gmail.com">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Құпиясөз (Password) *</label>
+        <input type="password" required id="authPassword" class="form-input" placeholder="Кемінде 6 таңба">
+      </div>
+
+      <div id="authError" style="color:#E53E3E; font-size:12px; font-weight:600; margin-bottom:14px; display:none;"></div>
+
+      <button type="submit" class="btn-submit" id="authSubmitBtn">Тіркелу және оқу</button>
+    </form>
+  </div>
+</div>
+
+<!-- READER & PLAYER MODAL (Кітапты оқу және тыңдау) -->
+<div class="modal-overlay" id="readerModal">
+  <div class="modal-box large">
+    <button class="modal-close" onclick="closeReaderModal()">✕</button>
+    
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px solid #E2E8F0; padding-bottom:14px;">
+      <div>
+        <span class="book-category" id="readerBookCategory">Классика</span>
+        <h2 style="font-size:22px; font-weight:900; color:var(--text-dark); margin-top:4px;" id="readerBookTitle">Кітап атауы</h2>
+        <div style="font-size:13px; color:var(--text-mid);" id="readerBookAuthor">Авторы</div>
+      </div>
+    </div>
+
+    <!-- Reading Settings -->
+    <div class="reader-controls">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span style="font-size:13px; font-weight:600; color:var(--text-mid);">Қаріп:</span>
+        <button class="reader-theme-btn" onclick="changeFontSize(-2)">A -</button>
+        <span id="fontSizeDisplay" style="font-size:13px; font-weight:700; width:36px; text-align:center;">17px</span>
+        <button class="reader-theme-btn" onclick="changeFontSize(2)">A +</button>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:6px;">
+        <span style="font-size:13px; font-weight:600; color:var(--text-mid);">Режим:</span>
+        <button class="reader-theme-btn active" id="btnModeLight" onclick="setReaderTheme('light')">Күндізгі</button>
+        <button class="reader-theme-btn" id="btnModeSepia" onclick="setReaderTheme('sepia')">Сепия</button>
+        <button class="reader-theme-btn" id="btnModeDark" onclick="setReaderTheme('dark')">Түнгі</button>
+      </div>
+    </div>
+
+    <!-- Reader Body -->
+    <div class="reader-content reader-mode-light" id="readerContentArea">
+      <!-- Paragraphs generated via JS -->
+    </div>
+
+    <!-- Audio Player Bar -->
+    <div class="audio-bar" id="audioPlayerBar" style="display:none; flex-wrap:wrap; gap:16px;">
+      <div style="display:flex; align-items:center; gap:12px; flex:1; min-width:260px;">
+        <button id="audioPlayBtn" onclick="toggleAudio()" style="width:44px; height:44px; border-radius:50%; background:var(--orange); color:#FFF; border:none; font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 12px rgba(240,128,0,0.3); flex-shrink:0;">▶</button>
+        <div style="flex:1; min-width:0;">
+          <div style="font-size:13px; font-weight:700; color:var(--text-dark); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" id="audioTitleDisplay">Аудиокітап тыңдау</div>
+          <div style="display:flex; align-items:center; gap:8px; margin-top:2px; flex-wrap:wrap;">
+            <div style="font-size:11px; color:var(--text-mid); font-family:monospace;" id="audioTimeDisplay">00:00 / 08:30</div>
+            <div id="audioNarratorDisplay" style="font-size:11px; color:#0369A1; font-weight:700;"></div>
+          </div>
+          <!-- Chapters Dropdown for Audio Player -->
+          <div id="audioChapterPickerWrap" style="display:none; margin-top:6px; align-items:center; gap:6px;">
+            <label for="audioChapterSelect" style="font-size:11px; font-weight:700; color:var(--text-mid);">Бөлім:</label>
+            <select id="audioChapterSelect" onchange="handleReaderChapterChange(this.value)" style="padding:3px 8px; border-radius:6px; border:1px solid #CBD5E1; font-size:11px; font-weight:700; background:#FFF; max-width:220px;"></select>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:8px;">
+        <select id="audioSpeed" style="padding:6px; border-radius:6px; border:1px solid #CBD5E1; font-size:12px; font-weight:700;" onchange="setAudioSpeed(this.value)">
+          <option value="0.75">0.75x</option>
+          <option value="1.0" selected>1.0x</option>
+          <option value="1.25">1.25x</option>
+          <option value="1.5">1.5x</option>
+          <option value="2.0">2.0x</option>
+        </select>
+        <button style="padding:6px 10px; border-radius:6px; border:1px solid #CBD5E1; background:#FFF; font-size:12px; font-weight:600; cursor:pointer;" onclick="toggleSleepTimer()">Ұйқы таймері</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN PANEL MODAL (Админ басқару панелі) -->
+<div class="modal-overlay" id="adminModal">
+  <div class="modal-box large">
+    <button class="modal-close" onclick="closeAdminModal()">✕</button>
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #E2E8F0; padding-bottom:14px; margin-bottom:20px;">
+      <div>
+        <h2 style="font-size:22px; font-weight:900; color:var(--text-dark);">Tanda — Әкімшілік панель</h2>
+        <p style="font-size:13px; color:var(--text-mid);">Кітаптарды, аудиоларды және қолданушылар базасын басқару</p>
+      </div>
+      <a href="add-book.html" class="btn-primary" style="text-decoration:none; padding:8px 18px; font-size:13px; display:inline-block;">+ Жаңа кітап қосу</a>
+    </div>
+
+    <!-- Admin Stats Overview -->
+    <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:16px; margin-bottom:24px;">
+      <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:10px; padding:16px;">
+        <div style="font-size:11px; font-weight:700; color:var(--text-mid); text-transform:uppercase;">Кітап қоры</div>
+        <div style="font-size:24px; font-weight:900; color:var(--blue);" id="adminBookCount">8</div>
+      </div>
+      <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:10px; padding:16px;">
+        <div style="font-size:11px; font-weight:700; color:var(--text-mid); text-transform:uppercase;">Тіркелген қолданушылар</div>
+        <div style="font-size:24px; font-weight:900; color:var(--orange);" id="adminUserCount">0</div>
+      </div>
+      <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:10px; padding:16px;">
+        <div style="font-size:11px; font-weight:700; color:var(--text-mid); text-transform:uppercase;">Жазылым бағасы</div>
+        <div style="font-size:24px; font-weight:900; color:#10B981;">1 990 ₸ / ай</div>
+      </div>
+    </div>
+
+    <!-- Admin Tabs -->
+    <div style="display:flex; gap:8px; border-bottom:1px solid #E2E8F0; margin-bottom:16px;">
+      <button id="adminTabBooksBtn" style="padding:8px 16px; border:none; background:none; font-weight:700; font-size:14px; color:var(--blue); border-bottom:2px solid var(--blue); cursor:pointer;" onclick="switchAdminTab('books')">Кітаптар қоры</button>
+      <button id="adminTabUsersBtn" style="padding:8px 16px; border:none; background:none; font-weight:600; font-size:14px; color:var(--text-mid); cursor:pointer;" onclick="switchAdminTab('users')">Тіркелген эл.почталар</button>
+    </div>
+
+    <!-- Admin Tab: Books -->
+    <div id="adminTabBooks">
+      <div style="overflow-x:auto;">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Мұқаба</th>
+              <th>Атауы мен авторы</th>
+              <th>Жанры</th>
+              <th>Бет / Аудио</th>
+              <th>Қолжетімділік</th>
+              <th>Көрінуі</th>
+              <th style="text-align:right;">Әрекеттер</th>
+            </tr>
+          </thead>
+          <tbody id="adminBooksTableBody">
+            <!-- Rendered via JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Admin Tab: Users -->
+    <div id="adminTabUsers" style="display:none;">
+      <div style="overflow-x:auto;">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Эл.почта</th>
+              <th>Аты-жөні</th>
+              <th>Тіркелген күні</th>
+              <th>Рөлі</th>
+            </tr>
+          </thead>
+          <tbody id="adminUsersTableBody">
+            <!-- Rendered via JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD / EDIT BOOK MODAL -->
+<div class="modal-overlay" id="addBookModal">
+  <div class="modal-box large" style="max-height:90vh; overflow-y:auto;">
+    <button class="modal-close" onclick="closeAddBookModal()">✕</button>
+    <div style="margin-bottom:20px;">
+      <h3 style="font-size:22px; font-weight:900; color:var(--text-dark);" id="bookModalHeading">Жаңа кітап қосу</h3>
+      <p style="font-size:13px; color:var(--text-mid); margin-top:4px;">Кітаптың мұқабасын, EPUB немесе PDF файлын, аудио сілтемесін және ақпараттарын толтырыңыз</p>
+    </div>
+    
+    <form onsubmit="handleSaveBook(event)">
+      <input type="hidden" id="editBookId">
+
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:16px; margin-bottom:16px;">
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Кітап атауы *</label>
+          <input type="text" required id="newBookTitle" class="form-input" placeholder="Мысалы: Бақытсыз Жамал">
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Авторы *</label>
+          <input type="text" required id="newBookAuthor" class="form-input" placeholder="Мысалы: Міржақып Дулатұлы">
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:16px; margin-bottom:16px;">
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Жанры (Санаты) *</label>
+          <select id="newBookCategory" class="form-input">
+            <option value="Классика">Классика</option>
+            <option value="Тұлғалық даму">Тұлғалық даму</option>
+            <option value="Тарих">Тарих</option>
+            <option value="Ертегілер">Ертегілер</option>
+            <option value="Бизнес">Бизнес</option>
+            <option value="Психология">Психология</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Кітап бетінің саны</label>
+          <input type="number" id="newBookPages" class="form-input" placeholder="Мысалы: 240" min="1">
+        </div>
+      </div>
+
+      <!-- Book Cover Image upload or URL -->
+      <div class="form-group" style="margin-bottom:16px;">
+        <label class="form-label">Кітап мұқабасының суреті</label>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <input type="file" id="newBookCoverFile" accept="image/*" class="form-input" style="padding:7px;" onchange="handleCoverFileSelect(event)">
+          <input type="url" id="newBookCoverUrl" class="form-input" placeholder="немесе сурет сілтемесі (URL)">
+        </div>
+        <div id="coverPreviewWrap" style="margin-top:10px; display:none;">
+          <img id="coverPreviewImg" src="" alt="Алдын ала көрініс" style="width:75px; height:100px; object-fit:cover; border-radius:8px; border:1px solid #CBD5E1; box-shadow:0 4px 10px rgba(0,0,0,0.08);">
+        </div>
+      </div>
+
+      <!-- FILE UPLOAD: EPUB / PDF (ФАЙЛ РЕТІНДЕ ЖҮКТЕУ) -->
+      <div style="background:#F8FAFC; border:1px solid #CBD5E1; border-radius:12px; padding:18px; margin-bottom:18px;">
+        <div style="font-size:14px; font-weight:800; color:var(--text-dark); margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+          Кітап файлы (PDF және EPUB форматтары)
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:14px;">
+          <!-- PDF File -->
+          <div>
+            <label class="form-label" style="display:flex; justify-content:space-between;">
+              <span>PDF файлы</span>
+              <span style="font-size:11px; color:#DC2626; font-weight:700;">.pdf</span>
+            </label>
+            <input type="file" id="newBookPdfFile" accept=".pdf,application/pdf" class="form-input" style="padding:6px;" onchange="handlePdfFileSelect(event)">
+            <input type="url" id="newBookPdfUrl" class="form-input" placeholder="немесе PDF сілтемесі (URL)" style="margin-top:6px; font-size:12px;">
+            <div id="pdfFileStatus" style="font-size:11px; color:#059669; font-weight:700; margin-top:4px; display:none;">PDF файлы таңдалды</div>
+          </div>
+
+          <!-- EPUB File -->
+          <div>
+            <label class="form-label" style="display:flex; justify-content:space-between;">
+              <span>EPUB файлы</span>
+              <span style="font-size:11px; color:#2563EB; font-weight:700;">.epub</span>
+            </label>
+            <input type="file" id="newBookEpubFile" accept=".epub,application/epub+zip" class="form-input" style="padding:6px;" onchange="handleEpubFileSelect(event)">
+            <input type="url" id="newBookEpubUrl" class="form-input" placeholder="немесе EPUB сілтемесі (URL)" style="margin-top:6px; font-size:12px;">
+            <div id="epubFileStatus" style="font-size:11px; color:#059669; font-weight:700; margin-top:4px; display:none;">EPUB файлы таңдалды</div>
+          </div>
+        </div>
+
+        <!-- Optional summary / intro -->
+        <div style="margin-top:14px;">
+          <label class="form-label">Кітап туралы қысқаша аңдатпа (сипаттамасы)</label>
+          <textarea id="newBookDescription" class="form-input" rows="3" placeholder="Кітап туралы қысқаша мәлімет..."></textarea>
+        </div>
+      </div>
+
+      <!-- Audio Book URL -->
+      <div class="form-group" style="margin-bottom:16px;">
+        <label class="form-label">Аудиокітап аудио файлы (URL немесе mp3 сілтемесі)</label>
+        <input type="url" id="newBookAudioUrl" class="form-input" placeholder="https://... (аудио файл сілтемесі, бос болса сынақ аудиосы ойналады)">
+      </div>
+
+      <!-- Options: Free test & Archive -->
+      <div style="display:flex; flex-wrap:wrap; gap:24px; margin-bottom:20px; background:#F8FAFC; padding:14px 18px; border-radius:10px; border:1px solid #CBD5E1;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <input type="checkbox" id="newBookIsFree" style="width:18px; height:18px; accent-color:var(--orange); cursor:pointer;">
+          <label for="newBookIsFree" style="font-size:13px; font-weight:700; cursor:pointer;">Тегін сынақ кітабы қылып белгілеу</label>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <input type="checkbox" id="newBookIsArchived" style="width:18px; height:18px; accent-color:#64748B; cursor:pointer;">
+          <label for="newBookIsArchived" style="font-size:13px; font-weight:700; cursor:pointer; color:#64748B;">Архивке салу (қолданушыларға көрінбейді)</label>
+        </div>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:12px;">
+        <button type="button" class="btn-outline" style="padding:10px 24px; font-weight:700;" onclick="closeAddBookModal()">Болдырмау</button>
+        <button type="submit" class="btn-primary" style="padding:10px 32px; font-weight:800; font-size:14px;" id="bookSubmitBtn">Сақтау және сайтқа қосу</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- SUBSCRIBE MODAL -->
+<div class="modal-overlay" id="subscribeModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeSubscribeModal()">✕</button>
+    <div style="text-align:center; margin-bottom:20px;">
+      <span class="section-tag" style="background:#FEF3C7; color:#B45309;">Премиум жазылым</span>
+      <h3 style="font-size:22px; font-weight:800; color:var(--text-dark); margin-top:8px;">Барлық қазақша кітаптарды ашыңыз</h3>
+      <div style="font-size:32px; font-weight:900; color:var(--blue); margin:12px 0 4px;">1 990 ₸ <span style="font-size:14px; font-weight:500; color:var(--text-mid);">/ айына</span></div>
+      <p style="font-size:13px; color:var(--text-mid);">Kaspi QR немесе банк картасымен жылдам төлеңіз</p>
+    </div>
+
+    <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:18px; text-align:center; margin-bottom:20px;">
+      <div style="font-weight:700; font-size:14px; color:#DC2626; margin-bottom:8px;">Kaspi QR арқылы төлеу</div>
+      <div style="display:inline-block; padding:12px; background:#FFF; border-radius:8px; border:2px dashed #DC2626;">
+        <svg width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+      </div>
+      <div style="font-size:12px; color:var(--text-mid); margin-top:8px;">Kaspi.kz қосымшасында QR сканерді ашыңыз</div>
+    </div>
+
+    <button class="btn-submit" onclick="confirmSubscription()" style="background:#10B981;">Төледім және жазылымды қосу</button>
+  </div>
+</div>
+
+<!-- DEDICATED ADMIN LOGIN MODAL -->
+<div class="modal-overlay" id="adminLoginModal">
+  <div class="modal-box" style="max-width:380px;">
+    <button class="modal-close" onclick="closeAdminLoginModal()">✕</button>
+    <div style="text-align:center; margin-bottom:20px;">
+      <div style="display:inline-block; background:#0D1B2A; color:#FFF; padding:6px 14px; border-radius:50px; font-size:11px; font-weight:800; letter-spacing:1px; text-transform:uppercase; margin-bottom:10px;">Әкімшілік кіру</div>
+      <h3 style="font-size:20px; font-weight:900; color:var(--text-dark);">Tanda Басқару жүйесі</h3>
+      <p style="font-size:13px; color:var(--text-mid); margin-top:4px;">Тек сайт әкімшісіне арналған жабық бөлім</p>
+    </div>
+
+    <form onsubmit="handleAdminLoginSubmit(event)">
+      <div class="form-group">
+        <label class="form-label">Админ эл.почтасы</label>
+        <input type="email" required id="adminLoginEmail" class="form-input" placeholder="admin@tanda.kz">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Құпиясөз</label>
+        <input type="password" required id="adminLoginPassword" class="form-input" placeholder="Құпиясөзді енгізіңіз">
+      </div>
+
+      <div id="adminLoginError" style="color:#E53E3E; font-size:12px; font-weight:600; margin-bottom:14px; display:none;"></div>
+
+      <button type="submit" class="btn-submit" style="background:#0D1B2A;">Әкімші болып кіру</button>
+    </form>
+  </div>
+</div>
+
+<script>
+// INITIAL SEED BOOKS
+const INITIAL_BOOKS = [
+  {
+    id: "book-men",
+    title: "Мен",
+    author: "Усман Сулайманов",
+    category: "Тұлғалық даму",
+    pages: 200,
+    hasAudio: false,
+    audioUrl: "",
+    coverImage: "",
+    isFree: true,
+    isArchived: false,
+    gradient: "linear-gradient(135deg, #0057A8, #003d7a)",
+    description: "Усман Сулаймановтың жеке даму мен өмірлік мақсаттарға арналған кітабы."
+  },
+  {
+    id: "book-aaaa",
+    title: "АААА",
+    author: "DDDD",
+    category: "Тұлғалық даму",
+    pages: null,
+    hasAudio: false,
+    audioUrl: "",
+    coverImage: "",
+    isFree: false,
+    isArchived: false,
+    gradient: "linear-gradient(135deg, #F08000, #c06800)",
+    description: "Тұлғалық даму бағытындағы жаңа кітап."
+  },
+  {
+    id: "kara-sozder",
+    title: "Қара сөздер",
+    author: "Абай Құнанбайұлы",
+    category: "Классика",
+    pages: 140,
+    hasAudio: true,
+    audioNarrator: "Берік Айтжанов",
+    audioDuration: "2 сағат 15 минут",
+    audioChapters: [
+      { id: "ch-1", title: "1-сөз", duration: "03:45", audioUrl: "" },
+      { id: "ch-2", title: "2-сөз", duration: "04:10", audioUrl: "" },
+      { id: "ch-3", title: "3-сөз", duration: "05:20", audioUrl: "" }
+    ],
+    audioUrl: "",
+    coverImage: "",
+    isFree: true,
+    isArchived: false,
+    gradient: "linear-gradient(135deg, #0057A8, #003d7a)",
+    description: "Абайдың философиялық және адамгершілік ой-толғаулары жинақталған классикалық туынды."
+  },
+  {
+    id: "abai-joly",
+    title: "Абай жолы (1-том)",
+    author: "Мұхтар Әуезов",
+    category: "Классика",
+    pages: 420,
+    audioUrl: "",
+    coverImage: "",
+    isFree: false,
+    isArchived: false,
+    gradient: "linear-gradient(135deg, #1E3A8A, #172554)",
+    description: "Қазақ әдебиетінің шыңы саналатын Мұхтар Әуезовтің әйгілі эпопеясы."
+  },
+  {
+    id: "aldar-kose",
+    title: "Алдар Көсенің айлалары",
+    author: "Қазақ халық ертегілері",
+    category: "Ертегілер",
+    pages: 96,
+    audioUrl: "",
+    coverImage: "",
+    isFree: true,
+    isArchived: false,
+    gradient: "linear-gradient(135deg, #F08000, #c06800)",
+    description: "Алдар Көсенің сараң байлар мен ашкөздерді тапқырлықпен жазалаған хикаялары."
+  },
+  {
+    id: "koshpendiler",
+    title: "Көшпенділер",
+    author: "Ілияс Есенберлин",
+    category: "Тарих",
+    pages: 580,
+    audioUrl: "",
+    coverImage: "",
+    isFree: false,
+    isArchived: false,
+    gradient: "linear-gradient(135deg, #065F46, #022C22)",
+    description: "Қазақ хандығының қалыптасуы мен ерлікке толы тарихын баяндайтын көркем туынды."
+  },
+  {
+    id: "shakarim",
+    title: "Үш анық",
+    author: "Шәкәрім Құдайбердіұлы",
+    category: "Тұлғалық даму",
+    pages: 112,
+    audioUrl: "",
+    coverImage: "",
+    isFree: true,
+    isArchived: false,
+    gradient: "linear-gradient(135deg, #7C3AED, #4C1D95)",
+    description: "Адам өміріндегі рухани құндылықтар мен ар ілімін зерделейтін даналық жинағы."
+  },
+  {
+    id: "kalyng-mal",
+    title: "Қалың мал",
+    author: "Спандияр Көбеев",
+    category: "Классика",
+    pages: 180,
+    audioUrl: "",
+    coverImage: "",
+    isFree: true,
+    isArchived: false,
+    gradient: "linear-gradient(135deg, #B45309, #78350F)",
+    description: "Қазақ даласындағы өткен дәуірдің салт-дәстүрі мен жастар тағдырын сипаттайтын роман."
+  },
+  {
+    id: "atomic-habits",
+    title: "Атомдық әдеттер",
+    author: "Джеймс Клир (қазақша)",
+    category: "Тұлғалық даму",
+    pages: 320,
+    audioUrl: "",
+    coverImage: "",
+    isFree: false,
+    isArchived: false,
+    gradient: "linear-gradient(135deg, #DC2626, #7F1D1D)",
+    description: "Күнделікті шағын өзгерістер арқылы үлкен нәтижелерге қол жеткізудің нақты жолдары."
+  },
+  {
+    id: "rich-dad",
+    title: "Бай әке, кедей әке",
+    author: "Роберт Кийосаки (қазақша)",
+    category: "Тұлғалық даму",
+    pages: 280,
+    audioUrl: "",
+    coverImage: "",
+    isFree: false,
+    isArchived: false,
+    gradient: "linear-gradient(135deg, #0284C7, #0369A1)",
+    description: "Қаржылық тәуелсіздікке жету және ақшаны тиімді басқару туралы әлемдік бестселлер."
+  },
+  {
+    id: "book-ccc",
+    title: "ссс",
+    author: "Усман Сулайманов",
+    category: "Классика",
+    pages: 20,
+    hasAudio: false,
+    audioUrl: "",
+    coverImage: "",
+    isFree: true,
+    isArchived: false,
+    gradient: "linear-gradient(135deg, #065F46, #022C22)",
+    description: "Классикалық бағыттағы шығарма."
+  },
+  {
+    id: "book-fyfy",
+    title: "фыфы",
+    author: "Усман Сулайманов",
+    category: "Классика",
+    pages: 10,
+    hasAudio: false,
+    audioUrl: "",
+    coverImage: "",
+    isFree: true,
+    isArchived: false,
+    gradient: "linear-gradient(135deg, #7C3AED, #4C1D95)",
+    description: "Қазақ классикасы үлгісінде жазылған жаңа туынды."
+  }
+];
+
+// ADMIN CREDENTIALS (Тек платформа иесіне арналған)
+const ADMIN_CREDENTIALS = {
+  email: "admin@tanda.kz",
+  password: "tanda_admin_2026",
+  name: "Бас Администратор"
+};
+
+// ROBUST STORAGE ENGINE (Server books.json + IndexedDB + localStorage)
+const TandaStorage = {
+  dbName: 'tanda_db',
+  storeName: 'store',
+  dbVersion: 1,
+
+  getDB() {
+    return new Promise((resolve) => {
+      if (!window.indexedDB) {
+        resolve(null);
+        return;
+      }
+      try {
+        const req = indexedDB.open(this.dbName, this.dbVersion);
+        req.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains(this.storeName)) {
+            db.createObjectStore(this.storeName);
+          }
+        };
+        req.onsuccess = (e) => resolve(e.target.result);
+        req.onerror = () => resolve(null);
+      } catch (err) {
+        resolve(null);
+      }
+    });
+  },
+
+  async getBooks() {
+    // 1. Fetch from server API or books.json (instant sync across all browsers, incognito, readers)
+    try {
+      const resp = await fetch('/api/books', { cache: 'no-store' })
+        .catch(() => fetch('books.json', { cache: 'no-store' }));
+      if (resp && resp.ok) {
+        const data = await resp.json();
+        if (Array.isArray(data) && data.length > 0) {
+          this.syncLocal(data);
+          return data;
+        }
+      }
+    } catch (apiErr) {
+      console.warn('API getBooks error, falling back to local storage:', apiErr);
+    }
+
+    // 2. Fallback to IndexedDB
+    try {
+      const db = await this.getDB();
+      if (db) {
+        const fromDb = await new Promise((resolve) => {
+          try {
+            const tx = db.transaction(this.storeName, 'readonly');
+            const st = tx.objectStore(this.storeName);
+            const req = st.get('tanda_books');
+            req.onsuccess = () => resolve(req.result || null);
+            req.onerror = () => resolve(null);
+          } catch (e) {
+            resolve(null);
+          }
+        });
+        if (fromDb && Array.isArray(fromDb) && fromDb.length > 0) {
+          return fromDb;
+        }
+      }
+    } catch (err) {
+      console.warn('IndexedDB getBooks error:', err);
+    }
+
+    // 3. Fallback to localStorage
+    try {
+      const raw = localStorage.getItem('tanda_books');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {
+      console.warn('localStorage getBooks error:', e);
+    }
+    return INITIAL_BOOKS;
+  },
+
+  syncLocal(booksArray) {
+    try {
+      localStorage.setItem('tanda_books', JSON.stringify(booksArray));
+    } catch (quotaErr) {
+      try {
+        const lightBooks = booksArray.map(b => ({
+          ...b,
+          pdfData: (b.pdfData && b.pdfData.length > 50000) ? '' : b.pdfData,
+          epubData: (b.epubData && b.epubData.length > 50000) ? '' : b.epubData,
+          coverImage: (b.coverImage && b.coverImage.length > 100000) ? '' : b.coverImage,
+          audioChapters: (b.audioChapters || []).map(ch => ({
+            ...ch,
+            audioData: (ch.audioData && ch.audioData.length > 50000) ? '' : ch.audioData
+          }))
+        }));
+        localStorage.setItem('tanda_books', JSON.stringify(lightBooks));
+      } catch (innerErr) {}
+    }
+    this.saveIndexedDB(booksArray);
+  },
+
+  async saveIndexedDB(booksArray) {
+    try {
+      const db = await this.getDB();
+      if (db) {
+        await new Promise((resolve, reject) => {
+          try {
+            const tx = db.transaction(this.storeName, 'readwrite');
+            const st = tx.objectStore(this.storeName);
+            const req = st.put(booksArray, 'tanda_books');
+            req.onsuccess = () => resolve();
+            req.onerror = (e) => reject(e);
+          } catch (e) {
+            reject(e);
+          }
+        });
+      }
+    } catch (err) {}
+  },
+
+  async saveBooks(booksArray) {
+    // 1. Sync to local storage
+    this.syncLocal(booksArray);
+
+    // 2. Post to server to update books.json on disk
+    try {
+      await fetch('/api/books', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(booksArray)
+      });
+    } catch (netErr) {
+      console.warn('Server POST /api/books error:', netErr);
+    }
+
+    try {
+      window.dispatchEvent(new Event('tanda_books_updated'));
+    } catch(e) {}
+  }
+};
+
+// DATA & STATE MANAGEMENT
+let books = INITIAL_BOOKS;
+try {
+  const syncSaved = localStorage.getItem('tanda_books');
+  if (syncSaved) {
+    const parsed = JSON.parse(syncSaved);
+    if (Array.isArray(parsed) && parsed.length > 0) books = parsed;
+  }
+} catch (e) {}
+let users = JSON.parse(localStorage.getItem('tanda_users')) || [
+  { email: "admin@tanda.kz", name: "Бас Администратор", role: "ADMIN", date: "2026-09-01" },
+  { email: "oqyrman@mail.kz", name: "Айбек Қайратұлы", role: "USER", date: "2026-09-05" }
+];
+let currentUser = JSON.parse(localStorage.getItem('tanda_current_user')) || null;
+let currentTargetBookId = null;
+let readerFontSize = 17;
+let currentCategory = 'Бәрі';
+
+function saveState() {
+  localStorage.setItem('tanda_users', JSON.stringify(users));
+  localStorage.setItem('tanda_current_user', JSON.stringify(currentUser));
+}
+
+// RENDER NAV AUTH AREA
+function renderNavAuth() {
+  const area = document.getElementById('navAuthArea');
+  const navCatalogLink = document.getElementById('navCatalogLink');
+  const navFeaturesLink = document.getElementById('navFeaturesLink');
+  const navSearchWrap = document.getElementById('navSearchWrap');
+  const heroSection = document.getElementById('hero');
+  const featuresSection = document.getElementById('features');
+  const catalogSection = document.getElementById('catalog');
+  const adminSection = document.getElementById('admin-section');
+  const heroActionBtn = document.getElementById('heroActionBtn');
+
+  if (currentUser) {
+    const isAdmin = currentUser.role === 'ADMIN';
+
+    // Хидердегі поиск тек админ кіргенде көрінеді
+    if (navSearchWrap) navSearchWrap.style.display = isAdmin ? 'block' : 'none';
+    
+    // Админ аккаунтында «Қазақша контент платформасы» (Hero) секциясы көрінбейді
+    if (heroSection) heroSection.style.display = isAdmin ? 'none' : 'flex';
+
+    // Админ аккаунтында «Мүмкіндіктер / Бәрі бір жерде» секциясы көрінбейді
+    if (featuresSection) featuresSection.style.display = isAdmin ? 'none' : 'block';
+    if (navFeaturesLink) navFeaturesLink.style.display = isAdmin ? 'none' : 'block';
+
+    // Админ аккаунтында «Танымал кітаптар» секциясы мүлдем көрінбейді (ол тек оқырмандарға арналған)
+    if (catalogSection) catalogSection.style.display = isAdmin ? 'none' : 'block';
+    if (navCatalogLink) navCatalogLink.style.display = isAdmin ? 'none' : 'block';
+
+    // Админ секциясы (басқару кестесі) тек әкімшіге көрсетіледі
+    if (adminSection) adminSection.style.display = isAdmin ? 'block' : 'none';
+
+    if (heroActionBtn) {
+      if (isAdmin) {
+        heroActionBtn.href = '#admin-section';
+        heroActionBtn.textContent = 'Кітаптарды басқару';
+      } else {
+        heroActionBtn.href = '#catalog';
+        heroActionBtn.textContent = 'Кітаптарды көру';
+      }
+    }
+
+    // Хидерде «Кітап қосу / Басқару» түймесі жоқ, тек қолданушы мәліметі мен шығу батырмасы
+    area.innerHTML = `
+      <div class="user-badge">
+        <span>${currentUser.name || currentUser.email}</span>
+      </div>
+      <button class="btn-logout" onclick="logout()">Шығу</button>
+    `;
+  } else {
+    if (navSearchWrap) navSearchWrap.style.display = 'none';
+    if (heroSection) heroSection.style.display = 'flex';
+    if (featuresSection) featuresSection.style.display = 'block';
+    if (navFeaturesLink) navFeaturesLink.style.display = 'block';
+    if (catalogSection) catalogSection.style.display = 'block';
+    if (navCatalogLink) navCatalogLink.style.display = 'block';
+    if (adminSection) adminSection.style.display = 'none';
+
+    if (heroActionBtn) {
+      heroActionBtn.href = '#catalog';
+      heroActionBtn.textContent = 'Кітаптарды көру';
+    }
+
+    area.innerHTML = `
+      <button class="btn-nav-login" onclick="openAuthModal('login')">Кіру</button>
+      <button class="btn-nav-reg" onclick="openAuthModal('signup')">Тіркелу</button>
+    `;
+  }
+}
+
+// HEADER LIVE SEARCH FOR ADMIN
+function handleHeaderSearch(e) {
+  const query = e.target.value.toLowerCase().trim();
+  const resultsDropdown = document.getElementById('navSearchResults');
+  if (!resultsDropdown) return;
+
+  if (!query) {
+    resultsDropdown.style.display = 'none';
+    resultsDropdown.innerHTML = '';
+    adminBooksCurrentPage = 1;
+    renderSectionAdminBooks();
+    return;
+  }
+
+  const matches = books.filter(b => 
+    b.title.toLowerCase().includes(query) || 
+    b.author.toLowerCase().includes(query) ||
+    (b.category && b.category.toLowerCase().includes(query))
+  );
+
+  if (matches.length === 0) {
+    resultsDropdown.innerHTML = `
+      <div style="padding:16px; text-align:center; font-size:13px; color:var(--text-mid); font-weight:600;">
+        «${e.target.value}» кітабы табылмады
+      </div>
+    `;
+  } else {
+    resultsDropdown.innerHTML = matches.slice(0, 8).map(b => {
+      const cover = b.coverImage 
+        ? `<img src="${b.coverImage}" alt="${b.title}" style="width:36px; height:48px; object-fit:cover; border-radius:6px; border:1px solid #CBD5E1; flex-shrink:0;">`
+        : `<div style="width:36px; height:48px; border-radius:6px; background:${b.gradient || '#0057A8'}; display:flex; align-items:center; justify-content:center; color:#FFF; font-size:9px; font-weight:800; text-align:center; padding:2px; flex-shrink:0;">${b.title.slice(0,5)}</div>`;
+      
+      const formats = [];
+      const hasAudio = !!(b.hasAudio || (b.audioChapters && b.audioChapters.length > 0) || b.audioUrl);
+      if (b.pdfData || b.pdfUrl) formats.push('<span style="font-size:9px; font-weight:800; background:#FEE2E2; color:#B91C1C; padding:1px 5px; border-radius:3px;">PDF</span>');
+      if (b.epubData || b.epubUrl) formats.push('<span style="font-size:9px; font-weight:800; background:#DBEAFE; color:#1D4ED8; padding:1px 5px; border-radius:3px;">EPUB</span>');
+      if (hasAudio) formats.push('<span style="font-size:9px; font-weight:800; background:#E0F2FE; color:#0369A1; padding:1px 5px; border-radius:3px;">Аудио</span>');
+
+      return `
+        <a href="add-book.html?id=${b.id}" style="display:flex; align-items:center; gap:12px; padding:10px 12px; text-decoration:none; border-radius:8px; transition:background 0.15s; border-bottom:1px solid #F1F5F9;" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background='transparent'">
+          ${cover}
+          <div style="flex:1; min-width:0;">
+            <div style="font-weight:700; font-size:13px; color:var(--text-dark); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${b.title}</div>
+            <div style="font-size:11px; color:var(--text-mid); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${b.author}</div>
+            <div style="margin-top:4px; display:flex; gap:4px; align-items:center;">${formats.join('')}</div>
+          </div>
+          <span style="font-size:12px; font-weight:800; color:var(--blue); background:#E0F2FE; padding:4px 10px; border-radius:6px; white-space:nowrap; flex-shrink:0;">Өңдеу</span>
+        </a>
+      `;
+    }).join('');
+  }
+
+  resultsDropdown.style.display = 'block';
+  adminBooksCurrentPage = 1;
+  renderSectionAdminBooks(query);
+}
+
+// Іздеу тізімін сыртты басқанда жабу
+document.addEventListener('click', (e) => {
+  const wrap = document.getElementById('navSearchWrap');
+  const results = document.getElementById('navSearchResults');
+  if (wrap && results && !wrap.contains(e.target)) {
+    results.style.display = 'none';
+  }
+});
+
+// RENDER BOOKS GRID
+function renderBooks() {
+  try {
+    const raw = localStorage.getItem('tanda_books');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        books = parsed;
+      }
+    }
+  } catch (e) {}
+
+  const grid = document.getElementById('booksGrid');
+  if (!grid) return;
+  const query = (document.getElementById('catalogSearch').value || '').toLowerCase().trim();
+  
+  // Only show active books on public site (filter out archived books)
+  const filtered = books.filter(b => {
+    if (b.isArchived) return false;
+    const matchesCat = currentCategory === 'Бәрі' || b.category === currentCategory;
+    const matchesQuery = !query || b.title.toLowerCase().includes(query) || b.author.toLowerCase().includes(query);
+    return matchesCat && matchesQuery;
+  });
+
+  if (filtered.length === 0) {
+    grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:48px 20px; color:var(--text-mid); font-size:15px;">Бұл санат бойынша кітап табылмады.</div>`;
+  } else {
+    grid.innerHTML = filtered.map(b => {
+      const coverStyle = b.coverImage 
+        ? `background-image: url('${b.coverImage}'); background-size: cover; background-position: center;` 
+        : `background: ${b.gradient || 'linear-gradient(135deg, #0057A8, #003d7a)'};`;
+      
+      const pagesBadge = b.pages ? `<span style="font-size:11px; color:var(--text-mid); font-weight:600;">• ${b.pages} бет</span>` : '';
+      const hasAudio = !!(b.hasAudio || (b.audioChapters && b.audioChapters.length > 0) || b.audioUrl);
+      const audioDurationText = b.audioDuration ? ` (${b.audioDuration})` : '';
+      const audioIconBadge = hasAudio ? `<span style="font-size:11px; color:#10B981; font-weight:700;">• Аудио бар${audioDurationText}</span>` : '';
+
+      return `
+        <div class="book-card">
+          <div>
+            <div class="book-cover" style="${coverStyle}">
+              <span class="cover-badge ${b.isFree ? 'badge-free' : 'badge-premium'}">
+                ${b.isFree ? 'Тегін сынақ' : 'Премиум'}
+              </span>
+              ${!b.coverImage ? `
+                <div class="cover-title">${b.title}</div>
+                <div class="cover-author-text">${b.author}</div>
+              ` : ''}
+            </div>
+            <div class="book-meta">
+              <div class="book-title">${b.title}</div>
+              <div class="book-author">${b.author}</div>
+              <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-top:4px;">
+                <span class="book-category">${b.category}</span>
+                ${pagesBadge}
+                ${audioIconBadge}
+              </div>
+            </div>
+          </div>
+          <div class="book-actions">
+            <button class="btn-book-action btn-read" style="${!hasAudio ? 'grid-column: 1 / -1; width:100%;' : ''}" onclick="requestBookAccess('${b.id}', 'read')">Оқу</button>
+            ${hasAudio ? `<button class="btn-book-action btn-listen" onclick="requestBookAccess('${b.id}', 'listen')">Тыңдау</button>` : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  const adminBookCount = document.getElementById('adminBookCount');
+  if (adminBookCount) adminBookCount.textContent = books.length;
+  const adminUserCount = document.getElementById('adminUserCount');
+  if (adminUserCount) adminUserCount.textContent = users.length;
+}
+
+function setCategory(cat, btn) {
+  currentCategory = cat;
+  document.querySelectorAll('.catalog-tabs .tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  renderBooks();
+}
+
+function filterBooks() {
+  renderBooks();
+}
+
+// BOOK ACCESS LOGIC (USER REQUIREMENT)
+// "Адамдар тіркелмесе сайтты көре алады, ал бірақ кітапты оқығысы келсе, сол кезде тіркеле алады."
+function requestBookAccess(bookId, mode) {
+  const book = books.find(b => b.id === bookId);
+  if (!book) return;
+
+  const hasAudio = !!(book.hasAudio || (book.audioChapters && book.audioChapters.length > 0) || book.audioUrl);
+  if (mode === 'listen' && !hasAudio) {
+    alert(`«${book.title}» кітабының аудио нұсқасы жоқ. Тек электронды нұсқасы қолжетімді.`);
+    mode = 'read';
+  }
+
+  if (!currentUser) {
+    // User is NOT logged in -> Must register/login to read
+    currentTargetBookId = bookId;
+    openAuthModal('signup', `«${book.title}» кітабын ${mode === 'read' ? 'оқу' : 'тыңдау'} үшін тіркеліңіз`);
+    return;
+  }
+
+  // User IS logged in
+  if (!book.isFree && (!currentUser.isSubscribed && currentUser.role !== 'ADMIN')) {
+    // Premium book requires subscription
+    openSubscribeModal();
+    return;
+  }
+
+  // Open Reader
+  openReaderModal(book, mode);
+}
+
+// AUTH MODAL FUNCTIONS
+let authMode = 'signup';
+
+function openAuthModal(mode, customSubtitle) {
+  authMode = mode;
+  document.getElementById('authModal').classList.add('active');
+  document.getElementById('authError').style.display = 'none';
+  if (customSubtitle) {
+    document.getElementById('authModalSubtitle').textContent = customSubtitle;
+  } else {
+    document.getElementById('authModalSubtitle').textContent = mode === 'signup' ? 'Электронды почтаңыз арқылы тіркеліп, кітаптарды еркін оқыңыз' : 'Өз аккаунтыңызға кіріңіз';
+  }
+  switchAuthMode(mode);
+}
+
+function closeAuthModal() {
+  document.getElementById('authModal').classList.remove('active');
+}
+
+function switchAuthMode(mode) {
+  authMode = mode;
+  const tabSignup = document.getElementById('tabAuthSignup');
+  const tabLogin = document.getElementById('tabAuthLogin');
+  const groupName = document.getElementById('groupName');
+  const submitBtn = document.getElementById('authSubmitBtn');
+  const title = document.getElementById('authModalTitle');
+
+  if (mode === 'signup') {
+    tabSignup.style.color = 'var(--blue)';
+    tabSignup.style.borderBottom = '2px solid var(--blue)';
+    tabLogin.style.color = 'var(--text-mid)';
+    tabLogin.style.borderBottom = 'none';
+    groupName.style.display = 'block';
+    submitBtn.textContent = 'Тіркелу және оқу';
+    title.textContent = 'Tanda-ға тіркелу';
+  } else {
+    tabLogin.style.color = 'var(--blue)';
+    tabLogin.style.borderBottom = '2px solid var(--blue)';
+    tabSignup.style.color = 'var(--text-mid)';
+    tabSignup.style.borderBottom = 'none';
+    groupName.style.display = 'none';
+    submitBtn.textContent = 'Жүйеге кіру';
+    title.textContent = 'Аккаунтқа кіру';
+  }
+}
+
+function handleAuthSubmit(e) {
+  e.preventDefault();
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+  const name = document.getElementById('authName').value.trim() || email.split('@')[0];
+  const err = document.getElementById('authError');
+
+  if (!email || !password) return;
+
+  if (authMode === 'signup') {
+    const exists = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+    if (exists) {
+      err.textContent = 'Бұл эл.почта тіркелген! Кіру бөлімін таңдаңыз.';
+      err.style.display = 'block';
+      return;
+    }
+    const newUser = {
+      email,
+      name,
+      role: 'USER',
+      date: new Date().toISOString().split('T')[0],
+      isSubscribed: false
+    };
+    users.push(newUser);
+    currentUser = newUser;
+  } else {
+    // Regular login for users. If admin credentials are used here, they can log in as admin too.
+    if (email.toLowerCase() === ADMIN_CREDENTIALS.email.toLowerCase()) {
+      if (password === ADMIN_CREDENTIALS.password) {
+        currentUser = {
+          email: ADMIN_CREDENTIALS.email,
+          name: ADMIN_CREDENTIALS.name,
+          role: "ADMIN",
+          isSubscribed: true,
+          date: "2026-09-01"
+        };
+      } else {
+        err.textContent = 'Құпиясөз қате!';
+        err.style.display = 'block';
+        return;
+      }
+    } else {
+      const user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+      if (!user) {
+        const newUser = {
+          email,
+          name: email.split('@')[0],
+          role: 'USER',
+          date: new Date().toISOString().split('T')[0],
+          isSubscribed: false
+        };
+        users.push(newUser);
+        currentUser = newUser;
+      } else {
+        currentUser = user;
+      }
+    }
+  }
+
+  saveState();
+  renderNavAuth();
+  closeAuthModal();
+  refreshBooksState();
+
+  // If user clicked a book before auth, immediately open that book!
+  if (currentTargetBookId) {
+    const target = books.find(b => b.id === currentTargetBookId);
+    currentTargetBookId = null;
+    if (target) {
+      openReaderModal(target, 'read');
+    }
+  }
+}
+
+// ADMIN DEDICATED LOGIN
+function openAdminLoginModal() {
+  document.getElementById('adminLoginError').style.display = 'none';
+  document.getElementById('adminLoginEmail').value = '';
+  document.getElementById('adminLoginPassword').value = '';
+  document.getElementById('adminLoginModal').classList.add('active');
+}
+
+function closeAdminLoginModal() {
+  document.getElementById('adminLoginModal').classList.remove('active');
+}
+
+function handleAdminLoginSubmit(e) {
+  e.preventDefault();
+  const email = document.getElementById('adminLoginEmail').value.trim();
+  const password = document.getElementById('adminLoginPassword').value;
+  const err = document.getElementById('adminLoginError');
+
+  if (email.toLowerCase() === ADMIN_CREDENTIALS.email.toLowerCase() && password === ADMIN_CREDENTIALS.password) {
+    currentUser = {
+      email: ADMIN_CREDENTIALS.email,
+      name: ADMIN_CREDENTIALS.name,
+      role: "ADMIN",
+      isSubscribed: true,
+      date: "2026-09-01"
+    };
+    saveState();
+    renderNavAuth();
+    closeAdminLoginModal();
+    openAdminModal();
+    refreshBooksState();
+  } else {
+    err.textContent = 'Админ эл.почтасы немесе құпиясөз қате!';
+    err.style.display = 'block';
+  }
+}
+
+async function logout() {
+  currentUser = null;
+  saveState();
+  renderNavAuth();
+  await refreshBooksState();
+}
+
+// READER & PLAYER
+let currentReadingBook = null;
+let currentAudioElement = null;
+
+function openReaderModal(book, mode) {
+  currentReadingBook = book;
+  document.getElementById('readerBookCategory').textContent = book.category + (book.pages ? ` • ${book.pages} бет` : '');
+  document.getElementById('readerBookTitle').textContent = book.title;
+  document.getElementById('readerBookAuthor').textContent = book.author;
+
+  const contentArea = document.getElementById('readerContentArea');
+  const textContent = book.description || book.content || '';
+  const paragraphs = textContent.split('\n').filter(p => p.trim());
+  
+  let coverHtml = '';
+  if (book.coverImage) {
+    coverHtml = `<div style="text-align:center; margin-bottom:24px;"><img src="${book.coverImage}" alt="${book.title}" style="max-height:260px; border-radius:10px; box-shadow:0 8px 24px rgba(0,0,0,0.15);"></div>`;
+  }
+
+  const pdfSource = book.pdfData || book.pdfUrl;
+  const epubSource = book.epubData || book.epubUrl;
+  let fileButtonsHtml = '';
+  if (pdfSource || epubSource) {
+    fileButtonsHtml = `
+      <div style="background:#F8FAFC; border:1px solid #CBD5E1; border-radius:12px; padding:20px; margin-bottom:28px; text-align:center;">
+        <h4 style="font-size:16px; font-weight:800; color:var(--text-dark); margin-bottom:8px;">Кітап файлдары</h4>
+        <p style="font-size:13px; color:var(--text-mid); margin-bottom:16px;">Кітапты оқу немесе файлды құрылғыңызға жүктеу:</p>
+        <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:12px;">
+          ${pdfSource ? `
+            <a href="${pdfSource}" download="${book.title}.pdf" target="_blank" class="btn-primary" style="background:#DC2626; text-decoration:none; padding:10px 22px; font-size:13px; font-weight:700; display:inline-flex; align-items:center; gap:8px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+              PDF файлын ашу / жүктеу
+            </a>
+          ` : ''}
+          ${epubSource ? `
+            <a href="${epubSource}" download="${book.title}.epub" target="_blank" class="btn-primary" style="background:#2563EB; text-decoration:none; padding:10px 22px; font-size:13px; font-weight:700; display:inline-flex; align-items:center; gap:8px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+              EPUB файлын жүктеу
+            </a>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  }
+  
+  contentArea.innerHTML = coverHtml + fileButtonsHtml + (paragraphs.length ? paragraphs.map(p => `<p>${p}</p>`).join('') : '<p style="color:#64748B; text-align:center;">Кітап файлы жоғарыда жүктеуге дайын.</p>');
+
+  // Audio setup
+  const hasAudio = !!(book.hasAudio || (book.audioChapters && book.audioChapters.length > 0) || book.audioUrl);
+  const audioPlayerBar = document.getElementById('audioPlayerBar');
+
+  if (!hasAudio) {
+    if (audioPlayerBar) audioPlayerBar.style.display = 'none';
+  } else {
+    if (audioPlayerBar) audioPlayerBar.style.display = 'flex';
+
+    document.getElementById('audioTitleDisplay').textContent = book.title + ' — Аудиокітап';
+    const narratorEl = document.getElementById('audioNarratorDisplay');
+    if (narratorEl) {
+      narratorEl.textContent = book.audioNarrator ? `Диктор: ${book.audioNarrator}` : '';
+    }
+
+    const chapters = (book.audioChapters && book.audioChapters.length > 0) ? book.audioChapters : [];
+    const pickerWrap = document.getElementById('audioChapterPickerWrap');
+    const chapterSelect = document.getElementById('audioChapterSelect');
+
+    if (chapters.length > 1 && pickerWrap && chapterSelect) {
+      pickerWrap.style.display = 'flex';
+      chapterSelect.innerHTML = chapters.map((ch, i) => `
+        <option value="${i}">${ch.title || (i + 1 + '-бөлім')}${ch.duration ? ' (' + ch.duration + ')' : ''}</option>
+      `).join('');
+    } else if (pickerWrap) {
+      pickerWrap.style.display = 'none';
+    }
+
+    const firstAudio = (chapters.length > 0 && (chapters[0].audioUrl || chapters[0].audioData))
+      ? (chapters[0].audioUrl || chapters[0].audioData)
+      : book.audioUrl;
+    const firstDur = (chapters.length > 0 && chapters[0].duration) || book.audioDuration || '08:30';
+
+    setupAudioPlayback(firstAudio, firstDur);
+  }
+
+  document.getElementById('readerModal').classList.add('active');
+  if (mode === 'listen' && hasAudio) {
+    document.getElementById('audioPlayerBar').scrollIntoView({ behavior: 'smooth' });
+    toggleAudio();
+  }
+}
+
+function handleReaderChapterChange(idx) {
+  if (!currentReadingBook || !currentReadingBook.audioChapters) return;
+  const ch = currentReadingBook.audioChapters[idx];
+  if (!ch) return;
+  const audioSrc = ch.audioUrl || ch.audioData || currentReadingBook.audioUrl;
+  setupAudioPlayback(audioSrc, ch.duration || '08:30');
+  toggleAudio();
+}
+
+function setupAudioPlayback(audioSrc, defaultDurationText = '08:30') {
+  if (currentAudioElement) {
+    currentAudioElement.pause();
+    currentAudioElement = null;
+  }
+  isAudioPlaying = false;
+  document.getElementById('audioPlayBtn').textContent = '▶';
+  document.getElementById('audioTimeDisplay').textContent = `00:00 / ${defaultDurationText}`;
+
+  if (audioSrc) {
+    currentAudioElement = new Audio(audioSrc);
+    const speedEl = document.getElementById('audioSpeed');
+    currentAudioElement.playbackRate = speedEl ? parseFloat(speedEl.value || 1.0) : 1.0;
+    currentAudioElement.addEventListener('timeupdate', () => {
+      const cur = formatTime(currentAudioElement.currentTime);
+      const dur = formatTime(currentAudioElement.duration || 510);
+      document.getElementById('audioTimeDisplay').textContent = `${cur} / ${dur} (Ойналуда)`;
+    });
+    currentAudioElement.addEventListener('ended', () => {
+      isAudioPlaying = false;
+      document.getElementById('audioPlayBtn').textContent = '▶';
+      document.getElementById('audioTimeDisplay').textContent = `00:00 / ${defaultDurationText} (Аяқталды)`;
+    });
+  }
+}
+
+function formatTime(secs) {
+  if (isNaN(secs) || secs === Infinity) return "00:00";
+  const m = Math.floor(secs / 60);
+  const s = Math.floor(secs % 60);
+  return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+}
+
+function closeReaderModal() {
+  if (currentAudioElement) {
+    currentAudioElement.pause();
+    currentAudioElement = null;
+  }
+  isAudioPlaying = false;
+  document.getElementById('readerModal').classList.remove('active');
+}
+
+function changeFontSize(delta) {
+  readerFontSize = Math.max(13, Math.min(26, readerFontSize + delta));
+  document.getElementById('readerContentArea').style.fontSize = readerFontSize + 'px';
+  document.getElementById('fontSizeDisplay').textContent = readerFontSize + 'px';
+}
+
+function setReaderTheme(theme) {
+  const area = document.getElementById('readerContentArea');
+  area.className = 'reader-content reader-mode-' + theme;
+  document.getElementById('btnModeLight').classList.toggle('active', theme === 'light');
+  document.getElementById('btnModeSepia').classList.toggle('active', theme === 'sepia');
+  document.getElementById('btnModeDark').classList.toggle('active', theme === 'dark');
+}
+
+let isAudioPlaying = false;
+function toggleAudio() {
+  isAudioPlaying = !isAudioPlaying;
+  document.getElementById('audioPlayBtn').textContent = isAudioPlaying ? '❚❚' : '▶';
+  
+  if (currentAudioElement) {
+    if (isAudioPlaying) {
+      currentAudioElement.play().catch(e => {
+        document.getElementById('audioTimeDisplay').textContent = 'Аудио ойналуда (демо)';
+      });
+    } else {
+      currentAudioElement.pause();
+      document.getElementById('audioTimeDisplay').textContent = 'Кідіртілді';
+    }
+  } else {
+    document.getElementById('audioTimeDisplay').textContent = isAudioPlaying ? '01:24 / 08:30 (Ойналуда)' : '01:24 / 08:30 (Кідіртілді)';
+  }
+}
+
+function setAudioSpeed(val) {
+  if (currentAudioElement) {
+    currentAudioElement.playbackRate = parseFloat(val);
+  }
+}
+
+function toggleSleepTimer() {
+  alert('Ұйқы таймері 30 минутқа қосылды. 30 минуттан соң автоматты түрде өшеді.');
+}
+
+// SUBSCRIBE MODAL
+function openSubscribeModal() {
+  document.getElementById('subscribeModal').classList.add('active');
+}
+
+function closeSubscribeModal() {
+  document.getElementById('subscribeModal').classList.remove('active');
+}
+
+function confirmSubscription() {
+  if (currentUser) {
+    currentUser.isSubscribed = true;
+    saveState();
+  }
+  closeSubscribeModal();
+  alert('Құттықтаймыз! Сіздің жазылымыңыз белсендірілді. Барлық кітаптар ашылды.');
+  renderBooks();
+}
+
+// ADMIN PANEL
+function openAdminModal() {
+  if (!currentUser || currentUser.role !== 'ADMIN') {
+    openAdminLoginModal();
+    return;
+  }
+
+  renderAdminTables();
+  document.getElementById('adminModal').classList.add('active');
+}
+
+function closeAdminModal() {
+  document.getElementById('adminModal').classList.remove('active');
+}
+
+function switchAdminTab(tab) {
+  document.getElementById('adminTabBooks').style.display = tab === 'books' ? 'block' : 'none';
+  document.getElementById('adminTabUsers').style.display = tab === 'users' ? 'block' : 'none';
+  
+  const tabBooksBtn = document.getElementById('adminTabBooksBtn');
+  const tabUsersBtn = document.getElementById('adminTabUsersBtn');
+  if (tab === 'books') {
+    tabBooksBtn.style.color = 'var(--blue)';
+    tabBooksBtn.style.borderBottom = '2px solid var(--blue)';
+    tabUsersBtn.style.color = 'var(--text-mid)';
+    tabUsersBtn.style.borderBottom = 'none';
+  } else {
+    tabUsersBtn.style.color = 'var(--blue)';
+    tabUsersBtn.style.borderBottom = '2px solid var(--blue)';
+    tabBooksBtn.style.color = 'var(--text-mid)';
+    tabBooksBtn.style.borderBottom = 'none';
+  }
+}
+
+function renderAdminTables() {
+  const bBody = document.getElementById('adminBooksTableBody');
+  bBody.innerHTML = books.map((b) => {
+    const coverThumbnail = b.coverImage
+      ? `<img src="${b.coverImage}" alt="${b.title}" style="width:36px; height:48px; object-fit:cover; border-radius:4px; border:1px solid #CBD5E1;">`
+      : `<div style="width:36px; height:48px; border-radius:4px; background:${b.gradient || '#0057A8'}; display:flex; align-items:center; justify-content:center; color:#FFF; font-size:9px; font-weight:800; text-align:center; padding:2px;">${b.title.slice(0,6)}</div>`;
+
+    const hasPdf = !!(b.pdfData || b.pdfUrl);
+    const hasEpub = !!(b.epubData || b.epubUrl);
+    const hasAudio = !!b.audioUrl;
+    
+    let formatsBadges = [];
+    if (hasPdf) formatsBadges.push('<span style="display:inline-block; padding:2px 6px; font-size:10px; font-weight:800; background:#FEE2E2; color:#B91C1C; border-radius:4px;">PDF</span>');
+    if (hasEpub) formatsBadges.push('<span style="display:inline-block; padding:2px 6px; font-size:10px; font-weight:800; background:#DBEAFE; color:#1D4ED8; border-radius:4px;">EPUB</span>');
+    if (hasAudio) formatsBadges.push('<span style="display:inline-block; padding:2px 6px; font-size:10px; font-weight:800; background:#E0F2FE; color:#0369A1; border-radius:4px;">Аудио</span>');
+    if (formatsBadges.length === 0) formatsBadges.push('<span style="font-size:11px; color:#94A3B8;">Стандартты</span>');
+
+    const pagesText = b.pages ? `${b.pages} бет` : '—';
+
+    return `
+      <tr style="${b.isArchived ? 'background:#F8FAFC; opacity:0.8;' : ''}">
+        <td>${coverThumbnail}</td>
+        <td>
+          <div style="font-weight:700; color:var(--text-dark);">${b.title}</div>
+          <div style="font-size:12px; color:var(--text-mid);">${b.author}</div>
+        </td>
+        <td><span class="badge-tag" style="background:#E0F2FE; color:#0369A1;">${b.category}</span></td>
+        <td>
+          <div style="font-size:12px; font-weight:600;">${pagesText}</div>
+          <div style="margin-top:4px; display:flex; gap:4px; flex-wrap:wrap;">${formatsBadges.join('')}</div>
+        </td>
+        <td>
+          <button style="border:none; border-radius:50px; padding:4px 10px; font-size:11px; font-weight:700; cursor:pointer; background:${b.isFree ? '#D1FAE5; color:#065F46' : '#FEF3C7; color:#92400E'}" onclick="toggleBookFreeStatus('${b.id}')">
+            ${b.isFree ? 'Тегін сынақ' : 'Премиум'}
+          </button>
+        </td>
+        <td>
+          <button style="border:none; border-radius:50px; padding:4px 10px; font-size:11px; font-weight:700; cursor:pointer; background:${b.isArchived ? '#F1F5F9; color:#64748B; border:1px solid #CBD5E1;' : '#ECFDF5; color:#047857'}" onclick="toggleBookArchive('${b.id}')">
+            ${b.isArchived ? 'Архивте (Жабық)' : 'Сайтта белсенді'}
+          </button>
+        </td>
+        <td style="text-align:right; white-space:nowrap;">
+          <a href="add-book.html?id=${b.id}" style="text-decoration:none; display:inline-block; border:none; background:#E0F2FE; color:#0369A1; padding:5px 10px; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer; margin-right:4px;">Өңдеу</a>
+          <button style="border:none; background:#FEE2E2; color:#B91C1C; padding:5px 10px; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer;" onclick="deleteBook('${b.id}')">Өшіру</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  const uBody = document.getElementById('adminUsersTableBody');
+  uBody.innerHTML = users.map(u => `
+    <tr>
+      <td style="font-weight:700;">${u.email}</td>
+      <td>${u.name}</td>
+      <td>${u.date}</td>
+      <td><span class="badge-tag" style="background:${u.role === 'ADMIN' ? '#FEF3C7; color:#B45309' : '#F1F5F9; color:#475569'}">${u.role === 'ADMIN' ? 'Әкімші' : 'Оқырман'}</span></td>
+    </tr>
+  `).join('');
+
+  const activeBooksCount = books.filter(b => !b.isArchived).length;
+  document.getElementById('adminBookCount').textContent = `${activeBooksCount} (Архивте: ${books.length - activeBooksCount})`;
+  document.getElementById('adminUserCount').textContent = users.length;
+}
+
+async function toggleBookFreeStatus(id) {
+  const b = books.find(x => x.id === id);
+  if (b) {
+    b.isFree = !b.isFree;
+    await TandaStorage.saveBooks(books);
+    saveState();
+    renderBooks();
+    renderAdminTables();
+    renderSectionAdminBooks();
+  }
+}
+
+async function toggleBookArchive(id) {
+  const b = books.find(x => x.id === id);
+  if (b) {
+    b.isArchived = !b.isArchived;
+    await TandaStorage.saveBooks(books);
+    saveState();
+    renderBooks();
+    renderAdminTables();
+    renderSectionAdminBooks();
+  }
+}
+
+async function deleteBook(id) {
+  const b = books.find(x => x.id === id);
+  if (!b) return;
+  if (confirm(`«${b.title}» кітабын сайттан біржола өшіргіңіз келе ме?`)) {
+    books = books.filter(x => x.id !== id);
+    await TandaStorage.saveBooks(books);
+    saveState();
+    renderBooks();
+    renderAdminTables();
+    renderSectionAdminBooks();
+  }
+}
+
+// ADD & EDIT BOOK MODAL CONTROLS
+let currentCoverBase64 = "";
+let currentPdfBase64 = "";
+let currentPdfName = "";
+let currentEpubBase64 = "";
+let currentEpubName = "";
+
+function handleCoverFileSelect(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    currentCoverBase64 = evt.target.result;
+    document.getElementById('coverPreviewImg').src = currentCoverBase64;
+    document.getElementById('coverPreviewWrap').style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+function handlePdfFileSelect(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  currentPdfName = file.name;
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    currentPdfBase64 = evt.target.result;
+    const statusEl = document.getElementById('pdfFileStatus');
+    if (statusEl) {
+      statusEl.textContent = 'PDF жүктелді: ' + file.name;
+      statusEl.style.display = 'block';
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+function handleEpubFileSelect(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  currentEpubName = file.name;
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    currentEpubBase64 = evt.target.result;
+    const statusEl = document.getElementById('epubFileStatus');
+    if (statusEl) {
+      statusEl.textContent = 'EPUB жүктелді: ' + file.name;
+      statusEl.style.display = 'block';
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+function openAddBookModal() {
+  document.getElementById('bookModalHeading').textContent = 'Жаңа қазақша кітап қосу';
+  document.getElementById('bookSubmitBtn').textContent = 'Сақтау және жариялау';
+  document.getElementById('editBookId').value = '';
+  document.getElementById('newBookTitle').value = '';
+  document.getElementById('newBookAuthor').value = '';
+  document.getElementById('newBookCategory').value = 'Классика';
+  document.getElementById('newBookPages').value = '';
+  document.getElementById('newBookCoverFile').value = '';
+  document.getElementById('newBookCoverUrl').value = '';
+  document.getElementById('newBookPdfFile').value = '';
+  document.getElementById('newBookPdfUrl').value = '';
+  document.getElementById('newBookEpubFile').value = '';
+  document.getElementById('newBookEpubUrl').value = '';
+  document.getElementById('newBookDescription').value = '';
+  document.getElementById('newBookAudioUrl').value = '';
+  document.getElementById('newBookIsFree').checked = false;
+  document.getElementById('newBookIsArchived').checked = false;
+  currentCoverBase64 = "";
+  currentPdfBase64 = "";
+  currentPdfName = "";
+  currentEpubBase64 = "";
+  currentEpubName = "";
+  document.getElementById('coverPreviewWrap').style.display = 'none';
+  const pdfStatus = document.getElementById('pdfFileStatus');
+  if (pdfStatus) pdfStatus.style.display = 'none';
+  const epubStatus = document.getElementById('epubFileStatus');
+  if (epubStatus) epubStatus.style.display = 'none';
+
+  document.getElementById('addBookModal').classList.add('active');
+}
+
+function openEditBookModal(bookId) {
+  const book = books.find(b => b.id === bookId);
+  if (!book) return;
+
+  document.getElementById('bookModalHeading').textContent = 'Кітапты өңдеу: ' + book.title;
+  document.getElementById('bookSubmitBtn').textContent = 'Өзгерістерді сақтау';
+  document.getElementById('editBookId').value = book.id;
+  document.getElementById('newBookTitle').value = book.title || '';
+  document.getElementById('newBookAuthor').value = book.author || '';
+  document.getElementById('newBookCategory').value = book.category || 'Классика';
+  document.getElementById('newBookPages').value = book.pages || '';
+  document.getElementById('newBookCoverFile').value = '';
+  document.getElementById('newBookCoverUrl').value = (book.coverImage && book.coverImage.startsWith('http')) ? book.coverImage : '';
+  
+  document.getElementById('newBookPdfFile').value = '';
+  document.getElementById('newBookPdfUrl').value = book.pdfUrl || '';
+  document.getElementById('newBookEpubFile').value = '';
+  document.getElementById('newBookEpubUrl').value = book.epubUrl || '';
+  document.getElementById('newBookDescription').value = book.description || book.content || '';
+  document.getElementById('newBookAudioUrl').value = book.audioUrl || '';
+  document.getElementById('newBookIsFree').checked = !!book.isFree;
+  document.getElementById('newBookIsArchived').checked = !!book.isArchived;
+
+  currentCoverBase64 = (book.coverImage && !book.coverImage.startsWith('http')) ? book.coverImage : '';
+  if (book.coverImage) {
+    document.getElementById('coverPreviewImg').src = book.coverImage;
+    document.getElementById('coverPreviewWrap').style.display = 'block';
+  } else {
+    document.getElementById('coverPreviewWrap').style.display = 'none';
+  }
+
+  currentPdfBase64 = book.pdfData || '';
+  currentPdfName = book.pdfName || '';
+  const pdfStatus = document.getElementById('pdfFileStatus');
+  if (pdfStatus) {
+    if (book.pdfData || book.pdfUrl) {
+      pdfStatus.style.display = 'block';
+      pdfStatus.textContent = 'PDF бар: ' + (book.pdfName || book.pdfUrl || 'Файл бекітілген');
+    } else {
+      pdfStatus.style.display = 'none';
+    }
+  }
+
+  currentEpubBase64 = book.epubData || '';
+  currentEpubName = book.epubName || '';
+  const epubStatus = document.getElementById('epubFileStatus');
+  if (epubStatus) {
+    if (book.epubData || book.epubUrl) {
+      epubStatus.style.display = 'block';
+      epubStatus.textContent = 'EPUB бар: ' + (book.epubName || book.epubUrl || 'Файл бекітілген');
+    } else {
+      epubStatus.style.display = 'none';
+    }
+  }
+
+  document.getElementById('addBookModal').classList.add('active');
+}
+
+function closeAddBookModal() {
+  document.getElementById('addBookModal').classList.remove('active');
+}
+
+function handleSaveBook(e) {
+  e.preventDefault();
+  const editId = document.getElementById('editBookId').value;
+  const title = document.getElementById('newBookTitle').value.trim();
+  const author = document.getElementById('newBookAuthor').value.trim();
+  const category = document.getElementById('newBookCategory').value;
+  const pages = parseInt(document.getElementById('newBookPages').value) || null;
+  const coverUrlInput = document.getElementById('newBookCoverUrl').value.trim();
+  const pdfUrlInput = document.getElementById('newBookPdfUrl').value.trim();
+  const epubUrlInput = document.getElementById('newBookEpubUrl').value.trim();
+  const description = document.getElementById('newBookDescription').value.trim();
+  const audioUrl = document.getElementById('newBookAudioUrl').value.trim();
+  const isFree = document.getElementById('newBookIsFree').checked;
+  const isArchived = document.getElementById('newBookIsArchived').checked;
+
+  if (!title || !author) return;
+
+  const finalCover = currentCoverBase64 || coverUrlInput || "";
+
+  const gradients = [
+    "linear-gradient(135deg, #0057A8, #003d7a)",
+    "linear-gradient(135deg, #F08000, #c06800)",
+    "linear-gradient(135deg, #065F46, #022C22)",
+    "linear-gradient(135deg, #7C3AED, #4C1D95)",
+    "linear-gradient(135deg, #B45309, #78350F)",
+    "linear-gradient(135deg, #DC2626, #7F1D1D)"
+  ];
+
+  if (editId) {
+    // EDIT EXISTING BOOK
+    const idx = books.findIndex(b => b.id === editId);
+    if (idx !== -1) {
+      books[idx].title = title;
+      books[idx].author = author;
+      books[idx].category = category;
+      books[idx].pages = pages;
+      if (finalCover) books[idx].coverImage = finalCover;
+      if (currentPdfBase64) books[idx].pdfData = currentPdfBase64;
+      if (currentPdfName) books[idx].pdfName = currentPdfName;
+      if (pdfUrlInput) books[idx].pdfUrl = pdfUrlInput;
+      
+      if (currentEpubBase64) books[idx].epubData = currentEpubBase64;
+      if (currentEpubName) books[idx].epubName = currentEpubName;
+      if (epubUrlInput) books[idx].epubUrl = epubUrlInput;
+
+      books[idx].description = description;
+      books[idx].content = description || books[idx].content || "";
+      books[idx].audioUrl = audioUrl;
+      books[idx].isFree = isFree;
+      books[idx].isArchived = isArchived;
+      alert(`«${title}» кітабы сәтті жаңартылды!`);
+    }
+  } else {
+    // CREATE NEW BOOK
+    const newBook = {
+      id: "book-" + Date.now(),
+      title,
+      author,
+      category,
+      pages,
+      coverImage: finalCover,
+      pdfData: currentPdfBase64,
+      pdfName: currentPdfName,
+      pdfUrl: pdfUrlInput,
+      epubData: currentEpubBase64,
+      epubName: currentEpubName,
+      epubUrl: epubUrlInput,
+      description,
+      content: description || "",
+      audioUrl,
+      isFree,
+      isArchived,
+      gradient: gradients[Math.floor(Math.random() * gradients.length)]
+    };
+    books.unshift(newBook);
+    alert(`«${title}» кітабы сәтті қосылды!`);
+  }
+
+  saveState();
+  renderBooks();
+  renderAdminTables();
+  renderSectionAdminBooks();
+  closeAddBookModal();
+}
+
+function openEditBookFromSection(bookId) {
+  openEditBookModal(bookId);
+}
+
+let adminBooksCurrentPage = 1;
+const ADMIN_BOOKS_PER_PAGE = 20;
+let adminBooksFilterMode = 'all';
+
+function setAdminBooksFilter(mode) {
+  adminBooksFilterMode = mode;
+  adminBooksCurrentPage = 1;
+  renderSectionAdminBooks();
+}
+
+function updateAdminFilterBadges() {
+  const activeCount = books.filter(b => !b.isArchived).length;
+  const archivedCount = books.filter(b => b.isArchived).length;
+
+  const totalCountEl = document.getElementById('sectionTotalBooksCount');
+  const archivedCountEl = document.getElementById('sectionArchivedBooksCount');
+
+  if (totalCountEl) totalCountEl.textContent = books.length;
+  if (archivedCountEl) archivedCountEl.textContent = archivedCount;
+
+  const allBtn = document.getElementById('adminFilterAllBtn');
+  const activeBtn = document.getElementById('adminFilterActiveBtn');
+  const archBtn = document.getElementById('adminFilterArchivedBtn');
+
+  if (allBtn) {
+    allBtn.style.background = adminBooksFilterMode === 'all' ? 'var(--blue)' : '#F1F5F9';
+    allBtn.style.color = adminBooksFilterMode === 'all' ? '#FFFFFF' : 'var(--text-dark)';
+    allBtn.style.borderColor = adminBooksFilterMode === 'all' ? 'var(--blue)' : '#CBD5E1';
+  }
+  if (activeBtn) {
+    activeBtn.style.background = adminBooksFilterMode === 'active' ? '#047857' : '#ECFDF5';
+    activeBtn.style.color = adminBooksFilterMode === 'active' ? '#FFFFFF' : '#047857';
+    activeBtn.style.borderColor = adminBooksFilterMode === 'active' ? '#047857' : '#A7F3D0';
+  }
+  if (archBtn) {
+    archBtn.style.background = adminBooksFilterMode === 'archived' ? '#475569' : '#F1F5F9';
+    archBtn.style.color = adminBooksFilterMode === 'archived' ? '#FFFFFF' : '#64748B';
+    archBtn.style.borderColor = adminBooksFilterMode === 'archived' ? '#475569' : '#CBD5E1';
+  }
+}
+
+function renderSectionAdminBooks(filterQuery = '') {
+  try {
+    const raw = localStorage.getItem('tanda_books');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        books = parsed;
+      }
+    }
+  } catch (e) {}
+
+  const tableBody = document.getElementById('sectionAdminBooksTableBody');
+  if (!tableBody) return;
+
+  updateAdminFilterBadges();
+
+  let filteredBooks = books;
+  if (adminBooksFilterMode === 'active') {
+    filteredBooks = filteredBooks.filter(b => !b.isArchived);
+  } else if (adminBooksFilterMode === 'archived') {
+    filteredBooks = filteredBooks.filter(b => b.isArchived);
+  }
+
+  const query = (filterQuery || '').toLowerCase().trim();
+  if (query) {
+    filteredBooks = filteredBooks.filter(b => b.title.toLowerCase().includes(query) || b.author.toLowerCase().includes(query) || (b.category && b.category.toLowerCase().includes(query)));
+  }
+
+  const totalFiltered = filteredBooks.length;
+  const totalPages = Math.max(1, Math.ceil(totalFiltered / ADMIN_BOOKS_PER_PAGE));
+
+  if (adminBooksCurrentPage > totalPages) adminBooksCurrentPage = totalPages;
+  if (adminBooksCurrentPage < 1) adminBooksCurrentPage = 1;
+
+  const startIndex = (adminBooksCurrentPage - 1) * ADMIN_BOOKS_PER_PAGE;
+  const pageBooks = filteredBooks.slice(startIndex, startIndex + ADMIN_BOOKS_PER_PAGE);
+
+  if (totalFiltered === 0) {
+    tableBody.innerHTML = `
+      <tr>
+        <td colspan="8" style="text-align:center; padding:32px; color:var(--text-mid); font-size:14px; font-weight:600;">
+          ${query ? `«${filterQuery}» бойынша кітап табылмады` : 'Кітаптар қоры бос'}
+        </td>
+      </tr>
+    `;
+    renderAdminBooksPagination(0, 0, 0, filterQuery);
+    return;
+  }
+
+  tableBody.innerHTML = pageBooks.map((b, idx) => {
+    const itemNumber = startIndex + idx + 1;
+    const coverThumbnail = b.coverImage
+      ? `<img src="${b.coverImage}" alt="${b.title}" style="width:38px; height:50px; object-fit:cover; border-radius:4px; border:1px solid #CBD5E1;">`
+      : `<div style="width:38px; height:50px; border-radius:4px; background:${b.gradient || '#0057A8'}; display:flex; align-items:center; justify-content:center; color:#FFF; font-size:9px; font-weight:800; text-align:center; padding:2px;">${b.title.slice(0,6)}</div>`;
+
+    const hasPdf = !!(b.pdfData || b.pdfUrl);
+    const hasEpub = !!(b.epubData || b.epubUrl);
+    const hasAudio = !!(b.hasAudio || (b.audioChapters && b.audioChapters.length > 0) || b.audioUrl);
+    
+    let formatsBadges = [];
+    if (hasPdf) formatsBadges.push('<span style="display:inline-block; padding:2px 6px; font-size:10px; font-weight:800; background:#FEE2E2; color:#B91C1C; border-radius:4px;">PDF</span>');
+    if (hasEpub) formatsBadges.push('<span style="display:inline-block; padding:2px 6px; font-size:10px; font-weight:800; background:#DBEAFE; color:#1D4ED8; border-radius:4px;">EPUB</span>');
+    if (hasAudio) {
+      const chCount = (b.audioChapters && b.audioChapters.length) ? ` (${b.audioChapters.length} бөлім)` : '';
+      formatsBadges.push(`<span style="display:inline-block; padding:2px 6px; font-size:10px; font-weight:800; background:#E0F2FE; color:#0369A1; border-radius:4px;">Аудио${chCount}</span>`);
+    }
+    if (formatsBadges.length === 0) formatsBadges.push('<span style="font-size:11px; color:#94A3B8;">Стандартты</span>');
+
+    const pagesText = b.pages ? `${b.pages} бет` : '—';
+
+    return `
+      <tr style="${b.isArchived ? 'background:#F8FAFC; opacity:0.85;' : ''}">
+        <td style="text-align:center; font-weight:800; color:var(--text-mid); font-size:13px; width:45px;">
+          ${itemNumber}
+        </td>
+        <td>${coverThumbnail}</td>
+        <td>
+          <div style="font-weight:700; color:var(--text-dark);">${b.title}</div>
+          <div style="font-size:12px; color:var(--text-mid);">${b.author}</div>
+        </td>
+        <td><span class="badge-tag" style="background:#E0F2FE; color:#0369A1;">${b.category}</span></td>
+        <td>
+          <div style="font-size:12px; font-weight:600;">${pagesText}</div>
+          <div style="margin-top:4px; display:flex; gap:4px; flex-wrap:wrap;">${formatsBadges.join('')}</div>
+        </td>
+        <td>
+          <button style="border:none; border-radius:50px; padding:4px 10px; font-size:11px; font-weight:700; cursor:pointer; background:${b.isFree ? '#D1FAE5; color:#065F46' : '#FEF3C7; color:#92400E'}" onclick="toggleBookFreeStatus('${b.id}')">
+            ${b.isFree ? 'Тегін сынақ' : 'Премиум'}
+          </button>
+        </td>
+        <td>
+          <button style="border:none; border-radius:50px; padding:4px 10px; font-size:11px; font-weight:700; cursor:pointer; background:${b.isArchived ? '#F1F5F9; color:#64748B; border:1px solid #CBD5E1;' : '#ECFDF5; color:#047857'}" onclick="toggleBookArchive('${b.id}')">
+            ${b.isArchived ? 'Архивте (Жасырын)' : 'Сайтта белсенді'}
+          </button>
+        </td>
+        <td style="text-align:right; white-space:nowrap;">
+          <a href="add-book.html?id=${b.id}" style="text-decoration:none; display:inline-block; border:none; background:#E0F2FE; color:#0369A1; padding:6px 12px; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer; margin-right:4px;">Өңдеу</a>
+          <button style="border:none; background:#FEE2E2; color:#B91C1C; padding:6px 12px; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer;" onclick="deleteBook('${b.id}')">Өшіру</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  renderAdminBooksPagination(totalFiltered, startIndex, pageBooks.length, filterQuery);
+}
+
+function renderAdminBooksPagination(totalItems, startIndex, currentCount, filterQuery = '') {
+  const wrap = document.getElementById('adminBooksPaginationWrap');
+  const infoEl = document.getElementById('adminBooksPageInfo');
+  const btnsEl = document.getElementById('adminBooksPageButtons');
+  if (!wrap || !infoEl || !btnsEl) return;
+
+  if (totalItems === 0) {
+    wrap.style.display = 'none';
+    return;
+  }
+
+  wrap.style.display = 'flex';
+  const totalPages = Math.ceil(totalItems / ADMIN_BOOKS_PER_PAGE);
+  const fromNum = startIndex + 1;
+  const toNum = startIndex + currentCount;
+
+  infoEl.textContent = `Көрсетілуде: ${fromNum}-${toNum} (барлығы: ${totalItems} кітап) • Бет ${adminBooksCurrentPage} / ${totalPages}`;
+
+  let buttonsHtml = '';
+
+  const isPrevDisabled = adminBooksCurrentPage <= 1;
+  buttonsHtml += `
+    <button 
+      style="padding:7px 14px; border-radius:8px; border:1.5px solid #CBD5E1; background:${isPrevDisabled ? '#F1F5F9' : '#FFFFFF'}; color:${isPrevDisabled ? '#94A3B8' : 'var(--text-dark)'}; font-size:12px; font-weight:700; cursor:${isPrevDisabled ? 'not-allowed' : 'pointer'}; transition:all 0.15s;" 
+      ${isPrevDisabled ? 'disabled' : `onclick="changeAdminBooksPage(${adminBooksCurrentPage - 1}, '${filterQuery}')"`}>
+      Алдыңғы бет
+    </button>
+  `;
+
+  for (let p = 1; p <= totalPages; p++) {
+    if (totalPages > 7 && (p < adminBooksCurrentPage - 2 || p > adminBooksCurrentPage + 2) && p !== 1 && p !== totalPages) {
+      if (p === adminBooksCurrentPage - 3 || p === adminBooksCurrentPage + 3) {
+        buttonsHtml += `<span style="padding:0 4px; color:#94A3B8; font-size:12px;">...</span>`;
+      }
+      continue;
+    }
+
+    const isActive = p === adminBooksCurrentPage;
+    buttonsHtml += `
+      <button 
+        style="width:34px; height:34px; border-radius:8px; border:1.5px solid ${isActive ? 'var(--blue)' : '#CBD5E1'}; background:${isActive ? 'var(--blue)' : '#FFFFFF'}; color:${isActive ? '#FFFFFF' : 'var(--text-dark)'}; font-size:12px; font-weight:800; cursor:pointer; transition:all 0.15s;" 
+        onclick="changeAdminBooksPage(${p}, '${filterQuery}')">
+        ${p}
+      </button>
+    `;
+  }
+
+  const isNextDisabled = adminBooksCurrentPage >= totalPages;
+  buttonsHtml += `
+    <button 
+      style="padding:7px 14px; border-radius:8px; border:1.5px solid #CBD5E1; background:${isNextDisabled ? '#F1F5F9' : '#FFFFFF'}; color:${isNextDisabled ? '#94A3B8' : 'var(--text-dark)'}; font-size:12px; font-weight:700; cursor:${isNextDisabled ? 'not-allowed' : 'pointer'}; transition:all 0.15s;" 
+      ${isNextDisabled ? 'disabled' : `onclick="changeAdminBooksPage(${adminBooksCurrentPage + 1}, '${filterQuery}')"`}>
+      Келесі бет
+    </button>
+  `;
+
+  btnsEl.innerHTML = buttonsHtml;
+}
+
+function changeAdminBooksPage(newPage, filterQuery = '') {
+  adminBooksCurrentPage = newPage;
+  renderSectionAdminBooks(filterQuery);
+  const adminSection = document.getElementById('admin-section');
+  if (adminSection) {
+    adminSection.scrollIntoView({ behavior: 'smooth' });
+  }
+}
+
+// REFRESH & SYNC BOOKS STATE ACROSS SESSIONS AND PAGES
+async function refreshBooksState() {
+  books = await TandaStorage.getBooks();
+  renderBooks();
+  renderSectionAdminBooks();
+  if (typeof renderAdminTables === 'function') {
+    renderAdminTables();
+  }
+}
+
+window.addEventListener('pageshow', refreshBooksState);
+window.addEventListener('focus', refreshBooksState);
+window.addEventListener('storage', (e) => {
+  if (e.key === 'tanda_books') {
+    refreshBooksState();
+  }
+});
+window.addEventListener('tanda_books_updated', refreshBooksState);
+
+// INIT
+renderNavAuth();
+refreshBooksState();
+</script>
+</body>
+</html>
