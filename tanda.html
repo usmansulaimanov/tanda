@@ -1349,11 +1349,13 @@
         <table class="admin-table">
           <thead>
             <tr>
-              <th>Атауы</th>
-              <th>Авторы</th>
+              <th>Мұқаба</th>
+              <th>Атауы мен авторы</th>
               <th>Жанры</th>
-              <th>Мәртебесі</th>
-              <th style="text-align:right;">Әрекет</th>
+              <th>Бет / Аудио</th>
+              <th>Қолжетімділік</th>
+              <th>Көрінуі</th>
+              <th style="text-align:right;">Әрекеттер</th>
             </tr>
           </thead>
           <tbody id="adminBooksTableBody">
@@ -1384,38 +1386,87 @@
   </div>
 </div>
 
-<!-- ADD BOOK MODAL -->
+<!-- ADD / EDIT BOOK MODAL -->
 <div class="modal-overlay" id="addBookModal">
-  <div class="modal-box">
+  <div class="modal-box large" style="max-height:90vh; overflow-y:auto;">
     <button class="modal-close" onclick="closeAddBookModal()">✕</button>
-    <h3 style="font-size:20px; font-weight:800; margin-bottom:16px; color:var(--text-dark);">Жаңа қазақша кітап қосу</h3>
-    <form onsubmit="handleCreateBook(event)">
+    <div style="margin-bottom:16px;">
+      <h3 style="font-size:20px; font-weight:800; color:var(--text-dark);" id="bookModalHeading">Жаңа кітап қосу</h3>
+      <p style="font-size:13px; color:var(--text-mid);">Электронды кітап мәтіні, аудио сілтемесі, мұқабасы және сипаттамаларын толтырыңыз</p>
+    </div>
+    
+    <form onsubmit="handleSaveBook(event)">
+      <input type="hidden" id="editBookId">
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+        <div class="form-group">
+          <label class="form-label">Кітап атауы *</label>
+          <input type="text" required id="newBookTitle" class="form-input" placeholder="Мысалы: Бақытсыз Жамал">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Авторы *</label>
+          <input type="text" required id="newBookAuthor" class="form-input" placeholder="Мысалы: Міржақып Дулатұлы">
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+        <div class="form-group">
+          <label class="form-label">Жанры (Категория) *</label>
+          <select id="newBookCategory" class="form-input">
+            <option value="Классика">Классика</option>
+            <option value="Тұлғалық даму">Тұлғалық даму</option>
+            <option value="Тарих">Тарих</option>
+            <option value="Ертегілер">Ертегілер</option>
+            <option value="Бизнес">Бизнес</option>
+            <option value="Психология">Психология</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Кітап бетінің саны</label>
+          <input type="number" id="newBookPages" class="form-input" placeholder="Мысалы: 240" min="1">
+        </div>
+      </div>
+
+      <!-- Book Cover Image upload or URL -->
       <div class="form-group">
-        <label class="form-label">Кітап атауы *</label>
-        <input type="text" required id="newBookTitle" class="form-input" placeholder="Мысалы: Бақытсыз Жамал">
+        <label class="form-label">Кітап мұқабасының суреті</label>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <input type="file" id="newBookCoverFile" accept="image/*" class="form-input" style="padding:6px;" onchange="handleCoverFileSelect(event)">
+          <input type="url" id="newBookCoverUrl" class="form-input" placeholder="немесе сурет сілтемесі (URL)">
+        </div>
+        <div id="coverPreviewWrap" style="margin-top:8px; display:none;">
+          <img id="coverPreviewImg" src="" alt="Алдын ала көрініс" style="width:70px; height:95px; object-fit:cover; border-radius:6px; border:1px solid #CBD5E1;">
+        </div>
       </div>
+
+      <!-- Audio Book URL -->
       <div class="form-group">
-        <label class="form-label">Авторы *</label>
-        <input type="text" required id="newBookAuthor" class="form-input" placeholder="Мысалы: Міржақып Дулатұлы">
+        <label class="form-label">Аудиокітап аудио файлы (URL немесе mp3 сілтемесі)</label>
+        <input type="url" id="newBookAudioUrl" class="form-input" placeholder="https://... (аудио файл сілтемесі, бос болса сынақ аудиосы ойналады)">
       </div>
+
+      <!-- Book Text Content -->
       <div class="form-group">
-        <label class="form-label">Жанры</label>
-        <select id="newBookCategory" class="form-input">
-          <option value="Классика">Классика</option>
-          <option value="Тұлғалық даму">Тұлғалық даму</option>
-          <option value="Тарих">Тарих</option>
-          <option value="Ертегілер">Ертегілер</option>
-        </select>
+        <label class="form-label">Электронды кітап мәтіні (үзіндісі немесе толық бөлімі) *</label>
+        <textarea required id="newBookContent" class="form-input" rows="6" placeholder="Кітаптың оқырмандар оқитын мәтінін осында жазыңыз немесе көшіріп қойыңыз..."></textarea>
       </div>
-      <div class="form-group">
-        <label class="form-label">Кітап мәтіні (үзіндісі немесе 1-тарауы) *</label>
-        <textarea required id="newBookContent" class="form-input" rows="4" placeholder="Кітаптың оқылатын мәтінін осында жазыңыз..."></textarea>
+
+      <!-- Options: Free test & Archive -->
+      <div style="display:flex; gap:24px; margin-bottom:18px; background:#F8FAFC; padding:12px 16px; border-radius:8px; border:1px solid #E2E8F0;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <input type="checkbox" id="newBookIsFree" style="width:18px; height:18px; accent-color:var(--orange);">
+          <label for="newBookIsFree" style="font-size:13px; font-weight:600; cursor:pointer;">Тегін сынақ кітабы қылып белгілеу</label>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <input type="checkbox" id="newBookIsArchived" style="width:18px; height:18px; accent-color:#64748B;">
+          <label for="newBookIsArchived" style="font-size:13px; font-weight:600; cursor:pointer; color:#64748B;">Архивке салу (қолданушыларға көрінбейді)</label>
+        </div>
       </div>
-      <div class="form-group" style="display:flex; align-items:center; gap:8px;">
-        <input type="checkbox" id="newBookIsFree" style="width:18px; height:18px; accent-color:var(--orange);">
-        <label for="newBookIsFree" style="font-size:13px; font-weight:600; cursor:pointer;">Тегін сынақ кітабы қылып белгілеу</label>
+
+      <div style="display:flex; justify-content:flex-end; gap:10px;">
+        <button type="button" class="btn-outline" style="padding:10px 20px;" onclick="closeAddBookModal()">Болдырмау</button>
+        <button type="submit" class="btn-submit" style="width:auto; padding:10px 28px;" id="bookSubmitBtn">Сақтау және жариялау</button>
       </div>
-      <button type="submit" class="btn-submit">Каталогқа қосу</button>
     </form>
   </div>
 </div>
@@ -1479,7 +1530,11 @@ const INITIAL_BOOKS = [
     title: "Қара сөздер",
     author: "Абай Құнанбайұлы",
     category: "Классика",
+    pages: 140,
+    audioUrl: "",
+    coverImage: "",
     isFree: true,
+    isArchived: false,
     gradient: "linear-gradient(135deg, #0057A8, #003d7a)",
     content: "Бірінші сөз.\n\nБұл жасқа келгенше жақсы өткіздік пе, жаман өткіздік пе, әйтеуір бірталай өмірімізді өткіздік: алыстық, жұлыстық, айтыстық, тартыстық — әурешілікті көре-көре келдік. Енді жер ортасы жасқа келдік: қажыдық, жалықтық; қылып жүрген ісіміздің бәрі баянсыз, байлаусыз екенін көрдік, бәрі қоршылық екенін білдік.\n\nАл, енді қалған өмірімізді қайтіп, не қылып өткіземіз? Соны таба алмай өзім де қайранмын. Ақыры ойладым: осы ойыма келген нәрселерді қағазға жаза берейін, ақ қағаз бен қара сияны ермек қылайын, кімде-кім ішінен керекті сөз тапса, жазып алсын, я оқысын; керегі жоқ десе, өз сөзім өзімдікі дедім де, ақыры осыған байладым."
   },
@@ -1488,7 +1543,11 @@ const INITIAL_BOOKS = [
     title: "Абай жолы (1-том)",
     author: "Мұхтар Әуезов",
     category: "Классика",
+    pages: 420,
+    audioUrl: "",
+    coverImage: "",
     isFree: false,
+    isArchived: false,
     gradient: "linear-gradient(135deg, #1E3A8A, #172554)",
     content: "Қайтқанда.\n\nБелгілі Шыңғыс бөктері. Қаладан қайтқан жас шәкірттер мінген аттарын аяңға салып, жазғы жайлауға қарай асығып келеді. Үш жыл бойы қаладағы медреседе оқыған жас Абай ауылын, анасын, әжесін шексіз сағынған еді. Алда оны ұлы өмір белестері мен дала тартыстары күтіп тұрған болатын."
   },
@@ -1497,7 +1556,11 @@ const INITIAL_BOOKS = [
     title: "Алдар Көсенің айлалары",
     author: "Қазақ халық ертегілері",
     category: "Ертегілер",
+    pages: 96,
+    audioUrl: "",
+    coverImage: "",
     isFree: true,
+    isArchived: false,
     gradient: "linear-gradient(135deg, #F08000, #c06800)",
     content: "Шықбермес Шығайбайдың үйінде.\n\nЕртеде Шықбермес Шығайбай деген өте сараң бай өмір сүріпті. Үйіне қонған қонаққа тарының қауызын да татырмайтын тасбауыр жан екен. Мұны естіген Алдар Көсе: «Мен сол Шығайбайдың үйінен дәм татпасам, атым Алдар болмасын!» — деп байдың ауылына аттаныпты."
   },
@@ -1506,7 +1569,11 @@ const INITIAL_BOOKS = [
     title: "Көшпенділер",
     author: "Ілияс Есенберлин",
     category: "Тарих",
+    pages: 580,
+    audioUrl: "",
+    coverImage: "",
     isFree: false,
+    isArchived: false,
     gradient: "linear-gradient(135deg, #065F46, #022C22)",
     content: "Алмас қылыш.\n\nXV ғасырдың орта шені. Ұлан-ғайыр Дешті Қыпшақ даласында аласапыран заман басталды. Әбілқайыр ханның озбыр саясатына көнгісі келмеген Керей мен Жәнібек сұлтандар өздеріне қарасты елді бастап, Моғолстан шегіне қарай бет түзеді. Бұл қазақ мемлекеттілігінің негізін қалаған ұлы көш еді."
   },
@@ -1515,7 +1582,11 @@ const INITIAL_BOOKS = [
     title: "Үш анық",
     author: "Шәкәрім Құдайбердіұлы",
     category: "Тұлғалық даму",
+    pages: 112,
+    audioUrl: "",
+    coverImage: "",
     isFree: true,
+    isArchived: false,
     gradient: "linear-gradient(135deg, #7C3AED, #4C1D95)",
     content: "Ар ілімі.\n\nАдам өміріндегі ең негізгі үш анық бар. Дүниедегі барлық байлық пен атақ-мансап өткінші, адамның шын құны — оның таза ар-ұжданы мен адамзатқа тигізген игілігімен ғана өлшенеді. Ар ілімі — кемелдікке бастайтын басты жол."
   },
@@ -1524,7 +1595,11 @@ const INITIAL_BOOKS = [
     title: "Қалың мал",
     author: "Спандияр Көбеев",
     category: "Классика",
+    pages: 180,
+    audioUrl: "",
+    coverImage: "",
     isFree: true,
+    isArchived: false,
     gradient: "linear-gradient(135deg, #B45309, #78350F)",
     content: "Торғай даласындағы жазғы жайлау.\n\nКөк майса белестерді құшағына алған ауыл адамдары жайлауға көшіп, мамырлап жатқан шақ еді. Ғайша мен Құрымбайдың арасындағы пәк сезім сол замандағы қатал салт пен қалың мал тауқыметіне қарсы тұрар ерлікке ұласады."
   },
@@ -1533,7 +1608,11 @@ const INITIAL_BOOKS = [
     title: "Атомдық әдеттер",
     author: "Джеймс Клир (қазақша)",
     category: "Тұлғалық даму",
+    pages: 320,
+    audioUrl: "",
+    coverImage: "",
     isFree: false,
+    isArchived: false,
     gradient: "linear-gradient(135deg, #DC2626, #7F1D1D)",
     content: "Күнделікті 1%-ға жақсарудың таңғажайып күші.\n\nКүн сайын небәрі 1%-ға алға жылжысаңыз, бір жылда нәтижеңіз 37 есе артады. Нәтижелер — сіздің күнделікті қайталайтын әдеттеріңіздің жиынтығы."
   },
@@ -1542,7 +1621,11 @@ const INITIAL_BOOKS = [
     title: "Бай әке, кедей әке",
     author: "Роберт Кийосаки (қазақша)",
     category: "Тұлғалық даму",
+    pages: 280,
+    audioUrl: "",
+    coverImage: "",
     isFree: false,
+    isArchived: false,
     gradient: "linear-gradient(135deg, #0284C7, #0369A1)",
     content: "Байлар ақша үшін жұмыс істемейді.\n\nҚаржылық сауаттылық — өмір бойғы еркіндіктің кепілі. Байлар актив сатып алып, ақшаны өзіне жұмыс істеуге мәжбүрлейді."
   }
@@ -1599,34 +1682,55 @@ function renderBooks() {
   const grid = document.getElementById('booksGrid');
   const query = (document.getElementById('catalogSearch').value || '').toLowerCase().trim();
   
+  // Only show active books on public site (filter out archived books)
   const filtered = books.filter(b => {
+    if (b.isArchived) return false;
     const matchesCat = currentCategory === 'Бәрі' || b.category === currentCategory;
     const matchesQuery = !query || b.title.toLowerCase().includes(query) || b.author.toLowerCase().includes(query);
     return matchesCat && matchesQuery;
   });
 
-  grid.innerHTML = filtered.map(b => `
-    <div class="book-card">
-      <div>
-        <div class="book-cover" style="background: ${b.gradient || 'linear-gradient(135deg, #0057A8, #003d7a)'};">
-          <span class="cover-badge ${b.isFree ? 'badge-free' : 'badge-premium'}">
-            ${b.isFree ? 'Тегін сынақ' : 'Премиум'}
-          </span>
-          <div class="cover-title">${b.title}</div>
-          <div class="cover-author-text">${b.author}</div>
+  if (filtered.length === 0) {
+    grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:48px 20px; color:var(--text-mid); font-size:15px;">Бұл санат бойынша кітап табылмады.</div>`;
+  } else {
+    grid.innerHTML = filtered.map(b => {
+      const coverStyle = b.coverImage 
+        ? `background-image: url('${b.coverImage}'); background-size: cover; background-position: center;` 
+        : `background: ${b.gradient || 'linear-gradient(135deg, #0057A8, #003d7a)'};`;
+      
+      const pagesBadge = b.pages ? `<span style="font-size:11px; color:var(--text-mid); font-weight:600;">• ${b.pages} бет</span>` : '';
+      const audioIconBadge = b.audioUrl ? `<span style="font-size:11px; color:#10B981; font-weight:700;">• Аудио бар</span>` : '';
+
+      return `
+        <div class="book-card">
+          <div>
+            <div class="book-cover" style="${coverStyle}">
+              <span class="cover-badge ${b.isFree ? 'badge-free' : 'badge-premium'}">
+                ${b.isFree ? 'Тегін сынақ' : 'Премиум'}
+              </span>
+              ${!b.coverImage ? `
+                <div class="cover-title">${b.title}</div>
+                <div class="cover-author-text">${b.author}</div>
+              ` : ''}
+            </div>
+            <div class="book-meta">
+              <div class="book-title">${b.title}</div>
+              <div class="book-author">${b.author}</div>
+              <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-top:4px;">
+                <span class="book-category">${b.category}</span>
+                ${pagesBadge}
+                ${audioIconBadge}
+              </div>
+            </div>
+          </div>
+          <div class="book-actions">
+            <button class="btn-book-action btn-read" onclick="requestBookAccess('${b.id}', 'read')">Оқу</button>
+            <button class="btn-book-action btn-listen" onclick="requestBookAccess('${b.id}', 'listen')">Тыңдау</button>
+          </div>
         </div>
-        <div class="book-meta">
-          <div class="book-title">${b.title}</div>
-          <div class="book-author">${b.author}</div>
-          <span class="book-category">${b.category}</span>
-        </div>
-      </div>
-      <div class="book-actions">
-        <button class="btn-book-action btn-read" onclick="requestBookAccess('${b.id}', 'read')">Оқу</button>
-        <button class="btn-book-action btn-listen" onclick="requestBookAccess('${b.id}', 'listen')">Тыңдау</button>
-      </div>
-    </div>
-  `).join('');
+      `;
+    }).join('');
+  }
 
   const adminBookCount = document.getElementById('adminBookCount');
   if (adminBookCount) adminBookCount.textContent = books.length;
@@ -1831,23 +1935,69 @@ function logout() {
 }
 
 // READER & PLAYER
+let currentReadingBook = null;
+let currentAudioElement = null;
+
 function openReaderModal(book, mode) {
-  document.getElementById('readerBookCategory').textContent = book.category;
+  currentReadingBook = book;
+  document.getElementById('readerBookCategory').textContent = book.category + (book.pages ? ` • ${book.pages} бет` : '');
   document.getElementById('readerBookTitle').textContent = book.title;
   document.getElementById('readerBookAuthor').textContent = book.author;
-  document.getElementById('audioTitleDisplay').textContent = book.title + ' — Аудио';
+  document.getElementById('audioTitleDisplay').textContent = book.title + (book.audioUrl ? ' — Аудиокітап' : ' — Аудио үзінді');
 
   const contentArea = document.getElementById('readerContentArea');
   const paragraphs = (book.content || '').split('\n').filter(p => p.trim());
-  contentArea.innerHTML = paragraphs.map(p => `<p>${p}</p>`).join('');
+  
+  let coverHtml = '';
+  if (book.coverImage) {
+    coverHtml = `<div style="text-align:center; margin-bottom:24px;"><img src="${book.coverImage}" alt="${book.title}" style="max-height:260px; border-radius:10px; box-shadow:0 8px 24px rgba(0,0,0,0.15);"></div>`;
+  }
+  
+  contentArea.innerHTML = coverHtml + paragraphs.map(p => `<p>${p}</p>`).join('');
+
+  // Audio setup
+  if (currentAudioElement) {
+    currentAudioElement.pause();
+    currentAudioElement = null;
+  }
+  isAudioPlaying = false;
+  document.getElementById('audioPlayBtn').textContent = '▶';
+  document.getElementById('audioTimeDisplay').textContent = '00:00 / 08:30';
+
+  if (book.audioUrl) {
+    currentAudioElement = new Audio(book.audioUrl);
+    currentAudioElement.addEventListener('timeupdate', () => {
+      const cur = formatTime(currentAudioElement.currentTime);
+      const dur = formatTime(currentAudioElement.duration || 510);
+      document.getElementById('audioTimeDisplay').textContent = `${cur} / ${dur} (Ойналуда)`;
+    });
+    currentAudioElement.addEventListener('ended', () => {
+      isAudioPlaying = false;
+      document.getElementById('audioPlayBtn').textContent = '▶';
+      document.getElementById('audioTimeDisplay').textContent = '00:00 / 08:30 (Аяқталды)';
+    });
+  }
 
   document.getElementById('readerModal').classList.add('active');
   if (mode === 'listen') {
     document.getElementById('audioPlayerBar').scrollIntoView({ behavior: 'smooth' });
+    toggleAudio();
   }
 }
 
+function formatTime(secs) {
+  if (isNaN(secs) || secs === Infinity) return "00:00";
+  const m = Math.floor(secs / 60);
+  const s = Math.floor(secs % 60);
+  return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+}
+
 function closeReaderModal() {
+  if (currentAudioElement) {
+    currentAudioElement.pause();
+    currentAudioElement = null;
+  }
+  isAudioPlaying = false;
   document.getElementById('readerModal').classList.remove('active');
 }
 
@@ -1869,11 +2019,25 @@ let isAudioPlaying = false;
 function toggleAudio() {
   isAudioPlaying = !isAudioPlaying;
   document.getElementById('audioPlayBtn').textContent = isAudioPlaying ? '❚❚' : '▶';
-  document.getElementById('audioTimeDisplay').textContent = isAudioPlaying ? '01:24 / 08:30 (Ойналуда)' : '01:24 / 08:30 (Кідіртілді)';
+  
+  if (currentAudioElement) {
+    if (isAudioPlaying) {
+      currentAudioElement.play().catch(e => {
+        document.getElementById('audioTimeDisplay').textContent = 'Аудио ойналуда (демо)';
+      });
+    } else {
+      currentAudioElement.pause();
+      document.getElementById('audioTimeDisplay').textContent = 'Кідіртілді';
+    }
+  } else {
+    document.getElementById('audioTimeDisplay').textContent = isAudioPlaying ? '01:24 / 08:30 (Ойналуда)' : '01:24 / 08:30 (Кідіртілді)';
+  }
 }
 
 function setAudioSpeed(val) {
-  // visual indicator
+  if (currentAudioElement) {
+    currentAudioElement.playbackRate = parseFloat(val);
+  }
 }
 
 function toggleSleepTimer() {
@@ -1935,21 +2099,46 @@ function switchAdminTab(tab) {
 
 function renderAdminTables() {
   const bBody = document.getElementById('adminBooksTableBody');
-  bBody.innerHTML = books.map((b, i) => `
-    <tr>
-      <td style="font-weight:700;">${b.title}</td>
-      <td>${b.author}</td>
-      <td><span class="badge-tag" style="background:#E0F2FE; color:#0369A1;">${b.category}</span></td>
-      <td>
-        <button style="border:none; border-radius:50px; padding:4px 10px; font-size:11px; font-weight:700; cursor:pointer; background:${b.isFree ? '#D1FAE5; color:#065F46' : '#FEF3C7; color:#92400E'}" onclick="toggleBookFreeStatus('${b.id}')">
-          ${b.isFree ? 'Тегін сынақ' : 'Премиум'}
-        </button>
-      </td>
-      <td style="text-align:right;">
-        <button style="border:none; background:#FEE2E2; color:#B91C1C; padding:4px 8px; border-radius:6px; font-size:11px; cursor:pointer;" onclick="deleteBook('${b.id}')">Өшіру</button>
-      </td>
-    </tr>
-  `).join('');
+  bBody.innerHTML = books.map((b) => {
+    const coverThumbnail = b.coverImage
+      ? `<img src="${b.coverImage}" alt="${b.title}" style="width:36px; height:48px; object-fit:cover; border-radius:4px; border:1px solid #CBD5E1;">`
+      : `<div style="width:36px; height:48px; border-radius:4px; background:${b.gradient || '#0057A8'}; display:flex; align-items:center; justify-content:center; color:#FFF; font-size:9px; font-weight:800; text-align:center; padding:2px;">${b.title.slice(0,6)}</div>`;
+
+    const audioLabel = b.audioUrl 
+      ? `<span style="display:inline-block; padding:2px 8px; font-size:11px; font-weight:700; background:#E0F2FE; color:#0369A1; border-radius:4px;">Аудио бар</span>` 
+      : `<span style="font-size:11px; color:#94A3B8;">Стандартты</span>`;
+
+    const pagesText = b.pages ? `${b.pages} бет` : 'Көрсетілмеген';
+
+    return `
+      <tr style="${b.isArchived ? 'background:#F8FAFC; opacity:0.8;' : ''}">
+        <td>${coverThumbnail}</td>
+        <td>
+          <div style="font-weight:700; color:var(--text-dark);">${b.title}</div>
+          <div style="font-size:12px; color:var(--text-mid);">${b.author}</div>
+        </td>
+        <td><span class="badge-tag" style="background:#E0F2FE; color:#0369A1;">${b.category}</span></td>
+        <td>
+          <div style="font-size:12px; font-weight:600;">${pagesText}</div>
+          <div style="margin-top:2px;">${audioLabel}</div>
+        </td>
+        <td>
+          <button style="border:none; border-radius:50px; padding:4px 10px; font-size:11px; font-weight:700; cursor:pointer; background:${b.isFree ? '#D1FAE5; color:#065F46' : '#FEF3C7; color:#92400E'}" onclick="toggleBookFreeStatus('${b.id}')">
+            ${b.isFree ? 'Тегін сынақ' : 'Премиум'}
+          </button>
+        </td>
+        <td>
+          <button style="border:none; border-radius:50px; padding:4px 10px; font-size:11px; font-weight:700; cursor:pointer; background:${b.isArchived ? '#F1F5F9; color:#64748B; border:1px solid #CBD5E1;' : '#ECFDF5; color:#047857'}" onclick="toggleBookArchive('${b.id}')">
+            ${b.isArchived ? 'Архивте (Жабық)' : 'Сайтта белсенді'}
+          </button>
+        </td>
+        <td style="text-align:right; white-space:nowrap;">
+          <button style="border:none; background:#E0F2FE; color:#0369A1; padding:5px 10px; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer; margin-right:4px;" onclick="openEditBookModal('${b.id}')">Өңдеу</button>
+          <button style="border:none; background:#FEE2E2; color:#B91C1C; padding:5px 10px; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer;" onclick="deleteBook('${b.id}')">Өшіру</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
 
   const uBody = document.getElementById('adminUsersTableBody');
   uBody.innerHTML = users.map(u => `
@@ -1961,7 +2150,8 @@ function renderAdminTables() {
     </tr>
   `).join('');
 
-  document.getElementById('adminBookCount').textContent = books.length;
+  const activeBooksCount = books.filter(b => !b.isArchived).length;
+  document.getElementById('adminBookCount').textContent = `${activeBooksCount} (Архивте: ${books.length - activeBooksCount})`;
   document.getElementById('adminUserCount').textContent = users.length;
 }
 
@@ -1975,8 +2165,20 @@ function toggleBookFreeStatus(id) {
   }
 }
 
+function toggleBookArchive(id) {
+  const b = books.find(x => x.id === id);
+  if (b) {
+    b.isArchived = !b.isArchived;
+    saveState();
+    renderBooks();
+    renderAdminTables();
+  }
+}
+
 function deleteBook(id) {
-  if (confirm('Бұл кітапты шынымен өшіргіңіз келе ме?')) {
+  const b = books.find(x => x.id === id);
+  if (!b) return;
+  if (confirm(`«${b.title}» кітабын сайттан біржола өшіргіңіз келе ме?`)) {
     books = books.filter(x => x.id !== id);
     saveState();
     renderBooks();
@@ -1984,7 +2186,67 @@ function deleteBook(id) {
   }
 }
 
+// ADD & EDIT BOOK MODAL CONTROLS
+let currentCoverBase64 = "";
+
+function handleCoverFileSelect(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    currentCoverBase64 = evt.target.result;
+    document.getElementById('coverPreviewImg').src = currentCoverBase64;
+    document.getElementById('coverPreviewWrap').style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
 function openAddBookModal() {
+  document.getElementById('bookModalHeading').textContent = 'Жаңа қазақша кітап қосу';
+  document.getElementById('bookSubmitBtn').textContent = 'Сақтау және жариялау';
+  document.getElementById('editBookId').value = '';
+  document.getElementById('newBookTitle').value = '';
+  document.getElementById('newBookAuthor').value = '';
+  document.getElementById('newBookCategory').value = 'Классика';
+  document.getElementById('newBookPages').value = '';
+  document.getElementById('newBookCoverFile').value = '';
+  document.getElementById('newBookCoverUrl').value = '';
+  document.getElementById('newBookAudioUrl').value = '';
+  document.getElementById('newBookContent').value = '';
+  document.getElementById('newBookIsFree').checked = false;
+  document.getElementById('newBookIsArchived').checked = false;
+  currentCoverBase64 = "";
+  document.getElementById('coverPreviewWrap').style.display = 'none';
+
+  document.getElementById('addBookModal').classList.add('active');
+}
+
+function openEditBookModal(bookId) {
+  const book = books.find(b => b.id === bookId);
+  if (!book) return;
+
+  document.getElementById('bookModalHeading').textContent = 'Кітапты өңдеу: ' + book.title;
+  document.getElementById('bookSubmitBtn').textContent = 'Өзгерістерді сақтау';
+  document.getElementById('editBookId').value = book.id;
+  document.getElementById('newBookTitle').value = book.title || '';
+  document.getElementById('newBookAuthor').value = book.author || '';
+  document.getElementById('newBookCategory').value = book.category || 'Классика';
+  document.getElementById('newBookPages').value = book.pages || '';
+  document.getElementById('newBookCoverFile').value = '';
+  document.getElementById('newBookCoverUrl').value = (book.coverImage && book.coverImage.startsWith('http')) ? book.coverImage : '';
+  document.getElementById('newBookAudioUrl').value = book.audioUrl || '';
+  document.getElementById('newBookContent').value = book.content || '';
+  document.getElementById('newBookIsFree').checked = !!book.isFree;
+  document.getElementById('newBookIsArchived').checked = !!book.isArchived;
+
+  currentCoverBase64 = (book.coverImage && !book.coverImage.startsWith('http')) ? book.coverImage : '';
+  if (book.coverImage) {
+    document.getElementById('coverPreviewImg').src = book.coverImage;
+    document.getElementById('coverPreviewWrap').style.display = 'block';
+  } else {
+    document.getElementById('coverPreviewWrap').style.display = 'none';
+  }
+
   document.getElementById('addBookModal').classList.add('active');
 }
 
@@ -1992,39 +2254,70 @@ function closeAddBookModal() {
   document.getElementById('addBookModal').classList.remove('active');
 }
 
-function handleCreateBook(e) {
+function handleSaveBook(e) {
   e.preventDefault();
+  const editId = document.getElementById('editBookId').value;
   const title = document.getElementById('newBookTitle').value.trim();
   const author = document.getElementById('newBookAuthor').value.trim();
   const category = document.getElementById('newBookCategory').value;
+  const pages = parseInt(document.getElementById('newBookPages').value) || null;
+  const coverUrlInput = document.getElementById('newBookCoverUrl').value.trim();
+  const audioUrl = document.getElementById('newBookAudioUrl').value.trim();
   const content = document.getElementById('newBookContent').value.trim();
   const isFree = document.getElementById('newBookIsFree').checked;
+  const isArchived = document.getElementById('newBookIsArchived').checked;
 
   if (!title || !author) return;
+
+  const finalCover = currentCoverBase64 || coverUrlInput || "";
 
   const gradients = [
     "linear-gradient(135deg, #0057A8, #003d7a)",
     "linear-gradient(135deg, #F08000, #c06800)",
     "linear-gradient(135deg, #065F46, #022C22)",
-    "linear-gradient(135deg, #7C3AED, #4C1D95)"
+    "linear-gradient(135deg, #7C3AED, #4C1D95)",
+    "linear-gradient(135deg, #B45309, #78350F)",
+    "linear-gradient(135deg, #DC2626, #7F1D1D)"
   ];
 
-  const newBook = {
-    id: "book-" + Date.now(),
-    title,
-    author,
-    category,
-    isFree,
-    gradient: gradients[Math.floor(Math.random() * gradients.length)],
-    content
-  };
+  if (editId) {
+    // EDIT EXISTING BOOK
+    const idx = books.findIndex(b => b.id === editId);
+    if (idx !== -1) {
+      books[idx].title = title;
+      books[idx].author = author;
+      books[idx].category = category;
+      books[idx].pages = pages;
+      if (finalCover) books[idx].coverImage = finalCover;
+      books[idx].audioUrl = audioUrl;
+      books[idx].content = content;
+      books[idx].isFree = isFree;
+      books[idx].isArchived = isArchived;
+      alert(`«${title}» кітабы сәтті жаңартылды!`);
+    }
+  } else {
+    // CREATE NEW BOOK
+    const newBook = {
+      id: "book-" + Date.now(),
+      title,
+      author,
+      category,
+      pages,
+      coverImage: finalCover,
+      audioUrl,
+      content,
+      isFree,
+      isArchived,
+      gradient: gradients[Math.floor(Math.random() * gradients.length)]
+    };
+    books.unshift(newBook);
+    alert(`«${title}» кітабы сәтті қосылды!`);
+  }
 
-  books.unshift(newBook);
   saveState();
   renderBooks();
   renderAdminTables();
   closeAddBookModal();
-  alert('«' + title + '» кітабы сәтті қосылды!');
 }
 
 // INIT
