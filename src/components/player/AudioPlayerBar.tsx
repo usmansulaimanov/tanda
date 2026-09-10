@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useCallback } from 'react';
-import { Play, Pause, SkipBack, SkipForward, X, Headphones, Youtube } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, X, Headphones, Youtube, RotateCcw, RotateCw } from 'lucide-react';
 import { useAudioPlayerStore } from '../../store/useAudioPlayerStore';
 import { useToastStore } from '../../store/useToastStore';
 import { extractYouTubeVideoId, loadYouTubeIFrameApi } from '../../utils/youtube';
@@ -216,6 +216,17 @@ export const AudioPlayerBar: React.FC = () => {
     }
   };
 
+  const skipTime = (seconds: number) => {
+    const maxDur = duration || 999999;
+    const newTime = Math.max(0, Math.min(maxDur, progress + seconds));
+    setProgress(newTime);
+    if (isYouTube && ytPlayerRef.current && typeof ytPlayerRef.current.seekTo === 'function') {
+      ytPlayerRef.current.seekTo(newTime, true);
+    } else if (audioRef.current) {
+      audioRef.current.currentTime = newTime;
+    }
+  };
+
   const handleClose = useCallback(() => {
     if (audioRef.current) {
       audioRef.current.pause();
@@ -313,7 +324,7 @@ export const AudioPlayerBar: React.FC = () => {
 
             {/* Center: Controls & Progress */}
             <div className="flex flex-col items-center w-full sm:w-1/2 max-w-md gap-1">
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 sm:gap-3">
                 <button
                   type="button"
                   onClick={prevChapter}
@@ -324,13 +335,35 @@ export const AudioPlayerBar: React.FC = () => {
                   <SkipBack className="w-4 h-4" />
                 </button>
 
+                {/* 10 seconds backward */}
+                <button
+                  type="button"
+                  onClick={() => skipTime(-10)}
+                  className="flex items-center gap-0.5 px-2 py-1 text-xs font-bold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-md transition cursor-pointer"
+                  title="10 секунд артқа өткізу"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span className="text-[11px]">-10с</span>
+                </button>
+
                 <button
                   type="button"
                   onClick={togglePlay}
-                  className="w-10 h-10 rounded-full bg-[#0057A8] hover:bg-[#003d7a] text-white flex items-center justify-center shadow-md transition-transform active:scale-95 cursor-pointer"
+                  className="w-10 h-10 rounded-full bg-[#0057A8] hover:bg-[#003d7a] text-white flex items-center justify-center shadow-md transition-transform active:scale-95 cursor-pointer shrink-0"
                   title={isPlaying ? 'Тоқтату' : 'Ойнату'}
                 >
                   {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 ml-0.5" />}
+                </button>
+
+                {/* 10 seconds forward */}
+                <button
+                  type="button"
+                  onClick={() => skipTime(10)}
+                  className="flex items-center gap-0.5 px-2 py-1 text-xs font-bold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-md transition cursor-pointer"
+                  title="10 секунд алға өткізу"
+                >
+                  <span className="text-[11px]">+10с</span>
+                  <RotateCw className="w-3.5 h-3.5" />
                 </button>
 
                 <button
