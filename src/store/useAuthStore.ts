@@ -32,34 +32,58 @@ const DEFAULT_USERS: User[] = [
   {
     id: 'user-1',
     idNumber: '001 001',
-    email: 'arman.aliev@gmail.com',
-    name: 'Арман Әлиев',
+    email: 'oqyrman@mail.kz',
+    name: 'Айбек Қайратұлы',
     role: 'client',
-    date: '2026-09-02',
+    date: '2026-09-05',
   },
   {
     id: 'user-2',
     idNumber: '001 002',
-    email: 'dina.sapar@mail.kz',
-    name: 'Дина Сапарқызы',
-    role: 'client',
-    date: '2026-09-04',
-  },
-  {
-    id: 'user-3',
-    idNumber: '001 003',
-    email: 'nurbol.k@tanda.kz',
-    name: 'Нұрбол Кеңес',
+    email: 'azamat@tanda.kz',
+    name: 'Азамат Серікұлы',
     role: 'client',
     date: '2026-09-06',
   },
   {
+    id: 'user-3',
+    idNumber: '001 003',
+    email: 'dana@gmail.com',
+    name: 'Дана Нұрланқызы',
+    role: 'client',
+    date: '2026-09-07',
+  },
+  {
     id: 'user-4',
     idNumber: '001 004',
-    email: 'aigerim.b@gmail.com',
-    name: 'Әйгерім Байұзақ',
+    email: 'arman@bk.ru',
+    name: 'Арман Мақсатұлы',
     role: 'client',
     date: '2026-09-08',
+  },
+  {
+    id: 'user-5',
+    idNumber: '001 005',
+    email: 'gulnar@tanda.kz',
+    name: 'Гүлнар Әлиева',
+    role: 'client',
+    date: '2026-09-09',
+  },
+  {
+    id: 'user-6',
+    idNumber: '001 006',
+    email: 'aigerim@tanda.kz',
+    name: 'Әйгерім Байұзақ',
+    role: 'client',
+    date: '2026-09-10',
+  },
+  {
+    id: 'user-7',
+    idNumber: '001 007',
+    email: 'reader@tanda.kz',
+    name: 'Оқырман',
+    role: 'client',
+    date: '2026-09-10',
   },
 ];
 
@@ -225,6 +249,31 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'tanda_auth_storage',
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          const currentUsers = state.users || [];
+          const merged = [...currentUsers];
+          for (const defUser of DEFAULT_USERS) {
+            const idx = merged.findIndex(
+              (u) => u.id === defUser.id || u.email.toLowerCase() === defUser.email.toLowerCase()
+            );
+            if (idx === -1) {
+              merged.push(defUser);
+            } else {
+              if (!merged[idx].idNumber) {
+                merged[idx].idNumber = defUser.idNumber;
+              }
+              if (!merged[idx].name && defUser.name) {
+                merged[idx].name = defUser.name;
+              }
+            }
+          }
+          state.users = merged;
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('tanda_users', JSON.stringify(merged));
+          }
+        }
+      },
     }
   )
 );

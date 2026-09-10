@@ -20,11 +20,26 @@ export const ReadersPage: React.FC = () => {
   const filteredReaders = useMemo(() => {
     if (!searchQuery.trim()) return readers;
     const q = searchQuery.toLowerCase().trim();
+    const cleanQ = q.replace(/[\s\-_:]+/g, '').replace(/^id/i, '');
+
     return readers.filter((r) => {
-      const nameMatch = r.name?.toLowerCase().includes(q);
-      const emailMatch = r.email?.toLowerCase().includes(q);
-      const idMatch = r.idNumber?.toLowerCase().includes(q) || r.id?.toLowerCase().includes(q);
-      return nameMatch || emailMatch || idMatch;
+      const name = (r.name || '').toLowerCase();
+      const email = (r.email || '').toLowerCase();
+      const rawIdNum = (r.idNumber || '').toLowerCase();
+      const cleanIdNum = rawIdNum.replace(/[\s\-_:]+/g, '').replace(/^id/i, '');
+      const rawUserId = (r.id || '').toLowerCase();
+
+      if (name.includes(q) || email.includes(q) || rawIdNum.includes(q) || rawUserId.includes(q)) {
+        return true;
+      }
+
+      if (cleanQ.length > 0 && cleanIdNum.length > 0) {
+        if (cleanIdNum.includes(cleanQ) || cleanQ.includes(cleanIdNum)) {
+          return true;
+        }
+      }
+
+      return false;
     });
   }, [readers, searchQuery]);
 
