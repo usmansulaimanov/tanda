@@ -1,21 +1,23 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useBookStore } from '../../store/useBookStore';
+import { useAuthStore } from '../../store/useAuthStore';
 
 export const ReaderPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { books } = useBookStore();
+  const { role } = useAuthStore();
 
   const [fontSize, setFontSize] = useState<number>(17);
   const [theme, setTheme] = useState<'light' | 'sepia' | 'dark'>('light');
 
   const book = books.find((b) => b.id === id);
 
-  if (!book) {
+  if (!book || (book.isArchived && role !== 'admin')) {
     return (
       <div style={{ padding: '60px 20px', textAlign: 'center' }}>
-        <h2>Кітап табылмады</h2>
+        <h2>Кітап табылмады немесе архивтелген</h2>
         <button onClick={() => navigate('/catalog')} className="btn-primary" style={{ marginTop: '20px' }}>
           Каталогқа оралу
         </button>

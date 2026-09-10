@@ -1,20 +1,25 @@
 import React from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useBookStore } from '../../store/useBookStore';
+import { useAuthStore } from '../../store/useAuthStore';
 import { useAudioPlayerStore } from '../../store/useAudioPlayerStore';
 
 export const BookDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { books } = useBookStore();
+  const { role } = useAuthStore();
   const { playBook, playChapter, currentBook, currentChapter, isPlaying } = useAudioPlayerStore();
 
   const book = books.find((b) => b.id === id);
 
-  if (!book) {
+  if (!book || (book.isArchived && role !== 'admin')) {
     return (
       <div style={{ maxWidth: '800px', margin: '80px auto', textAlign: 'center' }}>
-        <h2 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-dark)' }}>Кітап табылмады</h2>
+        <h2 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-dark)' }}>Кітап табылмады немесе архивтелген</h2>
+        <p style={{ color: 'var(--text-mid)', marginTop: '8px' }}>
+          Бұл кітап әкімші тарапынан архивке қойылған немесе өшірілген.
+        </p>
         <button
           onClick={() => navigate('/catalog')}
           className="btn-primary"

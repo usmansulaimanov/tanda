@@ -45,15 +45,31 @@ export const Header: React.FC = () => {
       return;
     }
     const q = val.toLowerCase();
+    // Exclude archived books: if a book is archived or deleted, it must not appear in search
     const matches = books.filter(
       (b) =>
-        b.title.toLowerCase().includes(q) ||
-        b.author.toLowerCase().includes(q) ||
-        b.category.toLowerCase().includes(q)
+        !b.isArchived &&
+        (b.title.toLowerCase().includes(q) ||
+          b.author.toLowerCase().includes(q) ||
+          b.category.toLowerCase().includes(q))
     );
     setSearchResults(matches.slice(0, 6));
     setShowResults(true);
   };
+
+  // Re-sync search results if books in database change (e.g. archived or deleted)
+  useEffect(() => {
+    if (!headerSearch.trim()) return;
+    const q = headerSearch.toLowerCase();
+    const matches = books.filter(
+      (b) =>
+        !b.isArchived &&
+        (b.title.toLowerCase().includes(q) ||
+          b.author.toLowerCase().includes(q) ||
+          b.category.toLowerCase().includes(q))
+    );
+    setSearchResults(matches.slice(0, 6));
+  }, [books, headerSearch]);
 
   const handleSelectBook = (book: Book) => {
     setShowResults(false);

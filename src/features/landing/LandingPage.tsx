@@ -26,20 +26,20 @@ export const LandingPage: React.FC = () => {
     return <AdminDashboard />;
   }
 
-  // Dynamic statistics matching the database exactly
-  const booksCount = books.length;
-  const authorsCount = useMemo(() => {
-    return new Set(books.map((b) => b.author?.trim()).filter(Boolean)).size;
-  }, [books]);
-  const readersCount = useMemo(() => {
-    const clients = users.filter((u) => u.role === 'client');
-    return clients.length > 0 ? clients.length : users.length;
-  }, [users]);
-
   // Readers only see active, non-archived books
   const activeBooks = useMemo(() => {
     return books.filter((b) => !b.isArchived);
   }, [books]);
+
+  // Dynamic statistics matching the active database exactly
+  const booksCount = activeBooks.length;
+  const authorsCount = useMemo(() => {
+    return new Set(activeBooks.map((b) => b.author?.trim()).filter(Boolean)).size;
+  }, [activeBooks]);
+  const readersCount = useMemo(() => {
+    const clients = users.filter((u) => u.role === 'client');
+    return clients.length > 0 ? clients.length : users.length;
+  }, [users]);
 
   // Filtered books for catalog grid
   const filteredBooks = useMemo(() => {
