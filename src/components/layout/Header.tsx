@@ -230,19 +230,21 @@ export const Header: React.FC = () => {
             </div>
           </div>
 
-          {/* Middle: Links */}
-          <ul className="nav-links" style={{ display: 'flex', alignItems: 'center', gap: '24px', margin: 0, padding: 0, listStyle: 'none', flexShrink: 0 }}>
-            <li>
-              <Link to="/" className={location.pathname === '/' ? 'active' : ''} style={{ textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}>
-                Басты бет
-              </Link>
-            </li>
-            <li>
-              <Link to="/catalog" className={location.pathname === '/catalog' ? 'active' : ''} style={{ textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}>
-                Кітаптар қоры
-              </Link>
-            </li>
-          </ul>
+          {/* Middle: Links (Only shown for readers) */}
+          {role !== 'admin' && (
+            <ul className="nav-links" style={{ display: 'flex', alignItems: 'center', gap: '24px', margin: 0, padding: 0, listStyle: 'none', flexShrink: 0 }}>
+              <li>
+                <Link to="/" className={location.pathname === '/' ? 'active' : ''} style={{ textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}>
+                  Басты бет
+                </Link>
+              </li>
+              <li>
+                <Link to="/catalog" className={location.pathname === '/catalog' ? 'active' : ''} style={{ textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}>
+                  Кітаптар қоры
+                </Link>
+              </li>
+            </ul>
+          )}
 
           {/* Right: Auth & Account Actions (Strict single line, no wrapping) */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0, whiteSpace: 'nowrap' }}>

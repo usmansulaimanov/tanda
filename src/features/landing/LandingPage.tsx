@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useBookStore } from '../../store/useBookStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { BookCard } from '../../components/ui/BookCard';
+import { AdminDashboard } from '../admin/AdminDashboard';
 
 const CATEGORIES = [
   'Бәрі',
@@ -19,6 +20,11 @@ export const LandingPage: React.FC = () => {
   const { role, users } = useAuthStore();
   const [selectedCat, setSelectedCat] = useState('Бәрі');
   const [search, setSearch] = useState('');
+
+  // If logged in as admin, show only the management panel
+  if (role === 'admin') {
+    return <AdminDashboard />;
+  }
 
   // Dynamic statistics matching the database exactly
   const booksCount = books.length;
@@ -70,11 +76,6 @@ export const LandingPage: React.FC = () => {
             <a href="#catalog" className="btn-primary">
               Кітаптарды көру
             </a>
-            {role === 'admin' && (
-              <Link to="/admin" className="btn-outline">
-                Басқару панелі
-              </Link>
-            )}
           </div>
           <div className="hero-stats">
             <div>
