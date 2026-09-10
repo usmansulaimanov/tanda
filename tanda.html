@@ -1251,12 +1251,20 @@
     </div>
 
     <!-- Audio Player Bar -->
-    <div class="audio-bar" id="audioPlayerBar">
-      <div style="display:flex; align-items:center; gap:12px;">
-        <button id="audioPlayBtn" onclick="toggleAudio()" style="width:44px; height:44px; border-radius:50%; background:var(--orange); color:#FFF; border:none; font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 12px rgba(240,128,0,0.3);">▶</button>
-        <div>
-          <div style="font-size:13px; font-weight:700; color:var(--text-dark);" id="audioTitleDisplay">Аудиокітап тыңдау</div>
-          <div style="font-size:11px; color:var(--text-mid); font-family:monospace;" id="audioTimeDisplay">00:00 / 08:30</div>
+    <div class="audio-bar" id="audioPlayerBar" style="display:none; flex-wrap:wrap; gap:16px;">
+      <div style="display:flex; align-items:center; gap:12px; flex:1; min-width:260px;">
+        <button id="audioPlayBtn" onclick="toggleAudio()" style="width:44px; height:44px; border-radius:50%; background:var(--orange); color:#FFF; border:none; font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 12px rgba(240,128,0,0.3); flex-shrink:0;">▶</button>
+        <div style="flex:1; min-width:0;">
+          <div style="font-size:13px; font-weight:700; color:var(--text-dark); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" id="audioTitleDisplay">Аудиокітап тыңдау</div>
+          <div style="display:flex; align-items:center; gap:8px; margin-top:2px; flex-wrap:wrap;">
+            <div style="font-size:11px; color:var(--text-mid); font-family:monospace;" id="audioTimeDisplay">00:00 / 08:30</div>
+            <div id="audioNarratorDisplay" style="font-size:11px; color:#0369A1; font-weight:700;"></div>
+          </div>
+          <!-- Chapters Dropdown for Audio Player -->
+          <div id="audioChapterPickerWrap" style="display:none; margin-top:6px; align-items:center; gap:6px;">
+            <label for="audioChapterSelect" style="font-size:11px; font-weight:700; color:var(--text-mid);">Бөлім:</label>
+            <select id="audioChapterSelect" onchange="handleReaderChapterChange(this.value)" style="padding:3px 8px; border-radius:6px; border:1px solid #CBD5E1; font-size:11px; font-weight:700; background:#FFF; max-width:220px;"></select>
+          </div>
         </div>
       </div>
 
@@ -1528,6 +1536,14 @@ const INITIAL_BOOKS = [
     author: "Абай Құнанбайұлы",
     category: "Классика",
     pages: 140,
+    hasAudio: true,
+    audioNarrator: "Берік Айтжанов",
+    audioDuration: "2 сағат 15 минут",
+    audioChapters: [
+      { id: "ch-1", title: "1-сөз", duration: "03:45", audioUrl: "" },
+      { id: "ch-2", title: "2-сөз", duration: "04:10", audioUrl: "" },
+      { id: "ch-3", title: "3-сөз", duration: "05:20", audioUrl: "" }
+    ],
     audioUrl: "",
     coverImage: "",
     isFree: true,
@@ -1754,9 +1770,10 @@ function handleHeaderSearch(e) {
         : `<div style="width:36px; height:48px; border-radius:6px; background:${b.gradient || '#0057A8'}; display:flex; align-items:center; justify-content:center; color:#FFF; font-size:9px; font-weight:800; text-align:center; padding:2px; flex-shrink:0;">${b.title.slice(0,5)}</div>`;
       
       const formats = [];
+      const hasAudio = !!(b.hasAudio || (b.audioChapters && b.audioChapters.length > 0) || b.audioUrl);
       if (b.pdfData || b.pdfUrl) formats.push('<span style="font-size:9px; font-weight:800; background:#FEE2E2; color:#B91C1C; padding:1px 5px; border-radius:3px;">PDF</span>');
       if (b.epubData || b.epubUrl) formats.push('<span style="font-size:9px; font-weight:800; background:#DBEAFE; color:#1D4ED8; padding:1px 5px; border-radius:3px;">EPUB</span>');
-      if (b.audioUrl) formats.push('<span style="font-size:9px; font-weight:800; background:#E0F2FE; color:#0369A1; padding:1px 5px; border-radius:3px;">Аудио</span>');
+      if (hasAudio) formats.push('<span style="font-size:9px; font-weight:800; background:#E0F2FE; color:#0369A1; padding:1px 5px; border-radius:3px;">Аудио</span>');
 
       return `
         <a href="add-book.html?id=${b.id}" style="display:flex; align-items:center; gap:12px; padding:10px 12px; text-decoration:none; border-radius:8px; transition:background 0.15s; border-bottom:1px solid #F1F5F9;" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background='transparent'">
@@ -1807,7 +1824,9 @@ function renderBooks() {
         : `background: ${b.gradient || 'linear-gradient(135deg, #0057A8, #003d7a)'};`;
       
       const pagesBadge = b.pages ? `<span style="font-size:11px; color:var(--text-mid); font-weight:600;">• ${b.pages} бет</span>` : '';
-      const audioIconBadge = b.audioUrl ? `<span style="font-size:11px; color:#10B981; font-weight:700;">• Аудио бар</span>` : '';
+      const hasAudio = !!(b.hasAudio || (b.audioChapters && b.audioChapters.length > 0) || b.audioUrl);
+      const audioDurationText = b.audioDuration ? ` (${b.audioDuration})` : '';
+      const audioIconBadge = hasAudio ? `<span style="font-size:11px; color:#10B981; font-weight:700;">• Аудио бар${audioDurationText}</span>` : '';
 
       return `
         <div class="book-card">
@@ -1832,8 +1851,8 @@ function renderBooks() {
             </div>
           </div>
           <div class="book-actions">
-            <button class="btn-book-action btn-read" onclick="requestBookAccess('${b.id}', 'read')">Оқу</button>
-            <button class="btn-book-action btn-listen" onclick="requestBookAccess('${b.id}', 'listen')">Тыңдау</button>
+            <button class="btn-book-action btn-read" style="${!hasAudio ? 'grid-column: 1 / -1; width:100%;' : ''}" onclick="requestBookAccess('${b.id}', 'read')">Оқу</button>
+            ${hasAudio ? `<button class="btn-book-action btn-listen" onclick="requestBookAccess('${b.id}', 'listen')">Тыңдау</button>` : ''}
           </div>
         </div>
       `;
@@ -1862,6 +1881,12 @@ function filterBooks() {
 function requestBookAccess(bookId, mode) {
   const book = books.find(b => b.id === bookId);
   if (!book) return;
+
+  const hasAudio = !!(book.hasAudio || (book.audioChapters && book.audioChapters.length > 0) || book.audioUrl);
+  if (mode === 'listen' && !hasAudio) {
+    alert(`«${book.title}» кітабының аудио нұсқасы жоқ. Тек электронды нұсқасы қолжетімді.`);
+    mode = 'read';
+  }
 
   if (!currentUser) {
     // User is NOT logged in -> Must register/login to read
@@ -2051,7 +2076,6 @@ function openReaderModal(book, mode) {
   document.getElementById('readerBookCategory').textContent = book.category + (book.pages ? ` • ${book.pages} бет` : '');
   document.getElementById('readerBookTitle').textContent = book.title;
   document.getElementById('readerBookAuthor').textContent = book.author;
-  document.getElementById('audioTitleDisplay').textContent = book.title + (book.audioUrl ? ' — Аудиокітап' : ' — Аудио үзінді');
 
   const contentArea = document.getElementById('readerContentArea');
   const textContent = book.description || book.content || '';
@@ -2091,16 +2115,70 @@ function openReaderModal(book, mode) {
   contentArea.innerHTML = coverHtml + fileButtonsHtml + (paragraphs.length ? paragraphs.map(p => `<p>${p}</p>`).join('') : '<p style="color:#64748B; text-align:center;">Кітап файлы жоғарыда жүктеуге дайын.</p>');
 
   // Audio setup
+  const hasAudio = !!(book.hasAudio || (book.audioChapters && book.audioChapters.length > 0) || book.audioUrl);
+  const audioPlayerBar = document.getElementById('audioPlayerBar');
+
+  if (!hasAudio) {
+    if (audioPlayerBar) audioPlayerBar.style.display = 'none';
+  } else {
+    if (audioPlayerBar) audioPlayerBar.style.display = 'flex';
+
+    document.getElementById('audioTitleDisplay').textContent = book.title + ' — Аудиокітап';
+    const narratorEl = document.getElementById('audioNarratorDisplay');
+    if (narratorEl) {
+      narratorEl.textContent = book.audioNarrator ? `Диктор: ${book.audioNarrator}` : '';
+    }
+
+    const chapters = (book.audioChapters && book.audioChapters.length > 0) ? book.audioChapters : [];
+    const pickerWrap = document.getElementById('audioChapterPickerWrap');
+    const chapterSelect = document.getElementById('audioChapterSelect');
+
+    if (chapters.length > 1 && pickerWrap && chapterSelect) {
+      pickerWrap.style.display = 'flex';
+      chapterSelect.innerHTML = chapters.map((ch, i) => `
+        <option value="${i}">${ch.title || (i + 1 + '-бөлім')}${ch.duration ? ' (' + ch.duration + ')' : ''}</option>
+      `).join('');
+    } else if (pickerWrap) {
+      pickerWrap.style.display = 'none';
+    }
+
+    const firstAudio = (chapters.length > 0 && (chapters[0].audioUrl || chapters[0].audioData))
+      ? (chapters[0].audioUrl || chapters[0].audioData)
+      : book.audioUrl;
+    const firstDur = (chapters.length > 0 && chapters[0].duration) || book.audioDuration || '08:30';
+
+    setupAudioPlayback(firstAudio, firstDur);
+  }
+
+  document.getElementById('readerModal').classList.add('active');
+  if (mode === 'listen' && hasAudio) {
+    document.getElementById('audioPlayerBar').scrollIntoView({ behavior: 'smooth' });
+    toggleAudio();
+  }
+}
+
+function handleReaderChapterChange(idx) {
+  if (!currentReadingBook || !currentReadingBook.audioChapters) return;
+  const ch = currentReadingBook.audioChapters[idx];
+  if (!ch) return;
+  const audioSrc = ch.audioUrl || ch.audioData || currentReadingBook.audioUrl;
+  setupAudioPlayback(audioSrc, ch.duration || '08:30');
+  toggleAudio();
+}
+
+function setupAudioPlayback(audioSrc, defaultDurationText = '08:30') {
   if (currentAudioElement) {
     currentAudioElement.pause();
     currentAudioElement = null;
   }
   isAudioPlaying = false;
   document.getElementById('audioPlayBtn').textContent = '▶';
-  document.getElementById('audioTimeDisplay').textContent = '00:00 / 08:30';
+  document.getElementById('audioTimeDisplay').textContent = `00:00 / ${defaultDurationText}`;
 
-  if (book.audioUrl) {
-    currentAudioElement = new Audio(book.audioUrl);
+  if (audioSrc) {
+    currentAudioElement = new Audio(audioSrc);
+    const speedEl = document.getElementById('audioSpeed');
+    currentAudioElement.playbackRate = speedEl ? parseFloat(speedEl.value || 1.0) : 1.0;
     currentAudioElement.addEventListener('timeupdate', () => {
       const cur = formatTime(currentAudioElement.currentTime);
       const dur = formatTime(currentAudioElement.duration || 510);
@@ -2109,14 +2187,8 @@ function openReaderModal(book, mode) {
     currentAudioElement.addEventListener('ended', () => {
       isAudioPlaying = false;
       document.getElementById('audioPlayBtn').textContent = '▶';
-      document.getElementById('audioTimeDisplay').textContent = '00:00 / 08:30 (Аяқталды)';
+      document.getElementById('audioTimeDisplay').textContent = `00:00 / ${defaultDurationText} (Аяқталды)`;
     });
-  }
-
-  document.getElementById('readerModal').classList.add('active');
-  if (mode === 'listen') {
-    document.getElementById('audioPlayerBar').scrollIntoView({ behavior: 'smooth' });
-    toggleAudio();
   }
 }
 
@@ -2598,12 +2670,15 @@ function renderSectionAdminBooks(filterQuery = '') {
 
     const hasPdf = !!(b.pdfData || b.pdfUrl);
     const hasEpub = !!(b.epubData || b.epubUrl);
-    const hasAudio = !!b.audioUrl;
+    const hasAudio = !!(b.hasAudio || (b.audioChapters && b.audioChapters.length > 0) || b.audioUrl);
     
     let formatsBadges = [];
     if (hasPdf) formatsBadges.push('<span style="display:inline-block; padding:2px 6px; font-size:10px; font-weight:800; background:#FEE2E2; color:#B91C1C; border-radius:4px;">PDF</span>');
     if (hasEpub) formatsBadges.push('<span style="display:inline-block; padding:2px 6px; font-size:10px; font-weight:800; background:#DBEAFE; color:#1D4ED8; border-radius:4px;">EPUB</span>');
-    if (hasAudio) formatsBadges.push('<span style="display:inline-block; padding:2px 6px; font-size:10px; font-weight:800; background:#E0F2FE; color:#0369A1; border-radius:4px;">Аудио</span>');
+    if (hasAudio) {
+      const chCount = (b.audioChapters && b.audioChapters.length) ? ` (${b.audioChapters.length} бөлім)` : '';
+      formatsBadges.push(`<span style="display:inline-block; padding:2px 6px; font-size:10px; font-weight:800; background:#E0F2FE; color:#0369A1; border-radius:4px;">Аудио${chCount}</span>`);
+    }
     if (formatsBadges.length === 0) formatsBadges.push('<span style="font-size:11px; color:#94A3B8;">Стандартты</span>');
 
     const pagesText = b.pages ? `${b.pages} бет` : '—';

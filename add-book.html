@@ -290,7 +290,7 @@
   <div class="header-container">
     <a href="index.html" class="logo-area">
       <div class="logo-text">tanda<span>.kz</span></div>
-      <span class="logo-badge">Әкімшілік панель</span>
+      <span class="logo-badge">Кітап қосу және өңдеу</span>
     </a>
     <a href="index.html#admin-section" class="back-link">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
@@ -389,10 +389,59 @@
         </div>
       </div>
 
-      <!-- Audio File URL -->
-      <div class="form-group">
-        <label class="form-label" for="bookAudioUrl">Аудиокітап файлы (URL сілтемесі немесе mp3)</label>
-        <input type="url" id="bookAudioUrl" class="form-input" placeholder="https://... (бос қалдырсаңыз оқырманға сынақ аудио үзіндісі қосылады)">
+      <!-- Audio Section with Toggle Checkbox -->
+      <div style="background:#FFFFFF; border:2px solid #CBD5E1; border-radius:12px; padding:20px; margin-bottom:24px; transition:all 0.2s;" id="audioSectionBox">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:16px;">
+          <div style="display:flex; align-items:flex-start; gap:14px; cursor:pointer;" onclick="toggleAudioCheckbox()">
+            <input type="checkbox" id="bookHasAudio" style="width:20px; height:20px; accent-color:var(--orange); cursor:pointer; margin-top:2px;" onchange="handleAudioToggle(this.checked)" onclick="event.stopPropagation()">
+            <div>
+              <label for="bookHasAudio" style="font-size:15px; font-weight:800; color:var(--text-dark); cursor:pointer; display:block;">
+                Бұл кітаптың аудио нұсқасын қосу
+              </label>
+              <div style="font-size:12px; color:var(--text-mid); margin-top:3px;">
+                Егер белгіленбесе, аудиокітап жоқ деп есептеледі және сайтта тек электронды нұсқасы (PDF/EPUB) болады.
+              </div>
+            </div>
+          </div>
+          <span id="audioBadgeStatus" style="font-size:12px; font-weight:700; color:#64748B; background:#F1F5F9; padding:5px 14px; border-radius:50px; white-space:nowrap;">
+            Аудио нұсқасы жоқ
+          </span>
+        </div>
+
+        <!-- Audio Configuration Area (Revealed only when checkbox is checked) -->
+        <div id="audioConfigArea" style="display:none; margin-top:20px; padding-top:20px; border-top:1px dashed #CBD5E1;">
+          <div class="form-grid" style="margin-bottom:18px;">
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label" for="audioNarrator">Кім дыбыстаған (диктор) *</label>
+              <input type="text" id="audioNarrator" class="form-input" placeholder="Мысалы: Берік Айтжанов, Саят Мерекеұлы">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label" for="audioDuration">Жалпы ұзақтығы</label>
+              <input type="text" id="audioDuration" class="form-input" placeholder="Мысалы: 4 сағат 25 минут немесе 04:25:00">
+            </div>
+          </div>
+
+          <!-- Chapters Box -->
+          <div style="background:#F8FAFC; border:1px solid #CBD5E1; border-radius:10px; padding:18px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px;">
+              <div>
+                <div style="font-size:14px; font-weight:800; color:var(--text-dark);">
+                  Аудиокітап бөлімдері (тараулары)
+                </div>
+                <div style="font-size:12px; color:var(--text-mid); margin-top:2px;">
+                  Әр бөлімді жеке-жеке жүктеңіз (Барлығы: <span id="chaptersCountDisplay" style="font-weight:700; color:var(--blue);">0</span> бөлім)
+                </div>
+              </div>
+              <button type="button" onclick="addAudioChapterRow()" style="background:var(--blue); color:#FFF; border:none; padding:8px 16px; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                Жаңа бөлім қосу
+              </button>
+            </div>
+
+            <!-- Chapters List -->
+            <div id="chaptersList" style="display:flex; flex-direction:column; gap:12px;"></div>
+          </div>
+        </div>
       </div>
 
       <!-- Options: Free test & Archive -->
@@ -430,6 +479,14 @@ const INITIAL_BOOKS = [
     author: "Абай Құнанбайұлы",
     category: "Классика",
     pages: 140,
+    hasAudio: true,
+    audioNarrator: "Берік Айтжанов",
+    audioDuration: "2 сағат 15 минут",
+    audioChapters: [
+      { id: "ch-1", title: "1-сөз", duration: "03:45", audioUrl: "" },
+      { id: "ch-2", title: "2-сөз", duration: "04:10", audioUrl: "" },
+      { id: "ch-3", title: "3-сөз", duration: "05:20", audioUrl: "" }
+    ],
     audioUrl: "",
     coverImage: "",
     isFree: true,
@@ -513,6 +570,127 @@ function handleEpubSelect(e) {
   reader.readAsDataURL(file);
 }
 
+let currentChapters = [];
+
+function toggleAudioCheckbox() {
+  const cb = document.getElementById('bookHasAudio');
+  cb.checked = !cb.checked;
+  handleAudioToggle(cb.checked);
+}
+
+function handleAudioToggle(isChecked) {
+  const area = document.getElementById('audioConfigArea');
+  const badge = document.getElementById('audioBadgeStatus');
+  const box = document.getElementById('audioSectionBox');
+  if (isChecked) {
+    area.style.display = 'block';
+    badge.textContent = 'Аудио нұсқасы қосылды';
+    badge.style.color = '#047857';
+    badge.style.background = '#ECFDF5';
+    box.style.borderColor = 'var(--orange)';
+    if (currentChapters.length === 0) {
+      addAudioChapterRow('1-бөлім', '', '');
+    }
+  } else {
+    area.style.display = 'none';
+    badge.textContent = 'Аудио нұсқасы жоқ';
+    badge.style.color = '#64748B';
+    badge.style.background = '#F1F5F9';
+    box.style.borderColor = '#CBD5E1';
+  }
+}
+
+function renderChapters() {
+  const container = document.getElementById('chaptersList');
+  const countEl = document.getElementById('chaptersCountDisplay');
+  if (countEl) countEl.textContent = currentChapters.length;
+  if (!container) return;
+
+  if (currentChapters.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center; padding:18px; color:var(--text-mid); font-size:13px; font-weight:600;">
+        Бөлімдер әлі қосылмаған. «Жаңа бөлім қосу» батырмасын басыңыз.
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = currentChapters.map((ch, idx) => `
+    <div style="background:#FFFFFF; border:1px solid #CBD5E1; border-radius:8px; padding:14px 16px; display:flex; flex-direction:column; gap:10px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+        <div style="display:flex; align-items:center; gap:8px; flex:1; min-width:200px;">
+          <span style="font-size:12px; font-weight:800; color:var(--blue); background:#E0F2FE; padding:4px 8px; border-radius:4px; white-space:nowrap;">${idx + 1}-бөлім</span>
+          <input type="text" class="form-input" style="padding:7px 10px; font-size:13px; font-weight:700;" placeholder="Бөлім атауы (мысалы: 1-бөлім: Басталуы)" value="${ch.title || ''}" onchange="updateChapterField(${idx}, 'title', this.value)">
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <input type="text" class="form-input" style="width:120px; padding:7px 10px; font-size:13px;" placeholder="Ұзақтығы (15:20)" value="${ch.duration || ''}" onchange="updateChapterField(${idx}, 'duration', this.value)">
+          <button type="button" onclick="removeAudioChapterRow(${idx})" style="border:none; background:#FEE2E2; color:#B91C1C; padding:7px 12px; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer;" title="Бөлімді өшіру">
+            Өшіру
+          </button>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+        <div style="flex:1; min-width:220px;">
+          <label style="font-size:11px; font-weight:700; color:var(--text-mid); display:block; margin-bottom:4px;">Аудио файлды таңдау (.mp3, .m4a, .wav):</label>
+          <input type="file" accept="audio/*,.mp3,.m4a,.wav,.aac" class="form-input" style="padding:6px 8px; font-size:12px;" onchange="handleChapterFileSelect(${idx}, event)">
+        </div>
+        <div style="flex:1; min-width:220px;">
+          <label style="font-size:11px; font-weight:700; color:var(--text-mid); display:block; margin-bottom:4px;">немесе аудио сілтемесі (URL):</label>
+          <input type="url" class="form-input" style="padding:7px 10px; font-size:12px;" placeholder="https://...mp3" value="${ch.audioUrl || ''}" onchange="updateChapterField(${idx}, 'audioUrl', this.value)">
+        </div>
+      </div>
+      ${ch.fileName ? `<div style="font-size:11px; color:#047857; font-weight:700;">Жүктелген файл: ${ch.fileName}</div>` : ''}
+    </div>
+  `).join('');
+}
+
+function addAudioChapterRow(title = '', duration = '', url = '') {
+  const nextNum = currentChapters.length + 1;
+  currentChapters.push({
+    id: 'ch-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4),
+    title: title || `${nextNum}-бөлім`,
+    duration: duration || '',
+    audioUrl: url || '',
+    fileName: '',
+    audioData: ''
+  });
+  renderChapters();
+}
+
+function removeAudioChapterRow(idx) {
+  currentChapters.splice(idx, 1);
+  renderChapters();
+}
+
+function updateChapterField(idx, field, value) {
+  if (currentChapters[idx]) {
+    currentChapters[idx][field] = value;
+  }
+}
+
+function handleChapterFileSelect(idx, e) {
+  const file = e.target.files[0];
+  if (!file || !currentChapters[idx]) return;
+
+  currentChapters[idx].fileName = file.name;
+  if (file.size < 4 * 1024 * 1024) {
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      currentChapters[idx].audioData = evt.target.result;
+      if (!currentChapters[idx].audioUrl) {
+        currentChapters[idx].audioUrl = evt.target.result;
+      }
+      renderChapters();
+    };
+    reader.readAsDataURL(file);
+  } else {
+    const objectUrl = URL.createObjectURL(file);
+    currentChapters[idx].audioUrl = objectUrl;
+    renderChapters();
+  }
+}
+
 // CHECK EDIT PARAM
 window.addEventListener('DOMContentLoaded', () => {
   const urlParams = new URLSearchParams(window.location.search);
@@ -533,9 +711,30 @@ window.addEventListener('DOMContentLoaded', () => {
       document.getElementById('bookPdfUrl').value = book.pdfUrl || '';
       document.getElementById('bookEpubUrl').value = book.epubUrl || '';
       document.getElementById('bookDescription').value = book.description || book.content || '';
-      document.getElementById('bookAudioUrl').value = book.audioUrl || '';
       document.getElementById('bookIsFree').checked = !!book.isFree;
       document.getElementById('bookIsArchived').checked = !!book.isArchived;
+
+      // Audio Book details
+      const hasAudio = !!(book.hasAudio || (book.audioChapters && book.audioChapters.length > 0) || book.audioUrl);
+      document.getElementById('bookHasAudio').checked = hasAudio;
+      document.getElementById('audioNarrator').value = book.audioNarrator || '';
+      document.getElementById('audioDuration').value = book.audioDuration || '';
+
+      if (book.audioChapters && book.audioChapters.length > 0) {
+        currentChapters = JSON.parse(JSON.stringify(book.audioChapters));
+      } else if (book.audioUrl) {
+        currentChapters = [{
+          id: 'ch-1',
+          title: '1-бөлім',
+          duration: book.audioDuration || '08:30',
+          audioUrl: book.audioUrl,
+          fileName: ''
+        }];
+      } else {
+        currentChapters = [];
+      }
+      handleAudioToggle(hasAudio);
+      renderChapters();
 
       currentCoverBase64 = (book.coverImage && !book.coverImage.startsWith('http')) ? book.coverImage : '';
       if (book.coverImage) {
@@ -573,9 +772,20 @@ function handleSubmitBook(e) {
   const pdfUrlInput = document.getElementById('bookPdfUrl').value.trim();
   const epubUrlInput = document.getElementById('bookEpubUrl').value.trim();
   const description = document.getElementById('bookDescription').value.trim();
-  const audioUrl = document.getElementById('bookAudioUrl').value.trim();
+  const hasAudio = document.getElementById('bookHasAudio').checked;
+  const audioNarrator = document.getElementById('audioNarrator').value.trim();
+  const audioDuration = document.getElementById('audioDuration').value.trim();
   const isFree = document.getElementById('bookIsFree').checked;
   const isArchived = document.getElementById('bookIsArchived').checked;
+
+  let finalChapters = [];
+  let primaryAudioUrl = '';
+  if (hasAudio) {
+    finalChapters = currentChapters.filter(ch => ch.title || ch.audioUrl || ch.fileName);
+    if (finalChapters.length > 0) {
+      primaryAudioUrl = finalChapters[0].audioUrl || finalChapters[0].audioData || '';
+    }
+  }
 
   if (!title || !author) {
     alert('Кітап атауы мен авторын толтырыңыз!');
@@ -611,7 +821,11 @@ function handleSubmitBook(e) {
 
       books[idx].description = description;
       books[idx].content = description || books[idx].content || "";
-      books[idx].audioUrl = audioUrl;
+      books[idx].hasAudio = hasAudio;
+      books[idx].audioNarrator = hasAudio ? audioNarrator : '';
+      books[idx].audioDuration = hasAudio ? audioDuration : '';
+      books[idx].audioChapters = hasAudio ? finalChapters : [];
+      books[idx].audioUrl = hasAudio ? primaryAudioUrl : '';
       books[idx].isFree = isFree;
       books[idx].isArchived = isArchived;
       alert(`«${title}» кітабы сәтті жаңартылды!`);
@@ -632,7 +846,11 @@ function handleSubmitBook(e) {
       epubUrl: epubUrlInput,
       description,
       content: description || "",
-      audioUrl,
+      hasAudio,
+      audioNarrator: hasAudio ? audioNarrator : '',
+      audioDuration: hasAudio ? audioDuration : '',
+      audioChapters: hasAudio ? finalChapters : [],
+      audioUrl: hasAudio ? primaryAudioUrl : '',
       isFree,
       isArchived,
       gradient: gradients[Math.floor(Math.random() * gradients.length)]
