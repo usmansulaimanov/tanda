@@ -1104,117 +1104,31 @@
   </div>
 </section>
 
-<!-- DEDICATED ADMIN BOOK MANAGEMENT SECTION (Сайттағы арнайы кітап қосу және басқару секциясы) -->
+<!-- DEDICATED ADMIN BOOK MANAGEMENT SECTION (Сайттағы арнайы кітаптар тізімі және басқару панелі) -->
 <section class="admin-page-section" id="admin-section" style="padding:60px 24px; background:#F8FAFC; border-top:2px solid #E2E8F0; border-bottom:2px solid #E2E8F0;">
   <div style="max-width:1200px; margin:0 auto;">
-    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; margin-bottom:28px;">
-      <div>
-        <span class="section-tag" style="background:#0D1B2A; color:#FFF;">Басқару секциясы</span>
-        <h2 class="section-title" style="margin-top:6px;">Кітап қосу және өңдеу панелі</h2>
-        <p class="section-sub">Мұнда жаңа қазақша кітап пен аудио қосуға, бар кітаптарды өңдеуге және архивке жасыруға болады</p>
-      </div>
-      <div id="adminSectionAuthNotice" style="display:none;">
-        <span style="font-size:13px; font-weight:700; color:#047857; background:#ECFDF5; padding:6px 14px; border-radius:50px; border:1px solid #A7F3D0;">Сайт әкімшісі ретінде жүйедесіз</span>
-      </div>
-    </div>
-
-    <!-- Admin Form Box -->
-    <div style="background:#FFF; border:1px solid #CBD5E1; border-radius:16px; padding:32px; box-shadow:0 10px 25px rgba(0,0,0,0.04); margin-bottom:40px;">
-      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #E2E8F0; padding-bottom:16px; margin-bottom:24px;">
+    <!-- Admin Books Table (Өңдеу, Архивтеу, Өшіру кестесі және Қосу батырмасы) -->
+    <div style="background:#FFF; border:1px solid #CBD5E1; border-radius:16px; padding:32px; box-shadow:0 10px 25px rgba(0,0,0,0.04);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:16px;">
         <div>
-          <h3 style="font-size:18px; font-weight:900; color:var(--text-dark);" id="sectionBookFormHeading">Жаңа кітап қосу</h3>
-          <p style="font-size:13px; color:var(--text-mid); margin-top:2px;">Кітаптың мұқабасын, аудио сілтемесін, мәтінін және параметрлерін толтырыңыз</p>
-        </div>
-        <button type="button" id="btnCancelEditSection" style="display:none; padding:6px 14px; border-radius:6px; background:#F1F5F9; border:1px solid #CBD5E1; font-size:12px; font-weight:700; cursor:pointer;" onclick="cancelSectionEdit()">Өңдеуден шығу</button>
-      </div>
-
-      <form onsubmit="handleSectionSaveBook(event)">
-        <input type="hidden" id="sectionEditBookId">
-
-        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:18px; margin-bottom:18px;">
-          <div class="form-group">
-            <label class="form-label">Кітап атауы *</label>
-            <input type="text" required id="sectionBookTitle" class="form-input" placeholder="Мысалы: Бақытсыз Жамал">
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
+            <span class="section-tag" style="background:#0D1B2A; color:#FFF; margin:0;">Әкімшілік панель</span>
+            <span id="adminSectionAuthNotice" style="display:none; font-size:12px; font-weight:700; color:#047857; background:#ECFDF5; padding:4px 12px; border-radius:50px; border:1px solid #A7F3D0;">Жүйедегі әкімші</span>
           </div>
-          <div class="form-group">
-            <label class="form-label">Авторы *</label>
-            <input type="text" required id="sectionBookAuthor" class="form-input" placeholder="Мысалы: Міржақып Дулатұлы">
-          </div>
+          <h2 style="font-size:24px; font-weight:900; color:var(--text-dark); margin:0;">Сайттағы барлық кітаптарды басқару</h2>
+          <p style="font-size:13px; color:var(--text-mid); margin-top:4px;">Барлығы: <span id="sectionTotalBooksCount" style="font-weight:700; color:var(--blue);">0</span> кітап | Архивтелген (жасырын): <span id="sectionArchivedBooksCount" style="font-weight:700; color:#64748B;">0</span> кітап</p>
         </div>
 
-        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:18px; margin-bottom:18px;">
-          <div class="form-group">
-            <label class="form-label">Жанры (Санаты) *</label>
-            <select id="sectionBookCategory" class="form-input">
-              <option value="Классика">Классика</option>
-              <option value="Тұлғалық даму">Тұлғалық даму</option>
-              <option value="Тарих">Тарих</option>
-              <option value="Ертегілер">Ертегілер</option>
-              <option value="Бизнес">Бизнес</option>
-              <option value="Психология">Психология</option>
-            </select>
+        <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
+          <div style="display:flex; gap:8px;">
+            <span style="display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:#047857; background:#ECFDF5; padding:6px 12px; border-radius:6px;"><span style="width:8px; height:8px; border-radius:50%; background:#10B981;"></span> Белсенді</span>
+            <span style="display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:#64748B; background:#F1F5F9; padding:6px 12px; border-radius:6px;"><span style="width:8px; height:8px; border-radius:50%; background:#94A3B8;"></span> Архивте (Жасырын)</span>
           </div>
-          <div class="form-group">
-            <label class="form-label">Кітаптың бет саны</label>
-            <input type="number" id="sectionBookPages" class="form-input" placeholder="Мысалы: 240" min="1">
-          </div>
-        </div>
-
-        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:18px; margin-bottom:18px;">
-          <!-- Book Cover Image upload or URL -->
-          <div class="form-group">
-            <label class="form-label">Кітап мұқабасының суреті</label>
-            <div style="display:flex; gap:10px; align-items:center;">
-              <input type="file" id="sectionBookCoverFile" accept="image/*" class="form-input" style="padding:6px;" onchange="handleSectionCoverFile(event)">
-              <input type="url" id="sectionBookCoverUrl" class="form-input" placeholder="немесе сурет сілтемесі (URL)">
-            </div>
-            <div id="sectionCoverPreviewWrap" style="margin-top:10px; display:none;">
-              <img id="sectionCoverPreviewImg" src="" alt="Алдын ала көрініс" style="width:75px; height:100px; object-fit:cover; border-radius:8px; border:1px solid #CBD5E1; box-shadow:0 4px 10px rgba(0,0,0,0.08);">
-            </div>
-          </div>
-
-          <!-- Audio Book URL -->
-          <div class="form-group">
-            <label class="form-label">Аудиокітап аудио файлы (URL немесе mp3 сілтемесі)</label>
-            <input type="url" id="sectionBookAudioUrl" class="form-input" placeholder="https://... (аудио файл сілтемесі)">
-            <p style="font-size:11px; color:var(--text-mid); margin-top:4px;">Бос қалдырсаңыз, оқырманға сынақ аудио үзіндісі қосылады.</p>
-          </div>
-        </div>
-
-        <!-- Book Text Content -->
-        <div class="form-group" style="margin-bottom:20px;">
-          <label class="form-label">Электронды кітап мәтіні (үзіндісі немесе толық тарауы) *</label>
-          <textarea required id="sectionBookContent" class="form-input" rows="6" placeholder="Кітаптың оқырмандар оқитын мәтінін осында жазыңыз немесе көшіріп қойыңыз..."></textarea>
-        </div>
-
-        <!-- Options: Free test & Archive -->
-        <div style="display:flex; flex-wrap:wrap; gap:24px; margin-bottom:24px; background:#F8FAFC; padding:14px 18px; border-radius:10px; border:1px solid #E2E8F0;">
-          <div style="display:flex; align-items:center; gap:8px;">
-            <input type="checkbox" id="sectionBookIsFree" style="width:18px; height:18px; accent-color:var(--orange); cursor:pointer;">
-            <label for="sectionBookIsFree" style="font-size:13px; font-weight:700; cursor:pointer; color:var(--text-dark);">Тегін сынақ кітабы қылып белгілеу</label>
-          </div>
-          <div style="display:flex; align-items:center; gap:8px;">
-            <input type="checkbox" id="sectionBookIsArchived" style="width:18px; height:18px; accent-color:#64748B; cursor:pointer;">
-            <label for="sectionBookIsArchived" style="font-size:13px; font-weight:700; cursor:pointer; color:#64748B;">Архивке салу (сайттағы оқырмандарға көрінбейді)</label>
-          </div>
-        </div>
-
-        <div style="display:flex; justify-content:flex-end; gap:12px;">
-          <button type="submit" class="btn-primary" id="sectionBookSubmitBtn" style="padding:12px 32px; font-size:14px; font-weight:800;">Кітапты сайтқа сақтау және жариялау</button>
-        </div>
-      </form>
-    </div>
-
-    <!-- Admin Books Table (Өңдеу, Архивтеу, Өшіру кестесі) -->
-    <div style="background:#FFF; border:1px solid #CBD5E1; border-radius:16px; padding:28px; box-shadow:0 10px 25px rgba(0,0,0,0.04);">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; flex-wrap:wrap; gap:12px;">
-        <div>
-          <h3 style="font-size:18px; font-weight:900; color:var(--text-dark);">Сайттағы барлық кітаптарды басқару</h3>
-          <p style="font-size:13px; color:var(--text-mid);">Барлығы: <span id="sectionTotalBooksCount">0</span> кітап | Архивтелген (жасырын): <span id="sectionArchivedBooksCount">0</span> кітап</p>
-        </div>
-        <div style="display:flex; gap:10px;">
-          <span style="display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:#047857; background:#ECFDF5; padding:4px 10px; border-radius:6px;"><span style="width:8px; height:8px; border-radius:50%; background:#10B981;"></span> Белсенді</span>
-          <span style="display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:#64748B; background:#F1F5F9; padding:4px 10px; border-radius:6px;"><span style="width:8px; height:8px; border-radius:50%; background:#94A3B8;"></span> Архивте (Жасырын)</span>
+          <!-- ҚОСУ БАТЫРМАСЫ -->
+          <button type="button" class="btn-primary" onclick="openAddBookModal()" style="padding:10px 24px; font-size:14px; font-weight:800; display:inline-flex; align-items:center; gap:8px; box-shadow:0 4px 14px rgba(0,87,168,0.25);">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            Қосу
+          </button>
         </div>
       </div>
 
@@ -1225,7 +1139,7 @@
               <th>Мұқаба</th>
               <th>Атауы мен авторы</th>
               <th>Жанры</th>
-              <th>Бет / Аудио</th>
+              <th>Бет / Файлдар</th>
               <th>Қолжетімділік</th>
               <th>Көрінуі</th>
               <th style="text-align:right;">Әрекеттер</th>
@@ -1433,28 +1347,28 @@
 <div class="modal-overlay" id="addBookModal">
   <div class="modal-box large" style="max-height:90vh; overflow-y:auto;">
     <button class="modal-close" onclick="closeAddBookModal()">✕</button>
-    <div style="margin-bottom:16px;">
-      <h3 style="font-size:20px; font-weight:800; color:var(--text-dark);" id="bookModalHeading">Жаңа кітап қосу</h3>
-      <p style="font-size:13px; color:var(--text-mid);">Электронды кітап мәтіні, аудио сілтемесі, мұқабасы және сипаттамаларын толтырыңыз</p>
+    <div style="margin-bottom:20px;">
+      <h3 style="font-size:22px; font-weight:900; color:var(--text-dark);" id="bookModalHeading">Жаңа кітап қосу</h3>
+      <p style="font-size:13px; color:var(--text-mid); margin-top:4px;">Кітаптың мұқабасын, EPUB немесе PDF файлын, аудио сілтемесін және ақпараттарын толтырыңыз</p>
     </div>
     
     <form onsubmit="handleSaveBook(event)">
       <input type="hidden" id="editBookId">
 
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
-        <div class="form-group">
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:16px; margin-bottom:16px;">
+        <div class="form-group" style="margin-bottom:0;">
           <label class="form-label">Кітап атауы *</label>
           <input type="text" required id="newBookTitle" class="form-input" placeholder="Мысалы: Бақытсыз Жамал">
         </div>
-        <div class="form-group">
+        <div class="form-group" style="margin-bottom:0;">
           <label class="form-label">Авторы *</label>
           <input type="text" required id="newBookAuthor" class="form-input" placeholder="Мысалы: Міржақып Дулатұлы">
         </div>
       </div>
 
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
-        <div class="form-group">
-          <label class="form-label">Жанры (Категория) *</label>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:16px; margin-bottom:16px;">
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Жанры (Санаты) *</label>
           <select id="newBookCategory" class="form-input">
             <option value="Классика">Классика</option>
             <option value="Тұлғалық даму">Тұлғалық даму</option>
@@ -1464,51 +1378,83 @@
             <option value="Психология">Психология</option>
           </select>
         </div>
-        <div class="form-group">
+        <div class="form-group" style="margin-bottom:0;">
           <label class="form-label">Кітап бетінің саны</label>
           <input type="number" id="newBookPages" class="form-input" placeholder="Мысалы: 240" min="1">
         </div>
       </div>
 
       <!-- Book Cover Image upload or URL -->
-      <div class="form-group">
+      <div class="form-group" style="margin-bottom:16px;">
         <label class="form-label">Кітап мұқабасының суреті</label>
         <div style="display:flex; gap:10px; align-items:center;">
-          <input type="file" id="newBookCoverFile" accept="image/*" class="form-input" style="padding:6px;" onchange="handleCoverFileSelect(event)">
+          <input type="file" id="newBookCoverFile" accept="image/*" class="form-input" style="padding:7px;" onchange="handleCoverFileSelect(event)">
           <input type="url" id="newBookCoverUrl" class="form-input" placeholder="немесе сурет сілтемесі (URL)">
         </div>
-        <div id="coverPreviewWrap" style="margin-top:8px; display:none;">
-          <img id="coverPreviewImg" src="" alt="Алдын ала көрініс" style="width:70px; height:95px; object-fit:cover; border-radius:6px; border:1px solid #CBD5E1;">
+        <div id="coverPreviewWrap" style="margin-top:10px; display:none;">
+          <img id="coverPreviewImg" src="" alt="Алдын ала көрініс" style="width:75px; height:100px; object-fit:cover; border-radius:8px; border:1px solid #CBD5E1; box-shadow:0 4px 10px rgba(0,0,0,0.08);">
+        </div>
+      </div>
+
+      <!-- FILE UPLOAD: EPUB / PDF (ФАЙЛ РЕТІНДЕ ЖҮКТЕУ) -->
+      <div style="background:#F8FAFC; border:1px solid #CBD5E1; border-radius:12px; padding:18px; margin-bottom:18px;">
+        <div style="font-size:14px; font-weight:800; color:var(--text-dark); margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+          Кітап файлы (PDF және EPUB форматтары)
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:14px;">
+          <!-- PDF File -->
+          <div>
+            <label class="form-label" style="display:flex; justify-content:space-between;">
+              <span>PDF файлы</span>
+              <span style="font-size:11px; color:#DC2626; font-weight:700;">.pdf</span>
+            </label>
+            <input type="file" id="newBookPdfFile" accept=".pdf,application/pdf" class="form-input" style="padding:6px;" onchange="handlePdfFileSelect(event)">
+            <input type="url" id="newBookPdfUrl" class="form-input" placeholder="немесе PDF сілтемесі (URL)" style="margin-top:6px; font-size:12px;">
+            <div id="pdfFileStatus" style="font-size:11px; color:#059669; font-weight:700; margin-top:4px; display:none;">PDF файлы таңдалды</div>
+          </div>
+
+          <!-- EPUB File -->
+          <div>
+            <label class="form-label" style="display:flex; justify-content:space-between;">
+              <span>EPUB файлы</span>
+              <span style="font-size:11px; color:#2563EB; font-weight:700;">.epub</span>
+            </label>
+            <input type="file" id="newBookEpubFile" accept=".epub,application/epub+zip" class="form-input" style="padding:6px;" onchange="handleEpubFileSelect(event)">
+            <input type="url" id="newBookEpubUrl" class="form-input" placeholder="немесе EPUB сілтемесі (URL)" style="margin-top:6px; font-size:12px;">
+            <div id="epubFileStatus" style="font-size:11px; color:#059669; font-weight:700; margin-top:4px; display:none;">EPUB файлы таңдалды</div>
+          </div>
+        </div>
+
+        <!-- Optional summary / intro -->
+        <div style="margin-top:14px;">
+          <label class="form-label">Кітап туралы қысқаша аңдатпа (сипаттамасы)</label>
+          <textarea id="newBookDescription" class="form-input" rows="3" placeholder="Кітап туралы қысқаша мәлімет..."></textarea>
         </div>
       </div>
 
       <!-- Audio Book URL -->
-      <div class="form-group">
+      <div class="form-group" style="margin-bottom:16px;">
         <label class="form-label">Аудиокітап аудио файлы (URL немесе mp3 сілтемесі)</label>
         <input type="url" id="newBookAudioUrl" class="form-input" placeholder="https://... (аудио файл сілтемесі, бос болса сынақ аудиосы ойналады)">
       </div>
 
-      <!-- Book Text Content -->
-      <div class="form-group">
-        <label class="form-label">Электронды кітап мәтіні (үзіндісі немесе толық бөлімі) *</label>
-        <textarea required id="newBookContent" class="form-input" rows="6" placeholder="Кітаптың оқырмандар оқитын мәтінін осында жазыңыз немесе көшіріп қойыңыз..."></textarea>
-      </div>
-
       <!-- Options: Free test & Archive -->
-      <div style="display:flex; gap:24px; margin-bottom:18px; background:#F8FAFC; padding:12px 16px; border-radius:8px; border:1px solid #E2E8F0;">
+      <div style="display:flex; flex-wrap:wrap; gap:24px; margin-bottom:20px; background:#F8FAFC; padding:14px 18px; border-radius:10px; border:1px solid #CBD5E1;">
         <div style="display:flex; align-items:center; gap:8px;">
-          <input type="checkbox" id="newBookIsFree" style="width:18px; height:18px; accent-color:var(--orange);">
-          <label for="newBookIsFree" style="font-size:13px; font-weight:600; cursor:pointer;">Тегін сынақ кітабы қылып белгілеу</label>
+          <input type="checkbox" id="newBookIsFree" style="width:18px; height:18px; accent-color:var(--orange); cursor:pointer;">
+          <label for="newBookIsFree" style="font-size:13px; font-weight:700; cursor:pointer;">Тегін сынақ кітабы қылып белгілеу</label>
         </div>
         <div style="display:flex; align-items:center; gap:8px;">
-          <input type="checkbox" id="newBookIsArchived" style="width:18px; height:18px; accent-color:#64748B;">
-          <label for="newBookIsArchived" style="font-size:13px; font-weight:600; cursor:pointer; color:#64748B;">Архивке салу (қолданушыларға көрінбейді)</label>
+          <input type="checkbox" id="newBookIsArchived" style="width:18px; height:18px; accent-color:#64748B; cursor:pointer;">
+          <label for="newBookIsArchived" style="font-size:13px; font-weight:700; cursor:pointer; color:#64748B;">Архивке салу (қолданушыларға көрінбейді)</label>
         </div>
       </div>
 
-      <div style="display:flex; justify-content:flex-end; gap:10px;">
-        <button type="button" class="btn-outline" style="padding:10px 20px;" onclick="closeAddBookModal()">Болдырмау</button>
-        <button type="submit" class="btn-submit" style="width:auto; padding:10px 28px;" id="bookSubmitBtn">Сақтау және жариялау</button>
+      <div style="display:flex; justify-content:flex-end; gap:12px;">
+        <button type="button" class="btn-outline" style="padding:10px 24px; font-weight:700;" onclick="closeAddBookModal()">Болдырмау</button>
+        <button type="submit" class="btn-primary" style="padding:10px 32px; font-weight:800; font-size:14px;" id="bookSubmitBtn">Сақтау және сайтқа қосу</button>
       </div>
     </form>
   </div>
@@ -2006,14 +1952,41 @@ function openReaderModal(book, mode) {
   document.getElementById('audioTitleDisplay').textContent = book.title + (book.audioUrl ? ' — Аудиокітап' : ' — Аудио үзінді');
 
   const contentArea = document.getElementById('readerContentArea');
-  const paragraphs = (book.content || '').split('\n').filter(p => p.trim());
+  const textContent = book.description || book.content || '';
+  const paragraphs = textContent.split('\n').filter(p => p.trim());
   
   let coverHtml = '';
   if (book.coverImage) {
     coverHtml = `<div style="text-align:center; margin-bottom:24px;"><img src="${book.coverImage}" alt="${book.title}" style="max-height:260px; border-radius:10px; box-shadow:0 8px 24px rgba(0,0,0,0.15);"></div>`;
   }
+
+  const pdfSource = book.pdfData || book.pdfUrl;
+  const epubSource = book.epubData || book.epubUrl;
+  let fileButtonsHtml = '';
+  if (pdfSource || epubSource) {
+    fileButtonsHtml = `
+      <div style="background:#F8FAFC; border:1px solid #CBD5E1; border-radius:12px; padding:20px; margin-bottom:28px; text-align:center;">
+        <h4 style="font-size:16px; font-weight:800; color:var(--text-dark); margin-bottom:8px;">Кітап файлдары</h4>
+        <p style="font-size:13px; color:var(--text-mid); margin-bottom:16px;">Кітапты оқу немесе файлды құрылғыңызға жүктеу:</p>
+        <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:12px;">
+          ${pdfSource ? `
+            <a href="${pdfSource}" download="${book.title}.pdf" target="_blank" class="btn-primary" style="background:#DC2626; text-decoration:none; padding:10px 22px; font-size:13px; font-weight:700; display:inline-flex; align-items:center; gap:8px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+              PDF файлын ашу / жүктеу
+            </a>
+          ` : ''}
+          ${epubSource ? `
+            <a href="${epubSource}" download="${book.title}.epub" target="_blank" class="btn-primary" style="background:#2563EB; text-decoration:none; padding:10px 22px; font-size:13px; font-weight:700; display:inline-flex; align-items:center; gap:8px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+              EPUB файлын жүктеу
+            </a>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  }
   
-  contentArea.innerHTML = coverHtml + paragraphs.map(p => `<p>${p}</p>`).join('');
+  contentArea.innerHTML = coverHtml + fileButtonsHtml + (paragraphs.length ? paragraphs.map(p => `<p>${p}</p>`).join('') : '<p style="color:#64748B; text-align:center;">Кітап файлы жоғарыда жүктеуге дайын.</p>');
 
   // Audio setup
   if (currentAudioElement) {
@@ -2164,11 +2137,17 @@ function renderAdminTables() {
       ? `<img src="${b.coverImage}" alt="${b.title}" style="width:36px; height:48px; object-fit:cover; border-radius:4px; border:1px solid #CBD5E1;">`
       : `<div style="width:36px; height:48px; border-radius:4px; background:${b.gradient || '#0057A8'}; display:flex; align-items:center; justify-content:center; color:#FFF; font-size:9px; font-weight:800; text-align:center; padding:2px;">${b.title.slice(0,6)}</div>`;
 
-    const audioLabel = b.audioUrl 
-      ? `<span style="display:inline-block; padding:2px 8px; font-size:11px; font-weight:700; background:#E0F2FE; color:#0369A1; border-radius:4px;">Аудио бар</span>` 
-      : `<span style="font-size:11px; color:#94A3B8;">Стандартты</span>`;
+    const hasPdf = !!(b.pdfData || b.pdfUrl);
+    const hasEpub = !!(b.epubData || b.epubUrl);
+    const hasAudio = !!b.audioUrl;
+    
+    let formatsBadges = [];
+    if (hasPdf) formatsBadges.push('<span style="display:inline-block; padding:2px 6px; font-size:10px; font-weight:800; background:#FEE2E2; color:#B91C1C; border-radius:4px;">PDF</span>');
+    if (hasEpub) formatsBadges.push('<span style="display:inline-block; padding:2px 6px; font-size:10px; font-weight:800; background:#DBEAFE; color:#1D4ED8; border-radius:4px;">EPUB</span>');
+    if (hasAudio) formatsBadges.push('<span style="display:inline-block; padding:2px 6px; font-size:10px; font-weight:800; background:#E0F2FE; color:#0369A1; border-radius:4px;">Аудио</span>');
+    if (formatsBadges.length === 0) formatsBadges.push('<span style="font-size:11px; color:#94A3B8;">Стандартты</span>');
 
-    const pagesText = b.pages ? `${b.pages} бет` : 'Көрсетілмеген';
+    const pagesText = b.pages ? `${b.pages} бет` : '—';
 
     return `
       <tr style="${b.isArchived ? 'background:#F8FAFC; opacity:0.8;' : ''}">
@@ -2180,7 +2159,7 @@ function renderAdminTables() {
         <td><span class="badge-tag" style="background:#E0F2FE; color:#0369A1;">${b.category}</span></td>
         <td>
           <div style="font-size:12px; font-weight:600;">${pagesText}</div>
-          <div style="margin-top:2px;">${audioLabel}</div>
+          <div style="margin-top:4px; display:flex; gap:4px; flex-wrap:wrap;">${formatsBadges.join('')}</div>
         </td>
         <td>
           <button style="border:none; border-radius:50px; padding:4px 10px; font-size:11px; font-weight:700; cursor:pointer; background:${b.isFree ? '#D1FAE5; color:#065F46' : '#FEF3C7; color:#92400E'}" onclick="toggleBookFreeStatus('${b.id}')">
@@ -2251,6 +2230,10 @@ function deleteBook(id) {
 
 // ADD & EDIT BOOK MODAL CONTROLS
 let currentCoverBase64 = "";
+let currentPdfBase64 = "";
+let currentPdfName = "";
+let currentEpubBase64 = "";
+let currentEpubName = "";
 
 function handleCoverFileSelect(e) {
   const file = e.target.files[0];
@@ -2260,6 +2243,38 @@ function handleCoverFileSelect(e) {
     currentCoverBase64 = evt.target.result;
     document.getElementById('coverPreviewImg').src = currentCoverBase64;
     document.getElementById('coverPreviewWrap').style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+function handlePdfFileSelect(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  currentPdfName = file.name;
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    currentPdfBase64 = evt.target.result;
+    const statusEl = document.getElementById('pdfFileStatus');
+    if (statusEl) {
+      statusEl.textContent = 'PDF жүктелді: ' + file.name;
+      statusEl.style.display = 'block';
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+function handleEpubFileSelect(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  currentEpubName = file.name;
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    currentEpubBase64 = evt.target.result;
+    const statusEl = document.getElementById('epubFileStatus');
+    if (statusEl) {
+      statusEl.textContent = 'EPUB жүктелді: ' + file.name;
+      statusEl.style.display = 'block';
+    }
   };
   reader.readAsDataURL(file);
 }
@@ -2274,12 +2289,24 @@ function openAddBookModal() {
   document.getElementById('newBookPages').value = '';
   document.getElementById('newBookCoverFile').value = '';
   document.getElementById('newBookCoverUrl').value = '';
+  document.getElementById('newBookPdfFile').value = '';
+  document.getElementById('newBookPdfUrl').value = '';
+  document.getElementById('newBookEpubFile').value = '';
+  document.getElementById('newBookEpubUrl').value = '';
+  document.getElementById('newBookDescription').value = '';
   document.getElementById('newBookAudioUrl').value = '';
-  document.getElementById('newBookContent').value = '';
   document.getElementById('newBookIsFree').checked = false;
   document.getElementById('newBookIsArchived').checked = false;
   currentCoverBase64 = "";
+  currentPdfBase64 = "";
+  currentPdfName = "";
+  currentEpubBase64 = "";
+  currentEpubName = "";
   document.getElementById('coverPreviewWrap').style.display = 'none';
+  const pdfStatus = document.getElementById('pdfFileStatus');
+  if (pdfStatus) pdfStatus.style.display = 'none';
+  const epubStatus = document.getElementById('epubFileStatus');
+  if (epubStatus) epubStatus.style.display = 'none';
 
   document.getElementById('addBookModal').classList.add('active');
 }
@@ -2297,8 +2324,13 @@ function openEditBookModal(bookId) {
   document.getElementById('newBookPages').value = book.pages || '';
   document.getElementById('newBookCoverFile').value = '';
   document.getElementById('newBookCoverUrl').value = (book.coverImage && book.coverImage.startsWith('http')) ? book.coverImage : '';
+  
+  document.getElementById('newBookPdfFile').value = '';
+  document.getElementById('newBookPdfUrl').value = book.pdfUrl || '';
+  document.getElementById('newBookEpubFile').value = '';
+  document.getElementById('newBookEpubUrl').value = book.epubUrl || '';
+  document.getElementById('newBookDescription').value = book.description || book.content || '';
   document.getElementById('newBookAudioUrl').value = book.audioUrl || '';
-  document.getElementById('newBookContent').value = book.content || '';
   document.getElementById('newBookIsFree').checked = !!book.isFree;
   document.getElementById('newBookIsArchived').checked = !!book.isArchived;
 
@@ -2308,6 +2340,30 @@ function openEditBookModal(bookId) {
     document.getElementById('coverPreviewWrap').style.display = 'block';
   } else {
     document.getElementById('coverPreviewWrap').style.display = 'none';
+  }
+
+  currentPdfBase64 = book.pdfData || '';
+  currentPdfName = book.pdfName || '';
+  const pdfStatus = document.getElementById('pdfFileStatus');
+  if (pdfStatus) {
+    if (book.pdfData || book.pdfUrl) {
+      pdfStatus.style.display = 'block';
+      pdfStatus.textContent = 'PDF бар: ' + (book.pdfName || book.pdfUrl || 'Файл бекітілген');
+    } else {
+      pdfStatus.style.display = 'none';
+    }
+  }
+
+  currentEpubBase64 = book.epubData || '';
+  currentEpubName = book.epubName || '';
+  const epubStatus = document.getElementById('epubFileStatus');
+  if (epubStatus) {
+    if (book.epubData || book.epubUrl) {
+      epubStatus.style.display = 'block';
+      epubStatus.textContent = 'EPUB бар: ' + (book.epubName || book.epubUrl || 'Файл бекітілген');
+    } else {
+      epubStatus.style.display = 'none';
+    }
   }
 
   document.getElementById('addBookModal').classList.add('active');
@@ -2325,8 +2381,10 @@ function handleSaveBook(e) {
   const category = document.getElementById('newBookCategory').value;
   const pages = parseInt(document.getElementById('newBookPages').value) || null;
   const coverUrlInput = document.getElementById('newBookCoverUrl').value.trim();
+  const pdfUrlInput = document.getElementById('newBookPdfUrl').value.trim();
+  const epubUrlInput = document.getElementById('newBookEpubUrl').value.trim();
+  const description = document.getElementById('newBookDescription').value.trim();
   const audioUrl = document.getElementById('newBookAudioUrl').value.trim();
-  const content = document.getElementById('newBookContent').value.trim();
   const isFree = document.getElementById('newBookIsFree').checked;
   const isArchived = document.getElementById('newBookIsArchived').checked;
 
@@ -2352,8 +2410,17 @@ function handleSaveBook(e) {
       books[idx].category = category;
       books[idx].pages = pages;
       if (finalCover) books[idx].coverImage = finalCover;
+      if (currentPdfBase64) books[idx].pdfData = currentPdfBase64;
+      if (currentPdfName) books[idx].pdfName = currentPdfName;
+      if (pdfUrlInput) books[idx].pdfUrl = pdfUrlInput;
+      
+      if (currentEpubBase64) books[idx].epubData = currentEpubBase64;
+      if (currentEpubName) books[idx].epubName = currentEpubName;
+      if (epubUrlInput) books[idx].epubUrl = epubUrlInput;
+
+      books[idx].description = description;
+      books[idx].content = description || books[idx].content || "";
       books[idx].audioUrl = audioUrl;
-      books[idx].content = content;
       books[idx].isFree = isFree;
       books[idx].isArchived = isArchived;
       alert(`«${title}» кітабы сәтті жаңартылды!`);
@@ -2367,8 +2434,15 @@ function handleSaveBook(e) {
       category,
       pages,
       coverImage: finalCover,
+      pdfData: currentPdfBase64,
+      pdfName: currentPdfName,
+      pdfUrl: pdfUrlInput,
+      epubData: currentEpubBase64,
+      epubName: currentEpubName,
+      epubUrl: epubUrlInput,
+      description,
+      content: description || "",
       audioUrl,
-      content,
       isFree,
       isArchived,
       gradient: gradients[Math.floor(Math.random() * gradients.length)]
@@ -2384,134 +2458,8 @@ function handleSaveBook(e) {
   closeAddBookModal();
 }
 
-// ON-PAGE SECTION ADMIN CONTROLS
-let currentSectionCoverBase64 = "";
-
-function handleSectionCoverFile(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = function(evt) {
-    currentSectionCoverBase64 = evt.target.result;
-    document.getElementById('sectionCoverPreviewImg').src = currentSectionCoverBase64;
-    document.getElementById('sectionCoverPreviewWrap').style.display = 'block';
-  };
-  reader.readAsDataURL(file);
-}
-
 function openEditBookFromSection(bookId) {
-  const book = books.find(b => b.id === bookId);
-  if (!book) return;
-
-  document.getElementById('sectionBookFormHeading').textContent = 'Кітапты өңдеу: ' + book.title;
-  document.getElementById('sectionBookSubmitBtn').textContent = 'Өзгерістерді сақтау';
-  document.getElementById('btnCancelEditSection').style.display = 'inline-block';
-  document.getElementById('sectionEditBookId').value = book.id;
-  document.getElementById('sectionBookTitle').value = book.title || '';
-  document.getElementById('sectionBookAuthor').value = book.author || '';
-  document.getElementById('sectionBookCategory').value = book.category || 'Классика';
-  document.getElementById('sectionBookPages').value = book.pages || '';
-  document.getElementById('sectionBookCoverFile').value = '';
-  document.getElementById('sectionBookCoverUrl').value = (book.coverImage && book.coverImage.startsWith('http')) ? book.coverImage : '';
-  document.getElementById('sectionBookAudioUrl').value = book.audioUrl || '';
-  document.getElementById('sectionBookContent').value = book.content || '';
-  document.getElementById('sectionBookIsFree').checked = !!book.isFree;
-  document.getElementById('sectionBookIsArchived').checked = !!book.isArchived;
-
-  currentSectionCoverBase64 = (book.coverImage && !book.coverImage.startsWith('http')) ? book.coverImage : '';
-  if (book.coverImage) {
-    document.getElementById('sectionCoverPreviewImg').src = book.coverImage;
-    document.getElementById('sectionCoverPreviewWrap').style.display = 'block';
-  } else {
-    document.getElementById('sectionCoverPreviewWrap').style.display = 'none';
-  }
-
-  // Scroll to form smoothly
-  document.getElementById('admin-section').scrollIntoView({ behavior: 'smooth' });
-}
-
-function cancelSectionEdit() {
-  document.getElementById('sectionBookFormHeading').textContent = 'Жаңа кітап қосу';
-  document.getElementById('sectionBookSubmitBtn').textContent = 'Кітапты сайтқа сақтау және жариялау';
-  document.getElementById('btnCancelEditSection').style.display = 'none';
-  document.getElementById('sectionEditBookId').value = '';
-  document.getElementById('sectionBookTitle').value = '';
-  document.getElementById('sectionBookAuthor').value = '';
-  document.getElementById('sectionBookCategory').value = 'Классика';
-  document.getElementById('sectionBookPages').value = '';
-  document.getElementById('sectionBookCoverFile').value = '';
-  document.getElementById('sectionBookCoverUrl').value = '';
-  document.getElementById('sectionBookAudioUrl').value = '';
-  document.getElementById('sectionBookContent').value = '';
-  document.getElementById('sectionBookIsFree').checked = false;
-  document.getElementById('sectionBookIsArchived').checked = false;
-  currentSectionCoverBase64 = '';
-  document.getElementById('sectionCoverPreviewWrap').style.display = 'none';
-}
-
-function handleSectionSaveBook(e) {
-  e.preventDefault();
-  const editId = document.getElementById('sectionEditBookId').value;
-  const title = document.getElementById('sectionBookTitle').value.trim();
-  const author = document.getElementById('sectionBookAuthor').value.trim();
-  const category = document.getElementById('sectionBookCategory').value;
-  const pages = parseInt(document.getElementById('sectionBookPages').value) || null;
-  const coverUrlInput = document.getElementById('sectionBookCoverUrl').value.trim();
-  const audioUrl = document.getElementById('sectionBookAudioUrl').value.trim();
-  const content = document.getElementById('sectionBookContent').value.trim();
-  const isFree = document.getElementById('sectionBookIsFree').checked;
-  const isArchived = document.getElementById('sectionBookIsArchived').checked;
-
-  if (!title || !author) return;
-
-  const finalCover = currentSectionCoverBase64 || coverUrlInput || "";
-
-  const gradients = [
-    "linear-gradient(135deg, #0057A8, #003d7a)",
-    "linear-gradient(135deg, #F08000, #c06800)",
-    "linear-gradient(135deg, #065F46, #022C22)",
-    "linear-gradient(135deg, #7C3AED, #4C1D95)",
-    "linear-gradient(135deg, #B45309, #78350F)",
-    "linear-gradient(135deg, #DC2626, #7F1D1D)"
-  ];
-
-  if (editId) {
-    const idx = books.findIndex(b => b.id === editId);
-    if (idx !== -1) {
-      books[idx].title = title;
-      books[idx].author = author;
-      books[idx].category = category;
-      books[idx].pages = pages;
-      if (finalCover) books[idx].coverImage = finalCover;
-      books[idx].audioUrl = audioUrl;
-      books[idx].content = content;
-      books[idx].isFree = isFree;
-      books[idx].isArchived = isArchived;
-      alert(`«${title}» кітабы сәтті сақталды!`);
-    }
-  } else {
-    const newBook = {
-      id: "book-" + Date.now(),
-      title,
-      author,
-      category,
-      pages,
-      coverImage: finalCover,
-      audioUrl,
-      content,
-      isFree,
-      isArchived,
-      gradient: gradients[Math.floor(Math.random() * gradients.length)]
-    };
-    books.unshift(newBook);
-    alert(`«${title}» кітабы сәтті қосылды!`);
-  }
-
-  saveState();
-  renderBooks();
-  renderAdminTables();
-  renderSectionAdminBooks();
-  cancelSectionEdit();
+  openEditBookModal(bookId);
 }
 
 function renderSectionAdminBooks() {
@@ -2530,9 +2478,15 @@ function renderSectionAdminBooks() {
       ? `<img src="${b.coverImage}" alt="${b.title}" style="width:38px; height:50px; object-fit:cover; border-radius:4px; border:1px solid #CBD5E1;">`
       : `<div style="width:38px; height:50px; border-radius:4px; background:${b.gradient || '#0057A8'}; display:flex; align-items:center; justify-content:center; color:#FFF; font-size:9px; font-weight:800; text-align:center; padding:2px;">${b.title.slice(0,6)}</div>`;
 
-    const audioLabel = b.audioUrl 
-      ? `<span style="display:inline-block; padding:2px 8px; font-size:11px; font-weight:700; background:#E0F2FE; color:#0369A1; border-radius:4px;">Аудио бар</span>` 
-      : `<span style="font-size:11px; color:#94A3B8;">Стандартты</span>`;
+    const hasPdf = !!(b.pdfData || b.pdfUrl);
+    const hasEpub = !!(b.epubData || b.epubUrl);
+    const hasAudio = !!b.audioUrl;
+    
+    let formatsBadges = [];
+    if (hasPdf) formatsBadges.push('<span style="display:inline-block; padding:2px 6px; font-size:10px; font-weight:800; background:#FEE2E2; color:#B91C1C; border-radius:4px;">PDF</span>');
+    if (hasEpub) formatsBadges.push('<span style="display:inline-block; padding:2px 6px; font-size:10px; font-weight:800; background:#DBEAFE; color:#1D4ED8; border-radius:4px;">EPUB</span>');
+    if (hasAudio) formatsBadges.push('<span style="display:inline-block; padding:2px 6px; font-size:10px; font-weight:800; background:#E0F2FE; color:#0369A1; border-radius:4px;">Аудио</span>');
+    if (formatsBadges.length === 0) formatsBadges.push('<span style="font-size:11px; color:#94A3B8;">Стандартты</span>');
 
     const pagesText = b.pages ? `${b.pages} бет` : '—';
 
@@ -2546,7 +2500,7 @@ function renderSectionAdminBooks() {
         <td><span class="badge-tag" style="background:#E0F2FE; color:#0369A1;">${b.category}</span></td>
         <td>
           <div style="font-size:12px; font-weight:600;">${pagesText}</div>
-          <div style="margin-top:2px;">${audioLabel}</div>
+          <div style="margin-top:4px; display:flex; gap:4px; flex-wrap:wrap;">${formatsBadges.join('')}</div>
         </td>
         <td>
           <button style="border:none; border-radius:50px; padding:4px 10px; font-size:11px; font-weight:700; cursor:pointer; background:${b.isFree ? '#D1FAE5; color:#065F46' : '#FEF3C7; color:#92400E'}" onclick="toggleBookFreeStatus('${b.id}')">
@@ -2559,7 +2513,7 @@ function renderSectionAdminBooks() {
           </button>
         </td>
         <td style="text-align:right; white-space:nowrap;">
-          <button style="border:none; background:#E0F2FE; color:#0369A1; padding:6px 12px; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer; margin-right:4px;" onclick="openEditBookFromSection('${b.id}')">Өңдеу</button>
+          <button style="border:none; background:#E0F2FE; color:#0369A1; padding:6px 12px; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer; margin-right:4px;" onclick="openEditBookModal('${b.id}')">Өңдеу</button>
           <button style="border:none; background:#FEE2E2; color:#B91C1C; padding:6px 12px; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer;" onclick="deleteBook('${b.id}')">Өшіру</button>
         </td>
       </tr>
