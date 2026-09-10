@@ -13,6 +13,7 @@ interface AudioPlayerState {
 
   playBook: (book: Book, chapterIndex?: number) => void;
   playChapter: (index: number) => void;
+  setIsPlaying: (isPlaying: boolean) => void;
   togglePlay: () => void;
   pause: () => void;
   resume: () => void;
@@ -61,6 +62,7 @@ export const useAudioPlayerStore = create<AudioPlayerState>((set, get) => ({
     }
   },
 
+  setIsPlaying: (isPlaying) => set({ isPlaying }),
   togglePlay: () => set((state) => ({ isPlaying: !state.isPlaying })),
   pause: () => set({ isPlaying: false }),
   resume: () => set({ isPlaying: true }),

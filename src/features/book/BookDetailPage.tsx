@@ -11,7 +11,7 @@ export const BookDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const { books } = useBookStore();
   const { role } = useAuthStore();
-  const { playBook, playChapter, currentBook, currentChapter, isPlaying } = useAudioPlayerStore();
+  const { playBook, playChapter, togglePlay, currentBook, currentChapter, isPlaying } = useAudioPlayerStore();
 
   const book = books.find((b) => b.id === id);
   const { isBookSaved, toggleSavedBook } = useSavedBooksStore();
@@ -154,11 +154,17 @@ export const BookDetailPage: React.FC = () => {
             {book.hasAudio && (
               <button
                 type="button"
-                onClick={() => playBook(book)}
+                onClick={() => {
+                  if (currentBook?.id === book.id) {
+                    togglePlay();
+                  } else {
+                    playBook(book);
+                  }
+                }}
                 className="btn-primary"
-                style={{ padding: '14px 28px', fontSize: '15px', background: 'var(--orange)' }}
+                style={{ padding: '14px 28px', fontSize: '15px', background: 'var(--orange)', cursor: 'pointer' }}
               >
-                {isCurrentPlaying ? 'Тыңдалуда...' : 'Аудионы тыңдау'}
+                {isCurrentPlaying ? 'Тоқтату (Пауза)' : 'Аудионы тыңдау'}
               </button>
             )}
 
