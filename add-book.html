@@ -305,7 +305,7 @@
     <h1 class="page-title" id="formPageTitle">Жаңа қазақша кітап қосу</h1>
     <p class="page-desc" id="formPageDesc">Кітаптың мұқабасын, EPUB немесе PDF файлын, аудио сілтемесін және мәліметтерін толтырыңыз. «Сақтау» батырмасын басқан соң кітап автоматты түрде сайтқа қосылады.</p>
 
-    <form id="bookForm" onsubmit="handleSubmitBook(event)">
+    <form id="bookForm" novalidate onsubmit="handleSubmitBook(event)">
       <input type="hidden" id="editBookId">
 
       <!-- Row 1: Title & Author -->
@@ -344,7 +344,7 @@
         <label class="form-label">Кітап мұқабасының суреті</label>
         <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
           <input type="file" id="bookCoverFile" accept="image/*" class="form-input" style="padding:8px; flex:1; min-width:240px;" onchange="handleCoverSelect(event)">
-          <input type="url" id="bookCoverUrl" class="form-input" placeholder="немесе сурет сілтемесі (URL)" style="flex:1; min-width:240px;">
+          <input type="text" id="bookCoverUrl" class="form-input" placeholder="немесе сурет сілтемесі (URL)" style="flex:1; min-width:240px;">
         </div>
         <div id="coverPreviewWrap" style="margin-top:14px; display:none;">
           <img id="coverPreviewImg" src="" alt="Алдын ала көрініс" style="width:90px; height:120px; object-fit:cover; border-radius:8px; border:1px solid #CBD5E1; box-shadow:0 4px 12px rgba(0,0,0,0.08);">
@@ -366,7 +366,7 @@
               <span style="font-size:11px; color:#DC2626; font-weight:800;">.pdf</span>
             </label>
             <input type="file" id="bookPdfFile" accept=".pdf,application/pdf" class="form-input" style="padding:8px;" onchange="handlePdfSelect(event)">
-            <input type="url" id="bookPdfUrl" class="form-input" placeholder="немесе PDF сілтемесі (URL)" style="margin-top:8px; font-size:13px;">
+            <input type="text" id="bookPdfUrl" class="form-input" placeholder="немесе PDF сілтемесі (URL)" style="margin-top:8px; font-size:13px;">
             <div id="pdfStatus" class="status-badge">PDF файлы жүктелді</div>
           </div>
 
@@ -377,7 +377,7 @@
               <span style="font-size:11px; color:#2563EB; font-weight:800;">.epub</span>
             </label>
             <input type="file" id="bookEpubFile" accept=".epub,application/epub+zip" class="form-input" style="padding:8px;" onchange="handleEpubSelect(event)">
-            <input type="url" id="bookEpubUrl" class="form-input" placeholder="немесе EPUB сілтемесі (URL)" style="margin-top:8px; font-size:13px;">
+            <input type="text" id="bookEpubUrl" class="form-input" placeholder="немесе EPUB сілтемесі (URL)" style="margin-top:8px; font-size:13px;">
             <div id="epubStatus" class="status-badge">EPUB файлы жүктелді</div>
           </div>
         </div>
@@ -459,7 +459,7 @@
       <!-- Actions -->
       <div class="actions-bar">
         <a href="index.html#admin-section" class="btn-cancel">Болдырмау</a>
-        <button type="submit" class="btn-save" id="btnSubmit">Сақтау және сайтқа қосу</button>
+        <button type="submit" class="btn-save" id="btnSubmit" onclick="handleSubmitBook(event)">Сақтау және сайтқа қосу</button>
       </div>
     </form>
   </div>
@@ -519,10 +519,187 @@ const INITIAL_BOOKS = [
     isArchived: false,
     gradient: "linear-gradient(135deg, #F08000, #c06800)",
     description: "Алдар Көсенің сараң байлар мен ашкөздерді тапқырлықпен жазалаған хикаялары."
+  },
+  {
+    id: "koshpendiler",
+    title: "Көшпенділер",
+    author: "Ілияс Есенберлин",
+    category: "Тарих",
+    pages: 580,
+    audioUrl: "",
+    coverImage: "",
+    isFree: false,
+    isArchived: false,
+    gradient: "linear-gradient(135deg, #065F46, #022C22)",
+    description: "Қазақ хандығының қалыптасуы мен ерлікке толы тарихын баяндайтын көркем туынды."
+  },
+  {
+    id: "shakarim",
+    title: "Үш анық",
+    author: "Шәкәрім Құдайбердіұлы",
+    category: "Тұлғалық даму",
+    pages: 112,
+    audioUrl: "",
+    coverImage: "",
+    isFree: true,
+    isArchived: false,
+    gradient: "linear-gradient(135deg, #7C3AED, #4C1D95)",
+    description: "Адам өміріндегі рухани құндылықтар мен ар ілімін зерделейтін даналық жинағы."
+  },
+  {
+    id: "kalyng-mal",
+    title: "Қалың мал",
+    author: "Спандияр Көбеев",
+    category: "Классика",
+    pages: 180,
+    audioUrl: "",
+    coverImage: "",
+    isFree: true,
+    isArchived: false,
+    gradient: "linear-gradient(135deg, #B45309, #78350F)",
+    description: "Қазақ даласындағы өткен дәуірдің салт-дәстүрі мен жастар тағдырын сипаттайтын роман."
+  },
+  {
+    id: "atomic-habits",
+    title: "Атомдық әдеттер",
+    author: "Джеймс Клир (қазақша)",
+    category: "Тұлғалық даму",
+    pages: 320,
+    audioUrl: "",
+    coverImage: "",
+    isFree: false,
+    isArchived: false,
+    gradient: "linear-gradient(135deg, #DC2626, #7F1D1D)",
+    description: "Күнделікті шағын өзгерістер арқылы үлкен нәтижелерге қол жеткізудің нақты жолдары."
+  },
+  {
+    id: "rich-dad",
+    title: "Бай әке, кедей әке",
+    author: "Роберт Кийосаки (қазақша)",
+    category: "Тұлғалық даму",
+    pages: 280,
+    audioUrl: "",
+    coverImage: "",
+    isFree: false,
+    isArchived: false,
+    gradient: "linear-gradient(135deg, #0284C7, #0369A1)",
+    description: "Қаржылық тәуелсіздікке жету және ақшаны тиімді басқару туралы әлемдік бестселлер."
   }
 ];
 
-let books = JSON.parse(localStorage.getItem('tanda_books')) || INITIAL_BOOKS;
+// ROBUST STORAGE ENGINE (IndexedDB with automatic localStorage sync)
+const TandaStorage = {
+  dbName: 'tanda_db',
+  storeName: 'store',
+  dbVersion: 1,
+
+  getDB() {
+    return new Promise((resolve) => {
+      if (!window.indexedDB) {
+        resolve(null);
+        return;
+      }
+      try {
+        const req = indexedDB.open(this.dbName, this.dbVersion);
+        req.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains(this.storeName)) {
+            db.createObjectStore(this.storeName);
+          }
+        };
+        req.onsuccess = (e) => resolve(e.target.result);
+        req.onerror = () => resolve(null);
+      } catch (err) {
+        resolve(null);
+      }
+    });
+  },
+
+  async getBooks() {
+    try {
+      const db = await this.getDB();
+      if (db) {
+        const fromDb = await new Promise((resolve) => {
+          try {
+            const tx = db.transaction(this.storeName, 'readonly');
+            const st = tx.objectStore(this.storeName);
+            const req = st.get('tanda_books');
+            req.onsuccess = () => resolve(req.result || null);
+            req.onerror = () => resolve(null);
+          } catch (e) {
+            resolve(null);
+          }
+        });
+        if (fromDb && Array.isArray(fromDb) && fromDb.length > 0) {
+          return fromDb;
+        }
+      }
+    } catch (err) {
+      console.warn('IndexedDB getBooks error:', err);
+    }
+
+    try {
+      const raw = localStorage.getItem('tanda_books');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {
+      console.warn('localStorage getBooks error:', e);
+    }
+    return INITIAL_BOOKS;
+  },
+
+  async saveBooks(booksArray) {
+    // 1. Save full data to IndexedDB
+    try {
+      const db = await this.getDB();
+      if (db) {
+        await new Promise((resolve, reject) => {
+          try {
+            const tx = db.transaction(this.storeName, 'readwrite');
+            const st = tx.objectStore(this.storeName);
+            const req = st.put(booksArray, 'tanda_books');
+            req.onsuccess = () => resolve();
+            req.onerror = (e) => reject(e);
+          } catch (e) {
+            reject(e);
+          }
+        });
+      }
+    } catch (err) {
+      console.warn('IndexedDB saveBooks error:', err);
+    }
+
+    // 2. Safe save to localStorage
+    try {
+      localStorage.setItem('tanda_books', JSON.stringify(booksArray));
+    } catch (quotaErr) {
+      console.warn('localStorage quota exceeded, saving lightweight copy:', quotaErr);
+      try {
+        const lightBooks = booksArray.map(b => ({
+          ...b,
+          pdfData: (b.pdfData && b.pdfData.length > 50000) ? '' : b.pdfData,
+          epubData: (b.epubData && b.epubData.length > 50000) ? '' : b.epubData,
+          coverImage: (b.coverImage && b.coverImage.length > 100000) ? '' : b.coverImage,
+          audioChapters: (b.audioChapters || []).map(ch => ({
+            ...ch,
+            audioData: (ch.audioData && ch.audioData.length > 50000) ? '' : ch.audioData
+          }))
+        }));
+        localStorage.setItem('tanda_books', JSON.stringify(lightBooks));
+      } catch (innerErr) {
+        console.warn('Failed lightweight copy:', innerErr);
+      }
+    }
+
+    try {
+      window.dispatchEvent(new Event('tanda_books_updated'));
+    } catch(e) {}
+  }
+};
+
+let books = INITIAL_BOOKS;
 
 let currentCoverBase64 = "";
 let currentPdfBase64 = "";
@@ -637,7 +814,7 @@ function renderChapters() {
         </div>
         <div style="flex:1; min-width:220px;">
           <label style="font-size:11px; font-weight:700; color:var(--text-mid); display:block; margin-bottom:4px;">немесе аудио сілтемесі (URL):</label>
-          <input type="url" class="form-input" style="padding:7px 10px; font-size:12px;" placeholder="https://...mp3" value="${ch.audioUrl || ''}" onchange="updateChapterField(${idx}, 'audioUrl', this.value)">
+          <input type="text" class="form-input" style="padding:7px 10px; font-size:12px;" placeholder="https://...mp3" value="${ch.audioUrl || ''}" onchange="updateChapterField(${idx}, 'audioUrl', this.value)">
         </div>
       </div>
       ${ch.fileName ? `<div style="font-size:11px; color:#047857; font-weight:700;">Жүктелген файл: ${ch.fileName}</div>` : ''}
@@ -674,7 +851,7 @@ function handleChapterFileSelect(idx, e) {
   if (!file || !currentChapters[idx]) return;
 
   currentChapters[idx].fileName = file.name;
-  if (file.size < 4 * 1024 * 1024) {
+  if (file.size < 6 * 1024 * 1024) {
     const reader = new FileReader();
     reader.onload = function(evt) {
       currentChapters[idx].audioData = evt.target.result;
@@ -692,7 +869,9 @@ function handleChapterFileSelect(idx, e) {
 }
 
 // CHECK EDIT PARAM
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
+  books = await TandaStorage.getBooks();
+
   const urlParams = new URLSearchParams(window.location.search);
   const editId = urlParams.get('id');
 
@@ -761,106 +940,135 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-function handleSubmitBook(e) {
-  e.preventDefault();
-  const editId = document.getElementById('editBookId').value;
-  const title = document.getElementById('bookTitle').value.trim();
-  const author = document.getElementById('bookAuthor').value.trim();
-  const category = document.getElementById('bookCategory').value;
-  const pages = parseInt(document.getElementById('bookPages').value) || null;
-  const coverUrlInput = document.getElementById('bookCoverUrl').value.trim();
-  const pdfUrlInput = document.getElementById('bookPdfUrl').value.trim();
-  const epubUrlInput = document.getElementById('bookEpubUrl').value.trim();
-  const description = document.getElementById('bookDescription').value.trim();
-  const hasAudio = document.getElementById('bookHasAudio').checked;
-  const audioNarrator = document.getElementById('audioNarrator').value.trim();
-  const audioDuration = document.getElementById('audioDuration').value.trim();
-  const isFree = document.getElementById('bookIsFree').checked;
-  const isArchived = document.getElementById('bookIsArchived').checked;
+let isSubmitting = false;
 
-  let finalChapters = [];
-  let primaryAudioUrl = '';
-  if (hasAudio) {
-    finalChapters = currentChapters.filter(ch => ch.title || ch.audioUrl || ch.fileName);
-    if (finalChapters.length > 0) {
-      primaryAudioUrl = finalChapters[0].audioUrl || finalChapters[0].audioData || '';
-    }
+async function handleSubmitBook(e) {
+  if (e) {
+    e.preventDefault();
+    e.stopPropagation();
   }
+  if (isSubmitting) return;
 
-  if (!title || !author) {
-    alert('Кітап атауы мен авторын толтырыңыз!');
+  const titleInput = document.getElementById('bookTitle');
+  const authorInput = document.getElementById('bookAuthor');
+  const title = (titleInput ? titleInput.value : '').trim();
+  const author = (authorInput ? authorInput.value : '').trim();
+
+  if (!title) {
+    alert('Кітап атауын енгізіңіз!');
+    if (titleInput) titleInput.focus();
+    return;
+  }
+  if (!author) {
+    alert('Кітап авторын енгізіңіз!');
+    if (authorInput) authorInput.focus();
     return;
   }
 
-  const finalCover = currentCoverBase64 || coverUrlInput || "";
-
-  const gradients = [
-    "linear-gradient(135deg, #0057A8, #003d7a)",
-    "linear-gradient(135deg, #F08000, #c06800)",
-    "linear-gradient(135deg, #065F46, #022C22)",
-    "linear-gradient(135deg, #7C3AED, #4C1D95)",
-    "linear-gradient(135deg, #B45309, #78350F)",
-    "linear-gradient(135deg, #DC2626, #7F1D1D)"
-  ];
-
-  if (editId) {
-    const idx = books.findIndex(b => b.id === editId);
-    if (idx !== -1) {
-      books[idx].title = title;
-      books[idx].author = author;
-      books[idx].category = category;
-      books[idx].pages = pages;
-      if (finalCover) books[idx].coverImage = finalCover;
-      if (currentPdfBase64) books[idx].pdfData = currentPdfBase64;
-      if (currentPdfName) books[idx].pdfName = currentPdfName;
-      if (pdfUrlInput) books[idx].pdfUrl = pdfUrlInput;
-
-      if (currentEpubBase64) books[idx].epubData = currentEpubBase64;
-      if (currentEpubName) books[idx].epubName = currentEpubName;
-      if (epubUrlInput) books[idx].epubUrl = epubUrlInput;
-
-      books[idx].description = description;
-      books[idx].content = description || books[idx].content || "";
-      books[idx].hasAudio = hasAudio;
-      books[idx].audioNarrator = hasAudio ? audioNarrator : '';
-      books[idx].audioDuration = hasAudio ? audioDuration : '';
-      books[idx].audioChapters = hasAudio ? finalChapters : [];
-      books[idx].audioUrl = hasAudio ? primaryAudioUrl : '';
-      books[idx].isFree = isFree;
-      books[idx].isArchived = isArchived;
-      alert(`«${title}» кітабы сәтті жаңартылды!`);
-    }
-  } else {
-    const newBook = {
-      id: "book-" + Date.now(),
-      title,
-      author,
-      category,
-      pages,
-      coverImage: finalCover,
-      pdfData: currentPdfBase64,
-      pdfName: currentPdfName,
-      pdfUrl: pdfUrlInput,
-      epubData: currentEpubBase64,
-      epubName: currentEpubName,
-      epubUrl: epubUrlInput,
-      description,
-      content: description || "",
-      hasAudio,
-      audioNarrator: hasAudio ? audioNarrator : '',
-      audioDuration: hasAudio ? audioDuration : '',
-      audioChapters: hasAudio ? finalChapters : [],
-      audioUrl: hasAudio ? primaryAudioUrl : '',
-      isFree,
-      isArchived,
-      gradient: gradients[Math.floor(Math.random() * gradients.length)]
-    };
-    books.push(newBook);
-    alert(`«${title}» кітабы сайтқа сәтті қосылды!`);
+  isSubmitting = true;
+  const submitBtn = document.getElementById('btnSubmit');
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Сақталуда...';
   }
 
-  localStorage.setItem('tanda_books', JSON.stringify(books));
-  window.location.href = 'index.html#admin-section';
+  try {
+    const editId = document.getElementById('editBookId').value;
+    const category = document.getElementById('bookCategory').value;
+    const pages = parseInt(document.getElementById('bookPages').value) || null;
+    const coverUrlInput = document.getElementById('bookCoverUrl').value.trim();
+    const pdfUrlInput = document.getElementById('bookPdfUrl').value.trim();
+    const epubUrlInput = document.getElementById('bookEpubUrl').value.trim();
+    const description = document.getElementById('bookDescription').value.trim();
+    const hasAudio = document.getElementById('bookHasAudio').checked;
+    const audioNarrator = document.getElementById('audioNarrator').value.trim();
+    const audioDuration = document.getElementById('audioDuration').value.trim();
+    const isFree = document.getElementById('bookIsFree').checked;
+    const isArchived = document.getElementById('bookIsArchived').checked;
+
+    let finalChapters = [];
+    let primaryAudioUrl = '';
+    if (hasAudio) {
+      finalChapters = currentChapters.filter(ch => (ch.title && ch.title.trim()) || ch.audioUrl || ch.fileName || ch.audioData);
+      if (finalChapters.length > 0) {
+        primaryAudioUrl = finalChapters[0].audioUrl || finalChapters[0].audioData || '';
+      }
+    }
+
+    const finalCover = currentCoverBase64 || coverUrlInput || "";
+
+    const gradients = [
+      "linear-gradient(135deg, #0057A8, #003d7a)",
+      "linear-gradient(135deg, #F08000, #c06800)",
+      "linear-gradient(135deg, #065F46, #022C22)",
+      "linear-gradient(135deg, #7C3AED, #4C1D95)",
+      "linear-gradient(135deg, #B45309, #78350F)",
+      "linear-gradient(135deg, #DC2626, #7F1D1D)"
+    ];
+
+    // Reload latest books from storage
+    books = await TandaStorage.getBooks();
+
+    if (editId) {
+      const idx = books.findIndex(b => b.id === editId);
+      if (idx !== -1) {
+        books[idx].title = title;
+        books[idx].author = author;
+        books[idx].category = category;
+        books[idx].pages = pages;
+        if (finalCover) books[idx].coverImage = finalCover;
+        if (currentPdfBase64) books[idx].pdfData = currentPdfBase64;
+        if (currentPdfName) books[idx].pdfName = currentPdfName;
+        if (pdfUrlInput) books[idx].pdfUrl = pdfUrlInput;
+
+        if (currentEpubBase64) books[idx].epubData = currentEpubBase64;
+        if (currentEpubName) books[idx].epubName = currentEpubName;
+        if (epubUrlInput) books[idx].epubUrl = epubUrlInput;
+
+        books[idx].description = description;
+        books[idx].content = description || books[idx].content || "";
+        books[idx].hasAudio = hasAudio;
+        books[idx].audioNarrator = hasAudio ? audioNarrator : '';
+        books[idx].audioDuration = hasAudio ? audioDuration : '';
+        books[idx].audioChapters = hasAudio ? finalChapters : [];
+        books[idx].audioUrl = hasAudio ? primaryAudioUrl : '';
+        books[idx].isFree = isFree;
+        books[idx].isArchived = isArchived;
+      }
+    } else {
+      const newBook = {
+        id: "book-" + Date.now(),
+        title,
+        author,
+        category,
+        pages,
+        coverImage: finalCover,
+        pdfData: currentPdfBase64,
+        pdfName: currentPdfName,
+        pdfUrl: pdfUrlInput,
+        epubData: currentEpubBase64,
+        epubName: currentEpubName,
+        epubUrl: epubUrlInput,
+        description,
+        content: description || "",
+        hasAudio,
+        audioNarrator: hasAudio ? audioNarrator : '',
+        audioDuration: hasAudio ? audioDuration : '',
+        audioChapters: hasAudio ? finalChapters : [],
+        audioUrl: hasAudio ? primaryAudioUrl : '',
+        isFree,
+        isArchived,
+        gradient: gradients[Math.floor(Math.random() * gradients.length)]
+      };
+      books.push(newBook);
+    }
+
+    await TandaStorage.saveBooks(books);
+  } catch (err) {
+    console.error('Кітапты сақтау қатесі:', err);
+  } finally {
+    window.location.href = 'index.html#admin-section';
+  }
 }
 </script>
 </body>

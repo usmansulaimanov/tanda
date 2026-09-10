@@ -1664,8 +1664,120 @@ const ADMIN_CREDENTIALS = {
   name: "Бас Администратор"
 };
 
+// ROBUST STORAGE ENGINE (IndexedDB with automatic localStorage sync)
+const TandaStorage = {
+  dbName: 'tanda_db',
+  storeName: 'store',
+  dbVersion: 1,
+
+  getDB() {
+    return new Promise((resolve) => {
+      if (!window.indexedDB) {
+        resolve(null);
+        return;
+      }
+      try {
+        const req = indexedDB.open(this.dbName, this.dbVersion);
+        req.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains(this.storeName)) {
+            db.createObjectStore(this.storeName);
+          }
+        };
+        req.onsuccess = (e) => resolve(e.target.result);
+        req.onerror = () => resolve(null);
+      } catch (err) {
+        resolve(null);
+      }
+    });
+  },
+
+  async getBooks() {
+    try {
+      const db = await this.getDB();
+      if (db) {
+        const fromDb = await new Promise((resolve) => {
+          try {
+            const tx = db.transaction(this.storeName, 'readonly');
+            const st = tx.objectStore(this.storeName);
+            const req = st.get('tanda_books');
+            req.onsuccess = () => resolve(req.result || null);
+            req.onerror = () => resolve(null);
+          } catch (e) {
+            resolve(null);
+          }
+        });
+        if (fromDb && Array.isArray(fromDb) && fromDb.length > 0) {
+          return fromDb;
+        }
+      }
+    } catch (err) {
+      console.warn('IndexedDB getBooks error:', err);
+    }
+
+    try {
+      const raw = localStorage.getItem('tanda_books');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {
+      console.warn('localStorage getBooks error:', e);
+    }
+    return INITIAL_BOOKS;
+  },
+
+  async saveBooks(booksArray) {
+    // 1. Save full data to IndexedDB
+    try {
+      const db = await this.getDB();
+      if (db) {
+        await new Promise((resolve, reject) => {
+          try {
+            const tx = db.transaction(this.storeName, 'readwrite');
+            const st = tx.objectStore(this.storeName);
+            const req = st.put(booksArray, 'tanda_books');
+            req.onsuccess = () => resolve();
+            req.onerror = (e) => reject(e);
+          } catch (e) {
+            reject(e);
+          }
+        });
+      }
+    } catch (err) {
+      console.warn('IndexedDB saveBooks error:', err);
+    }
+
+    // 2. Safe save to localStorage
+    try {
+      localStorage.setItem('tanda_books', JSON.stringify(booksArray));
+    } catch (quotaErr) {
+      console.warn('localStorage quota exceeded, saving lightweight copy:', quotaErr);
+      try {
+        const lightBooks = booksArray.map(b => ({
+          ...b,
+          pdfData: (b.pdfData && b.pdfData.length > 50000) ? '' : b.pdfData,
+          epubData: (b.epubData && b.epubData.length > 50000) ? '' : b.epubData,
+          coverImage: (b.coverImage && b.coverImage.length > 100000) ? '' : b.coverImage,
+          audioChapters: (b.audioChapters || []).map(ch => ({
+            ...ch,
+            audioData: (ch.audioData && ch.audioData.length > 50000) ? '' : ch.audioData
+          }))
+        }));
+        localStorage.setItem('tanda_books', JSON.stringify(lightBooks));
+      } catch (innerErr) {
+        console.warn('Failed lightweight copy:', innerErr);
+      }
+    }
+
+    try {
+      window.dispatchEvent(new Event('tanda_books_updated'));
+    } catch(e) {}
+  }
+};
+
 // DATA & STATE MANAGEMENT
-let books = JSON.parse(localStorage.getItem('tanda_books')) || INITIAL_BOOKS;
+let books = INITIAL_BOOKS;
 let users = JSON.parse(localStorage.getItem('tanda_users')) || [
   { email: "admin@tanda.kz", name: "Бас Администратор", role: "ADMIN", date: "2026-09-01" },
   { email: "oqyrman@mail.kz", name: "Айбек Қайратұлы", role: "USER", date: "2026-09-05" }
@@ -1676,7 +1788,7 @@ let readerFontSize = 17;
 let currentCategory = 'Бәрі';
 
 function saveState() {
-  localStorage.setItem('tanda_books', JSON.stringify(books));
+  TandaStorage.saveBooks(books);
   localStorage.setItem('tanda_users', JSON.stringify(users));
   localStorage.setItem('tanda_current_user', JSON.stringify(currentUser));
 }
@@ -2405,11 +2517,12 @@ function toggleBookArchive(id) {
   }
 }
 
-function deleteBook(id) {
+async function deleteBook(id) {
   const b = books.find(x => x.id === id);
   if (!b) return;
   if (confirm(`«${b.title}» кітабын сайттан біржола өшіргіңіз келе ме?`)) {
     books = books.filter(x => x.id !== id);
+    await TandaStorage.saveBooks(books);
     saveState();
     renderBooks();
     renderAdminTables();
@@ -2817,19 +2930,13 @@ function changeAdminBooksPage(newPage, filterQuery = '') {
 }
 
 // REFRESH & SYNC BOOKS STATE ACROSS SESSIONS AND PAGES
-function refreshBooksState() {
-  const saved = localStorage.getItem('tanda_books');
-  if (saved) {
-    try {
-      books = JSON.parse(saved);
-    } catch (e) {
-      console.error(e);
-    }
-  } else {
-    localStorage.setItem('tanda_books', JSON.stringify(books));
-  }
+async function refreshBooksState() {
+  books = await TandaStorage.getBooks();
   renderBooks();
   renderSectionAdminBooks();
+  if (typeof renderAdminTables === 'function') {
+    renderAdminTables();
+  }
 }
 
 window.addEventListener('pageshow', refreshBooksState);
@@ -2839,6 +2946,7 @@ window.addEventListener('storage', (e) => {
     refreshBooksState();
   }
 });
+window.addEventListener('tanda_books_updated', refreshBooksState);
 
 // INIT
 renderNavAuth();
