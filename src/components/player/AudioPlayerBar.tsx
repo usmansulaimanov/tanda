@@ -1,6 +1,7 @@
-import React, { useRef, useEffect, useState, useCallback } from 'react';
-import { Play, Pause, SkipBack, SkipForward, X, Headphones, Youtube, Minimize2, Maximize2, AlertCircle } from 'lucide-react';
+import React, { useRef, useEffect, useCallback } from 'react';
+import { Play, Pause, SkipBack, SkipForward, X, Headphones, Youtube } from 'lucide-react';
 import { useAudioPlayerStore } from '../../store/useAudioPlayerStore';
+import { useToastStore } from '../../store/useToastStore';
 import { extractYouTubeVideoId, loadYouTubeIFrameApi } from '../../utils/youtube';
 
 export const AudioPlayerBar: React.FC = () => {
@@ -22,19 +23,17 @@ export const AudioPlayerBar: React.FC = () => {
     closePlayer,
   } = useAudioPlayerStore();
 
+  const { showToast } = useToastStore();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const ytPlayerRef = useRef<any>(null);
-  const [ytError, setYtError] = useState<string | null>(null);
-  const [isMiniVideoMinimized, setIsMiniVideoMinimized] = useState<boolean>(false);
 
   const audioSrc = currentChapter?.audioUrl || currentBook?.audioUrl || '';
   const ytVideoId = extractYouTubeVideoId(audioSrc);
   const isYouTube = !!ytVideoId;
 
-  // Initialize YouTube Player
+  // Initialize YouTube Player in offscreen container
   useEffect(() => {
     let isMounted = true;
-    setYtError(null);
 
     if (!isYouTube || !ytVideoId) {
       if (ytPlayerRef.current) {
@@ -67,18 +66,18 @@ export const AudioPlayerBar: React.FC = () => {
             return;
           }
         } catch {
-          // recreate
+          // recreate if needed
         }
       }
 
       try {
         ytPlayerRef.current = new YT.Player('tanda-yt-iframe-container', {
-          height: '100%',
-          width: '100%',
+          height: '240',
+          width: '320',
           videoId: ytVideoId,
           playerVars: {
             autoplay: 1,
-            controls: 1,
+            controls: 0,
             enablejsapi: 1,
             playsinline: 1,
             rel: 0,
@@ -116,11 +115,9 @@ export const AudioPlayerBar: React.FC = () => {
             onError: (event: any) => {
               if (!isMounted) return;
               if (event.data === 101 || event.data === 150) {
-                setYtError('Бұл YouTube бейнесін басқа сайттарда ойнатуға шектеу қойылған (Error 150)');
+                showToast('Бұл YouTube аудиосын автор басқа сайттарда ойнатуға шектеу қойған (Error 150)', 'error');
               } else if (event.data === 100) {
-                setYtError('YouTube бейнесі табылмады немесе өшірілген');
-              } else {
-                setYtError('YouTube ойнату қатесі орын алды');
+                showToast('YouTube аудио жазбасы табылмады', 'error');
               }
             },
           },
@@ -133,7 +130,7 @@ export const AudioPlayerBar: React.FC = () => {
     return () => {
       isMounted = false;
     };
-  }, [ytVideoId, isYouTube]);
+  }, [ytVideoId, isYouTube, showToast]);
 
   // Sync play/pause with players
   useEffect(() => {
@@ -236,44 +233,22 @@ export const AudioPlayerBar: React.FC = () => {
 
   return (
     <>
-      {/* Floating YouTube video widget when playing a YouTube link */}
-      {isYouTube && (
-        <div
-          className={`fixed right-4 z-50 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl overflow-hidden transition-all duration-300 ${
-            isMiniVideoMinimized ? 'bottom-20 w-44 h-28' : 'bottom-24 w-72 sm:w-80 h-44 sm:h-48'
-          }`}
-        >
-          {/* Header */}
-          <div className="flex items-center justify-between px-2.5 py-1.5 bg-slate-800/90 text-white text-[11px] font-semibold">
-            <div className="flex items-center gap-1.5 truncate">
-              <Youtube className="w-3.5 h-3.5 text-red-500 shrink-0" />
-              <span className="truncate">YouTube аудио/бейне</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <button
-                type="button"
-                onClick={() => setIsMiniVideoMinimized(!isMiniVideoMinimized)}
-                className="p-1 text-slate-300 hover:text-white rounded hover:bg-slate-700 transition"
-                title={isMiniVideoMinimized ? 'Үлкейту' : 'Кішірейту'}
-              >
-                {isMiniVideoMinimized ? <Maximize2 className="w-3 h-3" /> : <Minimize2 className="w-3 h-3" />}
-              </button>
-            </div>
-          </div>
-
-          {/* YouTube IFrame Container */}
-          <div className="relative w-full h-[calc(100%-28px)] bg-black">
-            {ytError ? (
-              <div className="p-3 text-center flex flex-col items-center justify-center h-full text-red-300 text-xs gap-1.5">
-                <AlertCircle className="w-5 h-5 text-red-400" />
-                <span>{ytError}</span>
-              </div>
-            ) : (
-              <div id="tanda-yt-iframe-container" className="w-full h-full" />
-            )}
-          </div>
-        </div>
-      )}
+      {/* Off-screen YouTube container for audio playback without showing video on screen */}
+      <div
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: '-9999px',
+          width: '320px',
+          height: '240px',
+          opacity: 0.001,
+          pointerEvents: 'none',
+          zIndex: -9999,
+          visibility: 'visible',
+        }}
+      >
+        <div id="tanda-yt-iframe-container" style={{ width: '100%', height: '100%' }} />
+      </div>
 
       {/* Main Bottom Audio Player Bar */}
       <div className="fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-2xl transition-all">
@@ -312,7 +287,7 @@ export const AudioPlayerBar: React.FC = () => {
                   {isYouTube && (
                     <span
                       className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-50 text-red-600 border border-red-200 shrink-0"
-                      title="YouTube форматы"
+                      title="YouTube аудио форматы"
                     >
                       <Youtube className="w-3 h-3 text-red-600" />
                       YouTube
