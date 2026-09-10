@@ -287,32 +287,24 @@ export const Header: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setProfileOpen((prev) => !prev)}
-                  className={`nav-profile-btn ${profileOpen ? 'active' : ''}`}
+                  className={`nav-profile-icon-btn ${profileOpen ? 'active' : ''}`}
+                  title={user.name || 'Жеке профиль'}
+                  aria-label="Жеке профиль"
                   aria-expanded={profileOpen}
                   aria-haspopup="true"
                 >
-                  <div className="nav-profile-avatar">
-                    {user.name ? user.name.trim().charAt(0).toUpperCase() : (user.email ? user.email.charAt(0).toUpperCase() : 'О')}
-                  </div>
-                  <span className="nav-profile-name">
-                    {user.name || (user.role === 'admin' ? 'Администратор' : 'Оқырман')}
-                  </span>
                   <svg
-                    width="14"
-                    height="14"
+                    width="20"
+                    height="20"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
-                    strokeWidth="2.5"
+                    strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    style={{
-                      transition: 'transform 0.2s',
-                      transform: profileOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                      color: '#64748B',
-                    }}
                   >
-                    <polyline points="6 9 12 15 18 9"></polyline>
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
                   </svg>
                 </button>
 

@@ -146,49 +146,29 @@ body {
   position: relative;
 }
 
-.nav-profile-btn {
+.nav-profile-icon-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #FFFFFF;
+  border: 1.5px solid #CBD5E1;
+  color: var(--blue);
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  background: #F8FAFC;
-  border: 1.5px solid #E2E8F0;
-  padding: 4px 12px 4px 5px;
-  border-radius: 50px;
+  justify-content: center;
   cursor: pointer;
   transition: all 0.2s ease;
-  color: var(--text-dark);
-}
-
-.nav-profile-btn:hover,
-.nav-profile-btn.active {
-  background: #F1F5F9;
-  border-color: #CBD5E1;
   box-shadow: 0 2px 8px rgba(0, 84, 148, 0.08);
+  padding: 0;
 }
 
-.nav-profile-avatar {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--blue) 0%, var(--orange) 100%);
-  color: #FFFFFF;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 800;
-  font-size: 13px;
-  flex-shrink: 0;
-  text-transform: uppercase;
-}
-
-.nav-profile-name {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text-dark);
-  max-width: 140px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.nav-profile-icon-btn:hover,
+.nav-profile-icon-btn.active {
+  background: var(--blue-light);
+  border-color: var(--blue);
+  color: var(--blue);
+  box-shadow: 0 4px 14px rgba(0, 84, 148, 0.18);
+  transform: translateY(-1px);
 }
 
 .nav-profile-dropdown {
