@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useBookStore } from '../../store/useBookStore';
 import { useToastStore } from '../../store/useToastStore';
 import { AudioChapter } from '../../types';
+import { isYouTubeUrl, getYouTubeEmbedUrl } from '../../utils/youtube';
 
 const CATEGORIES = [
   'Көркем әдебиет',
@@ -674,7 +675,7 @@ export const BookFormPage: React.FC = () => {
                     }}
                   >
                     <label className="form-label" style={{ fontSize: '13px', marginBottom: '8px' }}>
-                      Негізгі аудиофайл немесе толық аудио жазба (Сілтеме немесе файл)
+                      Негізгі аудиофайл немесе YouTube сілтемесі (Сілтеме немесе файл)
                     </label>
 
                     <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
@@ -682,7 +683,7 @@ export const BookFormPage: React.FC = () => {
                         type="text"
                         value={audioUrl}
                         onChange={(e) => setAudioUrl(e.target.value)}
-                        placeholder="Аудио сілтемесі (https://.../audio.mp3)"
+                        placeholder="Аудио немесе YouTube сілтемесі (https://youtu.be/... немесе .mp3)"
                         className="form-input"
                         style={{ flex: '1 1 240px', padding: '8px 12px', fontSize: '13px' }}
                       />
@@ -745,7 +746,21 @@ export const BookFormPage: React.FC = () => {
 
                     {audioUrl && (
                       <div style={{ marginTop: '10px' }}>
-                        <audio controls src={audioUrl} style={{ width: '100%', height: '36px' }} />
+                        {isYouTubeUrl(audioUrl) ? (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 14px', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '8px' }}>
+                            <span style={{ fontSize: '12px', fontWeight: 700, color: '#DC2626', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                              </svg>
+                              YouTube аудио сілтемесі танылды
+                            </span>
+                            <span style={{ fontSize: '11px', color: '#7F1D1D' }}>
+                              (Плеерде фондық режимде дыбысы ойнатылады)
+                            </span>
+                          </div>
+                        ) : (
+                          <audio controls src={audioUrl} style={{ width: '100%', height: '36px' }} />
+                        )}
                       </div>
                     )}
                   </div>
@@ -895,7 +910,7 @@ export const BookFormPage: React.FC = () => {
                                 type="text"
                                 value={ch.audioUrl || ''}
                                 onChange={(e) => updateChapter(idx, 'audioUrl', e.target.value)}
-                                placeholder="Аудио сілтемесі (https://.../chapter.mp3)"
+                                placeholder="Аудио немесе YouTube сілтемесі (https://youtu.be/...)"
                                 className="form-input"
                                 style={{
                                   width: '100%',
@@ -979,12 +994,25 @@ export const BookFormPage: React.FC = () => {
                           {/* Chapter Audio Preview Player */}
                           {ch.audioUrl && (
                             <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #E2E8F0' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                                <span style={{ fontSize: '11px', fontWeight: 700, color: '#047857' }}>
-                                  Аудио жазба тыңдау:
-                                </span>
-                              </div>
-                              <audio controls src={ch.audioUrl} style={{ width: '100%', height: '32px' }} />
+                              {isYouTubeUrl(ch.audioUrl) ? (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 10px', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '6px' }}>
+                                  <span style={{ fontSize: '11px', fontWeight: 700, color: '#DC2626', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                                      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                                    </svg>
+                                    YouTube сілтемесі танылды (Аудио түрінде ойнатылады)
+                                  </span>
+                                </div>
+                              ) : (
+                                <div>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                                    <span style={{ fontSize: '11px', fontWeight: 700, color: '#047857' }}>
+                                      Аудио жазба тыңдау:
+                                    </span>
+                                  </div>
+                                  <audio controls src={ch.audioUrl} style={{ width: '100%', height: '32px' }} />
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>

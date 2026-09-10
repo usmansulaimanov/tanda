@@ -1,6 +1,7 @@
-import React, { useRef, useEffect } from 'react';
-import { Play, Pause, SkipBack, SkipForward, Volume2, X, Headphones } from 'lucide-react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
+import { Play, Pause, SkipBack, SkipForward, X, Headphones, Youtube } from 'lucide-react';
 import { useAudioPlayerStore } from '../../store/useAudioPlayerStore';
+import { extractYouTubeVideoId, loadYouTubeIFrameApi } from '../../utils/youtube';
 
 export const AudioPlayerBar: React.FC = () => {
   const {
@@ -21,51 +22,208 @@ export const AudioPlayerBar: React.FC = () => {
   } = useAudioPlayerStore();
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const ytPlayerRef = useRef<any>(null);
+  const [ytReady, setYtReady] = useState(false);
 
-  // Sync play/pause with HTMLAudioElement
+  const audioSrc = currentChapter?.audioUrl || currentBook?.audioUrl || '';
+  const ytVideoId = extractYouTubeVideoId(audioSrc);
+  const isYouTube = !!ytVideoId;
+
+  // Initialize YouTube IFrame Player
   useEffect(() => {
-    if (!audioRef.current) return;
-    if (isPlaying) {
-      audioRef.current.play().catch(() => {
-        // Autoplay may be blocked if not interacted
-      });
+    let mounted = true;
+
+    if (!isYouTube) return;
+
+    loadYouTubeIFrameApi().then(() => {
+      if (!mounted) return;
+      if (!(window as any).YT || !(window as any).YT.Player) return;
+
+      if (!ytPlayerRef.current) {
+        try {
+          ytPlayerRef.current = new (window as any).YT.Player('tanda-yt-audio-player', {
+            height: '1',
+            width: '1',
+            videoId: ytVideoId,
+            playerVars: {
+              autoplay: isPlaying ? 1 : 0,
+              controls: 0,
+              disablekb: 1,
+              fs: 0,
+              playsinline: 1,
+              rel: 0,
+              modestbranding: 1,
+            },
+            events: {
+              onReady: (event: any) => {
+                if (!mounted) return;
+                setYtReady(true);
+                event.target.setPlaybackRate(playbackRate);
+                const dur = event.target.getDuration();
+                if (dur && !isNaN(dur) && dur > 0) {
+                  setDuration(dur);
+                }
+                if (isPlaying) {
+                  event.target.playVideo();
+                }
+              },
+              onStateChange: (event: any) => {
+                if (!mounted) return;
+                // YT.PlayerState.ENDED is 0
+                if (event.data === 0) {
+                  nextChapter();
+                }
+                if (event.data === 1) {
+                  const dur = event.target.getDuration();
+                  if (dur && !isNaN(dur) && dur > 0) {
+                    setDuration(dur);
+                  }
+                }
+              },
+            },
+          });
+        } catch (err) {
+          console.error('YouTube player init error:', err);
+        }
+      } else {
+        // Player exists, switch video if needed
+        try {
+          if (typeof ytPlayerRef.current.getVideoData === 'function') {
+            const currentId = ytPlayerRef.current.getVideoData()?.video_id;
+            if (currentId !== ytVideoId) {
+              ytPlayerRef.current.loadVideoById(ytVideoId);
+              if (!isPlaying) {
+                ytPlayerRef.current.pauseVideo();
+              }
+            }
+          }
+        } catch (err) {
+          console.error('YouTube loadVideoById error:', err);
+        }
+      }
+    });
+
+    return () => {
+      mounted = false;
+    };
+  }, [ytVideoId, isYouTube]);
+
+  // Sync play/pause state
+  useEffect(() => {
+    if (isYouTube) {
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      if (ytPlayerRef.current && typeof ytPlayerRef.current.playVideo === 'function') {
+        if (isPlaying) {
+          ytPlayerRef.current.playVideo();
+        } else {
+          ytPlayerRef.current.pauseVideo();
+        }
+      }
     } else {
-      audioRef.current.pause();
+      if (ytPlayerRef.current && typeof ytPlayerRef.current.pauseVideo === 'function') {
+        ytPlayerRef.current.pauseVideo();
+      }
+      if (audioRef.current) {
+        if (isPlaying) {
+          audioRef.current.play().catch(() => {});
+        } else {
+          audioRef.current.pause();
+        }
+      }
     }
-  }, [isPlaying, currentChapter]);
+  }, [isPlaying, isYouTube, ytReady, currentChapter]);
 
   // Sync playback rate
   useEffect(() => {
-    if (audioRef.current) {
+    if (isYouTube) {
+      if (ytPlayerRef.current && typeof ytPlayerRef.current.setPlaybackRate === 'function') {
+        ytPlayerRef.current.setPlaybackRate(playbackRate);
+      }
+    } else if (audioRef.current) {
       audioRef.current.playbackRate = playbackRate;
     }
-  }, [playbackRate]);
+  }, [playbackRate, isYouTube]);
 
-  if (!currentBook) return null;
+  // Polling YouTube playback progress
+  useEffect(() => {
+    if (!isYouTube || !isPlaying) return;
 
-  const chapters = currentBook.audioChapters || [];
-  const currentChapterTitle = currentChapter?.title || (chapters[chapterIndex]?.title) || 'Тарау';
+    const interval = setInterval(() => {
+      if (ytPlayerRef.current && typeof ytPlayerRef.current.getCurrentTime === 'function') {
+        try {
+          const current = ytPlayerRef.current.getCurrentTime();
+          const dur = ytPlayerRef.current.getDuration();
+          if (current !== undefined && !isNaN(current)) {
+            setProgress(current);
+          }
+          if (dur !== undefined && !isNaN(dur) && dur > 0) {
+            setDuration(dur);
+          }
+        } catch {
+          // ignore
+        }
+      }
+    }, 500);
+
+    return () => clearInterval(interval);
+  }, [isYouTube, isPlaying, setProgress, setDuration]);
 
   const formatTime = (secs: number) => {
-    const mins = Math.floor(secs / 60);
+    if (!secs || isNaN(secs)) return '0:00';
+    const hours = Math.floor(secs / 3600);
+    const mins = Math.floor((secs % 3600) / 60);
     const s = Math.floor(secs % 60);
+    if (hours > 0) {
+      return `${hours}:${mins < 10 ? '0' : ''}${mins}:${s < 10 ? '0' : ''}${s}`;
+    }
     return `${mins}:${s < 10 ? '0' : ''}${s}`;
   };
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = Number(e.target.value);
     setProgress(val);
-    if (audioRef.current) {
+    if (isYouTube && ytPlayerRef.current && typeof ytPlayerRef.current.seekTo === 'function') {
+      ytPlayerRef.current.seekTo(val, true);
+    } else if (audioRef.current) {
       audioRef.current.currentTime = val;
     }
   };
 
-  const audioSrc = currentChapter?.audioUrl || currentBook.audioUrl || '';
+  const handleClose = useCallback(() => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+    }
+    if (ytPlayerRef.current && typeof ytPlayerRef.current.pauseVideo === 'function') {
+      ytPlayerRef.current.pauseVideo();
+    }
+    closePlayer();
+  }, [closePlayer]);
+
+  if (!currentBook) return null;
+
+  const chapters = currentBook.audioChapters || [];
+  const currentChapterTitle = currentChapter?.title || chapters[chapterIndex]?.title || 'Тарау';
 
   return (
     <div className="fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-2xl transition-all">
-      {/* Audio element for real playback */}
-      {audioSrc && (
+      {/* Hidden YouTube player container */}
+      <div
+        id="tanda-yt-audio-player"
+        style={{
+          position: 'fixed',
+          top: '-9999px',
+          left: '-9999px',
+          width: '1px',
+          height: '1px',
+          opacity: 0,
+          pointerEvents: 'none',
+        }}
+      />
+
+      {/* Standard HTML5 Audio element */}
+      {!isYouTube && audioSrc && (
         <audio
           ref={audioRef}
           src={audioSrc}
@@ -85,12 +243,27 @@ export const AudioPlayerBar: React.FC = () => {
           <div className="flex items-center gap-3 w-full sm:w-1/3 min-w-0">
             <div
               className="w-12 h-12 rounded-xl flex items-center justify-center text-white shrink-0 shadow-sm overflow-hidden"
-              style={{ background: currentBook.coverImage ? `url(${currentBook.coverImage}) center/cover` : (currentBook.gradient || '#0057A8') }}
+              style={{
+                background: currentBook.coverImage
+                  ? `url(${currentBook.coverImage}) center/cover`
+                  : currentBook.gradient || '#0057A8',
+              }}
             >
               {!currentBook.coverImage && <Headphones className="w-5 h-5 text-white/90" />}
             </div>
             <div className="min-w-0 flex-1">
-              <h4 className="text-sm font-bold text-slate-900 truncate">{currentBook.title}</h4>
+              <div className="flex items-center gap-1.5">
+                <h4 className="text-sm font-bold text-slate-900 truncate">{currentBook.title}</h4>
+                {isYouTube && (
+                  <span
+                    className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-50 text-red-600 border border-red-200 shrink-0"
+                    title="YouTube аудио форматы"
+                  >
+                    <Youtube className="w-3 h-3" />
+                    YouTube
+                  </span>
+                )}
+              </div>
               <p className="text-xs text-slate-500 truncate">
                 {currentBook.author} &bull; <span className="text-[#0057A8] font-medium">{currentChapterTitle}</span>
               </p>
@@ -156,7 +329,7 @@ export const AudioPlayerBar: React.FC = () => {
           {/* Right: Close action */}
           <div className="hidden sm:flex items-center justify-end w-1/4 gap-3">
             <button
-              onClick={closePlayer}
+              onClick={handleClose}
               className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100"
               title="Жабу"
             >
