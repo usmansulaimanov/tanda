@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useBookStore } from '../../store/useBookStore';
 import { useToastStore } from '../../store/useToastStore';
 import { AudioChapter } from '../../types';
+import { AdminSidebar } from './AdminSidebar';
 
 const CATEGORIES = [
   'Көркем әдебиет',
@@ -147,8 +148,14 @@ export const BookFormPage: React.FC = () => {
   };
 
   return (
-    <div style={{ backgroundColor: '#F8FAFC', minHeight: 'calc(100vh - 80px)', padding: '32px 16px 80px' }}>
-      <div style={{ maxWidth: '860px', margin: '0 auto' }}>
+    <section className="admin-page-section">
+      <div className="admin-layout-container">
+        {/* Left Sidebar */}
+        <AdminSidebar />
+
+        {/* Right Main Content */}
+        <div className="admin-main-content">
+          <div style={{ maxWidth: '960px' }}>
         {/* Top Breadcrumb & Navigation */}
         <div
           style={{
@@ -827,7 +834,9 @@ export const BookFormPage: React.FC = () => {
             </div>
           </form>
         </div>
+        </div>
       </div>
-    </div>
+      </div>
+    </section>
   );
 };

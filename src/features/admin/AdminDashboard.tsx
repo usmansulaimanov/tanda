@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useBookStore } from '../../store/useBookStore';
 import { useToastStore } from '../../store/useToastStore';
 import { Book } from '../../types';
+import { AdminSidebar } from './AdminSidebar';
 
 export const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -41,22 +42,14 @@ export const AdminDashboard: React.FC = () => {
   };
 
   return (
-    <section
-      className="admin-page-section"
-      id="admin-section"
-      style={{ minHeight: '80vh', padding: '60px 24px', background: '#F8FAFC', borderTop: '2px solid #E2E8F0', borderBottom: '2px solid #E2E8F0' }}
-    >
-      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        {/* Admin Card */}
-        <div
-          style={{
-            background: '#FFF',
-            border: '1px solid #CBD5E1',
-            borderRadius: '16px',
-            padding: '32px',
-            boxShadow: '0 10px 25px rgba(0,0,0,0.04)',
-          }}
-        >
+    <section className="admin-page-section" id="admin-section">
+      <div className="admin-layout-container">
+        {/* Left Sidebar */}
+        <AdminSidebar currentFilter={filterStatus} onFilterChange={setFilterStatus} />
+
+        {/* Right Main Content */}
+        <div className="admin-main-content">
+          <div className="admin-card">
           {/* Header */}
           <div
             style={{
@@ -382,6 +375,7 @@ export const AdminDashboard: React.FC = () => {
           </div>
         </div>
       </div>
+    </div>
 
       {/* Delete confirmation modal */}
       {bookToDelete && (
