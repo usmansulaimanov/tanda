@@ -19,6 +19,10 @@ export const Header: React.FC = () => {
   const [showResults, setShowResults] = useState(false);
   const searchWrapRef = useRef<HTMLDivElement>(null);
 
+  // Profile menu state
+  const [profileOpen, setProfileOpen] = useState(false);
+  const profileWrapRef = useRef<HTMLDivElement>(null);
+
   // Auth modal state
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
@@ -32,10 +36,18 @@ export const Header: React.FC = () => {
       if (searchWrapRef.current && !searchWrapRef.current.contains(e.target as Node)) {
         setShowResults(false);
       }
+      if (profileWrapRef.current && !profileWrapRef.current.contains(e.target as Node)) {
+        setProfileOpen(false);
+      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Close profile dropdown on page change
+  useEffect(() => {
+    setProfileOpen(false);
+  }, [location.pathname]);
 
   const handleSearchInput = (val: string) => {
     setHeaderSearch(val);
@@ -266,90 +278,111 @@ export const Header: React.FC = () => {
             </ul>
           )}
 
-          {/* Right: Auth & Account Actions (Strict single line, no wrapping) */}
+          {/* Right: Auth & Profile Actions */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0, whiteSpace: 'nowrap' }}>
             {isAuthenticated && user ? (
-              <>
-                {/* User badge */}
-                <div
-                  className="user-badge"
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    padding: '6px 12px',
-                    borderRadius: '50px',
-                    fontSize: '12px',
-                    fontWeight: 700,
-                    background: 'var(--blue-light)',
-                    color: 'var(--blue)',
-                  }}
-                >
-                  <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#10B981', display: 'inline-block' }}></span>
-                  <span>{user.role === 'admin' ? 'Админ' : (user.name || 'Оқырман')}</span>
-                </div>
-
-                {/* Role specific action in Brand Color */}
-                {user.role === 'admin' ? (
-                  <Link
-                    to="/admin"
-                    className="btn-admin-pill"
-                    style={{
-                      padding: '6px 16px',
-                      borderRadius: '50px',
-                      fontSize: '12px',
-                      fontWeight: 700,
-                      background: 'var(--blue)',
-                      color: '#FFFFFF',
-                      textDecoration: 'none',
-                      boxShadow: '0 2px 8px rgba(0, 84, 148, 0.25)',
-                    }}
-                  >
-                    Басқару панелі
-                  </Link>
-                ) : (
-                  <Link
-                    to="/catalog"
-                    className="btn-nav-reg"
-                    style={{
-                      padding: '6px 14px',
-                      borderRadius: '50px',
-                      fontSize: '12px',
-                      fontWeight: 700,
-                      textDecoration: 'none',
-                    }}
-                  >
-                    Кітап оқу
-                  </Link>
-                )}
-
-                {/* Logout Button */}
+              <div className="nav-profile-wrap" ref={profileWrapRef}>
                 <button
                   type="button"
-                  onClick={handleLogout}
-                  style={{
-                    background: 'transparent',
-                    border: '1px solid #CBD5E1',
-                    color: '#DC2626',
-                    fontSize: '12px',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    padding: '6px 14px',
-                    borderRadius: '50px',
-                    transition: 'all 0.15s',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = '#FEF2F2';
-                    e.currentTarget.style.borderColor = '#FCA5A5';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'transparent';
-                    e.currentTarget.style.borderColor = '#CBD5E1';
-                  }}
+                  onClick={() => setProfileOpen((prev) => !prev)}
+                  className={`nav-profile-btn ${profileOpen ? 'active' : ''}`}
+                  aria-expanded={profileOpen}
+                  aria-haspopup="true"
                 >
-                  Шығу
+                  <div className="nav-profile-avatar">
+                    {user.name ? user.name.trim().charAt(0).toUpperCase() : (user.email ? user.email.charAt(0).toUpperCase() : 'О')}
+                  </div>
+                  <span className="nav-profile-name">
+                    {user.name || (user.role === 'admin' ? 'Администратор' : 'Оқырман')}
+                  </span>
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    style={{
+                      transition: 'transform 0.2s',
+                      transform: profileOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                      color: '#64748B',
+                    }}
+                  >
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
                 </button>
-              </>
+
+                {profileOpen && (
+                  <div className="nav-profile-dropdown">
+                    {/* User Info Header: Name, Email & Role */}
+                    <div className="profile-card-header">
+                      <div className="profile-card-avatar">
+                        {user.name ? user.name.trim().charAt(0).toUpperCase() : (user.email ? user.email.charAt(0).toUpperCase() : 'О')}
+                      </div>
+                      <div className="profile-card-info">
+                        <div className="profile-card-name" title={user.name || 'Оқырман'}>
+                          {user.name || (user.role === 'admin' ? 'Администратор' : 'Оқырман')}
+                        </div>
+                        <div className="profile-card-email" title={user.email}>
+                          {user.email}
+                        </div>
+                        <span className={`profile-card-role-badge ${user.role === 'admin' ? 'admin' : 'client'}`}>
+                          {user.role === 'admin' ? 'Әкімшілік (Админ)' : 'Оқырман'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Quick Navigation Links */}
+                    <div className="profile-card-actions">
+                      {user.role === 'admin' ? (
+                        <Link
+                          to="/admin"
+                          className="profile-menu-item"
+                          onClick={() => setProfileOpen(false)}
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="3" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="14" width="7" height="7"></rect>
+                            <rect x="3" y="14" width="7" height="7"></rect>
+                          </svg>
+                          Басқару панелі
+                        </Link>
+                      ) : (
+                        <Link
+                          to="/catalog"
+                          className="profile-menu-item"
+                          onClick={() => setProfileOpen(false)}
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                          </svg>
+                          Кітаптар қоры
+                        </Link>
+                      )}
+
+                      <button
+                        type="button"
+                        className="profile-menu-item logout"
+                        onClick={() => {
+                          setProfileOpen(false);
+                          handleLogout();
+                        }}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                          <polyline points="16 17 21 12 16 7"></polyline>
+                          <line x1="21" y1="12" x2="9" y2="12"></line>
+                        </svg>
+                        Аккаунттан шығу
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             ) : (
               <>
                 <button
@@ -521,10 +554,11 @@ export const Header: React.FC = () => {
               {authMode === 'signup' && (
                 <div style={{ marginBottom: '16px' }}>
                   <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '6px' }}>
-                    Аты-жөніңіз
+                    Аты-жөніңіз *
                   </label>
                   <input
                     type="text"
+                    required
                     value={authName}
                     onChange={(e) => setAuthName(e.target.value)}
                     placeholder="Мысалы: Азамат Серікұлы"
