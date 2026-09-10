@@ -1545,6 +1545,34 @@
 // INITIAL SEED BOOKS
 const INITIAL_BOOKS = [
   {
+    id: "book-men",
+    title: "Мен",
+    author: "Усман Сулайманов",
+    category: "Тұлғалық даму",
+    pages: 200,
+    hasAudio: false,
+    audioUrl: "",
+    coverImage: "",
+    isFree: true,
+    isArchived: false,
+    gradient: "linear-gradient(135deg, #0057A8, #003d7a)",
+    description: "Усман Сулаймановтың жеке даму мен өмірлік мақсаттарға арналған кітабы."
+  },
+  {
+    id: "book-aaaa",
+    title: "АААА",
+    author: "DDDD",
+    category: "Тұлғалық даму",
+    pages: null,
+    hasAudio: false,
+    audioUrl: "",
+    coverImage: "",
+    isFree: false,
+    isArchived: false,
+    gradient: "linear-gradient(135deg, #F08000, #c06800)",
+    description: "Тұлғалық даму бағытындағы жаңа кітап."
+  },
+  {
     id: "kara-sozder",
     title: "Қара сөздер",
     author: "Абай Құнанбайұлы",
@@ -1563,7 +1591,7 @@ const INITIAL_BOOKS = [
     isFree: true,
     isArchived: false,
     gradient: "linear-gradient(135deg, #0057A8, #003d7a)",
-    content: "Бірінші сөз.\n\nБұл жасқа келгенше жақсы өткіздік пе, жаман өткіздік пе, әйтеуір бірталай өмірімізді өткіздік: алыстық, жұлыстық, айтыстық, тартыстық — әурешілікті көре-көре келдік. Енді жер ортасы жасқа келдік: қажыдық, жалықтық; қылып жүрген ісіміздің бәрі баянсыз, байлаусыз екенін көрдік, бәрі қоршылық екенін білдік.\n\nАл, енді қалған өмірімізді қайтіп, не қылып өткіземіз? Соны таба алмай өзім де қайранмын. Ақыры ойладым: осы ойыма келген нәрселерді қағазға жаза берейін, ақ қағаз бен қара сияны ермек қылайын, кімде-кім ішінен керекті сөз тапса, жазып алсын, я оқысын; керегі жоқ десе, өз сөзім өзімдікі дедім де, ақыры осыған байладым."
+    description: "Абайдың философиялық және адамгершілік ой-толғаулары жинақталған классикалық туынды."
   },
   {
     id: "abai-joly",
@@ -1576,7 +1604,7 @@ const INITIAL_BOOKS = [
     isFree: false,
     isArchived: false,
     gradient: "linear-gradient(135deg, #1E3A8A, #172554)",
-    content: "Қайтқанда.\n\nБелгілі Шыңғыс бөктері. Қаладан қайтқан жас шәкірттер мінген аттарын аяңға салып, жазғы жайлауға қарай асығып келеді. Үш жыл бойы қаладағы медреседе оқыған жас Абай ауылын, анасын, әжесін шексіз сағынған еді. Алда оны ұлы өмір белестері мен дала тартыстары күтіп тұрған болатын."
+    description: "Қазақ әдебиетінің шыңы саналатын Мұхтар Әуезовтің әйгілі эпопеясы."
   },
   {
     id: "aldar-kose",
@@ -1589,7 +1617,7 @@ const INITIAL_BOOKS = [
     isFree: true,
     isArchived: false,
     gradient: "linear-gradient(135deg, #F08000, #c06800)",
-    content: "Шықбермес Шығайбайдың үйінде.\n\nЕртеде Шықбермес Шығайбай деген өте сараң бай өмір сүріпті. Үйіне қонған қонаққа тарының қауызын да татырмайтын тасбауыр жан екен. Мұны естіген Алдар Көсе: «Мен сол Шығайбайдың үйінен дәм татпасам, атым Алдар болмасын!» — деп байдың ауылына аттаныпты."
+    description: "Алдар Көсенің сараң байлар мен ашкөздерді тапқырлықпен жазалаған хикаялары."
   },
   {
     id: "koshpendiler",
@@ -1602,7 +1630,7 @@ const INITIAL_BOOKS = [
     isFree: false,
     isArchived: false,
     gradient: "linear-gradient(135deg, #065F46, #022C22)",
-    content: "Алмас қылыш.\n\nXV ғасырдың орта шені. Ұлан-ғайыр Дешті Қыпшақ даласында аласапыран заман басталды. Әбілқайыр ханның озбыр саясатына көнгісі келмеген Керей мен Жәнібек сұлтандар өздеріне қарасты елді бастап, Моғолстан шегіне қарай бет түзеді. Бұл қазақ мемлекеттілігінің негізін қалаған ұлы көш еді."
+    description: "Қазақ хандығының қалыптасуы мен ерлікке толы тарихын баяндайтын көркем туынды."
   },
   {
     id: "shakarim",
@@ -1615,7 +1643,7 @@ const INITIAL_BOOKS = [
     isFree: true,
     isArchived: false,
     gradient: "linear-gradient(135deg, #7C3AED, #4C1D95)",
-    content: "Ар ілімі.\n\nАдам өміріндегі ең негізгі үш анық бар. Дүниедегі барлық байлық пен атақ-мансап өткінші, адамның шын құны — оның таза ар-ұжданы мен адамзатқа тигізген игілігімен ғана өлшенеді. Ар ілімі — кемелдікке бастайтын басты жол."
+    description: "Адам өміріндегі рухани құндылықтар мен ар ілімін зерделейтін даналық жинағы."
   },
   {
     id: "kalyng-mal",
@@ -1628,7 +1656,7 @@ const INITIAL_BOOKS = [
     isFree: true,
     isArchived: false,
     gradient: "linear-gradient(135deg, #B45309, #78350F)",
-    content: "Торғай даласындағы жазғы жайлау.\n\nКөк майса белестерді құшағына алған ауыл адамдары жайлауға көшіп, мамырлап жатқан шақ еді. Ғайша мен Құрымбайдың арасындағы пәк сезім сол замандағы қатал салт пен қалың мал тауқыметіне қарсы тұрар ерлікке ұласады."
+    description: "Қазақ даласындағы өткен дәуірдің салт-дәстүрі мен жастар тағдырын сипаттайтын роман."
   },
   {
     id: "atomic-habits",
@@ -1641,7 +1669,7 @@ const INITIAL_BOOKS = [
     isFree: false,
     isArchived: false,
     gradient: "linear-gradient(135deg, #DC2626, #7F1D1D)",
-    content: "Күнделікті 1%-ға жақсарудың таңғажайып күші.\n\nКүн сайын небәрі 1%-ға алға жылжысаңыз, бір жылда нәтижеңіз 37 есе артады. Нәтижелер — сіздің күнделікті қайталайтын әдеттеріңіздің жиынтығы."
+    description: "Күнделікті шағын өзгерістер арқылы үлкен нәтижелерге қол жеткізудің нақты жолдары."
   },
   {
     id: "rich-dad",
@@ -1654,7 +1682,35 @@ const INITIAL_BOOKS = [
     isFree: false,
     isArchived: false,
     gradient: "linear-gradient(135deg, #0284C7, #0369A1)",
-    content: "Байлар ақша үшін жұмыс істемейді.\n\nҚаржылық сауаттылық — өмір бойғы еркіндіктің кепілі. Байлар актив сатып алып, ақшаны өзіне жұмыс істеуге мәжбүрлейді."
+    description: "Қаржылық тәуелсіздікке жету және ақшаны тиімді басқару туралы әлемдік бестселлер."
+  },
+  {
+    id: "book-ccc",
+    title: "ссс",
+    author: "Усман Сулайманов",
+    category: "Классика",
+    pages: 20,
+    hasAudio: false,
+    audioUrl: "",
+    coverImage: "",
+    isFree: true,
+    isArchived: false,
+    gradient: "linear-gradient(135deg, #065F46, #022C22)",
+    description: "Классикалық бағыттағы шығарма."
+  },
+  {
+    id: "book-fyfy",
+    title: "фыфы",
+    author: "Усман Сулайманов",
+    category: "Классика",
+    pages: 10,
+    hasAudio: false,
+    audioUrl: "",
+    coverImage: "",
+    isFree: true,
+    isArchived: false,
+    gradient: "linear-gradient(135deg, #7C3AED, #4C1D95)",
+    description: "Қазақ классикасы үлгісінде жазылған жаңа туынды."
   }
 ];
 
@@ -1665,7 +1721,7 @@ const ADMIN_CREDENTIALS = {
   name: "Бас Администратор"
 };
 
-// ROBUST STORAGE ENGINE (IndexedDB with automatic localStorage sync)
+// ROBUST STORAGE ENGINE (Server books.json + IndexedDB + localStorage)
 const TandaStorage = {
   dbName: 'tanda_db',
   storeName: 'store',
@@ -1694,6 +1750,22 @@ const TandaStorage = {
   },
 
   async getBooks() {
+    // 1. Fetch from server API or books.json (instant sync across all browsers, incognito, readers)
+    try {
+      const resp = await fetch('/api/books', { cache: 'no-store' })
+        .catch(() => fetch('books.json', { cache: 'no-store' }));
+      if (resp && resp.ok) {
+        const data = await resp.json();
+        if (Array.isArray(data) && data.length > 0) {
+          this.syncLocal(data);
+          return data;
+        }
+      }
+    } catch (apiErr) {
+      console.warn('API getBooks error, falling back to local storage:', apiErr);
+    }
+
+    // 2. Fallback to IndexedDB
     try {
       const db = await this.getDB();
       if (db) {
@@ -1716,6 +1788,7 @@ const TandaStorage = {
       console.warn('IndexedDB getBooks error:', err);
     }
 
+    // 3. Fallback to localStorage
     try {
       const raw = localStorage.getItem('tanda_books');
       if (raw) {
@@ -1728,8 +1801,28 @@ const TandaStorage = {
     return INITIAL_BOOKS;
   },
 
-  async saveBooks(booksArray) {
-    // 1. Save full data to IndexedDB
+  syncLocal(booksArray) {
+    try {
+      localStorage.setItem('tanda_books', JSON.stringify(booksArray));
+    } catch (quotaErr) {
+      try {
+        const lightBooks = booksArray.map(b => ({
+          ...b,
+          pdfData: (b.pdfData && b.pdfData.length > 50000) ? '' : b.pdfData,
+          epubData: (b.epubData && b.epubData.length > 50000) ? '' : b.epubData,
+          coverImage: (b.coverImage && b.coverImage.length > 100000) ? '' : b.coverImage,
+          audioChapters: (b.audioChapters || []).map(ch => ({
+            ...ch,
+            audioData: (ch.audioData && ch.audioData.length > 50000) ? '' : ch.audioData
+          }))
+        }));
+        localStorage.setItem('tanda_books', JSON.stringify(lightBooks));
+      } catch (innerErr) {}
+    }
+    this.saveIndexedDB(booksArray);
+  },
+
+  async saveIndexedDB(booksArray) {
     try {
       const db = await this.getDB();
       if (db) {
@@ -1745,30 +1838,22 @@ const TandaStorage = {
           }
         });
       }
-    } catch (err) {
-      console.warn('IndexedDB saveBooks error:', err);
-    }
+    } catch (err) {}
+  },
 
-    // 2. Safe save to localStorage
+  async saveBooks(booksArray) {
+    // 1. Sync to local storage
+    this.syncLocal(booksArray);
+
+    // 2. Post to server to update books.json on disk
     try {
-      localStorage.setItem('tanda_books', JSON.stringify(booksArray));
-    } catch (quotaErr) {
-      console.warn('localStorage quota exceeded, saving lightweight copy:', quotaErr);
-      try {
-        const lightBooks = booksArray.map(b => ({
-          ...b,
-          pdfData: (b.pdfData && b.pdfData.length > 50000) ? '' : b.pdfData,
-          epubData: (b.epubData && b.epubData.length > 50000) ? '' : b.epubData,
-          coverImage: (b.coverImage && b.coverImage.length > 100000) ? '' : b.coverImage,
-          audioChapters: (b.audioChapters || []).map(ch => ({
-            ...ch,
-            audioData: (ch.audioData && ch.audioData.length > 50000) ? '' : ch.audioData
-          }))
-        }));
-        localStorage.setItem('tanda_books', JSON.stringify(lightBooks));
-      } catch (innerErr) {
-        console.warn('Failed lightweight copy:', innerErr);
-      }
+      await fetch('/api/books', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(booksArray)
+      });
+    } catch (netErr) {
+      console.warn('Server POST /api/books error:', netErr);
     }
 
     try {
@@ -1796,7 +1881,6 @@ let readerFontSize = 17;
 let currentCategory = 'Бәрі';
 
 function saveState() {
-  TandaStorage.saveBooks(books);
   localStorage.setItem('tanda_users', JSON.stringify(users));
   localStorage.setItem('tanda_current_user', JSON.stringify(currentUser));
 }
@@ -2149,6 +2233,7 @@ function handleAuthSubmit(e) {
   saveState();
   renderNavAuth();
   closeAuthModal();
+  refreshBooksState();
 
   // If user clicked a book before auth, immediately open that book!
   if (currentTargetBookId) {
@@ -2190,16 +2275,18 @@ function handleAdminLoginSubmit(e) {
     renderNavAuth();
     closeAdminLoginModal();
     openAdminModal();
+    refreshBooksState();
   } else {
     err.textContent = 'Админ эл.почтасы немесе құпиясөз қате!';
     err.style.display = 'block';
   }
 }
 
-function logout() {
+async function logout() {
   currentUser = null;
   saveState();
   renderNavAuth();
+  await refreshBooksState();
 }
 
 // READER & PLAYER

@@ -474,6 +474,34 @@
 // INITIAL SEED BOOKS (if storage is empty)
 const INITIAL_BOOKS = [
   {
+    id: "book-men",
+    title: "Мен",
+    author: "Усман Сулайманов",
+    category: "Тұлғалық даму",
+    pages: 200,
+    hasAudio: false,
+    audioUrl: "",
+    coverImage: "",
+    isFree: true,
+    isArchived: false,
+    gradient: "linear-gradient(135deg, #0057A8, #003d7a)",
+    description: "Усман Сулаймановтың жеке даму мен өмірлік мақсаттарға арналған кітабы."
+  },
+  {
+    id: "book-aaaa",
+    title: "АААА",
+    author: "DDDD",
+    category: "Тұлғалық даму",
+    pages: null,
+    hasAudio: false,
+    audioUrl: "",
+    coverImage: "",
+    isFree: false,
+    isArchived: false,
+    gradient: "linear-gradient(135deg, #F08000, #c06800)",
+    description: "Тұлғалық даму бағытындағы жаңа кітап."
+  },
+  {
     id: "kara-sozder",
     title: "Қара сөздер",
     author: "Абай Құнанбайұлы",
@@ -500,6 +528,7 @@ const INITIAL_BOOKS = [
     author: "Мұхтар Әуезов",
     category: "Классика",
     pages: 420,
+    hasAudio: false,
     audioUrl: "",
     coverImage: "",
     isFree: false,
@@ -513,6 +542,7 @@ const INITIAL_BOOKS = [
     author: "Қазақ халық ертегілері",
     category: "Ертегілер",
     pages: 96,
+    hasAudio: false,
     audioUrl: "",
     coverImage: "",
     isFree: true,
@@ -526,6 +556,7 @@ const INITIAL_BOOKS = [
     author: "Ілияс Есенберлин",
     category: "Тарих",
     pages: 580,
+    hasAudio: false,
     audioUrl: "",
     coverImage: "",
     isFree: false,
@@ -539,6 +570,7 @@ const INITIAL_BOOKS = [
     author: "Шәкәрім Құдайбердіұлы",
     category: "Тұлғалық даму",
     pages: 112,
+    hasAudio: false,
     audioUrl: "",
     coverImage: "",
     isFree: true,
@@ -552,6 +584,7 @@ const INITIAL_BOOKS = [
     author: "Спандияр Көбеев",
     category: "Классика",
     pages: 180,
+    hasAudio: false,
     audioUrl: "",
     coverImage: "",
     isFree: true,
@@ -565,6 +598,7 @@ const INITIAL_BOOKS = [
     author: "Джеймс Клир (қазақша)",
     category: "Тұлғалық даму",
     pages: 320,
+    hasAudio: false,
     audioUrl: "",
     coverImage: "",
     isFree: false,
@@ -578,16 +612,45 @@ const INITIAL_BOOKS = [
     author: "Роберт Кийосаки (қазақша)",
     category: "Тұлғалық даму",
     pages: 280,
+    hasAudio: false,
     audioUrl: "",
     coverImage: "",
     isFree: false,
     isArchived: false,
     gradient: "linear-gradient(135deg, #0284C7, #0369A1)",
     description: "Қаржылық тәуелсіздікке жету және ақшаны тиімді басқару туралы әлемдік бестселлер."
+  },
+  {
+    id: "book-ccc",
+    title: "ссс",
+    author: "Усман Сулайманов",
+    category: "Классика",
+    pages: 20,
+    hasAudio: false,
+    audioUrl: "",
+    coverImage: "",
+    isFree: true,
+    isArchived: false,
+    gradient: "linear-gradient(135deg, #065F46, #022C22)",
+    description: "Классикалық бағыттағы шығарма."
+  },
+  {
+    id: "book-fyfy",
+    title: "фыфы",
+    author: "Усман Сулайманов",
+    category: "Классика",
+    pages: 10,
+    hasAudio: false,
+    audioUrl: "",
+    coverImage: "",
+    isFree: true,
+    isArchived: false,
+    gradient: "linear-gradient(135deg, #7C3AED, #4C1D95)",
+    description: "Қазақ классикасы үлгісінде жазылған жаңа туынды."
   }
 ];
 
-// ROBUST STORAGE ENGINE (IndexedDB with automatic localStorage sync)
+// ROBUST STORAGE ENGINE (Server books.json + IndexedDB + localStorage)
 const TandaStorage = {
   dbName: 'tanda_db',
   storeName: 'store',
@@ -616,6 +679,22 @@ const TandaStorage = {
   },
 
   async getBooks() {
+    // 1. Fetch from server API or books.json (instant sync across all browsers, incognito, readers)
+    try {
+      const resp = await fetch('/api/books', { cache: 'no-store' })
+        .catch(() => fetch('books.json', { cache: 'no-store' }));
+      if (resp && resp.ok) {
+        const data = await resp.json();
+        if (Array.isArray(data) && data.length > 0) {
+          this.syncLocal(data);
+          return data;
+        }
+      }
+    } catch (apiErr) {
+      console.warn('API getBooks error, falling back to local storage:', apiErr);
+    }
+
+    // 2. Fallback to IndexedDB
     try {
       const db = await this.getDB();
       if (db) {
@@ -638,6 +717,7 @@ const TandaStorage = {
       console.warn('IndexedDB getBooks error:', err);
     }
 
+    // 3. Fallback to localStorage
     try {
       const raw = localStorage.getItem('tanda_books');
       if (raw) {
@@ -650,8 +730,28 @@ const TandaStorage = {
     return INITIAL_BOOKS;
   },
 
-  async saveBooks(booksArray) {
-    // 1. Save full data to IndexedDB
+  syncLocal(booksArray) {
+    try {
+      localStorage.setItem('tanda_books', JSON.stringify(booksArray));
+    } catch (quotaErr) {
+      try {
+        const lightBooks = booksArray.map(b => ({
+          ...b,
+          pdfData: (b.pdfData && b.pdfData.length > 50000) ? '' : b.pdfData,
+          epubData: (b.epubData && b.epubData.length > 50000) ? '' : b.epubData,
+          coverImage: (b.coverImage && b.coverImage.length > 100000) ? '' : b.coverImage,
+          audioChapters: (b.audioChapters || []).map(ch => ({
+            ...ch,
+            audioData: (ch.audioData && ch.audioData.length > 50000) ? '' : ch.audioData
+          }))
+        }));
+        localStorage.setItem('tanda_books', JSON.stringify(lightBooks));
+      } catch (innerErr) {}
+    }
+    this.saveIndexedDB(booksArray);
+  },
+
+  async saveIndexedDB(booksArray) {
     try {
       const db = await this.getDB();
       if (db) {
@@ -667,30 +767,22 @@ const TandaStorage = {
           }
         });
       }
-    } catch (err) {
-      console.warn('IndexedDB saveBooks error:', err);
-    }
+    } catch (err) {}
+  },
 
-    // 2. Safe save to localStorage
+  async saveBooks(booksArray) {
+    // 1. Sync to local storage
+    this.syncLocal(booksArray);
+
+    // 2. Post to server to update books.json on disk
     try {
-      localStorage.setItem('tanda_books', JSON.stringify(booksArray));
-    } catch (quotaErr) {
-      console.warn('localStorage quota exceeded, saving lightweight copy:', quotaErr);
-      try {
-        const lightBooks = booksArray.map(b => ({
-          ...b,
-          pdfData: (b.pdfData && b.pdfData.length > 50000) ? '' : b.pdfData,
-          epubData: (b.epubData && b.epubData.length > 50000) ? '' : b.epubData,
-          coverImage: (b.coverImage && b.coverImage.length > 100000) ? '' : b.coverImage,
-          audioChapters: (b.audioChapters || []).map(ch => ({
-            ...ch,
-            audioData: (ch.audioData && ch.audioData.length > 50000) ? '' : ch.audioData
-          }))
-        }));
-        localStorage.setItem('tanda_books', JSON.stringify(lightBooks));
-      } catch (innerErr) {
-        console.warn('Failed lightweight copy:', innerErr);
-      }
+      await fetch('/api/books', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(booksArray)
+      });
+    } catch (netErr) {
+      console.warn('Server POST /api/books error:', netErr);
     }
 
     try {
@@ -700,6 +792,13 @@ const TandaStorage = {
 };
 
 let books = INITIAL_BOOKS;
+try {
+  const syncSaved = localStorage.getItem('tanda_books');
+  if (syncSaved) {
+    const parsed = JSON.parse(syncSaved);
+    if (Array.isArray(parsed) && parsed.length > 0) books = parsed;
+  }
+} catch (e) {}
 
 let currentCoverBase64 = "";
 let currentPdfBase64 = "";
