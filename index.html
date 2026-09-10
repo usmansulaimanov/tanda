@@ -1007,7 +1007,7 @@
   </a>
   <ul class="nav-links">
     <li><a href="#catalog">Кітаптар қоры</a></li>
-    <li><a href="#features">Мүмкіндіктер</a></li>
+    <li id="navFeaturesLink"><a href="#features">Мүмкіндіктер</a></li>
     <li id="navAdminLink" style="display:none;"><a href="#admin-section" style="color:var(--blue); font-weight:800;">Кітап қосу / Басқару</a></li>
   </ul>
   <div class="nav-actions" id="navAuthArea">
@@ -1702,12 +1702,18 @@ function saveState() {
 function renderNavAuth() {
   const area = document.getElementById('navAuthArea');
   const navAdminLink = document.getElementById('navAdminLink');
+  const navFeaturesLink = document.getElementById('navFeaturesLink');
+  const featuresSection = document.getElementById('features');
   const adminSectionNotice = document.getElementById('adminSectionAuthNotice');
 
   if (currentUser) {
     const isAdmin = currentUser.role === 'ADMIN';
     if (navAdminLink) navAdminLink.style.display = isAdmin ? 'block' : 'none';
     if (adminSectionNotice) adminSectionNotice.style.display = isAdmin ? 'block' : 'none';
+    
+    // Админ аккаунтында «Мүмкіндіктер / Бәрі бір жерде» секциясы көрінбейді
+    if (featuresSection) featuresSection.style.display = isAdmin ? 'none' : 'block';
+    if (navFeaturesLink) navFeaturesLink.style.display = isAdmin ? 'none' : 'block';
 
     let adminBtn = isAdmin 
       ? `<a href="#admin-section" class="btn-admin-pill" style="text-decoration:none;">Кітап қосу панелі</a>` 
@@ -1722,6 +1728,8 @@ function renderNavAuth() {
   } else {
     if (navAdminLink) navAdminLink.style.display = 'none';
     if (adminSectionNotice) adminSectionNotice.style.display = 'none';
+    if (featuresSection) featuresSection.style.display = 'block';
+    if (navFeaturesLink) navFeaturesLink.style.display = 'block';
     area.innerHTML = `
       <button class="btn-nav-login" onclick="openAuthModal('login')">Кіру</button>
       <button class="btn-nav-reg" onclick="openAuthModal('signup')">Тіркелу</button>
