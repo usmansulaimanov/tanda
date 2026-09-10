@@ -2023,7 +2023,18 @@ document.addEventListener('click', (e) => {
 
 // RENDER BOOKS GRID
 function renderBooks() {
+  try {
+    const raw = localStorage.getItem('tanda_books');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        books = parsed;
+      }
+    }
+  } catch (e) {}
+
   const grid = document.getElementById('booksGrid');
+  if (!grid) return;
   const query = (document.getElementById('catalogSearch').value || '').toLowerCase().trim();
   
   // Only show active books on public site (filter out archived books)
@@ -2903,6 +2914,16 @@ function updateAdminFilterBadges() {
 }
 
 function renderSectionAdminBooks(filterQuery = '') {
+  try {
+    const raw = localStorage.getItem('tanda_books');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        books = parsed;
+      }
+    }
+  } catch (e) {}
+
   const tableBody = document.getElementById('sectionAdminBooksTableBody');
   if (!tableBody) return;
 
