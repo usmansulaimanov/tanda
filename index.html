@@ -1131,8 +1131,9 @@
 
         <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
           <div style="display:flex; gap:8px;">
-            <span style="display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:#047857; background:#ECFDF5; padding:6px 12px; border-radius:6px;"><span style="width:8px; height:8px; border-radius:50%; background:#10B981;"></span> Белсенді</span>
-            <span style="display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:#64748B; background:#F1F5F9; padding:6px 12px; border-radius:6px;"><span style="width:8px; height:8px; border-radius:50%; background:#94A3B8;"></span> Архивте (Жасырын)</span>
+            <button type="button" id="adminFilterAllBtn" onclick="setAdminBooksFilter('all')" style="display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:700; color:#FFFFFF; background:var(--blue); padding:6px 14px; border-radius:6px; border:1.5px solid var(--blue); cursor:pointer; transition:all 0.15s;">Барлығы</button>
+            <button type="button" id="adminFilterActiveBtn" onclick="setAdminBooksFilter('active')" style="display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:700; color:#047857; background:#ECFDF5; padding:6px 14px; border-radius:6px; border:1.5px solid #A7F3D0; cursor:pointer; transition:all 0.15s;"><span style="width:8px; height:8px; border-radius:50%; background:#10B981;"></span> Белсенді</button>
+            <button type="button" id="adminFilterArchivedBtn" onclick="setAdminBooksFilter('archived')" style="display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:700; color:#64748B; background:#F1F5F9; padding:6px 14px; border-radius:6px; border:1.5px solid #CBD5E1; cursor:pointer; transition:all 0.15s;"><span style="width:8px; height:8px; border-radius:50%; background:#94A3B8;"></span> Архивте (Жасырын)</button>
           </div>
           <!-- ҚОСУ БАТЫРМАСЫ ЖАҢА ПАРАҚШАҒА АПАРАДЫ -->
           <a href="add-book.html" class="btn-primary" style="text-decoration:none; padding:10px 24px; font-size:14px; font-weight:800; display:inline-flex; align-items:center; gap:8px; box-shadow:0 4px 14px rgba(0,87,168,0.25);">
@@ -1778,6 +1779,13 @@ const TandaStorage = {
 
 // DATA & STATE MANAGEMENT
 let books = INITIAL_BOOKS;
+try {
+  const syncSaved = localStorage.getItem('tanda_books');
+  if (syncSaved) {
+    const parsed = JSON.parse(syncSaved);
+    if (Array.isArray(parsed) && parsed.length > 0) books = parsed;
+  }
+} catch (e) {}
 let users = JSON.parse(localStorage.getItem('tanda_users')) || [
   { email: "admin@tanda.kz", name: "Бас Администратор", role: "ADMIN", date: "2026-09-01" },
   { email: "oqyrman@mail.kz", name: "Айбек Қайратұлы", role: "USER", date: "2026-09-05" }
@@ -2495,10 +2503,11 @@ function renderAdminTables() {
   document.getElementById('adminUserCount').textContent = users.length;
 }
 
-function toggleBookFreeStatus(id) {
+async function toggleBookFreeStatus(id) {
   const b = books.find(x => x.id === id);
   if (b) {
     b.isFree = !b.isFree;
+    await TandaStorage.saveBooks(books);
     saveState();
     renderBooks();
     renderAdminTables();
@@ -2506,10 +2515,11 @@ function toggleBookFreeStatus(id) {
   }
 }
 
-function toggleBookArchive(id) {
+async function toggleBookArchive(id) {
   const b = books.find(x => x.id === id);
   if (b) {
     b.isArchived = !b.isArchived;
+    await TandaStorage.saveBooks(books);
     saveState();
     renderBooks();
     renderAdminTables();
@@ -2766,22 +2776,62 @@ function openEditBookFromSection(bookId) {
 
 let adminBooksCurrentPage = 1;
 const ADMIN_BOOKS_PER_PAGE = 20;
+let adminBooksFilterMode = 'all';
+
+function setAdminBooksFilter(mode) {
+  adminBooksFilterMode = mode;
+  adminBooksCurrentPage = 1;
+  renderSectionAdminBooks();
+}
+
+function updateAdminFilterBadges() {
+  const activeCount = books.filter(b => !b.isArchived).length;
+  const archivedCount = books.filter(b => b.isArchived).length;
+
+  const totalCountEl = document.getElementById('sectionTotalBooksCount');
+  const archivedCountEl = document.getElementById('sectionArchivedBooksCount');
+
+  if (totalCountEl) totalCountEl.textContent = books.length;
+  if (archivedCountEl) archivedCountEl.textContent = archivedCount;
+
+  const allBtn = document.getElementById('adminFilterAllBtn');
+  const activeBtn = document.getElementById('adminFilterActiveBtn');
+  const archBtn = document.getElementById('adminFilterArchivedBtn');
+
+  if (allBtn) {
+    allBtn.style.background = adminBooksFilterMode === 'all' ? 'var(--blue)' : '#F1F5F9';
+    allBtn.style.color = adminBooksFilterMode === 'all' ? '#FFFFFF' : 'var(--text-dark)';
+    allBtn.style.borderColor = adminBooksFilterMode === 'all' ? 'var(--blue)' : '#CBD5E1';
+  }
+  if (activeBtn) {
+    activeBtn.style.background = adminBooksFilterMode === 'active' ? '#047857' : '#ECFDF5';
+    activeBtn.style.color = adminBooksFilterMode === 'active' ? '#FFFFFF' : '#047857';
+    activeBtn.style.borderColor = adminBooksFilterMode === 'active' ? '#047857' : '#A7F3D0';
+  }
+  if (archBtn) {
+    archBtn.style.background = adminBooksFilterMode === 'archived' ? '#475569' : '#F1F5F9';
+    archBtn.style.color = adminBooksFilterMode === 'archived' ? '#FFFFFF' : '#64748B';
+    archBtn.style.borderColor = adminBooksFilterMode === 'archived' ? '#475569' : '#CBD5E1';
+  }
+}
 
 function renderSectionAdminBooks(filterQuery = '') {
   const tableBody = document.getElementById('sectionAdminBooksTableBody');
   if (!tableBody) return;
 
-  const totalCountEl = document.getElementById('sectionTotalBooksCount');
-  const archivedCountEl = document.getElementById('sectionArchivedBooksCount');
+  updateAdminFilterBadges();
 
-  const archivedCount = books.filter(b => b.isArchived).length;
-  if (totalCountEl) totalCountEl.textContent = books.length;
-  if (archivedCountEl) archivedCountEl.textContent = archivedCount;
+  let filteredBooks = books;
+  if (adminBooksFilterMode === 'active') {
+    filteredBooks = filteredBooks.filter(b => !b.isArchived);
+  } else if (adminBooksFilterMode === 'archived') {
+    filteredBooks = filteredBooks.filter(b => b.isArchived);
+  }
 
   const query = (filterQuery || '').toLowerCase().trim();
-  const filteredBooks = query 
-    ? books.filter(b => b.title.toLowerCase().includes(query) || b.author.toLowerCase().includes(query) || (b.category && b.category.toLowerCase().includes(query)))
-    : books;
+  if (query) {
+    filteredBooks = filteredBooks.filter(b => b.title.toLowerCase().includes(query) || b.author.toLowerCase().includes(query) || (b.category && b.category.toLowerCase().includes(query)));
+  }
 
   const totalFiltered = filteredBooks.length;
   const totalPages = Math.max(1, Math.ceil(totalFiltered / ADMIN_BOOKS_PER_PAGE));

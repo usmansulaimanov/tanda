@@ -1060,7 +1060,7 @@ async function handleSubmitBook(e) {
         isArchived,
         gradient: gradients[Math.floor(Math.random() * gradients.length)]
       };
-      books.push(newBook);
+      books.unshift(newBook);
     }
 
     await TandaStorage.saveBooks(books);
