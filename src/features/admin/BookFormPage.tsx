@@ -42,6 +42,7 @@ export const BookFormPage: React.FC = () => {
   const [description, setDescription] = useState('');
   const [isFree, setIsFree] = useState(true);
   const [coverImage, setCoverImage] = useState('');
+  const [coverImageError, setCoverImageError] = useState(false);
 
   // Audio settings
   const [hasAudio, setHasAudio] = useState(false);
@@ -512,10 +513,10 @@ export const BookFormPage: React.FC = () => {
                     >
                       {coverImage && (
                         <img
+                          key={coverImage}
                           src={coverImage}
                           alt="Cover preview"
                           referrerPolicy="no-referrer"
-                          crossOrigin="anonymous"
                           style={{
                             position: 'absolute',
                             inset: 0,
@@ -524,12 +525,15 @@ export const BookFormPage: React.FC = () => {
                             objectFit: 'cover',
                             zIndex: 1,
                           }}
-                          onError={(e) => {
-                            e.currentTarget.style.display = 'none';
+                          onLoad={() => {
+                            setCoverImageError(false);
+                          }}
+                          onError={() => {
+                            setCoverImageError(true);
                           }}
                         />
                       )}
-                      {!coverImage && (
+                      {(!coverImage || coverImageError) && (
                         <>
                           <div style={{ fontSize: '8px', fontWeight: 800, lineHeight: 1.1, textTransform: 'uppercase', letterSpacing: '0.04em', opacity: 0.9, position: 'relative', zIndex: 2 }}>
                             {category}
@@ -547,9 +551,15 @@ export const BookFormPage: React.FC = () => {
                     <div>
                       {coverImage ? (
                         <div>
-                          <span style={{ display: 'inline-block', fontSize: '12px', fontWeight: 700, color: '#047857', marginBottom: '6px' }}>
-                            Сурет сәтті орнатылды
-                          </span>
+                          {coverImageError ? (
+                            <span style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#DC2626', marginBottom: '8px', maxWidth: '240px', lineHeight: 1.4 }}>
+                              Бұл сілтемеден сурет ашылмады. Төмендегі «Сурет файлын таңдау» арқылы суретті жүктеңіз немесе тікелей JPG/PNG сілтемесін қойыңыз.
+                            </span>
+                          ) : (
+                            <span style={{ display: 'inline-block', fontSize: '12px', fontWeight: 700, color: '#047857', marginBottom: '6px' }}>
+                              Сурет сәтті орнатылды
+                            </span>
+                          )}
                           <button
                             type="button"
                             onClick={removeCoverImage}

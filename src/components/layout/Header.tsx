@@ -268,7 +268,6 @@ export const Header: React.FC = () => {
                               src={b.coverImage}
                               alt={b.title}
                               referrerPolicy="no-referrer"
-                              crossOrigin="anonymous"
                               style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
                               onError={(e) => {
                                 e.currentTarget.style.display = 'none';

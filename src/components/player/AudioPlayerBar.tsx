@@ -293,7 +293,6 @@ export const AudioPlayerBar: React.FC = () => {
                     src={currentBook.coverImage}
                     alt={currentBook.title}
                     referrerPolicy="no-referrer"
-                    crossOrigin="anonymous"
                     className="absolute inset-0 w-full h-full object-cover"
                     onError={(e) => {
                       e.currentTarget.style.display = 'none';

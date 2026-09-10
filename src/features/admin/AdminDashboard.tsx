@@ -206,7 +206,6 @@ export const AdminDashboard: React.FC = () => {
                             src={book.coverImage}
                             alt={book.title}
                             referrerPolicy="no-referrer"
-                            crossOrigin="anonymous"
                             style={{
                               position: 'absolute',
                               inset: 0,
