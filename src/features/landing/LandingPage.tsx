@@ -1,181 +1,182 @@
-import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { BookOpen, Headphones, Sparkles, ArrowRight, ShieldCheck } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { useBookStore } from '../../store/useBookStore';
+import { useAuthStore } from '../../store/useAuthStore';
 import { BookCard } from '../../components/ui/BookCard';
-import { Button } from '../../components/ui/Button';
+
+const CATEGORIES = [
+  'Бәрі',
+  'Классика',
+  'Тұлғалық даму',
+  'Тарих',
+  'Ертегілер',
+  'Бизнес',
+  'Психология',
+];
 
 export const LandingPage: React.FC = () => {
-  const navigate = useNavigate();
-  const { books, setSelectedCategory } = useBookStore();
+  const { books } = useBookStore();
+  const { role } = useAuthStore();
+  const [selectedCat, setSelectedCat] = useState('Бәрі');
+  const [search, setSearch] = useState('');
 
   // Readers only see active, non-archived books
-  const activeBooks = books.filter((b) => !b.isArchived);
+  const activeBooks = useMemo(() => {
+    return books.filter((b) => !b.isArchived);
+  }, [books]);
 
-  // Popular books (e.g. first 4 active books)
-  const popularBooks = activeBooks.slice(0, 4);
-
-  // Recent books (next books)
-  const recentBooks = activeBooks.slice(4, 8);
-
-  // Audiobooks
-  const audioBooks = activeBooks.filter((b) => b.hasAudio).slice(0, 4);
-
-  const categories = [
-    { name: 'Классика', count: activeBooks.filter((b) => b.category === 'Классика').length },
-    { name: 'Тұлғалық даму', count: activeBooks.filter((b) => b.category === 'Тұлғалық даму').length },
-    { name: 'Тарих', count: activeBooks.filter((b) => b.category === 'Тарих').length },
-    { name: 'Ертегілер', count: activeBooks.filter((b) => b.category === 'Ертегілер').length },
-  ];
-
-  const handleCategoryClick = (catName: string) => {
-    setSelectedCategory(catName);
-    navigate('/catalog');
-  };
+  // Filtered books for catalog grid
+  const filteredBooks = useMemo(() => {
+    return activeBooks.filter((book) => {
+      if (selectedCat !== 'Бәрі' && book.category !== selectedCat) {
+        return false;
+      }
+      if (search.trim()) {
+        const q = search.toLowerCase();
+        return (
+          book.title.toLowerCase().includes(q) ||
+          book.author.toLowerCase().includes(q) ||
+          book.category.toLowerCase().includes(q)
+        );
+      }
+      return true;
+    });
+  }, [activeBooks, selectedCat, search]);
 
   return (
-    <div className="space-y-16">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#0057A8] via-[#004687] to-[#002f5c] text-white py-16 sm:py-24 rounded-3xl mx-4 sm:mx-8 shadow-xl">
-        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none" />
-
-        <div className="relative max-w-5xl mx-auto px-6 text-center space-y-6">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-semibold text-amber-300">
-            <Sparkles className="w-3.5 h-3.5" />
-            Қазақ тіліндегі цифрлық кітапхана
-          </div>
-
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight">
-            Қазақ әдебиеті мен аудиокітаптары бір кеңістікте
+    <div>
+      {/* HERO (Exact original markup & styling) */}
+      <section className="hero" id="hero">
+        <div className="hero-text">
+          <span className="hero-tag">Қазақша контент платформасы</span>
+          <h1>
+            Оқы. Тыңда.<br />
+            <span>Дамы.</span>
           </h1>
-
-          <p className="text-base sm:text-lg text-blue-100/90 max-w-2xl mx-auto font-normal leading-relaxed">
-            Классикалық романдардан заманауи тұлғалық даму бағытындағы үздік туындыларды онлайн оқыңыз немесе тыңдаңыз.
+          <p className="hero-desc">
+            Мыңдаған қазақша аудиокітаптар мен электронды кітаптар — бір қолыңның астында. Кез келген уақытта, кез келген жерде.
           </p>
-
-          <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
-            <Link to="/catalog">
-              <Button size="lg" variant="secondary" className="gap-2 shadow-lg shadow-amber-500/20">
-                <BookOpen className="w-5 h-5" />
-                Кітаптарды қарау
-              </Button>
-            </Link>
-            <Link to="/catalog">
-              <Button size="lg" variant="outline" className="bg-white/10 hover:bg-white/20 text-white border-white/30 backdrop-blur-md">
-                <Headphones className="w-5 h-5 mr-2" />
-                Аудиокітаптар
-              </Button>
-            </Link>
+          <div className="hero-buttons">
+            <a href="#catalog" className="btn-primary">
+              Кітаптарды көру
+            </a>
+            {role === 'admin' && (
+              <Link to="/admin" className="btn-outline">
+                Басқару панелі
+              </Link>
+            )}
           </div>
-
-          {/* Quick Metrics */}
-          <div className="grid grid-cols-3 gap-4 pt-10 border-t border-white/15 max-w-xl mx-auto">
+          <div className="hero-stats">
             <div>
-              <div className="text-2xl sm:text-3xl font-bold">{activeBooks.length}</div>
-              <div className="text-xs text-blue-200">Қолжетімді кітап</div>
+              <div className="stat-num">{activeBooks.length}+</div>
+              <div className="stat-label">Кітап</div>
             </div>
             <div>
-              <div className="text-2xl sm:text-3xl font-bold">{activeBooks.filter(b => b.hasAudio).length}</div>
-              <div className="text-xs text-blue-200">Аудиокітап</div>
+              <div className="stat-num">120+</div>
+              <div className="stat-label">Авторлар</div>
             </div>
             <div>
-              <div className="text-2xl sm:text-3xl font-bold">100%</div>
-              <div className="text-xs text-blue-200">Қазақ тілінде</div>
+              <div className="stat-num">50К+</div>
+              <div className="stat-label">Оқырман</div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Categories */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-slate-900">Санаттар бойынша іздеу</h2>
-          <Link to="/catalog" className="text-sm font-semibold text-[#0057A8] hover:underline flex items-center gap-1">
-            Барлық санаттар <ArrowRight className="w-4 h-4" />
-          </Link>
-        </div>
+      {/* FEATURES (Exact original markup & styling) */}
+      <section className="features-section tanda-section" id="features">
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+            <span className="section-tag">Неге Tanda?</span>
+            <h2 className="section-title">Бәрі бір жерде</h2>
+            <p className="section-sub" style={{ margin: '0 auto' }}>
+              Аудиокітаптар, электронды кітаптар, подкасттар — барлығы қазақ тілінде, сапалы дыбыс пен оқу тәжірибесімен.
+            </p>
+          </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          {categories.map((cat) => (
-            <button
-              key={cat.name}
-              onClick={() => handleCategoryClick(cat.name)}
-              className="p-5 rounded-2xl bg-white border border-slate-200/80 hover:border-[#0057A8] hover:shadow-md transition-all text-left group cursor-pointer"
-            >
-              <div className="text-base font-bold text-slate-900 group-hover:text-[#0057A8] transition-colors">
-                {cat.name}
+          <div className="features-grid">
+            <div className="feature-card accent">
+              <div className="feature-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M3 18v-6a9 9 0 0 1 18 0v6"></path>
+                  <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path>
+                </svg>
               </div>
-              <div className="text-xs text-slate-400 mt-1">
-                {cat.count} кітап
-              </div>
-            </button>
-          ))}
-        </div>
-      </section>
-
-      {/* Popular Books Section (Only active books, for readers) */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-2xl font-bold text-slate-900">Танымал кітаптар</h2>
-            <p className="text-xs text-slate-500 mt-1">Оқырмандар ең көп оқыған туындылар</p>
-          </div>
-          <Link to="/catalog" className="text-sm font-semibold text-[#0057A8] hover:underline flex items-center gap-1">
-            Каталогқа өту <ArrowRight className="w-4 h-4" />
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
-          {popularBooks.map((book) => (
-            <BookCard key={book.id} book={book} />
-          ))}
-        </div>
-      </section>
-
-      {/* Audiobooks Section */}
-      {audioBooks.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-                <Headphones className="w-6 h-6 text-[#F08000]" />
-                Аудиокітаптар
-              </h2>
-              <p className="text-xs text-slate-500 mt-1">Кәсіби дикторлар дыбыстаған шығармалар</p>
+              <h3>Аудиокітаптар</h3>
+              <p>Кәсіби дикторлар орындаған мыңдаған аудиокітап. Жолда, спортта, демалыста — қашан болса да тыңда.</p>
             </div>
-            <Link to="/catalog?format=audio" className="text-sm font-semibold text-[#0057A8] hover:underline flex items-center gap-1">
-              Барлық аудиокітаптар <ArrowRight className="w-4 h-4" />
-            </Link>
+
+            <div className="feature-card">
+              <div className="feature-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                  <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                </svg>
+              </div>
+              <h3>Электронды кітаптар</h3>
+              <p>Ыңғайлы оқу режимі: шрифт өлшемі, сепия немесе түнгі фон түсі — бәрін өзіңізге ыңғайлап баптайсыз.</p>
+            </div>
+
+            <div className="feature-card">
+              <div className="feature-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+              </div>
+              <h3>Жылдамдық пен Таймер</h3>
+              <p>0.75x-тен 2x-ке дейін жылдамдықты таңдаңыз. Ұйықтар алдында автоматты өшетін ұйқы таймерін қосыңыз.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CATALOG (Exact original markup & styling) */}
+      <section className="catalog-section tanda-section" id="catalog">
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+          <div className="catalog-header">
+            <div>
+              <span className="section-tag">Кітап қоры</span>
+              <h2 className="section-title">Танымал кітаптар</h2>
+              <p className="section-sub">Қазақ әдебиетінің інжу-маржандары мен әлемдік үздік аудармалар</p>
+            </div>
+            <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
+              <input
+                type="text"
+                id="catalogSearch"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="search-input"
+                placeholder="Кітап немесе автор іздеу..."
+              />
+              <div className="catalog-tabs">
+                {CATEGORIES.map((cat) => (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => setSelectedCat(cat)}
+                    className={`tab ${selectedCat === cat ? 'active' : ''}`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
-            {audioBooks.map((book) => (
+          <div className="books-grid" id="booksGrid">
+            {filteredBooks.map((book) => (
               <BookCard key={book.id} book={book} />
             ))}
           </div>
-        </section>
-      )}
 
-      {/* Recent Books */}
-      {recentBooks.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-2xl font-bold text-slate-900">Жаңадан қосылғандар</h2>
-              <p className="text-xs text-slate-500 mt-1">Кітапхана қорына енген соңғы кітаптар</p>
+          {filteredBooks.length === 0 && (
+            <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-mid)' }}>
+              Кітаптар табылмады.
             </div>
-            <Link to="/catalog" className="text-sm font-semibold text-[#0057A8] hover:underline flex items-center gap-1">
-              Барлығын қарау <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
-            {recentBooks.map((book) => (
-              <BookCard key={book.id} book={book} />
-            ))}
-          </div>
-        </section>
-      )}
+          )}
+        </div>
+      </section>
     </div>
   );
 };

@@ -1,10 +1,7 @@
 import React from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { BookOpen, Headphones, ArrowLeft, Clock, FileText, CheckCircle2, Play } from 'lucide-react';
 import { useBookStore } from '../../store/useBookStore';
 import { useAudioPlayerStore } from '../../store/useAudioPlayerStore';
-import { Badge } from '../../components/ui/Badge';
-import { Button } from '../../components/ui/Button';
 
 export const BookDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -16,173 +13,199 @@ export const BookDetailPage: React.FC = () => {
 
   if (!book) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-20 text-center space-y-4">
-        <h2 className="text-2xl font-bold text-slate-800">Кітап табылмады</h2>
-        <Button onClick={() => navigate('/catalog')}>Каталогқа оралу</Button>
+      <div style={{ maxWidth: '800px', margin: '80px auto', textAlign: 'center' }}>
+        <h2 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-dark)' }}>Кітап табылмады</h2>
+        <button
+          onClick={() => navigate('/catalog')}
+          className="btn-primary"
+          style={{ marginTop: '20px' }}
+        >
+          Каталогқа оралу
+        </button>
       </div>
     );
   }
 
-  const isCurrentBookPlaying = currentBook?.id === book.id && isPlaying;
+  const isCurrentPlaying = currentBook?.id === book.id && isPlaying;
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-      {/* Back button */}
+    <div style={{ maxWidth: '1000px', margin: '40px auto 80px', padding: '0 24px' }}>
       <button
+        type="button"
         onClick={() => navigate(-1)}
-        className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors"
+        style={{
+          background: 'none',
+          border: 'none',
+          color: 'var(--text-mid)',
+          fontSize: '14px',
+          fontWeight: 600,
+          cursor: 'pointer',
+          marginBottom: '24px',
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '6px',
+        }}
       >
-        <ArrowLeft className="w-4 h-4" /> Артқа оралу
+        ← Артқа оралу
       </button>
 
-      {/* Main Book Card Layout */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-8 bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-sm">
-        {/* Cover column */}
-        <div className="md:col-span-4 flex flex-col items-center">
+      {/* Book details container */}
+      <div
+        style={{
+          background: '#FFFFFF',
+          border: '1px solid rgba(0,87,168,0.08)',
+          borderRadius: '16px',
+          padding: '40px',
+          boxShadow: '0 10px 30px rgba(0,0,0,0.05)',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+          gap: '40px',
+        }}
+      >
+        {/* Cover */}
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
           <div
-            className="w-full max-w-[280px] aspect-[3/4] rounded-2xl shadow-xl flex items-center justify-center p-6 text-white relative overflow-hidden"
             style={{
+              width: '100%',
+              maxWidth: '300px',
+              aspectRatio: '3/4',
+              borderRadius: '12px',
               background: book.coverImage
                 ? `url(${book.coverImage}) center/cover`
                 : (book.gradient || 'linear-gradient(135deg, #0057A8, #003d7a)'),
+              boxShadow: '0 12px 30px rgba(0,0,0,0.15)',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'flex-end',
+              padding: '24px',
+              position: 'relative',
+              color: '#FFF',
             }}
           >
-            {!book.coverImage && (
-              <div className="text-center">
-                <BookOpen className="w-12 h-12 mx-auto mb-3 opacity-90" />
-                <span className="font-bold text-xl drop-shadow-md">{book.title}</span>
-              </div>
-            )}
+            <span
+              className={`cover-badge ${book.isFree ? 'badge-free' : 'badge-premium'}`}
+              style={{ position: 'absolute', top: '16px', right: '16px' }}
+            >
+              {book.isFree ? 'Тегін' : 'Премиум'}
+            </span>
+            <div className="cover-title" style={{ fontSize: '22px' }}>{book.title}</div>
+            <div className="cover-author-text" style={{ fontSize: '14px' }}>{book.author}</div>
           </div>
         </div>
 
-        {/* Info column */}
-        <div className="md:col-span-8 flex flex-col justify-between space-y-6">
-          <div className="space-y-3">
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="blue">{book.category}</Badge>
-              <Badge variant={book.isFree ? 'green' : 'orange'}>
-                {book.isFree ? 'Тегін' : 'Премиум'}
-              </Badge>
-              {book.hasAudio && (
-                <Badge variant="orange" className="gap-1">
-                  <Headphones className="w-3 h-3" /> Аудиокітап
-                </Badge>
-              )}
+        {/* Info */}
+        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div>
+            <div style={{ marginBottom: '12px' }}>
+              <span className="book-category">{book.category}</span>
             </div>
 
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 leading-tight">
+            <h1 style={{ fontSize: '32px', fontWeight: 900, color: 'var(--text-dark)', marginBottom: '8px', lineHeight: 1.2 }}>
               {book.title}
             </h1>
 
-            <p className="text-lg font-medium text-slate-600">
-              Авторы: <span className="text-slate-900">{book.author}</span>
+            <p style={{ fontSize: '18px', color: 'var(--text-mid)', fontWeight: 600, marginBottom: '20px' }}>
+              Авторы: <span style={{ color: 'var(--text-dark)' }}>{book.author}</span>
             </p>
 
-            {/* Quick Stats */}
-            <div className="flex flex-wrap gap-4 py-3 text-sm text-slate-500 border-y border-slate-100">
-              {book.pages && (
-                <div className="flex items-center gap-1.5">
-                  <FileText className="w-4 h-4 text-slate-400" />
-                  <span>{book.pages} бет</span>
-                </div>
-              )}
-              {book.audioDuration && (
-                <div className="flex items-center gap-1.5">
-                  <Clock className="w-4 h-4 text-slate-400" />
-                  <span>{book.audioDuration}</span>
-                </div>
-              )}
-              {book.audioNarrator && (
-                <div className="flex items-center gap-1.5">
-                  <Headphones className="w-4 h-4 text-slate-400" />
-                  <span>Диктор: {book.audioNarrator}</span>
-                </div>
-              )}
+            <div style={{ display: 'flex', gap: '20px', fontSize: '13px', color: 'var(--text-mid)', marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid #E2E8F0' }}>
+              {book.pages && <div>Бет саны: <strong>{book.pages}</strong></div>}
+              {book.audioDuration && <div>Ұзақтығы: <strong>{book.audioDuration}</strong></div>}
+              {book.audioNarrator && <div>Диктор: <strong>{book.audioNarrator}</strong></div>}
             </div>
 
-            {/* Description */}
-            <div className="space-y-2 pt-2">
-              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">Кітап туралы</h3>
-              <p className="text-slate-600 text-sm leading-relaxed whitespace-pre-line">
-                {book.description || 'Бұл кітап туралы қосымша ақпарат жоқ.'}
-              </p>
-            </div>
+            <h3 style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-dark)', marginBottom: '8px' }}>
+              Кітап туралы
+            </h3>
+            <p style={{ fontSize: '14px', color: 'var(--text-mid)', lineHeight: 1.7, whiteSpace: 'pre-line' }}>
+              {book.description || 'Сипаттамасы жоқ.'}
+            </p>
           </div>
 
-          {/* Action CTAs */}
-          <div className="flex flex-wrap items-center gap-4 pt-4 border-t border-slate-100">
-            <Link to={`/read/${book.id}`}>
-              <Button size="lg" variant="primary" className="gap-2">
-                <BookOpen className="w-5 h-5" />
-                Оқуды бастау
-              </Button>
+          {/* Action buttons */}
+          <div style={{ display: 'flex', gap: '14px', marginTop: '32px', flexWrap: 'wrap' }}>
+            <Link
+              to={`/read/${book.id}`}
+              className="btn-primary"
+              style={{ padding: '14px 36px', fontSize: '15px', background: 'var(--blue)' }}
+            >
+              Кітапты оқу
             </Link>
 
             {book.hasAudio && (
-              <Button
-                size="lg"
-                variant="secondary"
+              <button
+                type="button"
                 onClick={() => playBook(book)}
-                className="gap-2"
+                className="btn-primary"
+                style={{ padding: '14px 36px', fontSize: '15px', background: 'var(--orange)' }}
               >
-                <Headphones className="w-5 h-5" />
-                {isCurrentBookPlaying ? 'Тыңдалуда...' : 'Аудионы тыңдау'}
-              </Button>
+                {isCurrentPlaying ? 'Тыңдалуда...' : 'Аудионы тыңдау'}
+              </button>
             )}
           </div>
         </div>
       </div>
 
-      {/* Audio chapters list if present */}
+      {/* Chapters list if audiobook */}
       {book.hasAudio && book.audioChapters && book.audioChapters.length > 0 && (
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-sm space-y-4">
-          <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-            <Headphones className="w-5 h-5 text-[#F08000]" />
-            Аудио тараулар ({book.audioChapters.length})
-          </h2>
-
-          <div className="divide-y divide-slate-100">
-            {book.audioChapters.map((ch, idx) => {
-              const isThisChapterPlaying =
-                currentBook?.id === book.id && currentChapter?.id === ch.id && isPlaying;
-
-              return (
-                <div
-                  key={ch.id || idx}
-                  className="py-3.5 flex items-center justify-between hover:bg-slate-50 px-3 rounded-xl transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={() => {
-                        if (currentBook?.id !== book.id) {
-                          playBook(book, idx);
-                        } else {
-                          playChapter(idx);
-                        }
-                      }}
-                      className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
-                        isThisChapterPlaying
-                          ? 'bg-[#0057A8] text-white shadow-md'
-                          : 'bg-slate-100 text-slate-700 hover:bg-[#0057A8] hover:text-white'
-                      }`}
-                    >
-                      <Play className="w-4 h-4 ml-0.5" />
-                    </button>
-                    <div>
-                      <h4 className="text-sm font-semibold text-slate-900">{ch.title}</h4>
-                      <span className="text-xs text-slate-400">{ch.duration}</span>
-                    </div>
-                  </div>
-
-                  {isThisChapterPlaying && (
-                    <span className="text-xs font-semibold text-[#0057A8] bg-blue-50 px-2.5 py-1 rounded-lg">
-                      Ойнап тұр
-                    </span>
-                  )}
+        <div
+          style={{
+            marginTop: '32px',
+            background: '#FFFFFF',
+            borderRadius: '16px',
+            padding: '32px',
+            border: '1px solid #CBD5E1',
+          }}
+        >
+          <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-dark)', marginBottom: '16px' }}>
+            Тараулар ({book.audioChapters.length})
+          </h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {book.audioChapters.map((ch, idx) => (
+              <div
+                key={ch.id || idx}
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: '12px 16px',
+                  borderRadius: '8px',
+                  background: '#F8FAFC',
+                  border: '1px solid #E2E8F0',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (currentBook?.id !== book.id) playBook(book, idx);
+                      else playChapter(idx);
+                    }}
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '50%',
+                      background: 'var(--blue)',
+                      color: '#FFF',
+                      border: 'none',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '12px',
+                    }}
+                  >
+                    ▶
+                  </button>
+                  <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-dark)' }}>
+                    {ch.title}
+                  </span>
                 </div>
-              );
-            })}
+                <span style={{ fontSize: '12px', color: 'var(--text-mid)', fontWeight: 600 }}>
+                  {ch.duration}
+                </span>
+              </div>
+            ))}
           </div>
         </div>
       )}

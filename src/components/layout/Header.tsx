@@ -1,185 +1,231 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { BookOpen, Search, ShieldCheck, User, Menu, X, Headphones } from 'lucide-react';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useBookStore } from '../../store/useBookStore';
-import { Button } from '../ui/Button';
+import { Book } from '../../types';
 
 export const Header: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { role, setRole } = useAuthStore();
-  const { searchQuery, setSearchQuery } = useBookStore();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { books, searchQuery, setSearchQuery } = useBookStore();
+  const [headerSearch, setHeaderSearch] = useState('');
+  const [searchResults, setSearchResults] = useState<Book[]>([]);
+  const [showResults, setShowResults] = useState(false);
+  const searchWrapRef = useRef<HTMLDivElement>(null);
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (location.pathname !== '/catalog') {
-      navigate('/catalog');
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (searchWrapRef.current && !searchWrapRef.current.contains(e.target as Node)) {
+        setShowResults(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleSearchInput = (val: string) => {
+    setHeaderSearch(val);
+    if (!val.trim()) {
+      setSearchResults([]);
+      setShowResults(false);
+      return;
+    }
+    const q = val.toLowerCase();
+    const matches = books.filter(
+      (b) =>
+        b.title.toLowerCase().includes(q) ||
+        b.author.toLowerCase().includes(q) ||
+        b.category.toLowerCase().includes(q)
+    );
+    setSearchResults(matches.slice(0, 6));
+    setShowResults(true);
+  };
+
+  const handleSelectBook = (book: Book) => {
+    setShowResults(false);
+    setHeaderSearch('');
+    if (role === 'admin') {
+      navigate(`/admin/books/${book.id}/edit`);
+    } else {
+      navigate(`/book/${book.id}`);
     }
   };
 
   const toggleRole = () => {
-    const newRole = role === 'admin' ? 'client' : 'admin';
-    setRole(newRole);
-    if (newRole === 'admin') {
+    const nextRole = role === 'admin' ? 'client' : 'admin';
+    setRole(nextRole);
+    if (nextRole === 'admin') {
       navigate('/admin');
     } else {
       navigate('/');
     }
   };
 
-  const isActive = (path: string) => location.pathname === path;
-
   return (
-    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 gap-4">
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-2.5 shrink-0">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#0057A8] to-[#003d7a] flex items-center justify-center text-white shadow-sm shadow-blue-500/20">
-              <BookOpen className="w-5 h-5" />
-            </div>
-            <span className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-[#0057A8] to-[#F08000] bg-clip-text text-transparent">
-              Tanda
-            </span>
-          </Link>
+    <nav className="tanda-nav">
+      <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flex: 1, maxWidth: '580px' }}>
+        {/* Logo */}
+        <Link to="/" className="nav-logo">
+          tanda<span>.</span>
+        </Link>
 
-          {/* Search bar */}
-          <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-md mx-4">
-            <div className="relative w-full">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Кітапты, авторды немесе жанрды іздеу..."
-                className="w-full pl-10 pr-4 py-2 bg-slate-50 hover:bg-slate-100/80 focus:bg-white border border-slate-200 focus:border-[#0057A8] rounded-xl text-sm transition-all outline-none focus:ring-2 focus:ring-blue-100"
-              />
-            </div>
-          </form>
-
-          {/* Navigation links */}
-          <nav className="hidden lg:flex items-center gap-1">
-            <Link
-              to="/"
-              className={`px-3.5 py-2 rounded-xl text-sm font-medium transition-colors ${
-                isActive('/') ? 'text-[#0057A8] bg-blue-50/70 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-              }`}
+        {/* Search with dropdown (Exactly as in original design) */}
+        <div ref={searchWrapRef} id="navSearchWrap" style={{ position: 'relative', flex: 1, maxWidth: '320px' }}>
+          <div style={{ position: 'relative', width: '100%' }}>
+            <input
+              type="text"
+              id="adminHeaderSearch"
+              value={headerSearch}
+              onChange={(e) => handleSearchInput(e.target.value)}
+              placeholder="Кітап атын іздеу..."
+              autoComplete="off"
+              style={{
+                width: '100%',
+                padding: '9px 14px 9px 36px',
+                border: '1.5px solid #CBD5E1',
+                borderRadius: '50px',
+                fontSize: '13px',
+                fontWeight: 500,
+                background: '#F8FAFC',
+                color: 'var(--text-dark)',
+                outline: 'none',
+                transition: 'all 0.2s',
+              }}
+            />
+            <svg
+              style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#64748B', pointerEvents: 'none' }}
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
             >
-              Басты бет
-            </Link>
-            <Link
-              to="/catalog"
-              className={`px-3.5 py-2 rounded-xl text-sm font-medium transition-colors ${
-                isActive('/catalog') ? 'text-[#0057A8] bg-blue-50/70 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-              }`}
-            >
-              Каталог
-            </Link>
-          </nav>
-
-          {/* Right Action Buttons */}
-          <div className="hidden sm:flex items-center gap-3">
-            {/* Role Switcher Pill */}
-            <div className="flex items-center p-1 bg-slate-100 rounded-xl border border-slate-200/60 text-xs font-medium">
-              <button
-                onClick={() => {
-                  setRole('client');
-                  navigate('/');
-                }}
-                className={`px-3 py-1.5 rounded-lg transition-all ${
-                  role === 'client'
-                    ? 'bg-white text-slate-900 shadow-sm font-semibold'
-                    : 'text-slate-500 hover:text-slate-800'
-                }`}
-              >
-                Оқырман
-              </button>
-              <button
-                onClick={() => {
-                  setRole('admin');
-                  navigate('/admin');
-                }}
-                className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
-                  role === 'admin'
-                    ? 'bg-[#0057A8] text-white shadow-sm font-semibold'
-                    : 'text-slate-500 hover:text-slate-800'
-                }`}
-              >
-                <ShieldCheck className="w-3.5 h-3.5" />
-                Әкімші
-              </button>
-            </div>
-
-            {role === 'admin' ? (
-              <Link to="/admin">
-                <Button size="sm" variant="primary" className="gap-1.5">
-                  <ShieldCheck className="w-4 h-4" />
-                  Админ панель
-                </Button>
-              </Link>
-            ) : (
-              <Link to="/catalog">
-                <Button size="sm" variant="secondary" className="gap-1.5">
-                  <Headphones className="w-4 h-4" />
-                  Кітап оқу
-                </Button>
-              </Link>
-            )}
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
           </div>
 
-          {/* Mobile menu toggle */}
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden p-2 text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-100"
-          >
-            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
+          {/* Autocomplete dropdown */}
+          {showResults && (
+            <div
+              id="navSearchResults"
+              style={{
+                position: 'absolute',
+                left: 0,
+                top: 'calc(100% + 8px)',
+                width: '360px',
+                maxHeight: '380px',
+                overflowY: 'auto',
+                background: '#FFFFFF',
+                border: '1px solid #CBD5E1',
+                borderRadius: '12px',
+                boxShadow: '0 12px 30px rgba(0,0,0,0.15)',
+                zIndex: 200,
+                padding: '6px',
+              }}
+            >
+              {searchResults.length > 0 ? (
+                searchResults.map((b) => (
+                  <div
+                    key={b.id}
+                    onClick={() => handleSelectBook(b)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px',
+                      padding: '8px 10px',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      transition: 'background 0.15s',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = '#F1F5F9')}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                  >
+                    <div
+                      style={{
+                        width: '30px',
+                        height: '40px',
+                        borderRadius: '4px',
+                        background: b.coverImage ? `url(${b.coverImage}) center/cover` : (b.gradient || '#0057A8'),
+                        flexShrink: 0,
+                      }}
+                    />
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-dark)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {b.title}
+                      </div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-mid)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {b.author} &bull; <span style={{ color: 'var(--blue)' }}>{b.category}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div style={{ padding: '12px', fontSize: '12px', color: '#64748B', textAlign: 'center' }}>
+                  Кітап табылмады
+                </div>
+              )}
+            </div>
+          )}
         </div>
+      </div>
 
-        {/* Mobile menu dropdown */}
-        {mobileMenuOpen && (
-          <div className="lg:hidden py-4 border-t border-slate-100 space-y-3">
-            <form onSubmit={handleSearch} className="relative w-full">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Кітап іздеу..."
-                className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm"
-              />
-            </form>
-            <div className="flex flex-col gap-1">
-              <Link
-                to="/"
-                onClick={() => setMobileMenuOpen(false)}
-                className="px-3 py-2 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50"
-              >
-                Басты бет
-              </Link>
-              <Link
-                to="/catalog"
-                onClick={() => setMobileMenuOpen(false)}
-                className="px-3 py-2 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50"
-              >
-                Каталог
-              </Link>
-              <Link
-                to="/admin"
-                onClick={() => {
-                  setRole('admin');
-                  setMobileMenuOpen(false);
-                }}
-                className="px-3 py-2 rounded-lg text-sm font-medium text-[#0057A8] bg-blue-50"
-              >
-                Админ панель
-              </Link>
-            </div>
-          </div>
+      {/* Nav links */}
+      <ul className="nav-links">
+        <li>
+          <Link to="/" className={location.pathname === '/' ? 'active' : ''}>
+            Басты бет
+          </Link>
+        </li>
+        <li>
+          <Link to="/catalog" className={location.pathname === '/catalog' ? 'active' : ''}>
+            Кітаптар қоры
+          </Link>
+        </li>
+      </ul>
+
+      {/* Nav actions */}
+      <div className="nav-actions" id="navAuthArea">
+        {role === 'admin' ? (
+          <>
+            <span className="user-badge">
+              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10B981', display: 'inline-block' }}></span>
+              Әкімші
+            </span>
+            <Link to="/admin" className="btn-admin-pill">
+              Басқару панелі
+            </Link>
+            <button
+              onClick={() => {
+                setRole('client');
+                navigate('/');
+              }}
+              className="btn-nav-login"
+              style={{ fontSize: '12px', padding: '6px 14px' }}
+            >
+              Оқырман режимі
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              onClick={() => {
+                setRole('admin');
+                navigate('/admin');
+              }}
+              className="btn-admin-pill"
+              style={{ background: '#0057A8' }}
+            >
+              Әкімшіге өту
+            </button>
+            <Link to="/catalog" className="btn-nav-reg">
+              Кітап оқу
+            </Link>
+          </>
         )}
       </div>
-    </header>
+    </nav>
   );
 };

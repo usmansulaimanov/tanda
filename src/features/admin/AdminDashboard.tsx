@@ -1,54 +1,27 @@
 import React, { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import {
-  Plus,
-  Search,
-  Archive,
-  ArchiveRestore,
-  Edit2,
-  Trash2,
-  BookOpen,
-  Headphones,
-  CheckCircle,
-  Eye,
-  RotateCcw,
-  ShieldCheck,
-} from 'lucide-react';
 import { useBookStore } from '../../store/useBookStore';
 import { useToastStore } from '../../store/useToastStore';
-import { Badge } from '../../components/ui/Badge';
-import { Button } from '../../components/ui/Button';
-import { Modal } from '../../components/ui/Modal';
 import { Book } from '../../types';
 
 export const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { books, toggleArchive, deleteBook, resetToDefaults } = useBookStore();
+  const { books, toggleArchive, deleteBook } = useBookStore();
   const { showToast } = useToastStore();
 
-  const [adminSearch, setAdminSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'archived'>('all');
   const [bookToDelete, setBookToDelete] = useState<Book | null>(null);
 
-  // Filtered books for admin table
-  const filteredBooks = useMemo(() => {
-    return books.filter((book) => {
-      // Status filter
-      if (filterStatus === 'active' && book.isArchived) return false;
-      if (filterStatus === 'archived' && !book.isArchived) return false;
+  const activeCount = useMemo(() => books.filter((b) => !b.isArchived).length, [books]);
+  const archivedCount = useMemo(() => books.filter((b) => b.isArchived).length, [books]);
 
-      // Search filter
-      if (adminSearch.trim()) {
-        const q = adminSearch.toLowerCase();
-        return (
-          book.title.toLowerCase().includes(q) ||
-          book.author.toLowerCase().includes(q) ||
-          book.category.toLowerCase().includes(q)
-        );
-      }
+  const filteredBooks = useMemo(() => {
+    return books.filter((b) => {
+      if (filterStatus === 'active' && b.isArchived) return false;
+      if (filterStatus === 'archived' && !b.isArchived) return false;
       return true;
     });
-  }, [books, filterStatus, adminSearch]);
+  }, [books, filterStatus]);
 
   const handleToggleArchive = (book: Book) => {
     toggleArchive(book.id);
@@ -67,254 +40,416 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
-  const activeCount = books.filter((b) => !b.isArchived).length;
-  const archivedCount = books.filter((b) => b.isArchived).length;
-
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm">
-        <div>
-          <div className="flex items-center gap-2 text-[#0057A8] font-bold text-sm mb-1">
-            <ShieldCheck className="w-4 h-4" /> Әкімші басқару панелі
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-            Кітаптар қоры ({books.length})
-          </h1>
-          <p className="text-xs text-slate-500 mt-1">
-            Белсенді: <span className="font-semibold text-emerald-600">{activeCount}</span> &bull;
-            Архивте: <span className="font-semibold text-slate-500">{archivedCount}</span>
-          </p>
-        </div>
+    <section
+      className="admin-page-section"
+      id="admin-section"
+      style={{ minHeight: '80vh', padding: '60px 24px', background: '#F8FAFC', borderTop: '2px solid #E2E8F0', borderBottom: '2px solid #E2E8F0' }}
+    >
+      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+        {/* Admin Card */}
+        <div
+          style={{
+            background: '#FFF',
+            border: '1px solid #CBD5E1',
+            borderRadius: '16px',
+            padding: '32px',
+            boxShadow: '0 10px 25px rgba(0,0,0,0.04)',
+          }}
+        >
+          {/* Header */}
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '24px',
+              flexWrap: 'wrap',
+              gap: '16px',
+            }}
+          >
+            <div>
+              <h2 style={{ fontSize: '24px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
+                Кітаптар
+              </h2>
+              <p style={{ fontSize: '13px', color: 'var(--text-mid)', marginTop: '4px' }}>
+                Барлығы: <span style={{ fontWeight: 700, color: 'var(--blue)' }}>{books.length}</span> кітап |
+                Архивтелген (жасырын): <span style={{ fontWeight: 700, color: '#64748B' }}>{archivedCount}</span> кітап
+              </p>
+            </div>
 
-        <div className="flex items-center gap-3">
-          <Link to="/admin/books/new">
-            <Button variant="primary" className="gap-2 shadow-sm">
-              <Plus className="w-4 h-4" /> Жаңа кітап қосу
-            </Button>
-          </Link>
-        </div>
-      </div>
-
-      {/* Control / Filter Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        {/* Search */}
-        <div className="relative w-full md:w-80">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <input
-            type="text"
-            value={adminSearch}
-            onChange={(e) => setAdminSearch(e.target.value)}
-            placeholder="Кітап, автор немесе санат іздеу..."
-            className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 focus:border-[#0057A8] rounded-xl text-sm transition-all outline-none"
-          />
-        </div>
-
-        {/* Status filters */}
-        <div className="flex items-center gap-2">
-          <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs font-medium">
-            <button
-              onClick={() => setFilterStatus('all')}
-              className={`px-3 py-1.5 rounded-lg transition-all ${
-                filterStatus === 'all' ? 'bg-white text-slate-900 shadow-sm font-semibold' : 'text-slate-600'
-              }`}
-            >
-              Барлығы ({books.length})
-            </button>
-            <button
-              onClick={() => setFilterStatus('active')}
-              className={`px-3 py-1.5 rounded-lg transition-all ${
-                filterStatus === 'active' ? 'bg-white text-emerald-700 shadow-sm font-semibold' : 'text-slate-600'
-              }`}
-            >
-              Белсенді ({activeCount})
-            </button>
-            <button
-              onClick={() => setFilterStatus('archived')}
-              className={`px-3 py-1.5 rounded-lg transition-all ${
-                filterStatus === 'archived' ? 'bg-white text-slate-800 shadow-sm font-semibold' : 'text-slate-600'
-              }`}
-            >
-              Архивте ({archivedCount})
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Books Table */}
-      <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm border-collapse">
-            <thead>
-              <tr className="bg-slate-50/75 border-b border-slate-200/80 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                <th className="py-4 px-4 w-12 text-center">№</th>
-                <th className="py-4 px-4 w-16">Мұқаба</th>
-                <th className="py-4 px-4">Атауы мен авторы</th>
-                <th className="py-4 px-4">Санаты</th>
-                <th className="py-4 px-4">Форматы</th>
-                <th className="py-4 px-4">Бағасы</th>
-                <th className="py-4 px-4 text-center">Мәртебесі</th>
-                <th className="py-4 px-4 text-right">Әрекеттер</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {filteredBooks.map((book, index) => (
-                <tr
-                  key={book.id}
-                  className={`hover:bg-slate-50/60 transition-colors ${
-                    book.isArchived ? 'bg-slate-50/40 opacity-70' : ''
-                  }`}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => setFilterStatus('all')}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    color: filterStatus === 'all' ? '#FFFFFF' : '#64748B',
+                    background: filterStatus === 'all' ? 'var(--blue)' : '#F1F5F9',
+                    padding: '6px 14px',
+                    borderRadius: '6px',
+                    border: `1.5px solid ${filterStatus === 'all' ? 'var(--blue)' : '#CBD5E1'}`,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s',
+                  }}
                 >
-                  {/* Sequential Number */}
-                  <td className="py-3 px-4 text-center font-mono text-xs font-bold text-slate-400">
-                    {index + 1}
-                  </td>
+                  Барлығы
+                </button>
 
-                  {/* Thumbnail */}
-                  <td className="py-3 px-4">
-                    <div
-                      className="w-10 h-14 rounded-lg flex items-center justify-center text-white shrink-0 shadow-sm overflow-hidden text-[9px] font-bold"
-                      style={{
-                        background: book.coverImage
-                          ? `url(${book.coverImage}) center/cover`
-                          : (book.gradient || '#0057A8'),
-                      }}
-                    >
-                      {!book.coverImage && <BookOpen className="w-4 h-4 opacity-75" />}
-                    </div>
-                  </td>
+                <button
+                  type="button"
+                  onClick={() => setFilterStatus('active')}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    color: '#047857',
+                    background: filterStatus === 'active' ? '#D1FAE5' : '#ECFDF5',
+                    padding: '6px 14px',
+                    borderRadius: '6px',
+                    border: '1.5px solid #A7F3D0',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10B981' }}></span>
+                  Белсенді ({activeCount})
+                </button>
 
-                  {/* Title & Author */}
-                  <td className="py-3 px-4">
-                    <div className="font-bold text-slate-900 line-clamp-1">{book.title}</div>
-                    <div className="text-xs text-slate-500 line-clamp-1">{book.author}</div>
-                  </td>
+                <button
+                  type="button"
+                  onClick={() => setFilterStatus('archived')}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    color: '#64748B',
+                    background: filterStatus === 'archived' ? '#E2E8F0' : '#F1F5F9',
+                    padding: '6px 14px',
+                    borderRadius: '6px',
+                    border: '1.5px solid #CBD5E1',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#94A3B8' }}></span>
+                  Архивте (Жасырын) ({archivedCount})
+                </button>
+              </div>
 
-                  {/* Category */}
-                  <td className="py-3 px-4">
-                    <Badge variant="blue" size="sm">
-                      {book.category}
-                    </Badge>
-                  </td>
-
-                  {/* Format */}
-                  <td className="py-3 px-4">
-                    <div className="flex items-center gap-1.5 text-xs text-slate-600">
-                      {book.hasAudio && (
-                        <span className="inline-flex items-center gap-1 text-[#F08000] font-medium" title="Аудиокітап">
-                          <Headphones className="w-3.5 h-3.5" />
-                          Аудио
-                        </span>
-                      )}
-                      {book.pages && (
-                        <span className="text-slate-500">
-                          {book.pages} бет
-                        </span>
-                      )}
-                    </div>
-                  </td>
-
-                  {/* Price */}
-                  <td className="py-3 px-4">
-                    <Badge variant={book.isFree ? 'green' : 'orange'} size="sm">
-                      {book.isFree ? 'Тегін' : 'Премиум'}
-                    </Badge>
-                  </td>
-
-                  {/* Status */}
-                  <td className="py-3 px-4 text-center">
-                    {book.isArchived ? (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
-                        Архивтелген
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700">
-                        Белсенді
-                      </span>
-                    )}
-                  </td>
-
-                  {/* Actions */}
-                  <td className="py-3 px-4 text-right">
-                    <div className="inline-flex items-center gap-1">
-                      {/* View button */}
-                      <Link
-                        to={`/book/${book.id}`}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100"
-                        title="Көру"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </Link>
-
-                      {/* Edit button */}
-                      <Link
-                        to={`/admin/books/${book.id}/edit`}
-                        className="p-1.5 rounded-lg text-blue-600 hover:text-blue-800 hover:bg-blue-50"
-                        title="Өңдеу"
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </Link>
-
-                      {/* Archive toggle */}
-                      <button
-                        onClick={() => handleToggleArchive(book)}
-                        className={`p-1.5 rounded-lg transition-colors ${
-                          book.isArchived
-                            ? 'text-emerald-600 hover:bg-emerald-50'
-                            : 'text-amber-600 hover:bg-amber-50'
-                        }`}
-                        title={book.isArchived ? 'Архивтен шығару' : 'Архивке салу'}
-                      >
-                        {book.isArchived ? (
-                          <ArchiveRestore className="w-4 h-4" />
-                        ) : (
-                          <Archive className="w-4 h-4" />
-                        )}
-                      </button>
-
-                      {/* Delete */}
-                      <button
-                        onClick={() => setBookToDelete(book)}
-                        className="p-1.5 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50"
-                        title="Өшіру"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {filteredBooks.length === 0 && (
-          <div className="py-12 text-center text-slate-400">
-            Сәйкес кітаптар табылмады
+              {/* Add Book Button (navigates to /admin/books/new) */}
+              <Link
+                to="/admin/books/new"
+                className="btn-primary"
+                style={{
+                  textDecoration: 'none',
+                  padding: '10px 24px',
+                  fontSize: '14px',
+                  fontWeight: 800,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  boxShadow: '0 4px 14px rgba(240,128,0,0.25)',
+                }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                Қосу
+              </Link>
+            </div>
           </div>
-        )}
+
+          {/* Table */}
+          <div style={{ overflowX: 'auto' }}>
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th style={{ width: '45px', textAlign: 'center' }}>№</th>
+                  <th style={{ width: '60px' }}>Мұқаба</th>
+                  <th>Атауы мен авторы</th>
+                  <th>Жанры</th>
+                  <th>Бет / Файлдар</th>
+                  <th>Қолжетімділік</th>
+                  <th>Көрінуі</th>
+                  <th style={{ textAlign: 'right' }}>Әрекеттер</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredBooks.map((book, index) => (
+                  <tr key={book.id}>
+                    {/* Sequential № */}
+                    <td style={{ textAlign: 'center', fontWeight: 700, color: '#64748B', fontSize: '12px' }}>
+                      {index + 1}
+                    </td>
+
+                    {/* Thumbnail */}
+                    <td>
+                      <div
+                        style={{
+                          width: '44px',
+                          height: '58px',
+                          borderRadius: '6px',
+                          background: book.coverImage
+                            ? `url(${book.coverImage}) center/cover`
+                            : (book.gradient || '#0057A8'),
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: '#FFF',
+                          fontSize: '8px',
+                          fontWeight: 800,
+                          textAlign: 'center',
+                          padding: '2px',
+                          overflow: 'hidden',
+                        }}
+                      >
+                        {!book.coverImage && book.title.slice(0, 10)}
+                      </div>
+                    </td>
+
+                    {/* Title and Author */}
+                    <td>
+                      <div style={{ fontWeight: 800, color: 'var(--text-dark)', fontSize: '14px' }}>
+                        {book.title}
+                      </div>
+                      <div style={{ color: 'var(--text-mid)', fontSize: '12px', marginTop: '2px' }}>
+                        {book.author}
+                      </div>
+                    </td>
+
+                    {/* Genre */}
+                    <td>
+                      <span className="book-category">{book.category}</span>
+                    </td>
+
+                    {/* Pages & Audio */}
+                    <td>
+                      <div style={{ fontSize: '12px', color: 'var(--text-dark)' }}>
+                        {book.pages ? `${book.pages} бет` : (book.audioDuration || '—')}
+                        {book.hasAudio && (
+                          <span style={{ color: 'var(--orange)', fontWeight: 700, marginLeft: '6px' }}>
+                            [Аудио]
+                          </span>
+                        )}
+                      </div>
+                    </td>
+
+                    {/* Pricing */}
+                    <td>
+                      <span
+                        className={`cover-badge ${book.isFree ? 'badge-free' : 'badge-premium'}`}
+                        style={{ position: 'static', display: 'inline-block', fontSize: '11px', padding: '3px 8px' }}
+                      >
+                        {book.isFree ? 'Тегін' : 'Премиум'}
+                      </span>
+                    </td>
+
+                    {/* Visibility / Status */}
+                    <td>
+                      {book.isArchived ? (
+                        <span
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            color: '#64748B',
+                            background: '#F1F5F9',
+                            padding: '4px 10px',
+                            borderRadius: '50px',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                          }}
+                        >
+                          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#94A3B8' }}></span>
+                          Архивте
+                        </span>
+                      ) : (
+                        <span
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            color: '#047857',
+                            background: '#ECFDF5',
+                            padding: '4px 10px',
+                            borderRadius: '50px',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                          }}
+                        >
+                          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10B981' }}></span>
+                          Белсенді
+                        </span>
+                      )}
+                    </td>
+
+                    {/* Action buttons (Styled exactly as in previous version) */}
+                    <td style={{ textAlign: 'right' }}>
+                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                        {/* Edit */}
+                        <Link
+                          to={`/admin/books/${book.id}/edit`}
+                          style={{
+                            padding: '6px 12px',
+                            fontSize: '12px',
+                            fontWeight: 700,
+                            background: '#EFF6FF',
+                            color: '#1D4ED8',
+                            borderRadius: '6px',
+                            border: '1px solid #BFDBFE',
+                            textDecoration: 'none',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          Өңдеу
+                        </Link>
+
+                        {/* Archive / Unarchive */}
+                        <button
+                          type="button"
+                          onClick={() => handleToggleArchive(book)}
+                          style={{
+                            padding: '6px 12px',
+                            fontSize: '12px',
+                            fontWeight: 700,
+                            background: book.isArchived ? '#ECFDF5' : '#FFFBEB',
+                            color: book.isArchived ? '#047857' : '#B45309',
+                            borderRadius: '6px',
+                            border: `1px solid ${book.isArchived ? '#A7F3D0' : '#FDE68A'}`,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          {book.isArchived ? 'Шығару' : 'Архивтеу'}
+                        </button>
+
+                        {/* Delete */}
+                        <button
+                          type="button"
+                          onClick={() => setBookToDelete(book)}
+                          style={{
+                            padding: '6px 12px',
+                            fontSize: '12px',
+                            fontWeight: 700,
+                            background: '#FEF2F2',
+                            color: '#B91C1C',
+                            borderRadius: '6px',
+                            border: '1px solid #FECACA',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          Өшіру
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {filteredBooks.length === 0 && (
+            <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-mid)' }}>
+              Кітаптар жоқ немесе сүзгіге сәйкес келмейді.
+            </div>
+          )}
+
+          {/* Pagination summary */}
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginTop: '20px',
+              paddingTop: '16px',
+              borderTop: '1px solid #E2E8F0',
+            }}
+          >
+            <div style={{ fontSize: '13px', color: 'var(--text-mid)', fontWeight: 600 }}>
+              1-{filteredBooks.length} кітап көрсетілуде (Барлығы: {books.length})
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Delete Confirmation Modal */}
-      <Modal
-        isOpen={Boolean(bookToDelete)}
-        onClose={() => setBookToDelete(null)}
-        title="Кітапты өшіру"
-      >
-        <div className="space-y-4">
-          <p className="text-sm text-slate-600">
-            Сіз шынымен <strong className="text-slate-900">{bookToDelete?.title}</strong> кітабын өшіргіңіз келе ме? Бұл әрекетті қайтару мүмкін емес.
-          </p>
-          <div className="flex items-center justify-end gap-3 pt-3">
-            <Button variant="outline" size="sm" onClick={() => setBookToDelete(null)}>
-              Болдырмау
-            </Button>
-            <Button variant="danger" size="sm" onClick={confirmDelete}>
-              Иә, өшіру
-            </Button>
+      {/* Delete confirmation modal */}
+      {bookToDelete && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(13,27,42,0.7)',
+            backdropFilter: 'blur(6px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '20px',
+          }}
+        >
+          <div
+            style={{
+              background: '#FFFFFF',
+              borderRadius: '16px',
+              maxWidth: '460px',
+              width: '100%',
+              padding: '32px',
+              boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
+            }}
+          >
+            <h3 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-dark)', marginBottom: '12px' }}>
+              Кітапты өшіру
+            </h3>
+            <p style={{ fontSize: '14px', color: 'var(--text-mid)', lineHeight: 1.6, marginBottom: '24px' }}>
+              Сіз шынымен <strong style={{ color: 'var(--text-dark)' }}>{bookToDelete.title}</strong> кітабын өшіргіңіз келе ме?
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+              <button
+                type="button"
+                onClick={() => setBookToDelete(null)}
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: '50px',
+                  border: '1px solid #CBD5E1',
+                  background: '#FFF',
+                  fontWeight: 600,
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                }}
+              >
+                Болдырмау
+              </button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+                style={{
+                  padding: '10px 24px',
+                  borderRadius: '50px',
+                  border: 'none',
+                  background: '#DC2626',
+                  color: '#FFF',
+                  fontWeight: 700,
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                }}
+              >
+                Иә, өшіру
+              </button>
+            </div>
           </div>
         </div>
-      </Modal>
-    </div>
+      )}
+    </section>
   );
 };

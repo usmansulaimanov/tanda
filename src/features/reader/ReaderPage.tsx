@@ -1,120 +1,120 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Type, Sun, Moon, Coffee } from 'lucide-react';
 import { useBookStore } from '../../store/useBookStore';
-import { Button } from '../../components/ui/Button';
 
 export const ReaderPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { books } = useBookStore();
 
-  const [fontSize, setFontSize] = useState<'sm' | 'base' | 'lg' | 'xl'>('lg');
+  const [fontSize, setFontSize] = useState<number>(17);
   const [theme, setTheme] = useState<'light' | 'sepia' | 'dark'>('light');
 
   const book = books.find((b) => b.id === id);
 
   if (!book) {
     return (
-      <div className="max-w-md mx-auto py-20 text-center space-y-4">
-        <h2 className="text-xl font-bold">Кітап табылмады</h2>
-        <Button onClick={() => navigate('/catalog')}>Каталогқа оралу</Button>
+      <div style={{ padding: '60px 20px', textAlign: 'center' }}>
+        <h2>Кітап табылмады</h2>
+        <button onClick={() => navigate('/catalog')} className="btn-primary" style={{ marginTop: '20px' }}>
+          Каталогқа оралу
+        </button>
       </div>
     );
   }
 
-  const themeStyles = {
-    light: 'bg-[#FAF9F6] text-slate-800',
-    sepia: 'bg-[#Fbf0d9] text-[#4a3525]',
-    dark: 'bg-[#0f172a] text-slate-200',
-  };
-
-  const fontSizes = {
-    sm: 'text-sm leading-relaxed',
-    base: 'text-base leading-relaxed',
-    lg: 'text-lg leading-loose',
-    xl: 'text-xl leading-loose',
+  const themeClasses = {
+    light: 'reader-mode-light',
+    sepia: 'reader-mode-sepia',
+    dark: 'reader-mode-dark',
   };
 
   return (
-    <div className={`min-h-screen transition-colors duration-200 ${themeStyles[theme]}`}>
-      {/* Top Reading Navigation */}
-      <header className="sticky top-0 z-30 border-b border-black/10 backdrop-blur-md px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => navigate(`/book/${book.id}`)}
-            className="p-2 rounded-xl hover:bg-black/5 transition-colors"
-            title="Кітап бетіне оралу"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <div className="truncate max-w-xs sm:max-w-md">
-            <h3 className="font-bold text-sm truncate">{book.title}</h3>
-            <span className="text-xs opacity-75">{book.author}</span>
-          </div>
+    <div className={themeClasses[theme]} style={{ minHeight: '100vh', transition: 'background 0.2s, color 0.2s' }}>
+      {/* Top Bar */}
+      <div
+        style={{
+          borderBottom: '1px solid rgba(0,0,0,0.1)',
+          padding: '16px 24px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          maxWidth: '900px',
+          margin: '0 auto',
+        }}
+      >
+        <button
+          onClick={() => navigate(-1)}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: 'inherit',
+            fontWeight: 700,
+            cursor: 'pointer',
+            fontSize: '14px',
+          }}
+        >
+          ← Артқа
+        </button>
+
+        <div style={{ textAlign: 'center' }}>
+          <h3 style={{ fontSize: '15px', fontWeight: 800, margin: 0 }}>{book.title}</h3>
+          <span style={{ fontSize: '12px', opacity: 0.75 }}>{book.author}</span>
         </div>
 
         {/* Controls */}
-        <div className="flex items-center gap-2">
-          {/* Font size toggle */}
-          <div className="flex items-center rounded-xl p-1 bg-black/5 text-xs font-semibold">
-            <button
-              onClick={() => setFontSize('sm')}
-              className={`px-2 py-1 rounded-lg ${fontSize === 'sm' ? 'bg-white text-black shadow-sm' : ''}`}
-            >
-              A-
-            </button>
-            <button
-              onClick={() => setFontSize('lg')}
-              className={`px-2 py-1 rounded-lg ${fontSize === 'lg' ? 'bg-white text-black shadow-sm' : ''}`}
-            >
-              A
-            </button>
-            <button
-              onClick={() => setFontSize('xl')}
-              className={`px-2 py-1 rounded-lg ${fontSize === 'xl' ? 'bg-white text-black shadow-sm' : ''}`}
-            >
-              A+
-            </button>
-          </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <button
+            className="reader-theme-btn"
+            onClick={() => setFontSize((f) => Math.max(13, f - 2))}
+          >
+            A -
+          </button>
+          <span style={{ fontSize: '12px', fontWeight: 700, width: '36px', textAlign: 'center' }}>
+            {fontSize}px
+          </span>
+          <button
+            className="reader-theme-btn"
+            onClick={() => setFontSize((f) => Math.min(26, f + 2))}
+          >
+            A +
+          </button>
 
-          {/* Theme switcher */}
-          <div className="flex items-center rounded-xl p-1 bg-black/5">
-            <button
-              onClick={() => setTheme('light')}
-              className={`p-1.5 rounded-lg ${theme === 'light' ? 'bg-white text-amber-500 shadow-sm' : 'opacity-60'}`}
-              title="Жарық"
-            >
-              <Sun className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setTheme('sepia')}
-              className={`p-1.5 rounded-lg ${theme === 'sepia' ? 'bg-[#f4e4c1] text-amber-900 shadow-sm' : 'opacity-60'}`}
-              title="Сепия"
-            >
-              <Coffee className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setTheme('dark')}
-              className={`p-1.5 rounded-lg ${theme === 'dark' ? 'bg-slate-800 text-blue-300 shadow-sm' : 'opacity-60'}`}
-              title="Түнгі режим"
-            >
-              <Moon className="w-4 h-4" />
-            </button>
-          </div>
+          {/* Theme buttons */}
+          <button
+            className={`reader-theme-btn ${theme === 'light' ? 'active' : ''}`}
+            onClick={() => setTheme('light')}
+          >
+            Ашық
+          </button>
+          <button
+            className={`reader-theme-btn ${theme === 'sepia' ? 'active' : ''}`}
+            onClick={() => setTheme('sepia')}
+          >
+            Сепия
+          </button>
+          <button
+            className={`reader-theme-btn ${theme === 'dark' ? 'active' : ''}`}
+            onClick={() => setTheme('dark')}
+          >
+            Түнгі
+          </button>
         </div>
-      </header>
+      </div>
 
-      {/* Reader Text Content */}
-      <main className="max-w-3xl mx-auto px-6 py-12">
-        <article className={`space-y-6 ${fontSizes[fontSize]} font-serif`}>
-          <div className="text-center pb-8 border-b border-black/10 not-italic font-sans">
-            <h1 className="text-2xl sm:text-3xl font-bold mb-2">{book.title}</h1>
-            <p className="text-sm opacity-75">{book.author}</p>
+      {/* Reader Body */}
+      <main style={{ maxWidth: '780px', margin: '40px auto 80px', padding: '0 24px' }}>
+        <article className="reader-content" style={{ fontSize: `${fontSize}px` }}>
+          <div style={{ textAlign: 'center', marginBottom: '40px', borderBottom: '1px solid rgba(0,0,0,0.1)', paddingBottom: '24px' }}>
+            <span className="book-category">{book.category}</span>
+            <h1 style={{ fontSize: `${fontSize + 10}px`, fontWeight: 900, marginTop: '12px', marginBottom: '8px' }}>
+              {book.title}
+            </h1>
+            <div style={{ fontSize: '15px', opacity: 0.8 }}>{book.author}</div>
           </div>
 
-          <p className="font-medium opacity-90">
-            {book.description}
+          <p>
+            {book.description || 'Бұл кітаптың мәтіні электронды кітапхана қорына жүктелген.'}
           </p>
 
           <p>
