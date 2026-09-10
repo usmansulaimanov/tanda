@@ -138,12 +138,12 @@ export const ReadersPage: React.FC = () => {
               <thead>
                 <tr>
                   <th style={{ width: '45px', textAlign: 'center' }}>№</th>
-                  <th style={{ width: '120px' }}>ID нөмірі</th>
+                  <th style={{ width: '140px', whiteSpace: 'nowrap' }}>ID нөмірі</th>
                   <th>Аты-жөні</th>
                   <th>Электрондық поштасы</th>
-                  <th>Тіркелген күні</th>
-                  <th>Мәртебесі</th>
-                  <th style={{ textAlign: 'right' }}>Әрекеттер</th>
+                  <th style={{ width: '130px', whiteSpace: 'nowrap' }}>Тіркелген күні</th>
+                  <th style={{ width: '110px', whiteSpace: 'nowrap' }}>Мәртебесі</th>
+                  <th style={{ width: '90px', textAlign: 'right', whiteSpace: 'nowrap' }}>Әрекеттер</th>
                 </tr>
               </thead>
               <tbody>
@@ -157,7 +157,7 @@ export const ReadersPage: React.FC = () => {
                       </td>
 
                       {/* ID Number */}
-                      <td>
+                      <td style={{ whiteSpace: 'nowrap' }}>
                         <span
                           style={{
                             fontSize: '12px',
@@ -165,10 +165,11 @@ export const ReadersPage: React.FC = () => {
                             fontFamily: 'monospace',
                             background: 'rgba(0, 84, 148, 0.1)',
                             color: 'var(--blue)',
-                            padding: '2px 8px',
+                            padding: '3px 10px',
                             borderRadius: '4px',
                             letterSpacing: '0.04em',
                             display: 'inline-block',
+                            whiteSpace: 'nowrap',
                           }}
                         >
                           ID: {reader.idNumber || `001 00${index + 1}`}
