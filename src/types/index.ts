@@ -47,6 +47,7 @@ export type Category =
 
 export interface User {
   id: string;
+  idNumber?: string; // e.g. "000 001" for admin, "001 001" for readers
   name: string;
   email: string;
   role: 'admin' | 'client';

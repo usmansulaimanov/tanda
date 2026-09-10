@@ -317,14 +317,30 @@ export const Header: React.FC = () => {
                       </div>
                       <div className="profile-card-info">
                         <div className="profile-card-name" title={user.name || 'Оқырман'}>
-                          {user.name || (user.role === 'admin' ? 'Администратор' : 'Оқырман')}
+                          {user.name || (user.role === 'admin' ? 'Бас Администратор' : 'Оқырман')}
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', margin: '3px 0', flexWrap: 'wrap' }}>
+                          <span
+                            style={{
+                              fontSize: '11px',
+                              fontWeight: 800,
+                              fontFamily: 'monospace',
+                              background: 'rgba(0, 84, 148, 0.1)',
+                              color: 'var(--blue)',
+                              padding: '1px 7px',
+                              borderRadius: '4px',
+                              letterSpacing: '0.04em',
+                            }}
+                          >
+                            ID: {user.idNumber || (user.role === 'admin' ? '000 001' : '001 001')}
+                          </span>
+                          <span className={`profile-card-role-badge ${user.role === 'admin' ? 'admin' : 'client'}`}>
+                            {user.role === 'admin' ? 'Әкімші' : 'Оқырман'}
+                          </span>
                         </div>
                         <div className="profile-card-email" title={user.email}>
                           {user.email}
                         </div>
-                        <span className={`profile-card-role-badge ${user.role === 'admin' ? 'admin' : 'client'}`}>
-                          {user.role === 'admin' ? 'Әкімшілік (Админ)' : 'Оқырман'}
-                        </span>
                       </div>
                     </div>
 

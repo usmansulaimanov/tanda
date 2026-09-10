@@ -151,6 +151,20 @@ export const ProfilePage: React.FC = () => {
               <span
                 style={{
                   fontSize: '12px',
+                  fontWeight: 800,
+                  fontFamily: 'monospace',
+                  padding: '3px 10px',
+                  borderRadius: '6px',
+                  background: 'rgba(0, 84, 148, 0.1)',
+                  color: 'var(--blue)',
+                  letterSpacing: '0.04em',
+                }}
+              >
+                ID: {user.idNumber || (user.role === 'admin' ? '000 001' : '001 001')}
+              </span>
+              <span
+                style={{
+                  fontSize: '12px',
                   fontWeight: 700,
                   padding: '3px 10px',
                   borderRadius: '50px',

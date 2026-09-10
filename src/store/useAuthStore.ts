@@ -4,9 +4,26 @@ import { User } from '../types';
 
 const API_USERS_ENDPOINT = '/api/users';
 
+export function formatUserNumberId(num: number): string {
+  const str = String(num).padStart(6, '0');
+  return `${str.slice(0, 3)} ${str.slice(3)}`;
+}
+
+function getNextIdNumber(users: User[], role: 'admin' | 'client'): string {
+  if (role === 'admin') {
+    const adminUsers = users.filter((u) => u.role === 'admin');
+    const nextAdminNum = adminUsers.length > 0 ? adminUsers.length : 1;
+    return formatUserNumberId(nextAdminNum);
+  }
+  const clientUsers = users.filter((u) => u.role === 'client');
+  const nextClientNum = 1001 + clientUsers.length;
+  return formatUserNumberId(nextClientNum);
+}
+
 const DEFAULT_USERS: User[] = [
   {
     id: 'admin-1',
+    idNumber: '000 001',
     email: 'admin@tanda.kz',
     name: 'Бас Администратор',
     role: 'admin',
@@ -48,7 +65,8 @@ export const useAuthStore = create<AuthState>()(
     (set, get) => ({
       user: {
         id: 'admin-1',
-        name: 'Админ',
+        idNumber: '000 001',
+        name: 'Бас Администратор',
         email: 'admin@tanda.kz',
         role: 'admin',
         date: '2026-09-01',
@@ -60,11 +78,15 @@ export const useAuthStore = create<AuthState>()(
       loginAsAdmin: () => {
         const adminUser = get().users.find((u) => u.role === 'admin') || {
           id: 'admin-1',
-          name: 'Админ',
+          idNumber: '000 001',
+          name: 'Бас Администратор',
           email: 'admin@tanda.kz',
           role: 'admin' as const,
           date: '2026-09-01',
         };
+        if (!adminUser.idNumber) {
+          adminUser.idNumber = '000 001';
+        }
         set({
           user: adminUser,
           role: 'admin',
@@ -78,6 +100,9 @@ export const useAuthStore = create<AuthState>()(
         const existing = currentUsers.find((u) => u.email.toLowerCase() === cleanEmail);
 
         if (existing) {
+          if (!existing.idNumber) {
+            existing.idNumber = getNextIdNumber(currentUsers, existing.role);
+          }
           set({
             user: existing,
             role: existing.role,
@@ -86,8 +111,10 @@ export const useAuthStore = create<AuthState>()(
           return;
         }
 
+        const idNumber = getNextIdNumber(currentUsers, 'client');
         const newUser: User = {
           id: `user-${Date.now()}`,
+          idNumber,
           name: name.trim() || cleanEmail.split('@')[0] || 'Оқырман',
           email: cleanEmail,
           role: 'client',
@@ -108,10 +135,17 @@ export const useAuthStore = create<AuthState>()(
         const cleanEmail = email.trim().toLowerCase();
         const currentUsers = get().users;
         const existing = currentUsers.find((u) => u.email.toLowerCase() === cleanEmail);
-        if (existing) return existing;
+        if (existing) {
+          if (!existing.idNumber) {
+            existing.idNumber = getNextIdNumber(currentUsers, existing.role);
+          }
+          return existing;
+        }
 
+        const idNumber = getNextIdNumber(currentUsers, role);
         const newUser: User = {
           id: `user-${Date.now()}`,
+          idNumber,
           name: (name || cleanEmail.split('@')[0] || 'Оқырман').trim(),
           email: cleanEmail,
           role,
