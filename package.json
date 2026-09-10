@@ -4,8 +4,8 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
+    "dev": "vite index.source.html",
+    "build": "tsc && vite build && cp dist/index.source.html ./index.html && cp dist/index.source.html ./404.html && rm -rf ./assets && cp -r dist/assets ./assets",
     "preview": "vite preview"
   },
   "dependencies": {
