@@ -6,6 +6,7 @@ import { BookDetailPage } from '../features/book/BookDetailPage';
 import { ReaderPage } from '../features/reader/ReaderPage';
 import { AdminDashboard } from '../features/admin/AdminDashboard';
 import { BookFormPage } from '../features/admin/BookFormPage';
+import { ReadersPage } from '../features/admin/ReadersPage';
 import { ProfilePage } from '../features/profile/ProfilePage';
 
 export const router = createHashRouter([
@@ -32,6 +33,10 @@ export const router = createHashRouter([
       {
         path: 'admin',
         element: <AdminDashboard />,
+      },
+      {
+        path: 'admin/readers',
+        element: <ReadersPage />,
       },
       {
         path: 'admin/books/new',

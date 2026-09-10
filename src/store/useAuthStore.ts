@@ -29,6 +29,38 @@ const DEFAULT_USERS: User[] = [
     role: 'admin',
     date: '2026-09-01',
   },
+  {
+    id: 'user-1',
+    idNumber: '001 001',
+    email: 'arman.aliev@gmail.com',
+    name: 'Арман Әлиев',
+    role: 'client',
+    date: '2026-09-02',
+  },
+  {
+    id: 'user-2',
+    idNumber: '001 002',
+    email: 'dina.sapar@mail.kz',
+    name: 'Дина Сапарқызы',
+    role: 'client',
+    date: '2026-09-04',
+  },
+  {
+    id: 'user-3',
+    idNumber: '001 003',
+    email: 'nurbol.k@tanda.kz',
+    name: 'Нұрбол Кеңес',
+    role: 'client',
+    date: '2026-09-06',
+  },
+  {
+    id: 'user-4',
+    idNumber: '001 004',
+    email: 'aigerim.b@gmail.com',
+    name: 'Әйгерім Байұзақ',
+    role: 'client',
+    date: '2026-09-08',
+  },
 ];
 
 async function saveUsersToBackend(users: User[]) {
