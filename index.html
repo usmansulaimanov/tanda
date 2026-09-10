@@ -1205,8 +1205,9 @@
         <span style="font-weight:900; color:#FFF; font-size:16px;">tanda</span>
         <span>— Қазақша аудио және электронды кітаптар платформасы</span>
       </div>
-      <div>
-        © 2026 tanda.kz. Барлық құқықтар қорғалған.
+      <div style="display:flex; align-items:center; gap:16px;">
+        <span>© 2026 tanda.kz. Барлық құқықтар қорғалған.</span>
+        <button onclick="openAdminLoginModal()" style="background:none; border:none; color:rgba(255,255,255,0.4); font-size:12px; cursor:pointer; text-decoration:underline;">Әкімші</button>
       </div>
     </div>
   </div>
@@ -1246,12 +1247,6 @@
 
       <button type="submit" class="btn-submit" id="authSubmitBtn">Тіркелу және оқу</button>
     </form>
-
-    <div style="margin-top:20px; padding-top:16px; border-top:1px dashed #CBD5E1; text-align:center;">
-      <div style="font-size:12px; color:var(--text-mid); margin-bottom:8px;">Сынақ үшін жылдам кіру:</div>
-      <button type="button" style="background:#F1F5F9; border:none; padding:6px 14px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; color:var(--text-dark); margin:0 4px;" onclick="quickLogin('user')">Оқырман ретінде кіру</button>
-      <button type="button" style="background:#0D1B2A; border:none; padding:6px 14px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; color:#FFF; margin:0 4px;" onclick="quickLogin('admin')">Админ ретінде кіру</button>
-    </div>
   </div>
 </div>
 
@@ -1448,6 +1443,34 @@
   </div>
 </div>
 
+<!-- DEDICATED ADMIN LOGIN MODAL -->
+<div class="modal-overlay" id="adminLoginModal">
+  <div class="modal-box" style="max-width:380px;">
+    <button class="modal-close" onclick="closeAdminLoginModal()">✕</button>
+    <div style="text-align:center; margin-bottom:20px;">
+      <div style="display:inline-block; background:#0D1B2A; color:#FFF; padding:6px 14px; border-radius:50px; font-size:11px; font-weight:800; letter-spacing:1px; text-transform:uppercase; margin-bottom:10px;">Әкімшілік кіру</div>
+      <h3 style="font-size:20px; font-weight:900; color:var(--text-dark);">Tanda Басқару жүйесі</h3>
+      <p style="font-size:13px; color:var(--text-mid); margin-top:4px;">Тек сайт әкімшісіне арналған жабық бөлім</p>
+    </div>
+
+    <form onsubmit="handleAdminLoginSubmit(event)">
+      <div class="form-group">
+        <label class="form-label">Админ эл.почтасы</label>
+        <input type="email" required id="adminLoginEmail" class="form-input" placeholder="admin@tanda.kz">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Құпиясөз</label>
+        <input type="password" required id="adminLoginPassword" class="form-input" placeholder="Құпиясөзді енгізіңіз">
+      </div>
+
+      <div id="adminLoginError" style="color:#E53E3E; font-size:12px; font-weight:600; margin-bottom:14px; display:none;"></div>
+
+      <button type="submit" class="btn-submit" style="background:#0D1B2A;">Әкімші болып кіру</button>
+    </form>
+  </div>
+</div>
+
 <script>
 // INITIAL SEED BOOKS
 const INITIAL_BOOKS = [
@@ -1524,6 +1547,13 @@ const INITIAL_BOOKS = [
     content: "Байлар ақша үшін жұмыс істемейді.\n\nҚаржылық сауаттылық — өмір бойғы еркіндіктің кепілі. Байлар актив сатып алып, ақшаны өзіне жұмыс істеуге мәжбүрлейді."
   }
 ];
+
+// ADMIN CREDENTIALS (Тек платформа иесіне арналған)
+const ADMIN_CREDENTIALS = {
+  email: "admin@tanda.kz",
+  password: "tanda_admin_2026",
+  name: "Бас Администратор"
+};
 
 // DATA & STATE MANAGEMENT
 let books = JSON.parse(localStorage.getItem('tanda_books')) || INITIAL_BOOKS;
@@ -1704,27 +1734,43 @@ function handleAuthSubmit(e) {
     const newUser = {
       email,
       name,
-      role: email.includes('admin') ? 'ADMIN' : 'USER',
+      role: 'USER',
       date: new Date().toISOString().split('T')[0],
       isSubscribed: false
     };
     users.push(newUser);
     currentUser = newUser;
   } else {
-    const user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
-    if (!user) {
-      // For convenience, auto-create user on first login
-      const newUser = {
-        email,
-        name: email.split('@')[0],
-        role: email.includes('admin') ? 'ADMIN' : 'USER',
-        date: new Date().toISOString().split('T')[0],
-        isSubscribed: false
-      };
-      users.push(newUser);
-      currentUser = newUser;
+    // Regular login for users. If admin credentials are used here, they can log in as admin too.
+    if (email.toLowerCase() === ADMIN_CREDENTIALS.email.toLowerCase()) {
+      if (password === ADMIN_CREDENTIALS.password) {
+        currentUser = {
+          email: ADMIN_CREDENTIALS.email,
+          name: ADMIN_CREDENTIALS.name,
+          role: "ADMIN",
+          isSubscribed: true,
+          date: "2026-09-01"
+        };
+      } else {
+        err.textContent = 'Құпиясөз қате!';
+        err.style.display = 'block';
+        return;
+      }
     } else {
-      currentUser = user;
+      const user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+      if (!user) {
+        const newUser = {
+          email,
+          name: email.split('@')[0],
+          role: 'USER',
+          date: new Date().toISOString().split('T')[0],
+          isSubscribed: false
+        };
+        users.push(newUser);
+        currentUser = newUser;
+      } else {
+        currentUser = user;
+      }
     }
   }
 
@@ -1742,31 +1788,39 @@ function handleAuthSubmit(e) {
   }
 }
 
-function quickLogin(type) {
-  if (type === 'admin') {
+// ADMIN DEDICATED LOGIN
+function openAdminLoginModal() {
+  document.getElementById('adminLoginError').style.display = 'none';
+  document.getElementById('adminLoginEmail').value = '';
+  document.getElementById('adminLoginPassword').value = '';
+  document.getElementById('adminLoginModal').classList.add('active');
+}
+
+function closeAdminLoginModal() {
+  document.getElementById('adminLoginModal').classList.remove('active');
+}
+
+function handleAdminLoginSubmit(e) {
+  e.preventDefault();
+  const email = document.getElementById('adminLoginEmail').value.trim();
+  const password = document.getElementById('adminLoginPassword').value;
+  const err = document.getElementById('adminLoginError');
+
+  if (email.toLowerCase() === ADMIN_CREDENTIALS.email.toLowerCase() && password === ADMIN_CREDENTIALS.password) {
     currentUser = {
-      email: "admin@tanda.kz",
-      name: "Бас Администратор",
+      email: ADMIN_CREDENTIALS.email,
+      name: ADMIN_CREDENTIALS.name,
       role: "ADMIN",
       isSubscribed: true,
       date: "2026-09-01"
     };
+    saveState();
+    renderNavAuth();
+    closeAdminLoginModal();
+    openAdminModal();
   } else {
-    currentUser = {
-      email: "oqyrman@mail.kz",
-      name: "Айбек Оқырман",
-      role: "USER",
-      isSubscribed: true,
-      date: new Date().toISOString().split('T')[0]
-    };
-  }
-  saveState();
-  renderNavAuth();
-  closeAuthModal();
-  if (currentTargetBookId) {
-    const target = books.find(b => b.id === currentTargetBookId);
-    currentTargetBookId = null;
-    if (target) openReaderModal(target, 'read');
+    err.textContent = 'Админ эл.почтасы немесе құпиясөз қате!';
+    err.style.display = 'block';
   }
 }
 
@@ -1848,21 +1902,8 @@ function confirmSubscription() {
 // ADMIN PANEL
 function openAdminModal() {
   if (!currentUser || currentUser.role !== 'ADMIN') {
-    const pass = prompt('Әкімшілік құпиясөзді енгізіңіз (Тест үшін: admin123):');
-    if (pass === 'admin123') {
-      currentUser = {
-        email: "admin@tanda.kz",
-        name: "Бас Администратор",
-        role: "ADMIN",
-        isSubscribed: true,
-        date: "2026-09-01"
-      };
-      saveState();
-      renderNavAuth();
-    } else {
-      alert('Құпиясөз қате!');
-      return;
-    }
+    openAdminLoginModal();
+    return;
   }
 
   renderAdminTables();
