@@ -27,7 +27,7 @@ export const Footer: React.FC = () => {
                 textDecoration: 'underline',
               }}
             >
-              Әкімші
+              Админ
             </Link>
           </div>
         </div>

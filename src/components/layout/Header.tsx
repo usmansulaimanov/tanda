@@ -89,7 +89,7 @@ export const Header: React.FC = () => {
     const emailLower = authEmail.trim().toLowerCase();
     if (emailLower.includes('admin')) {
       loginAsAdmin();
-      showToast('Әкімші аккаунтымен сәтті кірдіңіз!', 'success');
+      showToast('Админ аккаунтымен сәтті кірдіңіз!', 'success');
       navigate('/admin');
     } else {
       const name = authName.trim() || emailLower.split('@')[0] || 'Оқырман';
@@ -106,7 +106,7 @@ export const Header: React.FC = () => {
   const quickLoginAs = (targetRole: 'admin' | 'client') => {
     if (targetRole === 'admin') {
       loginAsAdmin();
-      showToast('Әкімші ретінде кірдіңіз', 'success');
+      showToast('Админ ретінде кірдіңіз', 'success');
       navigate('/admin');
     } else {
       loginAsClient('reader@tanda.kz', 'Оқырман');
@@ -264,22 +264,23 @@ export const Header: React.FC = () => {
                   }}
                 >
                   <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#10B981', display: 'inline-block' }}></span>
-                  <span>{user.role === 'admin' ? 'Әкімші' : (user.name || 'Оқырман')}</span>
+                  <span>{user.role === 'admin' ? 'Админ' : (user.name || 'Оқырман')}</span>
                 </div>
 
-                {/* Role specific action */}
+                {/* Role specific action in Brand Color */}
                 {user.role === 'admin' ? (
                   <Link
                     to="/admin"
                     className="btn-admin-pill"
                     style={{
-                      padding: '6px 14px',
+                      padding: '6px 16px',
                       borderRadius: '50px',
                       fontSize: '12px',
                       fontWeight: 700,
-                      background: '#0D1B2A',
+                      background: 'var(--blue)',
                       color: '#FFFFFF',
                       textDecoration: 'none',
+                      boxShadow: '0 2px 8px rgba(0, 84, 148, 0.25)',
                     }}
                   >
                     Басқару панелі
@@ -471,7 +472,7 @@ export const Header: React.FC = () => {
                     cursor: 'pointer',
                   }}
                 >
-                  Әкімші (Admin)
+                  Админ
                 </button>
                 <button
                   type="button"

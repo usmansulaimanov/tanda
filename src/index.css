@@ -3,10 +3,10 @@
 @tailwind utilities;
 
 :root {
-  --blue: #0057A8;
-  --orange: #F08000;
+  --blue: #005494;
+  --orange: #EF7E00;
   --white: #FFFFFF;
-  --blue-dark: #004080;
+  --blue-dark: #003F70;
   --blue-light: #E8F1FB;
   --text-dark: #0D1B2A;
   --text-mid: #3A5068;
@@ -121,10 +121,10 @@ body {
 }
 
 .btn-admin-pill {
-  background: #0D1B2A;
+  background: var(--blue);
   color: #FFFFFF;
   border: none;
-  padding: 6px 14px;
+  padding: 6px 16px;
   border-radius: 50px;
   font-size: 12px;
   font-weight: 700;
@@ -134,10 +134,11 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  box-shadow: 0 2px 8px rgba(0, 84, 148, 0.25);
 }
 
 .btn-admin-pill:hover {
-  background: #1A365D;
+  background: var(--blue-dark);
 }
 
 /* HERO */

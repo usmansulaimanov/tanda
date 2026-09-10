@@ -17,7 +17,7 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       user: {
         id: 'admin-1',
-        name: 'Әкімші',
+        name: 'Админ',
         email: 'admin@tanda.kz',
         role: 'admin',
       },
@@ -28,7 +28,7 @@ export const useAuthStore = create<AuthState>()(
         set({
           user: {
             id: 'admin-1',
-            name: 'Әкімші',
+            name: 'Админ',
             email: 'admin@tanda.kz',
             role: 'admin',
           },

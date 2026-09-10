@@ -182,7 +182,7 @@ export const BookFormPage: React.FC = () => {
                 borderRadius: '50px',
               }}
             >
-              Әкімші панелі
+              Админ панелі
             </span>
           </div>
 
