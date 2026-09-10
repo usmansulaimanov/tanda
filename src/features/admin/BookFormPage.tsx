@@ -115,6 +115,69 @@ export const BookFormPage: React.FC = () => {
     setAudioChapters(audioChapters.filter((_, i) => i !== index));
   };
 
+  const handleChapterAudioFile = (index: number, file: File) => {
+    if (!file) return;
+    if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|ogg|m4a|aac)$/i)) {
+      showToast('Тек аудио файлдарын жүктей аласыз (.mp3, .wav, .m4a, .ogg)', 'error');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string;
+      updateChapter(index, 'audioUrl', dataUrl);
+
+      // Auto-detect audio duration
+      try {
+        const audio = new Audio(dataUrl);
+        audio.onloadedmetadata = () => {
+          if (audio.duration && !isNaN(audio.duration) && isFinite(audio.duration)) {
+            const mins = Math.floor(audio.duration / 60);
+            const secs = Math.floor(audio.duration % 60);
+            const formatted = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+            updateChapter(index, 'duration', formatted);
+          }
+        };
+      } catch {
+        // Fallback
+      }
+      showToast(`${index + 1}-тарауға аудиофайл сәтті жүктелді`, 'success');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleMainAudioFile = (file: File) => {
+    if (!file) return;
+    if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|ogg|m4a|aac)$/i)) {
+      showToast('Тек аудио файлдарын жүктей аласыз (.mp3, .wav, .m4a, .ogg)', 'error');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string;
+      setAudioUrl(dataUrl);
+
+      try {
+        const audio = new Audio(dataUrl);
+        audio.onloadedmetadata = () => {
+          if (audio.duration && !isNaN(audio.duration) && isFinite(audio.duration)) {
+            const hours = Math.floor(audio.duration / 3600);
+            const mins = Math.floor((audio.duration % 3600) / 60);
+            const secs = Math.floor(audio.duration % 60);
+            if (hours > 0) {
+              setAudioDuration(`${hours} сағат ${mins} минут`);
+            } else {
+              setAudioDuration(`${mins}:${String(secs).padStart(2, '0')}`);
+            }
+          }
+        };
+      } catch {
+        // Fallback
+      }
+      showToast('Негізгі аудиофайл сәтті жүктелді', 'success');
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -568,9 +631,9 @@ export const BookFormPage: React.FC = () => {
                   <div
                     style={{
                       display: 'grid',
-                      gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+                      gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
                       gap: '18px',
-                      marginBottom: '20px',
+                      marginBottom: '18px',
                     }}
                   >
                     <div className="form-group" style={{ margin: 0 }}>
@@ -600,6 +663,93 @@ export const BookFormPage: React.FC = () => {
                     </div>
                   </div>
 
+                  {/* Main Full Audio File (Optional if chapters are used) */}
+                  <div
+                    style={{
+                      background: '#FFFFFF',
+                      border: '1.5px solid #E2E8F0',
+                      borderRadius: '10px',
+                      padding: '16px',
+                      marginBottom: '18px',
+                    }}
+                  >
+                    <label className="form-label" style={{ fontSize: '13px', marginBottom: '8px' }}>
+                      Негізгі аудиофайл немесе толық аудио жазба (Сілтеме немесе файл)
+                    </label>
+
+                    <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+                      <input
+                        type="text"
+                        value={audioUrl}
+                        onChange={(e) => setAudioUrl(e.target.value)}
+                        placeholder="Аудио сілтемесі (https://.../audio.mp3)"
+                        className="form-input"
+                        style={{ flex: '1 1 240px', padding: '8px 12px', fontSize: '13px' }}
+                      />
+
+                      <label
+                        htmlFor="main-audio-upload"
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          padding: '8px 16px',
+                          background: '#E8F1FB',
+                          color: '#005494',
+                          borderRadius: '8px',
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          whiteSpace: 'nowrap',
+                          border: '1px solid #BFDBFE',
+                          transition: 'all 0.15s',
+                        }}
+                      >
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                          <polyline points="17 8 12 3 7 8"></polyline>
+                          <line x1="12" y1="3" x2="12" y2="15"></line>
+                        </svg>
+                        Аудио жүктеу
+                      </label>
+                      <input
+                        type="file"
+                        id="main-audio-upload"
+                        accept="audio/*,.mp3,.wav,.ogg,.m4a,.aac"
+                        onChange={(e) => {
+                          const f = e.target.files?.[0];
+                          if (f) handleMainAudioFile(f);
+                        }}
+                        style={{ display: 'none' }}
+                      />
+
+                      {audioUrl && (
+                        <button
+                          type="button"
+                          onClick={() => setAudioUrl('')}
+                          style={{
+                            padding: '8px 12px',
+                            background: '#FEE2E2',
+                            color: '#DC2626',
+                            border: 'none',
+                            borderRadius: '8px',
+                            fontSize: '12px',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          Өшіру
+                        </button>
+                      )}
+                    </div>
+
+                    {audioUrl && (
+                      <div style={{ marginTop: '10px' }}>
+                        <audio controls src={audioUrl} style={{ width: '100%', height: '36px' }} />
+                      </div>
+                    )}
+                  </div>
+
                   {/* Chapters block */}
                   <div
                     style={{
@@ -615,11 +765,18 @@ export const BookFormPage: React.FC = () => {
                         justifyContent: 'space-between',
                         alignItems: 'center',
                         marginBottom: '14px',
+                        flexWrap: 'wrap',
+                        gap: '10px',
                       }}
                     >
-                      <span style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>
-                        Тараулар ({audioChapters.length})
-                      </span>
+                      <div>
+                        <span style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>
+                          Тараулар бойынша аудио ({audioChapters.length})
+                        </span>
+                        <p style={{ fontSize: '11px', color: '#64748B', margin: '2px 0 0' }}>
+                          Әр тарауға жеке аудиофайл жүктеуге немесе сілтемесін қоюға болады
+                        </p>
+                      </div>
 
                       <button
                         type="button"
@@ -628,13 +785,13 @@ export const BookFormPage: React.FC = () => {
                           display: 'inline-flex',
                           alignItems: 'center',
                           gap: '6px',
-                          padding: '6px 14px',
+                          padding: '7px 16px',
                           fontSize: '12px',
                           fontWeight: 700,
                           background: '#E8F1FB',
                           color: '#005494',
                           border: 'none',
-                          borderRadius: '6px',
+                          borderRadius: '8px',
                           cursor: 'pointer',
                           transition: 'background 0.2s',
                         }}
@@ -649,66 +806,187 @@ export const BookFormPage: React.FC = () => {
 
                     {audioChapters.length === 0 ? (
                       <p style={{ fontSize: '12px', color: '#94A3B8', textAlign: 'center', margin: '12px 0' }}>
-                        Әзірге тараулар қосылмаған. «Тарау қосу» түймесін басыңыз.
+                        Әзірге жеке тараулар қосылмаған. «Тарау қосу» түймесін басыңыз.
                       </p>
                     ) : (
                       audioChapters.map((ch, idx) => (
                         <div
                           key={ch.id || idx}
                           style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '10px',
-                            marginBottom: '10px',
+                            marginBottom: '12px',
                             background: '#F8FAFC',
-                            padding: '10px 12px',
-                            borderRadius: '8px',
-                            border: '1px solid #E2E8F0',
+                            padding: '14px',
+                            borderRadius: '10px',
+                            border: '1.5px solid #E2E8F0',
                           }}
                         >
-                          <span style={{ fontSize: '12px', fontWeight: 800, color: '#64748B', width: '22px' }}>
-                            {idx + 1}.
-                          </span>
-                          <input
-                            type="text"
-                            value={ch.title}
-                            onChange={(e) => updateChapter(idx, 'title', e.target.value)}
-                            placeholder="Тарау атауы"
-                            className="form-input"
-                            style={{ flex: 1, padding: '8px 12px', fontSize: '13px' }}
-                          />
-                          <input
-                            type="text"
-                            value={ch.duration}
-                            onChange={(e) => updateChapter(idx, 'duration', e.target.value)}
-                            placeholder="05:00"
-                            className="form-input"
-                            style={{ width: '90px', padding: '8px 12px', fontSize: '13px' }}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => removeChapter(idx)}
+                          {/* Chapter Header Row */}
+                          <div
                             style={{
-                              background: '#FEE2E2',
-                              border: 'none',
-                              color: '#DC2626',
-                              cursor: 'pointer',
-                              width: '32px',
-                              height: '32px',
-                              borderRadius: '6px',
                               display: 'flex',
                               alignItems: 'center',
-                              justifyContent: 'center',
-                              transition: 'background 0.2s',
-                              flexShrink: 0,
+                              gap: '10px',
+                              marginBottom: '10px',
+                              flexWrap: 'wrap',
                             }}
-                            title="Тарауды өшіру"
                           >
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                              <line x1="18" y1="6" x2="6" y2="18"></line>
-                              <line x1="6" y1="6" x2="18" y2="18"></line>
-                            </svg>
-                          </button>
+                            <span
+                              style={{
+                                fontSize: '11px',
+                                fontWeight: 800,
+                                background: '#E2E8F0',
+                                color: '#334155',
+                                padding: '3px 8px',
+                                borderRadius: '4px',
+                              }}
+                            >
+                              {idx + 1}-тарау
+                            </span>
+
+                            <input
+                              type="text"
+                              value={ch.title}
+                              onChange={(e) => updateChapter(idx, 'title', e.target.value)}
+                              placeholder="Тарау атауы (Мысалы: 1-сөз немесе 1-тарау)"
+                              className="form-input"
+                              style={{ flex: '1 1 200px', padding: '8px 12px', fontSize: '13px' }}
+                            />
+
+                            <input
+                              type="text"
+                              value={ch.duration}
+                              onChange={(e) => updateChapter(idx, 'duration', e.target.value)}
+                              placeholder="05:00"
+                              className="form-input"
+                              style={{ width: '90px', padding: '8px 12px', fontSize: '13px' }}
+                              title="Тарау ұзақтығы"
+                            />
+
+                            <button
+                              type="button"
+                              onClick={() => removeChapter(idx)}
+                              style={{
+                                background: '#FEE2E2',
+                                border: 'none',
+                                color: '#DC2626',
+                                cursor: 'pointer',
+                                width: '34px',
+                                height: '34px',
+                                borderRadius: '8px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                transition: 'background 0.2s',
+                                flexShrink: 0,
+                              }}
+                              title="Тарауды өшіру"
+                            >
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                              </svg>
+                            </button>
+                          </div>
+
+                          {/* Chapter Audio Source Row (URL + Upload) */}
+                          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                            <div style={{ position: 'relative', flex: '1 1 220px' }}>
+                              <input
+                                type="text"
+                                value={ch.audioUrl || ''}
+                                onChange={(e) => updateChapter(idx, 'audioUrl', e.target.value)}
+                                placeholder="Аудио сілтемесі (https://.../chapter.mp3)"
+                                className="form-input"
+                                style={{
+                                  width: '100%',
+                                  padding: '7px 10px 7px 30px',
+                                  fontSize: '12px',
+                                  boxSizing: 'border-box',
+                                  background: '#FFFFFF',
+                                }}
+                              />
+                              <svg
+                                style={{ position: 'absolute', left: '9px', top: '50%', transform: 'translateY(-50%)', color: '#64748B', pointerEvents: 'none' }}
+                                width="14"
+                                height="14"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                              >
+                                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                              </svg>
+                            </div>
+
+                            {/* Upload Chapter Audio File Button */}
+                            <label
+                              htmlFor={`ch-audio-upload-${idx}`}
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                padding: '7px 14px',
+                                background: '#FFFFFF',
+                                color: '#005494',
+                                border: '1.5px solid #005494',
+                                borderRadius: '6px',
+                                fontSize: '12px',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                whiteSpace: 'nowrap',
+                                transition: 'all 0.15s',
+                              }}
+                            >
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                              </svg>
+                              Файл жүктеу
+                            </label>
+                            <input
+                              type="file"
+                              id={`ch-audio-upload-${idx}`}
+                              accept="audio/*,.mp3,.wav,.ogg,.m4a,.aac"
+                              onChange={(e) => {
+                                const f = e.target.files?.[0];
+                                if (f) handleChapterAudioFile(idx, f);
+                              }}
+                              style={{ display: 'none' }}
+                            />
+
+                            {ch.audioUrl && (
+                              <button
+                                type="button"
+                                onClick={() => updateChapter(idx, 'audioUrl', '')}
+                                style={{
+                                  padding: '6px 10px',
+                                  background: '#F1F5F9',
+                                  color: '#64748B',
+                                  border: '1px solid #CBD5E1',
+                                  borderRadius: '6px',
+                                  fontSize: '11px',
+                                  fontWeight: 700,
+                                  cursor: 'pointer',
+                                }}
+                              >
+                                Тазарту
+                              </button>
+                            )}
+                          </div>
+
+                          {/* Chapter Audio Preview Player */}
+                          {ch.audioUrl && (
+                            <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #E2E8F0' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                                <span style={{ fontSize: '11px', fontWeight: 700, color: '#047857' }}>
+                                  Аудио жазба тыңдау:
+                                </span>
+                              </div>
+                              <audio controls src={ch.audioUrl} style={{ width: '100%', height: '32px' }} />
+                            </div>
+                          )}
                         </div>
                       ))
                     )}
