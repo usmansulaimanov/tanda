@@ -92,6 +92,9 @@ export const AudioPlayerBar: React.FC = () => {
               if (dur && !isNaN(dur) && dur > 0) {
                 setDuration(dur);
               }
+              if (progress > 0) {
+                event.target.seekTo(progress, true);
+              }
               if (isPlaying) {
                 event.target.playVideo();
               }
@@ -268,6 +271,16 @@ export const AudioPlayerBar: React.FC = () => {
           <audio
             ref={audioRef}
             src={audioSrc}
+            onLoadedMetadata={(e) => {
+              const dur = e.currentTarget.duration;
+              if (dur && !isNaN(dur) && dur > 0) setDuration(dur);
+              if (progress > 0 && Math.abs(e.currentTarget.currentTime - progress) > 1) {
+                e.currentTarget.currentTime = progress;
+              }
+              if (isPlaying) {
+                e.currentTarget.play().catch(() => {});
+              }
+            }}
             onTimeUpdate={(e) => {
               const current = e.currentTarget.currentTime;
               const dur = e.currentTarget.duration || duration;
