@@ -1818,9 +1818,9 @@ function renderNavAuth() {
     if (featuresSection) featuresSection.style.display = isAdmin ? 'none' : 'block';
     if (navFeaturesLink) navFeaturesLink.style.display = isAdmin ? 'none' : 'block';
 
-    // «Танымал кітаптар» (Кітаптар қоры) секциясы барлығына — админге де, оқырмандарға да әрқашан көрінеді
-    if (catalogSection) catalogSection.style.display = 'block';
-    if (navCatalogLink) navCatalogLink.style.display = 'block';
+    // Админ аккаунтында «Танымал кітаптар» секциясы мүлдем көрінбейді (ол тек оқырмандарға арналған)
+    if (catalogSection) catalogSection.style.display = isAdmin ? 'none' : 'block';
+    if (navCatalogLink) navCatalogLink.style.display = isAdmin ? 'none' : 'block';
 
     // Админ секциясы (басқару кестесі) тек әкімшіге көрсетіледі
     if (adminSection) adminSection.style.display = isAdmin ? 'block' : 'none';
