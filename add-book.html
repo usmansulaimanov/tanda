@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Жаңа кітап қосу — Tanda</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --blue: #0057A8;
+      --orange: #F08000;
+      --text-dark: #0D1B2A;
+      --text-mid: #4A5568;
+      --bg-light: #F8FAFC;
+      --border-color: #E2E8F0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background-color: #F1F5F9;
+      color: var(--text-dark);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    header {
+      background: #FFFFFF;
+      border-bottom: 1px solid var(--border-color);
+      padding: 16px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    }
+
+    .header-container {
+      max-width: 960px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    .logo-text {
+      font-size: 26px;
+      font-weight: 900;
+      letter-spacing: -0.8px;
+      color: var(--blue);
+    }
+
+    .logo-text span {
+      color: var(--orange);
+    }
+
+    .logo-badge {
+      font-size: 11px;
+      font-weight: 700;
+      color: #0369A1;
+      background: #E0F2FE;
+      padding: 4px 10px;
+      border-radius: 50px;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-mid);
+      text-decoration: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      background: #F8FAFC;
+      border: 1px solid var(--border-color);
+      transition: all 0.2s;
+    }
+
+    .back-link:hover {
+      background: #E2E8F0;
+      color: var(--text-dark);
+    }
+
+    /* Form Container */
+    .main-container {
+      max-width: 860px;
+      width: 100%;
+      margin: 36px auto 60px;
+      padding: 0 20px;
+      flex: 1;
+    }
+
+    .form-card {
+      background: #FFFFFF;
+      border: 1px solid #CBD5E1;
+      border-radius: 16px;
+      padding: 36px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    }
+
+    .page-title {
+      font-size: 26px;
+      font-weight: 900;
+      color: var(--text-dark);
+      letter-spacing: -0.5px;
+    }
+
+    .page-desc {
+      font-size: 14px;
+      color: var(--text-mid);
+      margin-top: 6px;
+      margin-bottom: 28px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 8px;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid var(--border-color);
+      border-radius: 8px;
+      font-size: 14px;
+      color: var(--text-dark);
+      background: #FFFFFF;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(0, 87, 168, 0.12);
+    }
+
+    /* File Section Box */
+    .file-box {
+      background: #F8FAFC;
+      border: 1.5px solid #CBD5E1;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .file-box-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--text-dark);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .status-badge {
+      font-size: 12px;
+      color: #059669;
+      font-weight: 700;
+      margin-top: 6px;
+      display: none;
+    }
+
+    /* Options Box */
+    .options-box {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 24px;
+      background: #F8FAFC;
+      padding: 16px 20px;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      margin-bottom: 28px;
+    }
+
+    .checkbox-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+    }
+
+    .checkbox-item input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--blue);
+      cursor: pointer;
+    }
+
+    .checkbox-item label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-dark);
+      cursor: pointer;
+    }
+
+    /* Buttons */
+    .actions-bar {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 14px;
+      border-top: 1px solid var(--border-color);
+      padding-top: 24px;
+      margin-top: 8px;
+    }
+
+    .btn-save {
+      background: var(--blue);
+      color: #FFFFFF;
+      border: none;
+      padding: 12px 32px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(0, 87, 168, 0.25);
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    .btn-save:hover {
+      background: #004585;
+      transform: translateY(-1px);
+    }
+
+    .btn-cancel {
+      background: #FFFFFF;
+      color: var(--text-mid);
+      border: 1px solid var(--border-color);
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-cancel:hover {
+      background: #F1F5F9;
+      color: var(--text-dark);
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 24px;
+      font-size: 13px;
+      color: var(--text-mid);
+      border-top: 1px solid var(--border-color);
+      background: #FFFFFF;
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-container">
+    <a href="index.html" class="logo-area">
+      <div class="logo-text">tanda<span>.kz</span></div>
+      <span class="logo-badge">Әкімшілік панель</span>
+    </a>
+    <a href="index.html#admin-section" class="back-link">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      Басты бетке қайту
+    </a>
+  </div>
+</header>
+
+<!-- MAIN FORM -->
+<div class="main-container">
+  <div class="form-card">
+    <h1 class="page-title" id="formPageTitle">Жаңа қазақша кітап қосу</h1>
+    <p class="page-desc" id="formPageDesc">Кітаптың мұқабасын, EPUB немесе PDF файлын, аудио сілтемесін және мәліметтерін толтырыңыз. «Сақтау» батырмасын басқан соң кітап автоматты түрде сайтқа қосылады.</p>
+
+    <form id="bookForm" onsubmit="handleSubmitBook(event)">
+      <input type="hidden" id="editBookId">
+
+      <!-- Row 1: Title & Author -->
+      <div class="form-grid">
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label" for="bookTitle">Кітап атауы *</label>
+          <input type="text" id="bookTitle" required class="form-input" placeholder="Мысалы: Бақытсыз Жамал">
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label" for="bookAuthor">Авторы *</label>
+          <input type="text" id="bookAuthor" required class="form-input" placeholder="Мысалы: Міржақып Дулатұлы">
+        </div>
+      </div>
+
+      <!-- Row 2: Category & Pages -->
+      <div class="form-grid">
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label" for="bookCategory">Жанры (Санаты) *</label>
+          <select id="bookCategory" class="form-input">
+            <option value="Классика">Классика</option>
+            <option value="Тұлғалық даму">Тұлғалық даму</option>
+            <option value="Тарих">Тарих</option>
+            <option value="Ертегілер">Ертегілер</option>
+            <option value="Бизнес">Бизнес</option>
+            <option value="Психология">Психология</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label" for="bookPages">Кітаптың бет саны</label>
+          <input type="number" id="bookPages" class="form-input" placeholder="Мысалы: 240" min="1">
+        </div>
+      </div>
+
+      <!-- Cover Image -->
+      <div class="form-group">
+        <label class="form-label">Кітап мұқабасының суреті</label>
+        <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+          <input type="file" id="bookCoverFile" accept="image/*" class="form-input" style="padding:8px; flex:1; min-width:240px;" onchange="handleCoverSelect(event)">
+          <input type="url" id="bookCoverUrl" class="form-input" placeholder="немесе сурет сілтемесі (URL)" style="flex:1; min-width:240px;">
+        </div>
+        <div id="coverPreviewWrap" style="margin-top:14px; display:none;">
+          <img id="coverPreviewImg" src="" alt="Алдын ала көрініс" style="width:90px; height:120px; object-fit:cover; border-radius:8px; border:1px solid #CBD5E1; box-shadow:0 4px 12px rgba(0,0,0,0.08);">
+        </div>
+      </div>
+
+      <!-- EPUB & PDF Files Upload -->
+      <div class="file-box">
+        <div class="file-box-title">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+          Кітап файлдары (PDF және EPUB форматтары)
+        </div>
+
+        <div class="form-grid" style="margin-bottom:16px;">
+          <!-- PDF -->
+          <div>
+            <label class="form-label" style="display:flex; justify-content:space-between;">
+              <span>PDF файлы</span>
+              <span style="font-size:11px; color:#DC2626; font-weight:800;">.pdf</span>
+            </label>
+            <input type="file" id="bookPdfFile" accept=".pdf,application/pdf" class="form-input" style="padding:8px;" onchange="handlePdfSelect(event)">
+            <input type="url" id="bookPdfUrl" class="form-input" placeholder="немесе PDF сілтемесі (URL)" style="margin-top:8px; font-size:13px;">
+            <div id="pdfStatus" class="status-badge">PDF файлы жүктелді</div>
+          </div>
+
+          <!-- EPUB -->
+          <div>
+            <label class="form-label" style="display:flex; justify-content:space-between;">
+              <span>EPUB файлы</span>
+              <span style="font-size:11px; color:#2563EB; font-weight:800;">.epub</span>
+            </label>
+            <input type="file" id="bookEpubFile" accept=".epub,application/epub+zip" class="form-input" style="padding:8px;" onchange="handleEpubSelect(event)">
+            <input type="url" id="bookEpubUrl" class="form-input" placeholder="немесе EPUB сілтемесі (URL)" style="margin-top:8px; font-size:13px;">
+            <div id="epubStatus" class="status-badge">EPUB файлы жүктелді</div>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div>
+          <label class="form-label" for="bookDescription">Кітап туралы қысқаша аңдатпа (сипаттамасы)</label>
+          <textarea id="bookDescription" class="form-input" rows="3" placeholder="Кітап туралы мәлімет, автор туралы қысқаша мазмұны..."></textarea>
+        </div>
+      </div>
+
+      <!-- Audio File URL -->
+      <div class="form-group">
+        <label class="form-label" for="bookAudioUrl">Аудиокітап файлы (URL сілтемесі немесе mp3)</label>
+        <input type="url" id="bookAudioUrl" class="form-input" placeholder="https://... (бос қалдырсаңыз оқырманға сынақ аудио үзіндісі қосылады)">
+      </div>
+
+      <!-- Options: Free test & Archive -->
+      <div class="options-box">
+        <div class="checkbox-item">
+          <input type="checkbox" id="bookIsFree">
+          <label for="bookIsFree">Тегін сынақ кітабы қылып белгілеу</label>
+        </div>
+        <div class="checkbox-item">
+          <input type="checkbox" id="bookIsArchived">
+          <label for="bookIsArchived" style="color:#64748B;">Архивке салу (қолданушыларға көрінбейді)</label>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="actions-bar">
+        <a href="index.html#admin-section" class="btn-cancel">Болдырмау</a>
+        <button type="submit" class="btn-save" id="btnSubmit">Сақтау және сайтқа қосу</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div>© 2026 tanda.kz — Қазақша кітаптар платформасы. Барлық құқықтар қорғалған.</div>
+</footer>
+
+<script>
+// INITIAL SEED BOOKS (if storage is empty)
+const INITIAL_BOOKS = [
+  {
+    id: "kara-sozder",
+    title: "Қара сөздер",
+    author: "Абай Құнанбайұлы",
+    category: "Классика",
+    pages: 140,
+    audioUrl: "",
+    coverImage: "",
+    isFree: true,
+    isArchived: false,
+    gradient: "linear-gradient(135deg, #0057A8, #003d7a)",
+    description: "Абайдың философиялық және адамгершілік ой-толғаулары жинақталған классикалық туынды."
+  },
+  {
+    id: "abai-joly",
+    title: "Абай жолы (1-том)",
+    author: "Мұхтар Әуезов",
+    category: "Классика",
+    pages: 420,
+    audioUrl: "",
+    coverImage: "",
+    isFree: false,
+    isArchived: false,
+    gradient: "linear-gradient(135deg, #1E3A8A, #172554)",
+    description: "Қазақ әдебиетінің шыңы саналатын Мұхтар Әуезовтің әйгілі эпопеясы."
+  },
+  {
+    id: "aldar-kose",
+    title: "Алдар Көсенің айлалары",
+    author: "Қазақ халық ертегілері",
+    category: "Ертегілер",
+    pages: 96,
+    audioUrl: "",
+    coverImage: "",
+    isFree: true,
+    isArchived: false,
+    gradient: "linear-gradient(135deg, #F08000, #c06800)",
+    description: "Алдар Көсенің сараң байлар мен ашкөздерді тапқырлықпен жазалаған хикаялары."
+  }
+];
+
+let books = JSON.parse(localStorage.getItem('tanda_books')) || INITIAL_BOOKS;
+
+let currentCoverBase64 = "";
+let currentPdfBase64 = "";
+let currentPdfName = "";
+let currentEpubBase64 = "";
+let currentEpubName = "";
+
+function handleCoverSelect(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    currentCoverBase64 = evt.target.result;
+    document.getElementById('coverPreviewImg').src = currentCoverBase64;
+    document.getElementById('coverPreviewWrap').style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+function handlePdfSelect(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  currentPdfName = file.name;
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    currentPdfBase64 = evt.target.result;
+    const st = document.getElementById('pdfStatus');
+    st.textContent = 'PDF жүктелді: ' + file.name;
+    st.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+function handleEpubSelect(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  currentEpubName = file.name;
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    currentEpubBase64 = evt.target.result;
+    const st = document.getElementById('epubStatus');
+    st.textContent = 'EPUB жүктелді: ' + file.name;
+    st.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+// CHECK EDIT PARAM
+window.addEventListener('DOMContentLoaded', () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const editId = urlParams.get('id');
+
+  if (editId) {
+    const book = books.find(b => b.id === editId);
+    if (book) {
+      document.getElementById('formPageTitle').textContent = 'Кітапты өңдеу: ' + book.title;
+      document.getElementById('formPageDesc').textContent = 'Кітап мәліметтерін, файлдарын немесе мұқабасын жаңартыңыз.';
+      document.getElementById('btnSubmit').textContent = 'Өзгерістерді сақтау';
+      document.getElementById('editBookId').value = book.id;
+      document.getElementById('bookTitle').value = book.title || '';
+      document.getElementById('bookAuthor').value = book.author || '';
+      document.getElementById('bookCategory').value = book.category || 'Классика';
+      document.getElementById('bookPages').value = book.pages || '';
+      document.getElementById('bookCoverUrl').value = (book.coverImage && book.coverImage.startsWith('http')) ? book.coverImage : '';
+      document.getElementById('bookPdfUrl').value = book.pdfUrl || '';
+      document.getElementById('bookEpubUrl').value = book.epubUrl || '';
+      document.getElementById('bookDescription').value = book.description || book.content || '';
+      document.getElementById('bookAudioUrl').value = book.audioUrl || '';
+      document.getElementById('bookIsFree').checked = !!book.isFree;
+      document.getElementById('bookIsArchived').checked = !!book.isArchived;
+
+      currentCoverBase64 = (book.coverImage && !book.coverImage.startsWith('http')) ? book.coverImage : '';
+      if (book.coverImage) {
+        document.getElementById('coverPreviewImg').src = book.coverImage;
+        document.getElementById('coverPreviewWrap').style.display = 'block';
+      }
+
+      currentPdfBase64 = book.pdfData || '';
+      currentPdfName = book.pdfName || '';
+      if (book.pdfData || book.pdfUrl) {
+        const st = document.getElementById('pdfStatus');
+        st.textContent = 'PDF бар: ' + (book.pdfName || book.pdfUrl || 'Файл бекітілген');
+        st.style.display = 'block';
+      }
+
+      currentEpubBase64 = book.epubData || '';
+      currentEpubName = book.epubName || '';
+      if (book.epubData || book.epubUrl) {
+        const st = document.getElementById('epubStatus');
+        st.textContent = 'EPUB бар: ' + (book.epubName || book.epubUrl || 'Файл бекітілген');
+        st.style.display = 'block';
+      }
+    }
+  }
+});
+
+function handleSubmitBook(e) {
+  e.preventDefault();
+  const editId = document.getElementById('editBookId').value;
+  const title = document.getElementById('bookTitle').value.trim();
+  const author = document.getElementById('bookAuthor').value.trim();
+  const category = document.getElementById('bookCategory').value;
+  const pages = parseInt(document.getElementById('bookPages').value) || null;
+  const coverUrlInput = document.getElementById('bookCoverUrl').value.trim();
+  const pdfUrlInput = document.getElementById('bookPdfUrl').value.trim();
+  const epubUrlInput = document.getElementById('bookEpubUrl').value.trim();
+  const description = document.getElementById('bookDescription').value.trim();
+  const audioUrl = document.getElementById('bookAudioUrl').value.trim();
+  const isFree = document.getElementById('bookIsFree').checked;
+  const isArchived = document.getElementById('bookIsArchived').checked;
+
+  if (!title || !author) {
+    alert('Кітап атауы мен авторын толтырыңыз!');
+    return;
+  }
+
+  const finalCover = currentCoverBase64 || coverUrlInput || "";
+
+  const gradients = [
+    "linear-gradient(135deg, #0057A8, #003d7a)",
+    "linear-gradient(135deg, #F08000, #c06800)",
+    "linear-gradient(135deg, #065F46, #022C22)",
+    "linear-gradient(135deg, #7C3AED, #4C1D95)",
+    "linear-gradient(135deg, #B45309, #78350F)",
+    "linear-gradient(135deg, #DC2626, #7F1D1D)"
+  ];
+
+  if (editId) {
+    const idx = books.findIndex(b => b.id === editId);
+    if (idx !== -1) {
+      books[idx].title = title;
+      books[idx].author = author;
+      books[idx].category = category;
+      books[idx].pages = pages;
+      if (finalCover) books[idx].coverImage = finalCover;
+      if (currentPdfBase64) books[idx].pdfData = currentPdfBase64;
+      if (currentPdfName) books[idx].pdfName = currentPdfName;
+      if (pdfUrlInput) books[idx].pdfUrl = pdfUrlInput;
+
+      if (currentEpubBase64) books[idx].epubData = currentEpubBase64;
+      if (currentEpubName) books[idx].epubName = currentEpubName;
+      if (epubUrlInput) books[idx].epubUrl = epubUrlInput;
+
+      books[idx].description = description;
+      books[idx].content = description || books[idx].content || "";
+      books[idx].audioUrl = audioUrl;
+      books[idx].isFree = isFree;
+      books[idx].isArchived = isArchived;
+      alert(`«${title}» кітабы сәтті жаңартылды!`);
+    }
+  } else {
+    const newBook = {
+      id: "book-" + Date.now(),
+      title,
+      author,
+      category,
+      pages,
+      coverImage: finalCover,
+      pdfData: currentPdfBase64,
+      pdfName: currentPdfName,
+      pdfUrl: pdfUrlInput,
+      epubData: currentEpubBase64,
+      epubName: currentEpubName,
+      epubUrl: epubUrlInput,
+      description,
+      content: description || "",
+      audioUrl,
+      isFree,
+      isArchived,
+      gradient: gradients[Math.floor(Math.random() * gradients.length)]
+    };
+    books.unshift(newBook);
+    alert(`«${title}» кітабы сайтқа сәтті қосылды!`);
+  }
+
+  localStorage.setItem('tanda_books', JSON.stringify(books));
+  window.location.href = 'index.html#admin-section';
+}
+</script>
+</body>
+</html>

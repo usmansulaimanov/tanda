@@ -1124,11 +1124,11 @@
             <span style="display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:#047857; background:#ECFDF5; padding:6px 12px; border-radius:6px;"><span style="width:8px; height:8px; border-radius:50%; background:#10B981;"></span> Белсенді</span>
             <span style="display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:#64748B; background:#F1F5F9; padding:6px 12px; border-radius:6px;"><span style="width:8px; height:8px; border-radius:50%; background:#94A3B8;"></span> Архивте (Жасырын)</span>
           </div>
-          <!-- ҚОСУ БАТЫРМАСЫ -->
-          <button type="button" class="btn-primary" onclick="openAddBookModal()" style="padding:10px 24px; font-size:14px; font-weight:800; display:inline-flex; align-items:center; gap:8px; box-shadow:0 4px 14px rgba(0,87,168,0.25);">
+          <!-- ҚОСУ БАТЫРМАСЫ ЖАҢА ПАРАҚШАҒА АПАРАДЫ -->
+          <a href="add-book.html" class="btn-primary" style="text-decoration:none; padding:10px 24px; font-size:14px; font-weight:800; display:inline-flex; align-items:center; gap:8px; box-shadow:0 4px 14px rgba(0,87,168,0.25);">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
             Қосу
-          </button>
+          </a>
         </div>
       </div>
 
@@ -1275,7 +1275,7 @@
         <h2 style="font-size:22px; font-weight:900; color:var(--text-dark);">Tanda — Әкімшілік панель</h2>
         <p style="font-size:13px; color:var(--text-mid);">Кітаптарды, аудиоларды және қолданушылар базасын басқару</p>
       </div>
-      <button class="btn-primary" style="padding:8px 18px; font-size:13px;" onclick="openAddBookModal()">+ Жаңа кітап қосу</button>
+      <a href="add-book.html" class="btn-primary" style="text-decoration:none; padding:8px 18px; font-size:13px; display:inline-block;">+ Жаңа кітап қосу</a>
     </div>
 
     <!-- Admin Stats Overview -->
@@ -2172,7 +2172,7 @@ function renderAdminTables() {
           </button>
         </td>
         <td style="text-align:right; white-space:nowrap;">
-          <button style="border:none; background:#E0F2FE; color:#0369A1; padding:5px 10px; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer; margin-right:4px;" onclick="openEditBookModal('${b.id}')">Өңдеу</button>
+          <a href="add-book.html?id=${b.id}" style="text-decoration:none; display:inline-block; border:none; background:#E0F2FE; color:#0369A1; padding:5px 10px; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer; margin-right:4px;">Өңдеу</a>
           <button style="border:none; background:#FEE2E2; color:#B91C1C; padding:5px 10px; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer;" onclick="deleteBook('${b.id}')">Өшіру</button>
         </td>
       </tr>
@@ -2513,7 +2513,7 @@ function renderSectionAdminBooks() {
           </button>
         </td>
         <td style="text-align:right; white-space:nowrap;">
-          <button style="border:none; background:#E0F2FE; color:#0369A1; padding:6px 12px; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer; margin-right:4px;" onclick="openEditBookModal('${b.id}')">Өңдеу</button>
+          <a href="add-book.html?id=${b.id}" style="text-decoration:none; display:inline-block; border:none; background:#E0F2FE; color:#0369A1; padding:6px 12px; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer; margin-right:4px;">Өңдеу</a>
           <button style="border:none; background:#FEE2E2; color:#B91C1C; padding:6px 12px; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer;" onclick="deleteBook('${b.id}')">Өшіру</button>
         </td>
       </tr>
