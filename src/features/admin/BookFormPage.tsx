@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useBookStore } from '../../store/useBookStore';
 import { useToastStore } from '../../store/useToastStore';
 import { AudioChapter } from '../../types';
-import tandaLogo from '../../assets/tanda-logo.png';
 
 const CATEGORIES = [
   'Классика',
@@ -15,11 +14,11 @@ const CATEGORIES = [
 ];
 
 const GRADIENT_PRESETS = [
-  { name: 'Көк классика', value: 'linear-gradient(135deg, #0057A8, #003d7a)' },
-  { name: 'Жылы сары', value: 'linear-gradient(135deg, #F08000, #c06800)' },
-  { name: 'Терең көк', value: 'linear-gradient(135deg, #1E3A8A, #172554)' },
-  { name: 'Изумруд жасыл', value: 'linear-gradient(135deg, #065F46, #022C22)' },
-  { name: 'Күлгін рубин', value: 'linear-gradient(135deg, #7C3AED, #4C1D95)' },
+  { name: 'Көк классика', value: 'linear-gradient(135deg, #005494, #002D50)' },
+  { name: 'Фирменный сары', value: 'linear-gradient(135deg, #EF7E00, #B85F00)' },
+  { name: 'Терең мұхит', value: 'linear-gradient(135deg, #0284C7, #0369A1)' },
+  { name: 'Изумруд жасыл', value: 'linear-gradient(135deg, #059669, #064E3B)' },
+  { name: 'Күлгін кеш', value: 'linear-gradient(135deg, #7C3AED, #4C1D95)' },
   { name: 'Қоңыр кітап', value: 'linear-gradient(135deg, #B45309, #78350F)' },
   { name: 'Қызыл екпін', value: 'linear-gradient(135deg, #DC2626, #7F1D1D)' },
 ];
@@ -29,6 +28,7 @@ export const BookFormPage: React.FC = () => {
   const navigate = useNavigate();
   const { books, addBook, updateBook } = useBookStore();
   const { showToast } = useToastStore();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isEditing = Boolean(id);
   const existingBook = isEditing ? books.find((b) => b.id === id) : null;
@@ -42,7 +42,6 @@ export const BookFormPage: React.FC = () => {
   const [gradient, setGradient] = useState(GRADIENT_PRESETS[0].value);
   const [coverImage, setCoverImage] = useState('');
 
-  // Audio settings
   const [hasAudio, setHasAudio] = useState(false);
   const [audioNarrator, setAudioNarrator] = useState('');
   const [audioDuration, setAudioDuration] = useState('');
@@ -80,6 +79,13 @@ export const BookFormPage: React.FC = () => {
     }
   };
 
+  const removeCoverImage = () => {
+    setCoverImage('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const addChapter = () => {
     const newCh: AudioChapter = {
       id: `ch-${Date.now()}`,
@@ -108,81 +114,58 @@ export const BookFormPage: React.FC = () => {
       return;
     }
     if (!author.trim()) {
-      showToast('Автор есімін енгізіңіз', 'error');
+      showToast('Автордың аты-жөнін енгізіңіз', 'error');
       return;
     }
 
     const payload = {
-      title,
-      author,
+      title: title.trim(),
+      author: author.trim(),
       category,
       pages: pages ? parseInt(pages, 10) : null,
-      description,
+      description: description.trim(),
       isFree,
       isArchived: existingBook ? existingBook.isArchived : false,
       gradient,
       coverImage,
       hasAudio,
-      audioNarrator: hasAudio ? audioNarrator : undefined,
-      audioDuration: hasAudio ? audioDuration : undefined,
-      audioUrl: hasAudio ? audioUrl : undefined,
+      audioNarrator: hasAudio ? audioNarrator.trim() : undefined,
+      audioDuration: hasAudio ? audioDuration.trim() : undefined,
+      audioUrl: hasAudio ? audioUrl.trim() : undefined,
       audioChapters: hasAudio ? audioChapters : [],
     };
 
     if (isEditing && existingBook) {
       updateBook(existingBook.id, payload);
-      showToast('Кітап сәтті сақталды және жаңартылды!', 'success');
+      showToast('Кітап сәтті жаңартылды!', 'success');
     } else {
       addBook(payload);
-      showToast('Жаңа кітап сәтті қосылды!', 'success');
+      showToast('Жаңа кітап қорына сәтті қосылды!', 'success');
     }
 
-    // Automatically navigate back to admin dashboard
     navigate('/admin');
   };
 
   return (
-    <div style={{ backgroundColor: '#F1F5F9', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* Top Header (Exact add-book.html design) */}
-      <header
-        style={{
-          background: '#FFFFFF',
-          borderBottom: '1px solid #E2E8F0',
-          padding: '16px 24px',
-          position: 'sticky',
-          top: 0,
-          zIndex: 50,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
-        }}
-      >
+    <div style={{ backgroundColor: '#F8FAFC', minHeight: 'calc(100vh - 80px)', padding: '32px 16px 80px' }}>
+      <div style={{ maxWidth: '860px', margin: '0 auto' }}>
         <div
           style={{
-            maxWidth: '960px',
-            margin: '0 auto',
             display: 'flex',
-            justifyContent: 'space-between',
             alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '24px',
+            flexWrap: 'wrap',
+            gap: '12px',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <Link to="/" style={{ display: 'flex', alignItems: 'center' }}>
-              <img
-                src={tandaLogo}
-                alt="Tanda"
-                style={{ height: '32px', width: 'auto', display: 'block', objectFit: 'contain' }}
-              />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#64748B' }}>
+            <Link to="/admin" style={{ color: '#005494', fontWeight: 600, textDecoration: 'none' }}>
+              Басқару панелі
             </Link>
-            <span
-              style={{
-                fontSize: '11px',
-                fontWeight: 700,
-                color: '#0369A1',
-                background: '#E0F2FE',
-                padding: '4px 10px',
-                borderRadius: '50px',
-              }}
-            >
-              Админ панелі
+            <span>/</span>
+            <span style={{ color: '#0F172A', fontWeight: 600 }}>
+              {isEditing ? 'Кітапты өңдеу' : 'Жаңа кітап қосу'}
             </span>
           </div>
 
@@ -191,42 +174,58 @@ export const BookFormPage: React.FC = () => {
             style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '8px',
-              fontSize: '14px',
+              gap: '6px',
+              fontSize: '13px',
               fontWeight: 700,
-              color: 'var(--text-mid)',
+              color: '#005494',
               textDecoration: 'none',
               padding: '8px 16px',
               borderRadius: '8px',
-              background: '#F8FAFC',
-              border: '1px solid #E2E8F0',
+              background: '#FFFFFF',
+              border: '1.5px solid #E2E8F0',
+              transition: 'all 0.2s',
             }}
           >
-            ← Артқа оралу
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="19" y1="12" x2="5" y2="12"></line>
+              <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+            Басқару панеліне қайту
           </Link>
         </div>
-      </header>
 
-      {/* Main Container */}
-      <div style={{ maxWidth: '860px', width: '100%', margin: '36px auto 60px', padding: '0 20px', flex: 1 }}>
         <div
           style={{
             background: '#FFFFFF',
-            border: '1px solid #CBD5E1',
+            border: '1.5px solid #E2E8F0',
             borderRadius: '16px',
             padding: '36px',
-            boxShadow: '0 10px 30px rgba(0,0,0,0.05)',
+            boxShadow: '0 4px 20px -2px rgba(0, 84, 148, 0.05), 0 2px 6px -1px rgba(0, 0, 0, 0.03)',
           }}
         >
-          <h1 style={{ fontSize: '26px', fontWeight: 900, color: 'var(--text-dark)', letterSpacing: '-0.5px' }}>
-            {isEditing ? 'Кітапты өңдеу' : 'Жаңа кітап қосу'}
-          </h1>
-          <p style={{ fontSize: '14px', color: 'var(--text-mid)', marginTop: '6px', marginBottom: '28px' }}>
-            {isEditing ? 'Кітап параметрлерін өзгертіп, сақтауды басыңыз' : 'Кітапхана қорына жаңа әдебиет немесе аудиокітапты тіркеу'}
-          </p>
+          <div style={{ borderBottom: '1.5px solid #F1F5F9', paddingBottom: '20px', marginBottom: '28px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+              <span
+                style={{
+                  display: 'inline-block',
+                  width: '8px',
+                  height: '24px',
+                  backgroundColor: '#EF7E00',
+                  borderRadius: '4px',
+                }}
+              />
+              <h1 style={{ fontSize: '24px', fontWeight: 900, color: '#0F172A', letterSpacing: '-0.02em', margin: 0 }}>
+                {isEditing ? 'Кітап мәліметтерін өңдеу' : 'Жаңа кітап тіркеу'}
+              </h1>
+            </div>
+            <p style={{ fontSize: '14px', color: '#64748B', margin: 0, paddingLeft: '18px' }}>
+              {isEditing
+                ? 'Кітап параметрлерін өзгертіп, төмендегі сақтау түймесін басыңыз'
+                : 'Кітапхана қорына жаңа әдебиет немесе аудиокітап қосу'}
+            </p>
+          </div>
 
           <form onSubmit={handleSubmit}>
-            {/* Form grid */}
             <div
               style={{
                 display: 'grid',
@@ -235,8 +234,10 @@ export const BookFormPage: React.FC = () => {
                 marginBottom: '20px',
               }}
             >
-              <div className="form-group">
-                <label className="form-label">Кітап атауы *</label>
+              <div className="form-group" style={{ margin: 0 }}>
+                <label className="form-label">
+                  Кітап атауы <span className="req">*</span>
+                </label>
                 <input
                   type="text"
                   required
@@ -247,8 +248,10 @@ export const BookFormPage: React.FC = () => {
                 />
               </div>
 
-              <div className="form-group">
-                <label className="form-label">Автордың аты-жөні *</label>
+              <div className="form-group" style={{ margin: 0 }}>
+                <label className="form-label">
+                  Автордың аты-жөні <span className="req">*</span>
+                </label>
                 <input
                   type="text"
                   required
@@ -258,13 +261,22 @@ export const BookFormPage: React.FC = () => {
                   placeholder="Мысалы: Мұхтар Әуезов"
                 />
               </div>
+            </div>
 
-              <div className="form-group">
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                gap: '20px',
+                marginBottom: '20px',
+              }}
+            >
+              <div className="form-group" style={{ margin: 0 }}>
                 <label className="form-label">Жанры / Санаты</label>
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="form-input"
+                  className="form-select"
                 >
                   {CATEGORIES.map((c) => (
                     <option key={c} value={c}>{c}</option>
@@ -272,10 +284,11 @@ export const BookFormPage: React.FC = () => {
                 </select>
               </div>
 
-              <div className="form-group">
+              <div className="form-group" style={{ margin: 0 }}>
                 <label className="form-label">Бет саны</label>
                 <input
                   type="number"
+                  min="1"
                   value={pages}
                   onChange={(e) => setPages(e.target.value)}
                   className="form-input"
@@ -290,113 +303,235 @@ export const BookFormPage: React.FC = () => {
                 rows={4}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="form-input"
-                placeholder="Кітап мазмұны туралы қысқаша..."
+                className="form-textarea"
+                placeholder="Кітаптың қысқаша мазмұны, тақырыбы немесе оқырманға арналған ақпарат..."
                 style={{ resize: 'vertical' }}
               />
             </div>
 
-            {/* MUKABA DIZAINY (Cover Design box) */}
             <div
               style={{
                 background: '#F8FAFC',
-                border: '1.5px solid #CBD5E1',
-                borderRadius: '12px',
+                border: '1.5px solid #E2E8F0',
+                borderRadius: '14px',
                 padding: '24px',
                 marginBottom: '24px',
               }}
             >
-              <h3 style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-dark)', marginBottom: '16px' }}>
-                Мұқаба дизайны мен градиент
-              </h3>
-
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '20px' }}>
-                {/* Presets */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px', flexWrap: 'wrap', gap: '8px' }}>
                 <div>
-                  <label className="form-label" style={{ fontSize: '12px' }}>Градиентті таңдаңыз:</label>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
-                    {GRADIENT_PRESETS.map((p) => (
-                      <button
-                        key={p.value}
-                        type="button"
-                        onClick={() => {
-                          setGradient(p.value);
-                          setCoverImage('');
-                        }}
-                        style={{
-                          background: p.value,
-                          color: '#FFF',
-                          padding: '10px 8px',
-                          borderRadius: '8px',
-                          border: gradient === p.value && !coverImage ? '2.5px solid #000' : 'none',
-                          fontSize: '11px',
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                        }}
-                      >
-                        {p.name}
-                      </button>
-                    ))}
+                  <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                    Мұқаба дизайны мен безендіру
+                  </h3>
+                  <p style={{ fontSize: '12px', color: '#64748B', margin: '4px 0 0' }}>
+                    Дайын фирменный градиенттерді таңдаңыз немесе жеке мұқаба суретін жүктеңіз
+                  </p>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', alignItems: 'start' }}>
+                <div>
+                  <label className="form-label" style={{ fontSize: '12px', color: '#475569' }}>
+                    Фирменный түс палитрасы:
+                  </label>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '8px' }}>
+                    {GRADIENT_PRESETS.map((p) => {
+                      const isSelected = !coverImage && gradient === p.value;
+                      return (
+                        <button
+                          key={p.value}
+                          type="button"
+                          onClick={() => {
+                            setGradient(p.value);
+                            setCoverImage('');
+                          }}
+                          style={{
+                            background: p.value,
+                            color: '#FFFFFF',
+                            padding: '10px 8px',
+                            borderRadius: '8px',
+                            border: isSelected ? '2.5px solid #005494' : '1px solid rgba(0, 0, 0, 0.08)',
+                            boxShadow: isSelected ? '0 0 0 3px rgba(0, 84, 148, 0.25)' : 'none',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            textAlign: 'center',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '4px',
+                            transition: 'all 0.15s',
+                          }}
+                        >
+                          {isSelected && (
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                          )}
+                          {p.name}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
-                {/* Upload Image */}
                 <div>
-                  <label className="form-label" style={{ fontSize: '12px' }}>Немесе мұқаба суретін жүктеңіз:</label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageFileChange}
-                    style={{ fontSize: '13px', marginTop: '4px' }}
-                  />
+                  <label className="form-label" style={{ fontSize: '12px', color: '#475569' }}>
+                    Мұқаба суреті немесе алдын ала көрініс:
+                  </label>
 
-                  {/* Preview Box */}
-                  <div style={{ marginTop: '16px', display: 'flex', alignItems: 'center', gap: '14px' }}>
+                  <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
                     <div
                       style={{
-                        width: '64px',
-                        height: '84px',
+                        width: '84px',
+                        height: '116px',
                         borderRadius: '6px',
-                        background: coverImage ? `url(${coverImage}) center/cover` : gradient,
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                        background: coverImage ? `url(${coverImage}) center/cover no-repeat` : gradient,
+                        boxShadow: '0 8px 18px rgba(0, 40, 80, 0.2), 0 2px 4px rgba(0, 0, 0, 0.08)',
                         display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: '#FFF',
-                        fontSize: '9px',
-                        fontWeight: 800,
-                        textAlign: 'center',
-                        padding: '4px',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        padding: '8px',
+                        color: '#FFFFFF',
+                        flexShrink: 0,
+                        position: 'relative',
+                        overflow: 'hidden',
+                        borderLeft: '4px solid rgba(255, 255, 255, 0.2)',
                       }}
                     >
-                      {!coverImage && (title || 'Мұқаба')}
+                      {!coverImage && (
+                        <>
+                          <div style={{ fontSize: '8px', fontWeight: 800, lineHeight: 1.1, textTransform: 'uppercase', letterSpacing: '0.04em', opacity: 0.9 }}>
+                            {category}
+                          </div>
+                          <div style={{ fontSize: '10px', fontWeight: 900, lineHeight: 1.2, margin: 'auto 0' }}>
+                            {title || 'Кітап атауы'}
+                          </div>
+                          <div style={{ fontSize: '8px', opacity: 0.85, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {author || 'Автор'}
+                          </div>
+                        </>
+                      )}
                     </div>
-                    <span style={{ fontSize: '12px', color: 'var(--text-mid)' }}>Алдын ала көрініс (Preview)</span>
+
+                    <div style={{ flex: 1 }}>
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        accept="image/*"
+                        onChange={handleImageFileChange}
+                        style={{ display: 'none' }}
+                        id="cover-file-upload"
+                      />
+
+                      <label
+                        htmlFor="cover-file-upload"
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          padding: '10px 16px',
+                          background: '#FFFFFF',
+                          border: '1.5px solid #005494',
+                          color: '#005494',
+                          borderRadius: '8px',
+                          fontSize: '13px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          transition: 'all 0.2s',
+                        }}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                          <polyline points="17 8 12 3 7 8"></polyline>
+                          <line x1="12" y1="3" x2="12" y2="15"></line>
+                        </svg>
+                        Сурет таңдау...
+                      </label>
+
+                      {coverImage && (
+                        <button
+                          type="button"
+                          onClick={removeCoverImage}
+                          style={{
+                            display: 'block',
+                            marginTop: '8px',
+                            background: 'none',
+                            border: 'none',
+                            color: '#DC2626',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            padding: 0,
+                          }}
+                        >
+                          Суретті өшіру (Градиентке қайту)
+                        </button>
+                      )}
+
+                      <span className="form-hint" style={{ marginTop: '6px' }}>
+                        Форматтары: JPG, PNG, WEBP. Ұсынылатын өлшемі: 600x800 px
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* AUDIOKITAP SECTION */}
             <div
               style={{
                 background: '#F8FAFC',
-                border: '1.5px solid #CBD5E1',
-                borderRadius: '12px',
+                border: '1.5px solid #E2E8F0',
+                borderRadius: '14px',
                 padding: '24px',
                 marginBottom: '24px',
               }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <h3 style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-dark)' }}>
-                  Аудиокітап параметрлері
-                </h3>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 700 }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  paddingBottom: hasAudio ? '16px' : '0',
+                  borderBottom: hasAudio ? '1.5px solid #E2E8F0' : 'none',
+                  marginBottom: hasAudio ? '20px' : '0',
+                }}
+              >
+                <div>
+                  <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                    Аудиокітап мүмкіндігі
+                  </h3>
+                  <p style={{ fontSize: '12px', color: '#64748B', margin: '4px 0 0' }}>
+                    Бұл басылымға аудиожазба немесе диктор дауысын бекіту
+                  </p>
+                </div>
+
+                <label
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    cursor: 'pointer',
+                    background: '#FFFFFF',
+                    padding: '8px 16px',
+                    borderRadius: '50px',
+                    border: '1.5px solid #CBD5E1',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    color: '#0F172A',
+                    userSelect: 'none',
+                  }}
+                >
                   <input
                     type="checkbox"
                     checked={hasAudio}
                     onChange={(e) => setHasAudio(e.target.checked)}
-                    style={{ width: '16px', height: '16px' }}
+                    style={{
+                      accentColor: '#005494',
+                      width: '16px',
+                      height: '16px',
+                      cursor: 'pointer',
+                    }}
                   />
                   Аудио нұсқасы бар
                 </label>
@@ -404,9 +539,18 @@ export const BookFormPage: React.FC = () => {
 
               {hasAudio && (
                 <div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
-                    <div>
-                      <label className="form-label" style={{ fontSize: '12px' }}>Диктор</label>
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+                      gap: '18px',
+                      marginBottom: '20px',
+                    }}
+                  >
+                    <div className="form-group" style={{ margin: 0 }}>
+                      <label className="form-label" style={{ fontSize: '12px' }}>
+                        Диктор (Дауыстаған)
+                      </label>
                       <input
                         type="text"
                         value={audioNarrator}
@@ -415,8 +559,11 @@ export const BookFormPage: React.FC = () => {
                         placeholder="Мысалы: Берік Айтжанов"
                       />
                     </div>
-                    <div>
-                      <label className="form-label" style={{ fontSize: '12px' }}>Жалпы ұзақтығы</label>
+
+                    <div className="form-group" style={{ margin: 0 }}>
+                      <label className="form-label" style={{ fontSize: '12px' }}>
+                        Жалпы ұзақтығы
+                      </label>
                       <input
                         type="text"
                         value={audioDuration}
@@ -427,90 +574,196 @@ export const BookFormPage: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Chapters */}
-                  <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: '16px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                      <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-dark)' }}>
+                  <div
+                    style={{
+                      background: '#FFFFFF',
+                      border: '1.5px solid #E2E8F0',
+                      borderRadius: '10px',
+                      padding: '16px',
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: '14px',
+                      }}
+                    >
+                      <span style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>
                         Тараулар ({audioChapters.length})
                       </span>
+
                       <button
                         type="button"
                         onClick={addChapter}
                         style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
                           padding: '6px 14px',
                           fontSize: '12px',
                           fontWeight: 700,
-                          background: 'var(--blue-light)',
-                          color: 'var(--blue)',
+                          background: '#E8F1FB',
+                          color: '#005494',
                           border: 'none',
                           borderRadius: '6px',
                           cursor: 'pointer',
+                          transition: 'background 0.2s',
                         }}
                       >
-                        + Тарау қосу
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <line x1="12" y1="5" x2="12" y2="19"></line>
+                          <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        Тарау қосу
                       </button>
                     </div>
 
-                    {audioChapters.map((ch, idx) => (
-                      <div
-                        key={ch.id || idx}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '10px',
-                          marginBottom: '8px',
-                          background: '#FFF',
-                          padding: '8px 12px',
-                          borderRadius: '8px',
-                          border: '1px solid #E2E8F0',
-                        }}
-                      >
-                        <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-mid)', width: '20px' }}>
-                          {idx + 1}.
-                        </span>
-                        <input
-                          type="text"
-                          value={ch.title}
-                          onChange={(e) => updateChapter(idx, 'title', e.target.value)}
-                          placeholder="Тарау атауы"
-                          style={{ flex: 1, padding: '6px 10px', border: '1px solid #CBD5E1', borderRadius: '6px', fontSize: '13px' }}
-                        />
-                        <input
-                          type="text"
-                          value={ch.duration}
-                          onChange={(e) => updateChapter(idx, 'duration', e.target.value)}
-                          placeholder="03:45"
-                          style={{ width: '80px', padding: '6px 10px', border: '1px solid #CBD5E1', borderRadius: '6px', fontSize: '13px' }}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removeChapter(idx)}
-                          style={{ background: 'none', border: 'none', color: '#DC2626', cursor: 'pointer', fontWeight: 700 }}
+                    {audioChapters.length === 0 ? (
+                      <p style={{ fontSize: '12px', color: '#94A3B8', textAlign: 'center', margin: '12px 0' }}>
+                        Әзірге тараулар қосылмаған. «Тарау қосу» түймесін басыңыз.
+                      </p>
+                    ) : (
+                      audioChapters.map((ch, idx) => (
+                        <div
+                          key={ch.id || idx}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                            marginBottom: '10px',
+                            background: '#F8FAFC',
+                            padding: '10px 12px',
+                            borderRadius: '8px',
+                            border: '1px solid #E2E8F0',
+                          }}
                         >
-                          ✕
-                        </button>
-                      </div>
-                    ))}
+                          <span style={{ fontSize: '12px', fontWeight: 800, color: '#64748B', width: '22px' }}>
+                            {idx + 1}.
+                          </span>
+                          <input
+                            type="text"
+                            value={ch.title}
+                            onChange={(e) => updateChapter(idx, 'title', e.target.value)}
+                            placeholder="Тарау атауы"
+                            className="form-input"
+                            style={{ flex: 1, padding: '8px 12px', fontSize: '13px' }}
+                          />
+                          <input
+                            type="text"
+                            value={ch.duration}
+                            onChange={(e) => updateChapter(idx, 'duration', e.target.value)}
+                            placeholder="05:00"
+                            className="form-input"
+                            style={{ width: '90px', padding: '8px 12px', fontSize: '13px' }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeChapter(idx)}
+                            style={{
+                              background: '#FEE2E2',
+                              border: 'none',
+                              color: '#DC2626',
+                              cursor: 'pointer',
+                              width: '32px',
+                              height: '32px',
+                              borderRadius: '6px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              transition: 'background 0.2s',
+                              flexShrink: 0,
+                            }}
+                            title="Тарауды өшіру"
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <line x1="18" y1="6" x2="6" y2="18"></line>
+                              <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                          </button>
+                        </div>
+                      ))
+                    )}
                   </div>
                 </div>
               )}
             </div>
 
-            {/* FREE / PAID TOGGLE */}
-            <div style={{ marginBottom: '28px' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '14px', fontWeight: 700 }}>
+            <div
+              style={{
+                background: isFree ? '#F0FDF4' : '#FFFBEB',
+                border: isFree ? '1.5px solid #BBF7D0' : '1.5px solid #FDE68A',
+                borderRadius: '12px',
+                padding: '16px 20px',
+                marginBottom: '32px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '12px',
+                flexWrap: 'wrap',
+              }}
+            >
+              <div>
+                <span
+                  style={{
+                    display: 'inline-block',
+                    fontSize: '11px',
+                    fontWeight: 800,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    padding: '2px 8px',
+                    borderRadius: '4px',
+                    background: isFree ? '#22C55E' : '#D97706',
+                    color: '#FFFFFF',
+                    marginBottom: '4px',
+                  }}
+                >
+                  {isFree ? 'Тегін кітап' : 'Премиум жазылым'}
+                </span>
+                <p style={{ fontSize: '13px', color: '#1E293B', margin: 0, fontWeight: 600 }}>
+                  {isFree
+                    ? 'Бұл кітап барлық оқырмандар үшін тегін қолжетімді болады'
+                    : 'Бұл кітапты тек премиум жазылымы бар пайдаланушылар оқи алады'}
+                </p>
+              </div>
+
+              <label
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  cursor: 'pointer',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  color: '#0F172A',
+                }}
+              >
                 <input
                   type="checkbox"
                   checked={isFree}
                   onChange={(e) => setIsFree(e.target.checked)}
-                  style={{ width: '18px', height: '18px' }}
+                  style={{
+                    accentColor: '#005494',
+                    width: '18px',
+                    height: '18px',
+                    cursor: 'pointer',
+                  }}
                 />
-                Бұл кітап тегін оқырмандарға қолжетімді
+                Тегін кітап ретінде белгілеу
               </label>
             </div>
 
-            {/* ACTION BUTTONS */}
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '14px', borderTop: '1px solid #E2E8F0', paddingTop: '24px' }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+                alignItems: 'center',
+                gap: '14px',
+                borderTop: '1.5px solid #F1F5F9',
+                paddingTop: '24px',
+              }}
+            >
               <button
                 type="button"
                 onClick={() => navigate('/admin')}
@@ -518,11 +771,12 @@ export const BookFormPage: React.FC = () => {
                   padding: '12px 28px',
                   borderRadius: '50px',
                   border: '1.5px solid #CBD5E1',
-                  background: '#FFF',
+                  background: '#FFFFFF',
                   fontWeight: 700,
                   fontSize: '14px',
-                  color: 'var(--text-dark)',
+                  color: '#475569',
                   cursor: 'pointer',
+                  transition: 'all 0.2s',
                 }}
               >
                 Болдырмау
@@ -530,10 +784,28 @@ export const BookFormPage: React.FC = () => {
 
               <button
                 type="submit"
-                className="btn-primary"
-                style={{ padding: '12px 36px', fontSize: '14px' }}
+                style={{
+                  padding: '12px 36px',
+                  borderRadius: '50px',
+                  border: 'none',
+                  background: '#EF7E00',
+                  color: '#FFFFFF',
+                  fontWeight: 800,
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 14px rgba(239, 126, 0, 0.35)',
+                  transition: 'all 0.2s',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                }}
               >
-                Сақтау
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                  <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                  <polyline points="7 3 7 8 15 8"></polyline>
+                </svg>
+                {isEditing ? 'Өзгерістерді сақтау' : 'Кітапты сақтау'}
               </button>
             </div>
           </form>
