@@ -33,12 +33,18 @@ export const LandingPage: React.FC = () => {
 
   // Dynamic statistics matching the active database exactly
   const booksCount = activeBooks.length;
+  // 5 books by 1 author = 1 author (unique authors count)
   const authorsCount = useMemo(() => {
-    return new Set(activeBooks.map((b) => b.author?.trim()).filter(Boolean)).size;
+    return new Set(
+      activeBooks
+        .map((b) => b.author?.trim())
+        .filter((author): author is string => Boolean(author))
+    ).size;
   }, [activeBooks]);
+  // Readers start at 1200 and automatically increment when each new reader registers
   const readersCount = useMemo(() => {
     const clients = users.filter((u) => u.role === 'client');
-    return clients.length > 0 ? clients.length : users.length;
+    return 1200 + clients.length;
   }, [users]);
 
   // Filtered books for catalog grid
