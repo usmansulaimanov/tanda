@@ -4,6 +4,7 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { useBookStore } from '../../store/useBookStore';
 import { useSavedBooksStore } from '../../store/useSavedBooksStore';
 import { useToastStore } from '../../store/useToastStore';
+import { useSidebarStore } from '../../store/useSidebarStore';
 import { Book } from '../../types';
 import tandaLogo from '../../assets/tanda-logo.png';
 
@@ -14,6 +15,7 @@ export const Header: React.FC = () => {
   const { books } = useBookStore();
   const { savedBookIds } = useSavedBooksStore();
   const { showToast } = useToastStore();
+  const { isOpen: isSidebarOpen, toggleSidebar } = useSidebarStore();
 
   // Search state
   const [headerSearch, setHeaderSearch] = useState('');
@@ -154,8 +156,23 @@ export const Header: React.FC = () => {
       <nav className="tanda-nav" style={{ padding: '12px 32px' }}>
         <div style={{ maxWidth: '1280px', width: '100%', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
           
-          {/* Left: Logo & Search */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: '1 1 auto', minWidth: 0, maxWidth: '520px' }}>
+          {/* Left: Sidebar Toggle, Logo & Search */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: '1 1 auto', minWidth: 0, maxWidth: '540px' }}>
+            {/* Sidebar Toggle Button */}
+            <button
+              type="button"
+              className={`nav-sidebar-toggle-btn ${isSidebarOpen ? 'active' : ''}`}
+              onClick={toggleSidebar}
+              title={isSidebarOpen ? 'Сайдбарды жабу' : 'Сайдбарды ашу'}
+              aria-label="Сайдбарды ашу/жабу"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+              </svg>
+            </button>
+
             {/* Logo */}
             <Link to="/" className="nav-logo" style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>
               <img
