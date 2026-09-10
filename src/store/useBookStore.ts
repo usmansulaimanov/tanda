@@ -64,7 +64,7 @@ export const useBookStore = create<BookState>()(
           id,
           title: sanitizeInput(newBook.title) || 'Атаусыз кітап',
           author: sanitizeInput(newBook.author) || 'Белгісіз автор',
-          category: newBook.category || 'Классика',
+          category: newBook.category || 'Көркем әдебиет',
           pages: newBook.pages ? Number(newBook.pages) : null,
           hasAudio: Boolean(newBook.hasAudio),
           audioNarrator: sanitizeInput(newBook.audioNarrator || ''),

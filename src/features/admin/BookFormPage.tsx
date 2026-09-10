@@ -5,12 +5,21 @@ import { useToastStore } from '../../store/useToastStore';
 import { AudioChapter } from '../../types';
 
 const CATEGORIES = [
-  'Классика',
-  'Тұлғалық даму',
-  'Тарих',
-  'Ертегілер',
-  'Бизнес',
+  'Көркем әдебиет',
+  'Детектив',
+  'Романтика',
+  'Фэнтези',
+  'Фантастика',
+  'Мистика және хоррор',
   'Психология',
+  'Өзін-өзі дамыту',
+  'Бизнес және қаржы',
+  'Тарих',
+  'Руханият және философия',
+  'Білім және ғылым',
+  'Балалар әдебиеті',
+  'Жасөспірімдер әдебиеті',
+  'Өмірбаян және мемуар',
 ];
 
 const DEFAULT_COVER_GRADIENT = 'linear-gradient(135deg, #005494, #002D50)';
@@ -27,7 +36,7 @@ export const BookFormPage: React.FC = () => {
 
   const [title, setTitle] = useState('');
   const [author, setAuthor] = useState('');
-  const [category, setCategory] = useState('Классика');
+  const [category, setCategory] = useState('Көркем әдебиет');
   const [pages, setPages] = useState<string>('');
   const [description, setDescription] = useState('');
   const [isFree, setIsFree] = useState(true);
