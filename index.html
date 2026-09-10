@@ -4,9 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tanda — Қазақша аудио және электронды кітаптар</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
@@ -22,37 +23,45 @@
     --radius-sm: 10px;
   }
 
-  html { scroll-behavior: smooth; }
-
   body {
-    font-family: 'Inter', sans-serif;
-    background: var(--white);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     color: var(--text-dark);
-    line-height: 1.6;
+    background: #FFFFFF;
     overflow-x: hidden;
+    line-height: 1.5;
   }
 
   /* NAV */
   nav {
-    position: fixed;
-    top: 0; left: 0; right: 0;
+    position: sticky;
+    top: 0;
     z-index: 100;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 16px 48px;
-    background: rgba(255,255,255,0.92);
+    padding: 12px 48px;
+    background: rgba(255,255,255,0.95);
     backdrop-filter: blur(12px);
     border-bottom: 1px solid rgba(0,87,168,0.08);
   }
 
-  .nav-logo { display: flex; align-items: center; text-decoration: none; }
-  .nav-logo img { height: 52px; width: auto; display: block; }
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+  }
+
+  .nav-logo img {
+    height: 52px;
+    width: auto;
+    display: block;
+  }
 
   .nav-links {
     display: flex;
-    gap: 36px;
+    gap: 32px;
     list-style: none;
+    align-items: center;
   }
 
   .nav-links a {
@@ -65,18 +74,83 @@
 
   .nav-links a:hover { color: var(--blue); }
 
-  .nav-cta {
-    background: var(--blue);
-    color: var(--white);
-    padding: 10px 24px;
-    border-radius: 50px;
-    font-weight: 600;
-    font-size: 15px;
-    text-decoration: none;
-    transition: background 0.2s;
+  .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
   }
 
-  .nav-cta:hover { background: var(--blue-dark); }
+  .btn-nav-login {
+    background: transparent;
+    border: 1px solid var(--blue);
+    color: var(--blue);
+    padding: 8px 18px;
+    border-radius: 50px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-nav-login:hover {
+    background: var(--blue-light);
+  }
+
+  .btn-nav-reg {
+    background: var(--orange);
+    border: none;
+    color: var(--white);
+    padding: 8px 20px;
+    border-radius: 50px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(240,128,0,0.25);
+  }
+
+  .btn-nav-reg:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(240,128,0,0.35);
+  }
+
+  .user-badge {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--blue-light);
+    padding: 6px 14px;
+    border-radius: 50px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--blue);
+  }
+
+  .btn-admin-pill {
+    background: #0D1B2A;
+    color: #FFFFFF;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 50px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-admin-pill:hover {
+    background: #1A365D;
+  }
+
+  .btn-logout {
+    background: transparent;
+    border: none;
+    color: #E53E3E;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 4px 8px;
+  }
 
   /* HERO */
   .hero {
@@ -87,9 +161,19 @@
     justify-content: center;
     align-items: center;
     text-align: center;
-    padding: 140px 24px 80px;
+    padding: 130px 24px 80px;
     position: relative;
     overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    left: 50%; top: -120px;
+    transform: translateX(-50%);
+    width: 650px; height: 650px;
+    background: radial-gradient(circle, rgba(240,128,0,0.18) 0%, rgba(240,128,0,0) 70%);
+    border-radius: 50%;
   }
 
   .hero-text {
@@ -101,6 +185,28 @@
     flex-direction: column;
     align-items: center;
   }
+
+  .hero-tag {
+    display: inline-block;
+    background: rgba(240,128,0,0.2);
+    color: var(--orange);
+    padding: 6px 18px;
+    border-radius: 50px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    margin-bottom: 24px;
+  }
+
+  .hero h1 {
+    font-size: clamp(38px, 5.5vw, 68px);
+    font-weight: 900;
+    color: var(--white);
+    line-height: 1.15;
+    margin-bottom: 20px;
+  }
+
+  .hero h1 span { color: var(--orange); }
 
   .hero-desc {
     font-size: 19px;
@@ -118,84 +224,19 @@
     margin-bottom: 48px;
   }
 
-  .hero-stats {
-    display: flex;
-    gap: 48px;
-    justify-content: center;
-    border-top: 1px solid rgba(255,255,255,0.15);
-    padding-top: 32px;
-    width: 100%;
-    max-width: 520px;
-  }
-
-  .hero::before {
-    content: '';
-    position: absolute;
-    right: -80px; top: -80px;
-    width: 500px; height: 500px;
-    background: rgba(240,128,0,0.12);
-    border-radius: 50%;
-  }
-
-  .hero::after {
-    content: '';
-    position: absolute;
-    right: 80px; bottom: -120px;
-    width: 300px; height: 300px;
-    background: rgba(240,128,0,0.08);
-    border-radius: 50%;
-  }
-
-  .hero-text { position: relative; z-index: 2; }
-
-  .hero-tag {
-    display: inline-block;
-    background: rgba(240,128,0,0.2);
-    color: var(--orange);
-    padding: 6px 16px;
-    border-radius: 50px;
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 0.02em;
-    margin-bottom: 28px;
-  }
-
-  .hero h1 {
-    font-size: clamp(36px, 5vw, 64px);
-    font-weight: 900;
-    color: var(--white);
-    line-height: 1.1;
-    margin-bottom: 24px;
-  }
-
-  .hero h1 span {
-    color: var(--orange);
-  }
-
-  .hero-desc {
-    font-size: 18px;
-    color: rgba(255,255,255,0.75);
-    max-width: 480px;
-    margin-bottom: 40px;
-    line-height: 1.7;
-  }
-
-  .hero-buttons {
-    display: flex;
-    gap: 16px;
-    flex-wrap: wrap;
-  }
-
   .btn-primary {
     background: var(--orange);
     color: var(--white);
-    padding: 16px 32px;
+    padding: 16px 36px;
     border-radius: 50px;
     font-weight: 700;
     font-size: 16px;
     text-decoration: none;
     transition: transform 0.2s, box-shadow 0.2s;
     box-shadow: 0 4px 20px rgba(240,128,0,0.4);
+    border: none;
+    cursor: pointer;
+    display: inline-block;
   }
 
   .btn-primary:hover {
@@ -206,13 +247,14 @@
   .btn-outline {
     background: transparent;
     color: var(--white);
-    padding: 16px 32px;
+    padding: 16px 36px;
     border-radius: 50px;
     font-weight: 600;
     font-size: 16px;
     text-decoration: none;
     border: 2px solid rgba(255,255,255,0.35);
     transition: border-color 0.2s, background 0.2s;
+    display: inline-block;
   }
 
   .btn-outline:hover {
@@ -222,10 +264,12 @@
 
   .hero-stats {
     display: flex;
-    gap: 40px;
-    margin-top: 52px;
-    padding-top: 32px;
+    gap: 48px;
+    justify-content: center;
     border-top: 1px solid rgba(255,255,255,0.15);
+    padding-top: 32px;
+    width: 100%;
+    max-width: 520px;
   }
 
   .stat-num {
@@ -240,213 +284,59 @@
     margin-top: 2px;
   }
 
-  /* HERO PHONE MOCKUP */
-  .hero-visual {
-    position: relative;
-    z-index: 2;
-    display: flex;
-    justify-content: center;
-  }
-
-  .phone-frame {
-    width: 300px;
-    background: var(--white);
-    border-radius: 40px;
-    padding: 16px;
-    box-shadow: 0 40px 80px rgba(0,0,0,0.3), 0 0 0 8px rgba(255,255,255,0.08);
-    position: relative;
-  }
-
-  .phone-notch {
-    width: 90px;
-    height: 28px;
-    background: var(--text-dark);
-    border-radius: 20px;
-    margin: 0 auto 16px;
-  }
-
-  .phone-screen {
-    background: var(--blue-light);
-    border-radius: 28px;
-    padding: 20px 16px;
-    min-height: 500px;
-  }
-
-  .phone-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 20px;
-  }
-
-  .phone-logo-mini {
-    font-weight: 900;
-    color: var(--blue);
-    font-size: 18px;
-  }
-
-  .phone-search {
-    background: var(--white);
-    border-radius: 10px;
-    padding: 10px 14px;
-    font-size: 13px;
-    color: var(--text-light);
-    margin-bottom: 20px;
-    border: 1px solid rgba(0,87,168,0.1);
-  }
-
-  .phone-section-title {
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--text-dark);
-    margin-bottom: 12px;
-  }
-
-  .phone-books {
-    display: flex;
-    gap: 10px;
-    overflow: hidden;
-    margin-bottom: 20px;
-  }
-
-  .phone-book {
-    flex-shrink: 0;
-    width: 90px;
-  }
-
-  .phone-book-cover {
-    width: 90px;
-    height: 120px;
-    border-radius: 10px;
-    margin-bottom: 6px;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .phone-book-title {
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--text-dark);
-    line-height: 1.3;
-  }
-
-  .phone-book-author {
-    font-size: 10px;
-    color: var(--text-light);
-  }
-
-  .now-playing {
-    background: var(--blue);
-    border-radius: 14px;
-    padding: 14px;
-    color: var(--white);
-    margin-top: 8px;
-  }
-
-  .np-label { font-size: 11px; opacity: 0.7; margin-bottom: 4px; }
-  .np-title { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
-  .np-author { font-size: 11px; opacity: 0.7; margin-bottom: 12px; }
-
-  .np-progress {
-    height: 3px;
-    background: rgba(255,255,255,0.2);
-    border-radius: 2px;
-    margin-bottom: 10px;
-    position: relative;
-  }
-
-  .np-progress::after {
-    content: '';
-    position: absolute;
-    left: 0; top: 0;
-    width: 40%;
-    height: 100%;
-    background: var(--orange);
-    border-radius: 2px;
-  }
-
-  .np-controls {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    align-items: center;
-  }
-
-  .np-btn {
-    width: 32px; height: 32px;
-    background: rgba(255,255,255,0.15);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-  }
-
-  .np-btn-main {
-    width: 44px; height: 44px;
-    background: var(--orange);
-    box-shadow: 0 4px 12px rgba(240,128,0,0.5);
-  }
-
-  /* SECTIONS SHARED */
-  section { padding: 100px 48px; }
+  /* SECTIONS */
+  section { padding: 90px 48px; }
 
   .section-tag {
     display: inline-block;
-    background: var(--blue-light);
     color: var(--blue);
-    padding: 6px 16px;
-    border-radius: 50px;
+    background: var(--blue-light);
     font-size: 13px;
-    font-weight: 600;
-    margin-bottom: 16px;
+    font-weight: 700;
+    padding: 4px 14px;
+    border-radius: 50px;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
   }
 
   .section-title {
-    font-size: clamp(28px, 4vw, 48px);
+    font-size: clamp(28px, 4vw, 42px);
     font-weight: 900;
     color: var(--text-dark);
-    line-height: 1.15;
-    margin-bottom: 16px;
+    margin-bottom: 14px;
+    line-height: 1.2;
   }
 
   .section-sub {
-    font-size: 18px;
+    font-size: 16px;
     color: var(--text-mid);
     max-width: 560px;
-    line-height: 1.7;
+    line-height: 1.6;
   }
 
   /* FEATURES */
-  .features-section {
-    background: var(--white);
-  }
-
-  .features-header {
-    text-align: center;
-    margin-bottom: 64px;
-  }
-
-  .features-header .section-sub {
-    margin: 0 auto;
-  }
+  .features-section { background: var(--white); }
 
   .features-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 24px;
-    max-width: 1100px;
-    margin: 0 auto;
+    gap: 28px;
+    margin-top: 48px;
   }
 
   .feature-card {
-    background: var(--blue-light);
+    background: #F7FAFD;
+    border: 1px solid rgba(0,87,168,0.08);
     border-radius: var(--radius);
-    padding: 36px 32px;
-    transition: transform 0.2s;
+    padding: 32px 28px;
+    transition: transform 0.2s, box-shadow 0.2s;
   }
 
-  .feature-card:hover { transform: translateY(-4px); }
+  .feature-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(0,87,168,0.08);
+  }
 
   .feature-card.accent {
     background: var(--blue);
@@ -454,220 +344,277 @@
   }
 
   .feature-icon {
-    width: 52px; height: 52px;
-    background: var(--white);
-    border-radius: 14px;
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: var(--blue-light);
+    color: var(--blue);
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 24px;
+    margin-bottom: 20px;
   }
 
   .feature-card.accent .feature-icon {
     background: rgba(255,255,255,0.15);
-  }
-
-  .feature-icon img {
-    width: 28px;
-    height: 28px;
-    object-fit: contain;
+    color: var(--white);
   }
 
   .feature-card h3 {
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 800;
-    margin-bottom: 12px;
     color: var(--text-dark);
+    margin-bottom: 10px;
   }
 
   .feature-card.accent h3 { color: var(--white); }
 
   .feature-card p {
-    font-size: 15px;
+    font-size: 14px;
     color: var(--text-mid);
-    line-height: 1.65;
+    line-height: 1.6;
   }
 
-  .feature-card.accent p { color: rgba(255,255,255,0.75); }
+  .feature-card.accent p { color: rgba(255,255,255,0.8); }
 
   /* CATALOG */
-  .catalog-section {
-    background: #F7FAFD;
-  }
+  .catalog-section { background: #F7FAFD; }
 
   .catalog-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
-    margin-bottom: 48px;
+    margin-bottom: 36px;
+    flex-wrap: wrap;
+    gap: 20px;
   }
 
   .catalog-tabs {
     display: flex;
     gap: 8px;
-    margin-top: 20px;
+    flex-wrap: wrap;
   }
 
   .tab {
-    padding: 8px 20px;
+    padding: 8px 18px;
     border-radius: 50px;
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
     border: none;
-    background: transparent;
+    background: var(--white);
     color: var(--text-mid);
+    border: 1px solid rgba(0,87,168,0.1);
   }
 
   .tab.active {
     background: var(--blue);
     color: var(--white);
+    border-color: var(--blue);
   }
 
-  .see-all {
-    color: var(--blue);
-    font-weight: 600;
-    text-decoration: none;
-    font-size: 15px;
+  .search-input {
+    background: var(--white);
+    border: 1px solid rgba(0,87,168,0.15);
+    border-radius: 50px;
+    padding: 10px 20px;
+    font-size: 14px;
+    width: 240px;
+    outline: none;
+    color: var(--text-dark);
+  }
+
+  .search-input:focus {
+    border-color: var(--blue);
   }
 
   .books-grid {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 24px;
   }
 
   .book-card {
-    cursor: pointer;
-    transition: transform 0.2s;
+    background: var(--white);
+    border: 1px solid rgba(0,87,168,0.08);
+    border-radius: var(--radius);
+    padding: 16px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
   }
 
-  .book-card:hover { transform: translateY(-4px); }
+  .book-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+  }
 
   .book-cover {
     width: 100%;
-    aspect-ratio: 2/3;
+    aspect-ratio: 3/4;
     border-radius: var(--radius-sm);
-    margin-bottom: 12px;
+    margin-bottom: 14px;
     position: relative;
     overflow: hidden;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-  }
-
-  .cover-inner {
-    width: 100%;
-    height: 100%;
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
     padding: 16px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.1);
   }
 
   .cover-badge {
     position: absolute;
     top: 10px; right: 10px;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 4px 10px;
+    border-radius: 50px;
+    text-transform: uppercase;
+  }
+
+  .badge-free {
+    background: #10B981;
+    color: var(--white);
+  }
+
+  .badge-premium {
     background: var(--orange);
     color: var(--white);
-    font-size: 10px;
-    font-weight: 700;
-    padding: 3px 8px;
-    border-radius: 50px;
   }
 
   .cover-title {
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 800;
     color: var(--white);
-    line-height: 1.3;
-    text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+    line-height: 1.25;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.6);
   }
 
   .cover-author-text {
-    font-size: 11px;
-    color: rgba(255,255,255,0.8);
+    font-size: 12px;
+    color: rgba(255,255,255,0.85);
     margin-top: 4px;
-    text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    text-shadow: 0 1px 4px rgba(0,0,0,0.6);
   }
 
-  .book-meta { }
+  .book-meta {
+    margin-bottom: 14px;
+  }
 
   .book-title {
-    font-size: 14px;
-    font-weight: 700;
+    font-size: 15px;
+    font-weight: 800;
     color: var(--text-dark);
-    margin-bottom: 2px;
+    margin-bottom: 4px;
     line-height: 1.3;
   }
 
   .book-author {
-    font-size: 12px;
-    color: var(--text-light);
+    font-size: 13px;
+    color: var(--text-mid);
     margin-bottom: 6px;
   }
 
-  .book-price {
-    font-size: 15px;
-    font-weight: 800;
+  .book-category {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--blue);
+    background: var(--blue-light);
+    padding: 2px 8px;
+    border-radius: 6px;
+    display: inline-block;
+  }
+
+  .book-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .btn-book-action {
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    text-align: center;
+  }
+
+  .btn-read {
+    background: var(--blue-light);
     color: var(--blue);
   }
 
-  /* HOW IT WORKS */
-  .how-section {
+  .btn-read:hover {
     background: var(--blue);
+    color: var(--white);
   }
+
+  .btn-listen {
+    background: var(--orange);
+    color: var(--white);
+  }
+
+  .btn-listen:hover {
+    background: #d87200;
+  }
+
+  /* HOW IT WORKS */
+  .how-section { background: var(--blue); }
 
   .how-section .section-title,
   .how-section .section-tag { color: var(--white); }
 
-  .how-section .section-sub { color: rgba(255,255,255,0.7); }
+  .how-section .section-sub { color: rgba(255,255,255,0.75); }
 
-  .how-section .section-tag { background: rgba(255,255,255,0.12); }
+  .how-section .section-tag { background: rgba(255,255,255,0.15); }
 
   .how-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 32px;
-    margin-top: 60px;
+    margin-top: 56px;
   }
 
   .how-card {
-    background: rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.06);
     border: 1px solid rgba(255,255,255,0.12);
     border-radius: var(--radius);
-    padding: 40px 32px;
+    padding: 36px 30px;
   }
 
   .how-num {
-    font-size: 56px;
+    font-size: 52px;
     font-weight: 900;
     color: var(--orange);
     line-height: 1;
-    margin-bottom: 20px;
-    font-variant-numeric: tabular-nums;
+    margin-bottom: 18px;
   }
 
   .how-card h3 {
-    font-size: 20px;
+    font-size: 19px;
     font-weight: 800;
     color: var(--white);
-    margin-bottom: 12px;
+    margin-bottom: 10px;
   }
 
   .how-card p {
-    font-size: 15px;
-    color: rgba(255,255,255,0.65);
+    font-size: 14px;
+    color: rgba(255,255,255,0.75);
     line-height: 1.65;
   }
 
   /* PRICING */
-  .pricing-section {
-    background: var(--white);
-  }
+  .pricing-section { background: var(--white); }
 
   .pricing-header {
     text-align: center;
-    margin-bottom: 64px;
+    margin-bottom: 56px;
   }
 
   .pricing-header .section-sub { margin: 0 auto; }
@@ -676,16 +623,20 @@
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 24px;
-    max-width: 1000px;
+    max-width: 1050px;
     margin: 0 auto;
   }
 
   .price-card {
     border: 2px solid rgba(0,87,168,0.1);
     border-radius: var(--radius);
-    padding: 40px 36px;
+    padding: 36px 30px;
     position: relative;
     transition: transform 0.2s;
+    background: #FFFFFF;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
   }
 
   .price-card:hover { transform: translateY(-4px); }
@@ -710,40 +661,40 @@
   }
 
   .price-name {
-    font-size: 15px;
-    font-weight: 600;
+    font-size: 16px;
+    font-weight: 700;
     color: var(--text-mid);
-    margin-bottom: 8px;
+    margin-bottom: 14px;
   }
 
-  .price-card.featured .price-name { color: rgba(255,255,255,0.7); }
+  .price-card.featured .price-name { color: rgba(255,255,255,0.85); }
 
   .price-amount {
-    font-size: 48px;
+    font-size: 42px;
     font-weight: 900;
     color: var(--text-dark);
     line-height: 1;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
   }
 
   .price-card.featured .price-amount { color: var(--white); }
 
   .price-period {
-    font-size: 14px;
+    font-size: 13px;
     color: var(--text-light);
-    margin-bottom: 28px;
+    margin-bottom: 24px;
   }
 
-  .price-card.featured .price-period { color: rgba(255,255,255,0.6); }
+  .price-card.featured .price-period { color: rgba(255,255,255,0.7); }
 
   .price-features {
     list-style: none;
-    margin-bottom: 32px;
+    margin-bottom: 28px;
   }
 
   .price-features li {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     gap: 10px;
     font-size: 14px;
     color: var(--text-mid);
@@ -752,23 +703,8 @@
   }
 
   .price-card.featured .price-features li {
-    color: rgba(255,255,255,0.8);
-    border-bottom-color: rgba(255,255,255,0.08);
-  }
-
-  .price-features li::before {
-    content: '';
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: var(--blue);
-    flex-shrink: 0;
-    margin-top: 1px;
-    background-image: url("data:image/svg+xml,%3Csvg width='18' height='18' viewBox='0 0 18 18' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='9' cy='9' r='9' fill='%230057A8'/%3E%3Cpath d='M5 9l3 3 5-5' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-  }
-
-  .price-card.featured .price-features li::before {
-    background-image: url("data:image/svg+xml,%3Csvg width='18' height='18' viewBox='0 0 18 18' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='9' cy='9' r='9' fill='%23F08000'/%3E%3Cpath d='M5 9l3 3 5-5' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    color: rgba(255,255,255,0.9);
+    border-bottom-color: rgba(255,255,255,0.1);
   }
 
   .btn-plan {
@@ -793,126 +729,272 @@
   .btn-plan-filled {
     background: var(--orange);
     color: var(--white);
-    box-shadow: 0 4px 16px rgba(240,128,0,0.35);
   }
 
-  .btn-plan-filled:hover { box-shadow: 0 8px 24px rgba(240,128,0,0.45); }
+  .btn-plan-filled:hover { background: #d87200; }
 
-  .btn-plan-white {
-    background: var(--white);
-    color: var(--blue);
-  }
-
-  .btn-plan-white:hover { background: var(--blue-light); }
-
-  /* CTA BANNER */
+  /* CTA */
   .cta-section {
     background: var(--orange);
     text-align: center;
-    padding: 100px 48px;
+    padding: 80px 48px;
+    color: var(--white);
   }
 
   .cta-section h2 {
-    font-size: clamp(32px, 4vw, 56px);
+    font-size: clamp(28px, 4vw, 44px);
     font-weight: 900;
-    color: var(--white);
-    margin-bottom: 20px;
-    line-height: 1.15;
+    margin-bottom: 16px;
   }
 
   .cta-section p {
-    font-size: 18px;
-    color: rgba(255,255,255,0.8);
-    max-width: 500px;
-    margin: 0 auto 40px;
+    font-size: 17px;
+    color: rgba(255,255,255,0.9);
+    max-width: 520px;
+    margin: 0 auto 32px;
   }
 
   .btn-cta-white {
     display: inline-block;
     background: var(--white);
     color: var(--orange);
-    padding: 18px 48px;
+    padding: 16px 42px;
     border-radius: 50px;
     font-weight: 800;
-    font-size: 17px;
+    font-size: 16px;
     text-decoration: none;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    border: none;
+    cursor: pointer;
     transition: transform 0.2s;
   }
 
-  .btn-cta-white:hover { transform: translateY(-3px); }
+  .btn-cta-white:hover { transform: translateY(-2px); }
 
   /* FOOTER */
   footer {
     background: var(--text-dark);
     color: rgba(255,255,255,0.6);
-    padding: 64px 48px 40px;
+    padding: 60px 48px 36px;
   }
-
-  .footer-top {
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr 1fr;
-    gap: 48px;
-    margin-bottom: 48px;
-  }
-
-  .footer-brand p {
-    font-size: 14px;
-    line-height: 1.7;
-    margin-top: 16px;
-    max-width: 280px;
-  }
-
-  .footer-col h4 {
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--white);
-    margin-bottom: 20px;
-  }
-
-  .footer-col ul { list-style: none; }
-
-  .footer-col li {
-    margin-bottom: 12px;
-  }
-
-  .footer-col a {
-    color: rgba(255,255,255,0.55);
-    text-decoration: none;
-    font-size: 14px;
-    transition: color 0.2s;
-  }
-
-  .footer-col a:hover { color: var(--white); }
 
   .footer-bottom {
-    border-top: 1px solid rgba(255,255,255,0.08);
-    padding-top: 28px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    padding-top: 24px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     font-size: 13px;
+    flex-wrap: gap;
+    gap: 16px;
   }
 
-  .footer-logo-img { height: 28px; filter: brightness(0) invert(1); opacity: 0.8; }
+  /* MODALS */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(13,27,42,0.8);
+    backdrop-filter: blur(8px);
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .modal-overlay.active {
+    display: flex;
+  }
+
+  .modal-box {
+    background: #FFFFFF;
+    border-radius: var(--radius);
+    max-width: 480px;
+    width: 100%;
+    padding: 36px 32px;
+    position: relative;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.3);
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .modal-box.large {
+    max-width: 780px;
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 18px; right: 18px;
+    background: #F1F5F9;
+    border: none;
+    border-radius: 50%;
+    width: 36px; height: 36px;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-mid);
+    transition: all 0.2s;
+  }
+
+  .modal-close:hover { background: #E2E8F0; color: var(--text-dark); }
+
+  .form-group {
+    margin-bottom: 18px;
+  }
+
+  .form-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 6px;
+  }
+
+  .form-input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #CBD5E1;
+    border-radius: 10px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .form-input:focus {
+    border-color: var(--blue);
+  }
+
+  .btn-submit {
+    width: 100%;
+    padding: 14px;
+    border-radius: 50px;
+    background: var(--blue);
+    color: var(--white);
+    border: none;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .btn-submit:hover {
+    background: var(--blue-dark);
+  }
+
+  .auth-switch {
+    text-align: center;
+    margin-top: 18px;
+    font-size: 13px;
+    color: var(--text-mid);
+  }
+
+  .auth-switch a {
+    color: var(--blue);
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  /* READER */
+  .reader-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid #E2E8F0;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .reader-theme-btn {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid #CBD5E1;
+    background: #FFF;
+  }
+
+  .reader-theme-btn.active {
+    background: var(--blue);
+    color: #FFF;
+    border-color: var(--blue);
+  }
+
+  .reader-content {
+    line-height: 1.8;
+    font-size: 17px;
+    color: var(--text-dark);
+    padding: 12px 0;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .reader-content p {
+    margin-bottom: 18px;
+    text-indent: 24px;
+    text-align: justify;
+  }
+
+  /* THEMES IN READER */
+  .reader-mode-light { background: #FFFFFF; color: #0D1B2A; }
+  .reader-mode-sepia { background: #F8F1E5; color: #433422; }
+  .reader-mode-dark { background: #131B2E; color: #E2E8F0; }
+
+  /* AUDIO PLAYER BAR */
+  .audio-bar {
+    background: #F1F5F9;
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  /* ADMIN TABLE */
+  .admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-top: 16px;
+  }
+
+  .admin-table th {
+    background: #F8FAFC;
+    padding: 10px 12px;
+    text-align: left;
+    font-weight: 700;
+    color: var(--text-mid);
+    border-bottom: 1px solid #E2E8F0;
+  }
+
+  .admin-table td {
+    padding: 12px;
+    border-bottom: 1px solid #F1F5F9;
+  }
+
+  .badge-tag {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 700;
+  }
 
   /* RESPONSIVE */
   @media (max-width: 900px) {
     nav { padding: 10px 20px; }
     .nav-logo img { height: 42px; }
     .nav-links { display: none; }
-    .hero { grid-template-columns: 1fr; padding: 100px 24px 60px; text-align: center; }
-    .hero-visual { display: none; }
-    .hero-buttons { justify-content: center; }
-    .hero-stats { justify-content: center; }
-    section { padding: 64px 24px; }
+    section { padding: 60px 20px; }
     .features-grid { grid-template-columns: 1fr; }
     .books-grid { grid-template-columns: repeat(2, 1fr); }
     .how-grid { grid-template-columns: 1fr; }
-    .pricing-grid { grid-template-columns: 1fr; max-width: 400px; }
-    .catalog-header { flex-direction: column; align-items: flex-start; gap: 16px; }
-    .footer-top { grid-template-columns: 1fr 1fr; }
-    .footer-bottom { flex-direction: column; gap: 12px; text-align: center; }
+    .pricing-grid { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -928,7 +1010,9 @@
     <li><a href="#how">Қалай жұмыс істейді</a></li>
     <li><a href="#pricing">Тарифтер</a></li>
   </ul>
-  <a href="#pricing" class="nav-cta">Тегін бастау</a>
+  <div class="nav-actions" id="navAuthArea">
+    <!-- Rendered via JS based on session -->
+  </div>
 </nav>
 
 <!-- HERO -->
@@ -938,8 +1022,8 @@
     <h1>Оқы. Тыңда.<br><span>Дамы.</span></h1>
     <p class="hero-desc">Мыңдаған қазақша аудиокітаптар мен электронды кітаптар — бір қолыңның астында. Кез келген уақытта, кез келген жерде.</p>
     <div class="hero-buttons">
-      <a href="#" class="btn-primary">Тегін жүктеу</a>
-      <a href="#catalog" class="btn-outline">Кітаптарды көру</a>
+      <a href="#catalog" class="btn-primary">Кітаптарды көру</a>
+      <a href="#pricing" class="btn-outline">Тарифтермен танысу</a>
     </div>
     <div class="hero-stats">
       <div>
@@ -956,45 +1040,955 @@
       </div>
     </div>
   </div>
-
-  </section>
+</section>
 
 <!-- FEATURES -->
 <section class="features-section" id="features">
-  <div class="features-header">
-    <span class="section-tag">Неге Tanda?</span>
-    <h2 class="section-title">Бәрі бір жерде</h2>
-    <p class="section-sub">Аудиокітаптар, электронды кітаптар, подкасттар — барлығы қазақ тілінде, сапалы дыбыс пен оқу тәжірибесімен.</p>
+  <div style="max-width:1200px; margin:0 auto;">
+    <div style="text-align:center; margin-bottom:48px;">
+      <span class="section-tag">Неге Tanda?</span>
+      <h2 class="section-title">Бәрі бір жерде</h2>
+      <p class="section-sub" style="margin:0 auto;">Аудиокітаптар, электронды кітаптар, подкасттар — барлығы қазақ тілінде, сапалы дыбыс пен оқу тәжірибесімен.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card accent">
+        <div class="feature-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 18v-6a9 9 0 0 1 18 0v6"></path><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path></svg>
+        </div>
+        <h3>Аудиокітаптар</h3>
+        <p>Кәсіби дикторлар орындаған мыңдаған аудиокітап. Жолда, спортта, демалыста — қашан болса да тыңда.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+        </div>
+        <h3>Электронды кітаптар</h3>
+        <p>Ыңғайлы оқу режимі: шрифт өлшемі, сепия немесе түнгі фон түсі — бәрін өзіңізге ыңғайлап баптайсыз.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        </div>
+        <h3>Жылдамдық пен Таймер</h3>
+        <p>0.75x-тен 2x-ке дейін жылдамдықты таңдаңыз. Ұйықтар алдында автоматты өшетін ұйқы таймерін қосыңыз.</p>
+      </div>
+    </div>
   </div>
-  <div class="features-grid">
-    <div class="feature-card accent">
-      <div class="feature-icon">
-        <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAB4AAAAQ4CAYAAADo08FDAAAACXBIWXMAAAsSAAALEgHS3X78AAAgAElEQVR4nOzdwZHkuIGFYdSG7jse7HogWTAaE+TByoTyYGVCeyCZIrUFWg/WhBkLWgcVK6q7MhPITJIAHr7vyNM7IvgziJdv374VAAAAAAAAAOb3H70HAAAAAAAAALAPARgAAAAAAAAghAAMAAAAAAAAEEIABgAAAAAAAAghAAMAAAAAAACEEIABAAAAAAAAQgjAAAAAAAAAACEEYAAAAAAAAIAQAjAAAAAAAABACAEYAAAAAAAAIIQADAAAAAAAABBCAAYAAAAAAAAIIQADAAAAAAAAhBCAAQAAAAAAAEIIwAAAAAAAAAAhBGAAAAAAAACAEAIwAAAAAAAAQAgBGAAAAAAAACCEAAwAAAAAAAAQQgAGAAAAAAAACCEAAwAAAAAAAIQQgAEAAAAAAABCCMAAAAAAAAAAIQRgAAAAAAAAgBACMAAAAAAAAEAIARgAAAAAAAAghAAMAAAAAAAAEEIABgAAAAAAAAghAAMAAAAAAACEEIABAAAAAAAAQgjAAAAAAAAAACEEYAAAAAAAAIAQAjAAAAAAAABACAEYAAAAAAAAIIQADAAAAAAAABBCAAYAAAAAAAAIIQADAAAAAAAAhBCAAQAAAAAAAEIIwAAAAAAAAAAhBGAAAAAAAACAEAIwAAAAAAAAQAgBGAAAAAAAACCEAAwAAAAAAAAQQgAGAAAAAAAACCEAAwAAAAAAAIQQgAEAAAAAAABCCMAAAAAAAAAAIQRgAAAAAAAAgBACMAAAAAAAAEAIARgAAAAAAAAghAAMAAAAAAAAEEIABgAAAAAAAAghAAMAAAAAAACEEIABAAAAAAAAQgjAAAAAAAAAACEEYAAAAAAAAIAQAjAAAAAAAABACAEYAAAAAAAAIIQADAAAAAAAABBCAAYAAAAAAAAIIQADAAAAAAAAhBCAAQAAAAAAAEIIwAAAAAAAAAAhBGAAAAAAAACAEAIwAAAAAAAAQAgBGAAAAAAAACCEAAwAAAAAAAAQQgAGAAAAAAAACCEAAwAAAAAAAIQQgAEAAAAAAABCCMAAAAAAAAAAIQRgAAAAAAAAgBACMAAAAAAAAEAIARgAAAAAAAAghAAMAAAAAAAAEEIABgAAAAAAAAghAAMAAAAAAACEEIABAAAAAAAAQgjAAAAAAAAAACEEYAAAAAAAAIAQAjAAAAAAAABACAEYAAAAAAAAIIQADAAAAAAAABBCAAYAAAAAAAAIIQADAAAAAAAAhBCAAQAAAAAAAEIIwAAAAAAAAAAhBGAAAAAAAACAEAIwAAAAAAAAQAgBGAAAAAAAACCEAAwAAAAAAAAQQgAGAAAAAAAACCEAAwAAAAAAAIQQgAEAAAAAAABCCMAAAAAAAAAAIX7XewAAAMCRXl6//qGU8lPvHcBVv3778vM/e48AAABIIQADAADpvpRS/th7BHDVP0opv/QeAQAAkMIvoAEAAAAAAABCCMAAAAAAAAAAIQRgAAAAAAAAgBACMAAAAAAAAEAIARgAAAAAAAAghAAMAAAAAAAAEEIABgAAAAAAAAghAAMAAAAAAACEEIABAAAAAAAAQgjAAAAAAAAAACEEYAAAAAAAAIAQAjAAAAAAAABACAEYAAAAAAAAIIQADAAAAAAAABBCAAYAAAAAAAAIIQADAAAAAAAAhBCAAQAAAAAAAEIIwAAAAAAAAAAhBGAAAAAAAACAEAIwAAAAAAAAQAgBGAAAAAAAACCEAAwAAAAAAAAQQgAGAAAAAAAACCEAAwAAAAAAAIQQgAEAAAAAAABCCMAAAAAAAAAAIQRgAAAAAAAAgBACMAAAAAAAAEAIARgAAAAAAAAghAAMAAAAAAAAEEIABgAAAAAAAAghAAMAAAAAAACEEIABAAAAAAAAQgjAAAAAAAAAACEEYAAAAAAAAIAQAjAAAAAAAABACAEYAAAAAAAAIIQADAAAAAAAABBCAAYAAAAAAAAIIQADAAAAAAAAhBCAAQAAAAAAAEIIwAAAAAAAAAAhBGAAAAAAAACAEAIwAAAAAAAAQAgBGAAAAAAAACCEAAwAAAAAAAAQQgAGAAAAAAAACCEAAwAAAAAAAIQQgAEAAAAAAABCCMAAAAAAAAAAIQRgAAAAAAAAgBACMAAAAAAAAEAIARgAAAAAAAAghAAMAAAAAAAAEEIABgAAAAAAAAghAAMAAAAAAACEEIABAAAAAAAAQgjAAAAAAAAAACEEYAAAAAAAAIAQAjAAAAAAAABACAEYAAAAAAAAIIQADAAAAAAAABBCAAYAAAAAAAAIIQADAAAAAAAAhBCAAQAAAAAAAEIIwAAAAAAAAAAhBGAAAAAAAACA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AAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARPx09QAg6b/btv376hEAAAAAAHf6fPUAgGd9enl5uXoDAAAAAAAAADvwBTQAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAM8P/27EAGAAAAYJC/9T2+0ggAAAAAAGBCAAMAAAAAAABMCGAAAAAAAACACQEMAAAAAAAAMCGAAQAAAAAAACYEMAAAAAAAAMCEAAYAAAAAAACYEMAAAAAAAAAAEwIYAAAAAAAAYEIAAwAAAAAAAEwIYAAAAAAAAIAJAQwAAAAAAAAwIYABAAAAAAAAJgQwAAAAAAAAwIQABgAAAAAAAJgQwAAAAAAAAAATAhgAAAAAAABgQgADAAAAAAAATAhgAAAAAAAAgAkBDAAAAAAAADAhgAEAAAAAAAAmBDAAAAAAAADAhAAGAAAAAAAAmBDAAAAAAAAAABMCGAAAAAAAAGBCAAMAAAAAAABMCGAAAAAAAACACQEMAAAAAAAAMBHtgupMmOGmmgAAAABJRU5ErkJggg==" alt="">
+</section>
+
+<!-- CATALOG -->
+<section class="catalog-section" id="catalog">
+  <div style="max-width:1200px; margin:0 auto;">
+    <div class="catalog-header">
+      <div>
+        <span class="section-tag">Кітап қоры</span>
+        <h2 class="section-title">Танымал кітаптар</h2>
+        <p class="section-sub">Қазақ әдебиетінің інжу-маржандары мен әлемдік үздік аудармалар</p>
       </div>
-      <h3>Аудиокітаптар</h3>
-      <p>Кәсіби дикторлар орындаған мыңдаған аудиокітап. Жолда, асханада, демалыста — қашан болса да тыңда.</p>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">
-        <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAB4AAAAQ4CAYAAADo08FDAAAACXBIWXMAAAsSAAALEgHS3X78AAAgAElEQVR4nOzdwZHkuIGFYdSG7jse7HogWTAaE+TByoTyYGVCeyCZIrUFWg/WhBkLWgcVK6q7MhPITJIAHr7vyNM7IvgziJdv374VAAAAAAAAAOb3H70HAAAAAAAAALAPARgAAAAAAAAghAAMAAAAAAAAEEIABgAAAAAAAAghAAMAAAAAAACEEIABAAAAAAAAQgjAAAAAAAAAACEEYAAAAAAAAIAQAjAAAAAAAABACAEYAAAAAAAAIIQADAAAAAAAABBCAAYAAAAAAAAIIQADAAAAAAAAhBCAAQAAAAAAAEIIwAAAAAAAAAAhBGAAAAAAAACAEAIwAAAAAAAAQAgBGAAAAAAAACCEAAwAAAAAAAAQQgAGAAAAAAAACCEAAwAAAAAAAIQQgAEAAAAAAABCCMAAAAAAAAAAIQRgAAAAAAAAgBACMAAAAAAAAEAIARgAAAAAAAAghAAMAAAAAAAAEEIABgAAAAAAAAghAAMAAAAAAACEEIABAAAAAAAAQgjAAAAAAAAAACEEYAAAAAAAAIAQAjAAAAAAAABACAEYAAAAAAAAIIQADAAAAAAAABBCAAYAAAAAAAAIIQADAAAAAAAAhBCAAQAAAAAAAEIIwAAAAAAAAAAhBGAAAAAAAACAEAIwAAAAAAAAQAgBGAAAAAAAACCEAAwAAAAAAAAQQgAGAAAAAAAACCEAAwAAAAAAAIQQgAEAAAAAAABCCMAAAAAAAAAAIQRgAAAAAAAAgBACMAAAAAAAAEAIARgAAAAAAAAghAAMAAAAAAAAEEIABgAAAAAAAAghAAMAAAAAAACEEIABAAAAAAAAQgjAAAAAAAAAACEEYAAAAAAAAIAQAjAAAAAAAABACAEYAAAAAAAAIIQADAAAAAAAABBCAAYAAAAAAAAIIQADAAAAAAAAhBCAAQAAAAAAAEIIwAAAAAAAAAAhBGAAAAAAAACAEAIwAAAAAAAAQAgBGAAAAAAAACCEAAwAAAAAAAAQQgAGAAAAAAAACCEAAwAAAAAAAIQQgAEAAAAAAABCCMAAAAAAAAAAIQRgAAAAAAAAgBACMAAAAAAAAEAIARgAAAAAAAAghAAMAAAAAAAAEEIABgAAAAAAAAghAAMAAAAAAACEEIABAAAAAAAAQgjAAAAAAAAAACEEYAAAAAAAAIAQAjAAAAAAAABACAEYAAAAAAAAIIQADAAAAAAAABBCAAYAAAAAAAAIIQADAAAAAAAAhBCAAQAAAAAAAEIIwAAAAAAAAAAhBGAAAAAAAACAEAIwAAAAAAAAQAgBGAAAAAAAACCEAAwAAAAAAAAQQgAGAAAAAAAACCEAAwAAAAAAAIQQgAEAAAAAAABCCMAAAAAAAAAAIX7XewAAAMCRXl6//qGU8lPvHcBVv3778vM/e48AAABIIQADAADpvpRS/th7BHDVP0opv/QeAQAAkMIvoAEAAAAAAABCCMAAAAAAAAAAIQRgAAAAAAAAgBACMAAAAAAAAEAIARgAAAAAAAAghAAMAAAAAAAAEEIABgAAAAAAAAghAAMAAAAAAACEEIABAAAAAAAAQgjAAAAAAAAAACEEYAAAAAAAAIAQAjAAAAAAAABACAEYAAAAAAAAIIQADAAAAAAAABBCAAYAAAAAAAAIIQADAAAAAAAAhBCAAQAAAAAAAEIIwAAAAAAAAAAhBGAAAAAAAACAEAIwAAAAAAAAQAgBGAAAAAAAACCEAAwAAAAAAAAQQgAGAAAAAAAACCEAAwAAAAAAAIQQgAEAAAAAAABCCMAAAAAAAAAAIQRgAAAAAAAAgBACMAAAAAAAAEAIARgAAAAAAAAghAAMAAAAAAAAEEIABgAAAAAAAAghAAMAAAAAAACEEIABAAAAAAAAQgjAAAAAAAAAACEEYAAAAAAAAIAQAjAAAAAAAABACAEYAAAAAAAAIIQADAAAAAAAABBCAAYAAAAAAAAIIQADAAAAAAAAhBCAAQAAAAAAAEIIwAAAAAAAAAAhBGAAAAAAAACAEAIwAAAAAAAAQAgBGAAAAAAAACCEAAwAAAAAAAAQQgAGAAAAAAAACCEAAwAAAAAAAIQQgAEAAAAAAABCCMAAAAAAAAAAIQRgAAAAAAAAgBACMAAAAAAAAEAIARgAAAAAAAAghAAMAAAAAAAAEEIABgAAAAAAAAghAAMAAAAAAACEEIABAAAAAAAAQgjAAAAAAAAAACEEYAAAAAAAAIAQAjAAAAAAAABACAEYAAAAAAAAIIQADAAAAAAAABBCAAYAAAAAAAAIIQADAAAAAAAAhBCAAQAAAAAAAEIIwAAAAAAAAAAhBGAAAAAAAACA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AAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARPx09QAg6b/btv376hEAAAAAAHf6fPUAgGd9enl5uXoDAAAAAAAAADvwBTQAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAM8P/27EAGAAAAYJC/9T2+0ggAAAAAAGBCAAMAAAAAAABMCGAAAAAAAACACQEMAAAAAAAAMCGAAQAAAAAAACYEMAAAAAAAAMCEAAYAAAAAAACYEMAAAAAAAAAAEwIYAAAAAAAAYEIAAwAAAAAAAEwIYAAAAAAAAIAJAQwAAAAAAAAwIYABAAAAAAAAJgQwAAAAAAAAwIQABgAAAAAAAJgQwAAAAAAAAAATAhgAAAAAAABgQgADAAAAAAAATAhgAAAAAAAAgAkBDAAAAAAAADAhgAEAAAAAAAAmBDAAAAAAAADAhAAGAAAAAAAAmBDAAAAAAAAAABMCGAAAAAAAAGBCAAMAAAAAAABMCGAAAAAAAACACQEMAAAAAAAAMBHtgupMmOGmmgAAAABJRU5ErkJggg==" alt="" style="filter: invert(27%) sepia(90%) saturate(1500%) hue-rotate(195deg)">
+      <div style="display:flex; gap:16px; align-items:center; flex-wrap:wrap;">
+        <input type="text" id="catalogSearch" class="search-input" placeholder="Кітап немесе автор іздеу..." oninput="filterBooks()">
+        <div class="catalog-tabs">
+          <button class="tab active" onclick="setCategory('Бәрі', this)">Бәрі</button>
+          <button class="tab" onclick="setCategory('Классика', this)">Классика</button>
+          <button class="tab" onclick="setCategory('Тұлғалық даму', this)">Тұлғалық даму</button>
+          <button class="tab" onclick="setCategory('Тарих', this)">Тарих</button>
+          <button class="tab" onclick="setCategory('Ертегілер', this)">Ертегілер</button>
+        </div>
       </div>
-      <h3>Электронды кітаптар</h3>
-      <p>Ыңғайлы оқу режимі: шрифт өлшемі, фон түсі, бетбелгілер — бәрін өзің баптайсың.</p>
     </div>
-    <div class="feature-card">
-      <div class="feature-icon">
-        <img src="data:image/png;base64,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AEAIARgAAAAAAAAghAAMAAAAAAAAEEIABgAAAAAAAAghAAMAAAAAAACEEIABAAAAAAAAQgjAAAAAAAAAACEEYAAAAAAAAIAQAjAAAAAAAABACAEYAAAAAAAAIIQADAAAAAAAABBCAAYAAAAAAAAIIQADAAAAAAAAhBCAAQAAAAAAAEIIwAAAAAAAAAAhBGAAAAAAAACAEAIwAAAAAAAAQAgBGAAAAAAAACCEAAwAAAAAAAAQQgAGAAAAAAAACCEAAwAAAAAAAIQQgAEAAAAAAABCCMAAAAAAAAAAIQRgAAAAAAAAgBACMAAAAAAAAEAIARgAAAAAAAAghAAMAAAAAAAAEEIABgAAAAAAAAghAAMAAAAAAACEEIABAAAAAAAAQgjAAAAAAAAAACEEYAAAAAAAAIAQAjAAAAAAAABACAEYAAAAAAAAIIQADAAAAAAAABBCAAYAAAAAAAAIIQADAAAAAAAAhBCAAQAAAAAAAEIIwAAAAAAAAAAhBGAAAAAAAACAEAIwAAAAAAAAQAgBGAAAAAAAACCEAAwAAAAAAAAQQgAGAAAAAAAACCEAAwAAAAAAAIQQgAEAAAAAAABCCMAAAAAAAAAAIQRgAAAAAAAAgBACMAAAAAAAAEAIARgAAAAAAAAghAAMAAAAAAAAEEIABgAAAAAAAAghAAMAAAAAAACEEIABAAAAAAAAQgjAAAAAAAAAACEEYAAAAAAAAIAQAjAAAAAAAABACAEYAAAAAAAAIIQADAAAAAAAABBCAAYAAAAAAAAIIQADAAAAAAAAhBCAAQAAAAAAAEIIwAAAAAAAAAAhBGAAAAAAAACAEAIwAAAAAAAAQAgBGAAAAAAAACCEAAwAAAAAAAAQQgAGAAAAAAAACCEAAwAAAAAAAIQQgAEAAAAAAABCCMAAAAAAAAAAIQRgAAAAAAAAgBACMAAAAAAAAEAIARgAAAAAAAAghAAMAAAAAAAAEEIABgAAAAAAAAghAAMAAAAAAACEEIABAAAAAAAAQgjAAAAAAAAAACEEYAAAAAAAAIAQAjAAAAAAAABACAEYAAAAAAAAIIQADAAAAAAAABBCAAYAAAAAAAAIIQADAAAAAAAAhBCAAQAAAAAAAEIIwAAAAAAAAAAhBGAAAAAAAACAEAIwAAAAAAAAQAgBGAAAAAAAACCEAAwAAAAAAAAQQgAGAAAAAAAA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YAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAgQgAGAAAAAAAAiBCAAQAAAAAAACIEYAAAAAAAAIAIARgAAAAAAAAg4peXl5erNwAAAAAAAACwAxfAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAA/2vPDmQAAAAABvlb3+MrjQAAYEIAAwAAAAAAAEwIYAAAAAAAAIAJAQwAAAAAAAAwIYABAAAAAAAAJgQwAAAAAAAAwIQABgAAAAAAAJgQwAAAAAAAAAATAhgAAAAAAABgQgADAAAAAAAATAhgAAAAAAAAgAkBDAAAAAAAADAhgAEAAAAAAAAmBDAAAAAAAADAhAAGAAAAAAAAmBDAAAAAAAAAABMCGAAAAAAAAGBCAAMAAAAAAABMCGAAAAAAAACACQEMAAAAAAAAMCGAAQAAAAAAACYEMAAAAAAAAMCEAAYAAAAAAACYEMAAAAAAAAAAEwIYAAAAAAAAYEIAAwAAAAAAAEwEin0wtDJAayYAAAAASUVORK5CYII=" alt="">
+
+    <div class="books-grid" id="booksGrid">
+      <!-- Generated via JS -->
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how-section" id="how">
+  <div style="max-width:1200px; margin:0 auto;">
+    <div style="text-align:center;">
+      <span class="section-tag">Қарапайым 3 қадам</span>
+      <h2 class="section-title">Қалай жұмыс істейді?</h2>
+      <p class="section-sub" style="margin:0 auto;">Бірнеше секундта қосылып, қазақша кітаптар әлеміне еніңіз</p>
+    </div>
+    <div class="how-grid">
+      <div class="how-card">
+        <div class="how-num">01</div>
+        <h3>Эл.почтамен тіркеліңіз</h3>
+        <p>Сайтқа тіркелу бар болғаны 10 секунд алады. Кітаптарды бірден өз кабинетіңізден оқи бастайсыз.</p>
       </div>
-      <h3>Офлайн режим</h3>
-      <p>Интернетсіз де оқи аласың. Кітаптарды жүктеп ал да — интернет жоқ жерде де қол жетімді.</p>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">
-        <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAB4AAAAQ4CAYAAADo08FDAAAACXBIWXMAAAsSAAALEgHS3X78AAAgAElEQVR4nOzdwZHkuIGFYdSG7jse7HogWTAaE+TByoTyYGVCeyCZIrUFWg/WhBkLWgcVK6q7MhPITJIAHr7vyNM7IvgziJdv374VAAAAAAAAAOb3H70HAAAAAAAAALAPARgAAAAAAAAghAAMAAAAAAAAEEIABgAAAAAAAAghAAMAAAAAAACEEIABAAAAAAAAQgjAAAAAAAAAACEEYAAAAAAAAIAQAjAAAAAAAABACAEYAAAAAAAAIIQADAAAAAAAABBCAAYAAAAAAAAIIQADAAAAAAAAhBCAAQAAAAAAAEIIwAAAAAAAAAAhBGAAAAAAAACAEAIwAAAAAAAAQAgBGAAAAAAAACCEAAwAAAAAAAAQQgAGAAAAAAAACCEAAwAAAAAAAIQQgAEAAAAAAABCCMAAAAAAAAAAIQRgAAAAAAAAgBACMAAAAAAAAEAIARgAAAAAAAAghAAMAAAAAAAAEEIABgAAAAAAAAghAAMAAAAAAACEEIABAAAAAAAAQgjAAAAAAAAAACEEYAAAAAAAAIAQAjAAAAAAAABACAEYAAAAAAAAIIQADAAAAAAAABBCAAYAAAAAAAAIIQADAAAAAAAAhBCAAQAAAAAAAEIIwAAAAAAAAAAhBGAAAAAAAACAEAIwAAAAAAAAQAgBGAAAAAAAACCEAAwAAAAAAAAQQgAGAAAAAAAACCEAAwAAAAAAAIQQgAEAAAAAAABCCMAAAAAAAAAAIQRgAAAAAAAAgBACMAAAAAAAAEAIARgAAAAAAAAghAAMAAAAAAAAEEIABgAAAAAAAAghAAMAAAAAAACEEIABAAAAAAAAQgjAAAAAAAAAACEEYAAAAAAAAIAQAjAAAAAAAABACAEYAAAAAAAAIIQADAAAAAAAABBCAAYAAAAAAAAIIQADAAAAAAAAhBCAAQAAAAAAAEIIwAAAAAAAAAAhBGAAAAAAAACAEAIwAAAAAAAAQAgBGAAAAAAAACCEAAwAAAAAAAAQQgAGAAAAAAAACCEAAwAAAAAAAIQQgAEAAAAAAABCCMAAAAAAAAAAIQRgAAAAAAAAgBACMAAAAAAAAEAIARgAAAAAAAAghAAMAAAAAAAAEEIABgAAAAAAAAghAAMAAAAAAACEEIABAAAAAAAAQgjAAAAAAAAAACEEYAAAAAAAAIAQAjAAAAAAAABACAEYAAAAAAAAIIQADAAAAAAAABBCAAYAAAAAAAAIIQADAAAAAAAAhBCAAQAAAAAAAEIIwAAAAAAAAAAhBGAAAAAAAACAEAIwAAAAAAAAQAgBGAAAAAAAACCEAAwAAAAAAAAQQgAGAAAAAAAACCEAAwAAAAAAAIQQgAEAAAAAAABCCMAAAAAAAAAAIX7XewAAAMCRXl6//qGU8lPvHcBVv3778vM/e48AAABIIQADAADpvpRS/th7BHDVP0opv/QeAQAAkMIvoAEAAAAAAABCCMAAAAAAAAAAIQRgAAAAAAAAgBACMAAAAAAAAEAIARgAAAAAAAAghAAMAAAAAAAAEEIABgAAAAAAAAghAAMAAAAAAACEEIABAAAAAAAAQgjAAAAAAAAAACEEYAAAAAAAAIAQAjAAAAAAAABACAEYAAAAAAAAIIQADAAAAAAAABBCAAYAAAAAAAAIIQADAAAAAAAAhBCAAQAAAAAAAEIIwAAAAAAAAAAhBGAAAAAAAACAEAIwAAAAAAAAQAgBGAAAAAAAACCEAAwAAAAAAAAQQgAGAAAAAAAACCEAAwAAAAAAAIQQgAEAAAAAAABCCMAAAAAAAAAAIQRgAAAAAAAAgBACMAAAAAAAAEAIARgAAAAAAAAghAAMAAAAAAAAEEIABgAAAAAAAAghAAMAAAAAAACEEIABAAAAAAAAQgjAAAAAAAAAACEEYAAAAAAAAIAQAjAAAAAAAABACAEYAAAAAAAAIIQADAAAAAAAABBCAAYAAAAAAAAIIQADAAAAAAAAhBCAAQAAAAAAAEIIwAAAAAAAAAAhBGAAAAAAAACAEAIwAAAAAAAAQAgBGAAAAAAAACCEAAwAAAAAAAAQQgAGAAAAAAAACCEAAwAAAAAAAIQQgAEAAAAAAABCCMAAAAAAAAAAIQRgAAAAAAAAgBACMAAAAAAAAEAIARgAAAAAAAAghAAMAAAAAAAAEEIABgAAAAAAAAghAAMAAAAAAACEEIABAAAAAAAAQgjAAAAAAAAAACEEYAAAAAAAAIAQAjAAAAAAAABACAEYAAAAAAAAIIQADAAAAAAAABBCAAYAAAAAAAAIIQADAAAAAAAAhBCAAQAAAAAAAEIIwAAAAAAAAAAhBGAAAAAAAACA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AAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARAjAAAAAAAAAABECMAAAAAAAAECEAAwAAAAAAAAQIQADAAAAAAAARPx09QAg6b/btv376hEAAAAAAHf6fPUAgGd9enl5uXoDAAAAAAAAADvwBTQAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAMAAAAAAAAECEAAwAAAAAAAEQIwAAAAAAAAAARAjAAAAAAAABAhAAM8P/27EAGAAAAYJC/9T2+0ggAAAAAAGBCAAMAAAAAAABMCGAAAAAAAACACQEMAAAAAAAAMCGAAQAAAAAAACYEMAAAAAAAAMCEAAYAAAAAAACYEMAAAAAAAAAAEwIYAAAAAAAAYEIAAwAAAAAAAEwIYAAAAAAAAIAJAQwAAAAAAAAwIYABAAAAAAAAJgQwAAAAAAAAwIQABgAAAAAAAJgQwAAAAAAAAAATAhgAAAAAAABgQgADAAAAAAAATAhgAAAAAAAAgAkBDAAAAAAAADAhgAEAAAAAAAAmBDAAAAAAAADAhAAGAAAAAAAAmBDAAAAAAAAAABMCGAAAAAAAAGBCAAMAAAAAAABMCGAAAAAAAACACQEMAAAAAAAAMBHtgupMmOGmmgAAAABJRU5ErkJggg==" alt="" style="filter: invert(27%) sepia(90%) saturate(1500%) hue-rotate(195deg)">
+      <div class="how-card">
+        <div class="how-num">02</div>
+        <h3>Кітапты таңдаңыз</h3>
+        <p>Тегін сынақ кітаптарын тікелей оқып/тыңдап көріңіз, немесе премиум жазылымды таңдаңыз.</p>
       </div>
-      <h3>Жылдамдатылған тыңдау</h3>
-      <p>0.75x-тен 3x-ке дейін жылдамдықты таңда. Уақытыңды тиімді пайдалан.</p>
+      <div class="how-card">
+        <div class="how-num">03</div>
+        <h3>Кез келген жерде пайдаланыңыз</h3>
+        <p>Смартфоннан немесе компьютерден тікелей браузер арқылы онлайн оқып, тыңдай беріңіз.</p>
+      </div>
     </div>
-    <div class="feature-card">
-      <div class="feature-icon">
-        <img src="data:image/png;base64,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AEAIARgAAAAAAAAghAAMAAAAAAAAEEIABgAAAAAAAAghAAMAAAAAAACEEIABAAAAAAAAQgjAAAAAAAAAACEEYAAAAAAAAIAQAjAAAAAAAABACAEYAAAAAAAAIIQADAAAAAAAABBCAAYAAAAAAAAIIQADAAAAAAAAhBCAAQAAAAAAAEIIwAAAAAAAAAAhBGAAAAAAAACAEAIwAAAAAAAAQAgBGAAAAAAAACCEAAwAAAAAAAAQQgAGAAAAAAAACCEAAwAAAAAAAIQQgAEAAAAAAABCCMAAAAAAAAAAIQRgAAAAAAAAgBACMAAAAAAAAEAIARgAAAAAAAAghAAMAAAAAAAAEEIABgAAAAAAAAghAAMAAAAAAACEEIABAAAAAAAAQgjAAAAAAAAAACEEYAAAAAAAAIAQAjAAAAAAAABACAEYAAAAAAAAIIQADAAAAAAAABBCAAYAAAAAAAAIIQADAAAAAAAAhBCAAQAAAAAAAEIIwAAAAAAAAAAhBGAAAAAAAACAEAIwAAAAAAAAQAgBGAAAAAAAACCEAAwAAAAAAAAQQgAGAAAAAAAACCEAAwAAAAAAAIQQgAEAAAAAAABCCMAAAAAAAAAAIQRgAAAAAAAAgBACMAAAAAAAAEAIARgAAAAAAAAghAAMAAAAAAAAEEIABgAAAAAAAAghAAMAAAAAAACEEIABAAAAAAAAQgjAAAAAAAAAACEEYAAAAAAAAIAQAjAAAAAAAABACAEYAAAAAAAAIIQADAAAAAAAABBCAAYAAAAAAAAIIQADAAAAAAAAhBCAAQAAAAAAAEIIwAAAAAAAAAAhBGAAAAAAAACAEAIwAAAAAAAAQAgBGAAAAAAAACCEAAwAAAAAAAAQQgAGAAAAAAAACCEAAwAAAAAAAIQQgAEAAAAAAABCCMAAAAAAAAAAIQRgAAAAAAAAgBACMAAAAAAAAEAIARgAAAAAAAAghAAMAAAAAAAAEEIABgAAAAAAAAghAAMAAAAAAACEEIABAAAAAAAAQgjAAAAAAAAAACEEYAAAAAAAAIAQAjAAAAAAAABACAEYAAAAAAAAIIQADAAAAAAAABBCAAYAAAAAAAAIIQADAAAAAAAAhBCAAQAAAAAAAEIIwAAAAAAAAAAhBGAAAAAAAACAEAIwAAAAAAAAQAgBGAAAAAAAACCEAAwAAAAAAAAQQgAGAAAAAAAA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
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing-section" id="pricing">
+  <div style="max-width:1200px; margin:0 auto;">
+    <div class="pricing-header">
+      <span class="section-tag">Қолжетімді баға</span>
+      <h2 class="section-title">Тарифтер</h2>
+      <p class="section-sub">Өзіңізге ыңғайлы төлем нұсқасын таңдаңыз</p>
+    </div>
+
+    <div class="pricing-grid">
+      <div class="price-card">
+        <div>
+          <div class="price-name">Сынақ нұсқасы</div>
+          <div class="price-amount">0 ₸</div>
+          <div class="price-period">Тіркелген соң әрдайым тегін</div>
+          <ul class="price-features">
+            <li>4 толық сынақ кітаптары</li>
+            <li>Аудио және мәтіндік оқу</li>
+            <li>Жылдамдықты реттеу</li>
+          </ul>
+        </div>
+        <button class="btn-plan btn-plan-outline" onclick="openAuthModal('signup')">Тегін тіркелу</button>
+      </div>
+
+      <div class="price-card featured">
+        <div class="price-badge">Ең танымал</div>
+        <div>
+          <div class="price-name">1 айлық жазылым</div>
+          <div class="price-amount">1 990 ₸</div>
+          <div class="price-period">Айына бір рет төленеді</div>
+          <ul class="price-features">
+            <li>Барлық кітаптар мен аудиолар</li>
+            <li>Шектеусіз онлайн қолжетімділік</li>
+            <li>Жарнамасыз, таза дыбыс</li>
+            <li>Kaspi QR және банк картасы</li>
+          </ul>
+        </div>
+        <button class="btn-plan btn-plan-filled" onclick="openSubscribeModal()">Жазылу (1 990 ₸)</button>
+      </div>
+
+      <div class="price-card">
+        <div>
+          <div class="price-name">1 жылдық жазылым</div>
+          <div class="price-amount">17 990 ₸</div>
+          <div class="price-period">Жылына бір рет (25% үнем)</div>
+          <ul class="price-features">
+            <li>Жыл бойы толық шектеусіздік</li>
+            <li>Жаңа кітаптар бірден қолжетімді</li>
+            <li>Ең тиімді бағамен</li>
+          </ul>
+        </div>
+        <button class="btn-plan btn-plan-outline" onclick="openSubscribeModal()">Жылдыққа жазылу</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <h2>Қазақша кітаптар әлеміне қосыл!</h2>
+  <p>Мыңдаған оқырман Tanda арқылы күн сайын жаңа білім алуда.</p>
+  <button class="btn-cta-white" onclick="openAuthModal('signup')">Қазір бастау</button>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div style="max-width:1200px; margin:0 auto;">
+    <div class="footer-bottom">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span style="font-weight:900; color:#FFF; font-size:16px;">tanda</span>
+        <span>— Қазақша аудио және электронды кітаптар платформасы</span>
+      </div>
+      <div>
+        © 2026 tanda.kz. Барлық құқықтар қорғалған.
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- AUTH MODAL (Эл.почта арқылы тіркелу және кіру) -->
+<div class="modal-overlay" id="authModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeAuthModal()">✕</button>
+    <div style="text-align:center; margin-bottom:24px;">
+      <h3 style="font-size:22px; font-weight:800; color:var(--text-dark);" id="authModalTitle">Кітапты оқу үшін тіркеліңіз</h3>
+      <p style="font-size:13px; color:var(--text-mid); margin-top:4px;" id="authModalSubtitle">Электронды почтаңыз арқылы кіріп, кітаптарға қол жеткізіңіз</p>
+    </div>
+
+    <div style="display:flex; gap:8px; margin-bottom:20px; border-bottom:1px solid #E2E8F0; padding-bottom:8px;">
+      <button id="tabAuthSignup" style="flex:1; padding:8px; border:none; background:none; font-weight:700; font-size:14px; color:var(--blue); border-bottom:2px solid var(--blue); cursor:pointer;" onclick="switchAuthMode('signup')">Тіркелу</button>
+      <button id="tabAuthLogin" style="flex:1; padding:8px; border:none; background:none; font-weight:600; font-size:14px; color:var(--text-mid); cursor:pointer;" onclick="switchAuthMode('login')">Кіру</button>
+    </div>
+
+    <form id="authForm" onsubmit="handleAuthSubmit(event)">
+      <div class="form-group" id="groupName">
+        <label class="form-label">Аты-жөніңіз</label>
+        <input type="text" id="authName" class="form-input" placeholder="Мысалы: Азамат Серікұлы">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Электронды почта (Email) *</label>
+        <input type="email" required id="authEmail" class="form-input" placeholder="sizdin.email@gmail.com">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Құпиясөз (Password) *</label>
+        <input type="password" required id="authPassword" class="form-input" placeholder="Кемінде 6 таңба">
+      </div>
+
+      <div id="authError" style="color:#E53E3E; font-size:12px; font-weight:600; margin-bottom:14px; display:none;"></div>
+
+      <button type="submit" class="btn-submit" id="authSubmitBtn">Тіркелу және оқу</button>
+    </form>
+
+    <div style="margin-top:20px; padding-top:16px; border-top:1px dashed #CBD5E1; text-align:center;">
+      <div style="font-size:12px; color:var(--text-mid); margin-bottom:8px;">Сынақ үшін жылдам кіру:</div>
+      <button type="button" style="background:#F1F5F9; border:none; padding:6px 14px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; color:var(--text-dark); margin:0 4px;" onclick="quickLogin('user')">Оқырман ретінде кіру</button>
+      <button type="button" style="background:#0D1B2A; border:none; padding:6px 14px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; color:#FFF; margin:0 4px;" onclick="quickLogin('admin')">Админ ретінде кіру</button>
+    </div>
+  </div>
+</div>
+
+<!-- READER & PLAYER MODAL (Кітапты оқу және тыңдау) -->
+<div class="modal-overlay" id="readerModal">
+  <div class="modal-box large">
+    <button class="modal-close" onclick="closeReaderModal()">✕</button>
+    
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px solid #E2E8F0; padding-bottom:14px;">
+      <div>
+        <span class="book-category" id="readerBookCategory">Классика</span>
+        <h2 style="font-size:22px; font-weight:900; color:var(--text-dark); margin-top:4px;" id="readerBookTitle">Кітап атауы</h2>
+        <div style="font-size:13px; color:var(--text-mid);" id="readerBookAuthor">Авторы</div>
+      </div>
+    </div>
+
+    <!-- Reading Settings -->
+    <div class="reader-controls">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span style="font-size:13px; font-weight:600; color:var(--text-mid);">Қаріп:</span>
+        <button class="reader-theme-btn" onclick="changeFontSize(-2)">A -</button>
+        <span id="fontSizeDisplay" style="font-size:13px; font-weight:700; width:36px; text-align:center;">17px</span>
+        <button class="reader-theme-btn" onclick="changeFontSize(2)">A +</button>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:6px;">
+        <span style="font-size:13px; font-weight:600; color:var(--text-mid);">Режим:</span>
+        <button class="reader-theme-btn active" id="btnModeLight" onclick="setReaderTheme('light')">Күндізгі</button>
+        <button class="reader-theme-btn" id="btnModeSepia" onclick="setReaderTheme('sepia')">Сепия</button>
+        <button class="reader-theme-btn" id="btnModeDark" onclick="setReaderTheme('dark')">Түнгі</button>
+      </div>
+    </div>
+
+    <!-- Reader Body -->
+    <div class="reader-content reader-mode-light" id="readerContentArea">
+      <!-- Paragraphs generated via JS -->
+    </div>
+
+    <!-- Audio Player Bar -->
+    <div class="audio-bar" id="audioPlayerBar">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <button id="audioPlayBtn" onclick="toggleAudio()" style="width:44px; height:44px; border-radius:50%; background:var(--orange); color:#FFF; border:none; font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 12px rgba(240,128,0,0.3);">▶</button>
+        <div>
+          <div style="font-size:13px; font-weight:700; color:var(--text-dark);" id="audioTitleDisplay">Аудиокітап тыңдау</div>
+          <div style="font-size:11px; color:var(--text-mid); font-family:monospace;" id="audioTimeDisplay">00:00 / 08:30</div>
+        </div>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:8px;">
+        <select id="audioSpeed" style="padding:6px; border-radius:6px; border:1px solid #CBD5E1; font-size:12px; font-weight:700;" onchange="setAudioSpeed(this.value)">
+          <option value="0.75">0.75x</option>
+          <option value="1.0" selected>1.0x</option>
+          <option value="1.25">1.25x</option>
+          <option value="1.5">1.5x</option>
+          <option value="2.0">2.0x</option>
+        </select>
+        <button style="padding:6px 10px; border-radius:6px; border:1px solid #CBD5E1; background:#FFF; font-size:12px; font-weight:600; cursor:pointer;" onclick="toggleSleepTimer()">Ұйқы таймері</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN PANEL MODAL (Админ басқару панелі) -->
+<div class="modal-overlay" id="adminModal">
+  <div class="modal-box large">
+    <button class="modal-close" onclick="closeAdminModal()">✕</button>
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #E2E8F0; padding-bottom:14px; margin-bottom:20px;">
+      <div>
+        <h2 style="font-size:22px; font-weight:900; color:var(--text-dark);">Tanda — Әкімшілік панель</h2>
+        <p style="font-size:13px; color:var(--text-mid);">Кітаптарды, аудиоларды және қолданушылар базасын басқару</p>
+      </div>
+      <button class="btn-primary" style="padding:8px 18px; font-size:13px;" onclick="openAddBookModal()">+ Жаңа кітап қосу</button>
+    </div>
+
+    <!-- Admin Stats Overview -->
+    <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:16px; margin-bottom:24px;">
+      <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:10px; padding:16px;">
+        <div style="font-size:11px; font-weight:700; color:var(--text-mid); text-transform:uppercase;">Кітап қоры</div>
+        <div style="font-size:24px; font-weight:900; color:var(--blue);" id="adminBookCount">8</div>
+      </div>
+      <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:10px; padding:16px;">
+        <div style="font-size:11px; font-weight:700; color:var(--text-mid); text-transform:uppercase;">Тіркелген қолданушылар</div>
+        <div style="font-size:24px; font-weight:900; color:var(--orange);" id="adminUserCount">0</div>
+      </div>
+      <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:10px; padding:16px;">
+        <div style="font-size:11px; font-weight:700; color:var(--text-mid); text-transform:uppercase;">Жазылым бағасы</div>
+        <div style="font-size:24px; font-weight:900; color:#10B981;">1 990 ₸ / ай</div>
+      </div>
+    </div>
+
+    <!-- Admin Tabs -->
+    <div style="display:flex; gap:8px; border-bottom:1px solid #E2E8F0; margin-bottom:16px;">
+      <button id="adminTabBooksBtn" style="padding:8px 16px; border:none; background:none; font-weight:700; font-size:14px; color:var(--blue); border-bottom:2px solid var(--blue); cursor:pointer;" onclick="switchAdminTab('books')">Кітаптар қоры</button>
+      <button id="adminTabUsersBtn" style="padding:8px 16px; border:none; background:none; font-weight:600; font-size:14px; color:var(--text-mid); cursor:pointer;" onclick="switchAdminTab('users')">Тіркелген эл.почталар</button>
+    </div>
+
+    <!-- Admin Tab: Books -->
+    <div id="adminTabBooks">
+      <div style="overflow-x:auto;">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Атауы</th>
+              <th>Авторы</th>
+              <th>Жанры</th>
+              <th>Мәртебесі</th>
+              <th style="text-align:right;">Әрекет</th>
+            </tr>
+          </thead>
+          <tbody id="adminBooksTableBody">
+            <!-- Rendered via JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Admin Tab: Users -->
+    <div id="adminTabUsers" style="display:none;">
+      <div style="overflow-x:auto;">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Эл.почта</th>
+              <th>Аты-жөні</th>
+              <th>Тіркелген күні</th>
+              <th>Рөлі</th>
+            </tr>
+          </thead>
+          <tbody id="adminUsersTableBody">
+            <!-- Rendered via JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD BOOK MODAL -->
+<div class="modal-overlay" id="addBookModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeAddBookModal()">✕</button>
+    <h3 style="font-size:20px; font-weight:800; margin-bottom:16px; color:var(--text-dark);">Жаңа қазақша кітап қосу</h3>
+    <form onsubmit="handleCreateBook(event)">
+      <div class="form-group">
+        <label class="form-label">Кітап атауы *</label>
+        <input type="text" required id="newBookTitle" class="form-input" placeholder="Мысалы: Бақытсыз Жамал">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Авторы *</label>
+        <input type="text" required id="newBookAuthor" class="form-input" placeholder="Мысалы: Міржақып Дулатұлы">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Жанры</label>
+        <select id="newBookCategory" class="form-input">
+          <option value="Классика">Классика</option>
+          <option value="Тұлғалық даму">Тұлғалық даму</option>
+          <option value="Тарих">Тарих</option>
+          <option value="Ертегілер">Ертегілер</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Кітап мәтіні (үзіндісі немесе 1-тарауы) *</label>
+        <textarea required id="newBookContent" class="form-input" rows="4" placeholder="Кітаптың оқылатын мәтінін осында жазыңыз..."></textarea>
+      </div>
+      <div class="form-group" style="display:flex; align-items:center; gap:8px;">
+        <input type="checkbox" id="newBookIsFree" style="width:18px; height:18px; accent-color:var(--orange);">
+        <label for="newBookIsFree" style="font-size:13px; font-weight:600; cursor:pointer;">Тегін сынақ кітабы қылып белгілеу</label>
+      </div>
+      <button type="submit" class="btn-submit">Каталогқа қосу</button>
+    </form>
+  </div>
+</div>
+
+<!-- SUBSCRIBE MODAL -->
+<div class="modal-overlay" id="subscribeModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeSubscribeModal()">✕</button>
+    <div style="text-align:center; margin-bottom:20px;">
+      <span class="section-tag" style="background:#FEF3C7; color:#B45309;">Премиум жазылым</span>
+      <h3 style="font-size:22px; font-weight:800; color:var(--text-dark); margin-top:8px;">Барлық қазақша кітаптарды ашыңыз</h3>
+      <div style="font-size:32px; font-weight:900; color:var(--blue); margin:12px 0 4px;">1 990 ₸ <span style="font-size:14px; font-weight:500; color:var(--text-mid);">/ айына</span></div>
+      <p style="font-size:13px; color:var(--text-mid);">Kaspi QR немесе банк картасымен жылдам төлеңіз</p>
+    </div>
+
+    <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:18px; text-align:center; margin-bottom:20px;">
+      <div style="font-weight:700; font-size:14px; color:#DC2626; margin-bottom:8px;">Kaspi QR арқылы төлеу</div>
+      <div style="display:inline-block; padding:12px; background:#FFF; border-radius:8px; border:2px dashed #DC2626;">
+        <svg width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+      </div>
+      <div style="font-size:12px; color:var(--text-mid); margin-top:8px;">Kaspi.kz қосымшасында QR сканерді ашыңыз</div>
+    </div>
+
+    <button class="btn-submit" onclick="confirmSubscription()" style="background:#10B981;">Төледім және жазылымды қосу</button>
+  </div>
+</div>
+
+<script>
+// INITIAL SEED BOOKS
+const INITIAL_BOOKS = [
+  {
+    id: "kara-sozder",
+    title: "Қара сөздер",
+    author: "Абай Құнанбайұлы",
+    category: "Классика",
+    isFree: true,
+    gradient: "linear-gradient(135deg, #0057A8, #003d7a)",
+    content: "Бірінші сөз.\n\nБұл жасқа келгенше жақсы өткіздік пе, жаман өткіздік пе, әйтеуір бірталай өмірімізді өткіздік: алыстық, жұлыстық, айтыстық, тартыстық — әурешілікті көре-көре келдік. Енді жер ортасы жасқа келдік: қажыдық, жалықтық; қылып жүрген ісіміздің бәрі баянсыз, байлаусыз екенін көрдік, бәрі қоршылық екенін білдік.\n\nАл, енді қалған өмірімізді қайтіп, не қылып өткіземіз? Соны таба алмай өзім де қайранмын. Ақыры ойладым: осы ойыма келген нәрселерді қағазға жаза берейін, ақ қағаз бен қара сияны ермек қылайын, кімде-кім ішінен керекті сөз тапса, жазып алсын, я оқысын; керегі жоқ десе, өз сөзім өзімдікі дедім де, ақыры осыған байладым."
+  },
+  {
+    id: "abai-joly",
+    title: "Абай жолы (1-том)",
+    author: "Мұхтар Әуезов",
+    category: "Классика",
+    isFree: false,
+    gradient: "linear-gradient(135deg, #1E3A8A, #172554)",
+    content: "Қайтқанда.\n\nБелгілі Шыңғыс бөктері. Қаладан қайтқан жас шәкірттер мінген аттарын аяңға салып, жазғы жайлауға қарай асығып келеді. Үш жыл бойы қаладағы медреседе оқыған жас Абай ауылын, анасын, әжесін шексіз сағынған еді. Алда оны ұлы өмір белестері мен дала тартыстары күтіп тұрған болатын."
+  },
+  {
+    id: "aldar-kose",
+    title: "Алдар Көсенің айлалары",
+    author: "Қазақ халық ертегілері",
+    category: "Ертегілер",
+    isFree: true,
+    gradient: "linear-gradient(135deg, #F08000, #c06800)",
+    content: "Шықбермес Шығайбайдың үйінде.\n\nЕртеде Шықбермес Шығайбай деген өте сараң бай өмір сүріпті. Үйіне қонған қонаққа тарының қауызын да татырмайтын тасбауыр жан екен. Мұны естіген Алдар Көсе: «Мен сол Шығайбайдың үйінен дәм татпасам, атым Алдар болмасын!» — деп байдың ауылына аттаныпты."
+  },
+  {
+    id: "koshpendiler",
+    title: "Көшпенділер",
+    author: "Ілияс Есенберлин",
+    category: "Тарих",
+    isFree: false,
+    gradient: "linear-gradient(135deg, #065F46, #022C22)",
+    content: "Алмас қылыш.\n\nXV ғасырдың орта шені. Ұлан-ғайыр Дешті Қыпшақ даласында аласапыран заман басталды. Әбілқайыр ханның озбыр саясатына көнгісі келмеген Керей мен Жәнібек сұлтандар өздеріне қарасты елді бастап, Моғолстан шегіне қарай бет түзеді. Бұл қазақ мемлекеттілігінің негізін қалаған ұлы көш еді."
+  },
+  {
+    id: "shakarim",
+    title: "Үш анық",
+    author: "Шәкәрім Құдайбердіұлы",
+    category: "Тұлғалық даму",
+    isFree: true,
+    gradient: "linear-gradient(135deg, #7C3AED, #4C1D95)",
+    content: "Ар ілімі.\n\nАдам өміріндегі ең негізгі үш анық бар. Дүниедегі барлық байлық пен атақ-мансап өткінші, адамның шын құны — оның таза ар-ұжданы мен адамзатқа тигізген игілігімен ғана өлшенеді. Ар ілімі — кемелдікке бастайтын басты жол."
+  },
+  {
+    id: "kalyng-mal",
+    title: "Қалың мал",
+    author: "Спандияр Көбеев",
+    category: "Классика",
+    isFree: true,
+    gradient: "linear-gradient(135deg, #B45309, #78350F)",
+    content: "Торғай даласындағы жазғы жайлау.\n\nКөк майса белестерді құшағына алған ауыл адамдары жайлауға көшіп, мамырлап жатқан шақ еді. Ғайша мен Құрымбайдың арасындағы пәк сезім сол замандағы қатал салт пен қалың мал тауқыметіне қарсы тұрар ерлікке ұласады."
+  },
+  {
+    id: "atomic-habits",
+    title: "Атомдық әдеттер",
+    author: "Джеймс Клир (қазақша)",
+    category: "Тұлғалық даму",
+    isFree: false,
+    gradient: "linear-gradient(135deg, #DC2626, #7F1D1D)",
+    content: "Күнделікті 1%-ға жақсарудың таңғажайып күші.\n\nКүн сайын небәрі 1%-ға алға жылжысаңыз, бір жылда нәтижеңіз 37 есе артады. Нәтижелер — сіздің күнделікті қайталайтын әдеттеріңіздің жиынтығы."
+  },
+  {
+    id: "rich-dad",
+    title: "Бай әке, кедей әке",
+    author: "Роберт Кийосаки (қазақша)",
+    category: "Тұлғалық даму",
+    isFree: false,
+    gradient: "linear-gradient(135deg, #0284C7, #0369A1)",
+    content: "Байлар ақша үшін жұмыс істемейді.\n\nҚаржылық сауаттылық — өмір бойғы еркіндіктің кепілі. Байлар актив сатып алып, ақшаны өзіне жұмыс істеуге мәжбүрлейді."
+  }
+];
+
+// DATA & STATE MANAGEMENT
+let books = JSON.parse(localStorage.getItem('tanda_books')) || INITIAL_BOOKS;
+let users = JSON.parse(localStorage.getItem('tanda_users')) || [
+  { email: "admin@tanda.kz", name: "Бас Администратор", role: "ADMIN", date: "2026-09-01" },
+  { email: "oqyrman@mail.kz", name: "Айбек Қайратұлы", role: "USER", date: "2026-09-05" }
+];
+let currentUser = JSON.parse(localStorage.getItem('tanda_current_user')) || null;
+let currentTargetBookId = null;
+let readerFontSize = 17;
+let currentCategory = 'Бәрі';
+
+function saveState() {
+  localStorage.setItem('tanda_books', JSON.stringify(books));
+  localStorage.setItem('tanda_users', JSON.stringify(users));
+  localStorage.setItem('tanda_current_user', JSON.stringify(currentUser));
+}
+
+// RENDER NAV AUTH AREA
+function renderNavAuth() {
+  const area = document.getElementById('navAuthArea');
+  if (currentUser) {
+    let adminBtn = currentUser.role === 'ADMIN' 
+      ? `<button class="btn-admin-pill" onclick="openAdminModal()">Админ-панель</button>` 
+      : '';
+    area.innerHTML = `
+      ${adminBtn}
+      <div class="user-badge">
+        <span>${currentUser.name || currentUser.email}</span>
+      </div>
+      <button class="btn-logout" onclick="logout()">Шығу</button>
+    `;
+  } else {
+    area.innerHTML = `
+      <button class="btn-nav-login" onclick="openAuthModal('login')">Кіру</button>
+      <button class="btn-nav-reg" onclick="openAuthModal('signup')">Тіркелу</button>
+    `;
+  }
+}
+
+// RENDER BOOKS GRID
+function renderBooks() {
+  const grid = document.getElementById('booksGrid');
+  const query = (document.getElementById('catalogSearch').value || '').toLowerCase().trim();
+  
+  const filtered = books.filter(b => {
+    const matchesCat = currentCategory === 'Бәрі' || b.category === currentCategory;
+    const matchesQuery = !query || b.title.toLowerCase().includes(query) || b.author.toLowerCase().includes(query);
+    return matchesCat && matchesQuery;
+  });
+
+  grid.innerHTML = filtered.map(b => `
+    <div class="book-card">
+      <div>
+        <div class="book-cover" style="background: ${b.gradient || 'linear-gradient(135deg, #0057A8, #003d7a)'};">
+          <span class="cover-badge ${b.isFree ? 'badge-free' : 'badge-premium'}">
+            ${b.isFree ? 'Тегін сынақ' : 'Премиум'}
+          </span>
+          <div class="cover-title">${b.title}</div>
+          <div class="cover-author-text">${b.author}</div>
+        </div>
+        <div class="book-meta">
+          <div class="book-title">${b.title}</div>
+          <div class="book-author">${b.author}</div>
+          <span class="book-category">${b.category}</span>
+        </div>
+      </div>
+      <div class="book-actions">
+        <button class="btn-book-action btn-read" onclick="requestBookAccess('${b.id}', 'read')">Оқу</button>
+        <button class="btn-book-action btn-listen" onclick="requestBookAccess('${b.id}', 'listen')">Тыңдау</button>
+      </div>
+    </div>
+  `).join('');
+
+  const adminBookCount = document.getElementById('adminBookCount');
+  if (adminBookCount) adminBookCount.textContent = books.length;
+  const adminUserCount = document.getElementById('adminUserCount');
+  if (adminUserCount) adminUserCount.textContent = users.length;
+}
+
+function setCategory(cat, btn) {
+  currentCategory = cat;
+  document.querySelectorAll('.catalog-tabs .tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  renderBooks();
+}
+
+function filterBooks() {
+  renderBooks();
+}
+
+// BOOK ACCESS LOGIC (USER REQUIREMENT)
+// "Адамдар тіркелмесе сайтты көре алады, ал бірақ кітапты оқығысы келсе, сол кезде тіркеле алады."
+function requestBookAccess(bookId, mode) {
+  const book = books.find(b => b.id === bookId);
+  if (!book) return;
+
+  if (!currentUser) {
+    // User is NOT logged in -> Must register/login to read
+    currentTargetBookId = bookId;
+    openAuthModal('signup', `«${book.title}» кітабын ${mode === 'read' ? 'оқу' : 'тыңдау'} үшін тіркеліңіз`);
+    return;
+  }
+
+  // User IS logged in
+  if (!book.isFree && (!currentUser.isSubscribed && currentUser.role !== 'ADMIN')) {
+    // Premium book requires subscription
+    openSubscribeModal();
+    return;
+  }
+
+  // Open Reader
+  openReaderModal(book, mode);
+}
+
+// AUTH MODAL FUNCTIONS
+let authMode = 'signup';
+
+function openAuthModal(mode, customSubtitle) {
+  authMode = mode;
+  document.getElementById('authModal').classList.add('active');
+  document.getElementById('authError').style.display = 'none';
+  if (customSubtitle) {
+    document.getElementById('authModalSubtitle').textContent = customSubtitle;
+  } else {
+    document.getElementById('authModalSubtitle').textContent = mode === 'signup' ? 'Электронды почтаңыз арқылы тіркеліп, кітаптарды еркін оқыңыз' : 'Өз аккаунтыңызға кіріңіз';
+  }
+  switchAuthMode(mode);
+}
+
+function closeAuthModal() {
+  document.getElementById('authModal').classList.remove('active');
+}
+
+function switchAuthMode(mode) {
+  authMode = mode;
+  const tabSignup = document.getElementById('tabAuthSignup');
+  const tabLogin = document.getElementById('tabAuthLogin');
+  const groupName = document.getElementById('groupName');
+  const submitBtn = document.getElementById('authSubmitBtn');
+  const title = document.getElementById('authModalTitle');
+
+  if (mode === 'signup') {
+    tabSignup.style.color = 'var(--blue)';
+    tabSignup.style.borderBottom = '2px solid var(--blue)';
+    tabLogin.style.color = 'var(--text-mid)';
+    tabLogin.style.borderBottom = 'none';
+    groupName.style.display = 'block';
+    submitBtn.textContent = 'Тіркелу және оқу';
+    title.textContent = 'Tanda-ға тіркелу';
+  } else {
+    tabLogin.style.color = 'var(--blue)';
+    tabLogin.style.borderBottom = '2px solid var(--blue)';
+    tabSignup.style.color = 'var(--text-mid)';
+    tabSignup.style.borderBottom = 'none';
+    groupName.style.display = 'none';
+    submitBtn.textContent = 'Жүйеге кіру';
+    title.textContent = 'Аккаунтқа кіру';
+  }
+}
+
+function handleAuthSubmit(e) {
+  e.preventDefault();
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+  const name = document.getElementById('authName').value.trim() || email.split('@')[0];
+  const err = document.getElementById('authError');
+
+  if (!email || !password) return;
+
+  if (authMode === 'signup') {
+    const exists = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+    if (exists) {
+      err.textContent = 'Бұл эл.почта тіркелген! Кіру бөлімін таңдаңыз.';
+      err.style.display = 'block';
+      return;
+    }
+    const newUser = {
+      email,
+      name,
+      role: email.includes('admin') ? 'ADMIN' : 'USER',
+      date: new Date().toISOString().split('T')[0],
+      isSubscribed: false
+    };
+    users.push(newUser);
+    currentUser = newUser;
+  } else {
+    const user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+    if (!user) {
+      // For convenience, auto-create user on first login
+      const newUser = {
+        email,
+        name: email.split('@')[0],
+        role: email.includes('admin') ? 'ADMIN' : 'USER',
+        date: new Date().toISOString().split('T')[0],
+        isSubscribed: false
+      };
+      users.push(newUser);
+      currentUser = newUser;
+    } else {
+      currentUser = user;
+    }
+  }
+
+  saveState();
+  renderNavAuth();
+  closeAuthModal();
+
+  // If user clicked a book before auth, immediately open that book!
+  if (currentTargetBookId) {
+    const target = books.find(b => b.id === currentTargetBookId);
+    currentTargetBookId = null;
+    if (target) {
+      openReaderModal(target, 'read');
+    }
+  }
+}
+
+function quickLogin(type) {
+  if (type === 'admin') {
+    currentUser = {
+      email: "admin@tanda.kz",
+      name: "Бас Администратор",
+      role: "ADMIN",
+      isSubscribed: true,
+      date: "2026-09-01"
+    };
+  } else {
+    currentUser = {
+      email: "oqyrman@mail.kz",
+      name: "Айбек Оқырман",
+      role: "USER",
+      isSubscribed: true,
+      date: new Date().toISOString().split('T')[0]
+    };
+  }
+  saveState();
+  renderNavAuth();
+  closeAuthModal();
+  if (currentTargetBookId) {
+    const target = books.find(b => b.id === currentTargetBookId);
+    currentTargetBookId = null;
+    if (target) openReaderModal(target, 'read');
+  }
+}
+
+function logout() {
+  currentUser = null;
+  saveState();
+  renderNavAuth();
+}
+
+// READER & PLAYER
+function openReaderModal(book, mode) {
+  document.getElementById('readerBookCategory').textContent = book.category;
+  document.getElementById('readerBookTitle').textContent = book.title;
+  document.getElementById('readerBookAuthor').textContent = book.author;
+  document.getElementById('audioTitleDisplay').textContent = book.title + ' — Аудио';
+
+  const contentArea = document.getElementById('readerContentArea');
+  const paragraphs = (book.content || '').split('\n').filter(p => p.trim());
+  contentArea.innerHTML = paragraphs.map(p => `<p>${p}</p>`).join('');
+
+  document.getElementById('readerModal').classList.add('active');
+  if (mode === 'listen') {
+    document.getElementById('audioPlayerBar').scrollIntoView({ behavior: 'smooth' });
+  }
+}
+
+function closeReaderModal() {
+  document.getElementById('readerModal').classList.remove('active');
+}
+
+function changeFontSize(delta) {
+  readerFontSize = Math.max(13, Math.min(26, readerFontSize + delta));
+  document.getElementById('readerContentArea').style.fontSize = readerFontSize + 'px';
+  document.getElementById('fontSizeDisplay').textContent = readerFontSize + 'px';
+}
+
+function setReaderTheme(theme) {
+  const area = document.getElementById('readerContentArea');
+  area.className = 'reader-content reader-mode-' + theme;
+  document.getElementById('btnModeLight').classList.toggle('active', theme === 'light');
+  document.getElementById('btnModeSepia').classList.toggle('active', theme === 'sepia');
+  document.getElementById('btnModeDark').classList.toggle('active', theme === 'dark');
+}
+
+let isAudioPlaying = false;
+function toggleAudio() {
+  isAudioPlaying = !isAudioPlaying;
+  document.getElementById('audioPlayBtn').textContent = isAudioPlaying ? '❚❚' : '▶';
+  document.getElementById('audioTimeDisplay').textContent = isAudioPlaying ? '01:24 / 08:30 (Ойналуда)' : '01:24 / 08:30 (Кідіртілді)';
+}
+
+function setAudioSpeed(val) {
+  // visual indicator
+}
+
+function toggleSleepTimer() {
+  alert('Ұйқы таймері 30 минутқа қосылды. 30 минуттан соң автоматты түрде өшеді.');
+}
+
+// SUBSCRIBE MODAL
+function openSubscribeModal() {
+  document.getElementById('subscribeModal').classList.add('active');
+}
+
+function closeSubscribeModal() {
+  document.getElementById('subscribeModal').classList.remove('active');
+}
+
+function confirmSubscription() {
+  if (currentUser) {
+    currentUser.isSubscribed = true;
+    saveState();
+  }
+  closeSubscribeModal();
+  alert('Құттықтаймыз! Сіздің жазылымыңыз белсендірілді. Барлық кітаптар ашылды.');
+  renderBooks();
+}
+
+// ADMIN PANEL
+function openAdminModal() {
+  if (!currentUser || currentUser.role !== 'ADMIN') {
+    const pass = prompt('Әкімшілік құпиясөзді енгізіңіз (Тест үшін: admin123):');
+    if (pass === 'admin123') {
+      currentUser = {
+        email: "admin@tanda.kz",
+        name: "Бас Администратор",
+        role: "ADMIN",
+        isSubscribed: true,
+        date: "2026-09-01"
+      };
+      saveState();
+      renderNavAuth();
+    } else {
+      alert('Құпиясөз қате!');
+      return;
+    }
+  }
+
+  renderAdminTables();
+  document.getElementById('adminModal').classList.add('active');
+}
+
+function closeAdminModal() {
+  document.getElementById('adminModal').classList.remove('active');
+}
+
+function switchAdminTab(tab) {
+  document.getElementById('adminTabBooks').style.display = tab === 'books' ? 'block' : 'none';
+  document.getElementById('adminTabUsers').style.display = tab === 'users' ? 'block' : 'none';
+  
+  const tabBooksBtn = document.getElementById('adminTabBooksBtn');
+  const tabUsersBtn = document.getElementById('adminTabUsersBtn');
+  if (tab === 'books') {
+    tabBooksBtn.style.color = 'var(--blue)';
+    tabBooksBtn.style.borderBottom = '2px solid var(--blue)';
+    tabUsersBtn.style.color = 'var(--text-mid)';
+    tabUsersBtn.style.borderBottom = 'none';
+  } else {
+    tabUsersBtn.style.color = 'var(--blue)';
+    tabUsersBtn.style.borderBottom = '2px solid var(--blue)';
+    tabBooksBtn.style.color = 'var(--text-mid)';
+    tabBooksBtn.style.borderBottom = 'none';
+  }
+}
+
+function renderAdminTables() {
+  const bBody = document.getElementById('adminBooksTableBody');
+  bBody.innerHTML = books.map((b, i) => `
+    <tr>
+      <td style="font-weight:700;">${b.title}</td>
+      <td>${b.author}</td>
+      <td><span class="badge-tag" style="background:#E0F2FE; color:#0369A1;">${b.category}</span></td>
+      <td>
+        <button style="border:none; border-radius:50px; padding:4px 10px; font-size:11px; font-weight:700; cursor:pointer; background:${b.isFree ? '#D1FAE5; color:#065F46' : '#FEF3C7; color:#92400E'}" onclick="toggleBookFreeStatus('${b.id}')">
+          ${b.isFree ? 'Тегін сынақ' : 'Премиум'}
+        </button>
+      </td>
+      <td style="text-align:right;">
+        <button style="border:none; background:#FEE2E2; color:#B91C1C; padding:4px 8px; border-radius:6px; font-size:11px; cursor:pointer;" onclick="deleteBook('${b.id}')">Өшіру</button>
+      </td>
+    </tr>
+  `).join('');
+
+  const uBody = document.getElementById('adminUsersTableBody');
+  uBody.innerHTML = users.map(u => `
+    <tr>
+      <td style="font-weight:700;">${u.email}</td>
+      <td>${u.name}</td>
+      <td>${u.date}</td>
+      <td><span class="badge-tag" style="background:${u.role === 'ADMIN' ? '#FEF3C7; color:#B45309' : '#F1F5F9; color:#475569'}">${u.role === 'ADMIN' ? 'Әкімші' : 'Оқырман'}</span></td>
+    </tr>
+  `).join('');
+
+  document.getElementById('adminBookCount').textContent = books.length;
+  document.getElementById('adminUserCount').textContent = users.length;
+}
+
+function toggleBookFreeStatus(id) {
+  const b = books.find(x => x.id === id);
+  if (b) {
+    b.isFree = !b.isFree;
+    saveState();
+    renderBooks();
+    renderAdminTables();
+  }
+}
+
+function deleteBook(id) {
+  if (confirm('Бұл кітапты шынымен өшіргіңіз келе ме?')) {
+    books = books.filter(x => x.id !== id);
+    saveState();
+    renderBooks();
+    renderAdminTables();
+  }
+}
+
+function openAddBookModal() {
+  document.getElementById('addBookModal').classList.add('active');
+}
+
+function closeAddBookModal() {
+  document.getElementById('addBookModal').classList.remove('active');
+}
+
+function handleCreateBook(e) {
+  e.preventDefault();
+  const title = document.getElementById('newBookTitle').value.trim();
+  const author = document.getElementById('newBookAuthor').value.trim();
+  const category = document.getElementById('newBookCategory').value;
+  const content = document.getElementById('newBookContent').value.trim();
+  const isFree = document.getElementById('newBookIsFree').checked;
+
+  if (!title || !author) return;
+
+  const gradients = [
+    "linear-gradient(135deg, #0057A8, #003d7a)",
+    "linear-gradient(135deg, #F08000, #c06800)",
+    "linear-gradient(135deg, #065F46, #022C22)",
+    "linear-gradient(135deg, #7C3AED, #4C1D95)"
+  ];
+
+  const newBook = {
+    id: "book-" + Date.now(),
+    title,
+    author,
+    category,
+    isFree,
+    gradient: gradients[Math.floor(Math.random() * gradients.length)],
+    content
+  };
+
+  books.unshift(newBook);
+  saveState();
+  renderBooks();
+  renderAdminTables();
+  closeAddBookModal();
+  alert('«' + title + '» кітабы сәтті қосылды!');
+}
+
+// INIT
+renderNavAuth();
+renderBooks();
+</script>
+</body>
+</html>
