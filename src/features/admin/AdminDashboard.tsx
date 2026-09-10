@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useBookStore } from '../../store/useBookStore';
 import { useToastStore } from '../../store/useToastStore';
 import { Book } from '../../types';
-import { AdminSidebar } from './AdminSidebar';
 
 export const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -43,13 +42,8 @@ export const AdminDashboard: React.FC = () => {
 
   return (
     <section className="admin-page-section" id="admin-section">
-      <div className="admin-layout-container">
-        {/* Left Sidebar */}
-        <AdminSidebar currentFilter={filterStatus} onFilterChange={setFilterStatus} />
-
-        {/* Right Main Content */}
-        <div className="admin-main-content">
-          <div className="admin-card">
+      <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
+        <div className="admin-card">
           {/* Header */}
           <div
             style={{
@@ -375,7 +369,6 @@ export const AdminDashboard: React.FC = () => {
           </div>
         </div>
       </div>
-    </div>
 
       {/* Delete confirmation modal */}
       {bookToDelete && (

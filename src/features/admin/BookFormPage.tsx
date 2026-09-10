@@ -3,7 +3,6 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useBookStore } from '../../store/useBookStore';
 import { useToastStore } from '../../store/useToastStore';
 import { AudioChapter } from '../../types';
-import { AdminSidebar } from './AdminSidebar';
 
 const CATEGORIES = [
   'Көркем әдебиет',
@@ -59,22 +58,31 @@ export const BookFormPage: React.FC = () => {
       setDescription(existingBook.description);
       setIsFree(existingBook.isFree);
       if (existingBook.coverImage) setCoverImage(existingBook.coverImage);
-      setHasAudio(Boolean(existingBook.hasAudio));
-      setAudioNarrator(existingBook.audioNarrator || '');
-      setAudioDuration(existingBook.audioDuration || '');
-      setAudioUrl(existingBook.audioUrl || '');
-      setAudioChapters(existingBook.audioChapters || []);
+      if (existingBook.hasAudio) {
+        setHasAudio(true);
+        setAudioNarrator(existingBook.audioNarrator || '');
+        setAudioDuration(existingBook.audioDuration || '');
+        setAudioUrl(existingBook.audioUrl || '');
+        setAudioChapters(existingBook.audioChapters || []);
+      }
     }
   }, [existingBook]);
 
-  const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (!file.type.startsWith('image/')) {
+        showToast('Тек сурет файлдарын жүктей аласыз', 'error');
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        showToast('Сурет өлшемі 5MB-тан аспауы керек', 'error');
+        return;
+      }
       const reader = new FileReader();
       reader.onload = (event) => {
-        if (event.target?.result) {
-          setCoverImage(event.target.result as string);
-        }
+        setCoverImage(event.target?.result as string);
+        showToast('Мұқаба суреті жүктелді', 'success');
       };
       reader.readAsDataURL(file);
     }
@@ -115,47 +123,44 @@ export const BookFormPage: React.FC = () => {
       return;
     }
     if (!author.trim()) {
-      showToast('Автордың аты-жөнін енгізіңіз', 'error');
+      showToast('Автордың атын енгізіңіз', 'error');
       return;
     }
 
-    const payload = {
+    const pagesNum = parseInt(pages, 10);
+    const validPages = isNaN(pagesNum) || pagesNum <= 0 ? (hasAudio ? 0 : 100) : pagesNum;
+
+    const bookData = {
       title: title.trim(),
       author: author.trim(),
       category,
-      pages: pages ? parseInt(pages, 10) : null,
+      pages: validPages,
       description: description.trim(),
       isFree,
       isArchived: existingBook ? existingBook.isArchived : false,
-      gradient: existingBook?.gradient || DEFAULT_COVER_GRADIENT,
-      coverImage: coverImage.trim(),
+      coverImage: coverImage.trim() || undefined,
+      gradient: coverImage ? undefined : (existingBook?.gradient || DEFAULT_COVER_GRADIENT),
       hasAudio,
       audioNarrator: hasAudio ? audioNarrator.trim() : undefined,
       audioDuration: hasAudio ? audioDuration.trim() : undefined,
       audioUrl: hasAudio ? audioUrl.trim() : undefined,
-      audioChapters: hasAudio ? audioChapters : [],
+      audioChapters: hasAudio && audioChapters.length > 0 ? audioChapters : undefined,
     };
 
     if (isEditing && existingBook) {
-      updateBook(existingBook.id, payload);
-      showToast('Кітап сәтті жаңартылды!', 'success');
+      updateBook(existingBook.id, bookData);
+      showToast('Кітап сәтті жаңартылды', 'success');
     } else {
-      addBook(payload);
-      showToast('Жаңа кітап қорына сәтті қосылды!', 'success');
+      addBook(bookData);
+      showToast('Жаңа кітап сәтті қосылды', 'success');
     }
 
     navigate('/admin');
   };
 
   return (
-    <section className="admin-page-section">
-      <div className="admin-layout-container">
-        {/* Left Sidebar */}
-        <AdminSidebar />
-
-        {/* Right Main Content */}
-        <div className="admin-main-content">
-          <div style={{ maxWidth: '960px' }}>
+    <div style={{ backgroundColor: '#F8FAFC', minHeight: 'calc(100vh - 80px)', padding: '32px 16px 80px' }}>
+      <div style={{ maxWidth: '860px', margin: '0 auto' }}>
         {/* Top Breadcrumb & Navigation */}
         <div
           style={{
@@ -378,7 +383,7 @@ export const BookFormPage: React.FC = () => {
                       type="file"
                       ref={fileInputRef}
                       accept="image/*"
-                      onChange={handleImageFileChange}
+                      onChange={handleFileChange}
                       style={{ display: 'none' }}
                       id="cover-file-upload"
                     />
@@ -834,9 +839,7 @@ export const BookFormPage: React.FC = () => {
             </div>
           </form>
         </div>
-        </div>
       </div>
-      </div>
-    </section>
+    </div>
   );
 };
