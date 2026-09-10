@@ -146,7 +146,7 @@ export const ProfilePage: React.FC = () => {
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
               <h1 style={{ fontSize: '24px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
-                {user.name || 'Оқырман'}
+                {user.role === 'admin' ? 'Админ' : (user.name || 'Оқырман')}
               </h1>
               <span
                 style={{
@@ -162,20 +162,6 @@ export const ProfilePage: React.FC = () => {
               >
                 ID: {user.idNumber || (user.role === 'admin' ? '000 001' : '001 001')}
               </span>
-              {user.role === 'admin' && (
-                <span
-                  style={{
-                    fontSize: '12px',
-                    fontWeight: 700,
-                    padding: '3px 10px',
-                    borderRadius: '50px',
-                    background: 'rgba(0, 84, 148, 0.12)',
-                    color: 'var(--blue)',
-                  }}
-                >
-                  Әкімшілік (Админ)
-                </span>
-              )}
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px', color: 'var(--text-mid)', fontSize: '14px' }}>

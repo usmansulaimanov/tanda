@@ -59,9 +59,6 @@ export const AppSidebarDrawer: React.FC = () => {
                 <span className="sidebar-id-pill">
                   ID: {user?.idNumber || (role === 'admin' ? '000 001' : '001 001')}
                 </span>
-                {role === 'admin' && (
-                  <span className="sidebar-admin-pill">Бас Әкімші</span>
-                )}
               </div>
             </div>
           </div>
@@ -87,7 +84,7 @@ export const AppSidebarDrawer: React.FC = () => {
             </div>
             <div className="sidebar-user-info">
               <div className="sidebar-user-name" title={user.name}>
-                {user.name || (role === 'admin' ? 'Бас Администратор' : 'Оқырман')}
+                {user.role === 'admin' ? 'Админ' : (user.name || 'Оқырман')}
               </div>
               <div className="sidebar-user-email" title={user.email}>
                 {user.email}

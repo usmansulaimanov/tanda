@@ -333,8 +333,8 @@ export const Header: React.FC = () => {
                         {user.name ? user.name.trim().charAt(0).toUpperCase() : (user.email ? user.email.charAt(0).toUpperCase() : 'О')}
                       </div>
                       <div className="profile-card-info">
-                        <div className="profile-card-name" title={user.name || 'Оқырман'}>
-                          {user.name || (user.role === 'admin' ? 'Бас Администратор' : 'Оқырман')}
+                        <div className="profile-card-name" title={user.role === 'admin' ? 'Админ' : (user.name || 'Оқырман')}>
+                          {user.role === 'admin' ? 'Админ' : (user.name || 'Оқырман')}
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', margin: '3px 0', flexWrap: 'wrap' }}>
                           <span
@@ -351,11 +351,6 @@ export const Header: React.FC = () => {
                           >
                             ID: {user.idNumber || (user.role === 'admin' ? '000 001' : '001 001')}
                           </span>
-                          {user.role === 'admin' && (
-                            <span className="profile-card-role-badge admin">
-                              Әкімші
-                            </span>
-                          )}
                         </div>
                         <div className="profile-card-email" title={user.email}>
                           {user.email}

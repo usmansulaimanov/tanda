@@ -25,7 +25,7 @@ const DEFAULT_USERS: User[] = [
     id: 'admin-1',
     idNumber: '000 001',
     email: 'admin@tanda.kz',
-    name: 'Бас Администратор',
+    name: 'Админ',
     role: 'admin',
     date: '2026-09-01',
   },
@@ -66,7 +66,7 @@ export const useAuthStore = create<AuthState>()(
       user: {
         id: 'admin-1',
         idNumber: '000 001',
-        name: 'Бас Администратор',
+        name: 'Админ',
         email: 'admin@tanda.kz',
         role: 'admin',
         date: '2026-09-01',
@@ -79,13 +79,16 @@ export const useAuthStore = create<AuthState>()(
         const adminUser = get().users.find((u) => u.role === 'admin') || {
           id: 'admin-1',
           idNumber: '000 001',
-          name: 'Бас Администратор',
+          name: 'Админ',
           email: 'admin@tanda.kz',
           role: 'admin' as const,
           date: '2026-09-01',
         };
         if (!adminUser.idNumber) {
           adminUser.idNumber = '000 001';
+        }
+        if (adminUser.name === 'Бас Администратор') {
+          adminUser.name = 'Админ';
         }
         set({
           user: adminUser,

@@ -42,7 +42,6 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
             <h2 className="admin-sidebar-heading">Басқару панелі</h2>
             <div className="admin-sidebar-badge-row">
               <span className="admin-sidebar-id-badge">ID: {user?.idNumber || '000 001'}</span>
-              <span className="admin-sidebar-role-badge">Бас Әкімші</span>
             </div>
           </div>
         </div>
@@ -54,7 +53,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
           {user?.name ? user.name.trim().charAt(0).toUpperCase() : 'А'}
         </div>
         <div className="admin-sidebar-user-details">
-          <div className="admin-sidebar-user-name">{user?.name || 'Бас Администратор'}</div>
+          <div className="admin-sidebar-user-name">{user?.role === 'admin' ? 'Админ' : (user?.name || 'Админ')}</div>
           <div className="admin-sidebar-user-email">{user?.email || 'admin@tanda.kz'}</div>
         </div>
       </div>
