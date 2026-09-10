@@ -16,9 +16,19 @@ const CATEGORIES = [
 
 export const LandingPage: React.FC = () => {
   const { books } = useBookStore();
-  const { role } = useAuthStore();
+  const { role, users } = useAuthStore();
   const [selectedCat, setSelectedCat] = useState('Бәрі');
   const [search, setSearch] = useState('');
+
+  // Dynamic statistics matching the database exactly
+  const booksCount = books.length;
+  const authorsCount = useMemo(() => {
+    return new Set(books.map((b) => b.author?.trim()).filter(Boolean)).size;
+  }, [books]);
+  const readersCount = useMemo(() => {
+    const clients = users.filter((u) => u.role === 'client');
+    return clients.length > 0 ? clients.length : users.length;
+  }, [users]);
 
   // Readers only see active, non-archived books
   const activeBooks = useMemo(() => {
@@ -68,15 +78,15 @@ export const LandingPage: React.FC = () => {
           </div>
           <div className="hero-stats">
             <div>
-              <div className="stat-num">{activeBooks.length}+</div>
+              <div className="stat-num">{booksCount}</div>
               <div className="stat-label">Кітап</div>
             </div>
             <div>
-              <div className="stat-num">120+</div>
+              <div className="stat-num">{authorsCount}</div>
               <div className="stat-label">Авторлар</div>
             </div>
             <div>
-              <div className="stat-num">50К+</div>
+              <div className="stat-num">{readersCount}</div>
               <div className="stat-label">Оқырман</div>
             </div>
           </div>

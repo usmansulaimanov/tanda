@@ -1,14 +1,17 @@
 import React, { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useBookStore } from '../../store/useBookStore';
+import { useAuthStore } from '../../store/useAuthStore';
 import { useToastStore } from '../../store/useToastStore';
 import { Book } from '../../types';
 
 export const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
   const { books, toggleArchive, deleteBook } = useBookStore();
+  const { users, deleteUser } = useAuthStore();
   const { showToast } = useToastStore();
 
+  const [adminTab, setAdminTab] = useState<'books' | 'users'>('books');
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'archived'>('all');
   const [bookToDelete, setBookToDelete] = useState<Book | null>(null);
 
@@ -57,49 +60,110 @@ export const AdminDashboard: React.FC = () => {
             boxShadow: '0 10px 25px rgba(0,0,0,0.04)',
           }}
         >
-          {/* Header */}
+          {/* Top Summary Metrics */}
           <div
             style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+              gap: '12px',
               marginBottom: '24px',
-              flexWrap: 'wrap',
-              gap: '16px',
             }}
           >
-            <div>
-              <h2 style={{ fontSize: '24px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
-                Кітаптар
-              </h2>
-              <p style={{ fontSize: '13px', color: 'var(--text-mid)', marginTop: '4px' }}>
-                Барлығы: <span style={{ fontWeight: 700, color: 'var(--blue)' }}>{books.length}</span> кітап |
-                Архивтелген (жасырын): <span style={{ fontWeight: 700, color: '#64748B' }}>{archivedCount}</span> кітап
-              </p>
+            <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '10px', padding: '16px' }}>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-mid)', textTransform: 'uppercase' }}>Кітаптар қоры</div>
+              <div style={{ fontSize: '24px', fontWeight: 900, color: 'var(--blue)' }}>{books.length}</div>
             </div>
+            <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '10px', padding: '16px' }}>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-mid)', textTransform: 'uppercase' }}>Тіркелген қолданушылар</div>
+              <div style={{ fontSize: '24px', fontWeight: 900, color: 'var(--orange)' }}>{users.length}</div>
+            </div>
+            <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '10px', padding: '16px' }}>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-mid)', textTransform: 'uppercase' }}>Жазылым бағасы</div>
+              <div style={{ fontSize: '24px', fontWeight: 900, color: '#10B981' }}>1 990 ₸ / ай</div>
+            </div>
+          </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <button
-                  type="button"
-                  onClick={() => setFilterStatus('all')}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    fontSize: '12px',
-                    fontWeight: 700,
-                    color: filterStatus === 'all' ? '#FFFFFF' : '#64748B',
-                    background: filterStatus === 'all' ? 'var(--blue)' : '#F1F5F9',
-                    padding: '6px 14px',
-                    borderRadius: '6px',
-                    border: `1.5px solid ${filterStatus === 'all' ? 'var(--blue)' : '#CBD5E1'}`,
-                    cursor: 'pointer',
-                    transition: 'all 0.15s',
-                  }}
-                >
-                  Барлығы
-                </button>
+          {/* Admin Tabs */}
+          <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid #E2E8F0', marginBottom: '24px' }}>
+            <button
+              type="button"
+              onClick={() => setAdminTab('books')}
+              style={{
+                padding: '10px 20px',
+                border: 'none',
+                background: 'none',
+                fontWeight: 700,
+                fontSize: '14px',
+                color: adminTab === 'books' ? 'var(--blue)' : 'var(--text-mid)',
+                borderBottom: adminTab === 'books' ? '2.5px solid var(--blue)' : '2.5px solid transparent',
+                cursor: 'pointer',
+              }}
+            >
+              Кітаптар қоры ({books.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setAdminTab('users')}
+              style={{
+                padding: '10px 20px',
+                border: 'none',
+                background: 'none',
+                fontWeight: 700,
+                fontSize: '14px',
+                color: adminTab === 'users' ? 'var(--blue)' : 'var(--text-mid)',
+                borderBottom: adminTab === 'users' ? '2.5px solid var(--blue)' : '2.5px solid transparent',
+                cursor: 'pointer',
+              }}
+            >
+              Тіркелген эл.почталар ({users.length})
+            </button>
+          </div>
+
+          {adminTab === 'books' ? (
+            <>
+              {/* Header */}
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '24px',
+                  flexWrap: 'wrap',
+                  gap: '16px',
+                }}
+              >
+                <div>
+                  <h2 style={{ fontSize: '24px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
+                    Кітаптар
+                  </h2>
+                  <p style={{ fontSize: '13px', color: 'var(--text-mid)', marginTop: '4px' }}>
+                    Барлығы: <span style={{ fontWeight: 700, color: 'var(--blue)' }}>{books.length}</span> кітап |
+                    Архивтелген (жасырын): <span style={{ fontWeight: 700, color: '#64748B' }}>{archivedCount}</span> кітап
+                  </p>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button
+                      type="button"
+                      onClick={() => setFilterStatus('all')}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        color: filterStatus === 'all' ? '#FFFFFF' : '#64748B',
+                        background: filterStatus === 'all' ? 'var(--blue)' : '#F1F5F9',
+                        padding: '6px 14px',
+                        borderRadius: '6px',
+                        border: `1.5px solid ${filterStatus === 'all' ? 'var(--blue)' : '#CBD5E1'}`,
+                        cursor: 'pointer',
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      Барлығы
+                    </button>
 
                 <button
                   type="button"
@@ -380,8 +444,101 @@ export const AdminDashboard: React.FC = () => {
               1-{filteredBooks.length} кітап көрсетілуде (Барлығы: {books.length})
             </div>
           </div>
+        </>
+      ) : (
+        /* Users Tab */
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <div>
+              <h2 style={{ fontSize: '22px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
+                Тіркелген қолданушылар
+              </h2>
+              <p style={{ fontSize: '13px', color: 'var(--text-mid)', marginTop: '4px' }}>
+                Барлық тіркелген қолданушылар мен оқырмандар тізімі (Барлығы: <span style={{ fontWeight: 700, color: 'var(--blue)' }}>{users.length}</span>)
+              </p>
+            </div>
+          </div>
+
+          <div style={{ overflowX: 'auto' }}>
+            <table className="admin-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ background: '#F8FAFC', borderBottom: '1.5px solid #E2E8F0' }}>
+                  <th style={{ textAlign: 'left', padding: '12px 16px', fontSize: '12px', fontWeight: 800, color: 'var(--text-mid)', textTransform: 'uppercase' }}>
+                    Эл.почта
+                  </th>
+                  <th style={{ textAlign: 'left', padding: '12px 16px', fontSize: '12px', fontWeight: 800, color: 'var(--text-mid)', textTransform: 'uppercase' }}>
+                    Аты-жөні
+                  </th>
+                  <th style={{ textAlign: 'left', padding: '12px 16px', fontSize: '12px', fontWeight: 800, color: 'var(--text-mid)', textTransform: 'uppercase' }}>
+                    Тіркелген күні
+                  </th>
+                  <th style={{ textAlign: 'left', padding: '12px 16px', fontSize: '12px', fontWeight: 800, color: 'var(--text-mid)', textTransform: 'uppercase' }}>
+                    Рөлі
+                  </th>
+                  <th style={{ textAlign: 'right', padding: '12px 16px', fontSize: '12px', fontWeight: 800, color: 'var(--text-mid)', textTransform: 'uppercase' }}>
+                    Әрекеттер
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {users.map((u) => (
+                  <tr key={u.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                    <td style={{ padding: '14px 16px', fontWeight: 700, color: 'var(--text-dark)' }}>
+                      {u.email}
+                    </td>
+                    <td style={{ padding: '14px 16px', color: 'var(--text-mid)' }}>
+                      {u.name}
+                    </td>
+                    <td style={{ padding: '14px 16px', color: 'var(--text-mid)', fontSize: '13px' }}>
+                      {u.date || '-'}
+                    </td>
+                    <td style={{ padding: '14px 16px' }}>
+                      <span
+                        style={{
+                          display: 'inline-block',
+                          padding: '4px 10px',
+                          borderRadius: '50px',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          background: u.role === 'admin' ? '#FEF3C7' : '#F1F5F9',
+                          color: u.role === 'admin' ? '#B45309' : '#475569',
+                        }}
+                      >
+                        {u.role === 'admin' ? 'Админ' : 'Оқырман'}
+                      </span>
+                    </td>
+                    <td style={{ padding: '14px 16px', textAlign: 'right' }}>
+                      {u.role !== 'admin' && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            deleteUser(u.id);
+                            showToast(`${u.email} жүйеден өшірілді`, 'info');
+                          }}
+                          style={{
+                            padding: '5px 12px',
+                            fontSize: '12px',
+                            fontWeight: 700,
+                            background: '#FEF2F2',
+                            color: '#B91C1C',
+                            borderRadius: '6px',
+                            border: '1px solid #FECACA',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          Өшіру
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      )}
+    </div>
+  </div>
 
       {/* Delete confirmation modal */}
       {bookToDelete && (

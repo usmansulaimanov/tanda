@@ -1,0 +1,44 @@
+[
+  {
+    "id": "admin-1",
+    "email": "admin@tanda.kz",
+    "name": "Бас Администратор",
+    "role": "admin",
+    "date": "2026-09-01"
+  },
+  {
+    "id": "user-1",
+    "email": "oqyrman@mail.kz",
+    "name": "Айбек Қайратұлы",
+    "role": "client",
+    "date": "2026-09-05"
+  },
+  {
+    "id": "user-2",
+    "email": "azamat@tanda.kz",
+    "name": "Азамат Серікұлы",
+    "role": "client",
+    "date": "2026-09-06"
+  },
+  {
+    "id": "user-3",
+    "email": "dana@gmail.com",
+    "name": "Дана Нұрланқызы",
+    "role": "client",
+    "date": "2026-09-07"
+  },
+  {
+    "id": "user-4",
+    "email": "arman@bk.ru",
+    "name": "Арман Мақсатұлы",
+    "role": "client",
+    "date": "2026-09-08"
+  },
+  {
+    "id": "user-5",
+    "email": "gulnar@tanda.kz",
+    "name": "Гүлнар Әлиева",
+    "role": "client",
+    "date": "2026-09-09"
+  }
+]
