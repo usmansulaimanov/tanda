@@ -1016,7 +1016,7 @@
 </nav>
 
 <!-- HERO -->
-<section class="hero">
+<section class="hero" id="hero">
   <div class="hero-text">
     <span class="hero-tag">Қазақша контент платформасы</span>
     <h1>Оқы. Тыңда.<br><span>Дамы.</span></h1>
@@ -1650,6 +1650,7 @@ function renderNavAuth() {
   const navAdminLink = document.getElementById('navAdminLink');
   const navCatalogLink = document.getElementById('navCatalogLink');
   const navFeaturesLink = document.getElementById('navFeaturesLink');
+  const heroSection = document.getElementById('hero');
   const featuresSection = document.getElementById('features');
   const catalogSection = document.getElementById('catalog');
   const adminSection = document.getElementById('admin-section');
@@ -1661,6 +1662,9 @@ function renderNavAuth() {
     if (navAdminLink) navAdminLink.style.display = isAdmin ? 'block' : 'none';
     if (adminSectionNotice) adminSectionNotice.style.display = isAdmin ? 'block' : 'none';
     
+    // Админ аккаунтында «Қазақша контент платформасы» (Hero) секциясы көрінбейді
+    if (heroSection) heroSection.style.display = isAdmin ? 'none' : 'flex';
+
     // Админ аккаунтында «Мүмкіндіктер / Бәрі бір жерде» секциясы көрінбейді
     if (featuresSection) featuresSection.style.display = isAdmin ? 'none' : 'block';
     if (navFeaturesLink) navFeaturesLink.style.display = isAdmin ? 'none' : 'block';
@@ -1695,6 +1699,7 @@ function renderNavAuth() {
   } else {
     if (navAdminLink) navAdminLink.style.display = 'none';
     if (adminSectionNotice) adminSectionNotice.style.display = 'none';
+    if (heroSection) heroSection.style.display = 'flex';
     if (featuresSection) featuresSection.style.display = 'block';
     if (navFeaturesLink) navFeaturesLink.style.display = 'block';
     if (catalogSection) catalogSection.style.display = 'block';
