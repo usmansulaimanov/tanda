@@ -4,6 +4,7 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { useBookStore } from '../../store/useBookStore';
 import { useToastStore } from '../../store/useToastStore';
 import { Book } from '../../types';
+import tandaLogo from '../../assets/tanda-logo.png';
 
 export const Header: React.FC = () => {
   const navigate = useNavigate();
@@ -122,8 +123,12 @@ export const Header: React.FC = () => {
           {/* Left: Logo & Search */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: '1 1 auto', minWidth: 0, maxWidth: '520px' }}>
             {/* Logo */}
-            <Link to="/" className="nav-logo" style={{ flexShrink: 0 }}>
-              tanda<span>.</span>
+            <Link to="/" className="nav-logo" style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>
+              <img
+                src={tandaLogo}
+                alt="Tanda"
+                style={{ height: '36px', width: 'auto', display: 'block', objectFit: 'contain' }}
+              />
             </Link>
 
             {/* Header Search with Autocomplete */}

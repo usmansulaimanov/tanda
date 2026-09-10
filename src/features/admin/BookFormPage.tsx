@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useBookStore } from '../../store/useBookStore';
 import { useToastStore } from '../../store/useToastStore';
 import { AudioChapter } from '../../types';
+import tandaLogo from '../../assets/tanda-logo.png';
 
 const CATEGORIES = [
   'Классика',
@@ -164,8 +165,12 @@ export const BookFormPage: React.FC = () => {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <Link to="/" style={{ textDecoration: 'none', fontSize: '26px', fontWeight: 900, color: 'var(--blue)' }}>
-              tanda<span style={{ color: 'var(--orange)' }}>.</span>
+            <Link to="/" style={{ display: 'flex', alignItems: 'center' }}>
+              <img
+                src={tandaLogo}
+                alt="Tanda"
+                style={{ height: '32px', width: 'auto', display: 'block', objectFit: 'contain' }}
+              />
             </Link>
             <span
               style={{
