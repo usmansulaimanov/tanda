@@ -3,6 +3,52 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useToastStore } from '../../store/useToastStore';
 
+const formatPhoneNumber = (val: string): string => {
+  const rawDigits = val.replace(/\D/g, '');
+  if (!rawDigits) return '';
+
+  let national = rawDigits;
+  if (rawDigits.length > 10 && (rawDigits.startsWith('7') || rawDigits.startsWith('8'))) {
+    national = rawDigits.substring(1, 11);
+  } else if (rawDigits === '8') {
+    return '';
+  } else {
+    national = rawDigits.substring(0, 10);
+  }
+
+  if (national.length === 0) return '';
+
+  let res = '+7 (';
+  res += national.substring(0, Math.min(3, national.length));
+  if (national.length >= 3) {
+    res += ') ';
+    res += national.substring(3, Math.min(6, national.length));
+  } else {
+    return res;
+  }
+  if (national.length >= 6) {
+    res += '-';
+    res += national.substring(6, Math.min(8, national.length));
+  } else {
+    return res;
+  }
+  if (national.length >= 8) {
+    res += '-';
+    res += national.substring(8, Math.min(10, national.length));
+  }
+  return res;
+};
+
+const getPhoneNationalDigitsCount = (val: string): number => {
+  const rawDigits = val.replace(/\D/g, '');
+  if (!rawDigits) return 0;
+  if (rawDigits.length > 10 && (rawDigits.startsWith('7') || rawDigits.startsWith('8'))) {
+    return rawDigits.substring(1, 11).length;
+  }
+  if (rawDigits === '8') return 0;
+  return Math.min(rawDigits.length, 10);
+};
+
 export const SettingsPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated, updateProfile, checkUsernameAvailable } = useAuthStore();
@@ -11,6 +57,7 @@ export const SettingsPage: React.FC = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [phoneError, setPhoneError] = useState('');
   const [username, setUsername] = useState('');
   const [usernameError, setUsernameError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
@@ -21,7 +68,7 @@ export const SettingsPage: React.FC = () => {
     }
     setName(user.name || '');
     setEmail(user.email || '');
-    setPhone(user.phone || '');
+    setPhone(user.phone ? formatPhoneNumber(user.phone) : '');
     setUsername(user.username ? (user.username.startsWith('@') ? user.username : `@${user.username}`) : '');
   }, [isAuthenticated, user]);
 
@@ -69,6 +116,23 @@ export const SettingsPage: React.FC = () => {
     );
   }
 
+  const handlePhoneChange = (val: string) => {
+    const formatted = formatPhoneNumber(val);
+    setPhone(formatted);
+
+    if (!formatted.trim()) {
+      setPhoneError('');
+      return;
+    }
+
+    const count = getPhoneNationalDigitsCount(formatted);
+    if (count > 0 && count < 10) {
+      setPhoneError('Телефон нөмірін толық жазыңыз (+7 (777) 123-45-67) немесе бос қалдырыңыз');
+    } else {
+      setPhoneError('');
+    }
+  };
+
   const handleUsernameChange = (val: string) => {
     let clean = val.trim().toLowerCase();
     if (!clean.startsWith('@') && clean.length > 0) {
@@ -100,6 +164,15 @@ export const SettingsPage: React.FC = () => {
       return;
     }
 
+    // Phone validation: either empty or complete 10 digits
+    const phoneCount = getPhoneNationalDigitsCount(phone);
+    if (phone.trim() && phoneCount < 10) {
+      const errMsg = 'Телефон нөмірін толық жазыңыз (+7 (777) 123-45-67) немесе бос қалдырыңыз';
+      setPhoneError(errMsg);
+      showToast(errMsg, 'error');
+      return;
+    }
+
     const rawUser = username.trim().replace(/^@/, '');
     if (rawUser) {
       const check = checkUsernameAvailable(rawUser);
@@ -122,8 +195,8 @@ export const SettingsPage: React.FC = () => {
       if (res.success) {
         showToast('Баптаулар сәтті сақталды!', 'success');
         setUsernameError('');
+        setPhoneError('');
       } else {
-        setUsernameError(res.error || 'Сақтау кезінде қате орын алды');
         showToast(res.error || 'Сақтау кезінде қате орын алды', 'error');
       }
     } catch {
@@ -351,11 +424,24 @@ export const SettingsPage: React.FC = () => {
               <input
                 type="tel"
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={(e) => handlePhoneChange(e.target.value)}
                 placeholder="+7 (777) 123-45-67"
                 className="form-input"
+                style={{
+                  borderColor: phoneError ? '#DC2626' : undefined,
+                  fontWeight: phone ? 700 : 500,
+                  letterSpacing: phone ? '0.03em' : 'normal',
+                }}
               />
-              <span className="form-hint">Қауіпсіздік және жылдам байланыс үшін</span>
+              {phoneError ? (
+                <span style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#DC2626', marginTop: '6px' }}>
+                  {phoneError}
+                </span>
+              ) : (
+                <span className="form-hint">
+                  Тек сандар жазылады: +7 (777) 123-45-67 (толық жазыңыз немесе бос қалдырыңыз)
+                </span>
+              )}
             </div>
           </div>
 
@@ -380,7 +466,7 @@ export const SettingsPage: React.FC = () => {
 
             <button
               type="submit"
-              disabled={isSaving || Boolean(usernameError)}
+              disabled={isSaving || Boolean(usernameError) || Boolean(phoneError)}
               className="btn-primary"
               style={{
                 padding: '12px 32px',
@@ -388,8 +474,8 @@ export const SettingsPage: React.FC = () => {
                 fontSize: '14px',
                 fontWeight: 700,
                 background: 'var(--blue)',
-                opacity: isSaving || Boolean(usernameError) ? 0.6 : 1,
-                cursor: isSaving || Boolean(usernameError) ? 'not-allowed' : 'pointer',
+                opacity: isSaving || Boolean(usernameError) || Boolean(phoneError) ? 0.6 : 1,
+                cursor: isSaving || Boolean(usernameError) || Boolean(phoneError) ? 'not-allowed' : 'pointer',
               }}
             >
               {isSaving ? 'Сақталуда...' : 'Өзгерістерді сақтау'}

@@ -130,6 +130,22 @@ export const useAuthStore = create<AuthState>()(
           return { success: false, error: 'Электронды поштаңызды енгізіңіз' };
         }
 
+        // Validate phone format: either empty or 10 national digits
+        if (cleanPhone) {
+          const rawDigits = cleanPhone.replace(/\D/g, '');
+          let national = rawDigits;
+          if (rawDigits.length > 10 && (rawDigits.startsWith('7') || rawDigits.startsWith('8'))) {
+            national = rawDigits.substring(1, 11);
+          } else if (rawDigits === '8') {
+            national = '';
+          } else {
+            national = rawDigits.substring(0, 10);
+          }
+          if (national.length !== 10) {
+            return { success: false, error: 'Телефон нөмірін толық жазыңыз (+7 (777) 123-45-67) немесе бос қалдырыңыз' };
+          }
+        }
+
         // Validate username uniqueness
         if (rawUsername) {
           const check = get().checkUsernameAvailable(rawUsername);
