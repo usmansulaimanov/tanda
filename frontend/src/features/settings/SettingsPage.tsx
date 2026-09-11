@@ -4,49 +4,53 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { useToastStore } from '../../store/useToastStore';
 
 const formatPhoneNumber = (val: string): string => {
-  const rawDigits = val.replace(/\D/g, '');
-  if (!rawDigits) return '';
+  if (!val) return '';
 
-  let national = rawDigits;
-  if (rawDigits.length > 10 && (rawDigits.startsWith('7') || rawDigits.startsWith('8'))) {
-    national = rawDigits.substring(1, 11);
-  } else if (rawDigits === '8') {
+  const isPrefixed = val.trim().startsWith('+');
+  const digits = val.replace(/\D/g, '');
+  if (!digits) return '';
+
+  let national = '';
+  if (isPrefixed) {
+    national = digits.substring(1, 11);
+  } else if ((digits.startsWith('8') || digits.startsWith('7')) && digits.length === 11) {
+    national = digits.substring(1, 11);
+  } else if (digits === '8' && digits.length === 1) {
     return '';
   } else {
-    national = rawDigits.substring(0, 10);
+    national = digits.substring(0, 10);
   }
 
-  if (national.length === 0) return '';
+  if (!national) return '';
 
   let res = '+7 (';
   res += national.substring(0, Math.min(3, national.length));
-  if (national.length >= 3) {
-    res += ') ';
-    res += national.substring(3, Math.min(6, national.length));
-  } else {
-    return res;
+  if (national.length > 3) {
+    res += ') ' + national.substring(3, Math.min(6, national.length));
   }
-  if (national.length >= 6) {
-    res += '-';
-    res += national.substring(6, Math.min(8, national.length));
-  } else {
-    return res;
+  if (national.length > 6) {
+    res += '-' + national.substring(6, Math.min(8, national.length));
   }
-  if (national.length >= 8) {
-    res += '-';
-    res += national.substring(8, Math.min(10, national.length));
+  if (national.length > 8) {
+    res += '-' + national.substring(8, Math.min(10, national.length));
   }
   return res;
 };
 
 const getPhoneNationalDigitsCount = (val: string): number => {
-  const rawDigits = val.replace(/\D/g, '');
-  if (!rawDigits) return 0;
-  if (rawDigits.length > 10 && (rawDigits.startsWith('7') || rawDigits.startsWith('8'))) {
-    return rawDigits.substring(1, 11).length;
+  if (!val) return 0;
+  const isPrefixed = val.trim().startsWith('+');
+  const digits = val.replace(/\D/g, '');
+  if (!digits) return 0;
+
+  if (isPrefixed) {
+    return digits.substring(1, 11).length;
   }
-  if (rawDigits === '8') return 0;
-  return Math.min(rawDigits.length, 10);
+  if ((digits.startsWith('8') || digits.startsWith('7')) && digits.length === 11) {
+    return digits.substring(1, 11).length;
+  }
+  if (digits === '8' && digits.length === 1) return 0;
+  return Math.min(digits.length, 10);
 };
 
 export const SettingsPage: React.FC = () => {
@@ -397,18 +401,49 @@ export const SettingsPage: React.FC = () => {
               <label className="form-label">
                 Телефон нөмірі
               </label>
-              <input
-                type="tel"
-                value={phone}
-                onChange={(e) => handlePhoneChange(e.target.value)}
-                placeholder="+7 (777) 123-45-67"
-                className="form-input"
-                style={{
-                  borderColor: phoneError ? '#DC2626' : undefined,
-                  fontWeight: phone ? 700 : 500,
-                  letterSpacing: phone ? '0.03em' : 'normal',
-                }}
-              />
+              <div style={{ position: 'relative' }}>
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => handlePhoneChange(e.target.value)}
+                  placeholder="+7 (777) 123-45-67"
+                  className="form-input"
+                  style={{
+                    borderColor: phoneError ? '#DC2626' : undefined,
+                    fontWeight: phone ? 700 : 500,
+                    letterSpacing: phone ? '0.03em' : 'normal',
+                    paddingRight: phone ? '36px' : undefined,
+                  }}
+                />
+                {phone && (
+                  <button
+                    type="button"
+                    onClick={() => handlePhoneChange('')}
+                    title="Нөмірді өшіру"
+                    style={{
+                      position: 'absolute',
+                      right: '10px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: '#E2E8F0',
+                      border: 'none',
+                      borderRadius: '50%',
+                      width: '22px',
+                      height: '22px',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      color: '#475569',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      lineHeight: 1,
+                    }}
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
               {phoneError ? (
                 <span style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#DC2626', marginTop: '6px' }}>
                   {phoneError}
