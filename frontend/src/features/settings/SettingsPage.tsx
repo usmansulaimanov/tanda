@@ -200,6 +200,7 @@ export const SettingsPage: React.FC = () => {
         showToast('Баптаулар сәтті сақталды!', 'success');
         setUsernameError('');
         setPhoneError('');
+        navigate('/');
       } else {
         showToast(res.error || 'Сақтау кезінде қате орын алды', 'error');
       }
