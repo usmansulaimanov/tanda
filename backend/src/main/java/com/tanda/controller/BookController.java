@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -21,9 +22,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1/books")
+@RequestMapping({"/api/books", "/api/v1/books"})
 @RequiredArgsConstructor
 public class BookController {
 
@@ -55,6 +57,18 @@ public class BookController {
             @PathVariable String id,
             @Valid @RequestBody UpdateBookRequestDto request) {
         BookResponseDto updated = bookService.updateBook(id, request);
+        return ResponseEntity.ok(updated);
+    }
+
+    @PatchMapping("/{id}/archive")
+    public ResponseEntity<BookResponseDto> toggleArchive(
+            @PathVariable String id,
+            @RequestBody(required = false) Map<String, Boolean> body) {
+        boolean isArchived = true;
+        if (body != null && body.containsKey("isArchived")) {
+            isArchived = Boolean.TRUE.equals(body.get("isArchived"));
+        }
+        BookResponseDto updated = bookService.toggleArchive(id, isArchived);
         return ResponseEntity.ok(updated);
     }
 

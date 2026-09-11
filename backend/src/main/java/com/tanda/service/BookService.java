@@ -10,6 +10,8 @@ import com.tanda.entity.Book;
 import com.tanda.exception.ResourceNotFoundException;
 import com.tanda.repository.BookRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +27,12 @@ public class BookService {
 
     private final BookRepository bookRepository;
 
+    private boolean isAdmin() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return auth != null && auth.getAuthorities() != null &&
+                auth.getAuthorities().stream().anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
+    }
+
     @Transactional(readOnly = true)
     public List<BookResponseDto> getBooks(String category, String search, boolean includeArchived) {
         String cat = (category != null && !category.trim().isEmpty() && !category.equalsIgnoreCase("Барлығы")) 
@@ -34,7 +42,8 @@ public class BookService {
                 ? search.trim() 
                 : null;
 
-        List<Book> books = bookRepository.searchBooks(cat, q, includeArchived);
+        boolean effectiveIncludeArchived = includeArchived && isAdmin();
+        List<Book> books = bookRepository.searchBooks(cat, q, effectiveIncludeArchived);
         return books.stream()
                 .map(this::toResponseDto)
                 .collect(Collectors.toList());
@@ -44,6 +53,11 @@ public class BookService {
     public BookDetailResponseDto getBookById(String id) {
         Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Book", "id", id));
+
+        if (Boolean.TRUE.equals(book.getIsArchived()) && !isAdmin()) {
+            throw new ResourceNotFoundException("Book", "id", id);
+        }
+
         return toDetailResponseDto(book);
     }
 
@@ -141,10 +155,23 @@ public class BookService {
     }
 
     @Transactional
+    public BookResponseDto toggleArchive(String id, boolean isArchived) {
+        Book book = bookRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Book", "id", id));
+        book.setIsArchived(isArchived);
+        Book saved = bookRepository.save(book);
+        return toResponseDto(saved);
+    }
+
+    @Transactional
     public void deleteBook(String id) {
         Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Book", "id", id));
         bookRepository.delete(book);
+    }
+
+    public BookResponseDto toBookResponseDto(Book book) {
+        return toResponseDto(book);
     }
 
     public BookResponseDto toResponseDto(Book book) {

@@ -180,7 +180,7 @@ export const BookFormPage: React.FC = () => {
     reader.readAsDataURL(file);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!title.trim()) {
@@ -193,7 +193,7 @@ export const BookFormPage: React.FC = () => {
     }
 
     const pagesNum = parseInt(pages, 10);
-    const validPages = isNaN(pagesNum) || pagesNum <= 0 ? (hasAudio ? 0 : 100) : pagesNum;
+    const validPages = isNaN(pagesNum) || pagesNum <= 0 ? (hasAudio ? null : 100) : pagesNum;
 
     const bookData = {
       title: title.trim(),
@@ -212,15 +212,18 @@ export const BookFormPage: React.FC = () => {
       audioChapters: hasAudio && audioChapters.length > 0 ? audioChapters : undefined,
     };
 
-    if (isEditing && existingBook) {
-      updateBook(existingBook.id, bookData);
-      showToast('Кітап сәтті жаңартылды', 'success');
-    } else {
-      addBook(bookData);
-      showToast('Жаңа кітап сәтті қосылды', 'success');
+    try {
+      if (isEditing && existingBook) {
+        await updateBook(existingBook.id, bookData);
+        showToast('Кітап сәтті жаңартылды', 'success');
+      } else {
+        await addBook(bookData);
+        showToast('Жаңа кітап сәтті қосылды', 'success');
+      }
+      navigate('/admin');
+    } catch (err) {
+      showToast('Кітапты сақтау кезінде қате орын алды', 'error');
     }
-
-    navigate('/admin');
   };
 
   return (

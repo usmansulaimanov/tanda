@@ -1,18 +1,40 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useBookStore } from '../../store/useBookStore';
 import { useAuthStore } from '../../store/useAuthStore';
+import { api } from '../../lib/api';
+import { Book } from '../../types';
 
 export const ReaderPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { books } = useBookStore();
-  const { role } = useAuthStore();
+  const { books, fetchBookById } = useBookStore();
+  const { role, isAuthenticated } = useAuthStore();
 
+  const [book, setBook] = useState<Book | null>(books.find((b) => b.id === id) || null);
+  const [currentPage, setCurrentPage] = useState<number>(1);
   const [fontSize, setFontSize] = useState<number>(17);
   const [theme, setTheme] = useState<'light' | 'sepia' | 'dark'>('light');
 
-  const book = books.find((b) => b.id === id);
+  useEffect(() => {
+    if (!book && id) {
+      fetchBookById(id)
+        .then((b) => setBook(b || null))
+        .catch(() => {});
+    }
+  }, [book, id, fetchBookById]);
+
+  useEffect(() => {
+    if (id && isAuthenticated) {
+      api.get(`/api/progress/${id}`)
+        .then(({ data }) => {
+          if (data.currentPage) {
+            setCurrentPage(data.currentPage);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [id, isAuthenticated]);
 
   if (!book || (book.isArchived && role !== 'admin')) {
     return (
@@ -61,7 +83,7 @@ export const ReaderPage: React.FC = () => {
 
         <div style={{ textAlign: 'center' }}>
           <h3 style={{ fontSize: '15px', fontWeight: 800, margin: 0 }}>{book.title}</h3>
-          <span style={{ fontSize: '12px', opacity: 0.75 }}>{book.author}</span>
+          <span style={{ fontSize: '12px', opacity: 0.75 }}>{book.author} (Бет: {currentPage})</span>
         </div>
 
         {/* Controls */}

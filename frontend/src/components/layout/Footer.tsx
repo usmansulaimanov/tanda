@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuthStore } from '../../store/useAuthStore';
 
 export const Footer: React.FC = () => {
-  const { role, setRole } = useAuthStore();
+  const { role } = useAuthStore();
 
   return (
     <footer className="tanda-footer">
@@ -21,7 +21,6 @@ export const Footer: React.FC = () => {
             {role !== 'admin' && (
               <Link
                 to="/admin"
-                onClick={() => setRole('admin')}
                 style={{
                   color: 'rgba(255,255,255,0.4)',
                   fontSize: '12px',

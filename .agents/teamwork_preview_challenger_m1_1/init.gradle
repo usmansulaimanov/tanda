@@ -1,0 +1,5 @@
+allprojects {
+    tasks.withType(Test).configureEach {
+        reports.html.required = false
+    }
+}

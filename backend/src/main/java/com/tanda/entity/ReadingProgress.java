@@ -9,6 +9,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -18,7 +19,7 @@ import lombok.Setter;
 import java.time.OffsetDateTime;
 
 @Entity
-@Table(name = "reading_progress")
+@Table(name = "reading_progress", uniqueConstraints = {@UniqueConstraint(name = "uq_reading_progress_user_book", columnNames = {"user_id", "book_id"})})
 @Getter
 @Setter
 @NoArgsConstructor

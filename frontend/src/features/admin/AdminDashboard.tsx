@@ -6,11 +6,15 @@ import { Book } from '../../types';
 
 export const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { books, toggleArchive, deleteBook } = useBookStore();
+  const { books, toggleArchive, deleteBook, fetchBooks } = useBookStore();
   const { showToast } = useToastStore();
 
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'archived'>('all');
   const [bookToDelete, setBookToDelete] = useState<Book | null>(null);
+
+  React.useEffect(() => {
+    fetchBooks({ includeArchived: true });
+  }, [fetchBooks]);
 
   const activeCount = useMemo(() => books.filter((b) => !b.isArchived).length, [books]);
   const archivedCount = useMemo(() => books.filter((b) => b.isArchived).length, [books]);

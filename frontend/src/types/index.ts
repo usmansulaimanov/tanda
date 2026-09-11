@@ -51,5 +51,7 @@ export interface User {
   name: string;
   email: string;
   role: 'admin' | 'client';
-  date?: string;
+  isActive?: boolean;
+  createdAt?: string;
+  savedBooksCount?: number;
 }

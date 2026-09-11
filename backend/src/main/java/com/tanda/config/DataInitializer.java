@@ -24,11 +24,15 @@ import java.util.List;
 public class DataInitializer implements CommandLineRunner {
 
     private final BookRepository bookRepository;
+    private final com.tanda.repository.UserRepository userRepository;
+    private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
     private final ObjectMapper objectMapper;
 
     @Override
     @Transactional
     public void run(String... args) {
+        seedAdminUser();
+
         if (bookRepository.count() > 0) {
             log.info("Books repository already contains data. Skipping initial seeding.");
             return;
@@ -145,5 +149,23 @@ public class DataInitializer implements CommandLineRunner {
 
         bookRepository.save(karaSozder);
         log.info("Seeded fallback book 'kara-sozder'");
+    }
+
+    private void seedAdminUser() {
+        com.tanda.entity.User admin = userRepository.findByEmail("admin@tanda.kz").orElse(null);
+        if (admin == null) {
+            admin = com.tanda.entity.User.builder()
+                    .id("admin-1")
+                    .idNumber("000 001")
+                    .name("Администратор")
+                    .email("admin@tanda.kz")
+                    .role("admin")
+                    .isActive(true)
+                    .createdAt(OffsetDateTime.now())
+                    .build();
+        }
+        admin.setPasswordHash(passwordEncoder.encode("admin123"));
+        userRepository.save(admin);
+        log.info("Seeded/updated default admin user: admin@tanda.kz (password: admin123)");
     }
 }

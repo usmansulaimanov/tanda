@@ -25,10 +25,10 @@ export const BookCard: React.FC<BookCardProps> = ({ book }) => {
     playBook(book);
   };
 
-  const handleBookmarkClick = (e: React.MouseEvent) => {
+  const handleBookmarkClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const nowSaved = toggleSavedBook(book.id);
+    const nowSaved = await toggleSavedBook(book.id);
     if (nowSaved) {
       showToast(`«${book.title}» сақталғандарға қосылды`, 'success');
     } else {

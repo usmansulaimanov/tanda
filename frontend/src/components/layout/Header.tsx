@@ -115,40 +115,53 @@ export const Header: React.FC = () => {
     setAuthModalOpen(true);
   };
 
-  const handleAuthSubmit = (e: React.FormEvent) => {
+  const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!authEmail.trim()) {
       setAuthError('Электронды почтаны енгізіңіз');
       return;
     }
-
-    const emailLower = authEmail.trim().toLowerCase();
-    if (emailLower.includes('admin')) {
-      loginAsAdmin();
-      showToast('Админ аккаунтымен сәтті кірдіңіз!', 'success');
-      navigate('/admin');
-    } else {
-      const name = authName.trim() || emailLower.split('@')[0] || 'Оқырман';
-      loginAsClient(emailLower, name);
-      showToast(`Қош келдіңіз, ${name}!`, 'success');
+    if (!authPassword.trim()) {
+      setAuthError('Құпия сөзді енгізіңіз');
+      return;
     }
 
-    setAuthModalOpen(false);
-    setAuthEmail('');
-    setAuthPassword('');
-    setAuthName('');
+    try {
+      if (authMode === 'login') {
+        await useAuthStore.getState().login(authEmail, authPassword);
+        showToast('Жүйеге сәтті кірдіңіз!', 'success');
+      } else {
+        const name = authName.trim() || authEmail.split('@')[0] || 'Оқырман';
+        await useAuthStore.getState().register(name, authEmail, authPassword);
+        showToast(`Қош келдіңіз, ${name}!`, 'success');
+      }
+      setAuthModalOpen(false);
+      setAuthEmail('');
+      setAuthPassword('');
+      setAuthName('');
+      if (useAuthStore.getState().role === 'admin') {
+        navigate('/admin');
+      }
+    } catch (err: any) {
+      const msg = err.response?.data?.message || 'Кіру қатесі. Email мен құпия сөзді тексеріңіз';
+      setAuthError(msg);
+    }
   };
 
-  const quickLoginAs = (targetRole: 'admin' | 'client') => {
-    if (targetRole === 'admin') {
-      loginAsAdmin();
-      showToast('Админ ретінде кірдіңіз', 'success');
-      navigate('/admin');
-    } else {
-      loginAsClient('reader@tanda.kz', 'Оқырман');
-      showToast('Оқырман ретінде кірдіңіз', 'success');
+  const quickLoginAs = async (targetRole: 'admin' | 'client') => {
+    try {
+      if (targetRole === 'admin') {
+        await loginAsAdmin();
+        showToast('Админ ретінде кірдіңіз', 'success');
+        navigate('/admin');
+      } else {
+        await loginAsClient('reader@tanda.kz', 'Оқырман');
+        showToast('Оқырман ретінде кірдіңіз', 'success');
+      }
+      setAuthModalOpen(false);
+    } catch (err: any) {
+      showToast('Жүйеге кіру мүмкін болмады', 'error');
     }
-    setAuthModalOpen(false);
   };
 
   return (

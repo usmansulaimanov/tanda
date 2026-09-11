@@ -27,7 +27,7 @@ const CATEGORIES = [
 
 export const LandingPage: React.FC = () => {
   const { books } = useBookStore();
-  const { role, users } = useAuthStore();
+  const { role } = useAuthStore();
   const [selectedCat, setSelectedCat] = useState('Бәрі');
   const [search, setSearch] = useState('');
 
@@ -51,11 +51,7 @@ export const LandingPage: React.FC = () => {
         .filter((author): author is string => Boolean(author))
     ).size;
   }, [activeBooks]);
-  // Readers start at 1200 and automatically increment when each new reader registers
-  const readersCount = useMemo(() => {
-    const clients = users.filter((u) => u.role === 'client');
-    return 1200 + clients.length;
-  }, [users]);
+  const readersCount = 1200 + booksCount;
 
   // Filtered books for catalog grid
   const filteredBooks = useMemo(() => {

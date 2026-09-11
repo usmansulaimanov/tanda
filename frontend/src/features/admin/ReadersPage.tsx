@@ -1,20 +1,34 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuthStore } from '../../store/useAuthStore';
+import { api } from '../../lib/api';
 import { useToastStore } from '../../store/useToastStore';
 import { User } from '../../types';
 
 export const ReadersPage: React.FC = () => {
-  const { users, deleteUser } = useAuthStore();
   const { showToast } = useToastStore();
 
+  const [readers, setReaders] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
 
-  // Filter only readers (clients)
-  const readers = useMemo(() => {
-    return users.filter((u) => u.role === 'client');
-  }, [users]);
+  const fetchReaders = async () => {
+    setIsLoading(true);
+    try {
+      const { data } = await api.get('/api/admin/users', {
+        params: { role: 'client' },
+      });
+      setReaders(data);
+    } catch (err) {
+      showToast('Оқырмандар тізімін жүктеу мүмкін болмады', 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchReaders();
+  }, []);
 
   // Apply search query
   const filteredReaders = useMemo(() => {
@@ -43,11 +57,17 @@ export const ReadersPage: React.FC = () => {
     });
   }, [readers, searchQuery]);
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (userToDelete) {
-      deleteUser(userToDelete.id);
-      showToast(`"${userToDelete.name || userToDelete.email}" оқырманы тізімнен өшірілді`, 'info');
-      setUserToDelete(null);
+      try {
+        await api.delete(`/api/admin/users/${userToDelete.id}`);
+        setReaders((prev) => prev.filter((u) => u.id !== userToDelete.id));
+        showToast(`"${userToDelete.name || userToDelete.email}" оқырманы тізімнен өшірілді`, 'info');
+      } catch (err) {
+        showToast('Оқырманды өшіру сәтсіз аяқталды', 'error');
+      } finally {
+        setUserToDelete(null);
+      }
     }
   };
 
@@ -164,6 +184,7 @@ export const ReadersPage: React.FC = () => {
               <tbody>
                 {filteredReaders.map((reader, index) => {
                   const initial = reader.name ? reader.name.trim().charAt(0).toUpperCase() : 'О';
+                  const dateStr = reader.createdAt ? new Date(reader.createdAt).toLocaleDateString('kk-KZ') : '2026-09-01';
                   return (
                     <tr key={reader.id}>
                       {/* Sequential Number */}
@@ -229,7 +250,7 @@ export const ReadersPage: React.FC = () => {
                       {/* Registration Date */}
                       <td>
                         <div style={{ color: '#475569', fontSize: '13px', fontWeight: 600 }}>
-                          {reader.date || '2026-09-01'}
+                          {dateStr}
                         </div>
                       </td>
 
@@ -280,7 +301,7 @@ export const ReadersPage: React.FC = () => {
             </table>
           </div>
 
-          {filteredReaders.length === 0 && (
+          {!isLoading && filteredReaders.length === 0 && (
             <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-mid)' }}>
               Оқырмандар табылмады немесе тізім бос.
             </div>

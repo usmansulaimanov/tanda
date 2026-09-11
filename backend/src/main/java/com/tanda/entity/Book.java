@@ -43,7 +43,7 @@ public class Book {
     @Column(name = "category", length = 64, nullable = false)
     private String category;
 
-    @Column(name = "pages", nullable = false)
+    @Column(name = "pages")
     private Integer pages;
 
     @Column(name = "has_audio", nullable = false)
@@ -56,10 +56,10 @@ public class Book {
     @Column(name = "audio_duration", length = 64)
     private String audioDuration;
 
-    @Column(name = "audio_url", length = 1024)
+    @Column(name = "audio_url", columnDefinition = "TEXT")
     private String audioUrl;
 
-    @Column(name = "cover_image", length = 1024)
+    @Column(name = "cover_image", columnDefinition = "TEXT")
     private String coverImage;
 
     @Column(name = "is_free", nullable = false)

@@ -1,8 +1,12 @@
 server:
-  port: 8080
+  port: ${PORT:8080}
 
 spring:
   application:
     name: tanda-backend
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:local}
+
+jwt:
+  secret: ${JWT_SECRET:tanda-super-secret-jwt-key-minimum-256-bits-for-security-2026}
+  expiration: ${JWT_EXPIRATION:604800000}

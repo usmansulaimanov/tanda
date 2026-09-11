@@ -4,20 +4,28 @@ import { useSidebarStore } from '../../store/useSidebarStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useBookStore } from '../../store/useBookStore';
 import { useSavedBooksStore } from '../../store/useSavedBooksStore';
+import { api } from '../../lib/api';
 
 export const AppSidebarDrawer: React.FC = () => {
   const { isOpen, closeSidebar } = useSidebarStore();
-  const { user, role, isAuthenticated, users, logout } = useAuthStore();
+  const { user, role, isAuthenticated, logout } = useAuthStore();
   const { books } = useBookStore();
   const { savedBookIds } = useSavedBooksStore();
   const location = useLocation();
+  const [readersCount, setReadersCount] = React.useState<number>(0);
 
-  // Close sidebar on route change
+  useEffect(() => {
+    if (role === 'admin' && isOpen) {
+      api.get('/api/admin/users', { params: { role: 'client' } })
+        .then(({ data }) => setReadersCount(Array.isArray(data) ? data.length : 0))
+        .catch(() => {});
+    }
+  }, [role, isOpen]);
+
   useEffect(() => {
     closeSidebar();
   }, [location.pathname, closeSidebar]);
 
-  // Close on Escape key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {
@@ -31,7 +39,6 @@ export const AppSidebarDrawer: React.FC = () => {
   const activeBooksCount = books.filter((b) => !b.isArchived).length;
   const archivedBooksCount = books.filter((b) => b.isArchived).length;
   const audioBooksCount = books.filter((b) => b.hasAudio).length;
-  const readersCount = users.filter((u) => u.role === 'client').length;
 
   if (!isOpen) return null;
 

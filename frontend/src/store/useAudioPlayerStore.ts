@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Book, AudioChapter } from '../types';
+import { api } from '../lib/api';
 
 interface AudioPlayerState {
   currentBook: Book | null;
@@ -27,6 +28,25 @@ interface AudioPlayerState {
   closePlayer: () => void;
 }
 
+let syncTimeout: any = null;
+
+function debouncedSyncProgress(bookId: string, chapterId?: string, timeSec?: number) {
+  if (typeof window === 'undefined') return;
+  const token = localStorage.getItem('tanda_token');
+  if (!token) return;
+
+  if (syncTimeout) {
+    clearTimeout(syncTimeout);
+  }
+
+  syncTimeout = setTimeout(() => {
+    api.put(`/api/progress/${bookId}`, {
+      currentAudioChapterId: chapterId,
+      currentAudioTime: Math.floor(timeSec || 0),
+    }).catch(() => {});
+  }, 3000);
+}
+
 export const useAudioPlayerStore = create<AudioPlayerState>()(
   persist(
     (set, get) => ({
@@ -49,6 +69,7 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
           isPlaying: true,
           progress: 0,
         });
+        debouncedSyncProgress(book.id, chapter?.id, 0);
       },
 
       playChapter: (index) => {
@@ -62,6 +83,7 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
             isPlaying: true,
             progress: 0,
           });
+          debouncedSyncProgress(currentBook.id, chapter?.id, 0);
         }
       },
 
@@ -86,7 +108,14 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
         }
       },
 
-      setProgress: (progress) => set({ progress }),
+      setProgress: (progress) => {
+        set({ progress });
+        const { currentBook, currentChapter } = get();
+        if (currentBook) {
+          debouncedSyncProgress(currentBook.id, currentChapter?.id, progress);
+        }
+      },
+
       setDuration: (duration) => set({ duration }),
       setPlaybackRate: (playbackRate) => set({ playbackRate }),
       setVolume: (volume) => set({ volume }),

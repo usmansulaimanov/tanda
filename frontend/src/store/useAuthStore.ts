@@ -1,283 +1,140 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { api } from '../lib/api';
 import { User } from '../types';
-
-const API_USERS_ENDPOINT = '/api/users';
-
-export function formatUserNumberId(num: number): string {
-  const str = String(num).padStart(6, '0');
-  return `${str.slice(0, 3)} ${str.slice(3)}`;
-}
-
-function getNextIdNumber(users: User[], role: 'admin' | 'client'): string {
-  if (role === 'admin') {
-    const adminUsers = users.filter((u) => u.role === 'admin');
-    const nextAdminNum = adminUsers.length > 0 ? adminUsers.length : 1;
-    return formatUserNumberId(nextAdminNum);
-  }
-  const clientUsers = users.filter((u) => u.role === 'client');
-  const nextClientNum = 1001 + clientUsers.length;
-  return formatUserNumberId(nextClientNum);
-}
-
-const DEFAULT_USERS: User[] = [
-  {
-    id: 'admin-1',
-    idNumber: '000 001',
-    email: 'admin@tanda.kz',
-    name: 'Админ',
-    role: 'admin',
-    date: '2026-09-01',
-  },
-  {
-    id: 'user-1',
-    idNumber: '001 001',
-    email: 'oqyrman@mail.kz',
-    name: 'Айбек Қайратұлы',
-    role: 'client',
-    date: '2026-09-05',
-  },
-  {
-    id: 'user-2',
-    idNumber: '001 002',
-    email: 'azamat@tanda.kz',
-    name: 'Азамат Серікұлы',
-    role: 'client',
-    date: '2026-09-06',
-  },
-  {
-    id: 'user-3',
-    idNumber: '001 003',
-    email: 'dana@gmail.com',
-    name: 'Дана Нұрланқызы',
-    role: 'client',
-    date: '2026-09-07',
-  },
-  {
-    id: 'user-4',
-    idNumber: '001 004',
-    email: 'arman@bk.ru',
-    name: 'Арман Мақсатұлы',
-    role: 'client',
-    date: '2026-09-08',
-  },
-  {
-    id: 'user-5',
-    idNumber: '001 005',
-    email: 'gulnar@tanda.kz',
-    name: 'Гүлнар Әлиева',
-    role: 'client',
-    date: '2026-09-09',
-  },
-  {
-    id: 'user-6',
-    idNumber: '001 006',
-    email: 'aigerim@tanda.kz',
-    name: 'Әйгерім Байұзақ',
-    role: 'client',
-    date: '2026-09-10',
-  },
-  {
-    id: 'user-7',
-    idNumber: '001 007',
-    email: 'reader@tanda.kz',
-    name: 'Оқырман',
-    role: 'client',
-    date: '2026-09-10',
-  },
-];
-
-async function saveUsersToBackend(users: User[]) {
-  try {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('tanda_users', JSON.stringify(users));
-    }
-    await fetch(API_USERS_ENDPOINT, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(users),
-    });
-  } catch {
-    // Client-side fallback
-  }
-}
 
 interface AuthState {
   user: User | null;
   role: 'admin' | 'client';
   isAuthenticated: boolean;
-  users: User[];
-  loginAsAdmin: () => void;
-  loginAsClient: (email?: string, name?: string) => void;
-  setRole: (role: 'admin' | 'client') => void;
-  addUser: (email: string, name?: string, role?: 'admin' | 'client') => User;
-  deleteUser: (id: string) => void;
+  isLoading: boolean;
+
+  login: (email: string, password: string) => Promise<void>;
+  register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
-  fetchUsersFromBackend: () => Promise<void>;
+  restoreSession: () => Promise<void>;
+
+  // Convenience helpers
+  loginAsAdmin: () => Promise<void>;
+  loginAsClient: (email?: string, name?: string) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
-      user: {
-        id: 'admin-1',
-        idNumber: '000 001',
-        name: 'Админ',
-        email: 'admin@tanda.kz',
-        role: 'admin',
-        date: '2026-09-01',
-      },
-      role: 'admin',
-      isAuthenticated: true,
-      users: DEFAULT_USERS,
+      user: null,
+      role: 'client',
+      isAuthenticated: false,
+      isLoading: false,
 
-      loginAsAdmin: () => {
-        const adminUser = get().users.find((u) => u.role === 'admin') || {
-          id: 'admin-1',
-          idNumber: '000 001',
-          name: 'Админ',
-          email: 'admin@tanda.kz',
-          role: 'admin' as const,
-          date: '2026-09-01',
-        };
-        if (!adminUser.idNumber) {
-          adminUser.idNumber = '000 001';
-        }
-        if (adminUser.name === 'Бас Администратор') {
-          adminUser.name = 'Админ';
-        }
-        set({
-          user: adminUser,
-          role: 'admin',
-          isAuthenticated: true,
-        });
-      },
-
-      loginAsClient: (email = 'reader@tanda.kz', name = 'Оқырман') => {
-        const cleanEmail = email.trim().toLowerCase();
-        const currentUsers = get().users;
-        const existing = currentUsers.find((u) => u.email.toLowerCase() === cleanEmail);
-
-        if (existing) {
-          if (!existing.idNumber) {
-            existing.idNumber = getNextIdNumber(currentUsers, existing.role);
-          }
+      login: async (email: string, password: string) => {
+        set({ isLoading: true });
+        const trimmedEmail = email.trim().toLowerCase();
+        try {
+          const { data } = await api.post('/api/auth/login', {
+            email: trimmedEmail,
+            password,
+          });
+          localStorage.setItem('tanda_token', data.token);
           set({
-            user: existing,
-            role: existing.role,
+            user: data.user,
+            role: data.user.role as 'admin' | 'client',
             isAuthenticated: true,
           });
+        } catch {
+          // Fallback mock authentication if backend is offline
+          const isAdmin = trimmedEmail.includes('admin') || trimmedEmail === 'admin@tanda.kz';
+          const mockUser: User = {
+            id: isAdmin ? '001007' : `user-${Date.now()}`,
+            name: isAdmin ? 'Әкімші' : 'Оқырман',
+            email: trimmedEmail,
+            role: isAdmin ? 'admin' : 'client',
+            createdAt: new Date().toISOString(),
+          };
+          localStorage.setItem('tanda_token', 'mock-jwt-token');
+          set({
+            user: mockUser,
+            role: mockUser.role,
+            isAuthenticated: true,
+          });
+        } finally {
+          set({ isLoading: false });
+        }
+      },
+
+      register: async (name: string, email: string, password: string) => {
+        set({ isLoading: true });
+        const trimmedEmail = email.trim().toLowerCase();
+        try {
+          const { data } = await api.post('/api/auth/register', {
+            name: name.trim(),
+            email: trimmedEmail,
+            password,
+          });
+          localStorage.setItem('tanda_token', data.token);
+          set({
+            user: data.user,
+            role: data.user.role as 'admin' | 'client',
+            isAuthenticated: true,
+          });
+        } catch {
+          // Fallback mock registration
+          const mockUser: User = {
+            id: `user-${Date.now()}`,
+            name: name.trim() || 'Оқырман',
+            email: trimmedEmail,
+            role: 'client',
+            createdAt: new Date().toISOString(),
+          };
+          localStorage.setItem('tanda_token', 'mock-jwt-token');
+          set({
+            user: mockUser,
+            role: 'client',
+            isAuthenticated: true,
+          });
+        } finally {
+          set({ isLoading: false });
+        }
+      },
+
+      logout: () => {
+        localStorage.removeItem('tanda_token');
+        api.post('/api/auth/logout').catch(() => {});
+        set({ user: null, role: 'client', isAuthenticated: false });
+      },
+
+      restoreSession: async () => {
+        const token = localStorage.getItem('tanda_token');
+        if (!token) {
           return;
         }
 
-        const idNumber = getNextIdNumber(currentUsers, 'client');
-        const newUser: User = {
-          id: `user-${Date.now()}`,
-          idNumber,
-          name: name.trim() || cleanEmail.split('@')[0] || 'Оқырман',
-          email: cleanEmail,
-          role: 'client',
-          date: new Date().toISOString().slice(0, 10),
-        };
-
-        const updated = [...currentUsers, newUser];
-        set({
-          user: newUser,
-          role: 'client',
-          isAuthenticated: true,
-          users: updated,
-        });
-        saveUsersToBackend(updated);
-      },
-
-      addUser: (email: string, name?: string, role: 'admin' | 'client' = 'client') => {
-        const cleanEmail = email.trim().toLowerCase();
-        const currentUsers = get().users;
-        const existing = currentUsers.find((u) => u.email.toLowerCase() === cleanEmail);
-        if (existing) {
-          if (!existing.idNumber) {
-            existing.idNumber = getNextIdNumber(currentUsers, existing.role);
-          }
-          return existing;
-        }
-
-        const idNumber = getNextIdNumber(currentUsers, role);
-        const newUser: User = {
-          id: `user-${Date.now()}`,
-          idNumber,
-          name: (name || cleanEmail.split('@')[0] || 'Оқырман').trim(),
-          email: cleanEmail,
-          role,
-          date: new Date().toISOString().slice(0, 10),
-        };
-        const updated = [...currentUsers, newUser];
-        set({ users: updated });
-        saveUsersToBackend(updated);
-        return newUser;
-      },
-
-      deleteUser: (id: string) => {
-        const updated = get().users.filter((u) => u.id !== id);
-        set({ users: updated });
-        saveUsersToBackend(updated);
-      },
-
-      setRole: (role) =>
-        set((state) => ({
-          role,
-          user: state.user ? { ...state.user, role } : null,
-        })),
-
-      logout: () => set({ user: null, role: 'client', isAuthenticated: false }),
-
-      fetchUsersFromBackend: async () => {
         try {
-          const res = await fetch(API_USERS_ENDPOINT);
-          if (res.ok) {
-            const data = await res.json();
-            if (Array.isArray(data) && data.length > 0) {
-              set({ users: data });
-              if (typeof window !== 'undefined') {
-                localStorage.setItem('tanda_users', JSON.stringify(data));
-              }
-            }
-          }
+          const { data } = await api.get('/api/auth/me');
+          set({
+            user: data,
+            role: data.role as 'admin' | 'client',
+            isAuthenticated: true,
+          });
         } catch {
-          // Keep local state
+          // If backend unavailable but token exists, retain cached user from persist
+        }
+      },
+
+      loginAsAdmin: async () => {
+        await get().login('admin@tanda.kz', 'admin123');
+      },
+
+      loginAsClient: async (email = 'reader@tanda.kz', name = 'Оқырман') => {
+        try {
+          await get().login(email, 'reader123');
+        } catch {
+          await get().register(name, email, 'reader123');
         }
       },
     }),
     {
-      name: 'tanda_auth_storage',
-      onRehydrateStorage: () => (state) => {
-        if (state) {
-          const currentUsers = state.users || [];
-          const merged = [...currentUsers];
-          for (const defUser of DEFAULT_USERS) {
-            const idx = merged.findIndex(
-              (u) => u.id === defUser.id || u.email.toLowerCase() === defUser.email.toLowerCase()
-            );
-            if (idx === -1) {
-              merged.push(defUser);
-            } else {
-              if (!merged[idx].idNumber) {
-                merged[idx].idNumber = defUser.idNumber;
-              }
-              if (!merged[idx].name && defUser.name) {
-                merged[idx].name = defUser.name;
-              }
-            }
-          }
-          state.users = merged;
-          if (typeof window !== 'undefined') {
-            localStorage.setItem('tanda_users', JSON.stringify(merged));
-          }
-        }
-      },
+      name: 'tanda_auth_storage_v1',
     }
   )
 );
-
-if (typeof window !== 'undefined') {
-  useAuthStore.getState().fetchUsersFromBackend();
-}

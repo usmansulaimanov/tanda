@@ -38,8 +38,8 @@ export const BookDetailPage: React.FC = () => {
   const isCurrentPlaying = currentBook?.id === book.id && isPlaying;
   const isSaved = isBookSaved(book.id);
 
-  const handleToggleSave = () => {
-    const nowSaved = toggleSavedBook(book.id);
+  const handleToggleSave = async () => {
+    const nowSaved = await toggleSavedBook(book.id);
     if (nowSaved) {
       showToast(`«${book.title}» сақталғандарға қосылды! Профиль бетінен таба аласыз.`, 'success');
     } else {

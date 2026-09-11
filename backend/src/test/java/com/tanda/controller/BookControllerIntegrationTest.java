@@ -125,6 +125,7 @@ class BookControllerIntegrationTest {
     }
 
     @Test
+    @org.springframework.security.test.context.support.WithMockUser(roles = "ADMIN")
     @DisplayName("POST /api/v1/books creates a new book and returns 201 CREATED")
     void testCreateBookSuccess() throws Exception {
         String newId = "new-created-book-" + System.currentTimeMillis();
@@ -166,6 +167,7 @@ class BookControllerIntegrationTest {
     }
 
     @Test
+    @org.springframework.security.test.context.support.WithMockUser(roles = "ADMIN")
     @DisplayName("POST /api/v1/books returns 400 BAD_REQUEST when validation fails")
     void testCreateBookValidationFailure() throws Exception {
         CreateBookRequestDto invalidRequest = CreateBookRequestDto.builder()
@@ -184,6 +186,7 @@ class BookControllerIntegrationTest {
     }
 
     @Test
+    @org.springframework.security.test.context.support.WithMockUser(roles = "ADMIN")
     @DisplayName("PUT /api/v1/books/{id} updates book and returns 200 OK")
     void testUpdateBookSuccess() throws Exception {
         String updateTargetId = "book-to-update-" + System.currentTimeMillis();
@@ -237,6 +240,7 @@ class BookControllerIntegrationTest {
     }
 
     @Test
+    @org.springframework.security.test.context.support.WithMockUser(roles = "ADMIN")
     @DisplayName("DELETE /api/v1/books/{id} removes book and returns 204 NO_CONTENT")
     void testDeleteBookSuccess() throws Exception {
         String deleteTargetId = "book-to-delete-" + System.currentTimeMillis();
@@ -257,5 +261,52 @@ class BookControllerIntegrationTest {
                 .andExpect(status().isNoContent());
 
         assertFalse(bookRepository.existsById(deleteTargetId));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/books?includeArchived=true unauthenticated does not return archived books")
+    void testGetBooksIncludeArchivedUnauthenticated() throws Exception {
+        if (!bookRepository.existsById("archived-test-book-1")) {
+            Book archivedBook = Book.builder()
+                    .id("archived-test-book-1")
+                    .title("Жасырын мұрағат кітабы")
+                    .author("Мұрағат автор")
+                    .category("Классика")
+                    .pages(100)
+                    .isArchived(true)
+                    .createdAt(OffsetDateTime.now())
+                    .build();
+            bookRepository.save(archivedBook);
+        }
+
+        mockMvc.perform(get("/api/v1/books")
+                        .param("includeArchived", "true")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.id == 'archived-test-book-1')]").doesNotExist());
+    }
+
+    @Test
+    @org.springframework.security.test.context.support.WithMockUser(roles = "ADMIN")
+    @DisplayName("GET /api/v1/books?includeArchived=true as ADMIN returns archived books")
+    void testGetBooksIncludeArchivedAdmin() throws Exception {
+        if (!bookRepository.existsById("archived-test-book-1")) {
+            Book archivedBook = Book.builder()
+                    .id("archived-test-book-1")
+                    .title("Жасырын мұрағат кітабы")
+                    .author("Мұрағат автор")
+                    .category("Классика")
+                    .pages(100)
+                    .isArchived(true)
+                    .createdAt(OffsetDateTime.now())
+                    .build();
+            bookRepository.save(archivedBook);
+        }
+
+        mockMvc.perform(get("/api/v1/books")
+                        .param("includeArchived", "true")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.id == 'archived-test-book-1')]").exists());
     }
 }
