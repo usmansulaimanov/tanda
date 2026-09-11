@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { api } from '../lib/api';
 import { User } from '../types';
+import { useAudioPlayerStore } from './useAudioPlayerStore';
 
 interface AuthState {
   user: User | null;
@@ -118,6 +119,14 @@ export const useAuthStore = create<AuthState>()(
       },
 
       logout: () => {
+        // Automatically save current progress and pause audio playback
+        try {
+          const player = useAudioPlayerStore.getState();
+          if (player.isPlaying) {
+            player.pause();
+          }
+        } catch {}
+
         localStorage.removeItem('tanda_token');
         api.post('/api/auth/logout').catch(() => {});
         set({ user: null, role: 'client', isAuthenticated: false, authModalOpen: false });

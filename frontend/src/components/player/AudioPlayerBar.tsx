@@ -15,6 +15,7 @@ import {
   ChevronUp,
 } from 'lucide-react';
 import { useAudioPlayerStore } from '../../store/useAudioPlayerStore';
+import { useAuthStore } from '../../store/useAuthStore';
 import { useToastStore } from '../../store/useToastStore';
 import { extractYouTubeVideoId, loadYouTubeIFrameApi } from '../../utils/youtube';
 
@@ -54,6 +55,7 @@ export const AudioPlayerBar: React.FC = () => {
     closePlayer,
   } = useAudioPlayerStore();
 
+  const { isAuthenticated } = useAuthStore();
   const { showToast } = useToastStore();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const ytPlayerRef = useRef<any>(null);
@@ -69,6 +71,19 @@ export const AudioPlayerBar: React.FC = () => {
   const audioSrc = currentChapter?.audioUrl || currentBook?.audioUrl || '';
   const ytVideoId = extractYouTubeVideoId(audioSrc);
   const isYouTube = !!ytVideoId;
+
+  // Auto-pause immediately when user logs out while preserving saved position
+  useEffect(() => {
+    if (!isAuthenticated && isPlaying) {
+      setIsPlaying(false);
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      if (ytPlayerRef.current && typeof ytPlayerRef.current.pauseVideo === 'function') {
+        ytPlayerRef.current.pauseVideo();
+      }
+    }
+  }, [isAuthenticated, isPlaying, setIsPlaying]);
 
   // Close popovers on click outside
   useEffect(() => {
