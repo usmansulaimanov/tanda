@@ -50,6 +50,8 @@ export interface User {
   idNumber?: string; // e.g. "000 001" for admin, "001 001" for readers
   name: string;
   email: string;
+  username?: string; // Unique username (e.g. "usman", "reader01")
+  phone?: string; // Phone number (e.g. "+7 (777) 123-45-67")
   role: 'admin' | 'client';
   isActive?: boolean;
   createdAt?: string;

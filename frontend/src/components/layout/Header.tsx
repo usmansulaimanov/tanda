@@ -375,6 +375,20 @@ export const Header: React.FC = () => {
                           >
                             ID: {user.idNumber || (user.role === 'admin' ? '000 001' : '001 001')}
                           </span>
+                          {user.username && (
+                            <span
+                              style={{
+                                fontSize: '11px',
+                                fontWeight: 700,
+                                background: 'rgba(235, 130, 60, 0.12)',
+                                color: 'var(--orange)',
+                                padding: '1px 7px',
+                                borderRadius: '4px',
+                              }}
+                            >
+                              @{user.username.replace(/^@/, '')}
+                            </span>
+                          )}
                         </div>
                         <div className="profile-card-email" title={user.email}>
                           {user.email}
@@ -385,30 +399,44 @@ export const Header: React.FC = () => {
                     {/* Quick Navigation Links */}
                     <div className="profile-card-actions">
                       {user.role !== 'admin' && (
-                        <Link
-                          to="/profile"
-                          className="profile-menu-item"
-                          onClick={() => setProfileOpen(false)}
-                        >
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path>
-                          </svg>
-                          <span style={{ flex: 1 }}>Сақталған кітаптар</span>
-                          {savedBookIds.length > 0 && (
-                            <span
-                              style={{
-                                background: 'var(--orange)',
-                                color: '#FFF',
-                                fontSize: '11px',
-                                fontWeight: 800,
-                                padding: '1px 7px',
-                                borderRadius: '50px',
-                              }}
-                            >
-                              {savedBookIds.length}
-                            </span>
-                          )}
-                        </Link>
+                        <>
+                          <Link
+                            to="/profile"
+                            className="profile-menu-item"
+                            onClick={() => setProfileOpen(false)}
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path>
+                            </svg>
+                            <span style={{ flex: 1 }}>Сақталған кітаптар</span>
+                            {savedBookIds.length > 0 && (
+                              <span
+                                style={{
+                                  background: 'var(--orange)',
+                                  color: '#FFF',
+                                  fontSize: '11px',
+                                  fontWeight: 800,
+                                  padding: '1px 7px',
+                                  borderRadius: '50px',
+                                }}
+                              >
+                                {savedBookIds.length}
+                              </span>
+                            )}
+                          </Link>
+
+                          <Link
+                            to="/settings"
+                            className="profile-menu-item"
+                            onClick={() => setProfileOpen(false)}
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
+                              <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                            <span style={{ flex: 1 }}>Баптаулар</span>
+                          </Link>
+                        </>
                       )}
 
                       {user.role === 'admin' ? (

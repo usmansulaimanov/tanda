@@ -182,20 +182,34 @@ export const AppSidebarDrawer: React.FC = () => {
             )}
 
             {isAuthenticated && role !== 'admin' && (
-              <Link
-                to="/profile"
-                className={`sidebar-nav-link ${location.pathname === '/profile' ? 'active' : ''}`}
-                onClick={closeSidebar}
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="12" cy="7" r="4"></circle>
-                </svg>
-                <span>Сақталған кітаптар</span>
-                {savedBookIds.length > 0 && (
-                  <span className="sidebar-badge orange">{savedBookIds.length}</span>
-                )}
-              </Link>
+              <>
+                <Link
+                  to="/profile"
+                  className={`sidebar-nav-link ${location.pathname === '/profile' ? 'active' : ''}`}
+                  onClick={closeSidebar}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                  </svg>
+                  <span>Сақталған кітаптар</span>
+                  {savedBookIds.length > 0 && (
+                    <span className="sidebar-badge orange">{savedBookIds.length}</span>
+                  )}
+                </Link>
+
+                <Link
+                  to="/settings"
+                  className={`sidebar-nav-link ${location.pathname === '/settings' ? 'active' : ''}`}
+                  onClick={closeSidebar}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                  <span>Баптаулар</span>
+                </Link>
+              </>
             )}
           </div>
 

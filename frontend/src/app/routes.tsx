@@ -8,6 +8,7 @@ import { AdminDashboard } from '../features/admin/AdminDashboard';
 import { BookFormPage } from '../features/admin/BookFormPage';
 import { ReadersPage } from '../features/admin/ReadersPage';
 import { ProfilePage } from '../features/profile/ProfilePage';
+import { SettingsPage } from '../features/settings/SettingsPage';
 
 export const router = createHashRouter([
   {
@@ -29,6 +30,10 @@ export const router = createHashRouter([
       {
         path: 'profile',
         element: <ProfilePage />,
+      },
+      {
+        path: 'settings',
+        element: <SettingsPage />,
       },
       {
         path: 'admin',
