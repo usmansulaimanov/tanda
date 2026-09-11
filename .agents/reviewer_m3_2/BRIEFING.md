@@ -1,4 +1,4 @@
-# BRIEFING — 2026-09-11T06:26:20Z
+# BRIEFING — 2026-09-11T06:30:45Z
 
 ## Mission
 Independent specialized review of Milestone M3 (Tier 5 Final Adversarial Coverage Hardening & Verification), verifying full test suite execution, assertion rigor, zero mock bypasses, and R1-R5 requirement alignment.
@@ -19,7 +19,7 @@ Independent specialized review of Milestone M3 (Tier 5 Final Adversarial Coverag
 
 ## Current Parent
 - Conversation ID: 517d5292-36af-4bfc-8695-b3165429fe3a
-- Updated: not yet
+- Updated: 2026-09-11T06:30:45Z
 
 ## Review Scope
 - **Files to review**:
@@ -28,25 +28,40 @@ Independent specialized review of Milestone M3 (Tier 5 Final Adversarial Coverag
   - `PROJECT.md` (Architecture, schemas, API endpoints, invariants)
   - `.agents/challenger_m3_1/handoff.md`
   - `.agents/challenger_m3_2/handoff.md`
+  - `.agents/reviewer_m3_1/handoff.md`
 - **Interface contracts**: `PROJECT.md`
 - **Review criteria**: correctness, assertion rigor, zero mock bypasses, R1-R5 requirement alignment, independent execution of backend tests & frontend build
 
 ## Review Checklist
-- **Items reviewed**: [Pending]
-- **Verdict**: Pending
-- **Unverified claims**:
-  - Backend 176 tests pass with 0 failures, 0 errors, 0 skipped
-  - Frontend build exit code 0, 0 TS errors, clean Vite bundle
-  - Zero mock bypasses or facade assertions in Tier 5 tests
-  - Complete coverage of R1-R5 adversarial edge cases
+- **Items reviewed**:
+  - `ORIGINAL_REQUEST.md` (R1-R5)
+  - `PROJECT.md` (Architecture, routes, migrations, contracts)
+  - `ChallengerTier5AdversarialVerificationTest.java` (All 18 adversarial tests across 5 nested classes)
+  - Backend execution: `sh ./gradlew --no-daemon test` (176 tests, 0 failures, 0 errors, 0 skipped)
+  - XML test results (all 33 XML files parsed)
+  - Frontend execution: `npm run build` (Exit code 0, 0 TS errors, clean Vite bundle)
+  - Integrity violation audit: zero mocks (@MockBean = 0, Mockito = 0), zero disabled tests (@Disabled = 0, @Ignore = 0), zero dummy assertions
+- **Verdict**: APPROVE
+- **Unverified claims**: None. All upstream claims empirically confirmed.
 
 ## Attack Surface
-- **Hypotheses tested**: [Pending]
-- **Vulnerabilities found**: [Pending]
-- **Untested angles**: [Pending]
+- **Hypotheses tested**:
+  - Inactive user login rejection (`isActive=false` returns 401 with "Аккаунт бұғатталған") -> PASSED
+  - Case-insensitive duplicate registration prevention -> PASSED
+  - Duplicate book ID creation rejection -> PASSED
+  - SQL injection payload safety in search parameters (books & users) -> PASSED
+  - Cyrillic / Kazakh character search resilience -> PASSED
+  - IDOR and row-level tenant boundary isolation in reading progress & saved books -> PASSED
+  - Idempotent saved book bookmarking and unsaved book removal -> PASSED
+  - Multithreaded concurrent race condition resilience on unique constraints -> PASSED
+  - Sole admin deactivation, demotion, and deletion guards -> PASSED
+- **Vulnerabilities found**: None.
+- **Untested angles**: None.
 
 ## Key Decisions Made
-- Workspace and briefing initialized.
+- Confirmed full test suite runs cleanly with 176 passing tests (0 failures, 0 errors, 0 skipped).
+- Confirmed frontend compiles cleanly with Vite and TypeScript (0 errors).
+- Issued APPROVE verdict.
 
 ## Artifact Index
 - `/Users/usman/Desktop/tanda site/.agents/reviewer_m3_2/DISPATCH.md` — Inbound instruction log

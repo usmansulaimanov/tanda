@@ -30,7 +30,7 @@
 |---|------|-------|-------------|--------|
 | M1 | Core Security & Data Boundary Remediation | Fix `SecurityConfig`, `WebConfig`, `GlobalExceptionHandler`, `UserController`, Flyway V4 migration, JPA entities (`Book`, `AudioChapter`, `ReadingProgress`), DTOs, and Service boundaries (`BookService`, `UserService`) | none | DONE |
 | M2 | Automated Security & Regression Test Suite | Implement comprehensive test suites (`UserAdminIntegrationTest`, `SecurityRbacMatrixIntegrationTest`, `IdorIsolationIntegrationTest`, validation tests) ensuring 100% green build on `./gradlew test` and clean frontend build | M1 | DONE |
-| M3 | Final Adversarial Coverage Hardening (Tier 5) | White-box adversarial challenge testing, gap analysis, and final audit sign-off | M2 | IN_PROGRESS |
+| M3 | Final Adversarial Coverage Hardening (Tier 5) | White-box adversarial challenge testing, gap analysis, and final audit sign-off | M2 | DONE |
 
 
 ## Interface Contracts
@@ -56,8 +56,10 @@
   - Migrations: `backend/src/main/resources/db/migration/`
 - Backend Tests: `backend/src/test/java/com/tanda/`
   - Existing: `controller/AuthControllerIntegrationTest.java`, `controller/BookControllerIntegrationTest.java`, `controller/SavedBookAndProgressIntegrationTest.java`, `TandaApplicationTests.java`
-  - Verification: `Challenger1M1SecurityVerificationTest.java`, `Challenger2M1EmpiricalVerificationTest.java`, `Challenger1M1Iter2EmpiricalVerificationTest.java`
-  - New Suites (M2): `controller/UserAdminIntegrationTest.java`, `security/SecurityRbacMatrixIntegrationTest.java`, `security/IdorIsolationIntegrationTest.java`
+  - Verification (M1): `Challenger1M1SecurityVerificationTest.java`, `Challenger2M1EmpiricalVerificationTest.java`, `Challenger1M1Iter2EmpiricalVerificationTest.java`
+  - Security & IDOR Suites (M2): `controller/UserAdminIntegrationTest.java`, `security/SecurityRbacMatrixIntegrationTest.java`, `security/IdorIsolationIntegrationTest.java`
+  - Adversarial White-Box Hardening (M3): `ChallengerTier5AdversarialVerificationTest.java`
+
 - Frontend Source: `frontend/src/`
   - Config & API: `lib/api.ts`
   - Stores: `store/useAuthStore.ts`, `store/useBookStore.ts`, `store/useSavedBooksStore.ts`, `store/useAudioPlayerStore.ts`

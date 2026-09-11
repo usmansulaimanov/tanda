@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useBookStore } from '../../store/useBookStore';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -24,6 +24,43 @@ const CATEGORIES = [
   'Жасөспірімдер әдебиеті',
   'Өмірбаян және мемуар',
 ];
+
+function useCountUp(target: number, duration = 1800): number {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    if (target <= 0) {
+      setCount(0);
+      return;
+    }
+
+    let startTimestamp: number | null = null;
+    let animationFrameId: number;
+
+    const step = (timestamp: number) => {
+      if (!startTimestamp) startTimestamp = timestamp;
+      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+      // Ease out cubic
+      const easeOut = 1 - Math.pow(1 - progress, 3);
+      const current = Math.floor(easeOut * target);
+      setCount(current);
+
+      if (progress < 1) {
+        animationFrameId = requestAnimationFrame(step);
+      } else {
+        setCount(target);
+      }
+    };
+
+    animationFrameId = requestAnimationFrame(step);
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, [target, duration]);
+
+  return count;
+}
 
 export const LandingPage: React.FC = () => {
   const { books } = useBookStore();
@@ -52,6 +89,11 @@ export const LandingPage: React.FC = () => {
     ).size;
   }, [activeBooks]);
   const readersCount = 1200 + booksCount;
+
+  // Animated numbers from 0 up to target values
+  const displayedBooks = useCountUp(booksCount, 1600);
+  const displayedAuthors = useCountUp(authorsCount, 1600);
+  const displayedReaders = useCountUp(readersCount, 2000);
 
   // Filtered books for catalog grid
   const filteredBooks = useMemo(() => {
@@ -103,15 +145,15 @@ export const LandingPage: React.FC = () => {
             </div>
             <div className="hero-stats">
               <div>
-                <div className="stat-num">{booksCount}</div>
+                <div className="stat-num">{displayedBooks}</div>
                 <div className="stat-label">Кітап</div>
               </div>
               <div>
-                <div className="stat-num">{authorsCount}</div>
+                <div className="stat-num">{displayedAuthors}</div>
                 <div className="stat-label">Авторлар</div>
               </div>
               <div>
-                <div className="stat-num">{readersCount}</div>
+                <div className="stat-num">{displayedReaders}</div>
                 <div className="stat-label">Оқырман</div>
               </div>
             </div>
