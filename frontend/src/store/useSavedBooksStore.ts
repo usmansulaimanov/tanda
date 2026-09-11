@@ -1,96 +1,151 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import { api } from '../lib/api';
 import { useAuthStore } from './useAuthStore';
 
 interface SavedBooksState {
+  savedByUser: Record<string, string[]>;
   savedBookIds: string[];
   isLoading: boolean;
 
   fetchSavedBooks: () => Promise<void>;
-  toggleSavedBook: (bookId: string) => Promise<boolean>;
-  isBookSaved: (bookId: string) => boolean;
-  getSavedBookIds: () => string[];
-  addSavedBook: (bookId: string) => Promise<void>;
-  removeSavedBook: (bookId: string) => Promise<void>;
+  getSavedBookIds: (userKey?: string) => string[];
+  toggleSavedBook: (bookId: string, userKey?: string) => boolean;
+  isBookSaved: (bookId: string, userKey?: string) => boolean;
+  addSavedBook: (bookId: string, userKey?: string) => void;
+  removeSavedBook: (bookId: string, userKey?: string) => void;
+  clearSavedBooks: (userKey?: string) => void;
 }
 
-export const useSavedBooksStore = create<SavedBooksState>((set, get) => ({
-  savedBookIds: [],
-  isLoading: false,
+function resolveUserKey(explicitKey?: string): string {
+  if (explicitKey) return explicitKey.trim().toLowerCase();
+  const currentUser = useAuthStore.getState().user;
+  if (!currentUser) return 'guest';
+  return (currentUser.email || currentUser.id || 'guest').trim().toLowerCase();
+}
 
-  fetchSavedBooks: async () => {
-    const token = localStorage.getItem('tanda_token');
-    if (!token) {
-      set({ savedBookIds: [] });
-      return;
+export const useSavedBooksStore = create<SavedBooksState>()(
+  persist(
+    (set, get) => ({
+      savedByUser: {},
+      savedBookIds: [],
+      isLoading: false,
+
+      fetchSavedBooks: async () => {
+        const key = resolveUserKey();
+        const localList = get().savedByUser[key] || [];
+        set({ savedBookIds: localList });
+
+        const token = localStorage.getItem('tanda_token');
+        if (token && token !== 'mock-jwt-token') {
+          try {
+            const { data } = await api.get('/api/saved-books');
+            if (data?.bookIds && Array.isArray(data.bookIds)) {
+              const allSaved = { ...get().savedByUser };
+              allSaved[key] = data.bookIds;
+              set({ savedByUser: allSaved, savedBookIds: data.bookIds });
+            }
+          } catch {
+            // retain local list on offline/GitHub Pages
+          }
+        }
+      },
+
+      getSavedBookIds: (userKey?: string) => {
+        const key = resolveUserKey(userKey);
+        return get().savedByUser[key] || [];
+      },
+
+      toggleSavedBook: (bookId: string, userKey?: string) => {
+        const key = resolveUserKey(userKey);
+        const allSaved = { ...get().savedByUser };
+        const userSaved = allSaved[key] || [];
+
+        let isNowSaved = false;
+        let updatedList: string[] = [];
+
+        if (userSaved.includes(bookId)) {
+          updatedList = userSaved.filter((id) => id !== bookId);
+          isNowSaved = false;
+          api.delete(`/api/saved-books/${bookId}`).catch(() => {});
+        } else {
+          updatedList = [...userSaved, bookId];
+          isNowSaved = true;
+          api.post(`/api/saved-books/${bookId}`).catch(() => {});
+        }
+
+        allSaved[key] = updatedList;
+        set({
+          savedByUser: allSaved,
+          savedBookIds: updatedList,
+        });
+
+        return isNowSaved;
+      },
+
+      isBookSaved: (bookId: string, userKey?: string) => {
+        const key = resolveUserKey(userKey);
+        const userSaved = get().savedByUser[key] || [];
+        return userSaved.includes(bookId);
+      },
+
+      addSavedBook: (bookId: string, userKey?: string) => {
+        const key = resolveUserKey(userKey);
+        const allSaved = { ...get().savedByUser };
+        const userSaved = allSaved[key] || [];
+
+        if (!userSaved.includes(bookId)) {
+          const updatedList = [...userSaved, bookId];
+          allSaved[key] = updatedList;
+          set({
+            savedByUser: allSaved,
+            savedBookIds: updatedList,
+          });
+          api.post(`/api/saved-books/${bookId}`).catch(() => {});
+        }
+      },
+
+      removeSavedBook: (bookId: string, userKey?: string) => {
+        const key = resolveUserKey(userKey);
+        const allSaved = { ...get().savedByUser };
+        const userSaved = allSaved[key] || [];
+        const updatedList = userSaved.filter((id) => id !== bookId);
+
+        allSaved[key] = updatedList;
+        set({
+          savedByUser: allSaved,
+          savedBookIds: updatedList,
+        });
+        api.delete(`/api/saved-books/${bookId}`).catch(() => {});
+      },
+
+      clearSavedBooks: (userKey?: string) => {
+        const key = resolveUserKey(userKey);
+        const allSaved = { ...get().savedByUser };
+        allSaved[key] = [];
+
+        set({
+          savedByUser: allSaved,
+          savedBookIds: [],
+        });
+      },
+    }),
+    {
+      name: 'tanda_saved_books_storage',
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          const key = resolveUserKey();
+          state.savedBookIds = state.savedByUser[key] || [];
+        }
+      },
     }
+  )
+);
 
-    set({ isLoading: true });
-    try {
-      const { data } = await api.get('/api/saved-books');
-      set({ savedBookIds: data.bookIds || [] });
-    } catch {
-      set({ savedBookIds: [] });
-    } finally {
-      set({ isLoading: false });
-    }
-  },
-
-  toggleSavedBook: async (bookId: string) => {
-    const currentSaved = get().savedBookIds;
-    const isSaved = currentSaved.includes(bookId);
-
-    if (isSaved) {
-      // Optimistic update
-      set({ savedBookIds: currentSaved.filter((id) => id !== bookId) });
-      try {
-        await api.delete(`/api/saved-books/${bookId}`);
-        return false;
-      } catch (err) {
-        // Rollback
-        set({ savedBookIds: currentSaved });
-        return true;
-      }
-    } else {
-      // Optimistic update
-      set({ savedBookIds: [...currentSaved, bookId] });
-      try {
-        await api.post(`/api/saved-books/${bookId}`);
-        return true;
-      } catch (err) {
-        // Rollback
-        set({ savedBookIds: currentSaved });
-        return false;
-      }
-    }
-  },
-
-  isBookSaved: (bookId: string) => {
-    return get().savedBookIds.includes(bookId);
-  },
-
-  getSavedBookIds: () => {
-    return get().savedBookIds;
-  },
-
-  addSavedBook: async (bookId: string) => {
-    if (!get().savedBookIds.includes(bookId)) {
-      await get().toggleSavedBook(bookId);
-    }
-  },
-
-  removeSavedBook: async (bookId: string) => {
-    if (get().savedBookIds.includes(bookId)) {
-      await get().toggleSavedBook(bookId);
-    }
-  },
-}));
-
-// Re-fetch saved books on auth state change
+// Synchronize savedBookIds whenever the logged-in user changes (login, switch account, logout)
 useAuthStore.subscribe((authState) => {
-  if (authState.isAuthenticated) {
-    useSavedBooksStore.getState().fetchSavedBooks();
-  } else {
-    useSavedBooksStore.setState({ savedBookIds: [] });
-  }
+  const key = (authState.user?.email || authState.user?.id || 'guest').trim().toLowerCase();
+  const savedState = useSavedBooksStore.getState();
+  const currentList = savedState.savedByUser[key] || [];
+  useSavedBooksStore.setState({ savedBookIds: currentList });
 });

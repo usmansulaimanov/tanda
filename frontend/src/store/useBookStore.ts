@@ -160,7 +160,23 @@ export const useBookStore = create<BookState>()(
       },
     }),
     {
-      name: 'tanda_books_storage_v1',
+      name: 'tanda_books_storage',
+      onRehydrateStorage: () => (state) => {
+        if (state && (!state.books || state.books.length === 0)) {
+          // Check if books exist in old storage key
+          try {
+            const oldV1 = localStorage.getItem('tanda_books_storage_v1');
+            if (oldV1) {
+              const parsed = JSON.parse(oldV1);
+              if (parsed?.state?.books?.length > 0) {
+                state.books = parsed.state.books;
+                return;
+              }
+            }
+          } catch {}
+          state.books = INITIAL_BOOKS;
+        }
+      },
     }
   )
 );

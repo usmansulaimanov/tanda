@@ -20,17 +20,18 @@
 | 9 | Reading Progress DTO Validation | Add validation annotations (`@Min(1)` on page, `@Min(0)` on audio time) and `@Valid` on controller | M1 | DONE | Survey |
 | 10 | Archived Book Access Protection | Restrict `getBookById` and `getBooks` in `BookService` so archived books are only visible to `ROLE_ADMIN` | M1 | DONE | Survey |
 | 11 | Admin Deletion Guard | Prevent deletion or deactivation of the last remaining admin in `UserService` | M1 | DONE | Survey |
-| 12 | User Admin CRUD Test Suite | Comprehensive unit/integration tests for all `UserController` endpoints (`UserAdminIntegrationTest`) | M2 | PLANNED | Survey / R1 |
-| 13 | RBAC Matrix Test Suite | Matrix tests verifying 401 (unauthenticated), 403 (non-admin), and 200/201/204 (admin) across all routes (`SecurityRbacMatrixIntegrationTest`) | M2 | PLANNED | Survey / R2 |
-| 14 | IDOR Cross-User Isolation Suite | Multi-tenant boundary tests proving User A cannot read/mutate User B's progress, saved books, or profile (`IdorIsolationIntegrationTest`) | M2 | PLANNED | Survey / R3 |
-| 15 | Validation & Error Regression Suite | Verify validation constraints (email, password, pages, negative numbers) and contract parity | M2 | PLANNED | Survey / R4, R5 |
+| 12 | User Admin CRUD Test Suite | Comprehensive unit/integration tests for all `UserController` endpoints (`UserAdminIntegrationTest`) | M2 | DONE | Survey / R1 |
+| 13 | RBAC Matrix Test Suite | Matrix tests verifying 401 (unauthenticated), 403 (non-admin), and 200/201/204 (admin) across all routes (`SecurityRbacMatrixIntegrationTest`) | M2 | DONE | Survey / R2 |
+| 14 | IDOR Cross-User Isolation Suite | Multi-tenant boundary tests proving User A cannot read/mutate User B's progress, saved books, or profile (`IdorIsolationIntegrationTest`) | M2 | DONE | Survey / R3 |
+| 15 | Validation & Error Regression Suite | Verify validation constraints (email, password, pages, negative numbers) and contract parity | M2 | DONE | Survey / R4, R5 |
 
 ## Milestones
 | # | Name | Scope | Dependencies | Status |
 |---|------|-------|-------------|--------|
 | M1 | Core Security & Data Boundary Remediation | Fix `SecurityConfig`, `WebConfig`, `GlobalExceptionHandler`, `UserController`, Flyway V4 migration, JPA entities (`Book`, `AudioChapter`, `ReadingProgress`), DTOs, and Service boundaries (`BookService`, `UserService`) | none | DONE |
-| M2 | Automated Security & Regression Test Suite | Implement comprehensive test suites (`UserAdminIntegrationTest`, `SecurityRbacMatrixIntegrationTest`, `IdorIsolationIntegrationTest`, validation tests) ensuring 100% green build on `./gradlew test` and clean frontend build | M1 | IN_PROGRESS |
-| M3 | Final Adversarial Coverage Hardening (Tier 5) | White-box adversarial challenge testing, gap analysis, and final audit sign-off | M2 | PLANNED |
+| M2 | Automated Security & Regression Test Suite | Implement comprehensive test suites (`UserAdminIntegrationTest`, `SecurityRbacMatrixIntegrationTest`, `IdorIsolationIntegrationTest`, validation tests) ensuring 100% green build on `./gradlew test` and clean frontend build | M1 | DONE |
+| M3 | Final Adversarial Coverage Hardening (Tier 5) | White-box adversarial challenge testing, gap analysis, and final audit sign-off | M2 | IN_PROGRESS |
+
 
 ## Interface Contracts
 ### SecurityConfig ↔ Controllers
