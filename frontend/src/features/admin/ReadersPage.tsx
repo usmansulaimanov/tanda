@@ -1,8 +1,26 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { api } from '../../lib/api';
 import { useToastStore } from '../../store/useToastStore';
 import { User } from '../../types';
+
+const USERS_REGISTRY_KEY = 'tanda_users_registry_v1';
+
+function getStoredUsers(): User[] {
+  try {
+    const raw = localStorage.getItem(USERS_REGISTRY_KEY);
+    if (raw) {
+      const list = JSON.parse(raw);
+      if (Array.isArray(list) && list.length > 0) return list;
+    }
+  } catch {}
+  return [];
+}
+
+function saveStoredUsers(users: User[]) {
+  try {
+    localStorage.setItem(USERS_REGISTRY_KEY, JSON.stringify(users));
+  } catch {}
+}
 
 export const ReadersPage: React.FC = () => {
   const { showToast } = useToastStore();
@@ -12,14 +30,13 @@ export const ReadersPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
 
-  const fetchReaders = async () => {
+  const fetchReaders = () => {
     setIsLoading(true);
     try {
-      const { data } = await api.get('/api/admin/users', {
-        params: { role: 'client' },
-      });
-      setReaders(data);
-    } catch (err) {
+      const allUsers = getStoredUsers();
+      const clients = allUsers.filter((u) => u.role === 'client');
+      setReaders(clients);
+    } catch {
       showToast('Оқырмандар тізімін жүктеу мүмкін болмады', 'error');
     } finally {
       setIsLoading(false);
@@ -57,13 +74,15 @@ export const ReadersPage: React.FC = () => {
     });
   }, [readers, searchQuery]);
 
-  const confirmDelete = async () => {
+  const confirmDelete = () => {
     if (userToDelete) {
       try {
-        await api.delete(`/api/admin/users/${userToDelete.id}`);
+        const allUsers = getStoredUsers();
+        const updated = allUsers.filter((u) => u.id !== userToDelete.id);
+        saveStoredUsers(updated);
         setReaders((prev) => prev.filter((u) => u.id !== userToDelete.id));
         showToast(`"${userToDelete.name || userToDelete.email}" оқырманы тізімнен өшірілді`, 'info');
-      } catch (err) {
+      } catch {
         showToast('Оқырманды өшіру сәтсіз аяқталды', 'error');
       } finally {
         setUserToDelete(null);
