@@ -11,7 +11,7 @@ import tandaLogo from '../../assets/tanda-logo.png';
 export const Header: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, role, isAuthenticated, loginAsAdmin, loginAsClient, logout } = useAuthStore();
+  const { user, role, isAuthenticated, loginAsAdmin, loginAsClient, logout, authModalOpen, authModalMode, openAuthModal, closeAuthModal } = useAuthStore();
   const { books } = useBookStore();
   const { savedBookIds } = useSavedBooksStore();
   const { showToast } = useToastStore();
@@ -27,9 +27,7 @@ export const Header: React.FC = () => {
   const [profileOpen, setProfileOpen] = useState(false);
   const profileWrapRef = useRef<HTMLDivElement>(null);
 
-  // Auth modal state
-  const [authModalOpen, setAuthModalOpen] = useState(false);
-  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
+  // Auth modal form inputs
   const [authEmail, setAuthEmail] = useState('');
   const [authPassword, setAuthPassword] = useState('');
   const [authName, setAuthName] = useState('');
@@ -110,9 +108,8 @@ export const Header: React.FC = () => {
   };
 
   const openAuth = (mode: 'login' | 'signup') => {
-    setAuthMode(mode);
     setAuthError('');
-    setAuthModalOpen(true);
+    openAuthModal(mode);
   };
 
   const handleAuthSubmit = async (e: React.FormEvent) => {
@@ -127,7 +124,7 @@ export const Header: React.FC = () => {
     }
 
     try {
-      if (authMode === 'login') {
+      if (authModalMode === 'login') {
         await useAuthStore.getState().login(authEmail, authPassword);
         showToast('Жүйеге сәтті кірдіңіз!', 'success');
       } else {
@@ -135,7 +132,7 @@ export const Header: React.FC = () => {
         await useAuthStore.getState().register(name, authEmail, authPassword);
         showToast(`Қош келдіңіз, ${name}!`, 'success');
       }
-      setAuthModalOpen(false);
+      closeAuthModal();
       setAuthEmail('');
       setAuthPassword('');
       setAuthName('');
@@ -158,7 +155,7 @@ export const Header: React.FC = () => {
         await loginAsClient('reader@tanda.kz', 'Оқырман');
         showToast('Оқырман ретінде кірдіңіз', 'success');
       }
-      setAuthModalOpen(false);
+      closeAuthModal();
     } catch (err: any) {
       showToast('Жүйеге кіру мүмкін болмады', 'error');
     }
@@ -499,7 +496,7 @@ export const Header: React.FC = () => {
             justifyContent: 'center',
             padding: '20px',
           }}
-          onClick={() => setAuthModalOpen(false)}
+          onClick={() => closeAuthModal()}
         >
           <div
             style={{
@@ -515,7 +512,7 @@ export const Header: React.FC = () => {
           >
             {/* Close button */}
             <button
-              onClick={() => setAuthModalOpen(false)}
+              onClick={() => closeAuthModal()}
               style={{
                 position: 'absolute',
                 top: '18px',
@@ -537,10 +534,10 @@ export const Header: React.FC = () => {
             {/* Modal title */}
             <div style={{ textAlign: 'center', marginBottom: '20px' }}>
               <h3 style={{ fontSize: '22px', fontWeight: 900, color: 'var(--text-dark)' }}>
-                {authMode === 'login' ? 'Сайтқа кіру' : 'Тіркелу'}
+                {authModalMode === 'login' ? 'Сайтқа кіру' : 'Тіркелу'}
               </h3>
               <p style={{ fontSize: '13px', color: 'var(--text-mid)', marginTop: '4px' }}>
-                {authMode === 'login'
+                {authModalMode === 'login'
                   ? 'Аккаунтыңыз арқылы кіріп, кітаптарды оқыңыз немесе басқарыңыз'
                   : 'Жаңа аккаунт ашып, кітапхананы қолданыңыз'}
               </p>
@@ -550,16 +547,16 @@ export const Header: React.FC = () => {
             <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', borderBottom: '1px solid #E2E8F0', paddingBottom: '8px' }}>
               <button
                 type="button"
-                onClick={() => setAuthMode('login')}
+                onClick={() => openAuthModal('login')}
                 style={{
                   flex: 1,
                   padding: '8px',
                   border: 'none',
                   background: 'none',
-                  fontWeight: authMode === 'login' ? 800 : 600,
+                  fontWeight: authModalMode === 'login' ? 800 : 600,
                   fontSize: '14px',
-                  color: authMode === 'login' ? 'var(--blue)' : 'var(--text-mid)',
-                  borderBottom: authMode === 'login' ? '2px solid var(--blue)' : 'none',
+                  color: authModalMode === 'login' ? 'var(--blue)' : 'var(--text-mid)',
+                  borderBottom: authModalMode === 'login' ? '2px solid var(--blue)' : 'none',
                   cursor: 'pointer',
                 }}
               >
@@ -567,16 +564,16 @@ export const Header: React.FC = () => {
               </button>
               <button
                 type="button"
-                onClick={() => setAuthMode('signup')}
+                onClick={() => openAuthModal('signup')}
                 style={{
                   flex: 1,
                   padding: '8px',
                   border: 'none',
                   background: 'none',
-                  fontWeight: authMode === 'signup' ? 800 : 600,
+                  fontWeight: authModalMode === 'signup' ? 800 : 600,
                   fontSize: '14px',
-                  color: authMode === 'signup' ? 'var(--blue)' : 'var(--text-mid)',
-                  borderBottom: authMode === 'signup' ? '2px solid var(--blue)' : 'none',
+                  color: authModalMode === 'signup' ? 'var(--blue)' : 'var(--text-mid)',
+                  borderBottom: authModalMode === 'signup' ? '2px solid var(--blue)' : 'none',
                   cursor: 'pointer',
                 }}
               >
@@ -629,7 +626,7 @@ export const Header: React.FC = () => {
 
             {/* Form */}
             <form onSubmit={handleAuthSubmit}>
-              {authMode === 'signup' && (
+              {authModalMode === 'signup' && (
                 <div style={{ marginBottom: '16px' }}>
                   <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '6px' }}>
                     Аты-жөніңіз *
@@ -705,7 +702,7 @@ export const Header: React.FC = () => {
                 className="btn-primary"
                 style={{ width: '100%', padding: '12px', borderRadius: '50px', fontSize: '14px' }}
               >
-                {authMode === 'login' ? 'Кіру' : 'Тіркелу және кіру'}
+                {authModalMode === 'login' ? 'Кіру' : 'Тіркелу және кіру'}
               </button>
             </form>
           </div>

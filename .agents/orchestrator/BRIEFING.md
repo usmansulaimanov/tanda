@@ -51,18 +51,22 @@ Perform a rigorous, end-to-end security, architecture, and functional audit of T
 ## Key Decisions Made
 - Milestone M1 successfully closed with unanimous APPROVE & CLEAN gate verdicts.
 - Milestone M2 successfully passed Gate with 100% unanimous approval (2 Reviewers APPROVE, 2 Challengers APPROVE, Forensic Auditor CLEAN; 158/158 tests passing).
-- Advancing to Milestone M3 (Tier 5: Adversarial Coverage Hardening): dispatching 2 Challengers to perform white-box source coverage analysis, probe untested code paths/corner cases, and verify zero gaps.
+- Milestone M3 Tier 5 Challengers completed: challenger_m3_1 authored 18 adversarial tests in ChallengerTier5AdversarialVerificationTest.java; challenger_m3_2 verified zero gaps. Full test suite now 176/176 tests passing 100% green.
+- Dispatched Milestone M3 Gate review crew (2 Reviewers, 1 Forensic Auditor) to finalize M3 gate sign-off.
 
-## Team Roster (Active Milestone M3)
+## Team Roster (Active Milestone M3 Gate)
 | Agent | Type | Work Item | Status | Conv ID |
 |-------|------|-----------|--------|---------|
-| challenger_m3_1 | teamwork_preview_challenger | White-box adversarial coverage & gap analysis | planned | pending |
-| challenger_m3_2 | teamwork_preview_challenger | White-box adversarial coverage & edge cases | planned | pending |
+| challenger_m3_1 | teamwork_preview_challenger | White-box adversarial coverage & gap analysis | completed | bd3d67b7-885c-46d6-a31b-de0e57e7e419 |
+| challenger_m3_2 | teamwork_preview_challenger | White-box adversarial coverage & edge cases | completed | fe4ccb11-3072-49ad-8dc1-53f9788f8923 |
+| reviewer_m3_1 | teamwork_preview_reviewer | Review Tier 5 tests & full build | running | fbbcc02e-ef9c-4726-9586-204b702a431b |
+| reviewer_m3_2 | teamwork_preview_reviewer | Independent review of Tier 5 tests & build | running | 0e6b5bca-b19a-4206-9958-78cfd688a07d |
+| auditor_m3_1 | teamwork_preview_auditor | Forensic integrity audit of full suite | running | afb9db2f-7c3b-4c98-999e-bbd16e593261 |
 
 ## Succession Status
 - Succession required: no
-- Spawn count: 6 / 16
-- Pending subagents: none
+- Spawn count: 11 / 16
+- Pending subagents: fbbcc02e-ef9c-4726-9586-204b702a431b, 0e6b5bca-b19a-4206-9958-78cfd688a07d, afb9db2f-7c3b-4c98-999e-bbd16e593261
 - Predecessor: none
 - Successor: not yet spawned
 

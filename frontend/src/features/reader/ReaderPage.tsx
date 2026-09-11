@@ -9,7 +9,7 @@ export const ReaderPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { books, fetchBookById } = useBookStore();
-  const { role, isAuthenticated } = useAuthStore();
+  const { role, isAuthenticated, openAuthModal } = useAuthStore();
 
   const [book, setBook] = useState<Book | null>(books.find((b) => b.id === id) || null);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -35,6 +35,85 @@ export const ReaderPage: React.FC = () => {
         .catch(() => {});
     }
   }, [id, isAuthenticated]);
+
+  if (!isAuthenticated) {
+    return (
+      <div style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 20px' }}>
+        <div
+          style={{
+            maxWidth: '520px',
+            width: '100%',
+            background: '#FFFFFF',
+            borderRadius: '16px',
+            padding: '40px 32px',
+            textAlign: 'center',
+            boxShadow: '0 12px 36px rgba(0,0,0,0.08)',
+            border: '1px solid #E2E8F0',
+          }}
+        >
+          <div
+            style={{
+              width: '56px',
+              height: '56px',
+              borderRadius: '50%',
+              background: 'rgba(0,87,168,0.1)',
+              color: 'var(--blue)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 20px',
+            }}
+          >
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+          </div>
+          <h2 style={{ fontSize: '22px', fontWeight: 900, color: 'var(--text-dark)', marginBottom: '8px' }}>
+            Кітапты оқу үшін тіркеліңіз
+          </h2>
+          <p style={{ fontSize: '14px', color: 'var(--text-mid)', lineHeight: 1.6, marginBottom: '28px' }}>
+            Кітаптарды толық оқу және аудиосын тыңдау тек тіркелген қолданушыларға қолжетімді. Сайтқа кіріңіз немесе жаңа аккаунт ашыңыз.
+          </p>
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              onClick={() => openAuthModal('signup')}
+              className="btn-primary"
+              style={{ padding: '12px 24px', fontSize: '14px' }}
+            >
+              Тіркелу
+            </button>
+            <button
+              type="button"
+              onClick={() => openAuthModal('login')}
+              style={{
+                padding: '12px 24px',
+                fontSize: '14px',
+                fontWeight: 700,
+                borderRadius: '50px',
+                border: '1.5px solid var(--blue)',
+                background: '#FFF',
+                color: 'var(--blue)',
+                cursor: 'pointer',
+              }}
+            >
+              Кіру
+            </button>
+          </div>
+          <div style={{ marginTop: '20px' }}>
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              style={{ background: 'none', border: 'none', color: 'var(--text-mid)', fontSize: '13px', cursor: 'pointer', fontWeight: 600 }}
+            >
+              ← Артқа қайту
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!book || (book.isArchived && role !== 'admin')) {
     return (

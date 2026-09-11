@@ -8,11 +8,17 @@ interface AuthState {
   role: 'admin' | 'client';
   isAuthenticated: boolean;
   isLoading: boolean;
+  authModalOpen: boolean;
+  authModalMode: 'login' | 'signup';
 
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
   restoreSession: () => Promise<void>;
+
+  // Modal helpers
+  openAuthModal: (mode?: 'login' | 'signup') => void;
+  closeAuthModal: () => void;
 
   // Convenience helpers
   loginAsAdmin: () => Promise<void>;
@@ -26,6 +32,16 @@ export const useAuthStore = create<AuthState>()(
       role: 'client',
       isAuthenticated: false,
       isLoading: false,
+      authModalOpen: false,
+      authModalMode: 'login',
+
+      openAuthModal: (mode = 'login') => {
+        set({ authModalOpen: true, authModalMode: mode });
+      },
+
+      closeAuthModal: () => {
+        set({ authModalOpen: false });
+      },
 
       login: async (email: string, password: string) => {
         set({ isLoading: true });
@@ -40,6 +56,7 @@ export const useAuthStore = create<AuthState>()(
             user: data.user,
             role: data.user.role as 'admin' | 'client',
             isAuthenticated: true,
+            authModalOpen: false,
           });
         } catch {
           // Fallback mock authentication if backend is offline
@@ -56,6 +73,7 @@ export const useAuthStore = create<AuthState>()(
             user: mockUser,
             role: mockUser.role,
             isAuthenticated: true,
+            authModalOpen: false,
           });
         } finally {
           set({ isLoading: false });
@@ -76,6 +94,7 @@ export const useAuthStore = create<AuthState>()(
             user: data.user,
             role: data.user.role as 'admin' | 'client',
             isAuthenticated: true,
+            authModalOpen: false,
           });
         } catch {
           // Fallback mock registration
@@ -91,6 +110,7 @@ export const useAuthStore = create<AuthState>()(
             user: mockUser,
             role: 'client',
             isAuthenticated: true,
+            authModalOpen: false,
           });
         } finally {
           set({ isLoading: false });
@@ -100,7 +120,7 @@ export const useAuthStore = create<AuthState>()(
       logout: () => {
         localStorage.removeItem('tanda_token');
         api.post('/api/auth/logout').catch(() => {});
-        set({ user: null, role: 'client', isAuthenticated: false });
+        set({ user: null, role: 'client', isAuthenticated: false, authModalOpen: false });
       },
 
       restoreSession: async () => {
@@ -135,6 +155,11 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'tanda_auth_storage_v1',
+      partialize: (state) => ({
+        user: state.user,
+        role: state.role,
+        isAuthenticated: state.isAuthenticated,
+      }),
     }
   )
 );

@@ -12,22 +12,43 @@ interface BookCardProps {
 
 export const BookCard: React.FC<BookCardProps> = ({ book }) => {
   const navigate = useNavigate();
-  const { role } = useAuthStore();
+  const { role, isAuthenticated, openAuthModal } = useAuthStore();
   const { playBook } = useAudioPlayerStore();
   const { isBookSaved, toggleSavedBook } = useSavedBooksStore();
   const { showToast } = useToastStore();
 
   const isSaved = isBookSaved(book.id);
 
+  const handleReadClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isAuthenticated) {
+      showToast('Кітапты оқу үшін тіркеліңіз немесе аккаунтқа кіріңіз', 'info');
+      openAuthModal('signup');
+      return;
+    }
+    navigate(`/read/${book.id}`);
+  };
+
   const handleListenClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (!isAuthenticated) {
+      showToast('Аудионы тыңдау үшін тіркеліңіз немесе аккаунтқа кіріңіз', 'info');
+      openAuthModal('signup');
+      return;
+    }
     playBook(book);
   };
 
   const handleBookmarkClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (!isAuthenticated) {
+      showToast('Кітапты сақтау үшін аккаунтқа кіріңіз немесе тіркеліңіз', 'info');
+      openAuthModal('login');
+      return;
+    }
     const nowSaved = await toggleSavedBook(book.id);
     if (nowSaved) {
       showToast(`«${book.title}» сақталғандарға қосылды`, 'success');
@@ -130,9 +151,13 @@ export const BookCard: React.FC<BookCardProps> = ({ book }) => {
       </div>
 
       <div className="book-actions" onClick={(e) => e.stopPropagation()}>
-        <Link to={`/read/${book.id}`} className="btn-book-action btn-read">
+        <button
+          type="button"
+          onClick={handleReadClick}
+          className="btn-book-action btn-read"
+        >
           Оқу
-        </Link>
+        </button>
         {book.hasAudio ? (
           <button
             type="button"

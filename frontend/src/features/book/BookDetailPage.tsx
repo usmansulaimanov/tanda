@@ -10,7 +10,7 @@ export const BookDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { books } = useBookStore();
-  const { role } = useAuthStore();
+  const { role, isAuthenticated, openAuthModal } = useAuthStore();
   const { playBook, playChapter, togglePlay, currentBook, currentChapter, isPlaying } = useAudioPlayerStore();
 
   const book = books.find((b) => b.id === id);
@@ -38,7 +38,48 @@ export const BookDetailPage: React.FC = () => {
   const isCurrentPlaying = currentBook?.id === book.id && isPlaying;
   const isSaved = isBookSaved(book.id);
 
+  const handleReadClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!isAuthenticated) {
+      showToast('Кітапты оқу үшін тіркеліңіз немесе аккаунтқа кіріңіз', 'info');
+      openAuthModal('signup');
+      return;
+    }
+    navigate(`/read/${book.id}`);
+  };
+
+  const handleAudioClick = () => {
+    if (!isAuthenticated) {
+      showToast('Аудионы тыңдау үшін тіркеліңіз немесе аккаунтқа кіріңіз', 'info');
+      openAuthModal('signup');
+      return;
+    }
+    if (currentBook?.id === book.id) {
+      togglePlay();
+    } else {
+      playBook(book);
+    }
+  };
+
+  const handleChapterClick = (idx: number) => {
+    if (!isAuthenticated) {
+      showToast('Аудионы тыңдау үшін тіркеліңіз немесе аккаунтқа кіріңіз', 'info');
+      openAuthModal('signup');
+      return;
+    }
+    if (currentBook?.id !== book.id) {
+      playBook(book, idx);
+    } else {
+      playChapter(idx);
+    }
+  };
+
   const handleToggleSave = async () => {
+    if (!isAuthenticated) {
+      showToast('Кітапты сақтау үшін аккаунтқа кіріңіз немесе тіркеліңіз', 'info');
+      openAuthModal('login');
+      return;
+    }
     const nowSaved = await toggleSavedBook(book.id);
     if (nowSaved) {
       showToast(`«${book.title}» сақталғандарға қосылды! Профиль бетінен таба аласыз.`, 'success');
@@ -167,26 +208,21 @@ export const BookDetailPage: React.FC = () => {
 
           {/* Action buttons */}
           <div style={{ display: 'flex', gap: '12px', marginTop: '32px', flexWrap: 'wrap', alignItems: 'center' }}>
-            <Link
-              to={`/read/${book.id}`}
+            <button
+              type="button"
+              onClick={handleReadClick}
               className="btn-primary"
-              style={{ padding: '14px 28px', fontSize: '15px', background: 'var(--blue)' }}
+              style={{ padding: '14px 28px', fontSize: '15px', background: 'var(--blue)', cursor: 'pointer', border: 'none' }}
             >
               Кітапты оқу
-            </Link>
+            </button>
 
             {book.hasAudio && (
               <button
                 type="button"
-                onClick={() => {
-                  if (currentBook?.id === book.id) {
-                    togglePlay();
-                  } else {
-                    playBook(book);
-                  }
-                }}
+                onClick={handleAudioClick}
                 className="btn-primary"
-                style={{ padding: '14px 28px', fontSize: '15px', background: 'var(--orange)', cursor: 'pointer' }}
+                style={{ padding: '14px 28px', fontSize: '15px', background: 'var(--orange)', cursor: 'pointer', border: 'none' }}
               >
                 {isCurrentPlaying ? 'Тоқтату (Пауза)' : 'Аудионы тыңдау'}
               </button>
@@ -275,10 +311,7 @@ export const BookDetailPage: React.FC = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <button
                     type="button"
-                    onClick={() => {
-                      if (currentBook?.id !== book.id) playBook(book, idx);
-                      else playChapter(idx);
-                    }}
+                    onClick={() => handleChapterClick(idx)}
                     style={{
                       width: '32px',
                       height: '32px',
