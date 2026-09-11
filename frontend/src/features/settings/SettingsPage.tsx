@@ -212,7 +212,7 @@ export const SettingsPage: React.FC = () => {
     <div style={{ maxWidth: '840px', margin: '40px auto 80px', padding: '0 24px' }}>
       
       {/* Top back button */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
+      <div style={{ marginBottom: '24px' }}>
         <button
           type="button"
           onClick={() => navigate(-1)}
@@ -230,30 +230,6 @@ export const SettingsPage: React.FC = () => {
         >
           ← Артқа оралу
         </button>
-
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <Link
-            to="/profile"
-            style={{
-              padding: '8px 16px',
-              borderRadius: '8px',
-              border: '1.5px solid #E2E8F0',
-              background: '#FFFFFF',
-              color: 'var(--text-dark)',
-              fontSize: '13px',
-              fontWeight: 700,
-              textDecoration: 'none',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-            }}
-          >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path>
-            </svg>
-            Сақталған кітаптар
-          </Link>
-        </div>
       </div>
 
       {/* Main Settings Card */}
