@@ -119,12 +119,9 @@ export const useAuthStore = create<AuthState>()(
       },
 
       logout: () => {
-        // Automatically save current progress and pause audio playback
+        // Automatically close audio player and stop playback completely on logout
         try {
-          const player = useAudioPlayerStore.getState();
-          if (player.isPlaying) {
-            player.pause();
-          }
+          useAudioPlayerStore.getState().closePlayer();
         } catch {}
 
         localStorage.removeItem('tanda_token');

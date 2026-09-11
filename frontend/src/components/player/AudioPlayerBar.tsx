@@ -72,18 +72,18 @@ export const AudioPlayerBar: React.FC = () => {
   const ytVideoId = extractYouTubeVideoId(audioSrc);
   const isYouTube = !!ytVideoId;
 
-  // Auto-pause immediately when user logs out while preserving saved position
+  // Auto-close and stop player completely when user logs out or is unauthenticated
   useEffect(() => {
-    if (!isAuthenticated && isPlaying) {
-      setIsPlaying(false);
+    if (!isAuthenticated) {
       if (audioRef.current) {
         audioRef.current.pause();
       }
       if (ytPlayerRef.current && typeof ytPlayerRef.current.pauseVideo === 'function') {
         ytPlayerRef.current.pauseVideo();
       }
+      closePlayer();
     }
-  }, [isAuthenticated, isPlaying, setIsPlaying]);
+  }, [isAuthenticated, closePlayer]);
 
   // Close popovers on click outside
   useEffect(() => {
@@ -389,7 +389,7 @@ export const AudioPlayerBar: React.FC = () => {
     closePlayer();
   }, [closePlayer]);
 
-  if (!currentBook) return null;
+  if (!isAuthenticated || !currentBook) return null;
 
   const chapters = currentBook.audioChapters || [];
   const currentChapterTitle = currentChapter?.title || chapters[chapterIndex]?.title || 'Негізгі аудио';
