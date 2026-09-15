@@ -9,8 +9,21 @@ import { BookFormPage } from '../features/admin/BookFormPage';
 import { ReadersPage } from '../features/admin/ReadersPage';
 import { ProfilePage } from '../features/profile/ProfilePage';
 import { SettingsPage } from '../features/settings/SettingsPage';
+import { AuthPage } from '../features/auth/AuthPage';
 
 export const router = createHashRouter([
+  {
+    path: '/login',
+    element: <AuthPage initialMode="login" />,
+  },
+  {
+    path: '/signup',
+    element: <AuthPage initialMode="signup" />,
+  },
+  {
+    path: '/register',
+    element: <AuthPage initialMode="signup" />,
+  },
   {
     path: '/',
     element: <Layout />,

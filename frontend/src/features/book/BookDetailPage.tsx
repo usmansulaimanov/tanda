@@ -42,7 +42,7 @@ export const BookDetailPage: React.FC = () => {
     e.preventDefault();
     if (!isAuthenticated) {
       showToast('Кітапты оқу үшін тіркеліңіз немесе аккаунтқа кіріңіз', 'info');
-      openAuthModal('signup');
+      navigate(`/login?redirect=${encodeURIComponent(`/read/${book.id}`)}`);
       return;
     }
     navigate(`/read/${book.id}`);
@@ -51,7 +51,7 @@ export const BookDetailPage: React.FC = () => {
   const handleAudioClick = () => {
     if (!isAuthenticated) {
       showToast('Аудионы тыңдау үшін тіркеліңіз немесе аккаунтқа кіріңіз', 'info');
-      openAuthModal('signup');
+      navigate(`/login?redirect=${encodeURIComponent(`/book/${book.id}`)}`);
       return;
     }
     if (currentBook?.id === book.id) {
@@ -64,7 +64,7 @@ export const BookDetailPage: React.FC = () => {
   const handleChapterClick = (idx: number) => {
     if (!isAuthenticated) {
       showToast('Аудионы тыңдау үшін тіркеліңіз немесе аккаунтқа кіріңіз', 'info');
-      openAuthModal('signup');
+      navigate(`/login?redirect=${encodeURIComponent(`/book/${book.id}`)}`);
       return;
     }
     if (currentBook?.id !== book.id) {
@@ -77,7 +77,7 @@ export const BookDetailPage: React.FC = () => {
   const handleToggleSave = async () => {
     if (!isAuthenticated) {
       showToast('Кітапты сақтау үшін аккаунтқа кіріңіз немесе тіркеліңіз', 'info');
-      openAuthModal('login');
+      navigate(`/login?redirect=${encodeURIComponent(`/book/${book.id}`)}`);
       return;
     }
     const nowSaved = await toggleSavedBook(book.id);

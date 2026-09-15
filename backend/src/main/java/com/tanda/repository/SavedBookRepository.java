@@ -22,4 +22,7 @@ public interface SavedBookRepository extends JpaRepository<SavedBook, String> {
 
     @Query("SELECT s.book.id FROM SavedBook s WHERE s.user.id = :userId")
     List<String> findBookIdsByUserId(@Param("userId") String userId);
+
+    @Query("SELECT s.user.id, COUNT(s) FROM SavedBook s WHERE s.user.id IN :userIds GROUP BY s.user.id")
+    List<Object[]> countSavedBooksByUserIds(@Param("userIds") List<String> userIds);
 }

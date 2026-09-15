@@ -10,6 +10,7 @@ import com.tanda.entity.Book;
 import com.tanda.exception.ResourceNotFoundException;
 import com.tanda.repository.BookRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class BookService {
@@ -35,11 +37,11 @@ public class BookService {
 
     @Transactional(readOnly = true)
     public List<BookResponseDto> getBooks(String category, String search, boolean includeArchived) {
-        String cat = (category != null && !category.trim().isEmpty() && !category.equalsIgnoreCase("Барлығы")) 
-                ? category.trim() 
+        String cat = (category != null && !category.trim().isEmpty() && !category.equalsIgnoreCase("Барлығы"))
+                ? category.trim()
                 : null;
-        String q = (search != null && !search.trim().isEmpty()) 
-                ? search.trim() 
+        String q = (search != null && !search.trim().isEmpty())
+                ? search.trim()
                 : null;
 
         boolean effectiveIncludeArchived = includeArchived && isAdmin();
@@ -90,25 +92,10 @@ public class BookService {
                 .audioChapters(new ArrayList<>())
                 .build();
 
-        if (dto.getAudioChapters() != null) {
-            int order = 1;
-            for (AudioChapterDto chDto : dto.getAudioChapters()) {
-                String chId = (chDto.getId() != null && !chDto.getId().trim().isEmpty())
-                        ? chDto.getId().trim()
-                        : "ch-" + UUID.randomUUID().toString().substring(0, 8);
-
-                AudioChapter chapter = AudioChapter.builder()
-                        .id(chId)
-                        .title(chDto.getTitle())
-                        .audioUrl(chDto.getAudioUrl() != null ? chDto.getAudioUrl() : "")
-                        .duration(chDto.getDuration() != null ? chDto.getDuration() : "00:00")
-                        .chapterOrder(chDto.getChapterOrder() != null ? chDto.getChapterOrder() : order++)
-                        .build();
-                book.addAudioChapter(chapter);
-            }
-        }
+        mapAudioChapters(dto.getAudioChapters(), book);
 
         Book saved = bookRepository.save(book);
+        log.info("Book created: id={}, title='{}', hasAudio={}", saved.getId(), saved.getTitle(), saved.getHasAudio());
         return toResponseDto(saved);
     }
 
@@ -133,24 +120,11 @@ public class BookService {
 
         if (dto.getAudioChapters() != null) {
             book.getAudioChapters().clear();
-            int order = 1;
-            for (AudioChapterDto chDto : dto.getAudioChapters()) {
-                String chId = (chDto.getId() != null && !chDto.getId().trim().isEmpty())
-                        ? chDto.getId().trim()
-                        : "ch-" + UUID.randomUUID().toString().substring(0, 8);
-
-                AudioChapter chapter = AudioChapter.builder()
-                        .id(chId)
-                        .title(chDto.getTitle())
-                        .audioUrl(chDto.getAudioUrl() != null ? chDto.getAudioUrl() : "")
-                        .duration(chDto.getDuration() != null ? chDto.getDuration() : "00:00")
-                        .chapterOrder(chDto.getChapterOrder() != null ? chDto.getChapterOrder() : order++)
-                        .build();
-                book.addAudioChapter(chapter);
-            }
+            mapAudioChapters(dto.getAudioChapters(), book);
         }
 
         Book saved = bookRepository.save(book);
+        log.info("Book updated: id={}, title='{}'", saved.getId(), saved.getTitle());
         return toResponseDto(saved);
     }
 
@@ -160,6 +134,7 @@ public class BookService {
                 .orElseThrow(() -> new ResourceNotFoundException("Book", "id", id));
         book.setIsArchived(isArchived);
         Book saved = bookRepository.save(book);
+        log.info("Book archive status changed: id={}, isArchived={}", id, isArchived);
         return toResponseDto(saved);
     }
 
@@ -168,10 +143,32 @@ public class BookService {
         Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Book", "id", id));
         bookRepository.delete(book);
+        log.info("Book deleted: id={}, title='{}'", id, book.getTitle());
     }
 
-    public BookResponseDto toBookResponseDto(Book book) {
-        return toResponseDto(book);
+    /**
+     * Maps a list of AudioChapterDto into AudioChapter entities and attaches them to the book.
+     * Extracted to eliminate code duplication between createBook() and updateBook().
+     */
+    private void mapAudioChapters(List<AudioChapterDto> chapters, Book book) {
+        if (chapters == null) {
+            return;
+        }
+        int order = 1;
+        for (AudioChapterDto chDto : chapters) {
+            String chId = (chDto.getId() != null && !chDto.getId().trim().isEmpty())
+                    ? chDto.getId().trim()
+                    : "ch-" + UUID.randomUUID().toString().substring(0, 8);
+
+            AudioChapter chapter = AudioChapter.builder()
+                    .id(chId)
+                    .title(chDto.getTitle())
+                    .audioUrl(chDto.getAudioUrl() != null ? chDto.getAudioUrl() : "")
+                    .duration(chDto.getDuration() != null ? chDto.getDuration() : "00:00")
+                    .chapterOrder(chDto.getChapterOrder() != null ? chDto.getChapterOrder() : order++)
+                    .build();
+            book.addAudioChapter(chapter);
+        }
     }
 
     public BookResponseDto toResponseDto(Book book) {

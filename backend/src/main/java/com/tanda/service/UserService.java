@@ -9,12 +9,15 @@ import com.tanda.exception.ResourceNotFoundException;
 import com.tanda.repository.SavedBookRepository;
 import com.tanda.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -34,9 +37,29 @@ public class UserService {
             users = userRepository.findAll();
         }
 
+        // Single batch query instead of N+1 per user
+        List<String> userIds = users.stream().map(User::getId).collect(Collectors.toList());
+        Map<String, Long> savedCountMap = buildSavedCountMap(userIds);
+
         return users.stream()
-                .map(this::toUserListDto)
+                .map(u -> toUserListDto(u, savedCountMap.getOrDefault(u.getId(), 0L).intValue()))
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Fetches saved-book counts for all provided user IDs in a single SQL query,
+     * eliminating the N+1 pattern from the previous implementation.
+     */
+    private Map<String, Long> buildSavedCountMap(List<String> userIds) {
+        if (userIds.isEmpty()) {
+            return Map.of();
+        }
+        return savedBookRepository.countSavedBooksByUserIds(userIds)
+                .stream()
+                .collect(Collectors.toMap(
+                        row -> (String) row[0],
+                        row -> (Long) row[1]
+                ));
     }
 
     @Transactional(readOnly = true)
@@ -60,6 +83,7 @@ public class UserService {
                     .filter(u -> !u.getId().equals(id) && Boolean.TRUE.equals(u.getIsActive()))
                     .count();
             if (otherActiveAdminCount < 1) {
+                log.warn("Last-admin guard triggered: attempt to deactivate/demote last active admin id={}", id);
                 throw new BadRequestException("Cannot deactivate or demote the last remaining admin");
             }
         }
@@ -72,9 +96,13 @@ public class UserService {
             if (!newRole.equals("admin") && !newRole.equals("client")) {
                 throw new BadRequestException("Role must be 'admin' or 'client'");
             }
+            log.info("User role changed: id={}, oldRole={}, newRole={}", id, user.getRole(), newRole);
             user.setRole(newRole);
         }
         if (dto.getIsActive() != null) {
+            if (Boolean.FALSE.equals(dto.getIsActive()) && Boolean.TRUE.equals(user.getIsActive())) {
+                log.info("User deactivated: id={}, email={}", id, user.getEmail());
+            }
             user.setIsActive(dto.getIsActive());
         }
 
@@ -92,10 +120,12 @@ public class UserService {
                     .filter(u -> !u.getId().equals(id) && Boolean.TRUE.equals(u.getIsActive()))
                     .count();
             if (otherActiveAdminCount < 1) {
+                log.warn("Last-admin guard triggered: attempt to delete last active admin id={}", id);
                 throw new BadRequestException("Cannot delete the last remaining admin");
             }
         }
 
+        log.info("User deleted: id={}, email={}", id, user.getEmail());
         userRepository.deleteById(id);
     }
 
@@ -111,8 +141,7 @@ public class UserService {
                 .build();
     }
 
-    private UserListResponseDto toUserListDto(User user) {
-        int savedCount = savedBookRepository.findBookIdsByUserId(user.getId()).size();
+    private UserListResponseDto toUserListDto(User user, int savedBooksCount) {
         return UserListResponseDto.builder()
                 .id(user.getId())
                 .idNumber(user.getIdNumber())
@@ -121,7 +150,7 @@ public class UserService {
                 .role(user.getRole())
                 .isActive(user.getIsActive())
                 .createdAt(user.getCreatedAt())
-                .savedBooksCount(savedCount)
+                .savedBooksCount(savedBooksCount)
                 .build();
     }
 }

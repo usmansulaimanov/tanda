@@ -45,8 +45,9 @@ public class SecurityConfig {
                 // Public endpoints
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/books", "/api/books/**", "/api/v1/books", "/api/v1/books/**").permitAll()
-                .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/logout",
-                                 "/api/v1/auth/login", "/api/v1/auth/register", "/api/v1/auth/logout").permitAll()
+                .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/logout", "/api/auth/google",
+                                 "/api/v1/auth/login", "/api/v1/auth/register", "/api/v1/auth/logout", "/api/v1/auth/google").permitAll()
+                .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                 
                 // Authenticated user endpoints
                 .requestMatchers("/api/auth/me", "/api/v1/auth/me").authenticated()

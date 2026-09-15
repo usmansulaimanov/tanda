@@ -22,4 +22,7 @@ public class UserResponseDto {
     private String role;
     private Boolean isActive;
     private OffsetDateTime createdAt;
+    private String avatarUrl;
+    private String authProvider;
+    private Boolean hasPassword;
 }

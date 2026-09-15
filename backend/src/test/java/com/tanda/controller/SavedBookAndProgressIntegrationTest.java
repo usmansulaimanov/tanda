@@ -49,12 +49,32 @@ class SavedBookAndProgressIntegrationTest {
     @Autowired
     private ReadingProgressRepository progressRepository;
 
+    @Autowired
+    private com.tanda.repository.UserRepository userRepository;
+
+    @Autowired
+    private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+
     private String adminToken;
 
     @BeforeEach
     void setUp() throws Exception {
         savedBookRepository.deleteAll();
         progressRepository.deleteAll();
+
+        if (userRepository.findByEmail("admin@tanda.kz").isEmpty()) {
+            com.tanda.entity.User admin = com.tanda.entity.User.builder()
+                    .id("001007")
+                    .idNumber("000 001")
+                    .name("Әкімші")
+                    .email("admin@tanda.kz")
+                    .passwordHash(passwordEncoder.encode("admin123"))
+                    .role("admin")
+                    .authProvider("LOCAL")
+                    .isActive(true)
+                    .build();
+            userRepository.save(admin);
+        }
 
         if (!bookRepository.existsById("test-book-1")) {
             Book testBook = Book.builder()

@@ -78,7 +78,7 @@ export const ReaderPage: React.FC = () => {
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
             <button
               type="button"
-              onClick={() => openAuthModal('signup')}
+              onClick={() => navigate(`/signup?redirect=${encodeURIComponent(`/read/${id}`)}`)}
               className="btn-primary"
               style={{ padding: '12px 24px', fontSize: '14px' }}
             >
@@ -86,7 +86,7 @@ export const ReaderPage: React.FC = () => {
             </button>
             <button
               type="button"
-              onClick={() => openAuthModal('login')}
+              onClick={() => navigate(`/login?redirect=${encodeURIComponent(`/read/${id}`)}`)}
               style={{
                 padding: '12px 24px',
                 fontSize: '14px',

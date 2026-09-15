@@ -34,7 +34,7 @@ public class SavedBookService {
                 .collect(Collectors.toList());
 
         List<BookResponseDto> books = savedList.stream()
-                .map(s -> bookService.toBookResponseDto(s.getBook()))
+                .map(s -> bookService.toResponseDto(s.getBook()))
                 .collect(Collectors.toList());
 
         return SavedBookResponseDto.builder()

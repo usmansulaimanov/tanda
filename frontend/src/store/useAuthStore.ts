@@ -13,6 +13,7 @@ interface AuthState {
   authModalMode: 'login' | 'signup';
 
   login: (email: string, password: string) => Promise<void>;
+  loginWithGoogle: (credential: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
   restoreSession: () => Promise<void>;
@@ -224,6 +225,76 @@ export const useAuthStore = create<AuthState>()(
           }
 
           localStorage.setItem('tanda_token', 'mock-jwt-token');
+          set({
+            user: matched,
+            role: matched.role,
+            isAuthenticated: true,
+            authModalOpen: false,
+          });
+        } finally {
+          set({ isLoading: false });
+        }
+      },
+
+      loginWithGoogle: async (credential: string) => {
+        set({ isLoading: true });
+        try {
+          const { data } = await api.post('/api/auth/google', { credential });
+          localStorage.setItem('tanda_token', data.token);
+          set({
+            user: data.user,
+            role: data.user.role as 'admin' | 'client',
+            isAuthenticated: true,
+            authModalOpen: false,
+          });
+        } catch {
+          const payload = (() => {
+            try {
+              const base64Url = credential.split('.')[1];
+              const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+              const jsonPayload = decodeURIComponent(
+                atob(base64)
+                  .split('')
+                  .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+                  .join('')
+              );
+              return JSON.parse(jsonPayload);
+            } catch {
+              return { email: 'google.user@gmail.com', name: 'Google Пайдаланушысы' };
+            }
+          })();
+
+          const email = (payload.email || 'google.user@gmail.com').toLowerCase();
+          const name = payload.name || payload.given_name || 'Google Пайдаланушысы';
+          const picture = payload.picture || undefined;
+          const allUsers = getStoredUsers();
+          let matched = allUsers.find((u) => u.email.toLowerCase() === email);
+
+          if (!matched) {
+            const count = allUsers.filter((u) => u.role === 'client').length + 1;
+            const idNum = `001 ${String(count).padStart(3, '0')}`;
+            matched = {
+              id: `google-${Date.now()}`,
+              idNumber: idNum,
+              name,
+              email,
+              username: email.split('@')[0],
+              role: 'client',
+              authProvider: 'GOOGLE',
+              avatarUrl: picture,
+              hasPassword: false,
+              createdAt: new Date().toISOString(),
+            };
+            allUsers.push(matched);
+            saveStoredUsers(allUsers);
+          } else {
+            if (picture) {
+              matched.avatarUrl = picture;
+              saveStoredUsers(allUsers);
+            }
+          }
+
+          localStorage.setItem('tanda_token', 'mock-google-token');
           set({
             user: matched,
             role: matched.role,

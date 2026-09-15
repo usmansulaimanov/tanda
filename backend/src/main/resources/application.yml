@@ -10,3 +10,19 @@ spring:
 jwt:
   secret: ${JWT_SECRET:tanda-super-secret-jwt-key-minimum-256-bits-for-security-2026}
   expiration: ${JWT_EXPIRATION:604800000}
+
+google:
+  client-id: ${GOOGLE_CLIENT_ID:249161344734-j51fft6shbogf2clnrhofn3l0c1euihl.apps.googleusercontent.com}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+  info:
+    app:
+      name: Tanda Backend
+      version: 1.0.0

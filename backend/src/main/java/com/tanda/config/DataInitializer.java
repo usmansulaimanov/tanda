@@ -154,18 +154,22 @@ public class DataInitializer implements CommandLineRunner {
     private void seedAdminUser() {
         com.tanda.entity.User admin = userRepository.findByEmail("admin@tanda.kz").orElse(null);
         if (admin == null) {
+            // Admin does not exist yet — create with default password (change via admin panel in production)
+            String encodedPassword = passwordEncoder.encode("admin123");
             admin = com.tanda.entity.User.builder()
                     .id("admin-1")
                     .idNumber("000 001")
                     .name("Администратор")
                     .email("admin@tanda.kz")
+                    .passwordHash(encodedPassword)
                     .role("admin")
                     .isActive(true)
                     .createdAt(OffsetDateTime.now())
                     .build();
+            userRepository.save(admin);
+            log.info("Default admin user created: admin@tanda.kz — change the password via admin panel before going to production.");
+        } else {
+            log.debug("Admin user already exists, skipping seed.");
         }
-        admin.setPasswordHash(passwordEncoder.encode("admin123"));
-        userRepository.save(admin);
-        log.info("Seeded/updated default admin user: admin@tanda.kz (password: admin123)");
     }
 }

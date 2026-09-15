@@ -56,4 +56,7 @@ export interface User {
   isActive?: boolean;
   createdAt?: string;
   savedBooksCount?: number;
+  avatarUrl?: string;
+  authProvider?: 'LOCAL' | 'GOOGLE';
+  hasPassword?: boolean;
 }

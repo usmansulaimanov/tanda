@@ -35,8 +35,18 @@ public class User {
     @Column(name = "email", length = 255, nullable = false, unique = true)
     private String email;
 
-    @Column(name = "password_hash", length = 255, nullable = false)
+    @Column(name = "password_hash", length = 255, nullable = true)
     private String passwordHash;
+
+    @Column(name = "google_id", length = 255, unique = true)
+    private String googleId;
+
+    @Column(name = "auth_provider", length = 32, nullable = false)
+    @Builder.Default
+    private String authProvider = "LOCAL"; // "LOCAL" | "GOOGLE"
+
+    @Column(name = "avatar_url", columnDefinition = "TEXT")
+    private String avatarUrl;
 
     @Column(name = "role", length = 10, nullable = false)
     @Builder.Default
@@ -59,6 +69,9 @@ public class User {
         }
         if (isActive == null) {
             isActive = true;
+        }
+        if (authProvider == null) {
+            authProvider = "LOCAL";
         }
     }
 }

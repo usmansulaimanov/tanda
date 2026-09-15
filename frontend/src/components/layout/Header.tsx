@@ -11,7 +11,7 @@ import tandaLogo from '../../assets/tanda-logo.png';
 export const Header: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, role, isAuthenticated, loginAsAdmin, loginAsClient, logout, authModalOpen, authModalMode, openAuthModal, closeAuthModal } = useAuthStore();
+  const { user, role, isAuthenticated, logout } = useAuthStore();
   const { books } = useBookStore();
   const { savedBookIds } = useSavedBooksStore();
   const { showToast } = useToastStore();
@@ -26,12 +26,6 @@ export const Header: React.FC = () => {
   // Profile menu state
   const [profileOpen, setProfileOpen] = useState(false);
   const profileWrapRef = useRef<HTMLDivElement>(null);
-
-  // Auth modal form inputs
-  const [authEmail, setAuthEmail] = useState('');
-  const [authPassword, setAuthPassword] = useState('');
-  const [authName, setAuthName] = useState('');
-  const [authError, setAuthError] = useState('');
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -107,59 +101,7 @@ export const Header: React.FC = () => {
     }
   };
 
-  const openAuth = (mode: 'login' | 'signup') => {
-    setAuthError('');
-    openAuthModal(mode);
-  };
 
-  const handleAuthSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!authEmail.trim()) {
-      setAuthError('Электронды почтаны енгізіңіз');
-      return;
-    }
-    if (!authPassword.trim()) {
-      setAuthError('Құпия сөзді енгізіңіз');
-      return;
-    }
-
-    try {
-      if (authModalMode === 'login') {
-        await useAuthStore.getState().login(authEmail, authPassword);
-        showToast('Жүйеге сәтті кірдіңіз!', 'success');
-      } else {
-        const name = authName.trim() || authEmail.split('@')[0] || 'Оқырман';
-        await useAuthStore.getState().register(name, authEmail, authPassword);
-        showToast(`Қош келдіңіз, ${name}!`, 'success');
-      }
-      closeAuthModal();
-      setAuthEmail('');
-      setAuthPassword('');
-      setAuthName('');
-      if (useAuthStore.getState().role === 'admin') {
-        navigate('/admin');
-      }
-    } catch (err: any) {
-      const msg = err.response?.data?.message || 'Кіру қатесі. Email мен құпия сөзді тексеріңіз';
-      setAuthError(msg);
-    }
-  };
-
-  const quickLoginAs = async (targetRole: 'admin' | 'client') => {
-    try {
-      if (targetRole === 'admin') {
-        await loginAsAdmin();
-        showToast('Админ ретінде кірдіңіз', 'success');
-        navigate('/admin');
-      } else {
-        await loginAsClient('reader@tanda.kz', 'Оқырман');
-        showToast('Оқырман ретінде кірдіңіз', 'success');
-      }
-      closeAuthModal();
-    } catch (err: any) {
-      showToast('Жүйеге кіру мүмкін болмады', 'error');
-    }
-  };
 
   return (
     <>
@@ -333,28 +275,47 @@ export const Header: React.FC = () => {
                   aria-label="Жеке профиль"
                   aria-expanded={profileOpen}
                   aria-haspopup="true"
+                  style={{ padding: user.avatarUrl ? '2px' : undefined, overflow: 'hidden' }}
                 >
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="12" cy="7" r="4"></circle>
-                  </svg>
+                  {user.avatarUrl ? (
+                    <img
+                      src={user.avatarUrl}
+                      alt={user.name || 'Avatar'}
+                      style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover' }}
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                  )}
                 </button>
 
                 {profileOpen && (
                   <div className="nav-profile-dropdown">
                     {/* User Info Header: Name, Email & Role */}
                     <div className="profile-card-header">
-                      <div className="profile-card-avatar">
-                        {user.name ? user.name.trim().charAt(0).toUpperCase() : (user.email ? user.email.charAt(0).toUpperCase() : 'О')}
+                      <div className="profile-card-avatar" style={{ overflow: 'hidden' }}>
+                        {user.avatarUrl ? (
+                          <img
+                            src={user.avatarUrl}
+                            alt={user.name || 'Avatar'}
+                            style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }}
+                            referrerPolicy="no-referrer"
+                          />
+                        ) : (
+                          user.name ? user.name.trim().charAt(0).toUpperCase() : (user.email ? user.email.charAt(0).toUpperCase() : 'О')
+                        )}
                       </div>
                       <div className="profile-card-info">
                         <div className="profile-card-name" title={user.role === 'admin' ? 'Админ' : (user.name || 'Оқырман')}>
@@ -488,254 +449,25 @@ export const Header: React.FC = () => {
               </div>
             ) : (
               <>
-                <button
-                  type="button"
-                  onClick={() => openAuth('login')}
+                <Link
+                  to="/login"
                   className="btn-nav-login"
-                  style={{ padding: '6px 16px', fontSize: '13px', fontWeight: 700 }}
+                  style={{ padding: '6px 16px', fontSize: '13px', fontWeight: 700, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
                 >
                   Кіру
-                </button>
-                <button
-                  type="button"
-                  onClick={() => openAuth('signup')}
+                </Link>
+                <Link
+                  to="/signup"
                   className="btn-nav-reg"
-                  style={{ padding: '6px 18px', fontSize: '13px', fontWeight: 700 }}
+                  style={{ padding: '6px 18px', fontSize: '13px', fontWeight: 700, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
                 >
                   Тіркелу
-                </button>
+                </Link>
               </>
             )}
           </div>
         </div>
       </nav>
-
-      {/* AUTH MODAL (Exact design & account switching) */}
-      {authModalOpen && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(13,27,42,0.7)',
-            backdropFilter: 'blur(6px)',
-            zIndex: 1000,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '20px',
-          }}
-          onClick={() => closeAuthModal()}
-        >
-          <div
-            style={{
-              background: '#FFFFFF',
-              borderRadius: '16px',
-              maxWidth: '440px',
-              width: '100%',
-              padding: '36px 32px',
-              position: 'relative',
-              boxShadow: '0 24px 64px rgba(0,0,0,0.25)',
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Close button */}
-            <button
-              onClick={() => closeAuthModal()}
-              style={{
-                position: 'absolute',
-                top: '18px',
-                right: '18px',
-                background: '#F1F5F9',
-                border: 'none',
-                borderRadius: '50%',
-                width: '32px',
-                height: '32px',
-                fontSize: '16px',
-                fontWeight: 700,
-                cursor: 'pointer',
-                color: 'var(--text-mid)',
-              }}
-            >
-              ✕
-            </button>
-
-            {/* Modal title */}
-            <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-              <h3 style={{ fontSize: '22px', fontWeight: 900, color: 'var(--text-dark)' }}>
-                {authModalMode === 'login' ? 'Сайтқа кіру' : 'Тіркелу'}
-              </h3>
-              <p style={{ fontSize: '13px', color: 'var(--text-mid)', marginTop: '4px' }}>
-                {authModalMode === 'login'
-                  ? 'Аккаунтыңыз арқылы кіріп, кітаптарды оқыңыз немесе басқарыңыз'
-                  : 'Жаңа аккаунт ашып, кітапхананы қолданыңыз'}
-              </p>
-            </div>
-
-            {/* Tabs */}
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', borderBottom: '1px solid #E2E8F0', paddingBottom: '8px' }}>
-              <button
-                type="button"
-                onClick={() => openAuthModal('login')}
-                style={{
-                  flex: 1,
-                  padding: '8px',
-                  border: 'none',
-                  background: 'none',
-                  fontWeight: authModalMode === 'login' ? 800 : 600,
-                  fontSize: '14px',
-                  color: authModalMode === 'login' ? 'var(--blue)' : 'var(--text-mid)',
-                  borderBottom: authModalMode === 'login' ? '2px solid var(--blue)' : 'none',
-                  cursor: 'pointer',
-                }}
-              >
-                Кіру
-              </button>
-              <button
-                type="button"
-                onClick={() => openAuthModal('signup')}
-                style={{
-                  flex: 1,
-                  padding: '8px',
-                  border: 'none',
-                  background: 'none',
-                  fontWeight: authModalMode === 'signup' ? 800 : 600,
-                  fontSize: '14px',
-                  color: authModalMode === 'signup' ? 'var(--blue)' : 'var(--text-mid)',
-                  borderBottom: authModalMode === 'signup' ? '2px solid var(--blue)' : 'none',
-                  cursor: 'pointer',
-                }}
-              >
-                Тіркелу
-              </button>
-            </div>
-
-            {/* Quick Demo Switchers */}
-            <div style={{ marginBottom: '20px', padding: '12px', background: '#F8FAFC', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
-              <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-mid)', marginBottom: '8px', textTransform: 'uppercase' }}>
-                Жылдам кіру (Аккаунт таңдау):
-              </div>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <button
-                  type="button"
-                  onClick={() => quickLoginAs('admin')}
-                  style={{
-                    flex: 1,
-                    padding: '8px 10px',
-                    borderRadius: '8px',
-                    border: '1.5px solid var(--blue)',
-                    background: '#FFF',
-                    color: 'var(--blue)',
-                    fontSize: '12px',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                  }}
-                >
-                  Админ
-                </button>
-                <button
-                  type="button"
-                  onClick={() => quickLoginAs('client')}
-                  style={{
-                    flex: 1,
-                    padding: '8px 10px',
-                    borderRadius: '8px',
-                    border: '1.5px solid #10B981',
-                    background: '#FFF',
-                    color: '#047857',
-                    fontSize: '12px',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                  }}
-                >
-                  Оқырман (Reader)
-                </button>
-              </div>
-            </div>
-
-            {/* Form */}
-            <form onSubmit={handleAuthSubmit}>
-              {authModalMode === 'signup' && (
-                <div style={{ marginBottom: '16px' }}>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '6px' }}>
-                    Аты-жөніңіз *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={authName}
-                    onChange={(e) => setAuthName(e.target.value)}
-                    placeholder="Мысалы: Азамат Серікұлы"
-                    style={{
-                      width: '100%',
-                      padding: '10px 14px',
-                      border: '1px solid #CBD5E1',
-                      borderRadius: '8px',
-                      fontSize: '14px',
-                      outline: 'none',
-                    }}
-                  />
-                </div>
-              )}
-
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '6px' }}>
-                  Электронды почта (Email) *
-                </label>
-                <input
-                  type="email"
-                  required
-                  value={authEmail}
-                  onChange={(e) => setAuthEmail(e.target.value)}
-                  placeholder="admin@tanda.kz немесе siz@mail.kz"
-                  style={{
-                    width: '100%',
-                    padding: '10px 14px',
-                    border: '1px solid #CBD5E1',
-                    borderRadius: '8px',
-                    fontSize: '14px',
-                    outline: 'none',
-                  }}
-                />
-              </div>
-
-              <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '6px' }}>
-                  Құпиясөз *
-                </label>
-                <input
-                  type="password"
-                  required
-                  value={authPassword}
-                  onChange={(e) => setAuthPassword(e.target.value)}
-                  placeholder="Құпиясөзді енгізіңіз"
-                  style={{
-                    width: '100%',
-                    padding: '10px 14px',
-                    border: '1px solid #CBD5E1',
-                    borderRadius: '8px',
-                    fontSize: '14px',
-                    outline: 'none',
-                  }}
-                />
-              </div>
-
-              {authError && (
-                <div style={{ color: '#DC2626', fontSize: '12px', fontWeight: 600, marginBottom: '14px' }}>
-                  {authError}
-                </div>
-              )}
-
-              <button
-                type="submit"
-                className="btn-primary"
-                style={{ width: '100%', padding: '12px', borderRadius: '50px', fontSize: '14px' }}
-              >
-                {authModalMode === 'login' ? 'Кіру' : 'Тіркелу және кіру'}
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
     </>
   );
 };

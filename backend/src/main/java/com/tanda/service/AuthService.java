@@ -1,5 +1,6 @@
 package com.tanda.service;
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.tanda.dto.auth.AuthResponseDto;
 import com.tanda.dto.auth.LoginRequestDto;
 import com.tanda.dto.auth.RegisterRequestDto;
@@ -25,6 +26,79 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+    private final GoogleTokenVerifier googleTokenVerifier;
+
+    @Transactional
+    public AuthResponseDto loginWithGoogle(String credential) {
+        // Step 1: Verify Google ID token signature, audience, expiry
+        GoogleIdToken.Payload payload = googleTokenVerifier.verify(credential);
+
+        // Step 2: Validate that Google has verified this email address
+        Boolean emailVerified = payload.getEmailVerified();
+        if (emailVerified != null && !emailVerified) {
+            throw new BadCredentialsException("Google email расталмаған");
+        }
+
+        String googleId = payload.getSubject();
+        String email = payload.getEmail() != null ? payload.getEmail().trim().toLowerCase() : null;
+        if (email == null || email.isBlank()) {
+            throw new BadCredentialsException("Google профилінде email табылмады");
+        }
+
+        String name = (String) payload.get("name");
+        if (name == null || name.isBlank()) {
+            name = email.split("@")[0];
+        }
+        String picture = (String) payload.get("picture");
+
+        // Step 3: Find existing user by googleId first, then by email
+        User user = userRepository.findByGoogleId(googleId)
+                .or(() -> userRepository.findByEmail(email))
+                .orElse(null);
+
+        if (user == null) {
+            // Auto-register new Google user with strictly 'client' role
+            long clientCount = userRepository.countByRole("client");
+            String idNumber = formatIdNumber(1001 + clientCount);
+            user = User.builder()
+                    .id("user-" + UUID.randomUUID().toString().substring(0, 8))
+                    .idNumber(idNumber)
+                    .name(name.trim())
+                    .email(email)
+                    .passwordHash(null)
+                    .googleId(googleId)
+                    .authProvider("GOOGLE")
+                    .avatarUrl(picture)
+                    .role("client")
+                    .isActive(true)
+                    .build();
+            log.info("Google арқылы жаңа пайдаланушы тіркелді: {}", email);
+        } else {
+            // Check account active status
+            if (Boolean.FALSE.equals(user.getIsActive())) {
+                throw new BadCredentialsException("Аккаунт бұғатталған");
+            }
+
+            // Link googleId and sync avatar if available
+            if (user.getGoogleId() == null) {
+                user.setGoogleId(googleId);
+            }
+            if (picture != null && !picture.isBlank()) {
+                user.setAvatarUrl(picture);
+            }
+            if (user.getAuthProvider() == null) {
+                user.setAuthProvider("GOOGLE");
+            }
+            log.info("Google арқылы кіру: {}", email);
+        }
+
+        user = userRepository.save(user);
+        String token = jwtTokenProvider.generateToken(user);
+        return AuthResponseDto.builder()
+                .token(token)
+                .user(toUserDto(user))
+                .build();
+    }
 
     @Transactional(readOnly = true)
     public AuthResponseDto login(LoginRequestDto dto) {
@@ -32,7 +106,7 @@ public class AuthService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BadCredentialsException("Пайдаланушы табылмады немесе құпия сөз қате"));
 
-        if (!passwordEncoder.matches(dto.getPassword(), user.getPasswordHash())) {
+        if (user.getPasswordHash() == null || !passwordEncoder.matches(dto.getPassword(), user.getPasswordHash())) {
             throw new BadCredentialsException("Пайдаланушы табылмады немесе құпия сөз қате");
         }
 
@@ -64,6 +138,7 @@ public class AuthService {
                 .name(dto.getName().trim())
                 .email(email)
                 .passwordHash(passwordEncoder.encode(dto.getPassword()))
+                .authProvider("LOCAL")
                 .role("client")
                 .isActive(true)
                 .build();
@@ -93,6 +168,9 @@ public class AuthService {
                 .role(user.getRole())
                 .isActive(user.getIsActive())
                 .createdAt(user.getCreatedAt())
+                .avatarUrl(user.getAvatarUrl())
+                .authProvider(user.getAuthProvider() != null ? user.getAuthProvider() : (user.getGoogleId() != null ? "GOOGLE" : "LOCAL"))
+                .hasPassword(user.getPasswordHash() != null)
                 .build();
     }
 

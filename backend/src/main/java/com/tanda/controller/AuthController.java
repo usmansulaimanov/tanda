@@ -1,6 +1,7 @@
 package com.tanda.controller;
 
 import com.tanda.dto.auth.AuthResponseDto;
+import com.tanda.dto.auth.GoogleAuthRequestDto;
 import com.tanda.dto.auth.LoginRequestDto;
 import com.tanda.dto.auth.RegisterRequestDto;
 import com.tanda.dto.user.UserResponseDto;
@@ -25,6 +26,11 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthService authService;
+
+    @PostMapping("/google")
+    public ResponseEntity<AuthResponseDto> googleLogin(@Valid @RequestBody GoogleAuthRequestDto request) {
+        return ResponseEntity.ok(authService.loginWithGoogle(request.getCredential()));
+    }
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponseDto> login(@Valid @RequestBody LoginRequestDto request) {
