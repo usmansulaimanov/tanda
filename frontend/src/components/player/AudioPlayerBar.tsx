@@ -823,24 +823,13 @@ export const AudioPlayerBar: React.FC = () => {
                 </div>
               </div>
 
-              {/* Right: Chapter list / Expand Player / Close Action */}
+              {/* Right: Chapter list / Close Action */}
               <div className="flex items-center justify-end w-full md:w-1/4 gap-2">
                 {chapters.length > 1 && (
                   <span className="text-xs font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">
                     {chapterIndex + 1} / {chapters.length} тарау
                   </span>
                 )}
-
-                {/* Open full player button */}
-                <button
-                  type="button"
-                  onClick={() => navigate(`/listen/${currentBook.id}`)}
-                  className="px-2.5 h-8 rounded-xl bg-[#005494]/10 hover:bg-[#005494]/20 text-[#005494] border border-[#005494]/20 transition cursor-pointer flex items-center gap-1 text-xs font-bold"
-                  title="Толық ойнатқыш бетіне өту"
-                >
-                  <Maximize2 className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Плеер</span>
-                </button>
 
                 <button
                   type="button"
