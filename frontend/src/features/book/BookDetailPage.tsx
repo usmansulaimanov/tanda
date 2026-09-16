@@ -16,7 +16,7 @@ export const BookDetailPage: React.FC = () => {
 
   const book = books.find((b) => b.id === id);
   const { isBookSaved, toggleSavedBook } = useSavedBooksStore();
-  const { markAsReading, markAsWantToRead, removeBookFromShelf } = useMyBooksStore();
+  const { markAsReading, markAsWantToRead, markAsCompleted, removeBookFromShelf, getBookStatus, currentShelf } = useMyBooksStore();
   const { showToast } = useToastStore();
 
   if (!book || (book.isArchived && role !== 'admin')) {
@@ -39,6 +39,8 @@ export const BookDetailPage: React.FC = () => {
 
   const isCurrentPlaying = currentBook?.id === book.id && isPlaying;
   const isSaved = isBookSaved(book.id);
+  const bookStatus = getBookStatus(book.id);
+  const isCompleted = bookStatus === 'completed';
 
   const handleReadClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -92,6 +94,21 @@ export const BookDetailPage: React.FC = () => {
     } else {
       removeBookFromShelf(book.id);
       showToast(`«${book.title}» сақталғандардан өшірілді`, 'info');
+    }
+  };
+
+  const handleToggleCompleted = () => {
+    if (!isAuthenticated) {
+      showToast('Кітапты белгілеу үшін тіркеліңіз немесе аккаунтқа кіріңіз', 'info');
+      navigate(`/login?redirect=${encodeURIComponent(`/book/${book.id}`)}`);
+      return;
+    }
+    if (isCompleted) {
+      removeBookFromShelf(book.id);
+      showToast(`«${book.title}» — «Оқып болған кітаптар» сөресінен алынды`, 'info');
+    } else {
+      markAsCompleted(book.id);
+      showToast(`«${book.title}» — «Менің сөремдегі» оқылған кітаптар сөресіне қосылды!`, 'success');
     }
   };
 
@@ -237,51 +254,100 @@ export const BookDetailPage: React.FC = () => {
 
             {/* Read later / Bookmark button - only for readers */}
             {role !== 'admin' && (
-              <button
-                type="button"
-                onClick={handleToggleSave}
-                style={{
-                  padding: '13px 24px',
-                  fontSize: '14px',
-                  fontWeight: 700,
-                  borderRadius: '50px',
-                  cursor: 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  transition: 'all 0.2s',
-                  background: isSaved ? 'rgba(239, 126, 0, 0.12)' : '#FFFFFF',
-                  color: isSaved ? 'var(--orange)' : 'var(--text-dark)',
-                  border: isSaved ? '1.5px solid var(--orange)' : '1.5px solid #CBD5E1',
-                  boxShadow: isSaved ? '0 2px 8px rgba(239, 126, 0, 0.2)' : 'none',
-                }}
-                onMouseEnter={(e) => {
-                  if (!isSaved) {
-                    e.currentTarget.style.borderColor = 'var(--blue)';
-                    e.currentTarget.style.color = 'var(--blue)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isSaved) {
-                    e.currentTarget.style.borderColor = '#CBD5E1';
-                    e.currentTarget.style.color = 'var(--text-dark)';
-                  }
-                }}
-              >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill={isSaved ? 'currentColor' : 'none'}
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+              <>
+                <button
+                  type="button"
+                  onClick={handleToggleSave}
+                  style={{
+                    padding: '13px 24px',
+                    fontSize: '14px',
+                    fontWeight: 700,
+                    borderRadius: '50px',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    transition: 'all 0.2s',
+                    background: isSaved ? 'rgba(239, 126, 0, 0.12)' : '#FFFFFF',
+                    color: isSaved ? 'var(--orange)' : 'var(--text-dark)',
+                    border: isSaved ? '1.5px solid var(--orange)' : '1.5px solid #CBD5E1',
+                    boxShadow: isSaved ? '0 2px 8px rgba(239, 126, 0, 0.2)' : 'none',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isSaved) {
+                      e.currentTarget.style.borderColor = 'var(--blue)';
+                      e.currentTarget.style.color = 'var(--blue)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isSaved) {
+                      e.currentTarget.style.borderColor = '#CBD5E1';
+                      e.currentTarget.style.color = 'var(--text-dark)';
+                    }
+                  }}
                 >
-                  <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path>
-                </svg>
-                <span>{isSaved ? 'Сақталды (Кейін оқимын)' : 'Кейін оқимын'}</span>
-              </button>
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill={isSaved ? 'currentColor' : 'none'}
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path>
+                  </svg>
+                  <span>{isSaved ? 'Сақталды (Кейін оқимын)' : 'Кейін оқимын'}</span>
+                </button>
+
+                {/* Mark as Completed (Оқылған) button */}
+                <button
+                  type="button"
+                  onClick={handleToggleCompleted}
+                  style={{
+                    padding: '13px 24px',
+                    fontSize: '14px',
+                    fontWeight: 700,
+                    borderRadius: '50px',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    transition: 'all 0.2s',
+                    background: isCompleted ? '#ECFDF5' : '#FFFFFF',
+                    color: isCompleted ? '#059669' : 'var(--text-dark)',
+                    border: isCompleted ? '1.5px solid #10B981' : '1.5px solid #CBD5E1',
+                    boxShadow: isCompleted ? '0 2px 8px rgba(16, 185, 129, 0.2)' : 'none',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isCompleted) {
+                      e.currentTarget.style.borderColor = '#10B981';
+                      e.currentTarget.style.color = '#059669';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isCompleted) {
+                      e.currentTarget.style.borderColor = '#CBD5E1';
+                      e.currentTarget.style.color = 'var(--text-dark)';
+                    }
+                  }}
+                >
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  <span>{isCompleted ? 'Оқылған ✓' : 'Оқылған'}</span>
+                </button>
+              </>
             )}
           </div>
         </div>

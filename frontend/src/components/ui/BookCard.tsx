@@ -16,10 +16,12 @@ export const BookCard: React.FC<BookCardProps> = ({ book }) => {
   const { role, isAuthenticated, openAuthModal } = useAuthStore();
   const { playBook } = useAudioPlayerStore();
   const { isBookSaved, toggleSavedBook } = useSavedBooksStore();
-  const { markAsReading, markAsWantToRead, removeBookFromShelf } = useMyBooksStore();
+  const { markAsReading, markAsWantToRead, markAsCompleted, removeBookFromShelf, getBookStatus } = useMyBooksStore();
   const { showToast } = useToastStore();
 
   const isSaved = isBookSaved(book.id);
+  const bookStatus = getBookStatus(book.id);
+  const isCompleted = bookStatus === 'completed';
 
   const handleReadClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -63,6 +65,23 @@ export const BookCard: React.FC<BookCardProps> = ({ book }) => {
     }
   };
 
+  const handleCompletedClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isAuthenticated) {
+      showToast('Кітапты белгілеу үшін аккаунтқа кіріңіз немесе тіркеліңіз', 'info');
+      navigate(`/login?redirect=${encodeURIComponent(`/book/${book.id}`)}`);
+      return;
+    }
+    if (isCompleted) {
+      removeBookFromShelf(book.id);
+      showToast(`«${book.title}» — «Оқып болған кітаптар» сөресінен алынды`, 'info');
+    } else {
+      markAsCompleted(book.id);
+      showToast(`«${book.title}» — «Менің сөремдегі» оқылған кітаптар сөресіне қосылды!`, 'success');
+    }
+  };
+
   return (
     <div
       className="book-card"
@@ -102,42 +121,82 @@ export const BookCard: React.FC<BookCardProps> = ({ book }) => {
 
         {/* Quick bookmark toggle on card - only for readers */}
         {role !== 'admin' && (
-          <button
-            type="button"
-            onClick={handleBookmarkClick}
-            title={isSaved ? 'Сақталғандардан өшіру' : 'Кейін оқимын (Сақтау)'}
-            style={{
-              position: 'absolute',
-              top: '12px',
-              left: '12px',
-              width: '32px',
-              height: '32px',
-              borderRadius: '50%',
-              background: isSaved ? 'var(--orange)' : 'rgba(0, 20, 45, 0.55)',
-              backdropFilter: 'blur(4px)',
-              border: isSaved ? 'none' : '1px solid rgba(255,255,255,0.3)',
-              color: '#FFFFFF',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-              zIndex: 3,
-            }}
-          >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill={isSaved ? 'currentColor' : 'none'}
-              stroke="currentColor"
-              strokeWidth="2.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+          <>
+            <button
+              type="button"
+              onClick={handleBookmarkClick}
+              title={isSaved ? 'Сақталғандардан өшіру' : 'Кейін оқимын (Сақтау)'}
+              style={{
+                position: 'absolute',
+                top: '12px',
+                left: '12px',
+                width: '32px',
+                height: '32px',
+                borderRadius: '50%',
+                background: isSaved ? 'var(--orange)' : 'rgba(0, 20, 45, 0.55)',
+                backdropFilter: 'blur(4px)',
+                border: isSaved ? 'none' : '1px solid rgba(255,255,255,0.3)',
+                color: '#FFFFFF',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                zIndex: 3,
+              }}
             >
-              <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path>
-            </svg>
-          </button>
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill={isSaved ? 'currentColor' : 'none'}
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path>
+              </svg>
+            </button>
+
+            {/* Quick completed toggle button */}
+            <button
+              type="button"
+              onClick={handleCompletedClick}
+              title={isCompleted ? '«Оқып болғандардан» өшіру' : 'Оқылған деп белгілеу (Менің сөрем)'}
+              style={{
+                position: 'absolute',
+                top: '12px',
+                left: '48px',
+                width: '32px',
+                height: '32px',
+                borderRadius: '50%',
+                background: isCompleted ? '#10B981' : 'rgba(0, 20, 45, 0.55)',
+                backdropFilter: 'blur(4px)',
+                border: isCompleted ? 'none' : '1px solid rgba(255,255,255,0.3)',
+                color: '#FFFFFF',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                zIndex: 3,
+              }}
+            >
+              <svg
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </button>
+          </>
         )}
 
         <div style={{ position: 'relative', zIndex: 2 }}>
