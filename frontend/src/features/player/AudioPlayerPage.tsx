@@ -724,19 +724,6 @@ export const AudioPlayerPage: React.FC = () => {
 
             </div>
 
-            {/* Book Description Card («қысқаша описаниесі тұрсын») */}
-            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-md">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-7 h-7 rounded-lg bg-orange-100 text-[#EF7E00] flex items-center justify-center font-bold">
-                  📝
-                </div>
-                <h3 className="text-lg font-black text-slate-900">Кітап туралы қысқаша</h3>
-              </div>
-              <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-line">
-                {activeBook.description || 'Бұл кітапқа әзірге қысқаша сипаттама берілмеген.'}
-              </p>
-            </div>
-
           </div>
 
           {/* RIGHT COLUMN: Chapters List («Оң жақта кітаптың бөлімдері болсын. Сол бөлімді басқан кезде бірден сол бөлімнен ойнап кететіндей») (5 cols) */}
