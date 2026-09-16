@@ -65,9 +65,28 @@ function useCountUp(target: number, duration = 1800): number {
 export const LandingPage: React.FC = () => {
   const location = useLocation();
   const { books } = useBookStore();
-  const { role } = useAuthStore();
+  const { role, user, isAuthenticated } = useAuthStore();
   const [selectedCat, setSelectedCat] = useState('Бәрі');
   const [search, setSearch] = useState('');
+
+  const personalMsg = user?.personalMessage;
+  const isMessageValid = useMemo(() => {
+    if (!personalMsg || !personalMsg.text?.trim() || personalMsg.isActive === false) {
+      return false;
+    }
+    if (personalMsg.expiresAt) {
+      const exp = new Date(personalMsg.expiresAt).getTime();
+      if (exp < Date.now()) return false;
+    }
+    return true;
+  }, [personalMsg]);
+
+  const remainingDays = useMemo(() => {
+    if (!personalMsg?.expiresAt) return null;
+    const diffMs = new Date(personalMsg.expiresAt).getTime() - Date.now();
+    if (diffMs <= 0) return 0;
+    return Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+  }, [personalMsg]);
 
   useEffect(() => {
     if (location.hash === '#catalog') {
@@ -142,6 +161,30 @@ export const LandingPage: React.FC = () => {
 
         <div className="hero-container">
           <div className="hero-text">
+            {/* Personal Message placed directly above the "Оқы. Тыңда." headline */}
+            {isAuthenticated && isMessageValid && personalMsg && (
+              <div
+                style={{
+                  display: 'inline-block',
+                  marginTop: '-42px',
+                  marginBottom: '24px',
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: 'clamp(28px, 3.4vw, 46px)',
+                    fontWeight: 900,
+                    lineHeight: 1.2,
+                    color: 'var(--orange)',
+                    letterSpacing: '-0.02em',
+                    textShadow: '0 2px 14px rgba(0, 0, 0, 0.45)',
+                  }}
+                >
+                  {personalMsg.text}
+                </span>
+              </div>
+            )}
+
             <span className="hero-tag">Қазақша контент платформасы</span>
             <h1>
               Оқы. Тыңда.<br />

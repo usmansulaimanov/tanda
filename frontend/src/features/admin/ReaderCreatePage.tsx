@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useToastStore } from '../../store/useToastStore';
-import { User } from '../../types';
 
 const formatPhoneNumber = (val: string): string => {
   if (!val) return '';
@@ -54,55 +53,36 @@ const getPhoneNationalDigitsCount = (val: string): number => {
   return Math.min(digits.length, 10);
 };
 
-export const ReaderEditPage: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
+export const ReaderCreatePage: React.FC = () => {
   const navigate = useNavigate();
-  const { getUserById, updateUserByAdmin, checkUsernameAvailable } = useAuthStore();
+  const { createReaderByAdmin, checkUsernameAvailable, getAllClients } = useAuthStore();
   const { showToast } = useToastStore();
 
-  const [reader, setReader] = useState<User | null>(null);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('123456');
+  const [showPassword, setShowPassword] = useState(false);
   const [idNumber, setIdNumber] = useState('');
   const [phone, setPhone] = useState('');
   const [phoneError, setPhoneError] = useState('');
   const [username, setUsername] = useState('');
   const [usernameError, setUsernameError] = useState('');
   const [role, setRole] = useState<'client' | 'admin'>('client');
-  const [isActive, setIsActive] = useState<boolean>(true);
   const [messageText, setMessageText] = useState('');
   const [messageDays, setMessageDays] = useState(7);
   const [isMessageActive, setIsMessageActive] = useState(true);
-  const [existingExpiresAt, setExistingExpiresAt] = useState<string | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Auto-generate default next ID Number
   useEffect(() => {
-    if (!id) {
-      setIsLoading(false);
-      return;
+    try {
+      const clients = getAllClients();
+      const nextNum = clients.length + 1;
+      setIdNumber(`001 ${String(nextNum).padStart(3, '0')}`);
+    } catch {
+      setIdNumber('001 001');
     }
-
-    const found = getUserById(id);
-    if (found) {
-      setReader(found);
-      setName(found.name || '');
-      setEmail(found.email || '');
-      setIdNumber(found.idNumber || '');
-      setPhone(found.phone ? formatPhoneNumber(found.phone) : '');
-      setUsername(found.username ? (found.username.startsWith('@') ? found.username : `@${found.username}`) : '');
-      setRole(found.role || 'client');
-      setIsActive(found.isActive !== false);
-
-      if (found.personalMessage) {
-        setMessageText(found.personalMessage.text || '');
-        setMessageDays(found.personalMessage.days || 7);
-        setIsMessageActive(found.personalMessage.isActive !== false);
-        setExistingExpiresAt(found.personalMessage.expiresAt || null);
-      }
-    }
-    setIsLoading(false);
-  }, [id, getUserById]);
+  }, [getAllClients]);
 
   const handlePhoneChange = (val: string) => {
     const formatted = formatPhoneNumber(val);
@@ -129,8 +109,8 @@ export const ReaderEditPage: React.FC = () => {
     setUsername(clean);
 
     const raw = clean.replace(/^@/, '');
-    if (raw && id) {
-      const res = checkUsernameAvailable(raw, id);
+    if (raw) {
+      const res = checkUsernameAvailable(raw);
       if (!res.available) {
         setUsernameError(res.error || 'Бұл юзернейм бос емес');
       } else {
@@ -141,9 +121,19 @@ export const ReaderEditPage: React.FC = () => {
     }
   };
 
+  const generateRandomPassword = () => {
+    const chars = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let res = '';
+    for (let i = 0; i < 8; i++) {
+      res += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setPassword(res);
+    setShowPassword(true);
+    showToast('Кездейсоқ құпиясөз құрастырылды!', 'info');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!id || !reader) return;
 
     if (!name.trim()) {
       showToast('Аты-жөнін енгізіңіз', 'error');
@@ -153,8 +143,12 @@ export const ReaderEditPage: React.FC = () => {
       showToast('Электронды поштасын енгізіңіз', 'error');
       return;
     }
+    if (!password.trim() || password.length < 6) {
+      showToast('Құпиясөз кемінде 6 таңбадан тұруы керек', 'error');
+      return;
+    }
 
-    // Phone validation: either empty or 10 digits
+    // Phone validation
     const phoneCount = getPhoneNationalDigitsCount(phone);
     if (phone.trim() && phoneCount < 10) {
       const errMsg = 'Телефон нөмірін толық жазыңыз (+7 (777) 123-45-67) немесе бос қалдырыңыз';
@@ -165,7 +159,7 @@ export const ReaderEditPage: React.FC = () => {
 
     const rawUser = username.trim().replace(/^@/, '');
     if (rawUser) {
-      const check = checkUsernameAvailable(rawUser, id);
+      const check = checkUsernameAvailable(rawUser);
       if (!check.available) {
         setUsernameError(check.error || 'Бұл юзернейм бос емес. Басқа юзернейм таңдаңыз');
         showToast(check.error || 'Бұл юзернейм бос емес. Басқа юзернейм таңдаңыз', 'error');
@@ -173,97 +167,39 @@ export const ReaderEditPage: React.FC = () => {
       }
     }
 
-    setIsSaving(true);
+    setIsSubmitting(true);
     try {
-      const res = await updateUserByAdmin(id, {
+      const res = await createReaderByAdmin({
         name: name.trim(),
         email: email.trim(),
-        phone: phone.trim(),
-        username: rawUser,
+        phone: phone.trim() || undefined,
+        password: password.trim(),
+        username: rawUser || undefined,
         idNumber: idNumber.trim() || undefined,
         role,
-        isActive,
         personalMessage: messageText.trim()
           ? {
               text: messageText.trim(),
               days: messageDays,
               isActive: isMessageActive,
             }
-          : null,
+          : undefined,
       });
 
       if (res.success) {
-        showToast('Оқырман мәліметтері сәтті сақталды!', 'success');
+        showToast(`Жаңа оқырман «${name.trim()}» сәтті тіркелді! Оқырман өз деректерімен жүйеге кіре алады.`, 'success');
         navigate('/admin/readers');
       } else {
-        showToast(res.error || 'Сақтау кезінде қате орын алды', 'error');
+        showToast(res.error || 'Оқырманды тіркеу кезінде қате орын алды', 'error');
       }
     } catch {
-      showToast('Оқырман мәліметтерін сақтау сәтсіз аяқталды', 'error');
+      showToast('Оқырманды тіркеу сәтсіз аяқталды', 'error');
     } finally {
-      setIsSaving(false);
+      setIsSubmitting(false);
     }
   };
 
-  if (isLoading) {
-    return (
-      <div style={{ maxWidth: '860px', margin: '40px auto', padding: '0 24px', textAlign: 'center' }}>
-        <p style={{ color: 'var(--text-mid)', fontSize: '15px' }}>Оқырман деректері жүктелуде...</p>
-      </div>
-    );
-  }
-
-  if (!reader) {
-    return (
-      <div style={{ maxWidth: '600px', margin: '60px auto', padding: '0 24px', textAlign: 'center' }}>
-        <div
-          style={{
-            background: '#FFFFFF',
-            borderRadius: '20px',
-            padding: '48px 32px',
-            boxShadow: '0 12px 36px rgba(0, 84, 148, 0.08)',
-            border: '1px solid #E2E8F0',
-          }}
-        >
-          <div
-            style={{
-              width: '64px',
-              height: '64px',
-              borderRadius: '50%',
-              background: '#FEF2F2',
-              color: '#DC2626',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto 20px',
-            }}
-          >
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10"></circle>
-              <line x1="12" y1="8" x2="12" y2="12"></line>
-              <line x1="12" y1="16" x2="12.01" y2="16"></line>
-            </svg>
-          </div>
-          <h2 style={{ fontSize: '22px', fontWeight: 900, color: 'var(--text-dark)', marginBottom: '10px' }}>
-            Оқырман табылмады
-          </h2>
-          <p style={{ color: 'var(--text-mid)', fontSize: '14px', marginBottom: '24px', lineHeight: 1.6 }}>
-            Ізделінген оқырман тізімде жоқ немесе жүйеден өшірілген болуы мүмкін.
-          </p>
-          <Link
-            to="/admin/readers"
-            className="btn-primary"
-            style={{ padding: '12px 32px', fontSize: '14px', textDecoration: 'none' }}
-          >
-            Оқырмандар тізіміне оралу
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  const initialLetter = name ? name.trim().charAt(0).toUpperCase() : (email ? email.charAt(0).toUpperCase() : 'О');
-  const dateStr = reader.createdAt ? new Date(reader.createdAt).toLocaleDateString('kk-KZ') : '2026-09-01';
+  const initialLetter = name ? name.trim().charAt(0).toUpperCase() : (email ? email.charAt(0).toUpperCase() : '+');
 
   return (
     <section className="admin-page-section" style={{ padding: '32px 16px 80px', backgroundColor: '#F8FAFC', minHeight: 'calc(100vh - 80px)' }}>
@@ -290,7 +226,7 @@ export const ReaderEditPage: React.FC = () => {
             </Link>
             <span>/</span>
             <span style={{ color: 'var(--text-dark)', fontWeight: 700 }}>
-              Оқырманды өңдеу
+              Жаңа оқырман қосу
             </span>
           </div>
 
@@ -364,7 +300,7 @@ export const ReaderEditPage: React.FC = () => {
             <div style={{ minWidth: 0, flex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                 <h1 style={{ fontSize: '22px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
-                  {reader.name || 'Оқырман'}
+                  Жаңа оқырман тіркеу
                 </h1>
                 <span
                   style={{
@@ -378,7 +314,7 @@ export const ReaderEditPage: React.FC = () => {
                     letterSpacing: '0.04em',
                   }}
                 >
-                  ID: {reader.idNumber || '001 001'}
+                  ID: {idNumber || '001 001'}
                 </span>
                 <span
                   style={{
@@ -416,25 +352,23 @@ export const ReaderEditPage: React.FC = () => {
                   flexWrap: 'wrap',
                 }}
               >
-                <span>{reader.email}</span>
-                <span>•</span>
-                <span>Тіркелген күні: <strong>{dateStr}</strong></span>
+                <span>Администратор арқылы оқырманның аккаунтын жылдам ашу</span>
               </div>
             </div>
           </div>
 
-          {/* Form Section Header */}
+          {/* Form Description */}
           <div style={{ marginBottom: '24px' }}>
-            <span className="section-tag" style={{ marginBottom: '8px' }}>Оқырман профилі</span>
+            <span className="section-tag" style={{ marginBottom: '8px' }}>Оқырман тіркеу формасы</span>
             <h2 style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-dark)', margin: '4px 0' }}>
-              Оқырман деректерін өзгерту
+              Оқырман мәліметтері
             </h2>
             <p style={{ fontSize: '13px', color: 'var(--text-mid)', margin: 0 }}>
-              Енгізілген өзгерістер ортақ деректер қорында және осы оқырманның жеке аккаунтында автоматты түрде жаңартылады.
+              Оқырман осы енгізілген электронды пошта (немесе телефон нөмірі) және құпиясөз арқылы өзінің телефонымен жүйеге кіре алады.
             </p>
           </div>
 
-          {/* Edit Form */}
+          {/* Registration Form */}
           <form onSubmit={handleSubmit}>
             
             {/* Row 1: Full Name and ID Number */}
@@ -456,7 +390,7 @@ export const ReaderEditPage: React.FC = () => {
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Мысалы: Usman Sulaimanov"
+                  placeholder="Мысалы: Азамат Серікұлы"
                   className="form-input"
                 />
                 <span className="form-hint">Оқырманның толық аты-жөні</span>
@@ -465,17 +399,18 @@ export const ReaderEditPage: React.FC = () => {
               {/* ID Number */}
               <div className="form-group" style={{ margin: 0 }}>
                 <label className="form-label">
-                  ID нөмірі
+                  ID нөмірі <span className="req">*</span>
                 </label>
                 <input
                   type="text"
+                  required
                   value={idNumber}
                   onChange={(e) => setIdNumber(e.target.value)}
-                  placeholder="001 002"
+                  placeholder="001 003"
                   className="form-input"
                   style={{ fontFamily: 'monospace', fontWeight: 700 }}
                 />
-                <span className="form-hint">Оқырманға берілген бірегей ID код</span>
+                <span className="form-hint">Оқырманға берілетін бірегей ID нөмір</span>
               </div>
             </div>
 
@@ -498,10 +433,10 @@ export const ReaderEditPage: React.FC = () => {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="reader@tanda.kz"
+                  placeholder="example@gmail.com"
                   className="form-input"
                 />
-                <span className="form-hint">Кіру және хабарламаларға арналған пошта</span>
+                <span className="form-hint">Жүйеге кіруге арналған негізгі пошта</span>
               </div>
 
               {/* Username */}
@@ -513,7 +448,7 @@ export const ReaderEditPage: React.FC = () => {
                   type="text"
                   value={username}
                   onChange={(e) => handleUsernameChange(e.target.value)}
-                  placeholder="@usman"
+                  placeholder="@azamat"
                   className="form-input"
                   style={{
                     borderColor: usernameError ? '#DC2626' : undefined,
@@ -526,19 +461,19 @@ export const ReaderEditPage: React.FC = () => {
                   </span>
                 ) : (
                   <span className="form-hint">
-                    Бірегей лақап аты (@ белгісімен)
+                    Қосымша бірегей лақап ат (@ белгісімен)
                   </span>
                 )}
               </div>
             </div>
 
-            {/* Row 3: Phone and Role */}
+            {/* Row 3: Phone and Password */}
             <div
               style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
                 gap: '20px',
-                marginBottom: '28px',
+                marginBottom: '20px',
               }}
             >
               {/* Phone */}
@@ -595,12 +530,80 @@ export const ReaderEditPage: React.FC = () => {
                   </span>
                 ) : (
                   <span className="form-hint">
-                    +7 (777) 123-45-67 форматында
+                    Оқырман осы телефон нөмірімен де жүйеге кіре алады
                   </span>
                 )}
               </div>
 
-              {/* Role */}
+              {/* Password */}
+              <div className="form-group" style={{ margin: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                  <label className="form-label" style={{ margin: 0 }}>
+                    Құпиясөз <span className="req">*</span>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={generateRandomPassword}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: 'var(--blue)',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      padding: 0,
+                    }}
+                  >
+                    🎲 Авто-құрастыру
+                  </button>
+                </div>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Кемінде 6 таңба"
+                    className="form-input"
+                    style={{ paddingRight: '42px', fontWeight: 600 }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    style={{
+                      position: 'absolute',
+                      right: '10px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'none',
+                      border: 'none',
+                      color: '#64748B',
+                      cursor: 'pointer',
+                      fontSize: '13px',
+                      padding: '4px',
+                      display: 'flex',
+                      alignItems: 'center',
+                    }}
+                    title={showPassword ? 'Жасыру' : 'Көрсету'}
+                  >
+                    {showPassword ? '👁️' : '🔒'}
+                  </button>
+                </div>
+                <span className="form-hint">
+                  Оқырманға жүйеге кіру үшін берілетін бастапқы құпиясөз
+                </span>
+              </div>
+            </div>
+
+            {/* Row 4: Role */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                gap: '20px',
+                marginBottom: '28px',
+              }}
+            >
               <div className="form-group" style={{ margin: 0 }}>
                 <label className="form-label">
                   Мәртебесі (Рөлі)
@@ -614,11 +617,11 @@ export const ReaderEditPage: React.FC = () => {
                   <option value="client">Оқырман (Client)</option>
                   <option value="admin">Әкімші (Admin)</option>
                 </select>
-                <span className="form-hint">Жүйедегі қолжетімділік деңгейі</span>
+                <span className="form-hint">Жүйедегі рұқсат деңгейі</span>
               </div>
             </div>
 
-            {/* Row 4: Personal Message to Reader (Басты беттегі жеке хабарлама) */}
+            {/* Row 5: Personal Message to Reader (Басты беттегі жеке хабарлама) */}
             <div
               style={{
                 background: '#F8FAFC',
@@ -633,10 +636,10 @@ export const ReaderEditPage: React.FC = () => {
                   <span style={{ fontSize: '18px' }}>💌</span>
                   <div>
                     <h3 style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-dark)', margin: 0 }}>
-                      Оқырманға арналған жеке хабарлама
+                      Оқырманға арналған жеке хабарлама (Қосымша)
                     </h3>
                     <p style={{ fontSize: '12px', color: 'var(--text-mid)', margin: 0 }}>
-                      Осы оқырман аккаунтына кірген кезде басты бетте көрсетілетін хабарлама
+                      Оқырман аккаунтына кірген кезде басты бетте көрсетілетін хабарлама
                     </p>
                   </div>
                 </div>
@@ -715,17 +718,6 @@ export const ReaderEditPage: React.FC = () => {
                   ))}
                 </div>
               </div>
-
-              {/* Status Note */}
-              {existingExpiresAt && messageText.trim() && (
-                <div style={{ marginTop: '14px', paddingTop: '12px', borderTop: '1px dashed #CBD5E1', fontSize: '12px', color: '#64748B' }}>
-                  ⏳ Қазіргі жағдайы: <strong style={{ color: new Date(existingExpiresAt).getTime() < Date.now() ? '#DC2626' : '#059669' }}>
-                    {new Date(existingExpiresAt).getTime() < Date.now()
-                      ? 'Мерзімі аяқталған'
-                      : `Белсенді (${new Date(existingExpiresAt).toLocaleDateString('kk-KZ')} дейін)`}
-                  </strong>
-                </div>
-              )}
             </div>
 
             {/* Action Buttons */}
@@ -760,7 +752,7 @@ export const ReaderEditPage: React.FC = () => {
 
               <button
                 type="submit"
-                disabled={isSaving || Boolean(usernameError) || Boolean(phoneError)}
+                disabled={isSubmitting || Boolean(usernameError) || Boolean(phoneError)}
                 className="btn-primary"
                 style={{
                   padding: '12px 32px',
@@ -768,19 +760,18 @@ export const ReaderEditPage: React.FC = () => {
                   fontSize: '14px',
                   fontWeight: 700,
                   background: 'var(--blue)',
-                  opacity: isSaving || Boolean(usernameError) || Boolean(phoneError) ? 0.6 : 1,
-                  cursor: isSaving || Boolean(usernameError) || Boolean(phoneError) ? 'not-allowed' : 'pointer',
+                  opacity: isSubmitting || Boolean(usernameError) || Boolean(phoneError) ? 0.6 : 1,
+                  cursor: isSubmitting || Boolean(usernameError) || Boolean(phoneError) ? 'not-allowed' : 'pointer',
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '8px',
                 }}
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                  <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                  <polyline points="7 3 7 8 15 8"></polyline>
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
                 </svg>
-                {isSaving ? 'Сақталуда...' : 'Өзгерістерді сақтау'}
+                {isSubmitting ? 'Тіркелуде...' : 'Оқырманды тіркеу'}
               </button>
             </div>
 

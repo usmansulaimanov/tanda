@@ -45,6 +45,14 @@ export type Category =
   | 'Жасөспірімдер әдебиеті'
   | 'Өмірбаян және мемуар';
 
+export interface UserPersonalMessage {
+  text: string;
+  days: number;
+  createdAt: string;
+  expiresAt: string;
+  isActive?: boolean;
+}
+
 export interface User {
   id: string;
   idNumber?: string; // e.g. "000 001" for admin, "001 001" for readers
@@ -59,4 +67,6 @@ export interface User {
   avatarUrl?: string;
   authProvider?: 'LOCAL' | 'GOOGLE';
   hasPassword?: boolean;
+  password?: string;
+  personalMessage?: UserPersonalMessage;
 }

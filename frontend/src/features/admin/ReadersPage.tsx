@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import * as XLSX from 'xlsx';
 import { useToastStore } from '../../store/useToastStore';
 import { User } from '../../types';
 
@@ -90,6 +91,58 @@ export const ReadersPage: React.FC = () => {
     }
   };
 
+  const exportToExcel = () => {
+    try {
+      const allUsers = getStoredUsers();
+      const clients = allUsers.filter((u) => u.role === 'client');
+
+      if (clients.length === 0) {
+        showToast('Жүктеу үшін базада оқырмандар табылмады', 'info');
+        return;
+      }
+
+      // Format all data rows
+      const rows = clients.map((reader, idx) => ({
+        '№': idx + 1,
+        'ID нөмірі': reader.idNumber || `001 ${String(idx + 1).padStart(3, '0')}`,
+        'Аты-жөні': reader.name || 'Оқырман',
+        'Телефон нөмірі': reader.phone || 'Көрсетілмеген',
+        'Электронды поштасы (Email)': reader.email || '',
+        'Юзернейм': reader.username ? (reader.username.startsWith('@') ? reader.username : `@${reader.username}`) : 'Көрсетілмеген',
+        'Мәртебесі': 'Оқырман',
+        'Тіркелген күні': reader.createdAt ? new Date(reader.createdAt).toLocaleDateString('kk-KZ') : '2026-09-01',
+        'Тіркелу түрі': reader.authProvider === 'GOOGLE' ? 'Google' : 'Тікелей (Email/Телефон)',
+      }));
+
+      // Create Worksheet & Auto Column Widths
+      const ws = XLSX.utils.json_to_sheet(rows);
+      ws['!cols'] = [
+        { wch: 6 },  // №
+        { wch: 14 }, // ID
+        { wch: 28 }, // Аты-жөні
+        { wch: 22 }, // Телефон
+        { wch: 30 }, // Email
+        { wch: 18 }, // Юзернейм
+        { wch: 14 }, // Мәртебесі
+        { wch: 18 }, // Тіркелген күні
+        { wch: 24 }, // Тіркелу түрі
+      ];
+
+      // Create Workbook
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Оқырмандар');
+
+      // Export file
+      const dateStr = new Date().toISOString().slice(0, 10);
+      const filename = `Tanda_Oqyrmandar_${dateStr}.xlsx`;
+      XLSX.writeFile(wb, filename);
+
+      showToast(`«${filename}» Excel файлы сәтті жүктелді! (${clients.length} оқырман)`, 'success');
+    } catch {
+      showToast('Excel файлын экспорттау кезінде қате орын алды', 'error');
+    }
+  };
+
   return (
     <section className="admin-page-section" id="readers-section">
       <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
@@ -152,37 +205,94 @@ export const ReadersPage: React.FC = () => {
               </p>
             </div>
 
-            {/* Search Box */}
-            <div style={{ position: 'relative', width: '280px', maxWidth: '100%' }}>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Оқырман аты, ID, пошта..."
+            {/* Search Box & Add Reader Button */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+              <div style={{ position: 'relative', width: '280px', maxWidth: '100%' }}>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Оқырман аты, ID, пошта..."
+                  style={{
+                    width: '100%',
+                    padding: '9px 14px 9px 34px',
+                    borderRadius: '8px',
+                    border: '1.5px solid #CBD5E1',
+                    fontSize: '13px',
+                    outline: 'none',
+                    background: '#F8FAFC',
+                    color: 'var(--text-dark)',
+                    boxSizing: 'border-box',
+                  }}
+                />
+                <svg
+                  style={{ position: 'absolute', left: '11px', top: '50%', transform: 'translateY(-50%)', color: '#64748B', pointerEvents: 'none' }}
+                  width="15"
+                  height="15"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                >
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+              </div>
+
+              {/* Export Excel Button */}
+              <button
+                type="button"
+                onClick={exportToExcel}
+                title="Оқырмандар тізімін Excel форматында жүктеп алу"
                 style={{
-                  width: '100%',
-                  padding: '9px 14px 9px 34px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '9px 16px',
                   borderRadius: '8px',
-                  border: '1.5px solid #CBD5E1',
+                  background: '#107C41',
+                  color: '#FFFFFF',
                   fontSize: '13px',
-                  outline: 'none',
-                  background: '#F8FAFC',
-                  color: 'var(--text-dark)',
-                  boxSizing: 'border-box',
+                  fontWeight: 700,
+                  border: 'none',
+                  boxShadow: '0 2px 6px rgba(16, 124, 65, 0.25)',
+                  transition: 'all 0.15s',
+                  whiteSpace: 'nowrap',
+                  cursor: 'pointer',
                 }}
-              />
-              <svg
-                style={{ position: 'absolute', left: '11px', top: '50%', transform: 'translateY(-50%)', color: '#64748B', pointerEvents: 'none' }}
-                width="15"
-                height="15"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
               >
-                <circle cx="11" cy="11" r="8"></circle>
-                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-              </svg>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                <span>Excel жүктеу</span>
+              </button>
+
+              <Link
+                to="/admin/readers/new"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '9px 18px',
+                  borderRadius: '8px',
+                  background: 'var(--blue)',
+                  color: '#FFFFFF',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  textDecoration: 'none',
+                  boxShadow: '0 2px 6px rgba(0, 87, 168, 0.25)',
+                  transition: 'all 0.15s',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                <span>Қосу</span>
+              </Link>
             </div>
           </div>
 

@@ -1517,7 +1517,12 @@ body {
   .hero-text { align-items: center; text-align: center; max-width: 100%; }
   .hero-desc { margin: 0 auto 28px; }
   .hero-buttons { justify-content: center; margin-bottom: 32px; }
-  .hero-stats { justify-content: center; margin: 0 auto; gap: 28px; }
+  .hero-floating-message {
+    position: static !important;
+    margin: 0 auto 24px !important;
+    width: 100% !important;
+    max-width: 480px !important;
+  }
   .tanda-section { padding: 60px 20px; }
   .features-grid { grid-template-columns: 1fr; }
   .books-grid { grid-template-columns: repeat(2, 1fr); }

@@ -58,7 +58,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialMode }) => {
     const cleanPromo = promoCode.trim().toUpperCase();
 
     if (!cleanEmail) {
-      setErrorMessage('Электронды поштаны енгізіңіз');
+      setErrorMessage(mode === 'login' ? 'Email немесе телефон нөмірін енгізіңіз' : 'Электронды поштаны енгізіңіз');
       return;
     }
     if (!cleanPassword) {
@@ -235,21 +235,21 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialMode }) => {
               </div>
             )}
 
-            {/* Email Field */}
+            {/* Email / Phone Field */}
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">
-                Email
+                {mode === 'login' ? 'Email немесе телефон нөмірі' : 'Email'}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                   <Mail size={18} />
                 </div>
                 <input
-                  type="email"
+                  type={mode === 'login' ? 'text' : 'email'}
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="example@gmail.com"
+                  placeholder={mode === 'login' ? 'example@gmail.com немесе +7 (777)...' : 'example@gmail.com'}
                   className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-[#0057A8] focus:ring-4 focus:ring-[#0057A8]/10 transition-all"
                 />
               </div>

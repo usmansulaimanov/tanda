@@ -13,12 +13,27 @@ export const AppSidebarDrawer: React.FC = () => {
   const { savedBookIds } = useSavedBooksStore();
   const location = useLocation();
   const navigate = useNavigate();
-  const [readersCount, setReadersCount] = React.useState<number>(0);
+  const [readersCount, setReadersCount] = React.useState<number>(() => {
+    try {
+      return useAuthStore.getState().getClientsCount();
+    } catch {
+      return 0;
+    }
+  });
 
   useEffect(() => {
-    if (role === 'admin' && isOpen) {
+    if (role === 'admin') {
+      try {
+        const localCount = useAuthStore.getState().getClientsCount();
+        setReadersCount(localCount);
+      } catch {}
+
       api.get('/api/admin/users', { params: { role: 'client' } })
-        .then(({ data }) => setReadersCount(Array.isArray(data) ? data.length : 0))
+        .then(({ data }) => {
+          if (Array.isArray(data)) {
+            setReadersCount(data.length);
+          }
+        })
         .catch(() => {});
     }
   }, [role, isOpen]);
@@ -133,18 +148,6 @@ export const AppSidebarDrawer: React.FC = () => {
                 </svg>
                 <span>Жаңа кітап қосу</span>
               </Link>
-
-              <Link
-                to="/admin/promocodes"
-                className={`sidebar-nav-link ${location.pathname === '/admin/promocodes' ? 'active' : ''}`}
-                onClick={closeSidebar}
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
-                  <line x1="7" y1="7" x2="7.01" y2="7"></line>
-                </svg>
-                <span>Промокодтар</span>
-              </Link>
             </div>
           )}
 
@@ -188,20 +191,34 @@ export const AppSidebarDrawer: React.FC = () => {
             </a>
 
             {role === 'admin' && (
-              <Link
-                to="/admin/readers"
-                className={`sidebar-nav-link ${location.pathname === '/admin/readers' ? 'active' : ''}`}
-                onClick={closeSidebar}
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="9" cy="7" r="4"></circle>
-                  <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                </svg>
-                <span>Оқырмандар</span>
-                <span className="sidebar-badge">{readersCount}</span>
-              </Link>
+              <>
+                <Link
+                  to="/admin/readers"
+                  className={`sidebar-nav-link ${location.pathname === '/admin/readers' ? 'active' : ''}`}
+                  onClick={closeSidebar}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                  </svg>
+                  <span>Оқырмандар</span>
+                  <span className="sidebar-badge">{readersCount}</span>
+                </Link>
+
+                <Link
+                  to="/admin/promocodes"
+                  className={`sidebar-nav-link ${location.pathname.startsWith('/admin/promocodes') ? 'active' : ''}`}
+                  onClick={closeSidebar}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                    <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                  </svg>
+                  <span>Промокодтар</span>
+                </Link>
+              </>
             )}
 
             {isAuthenticated && role !== 'admin' && (
