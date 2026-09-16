@@ -203,9 +203,6 @@ export const AppSidebarDrawer: React.FC = () => {
                 <path d="M6 10h10"></path>
               </svg>
               <span>Менің сөрем</span>
-              {isAuthenticated && Object.keys(currentShelf).length > 0 && (
-                <span className="sidebar-badge orange">{Object.keys(currentShelf).length}</span>
-              )}
             </Link>
 
             {role === 'admin' && (
