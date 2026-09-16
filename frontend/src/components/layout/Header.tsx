@@ -6,6 +6,7 @@ import { useSavedBooksStore } from '../../store/useSavedBooksStore';
 import { useToastStore } from '../../store/useToastStore';
 import { useSidebarStore } from '../../store/useSidebarStore';
 import { Book } from '../../types';
+import { hasAdminPermission } from '../../utils/permissions';
 import tandaLogo from '../../assets/tanda-logo.png';
 
 export const Header: React.FC = () => {
@@ -451,19 +452,34 @@ export const Header: React.FC = () => {
                       )}
 
                       {user.role === 'admin' ? (
-                        <Link
-                          to="/admin"
-                          className="profile-menu-item"
-                          onClick={() => setProfileOpen(false)}
-                        >
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <rect x="3" y="3" width="7" height="7"></rect>
-                            <rect x="14" y="3" width="7" height="7"></rect>
-                            <rect x="14" y="14" width="7" height="7"></rect>
-                            <rect x="3" y="14" width="7" height="7"></rect>
-                          </svg>
-                          Басқару панелі
-                        </Link>
+                        <>
+                          <Link
+                            to="/admin"
+                            className="profile-menu-item"
+                            onClick={() => setProfileOpen(false)}
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <rect x="3" y="3" width="7" height="7"></rect>
+                              <rect x="14" y="3" width="7" height="7"></rect>
+                              <rect x="14" y="14" width="7" height="7"></rect>
+                              <rect x="3" y="14" width="7" height="7"></rect>
+                            </svg>
+                            Басқару панелі
+                          </Link>
+
+                          {hasAdminPermission(user, 'managers_manage') && (
+                            <Link
+                              to="/admin/managers"
+                              className="profile-menu-item"
+                              onClick={() => setProfileOpen(false)}
+                            >
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                              </svg>
+                              Басқару (Управление)
+                            </Link>
+                          )}
+                        </>
                       ) : (
                         <Link
                           to="/catalog"

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { api } from '../lib/api';
-import { User } from '../types';
+import { User, AdminPermission } from '../types';
 
 interface AuthState {
   user: User | null;
@@ -24,6 +24,12 @@ interface AuthState {
   getAllClients: () => User[];
   getClientsCount: () => number;
   checkUsernameAvailable: (username: string, excludeUserId?: string) => { available: boolean; error?: string };
+
+  // Manager (Көмекші / Басқару) operations
+  getAllManagers: () => User[];
+  createManagerByAdmin: (data: { name: string; email: string; password?: string; permissions: AdminPermission[] }) => Promise<{ success: boolean; user?: User; error?: string }>;
+  updateManagerPermissions: (userId: string, data: { name: string; email: string; password?: string; permissions: AdminPermission[]; isActive?: boolean }) => Promise<{ success: boolean; error?: string }>;
+  deleteManager: (userId: string) => Promise<{ success: boolean; error?: string }>;
 
   // Modal helpers
   openAuthModal: (mode?: 'login' | 'signup') => void;
@@ -74,7 +80,17 @@ function getStoredUsers(): User[] {
     const raw = localStorage.getItem(USERS_REGISTRY_KEY);
     if (raw) {
       const list = JSON.parse(raw);
-      if (Array.isArray(list) && list.length > 0) return list;
+      if (Array.isArray(list) && list.length > 0) {
+        let modified = false;
+        list.forEach((u: User) => {
+          if ((u.id === '001007' || u.email === 'admin@tanda.kz' || u.idNumber === '000 001') && !u.isSuperAdmin) {
+            u.isSuperAdmin = true;
+            modified = true;
+          }
+        });
+        if (modified) saveStoredUsers(list);
+        return list;
+      }
     }
   } catch {}
   const defaults: User[] = [
@@ -85,6 +101,7 @@ function getStoredUsers(): User[] {
       email: 'admin@tanda.kz',
       username: 'admin',
       role: 'admin',
+      isSuperAdmin: true,
       createdAt: '2026-09-01T10:00:00.000Z',
     },
     {
@@ -164,6 +181,138 @@ export const useAuthStore = create<AuthState>()(
       getClientsCount: (): number => {
         const allUsers = getStoredUsers();
         return allUsers.filter((u) => u.role === 'client').length;
+      },
+
+      getAllManagers: (): User[] => {
+        const allUsers = getStoredUsers();
+        return allUsers.filter((u) => u.role === 'admin');
+      },
+
+      createManagerByAdmin: async (data: {
+        name: string;
+        email: string;
+        password?: string;
+        permissions: AdminPermission[];
+      }) => {
+        const allUsers = getStoredUsers();
+        const cleanName = data.name.trim();
+        const cleanEmail = data.email.trim().toLowerCase();
+        const cleanPassword = data.password?.trim() || '';
+
+        if (!cleanName) {
+          return { success: false, error: 'Көмекшінің аты-жөнін енгізіңіз' };
+        }
+        if (!cleanEmail) {
+          return { success: false, error: 'Google аккаунтын немесе электронды поштасын енгізіңіз' };
+        }
+        if (!data.permissions || data.permissions.length === 0) {
+          return { success: false, error: 'Кем дегенде бір рұқсат (функция) таңдалуы керек' };
+        }
+
+        // Check if email already exists
+        const emailConflict = allUsers.find(
+          (u) => u.email.toLowerCase() === cleanEmail
+        );
+        if (emailConflict) {
+          return { success: false, error: 'Бұл электронды поштамен пайдаланушы тіркелген' };
+        }
+
+        const adminCount = allUsers.filter((u) => u.role === 'admin').length + 1;
+        const idNum = `000 ${String(adminCount).padStart(3, '0')}`;
+        const newManager: User = {
+          id: `manager-${Date.now()}`,
+          idNumber: idNum,
+          name: cleanName,
+          email: cleanEmail,
+          username: cleanEmail.split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '') || `admin${adminCount}`,
+          role: 'admin',
+          isSuperAdmin: false,
+          permissions: data.permissions,
+          isActive: true,
+          hasPassword: !!cleanPassword,
+          password: cleanPassword || undefined,
+          authProvider: cleanEmail.includes('@gmail.com') ? 'GOOGLE' : 'LOCAL',
+          createdAt: new Date().toISOString(),
+        };
+
+        allUsers.push(newManager);
+        saveStoredUsers(allUsers);
+
+        return { success: true, user: newManager };
+      },
+
+      updateManagerPermissions: async (
+        userId: string,
+        data: {
+          name: string;
+          email: string;
+          password?: string;
+          permissions: AdminPermission[];
+          isActive?: boolean;
+        }
+      ) => {
+        const allUsers = getStoredUsers();
+        const existingIdx = allUsers.findIndex((u) => u.id === userId);
+        if (existingIdx === -1) {
+          return { success: false, error: 'Көмекші табылмады' };
+        }
+
+        const target = allUsers[existingIdx];
+        const cleanName = data.name.trim();
+        const cleanEmail = data.email.trim().toLowerCase();
+
+        if (!cleanName) {
+          return { success: false, error: 'Аты-жөнін енгізіңіз' };
+        }
+        if (!cleanEmail) {
+          return { success: false, error: 'Электронды поштасын енгізіңіз' };
+        }
+        if (!data.permissions || data.permissions.length === 0) {
+          return { success: false, error: 'Кем дегенде бір рұқсатты таңдаңыз' };
+        }
+
+        const emailConflict = allUsers.find(
+          (u) => u.email.toLowerCase() === cleanEmail && u.id !== userId
+        );
+        if (emailConflict) {
+          return { success: false, error: 'Бұл поштамен басқа аккаунт тіркелген' };
+        }
+
+        const updated: User = {
+          ...target,
+          name: cleanName,
+          email: cleanEmail,
+          permissions: data.permissions,
+          isActive: data.isActive !== undefined ? data.isActive : target.isActive,
+          password: data.password ? data.password.trim() : target.password,
+          hasPassword: data.password ? true : target.hasPassword,
+        };
+
+        allUsers[existingIdx] = updated;
+        saveStoredUsers(allUsers);
+
+        const currentUser = get().user;
+        if (currentUser && currentUser.id === userId) {
+          set({ user: updated, role: updated.role });
+        }
+
+        return { success: true };
+      },
+
+      deleteManager: async (userId: string) => {
+        const allUsers = getStoredUsers();
+        const target = allUsers.find((u) => u.id === userId);
+        if (!target) {
+          return { success: false, error: 'Көмекші табылмады' };
+        }
+        if (target.isSuperAdmin || target.id === '001007' || target.email === 'admin@tanda.kz') {
+          return { success: false, error: 'Бас әкімшіні өшіруге болмайды' };
+        }
+
+        const filtered = allUsers.filter((u) => u.id !== userId);
+        saveStoredUsers(filtered);
+
+        return { success: true };
       },
 
       updateUserByAdmin: async (

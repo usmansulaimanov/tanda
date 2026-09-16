@@ -5,6 +5,7 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { useBookStore } from '../../store/useBookStore';
 import { useSavedBooksStore } from '../../store/useSavedBooksStore';
 import { useMyBooksStore } from '../../store/useMyBooksStore';
+import { hasAdminPermission } from '../../utils/permissions';
 import { api } from '../../lib/api';
 
 export const AppSidebarDrawer: React.FC = () => {
@@ -29,71 +30,72 @@ export const AppSidebarDrawer: React.FC = () => {
         const localCount = useAuthStore.getState().getClientsCount();
         setReadersCount(localCount);
       } catch {}
-
-      api.get('/api/admin/users', { params: { role: 'client' } })
-        .then(({ data }) => {
-          if (Array.isArray(data)) {
-            setReadersCount(data.length);
-          }
-        })
-        .catch(() => {});
+      api.get('/api/admin/users?role=client').then((res) => {
+        if (res.data?.users && Array.isArray(res.data.users)) {
+          setReadersCount(res.data.users.length);
+        }
+      }).catch(() => {});
     }
   }, [role, isOpen]);
 
+  // Lock body scroll when drawer is open
   useEffect(() => {
-    closeSidebar();
-  }, [location.pathname, closeSidebar]);
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
-        closeSidebar();
-      }
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, closeSidebar]);
+  }, [isOpen]);
+
+  const handleLogout = () => {
+    closeSidebar();
+    logout();
+    navigate('/');
+  };
+
+  const isReadingShelfCount = Object.values(currentShelf).filter(r => r.status === 'reading').length;
+  const isCompletedShelfCount = Object.values(currentShelf).filter(r => r.status === 'completed').length;
+  const isWantToReadShelfCount = Object.values(currentShelf).filter(r => r.status === 'want_to_read').length || savedBookIds.length;
+  const totalShelfCount = isReadingShelfCount + isCompletedShelfCount + isWantToReadShelfCount;
+
+  const canViewBooks = hasAdminPermission(user, 'books_view');
+  const canCreateBooks = hasAdminPermission(user, 'books_create');
+  const canViewReaders = hasAdminPermission(user, 'readers_view');
+  const canManagePromos = hasAdminPermission(user, 'promocodes_manage');
+  const canManageManagers = hasAdminPermission(user, 'managers_manage');
 
   const activeBooksCount = books.filter((b) => !b.isArchived).length;
   const archivedBooksCount = books.filter((b) => b.isArchived).length;
   const audioBooksCount = books.filter((b) => b.hasAudio).length;
 
-  if (!isOpen) return null;
-
   return (
-    <div className="sidebar-drawer-overlay" onClick={closeSidebar}>
+    <>
+      {/* Backdrop overlay */}
       <div
-        className="sidebar-drawer-content"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Drawer Header */}
-        <div className="sidebar-drawer-header">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div className="sidebar-drawer-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="3" width="7" height="7"></rect>
-                <rect x="14" y="3" width="7" height="7"></rect>
-                <rect x="14" y="14" width="7" height="7"></rect>
-                <rect x="3" y="14" width="7" height="7"></rect>
-              </svg>
-            </div>
-            <div>
-              <h3 className="sidebar-drawer-title">
-                {role === 'admin' ? 'Басқару панелі' : 'Tanda Мәзірі'}
-              </h3>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
-                <span className="sidebar-id-pill">
-                  ID: {user?.idNumber || (role === 'admin' ? '000 001' : '001 001')}
-                </span>
-              </div>
-            </div>
-          </div>
+        className={`sidebar-overlay ${isOpen ? 'active' : ''}`}
+        onClick={closeSidebar}
+        aria-hidden={!isOpen}
+      />
 
+      {/* Drawer panel */}
+      <aside
+        className={`sidebar-drawer ${isOpen ? 'open' : ''}`}
+        aria-label="Навигациялық мәзір"
+      >
+        {/* Header */}
+        <div className="sidebar-header">
+          <div className="sidebar-logo">
+            <span className="sidebar-logo-text">TANDA</span>
+            <span className="sidebar-badge-pro">KAZ</span>
+          </div>
           <button
             type="button"
-            className="sidebar-drawer-close"
+            className="sidebar-close-btn"
             onClick={closeSidebar}
-            aria-label="Жабу"
+            aria-label="Мәзірді жабу"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -102,54 +104,47 @@ export const AppSidebarDrawer: React.FC = () => {
           </button>
         </div>
 
-        {/* User Card */}
-        {isAuthenticated && user && (
-          <div className="sidebar-user-box">
-            <div className="sidebar-user-avatar">
-              {user.name ? user.name.trim().charAt(0).toUpperCase() : (role === 'admin' ? 'А' : 'О')}
-            </div>
-            <div className="sidebar-user-info">
-              <div className="sidebar-user-name" title={user.name}>
-                {user.role === 'admin' ? 'Админ' : (user.name || 'Оқырман')}
-              </div>
-              <div className="sidebar-user-email" title={user.email}>
-                {user.email}
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div className="sidebar-drawer-body">
-          {/* Admin Management Section */}
-          {role === 'admin' && (
-            <div className="sidebar-nav-group">
-              <div className="sidebar-nav-group-title">Басқару бөлімдері</div>
-              
-              <Link
-                to="/admin"
-                className={`sidebar-nav-link ${location.pathname === '/admin' ? 'active' : ''}`}
-                onClick={closeSidebar}
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path>
-                  <path d="M6 6h10"></path>
-                  <path d="M6 10h10"></path>
+        {/* Content */}
+        <div className="sidebar-content">
+          {/* Admin Fast Actions if admin */}
+          {role === 'admin' && (canViewBooks || canCreateBooks) && (
+            <div className="sidebar-admin-badge-box">
+              <div className="sidebar-admin-title">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
                 </svg>
-                <span>Кітаптар қоры (Панель)</span>
-                <span className="sidebar-badge">{books.length}</span>
-              </Link>
+                <span>{user?.isSuperAdmin ? 'Бас әкімші (Super Admin)' : 'Әкімшілік панель'}</span>
+              </div>
 
-              <Link
-                to="/admin/books/new"
-                className={`sidebar-nav-link add-book ${location.pathname === '/admin/books/new' ? 'active' : ''}`}
-                onClick={closeSidebar}
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="12" y1="5" x2="12" y2="19"></line>
-                  <line x1="5" y1="12" x2="19" y2="12"></line>
-                </svg>
-                <span>Жаңа кітап қосу</span>
-              </Link>
+              {canViewBooks && (
+                <Link
+                  to="/admin"
+                  className={`sidebar-nav-link ${location.pathname === '/admin' ? 'active' : ''}`}
+                  onClick={closeSidebar}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path>
+                    <path d="M6 6h10"></path>
+                    <path d="M6 10h10"></path>
+                  </svg>
+                  <span>Кітаптар қоры (Панель)</span>
+                  <span className="sidebar-badge">{books.length}</span>
+                </Link>
+              )}
+
+              {canCreateBooks && (
+                <Link
+                  to="/admin/books/new"
+                  className={`sidebar-nav-link add-book ${location.pathname === '/admin/books/new' ? 'active' : ''}`}
+                  onClick={closeSidebar}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                  <span>Жаңа кітап қосу</span>
+                </Link>
+              )}
             </div>
           )}
 
@@ -207,32 +202,49 @@ export const AppSidebarDrawer: React.FC = () => {
 
             {role === 'admin' && (
               <>
-                <Link
-                  to="/admin/readers"
-                  className={`sidebar-nav-link ${location.pathname === '/admin/readers' ? 'active' : ''}`}
-                  onClick={closeSidebar}
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="9" cy="7" r="4"></circle>
-                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                  </svg>
-                  <span>Оқырмандар</span>
-                  <span className="sidebar-badge">{readersCount}</span>
-                </Link>
+                {canViewReaders && (
+                  <Link
+                    to="/admin/readers"
+                    className={`sidebar-nav-link ${location.pathname === '/admin/readers' ? 'active' : ''}`}
+                    onClick={closeSidebar}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="9" cy="7" r="4"></circle>
+                      <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                      <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                    <span>Оқырмандар</span>
+                    <span className="sidebar-badge">{readersCount}</span>
+                  </Link>
+                )}
 
-                <Link
-                  to="/admin/promocodes"
-                  className={`sidebar-nav-link ${location.pathname.startsWith('/admin/promocodes') ? 'active' : ''}`}
-                  onClick={closeSidebar}
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
-                    <line x1="7" y1="7" x2="7.01" y2="7"></line>
-                  </svg>
-                  <span>Промокодтар</span>
-                </Link>
+                {canManagePromos && (
+                  <Link
+                    to="/admin/promocodes"
+                    className={`sidebar-nav-link ${location.pathname.startsWith('/admin/promocodes') ? 'active' : ''}`}
+                    onClick={closeSidebar}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                      <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                    </svg>
+                    <span>Промокодтар</span>
+                  </Link>
+                )}
+
+                {canManageManagers && (
+                  <Link
+                    to="/admin/managers"
+                    className={`sidebar-nav-link ${location.pathname === '/admin/managers' ? 'active' : ''}`}
+                    onClick={closeSidebar}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                    </svg>
+                    <span>Басқару (Управление)</span>
+                  </Link>
+                )}
               </>
             )}
 
@@ -338,7 +350,7 @@ export const AppSidebarDrawer: React.FC = () => {
             </div>
           )}
         </div>
-      </div>
-    </div>
+      </aside>
+    </>
   );
 };

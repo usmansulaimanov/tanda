@@ -19,6 +19,7 @@ const SettingsPage = lazy(() => import('../features/settings/SettingsPage').then
 const PromoCodePage = lazy(() => import('../features/promo/PromoCodePage').then((m) => ({ default: m.PromoCodePage })));
 const AdminPromoCodesPage = lazy(() => import('../features/admin/AdminPromoCodesPage').then((m) => ({ default: m.AdminPromoCodesPage })));
 const AdminPromoBatchDetailPage = lazy(() => import('../features/admin/AdminPromoBatchDetailPage').then((m) => ({ default: m.AdminPromoBatchDetailPage })));
+const AdminManagersPage = lazy(() => import('../features/admin/AdminManagersPage').then((m) => ({ default: m.AdminManagersPage })));
 const AuthPage = lazy(() => import('../features/auth/AuthPage').then((m) => ({ default: m.AuthPage })));
 const AudioPlayerPage = lazy(() => import('../features/player/AudioPlayerPage').then((m) => ({ default: m.AudioPlayerPage })));
 
@@ -144,6 +145,14 @@ export const router = createBrowserRouter([
         element: (
           <Suspense fallback={<PageLoader />}>
             <AdminPromoBatchDetailPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'admin/managers',
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <AdminManagersPage />
           </Suspense>
         ),
       },

@@ -1,10 +1,13 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { usePromoStore, PromoCode, PromoBatch } from '../../store/usePromoStore';
+import { useAuthStore } from '../../store/useAuthStore';
 import { useToastStore } from '../../store/useToastStore';
+import { hasAdminPermission } from '../../utils/permissions';
 
 export const AdminPromoCodesPage: React.FC = () => {
   const navigate = useNavigate();
+  const { user, role } = useAuthStore();
   const {
     batches,
     promocodes,
@@ -13,6 +16,15 @@ export const AdminPromoCodesPage: React.FC = () => {
     toggleBatchStatus,
   } = usePromoStore();
   const { showToast } = useToastStore();
+
+  const canManagePromos = hasAdminPermission(user, 'promocodes_manage');
+
+  useEffect(() => {
+    if (role !== 'admin' || !canManagePromos) {
+      showToast('Промокодтар бөліміне кіруге рұқсатыңыз жоқ', 'error');
+      navigate('/admin', { replace: true });
+    }
+  }, [role, canManagePromos, navigate, showToast]);
 
   // Generator form state
   const [count, setCount] = useState<number>(10);

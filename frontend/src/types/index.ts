@@ -45,6 +45,18 @@ export type Category =
   | 'Жасөспірімдер әдебиеті'
   | 'Өмірбаян және мемуар';
 
+export type AdminPermission =
+  | 'books_view'        // Кітаптарды көру
+  | 'books_create'      // Жаңа кітап қосу
+  | 'books_edit'        // Кітаптарды өңдеу
+  | 'books_delete'      // Кітаптарды өшіру және архивке салу
+  | 'readers_view'      // Оқырмандар тізімін көру
+  | 'readers_manage'    // Оқырман қосу, өңдеу, бұғаттау, хабарлама жазу
+  | 'readers_delete'    // Оқырманды өшіру
+  | 'promocodes_manage' // Промокодтарды жасау және басқару
+  | 'analytics_view'    // Статистика мен көрсеткіштерді көру
+  | 'managers_manage';  // Көмекшілерді тағайындау және рұқсат беру
+
 export interface UserPersonalMessage {
   text: string;
   days: number;
@@ -61,6 +73,8 @@ export interface User {
   username?: string; // Unique username (e.g. "usman", "reader01")
   phone?: string; // Phone number (e.g. "+7 (777) 123-45-67")
   role: 'admin' | 'client';
+  isSuperAdmin?: boolean; // true for primary Super Admin (full control)
+  permissions?: AdminPermission[]; // For assistants/managers
   isActive?: boolean;
   createdAt?: string;
   savedBooksCount?: number;

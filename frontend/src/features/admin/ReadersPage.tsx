@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import * as XLSX from 'xlsx';
+import { useAuthStore } from '../../store/useAuthStore';
 import { useToastStore } from '../../store/useToastStore';
 import { User } from '../../types';
+import { hasAdminPermission } from '../../utils/permissions';
 
 const USERS_REGISTRY_KEY = 'tanda_users_registry_v1';
 
@@ -24,7 +26,20 @@ function saveStoredUsers(users: User[]) {
 }
 
 export const ReadersPage: React.FC = () => {
+  const navigate = useNavigate();
+  const { user, role } = useAuthStore();
   const { showToast } = useToastStore();
+
+  const canViewReaders = hasAdminPermission(user, 'readers_view');
+  const canManageReaders = hasAdminPermission(user, 'readers_manage');
+  const canDeleteReaders = hasAdminPermission(user, 'readers_delete');
+
+  useEffect(() => {
+    if (role !== 'admin' || !canViewReaders) {
+      showToast('Оқырмандар бөліміне кіруге рұқсатыңыз жоқ', 'error');
+      navigate('/admin', { replace: true });
+    }
+  }, [role, canViewReaders, navigate, showToast]);
 
   const [readers, setReaders] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -269,30 +284,32 @@ export const ReadersPage: React.FC = () => {
                 <span>Excel жүктеу</span>
               </button>
 
-              <Link
-                to="/admin/readers/new"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '9px 18px',
-                  borderRadius: '8px',
-                  background: 'var(--blue)',
-                  color: '#FFFFFF',
-                  fontSize: '13px',
-                  fontWeight: 700,
-                  textDecoration: 'none',
-                  boxShadow: '0 2px 6px rgba(0, 87, 168, 0.25)',
-                  transition: 'all 0.15s',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="12" y1="5" x2="12" y2="19"></line>
-                  <line x1="5" y1="12" x2="19" y2="12"></line>
-                </svg>
-                <span>Қосу</span>
-              </Link>
+              {canManageReaders && (
+                <Link
+                  to="/admin/readers/new"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '9px 18px',
+                    borderRadius: '8px',
+                    background: 'var(--blue)',
+                    color: '#FFFFFF',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    textDecoration: 'none',
+                    boxShadow: '0 2px 6px rgba(0, 87, 168, 0.25)',
+                    transition: 'all 0.15s',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                  <span>Қосу</span>
+                </Link>
+              )}
             </div>
           </div>
 
@@ -405,48 +422,59 @@ export const ReadersPage: React.FC = () => {
 
                       {/* Actions */}
                       <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
-                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-end' }}>
-                          <Link
-                            to={`/admin/readers/${reader.id}/edit`}
-                            style={{
-                              padding: '6px 12px',
-                              fontSize: '12px',
-                              fontWeight: 700,
-                              background: '#EFF6FF',
-                              color: 'var(--blue)',
-                              borderRadius: '6px',
-                              border: '1px solid #BFDBFE',
-                              textDecoration: 'none',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                              transition: 'all 0.15s',
-                              cursor: 'pointer',
-                            }}
-                          >
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                            </svg>
-                            Өңдеу
-                          </Link>
-                          <button
-                            type="button"
-                            onClick={() => setUserToDelete(reader)}
-                            style={{
-                              padding: '6px 12px',
-                              fontSize: '12px',
-                              fontWeight: 700,
-                              background: '#FEF2F2',
-                              color: '#B91C1C',
-                              borderRadius: '6px',
-                              border: '1px solid #FECACA',
-                              cursor: 'pointer',
-                              transition: 'all 0.15s',
-                            }}
-                          >
-                            Өшіру
-                          </button>
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                          {canManageReaders && (
+                            <Link
+                              to={`/admin/readers/${reader.id}/edit`}
+                              style={{
+                                padding: '6px 12px',
+                                fontSize: '12px',
+                                fontWeight: 700,
+                                background: '#EFF6FF',
+                                color: 'var(--blue)',
+                                borderRadius: '6px',
+                                border: '1px solid #BFDBFE',
+                                textDecoration: 'none',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                transition: 'all 0.15s',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                              </svg>
+                              Өңдеу
+                            </Link>
+                          )}
+
+                          {canDeleteReaders && (
+                            <button
+                              type="button"
+                              onClick={() => setUserToDelete(reader)}
+                              style={{
+                                padding: '6px 12px',
+                                fontSize: '12px',
+                                fontWeight: 700,
+                                background: '#FEF2F2',
+                                color: '#B91C1C',
+                                borderRadius: '6px',
+                                border: '1px solid #FECACA',
+                                cursor: 'pointer',
+                                transition: 'all 0.15s',
+                              }}
+                            >
+                              Өшіру
+                            </button>
+                          )}
+
+                          {!canManageReaders && !canDeleteReaders && (
+                            <span style={{ fontSize: '11px', color: '#94A3B8', fontStyle: 'italic', padding: '4px 8px' }}>
+                              Тек көру
+                            </span>
+                          )}
                         </div>
                       </td>
                     </tr>
