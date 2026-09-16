@@ -138,6 +138,14 @@ export const useSavedBooksStore = create<SavedBooksState>()(
             savedBookIds: updatedList,
           });
           api.post(`/api/saved-books/${strId}`).catch(() => {});
+
+          try {
+            const myStore = useMyBooksStore.getState();
+            const rec = myStore.getBookRecord(strId, key);
+            if (!rec) {
+              myStore.setBookStatus(strId, 'want_to_read', key);
+            }
+          } catch {}
         }
       },
 
@@ -154,6 +162,14 @@ export const useSavedBooksStore = create<SavedBooksState>()(
           savedBookIds: updatedList,
         });
         api.delete(`/api/saved-books/${strId}`).catch(() => {});
+
+        try {
+          const myStore = useMyBooksStore.getState();
+          const rec = myStore.getBookRecord(strId, key);
+          if (rec?.status === 'want_to_read') {
+            myStore.removeBookFromShelf(strId, key);
+          }
+        } catch {}
       },
 
       clearSavedBooks: (userKey?: string) => {

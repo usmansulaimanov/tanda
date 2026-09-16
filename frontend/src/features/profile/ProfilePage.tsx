@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useBookStore } from '../../store/useBookStore';
@@ -9,21 +9,28 @@ import { useToastStore } from '../../store/useToastStore';
 export const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuthStore();
-  const { books } = useBookStore();
-  const { savedBookIds, removeSavedBook } = useSavedBooksStore();
+  const { books, fetchBooks } = useBookStore();
+  const { savedBookIds, fetchSavedBooks, removeSavedBook } = useSavedBooksStore();
   const { playBook } = useAudioPlayerStore();
   const { showToast } = useToastStore();
 
   // If user is admin, redirect to admin dashboard
-  React.useEffect(() => {
+  useEffect(() => {
     if (isAuthenticated && user?.role === 'admin') {
       navigate('/admin', { replace: true });
     }
   }, [isAuthenticated, user, navigate]);
 
+  // Fetch books & saved list
+  useEffect(() => {
+    fetchBooks();
+    fetchSavedBooks();
+  }, [fetchBooks, fetchSavedBooks]);
+
   // Filter saved books that exist and are not archived
   const savedBooks = useMemo(() => {
-    return books.filter((b) => savedBookIds.includes(b.id) && !b.isArchived);
+    const savedSet = new Set(savedBookIds.map(String));
+    return books.filter((b) => savedSet.has(String(b.id)) && !b.isArchived);
   }, [books, savedBookIds]);
 
   const handleLogout = () => {
