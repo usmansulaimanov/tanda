@@ -403,20 +403,6 @@ export const AudioPlayerPage: React.FC = () => {
                     />
                   ) : null}
 
-                  <span
-                    className={`cover-badge ${activeBook.isFree ? 'badge-free' : 'badge-premium'}`}
-                    style={{ position: 'absolute', top: '8px', right: '8px', zIndex: 3, fontSize: '10px', padding: '2px 7px' }}
-                  >
-                    {activeBook.isFree ? 'Тегін' : 'Премиум'}
-                  </span>
-
-                  {!activeBook.coverImage && (
-                    <div className="relative z-10 text-white">
-                      <div className="font-extrabold text-xs sm:text-sm leading-tight mb-0.5">{activeBook.title}</div>
-                      <div className="text-[10px] text-white/80">{activeBook.author}</div>
-                    </div>
-                  )}
-
                   {/* Playing Animated Soundwave */}
                   {isPlaying && (
                     <div className="absolute bottom-1.5 left-1.5 z-20 flex items-end gap-0.5 bg-black/60 backdrop-blur-md px-1.5 py-0.5 rounded">
