@@ -14,6 +14,9 @@ const ReadersPage = lazy(() => import('../features/admin/ReadersPage').then((m) 
 const ReaderEditPage = lazy(() => import('../features/admin/ReaderEditPage').then((m) => ({ default: m.ReaderEditPage })));
 const ProfilePage = lazy(() => import('../features/profile/ProfilePage').then((m) => ({ default: m.ProfilePage })));
 const SettingsPage = lazy(() => import('../features/settings/SettingsPage').then((m) => ({ default: m.SettingsPage })));
+const PromoCodePage = lazy(() => import('../features/promo/PromoCodePage').then((m) => ({ default: m.PromoCodePage })));
+const AdminPromoCodesPage = lazy(() => import('../features/admin/AdminPromoCodesPage').then((m) => ({ default: m.AdminPromoCodesPage })));
+const AdminPromoBatchDetailPage = lazy(() => import('../features/admin/AdminPromoBatchDetailPage').then((m) => ({ default: m.AdminPromoBatchDetailPage })));
 const AuthPage = lazy(() => import('../features/auth/AuthPage').then((m) => ({ default: m.AuthPage })));
 
 const PageLoader = () => (
@@ -94,10 +97,34 @@ export const router = createBrowserRouter([
         ),
       },
       {
+        path: 'promocode',
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <PromoCodePage />
+          </Suspense>
+        ),
+      },
+      {
         path: 'admin',
         element: (
           <Suspense fallback={<PageLoader />}>
             <AdminDashboard />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'admin/promocodes',
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <AdminPromoCodesPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'admin/promocodes/:batchId',
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <AdminPromoBatchDetailPage />
           </Suspense>
         ),
       },
