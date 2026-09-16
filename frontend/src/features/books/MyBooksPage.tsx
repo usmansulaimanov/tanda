@@ -113,7 +113,7 @@ export const MyBooksPage: React.FC = () => {
             </svg>
           </div>
           <h2 style={{ fontSize: '24px', fontWeight: 900, color: 'var(--text-dark)', marginBottom: '12px' }}>
-            «Менің кітаптарым» сөресін көру үшін жүйеге кіріңіз
+            «Менің сөрем» бөлімін көру үшін жүйеге кіріңіз
           </h2>
           <p style={{ color: 'var(--text-mid)', fontSize: '15px', marginBottom: '28px', lineHeight: 1.6 }}>
             Қазір оқып жатқан, оқып болған және енді оқимын деп сақтаған кітаптарыңызды қадағалап отыру үшін аккаунтыңызға кіріңіз немесе жаңадан тіркеліңіз.
@@ -194,11 +194,11 @@ export const MyBooksPage: React.FC = () => {
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path>
             </svg>
-            Жеке кітапхана
+            Жеке сөре
           </div>
 
           <h1 style={{ fontSize: '32px', fontWeight: 900, margin: '0 0 10px', letterSpacing: '-0.02em', lineHeight: 1.2 }}>
-            Менің кітаптарым
+            Менің сөрем
           </h1>
           <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.85)', margin: 0, lineHeight: 1.6 }}>
             Сіздің жеке сөреңіз: қазір оқылып жатқан, толық аяқталған және кейінге сақталған таңдаулы қазақша кітаптар.

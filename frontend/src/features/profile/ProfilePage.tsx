@@ -278,7 +278,7 @@ export const ProfilePage: React.FC = () => {
                 textDecoration: 'none',
               }}
             >
-              Менің кітаптарым сөресі
+              Менің сөрем
             </Link>
             <Link
               to="/catalog"

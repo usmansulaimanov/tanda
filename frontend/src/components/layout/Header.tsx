@@ -294,7 +294,7 @@ export const Header: React.FC = () => {
                   className={location.pathname === '/my-books' ? 'active' : ''}
                   style={{ textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}
                 >
-                  Менің кітаптарым
+                  Менің сөрем
                 </Link>
               </li>
             </ul>
@@ -408,7 +408,7 @@ export const Header: React.FC = () => {
                               <path d="M6 6h10"></path>
                               <path d="M6 10h10"></path>
                             </svg>
-                            <span style={{ flex: 1 }}>Менің кітаптарым</span>
+                            <span style={{ flex: 1 }}>Менің сөрем</span>
                           </Link>
 
                           <Link
