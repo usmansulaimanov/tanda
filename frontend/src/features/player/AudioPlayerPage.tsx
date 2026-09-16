@@ -383,10 +383,10 @@ export const AudioPlayerPage: React.FC = () => {
               />
 
               {/* 1. Book Meta Row */}
-              <div className="flex items-center gap-4 sm:gap-5 min-h-0 relative z-10">
-                {/* Book Cover Image */}
+              <div className="flex items-center gap-5 sm:gap-6 min-h-0 relative z-10">
+                {/* Book Cover Image - Enlarged & High Shadow */}
                 <div
-                  className="w-28 sm:w-32 md:w-36 aspect-[3/4] rounded-2xl shrink-0 shadow-lg relative overflow-hidden flex flex-col justify-end p-2.5 border-2 border-white/80 group"
+                  className="w-40 sm:w-48 md:w-52 aspect-[3/4] rounded-2xl sm:rounded-3xl shrink-0 shadow-2xl relative overflow-hidden flex flex-col justify-end p-3 border-2 border-white/90 group"
                   style={{
                     background: activeBook.gradient || 'linear-gradient(135deg, #0057A8, #003d7a)',
                   }}
@@ -405,29 +405,29 @@ export const AudioPlayerPage: React.FC = () => {
 
                   {/* Playing Animated Soundwave */}
                   {isPlaying && (
-                    <div className="absolute bottom-1.5 left-1.5 z-20 flex items-end gap-0.5 bg-black/60 backdrop-blur-md px-1.5 py-0.5 rounded">
-                      <span className="w-0.5 bg-[#EF7E00] rounded-full animate-pulse h-2.5"></span>
-                      <span className="w-0.5 bg-[#EF7E00] rounded-full animate-bounce h-4"></span>
-                      <span className="w-0.5 bg-[#EF7E00] rounded-full animate-pulse h-3"></span>
+                    <div className="absolute bottom-2 left-2 z-20 flex items-end gap-1 bg-black/60 backdrop-blur-md px-2 py-1 rounded-lg">
+                      <span className="w-1 bg-[#EF7E00] rounded-full animate-pulse h-3"></span>
+                      <span className="w-1 bg-[#EF7E00] rounded-full animate-bounce h-5"></span>
+                      <span className="w-1 bg-[#EF7E00] rounded-full animate-pulse h-4"></span>
                     </div>
                   )}
                 </div>
 
                 {/* Metadata details */}
                 <div className="flex-1 min-w-0">
-                  <div className="inline-block px-2.5 py-0.5 rounded-md bg-slate-100 text-[#005494] text-[11px] font-bold mb-1.5">
+                  <div className="inline-block px-3 py-1 rounded-lg bg-slate-100 text-[#005494] text-xs font-bold mb-2">
                     {activeBook.category}
                   </div>
 
-                  <h1 className="text-xl sm:text-2xl font-black text-slate-900 leading-tight mb-1 truncate tracking-tight">
+                  <h1 className="text-2xl sm:text-3xl font-black text-slate-900 leading-tight mb-1.5 truncate tracking-tight">
                     {activeBook.title}
                   </h1>
 
-                  <p className="text-xs sm:text-sm font-semibold text-slate-600 mb-2 sm:mb-3">
+                  <p className="text-sm sm:text-base font-semibold text-slate-600 mb-3">
                     Авторы: <span className="text-slate-900 font-bold">{activeBook.author}</span>
                   </p>
 
-                  <div className="grid grid-cols-2 gap-1.5 text-[11px] sm:text-xs text-slate-600 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                  <div className="grid grid-cols-2 gap-2 text-xs text-slate-600 bg-slate-50 p-3 rounded-2xl border border-slate-100">
                     <div className="truncate">
                       🎙️ Диктор: <strong className="text-slate-900">{activeBook.audioNarrator || 'Танда Аудио'}</strong>
                     </div>
