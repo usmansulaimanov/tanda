@@ -109,6 +109,15 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
         if (!currentBook) return;
         const chapters = currentBook.audioChapters || [];
 
+        if (repeatMode === 'one') {
+          if (chapters.length > 0) {
+            get().playChapter(chapterIndex);
+          } else {
+            set({ progress: 0, isPlaying: true });
+          }
+          return;
+        }
+
         if (chapters.length > 0) {
           if (chapterIndex < chapters.length - 1) {
             get().playChapter(chapterIndex + 1);
@@ -119,7 +128,7 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
           }
         } else {
           // Single audio track
-          if (repeatMode === 'one' || repeatMode === 'all') {
+          if (repeatMode === 'all') {
             set({ progress: 0, isPlaying: true });
           } else {
             set({ isPlaying: false, progress: 0 });

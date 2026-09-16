@@ -129,7 +129,8 @@ export const AudioPlayerBar: React.FC = () => {
 
   // Handle Track End with Repeat Logic
   const handleTrackEnd = useCallback(() => {
-    if (repeatMode === 'one') {
+    const currentRepeatMode = useAudioPlayerStore.getState().repeatMode;
+    if (currentRepeatMode === 'one') {
       setProgress(0);
       if (isYouTube && ytPlayerRef.current && typeof ytPlayerRef.current.seekTo === 'function') {
         ytPlayerRef.current.seekTo(0, true);
@@ -144,7 +145,7 @@ export const AudioPlayerBar: React.FC = () => {
 
     // Otherwise next chapter or loop all
     nextChapter();
-  }, [repeatMode, isYouTube, nextChapter, setProgress, setIsPlaying]);
+  }, [isYouTube, nextChapter, setProgress, setIsPlaying]);
 
   // Initialize YouTube Player in offscreen container
   useEffect(() => {
@@ -224,7 +225,17 @@ export const AudioPlayerBar: React.FC = () => {
                   setDuration(dur);
                 }
               } else if (event.data === 0) {
-                handleTrackEnd();
+                const mode = useAudioPlayerStore.getState().repeatMode;
+                if (mode === 'one') {
+                  if (ytPlayerRef.current && typeof ytPlayerRef.current.seekTo === 'function') {
+                    ytPlayerRef.current.seekTo(0, true);
+                    ytPlayerRef.current.playVideo();
+                    setIsPlaying(true);
+                    setProgress(0);
+                  }
+                } else {
+                  handleTrackEnd();
+                }
               }
             },
             onError: (event: any) => {
@@ -300,7 +311,7 @@ export const AudioPlayerBar: React.FC = () => {
     }
   }, [isPlaying, isYouTube, currentChapter]);
 
-  // Sync playback rate
+  // Sync playback rate and loop
   useEffect(() => {
     if (isYouTube) {
       if (ytPlayerRef.current && typeof ytPlayerRef.current.setPlaybackRate === 'function') {
@@ -308,8 +319,9 @@ export const AudioPlayerBar: React.FC = () => {
       }
     } else if (audioRef.current) {
       audioRef.current.playbackRate = playbackRate;
+      audioRef.current.loop = (repeatMode === 'one');
     }
-  }, [playbackRate, isYouTube]);
+  }, [playbackRate, repeatMode, isYouTube]);
 
   // Polling YouTube progress
   useEffect(() => {
@@ -420,6 +432,7 @@ export const AudioPlayerBar: React.FC = () => {
           <audio
             ref={audioRef}
             src={audioSrc}
+            loop={repeatMode === 'one'}
             onLoadedMetadata={(e) => {
               const dur = e.currentTarget.duration;
               if (dur && !isNaN(dur) && dur > 0) setDuration(dur);
