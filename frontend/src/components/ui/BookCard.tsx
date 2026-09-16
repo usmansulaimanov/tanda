@@ -4,6 +4,7 @@ import { Book } from '../../types';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useAudioPlayerStore } from '../../store/useAudioPlayerStore';
 import { useSavedBooksStore } from '../../store/useSavedBooksStore';
+import { useMyBooksStore } from '../../store/useMyBooksStore';
 import { useToastStore } from '../../store/useToastStore';
 
 interface BookCardProps {
@@ -15,6 +16,7 @@ export const BookCard: React.FC<BookCardProps> = ({ book }) => {
   const { role, isAuthenticated, openAuthModal } = useAuthStore();
   const { playBook } = useAudioPlayerStore();
   const { isBookSaved, toggleSavedBook } = useSavedBooksStore();
+  const { markAsReading, markAsWantToRead, removeBookFromShelf } = useMyBooksStore();
   const { showToast } = useToastStore();
 
   const isSaved = isBookSaved(book.id);
@@ -27,6 +29,7 @@ export const BookCard: React.FC<BookCardProps> = ({ book }) => {
       navigate(`/login?redirect=${encodeURIComponent(`/read/${book.id}`)}`);
       return;
     }
+    markAsReading(book.id, 1, book.pages ? parseInt(String(book.pages)) : undefined);
     navigate(`/read/${book.id}`);
   };
 
@@ -38,6 +41,7 @@ export const BookCard: React.FC<BookCardProps> = ({ book }) => {
       navigate(`/login?redirect=${encodeURIComponent(`/book/${book.id}`)}`);
       return;
     }
+    markAsReading(book.id, 1, book.pages ? parseInt(String(book.pages)) : undefined);
     playBook(book);
   };
 
@@ -51,9 +55,11 @@ export const BookCard: React.FC<BookCardProps> = ({ book }) => {
     }
     const nowSaved = await toggleSavedBook(book.id);
     if (nowSaved) {
-      showToast(`«${book.title}» сақталғандарға қосылды`, 'success');
+      markAsWantToRead(book.id);
+      showToast(`«${book.title}» — «Енді оқимын» сөресіне сақталды`, 'success');
     } else {
-      showToast(`«${book.title}» сақталғандардан өшірілді`, 'info');
+      removeBookFromShelf(book.id);
+      showToast(`«${book.title}» сөреден өшірілді`, 'info');
     }
   };
 

@@ -4,6 +4,7 @@ import { useBookStore } from '../../store/useBookStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useAudioPlayerStore } from '../../store/useAudioPlayerStore';
 import { useSavedBooksStore } from '../../store/useSavedBooksStore';
+import { useMyBooksStore } from '../../store/useMyBooksStore';
 import { useToastStore } from '../../store/useToastStore';
 
 export const BookDetailPage: React.FC = () => {
@@ -15,6 +16,7 @@ export const BookDetailPage: React.FC = () => {
 
   const book = books.find((b) => b.id === id);
   const { isBookSaved, toggleSavedBook } = useSavedBooksStore();
+  const { markAsReading, markAsWantToRead, removeBookFromShelf } = useMyBooksStore();
   const { showToast } = useToastStore();
 
   if (!book || (book.isArchived && role !== 'admin')) {
@@ -45,6 +47,7 @@ export const BookDetailPage: React.FC = () => {
       navigate(`/login?redirect=${encodeURIComponent(`/read/${book.id}`)}`);
       return;
     }
+    markAsReading(book.id, 1, book.pages ? parseInt(String(book.pages)) : undefined);
     navigate(`/read/${book.id}`);
   };
 
@@ -54,6 +57,7 @@ export const BookDetailPage: React.FC = () => {
       navigate(`/login?redirect=${encodeURIComponent(`/book/${book.id}`)}`);
       return;
     }
+    markAsReading(book.id, 1, book.pages ? parseInt(String(book.pages)) : undefined);
     if (currentBook?.id === book.id) {
       togglePlay();
     } else {
@@ -67,6 +71,7 @@ export const BookDetailPage: React.FC = () => {
       navigate(`/login?redirect=${encodeURIComponent(`/book/${book.id}`)}`);
       return;
     }
+    markAsReading(book.id, 1, book.pages ? parseInt(String(book.pages)) : undefined);
     if (currentBook?.id !== book.id) {
       playBook(book, idx);
     } else {
@@ -82,8 +87,10 @@ export const BookDetailPage: React.FC = () => {
     }
     const nowSaved = await toggleSavedBook(book.id);
     if (nowSaved) {
-      showToast(`«${book.title}» сақталғандарға қосылды! Профиль бетінен таба аласыз.`, 'success');
+      markAsWantToRead(book.id);
+      showToast(`«${book.title}» — «Енді оқимын» сөресіне сақталды!`, 'success');
     } else {
+      removeBookFromShelf(book.id);
       showToast(`«${book.title}» сақталғандардан өшірілді`, 'info');
     }
   };

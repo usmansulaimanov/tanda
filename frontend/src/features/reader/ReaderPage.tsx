@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useBookStore } from '../../store/useBookStore';
 import { useAuthStore } from '../../store/useAuthStore';
+import { useMyBooksStore } from '../../store/useMyBooksStore';
 import { api } from '../../lib/api';
 import { Book } from '../../types';
 
@@ -10,6 +11,7 @@ export const ReaderPage: React.FC = () => {
   const navigate = useNavigate();
   const { books, fetchBookById } = useBookStore();
   const { role, isAuthenticated, openAuthModal } = useAuthStore();
+  const { markAsReading, updateReadingProgress } = useMyBooksStore();
 
   const [book, setBook] = useState<Book | null>(books.find((b) => b.id === id) || null);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -25,16 +27,27 @@ export const ReaderPage: React.FC = () => {
   }, [book, id, fetchBookById]);
 
   useEffect(() => {
+    if (book && isAuthenticated) {
+      const totPages = book.pages ? parseInt(String(book.pages)) : undefined;
+      markAsReading(book.id, currentPage, totPages);
+    }
+  }, [book, isAuthenticated, markAsReading]);
+
+  useEffect(() => {
     if (id && isAuthenticated) {
       api.get(`/api/progress/${id}`)
         .then(({ data }) => {
           if (data.currentPage) {
             setCurrentPage(data.currentPage);
+            if (book) {
+              const totPages = book.pages ? parseInt(String(book.pages)) : undefined;
+              updateReadingProgress(book.id, data.currentPage, totPages);
+            }
           }
         })
         .catch(() => {});
     }
-  }, [id, isAuthenticated]);
+  }, [id, isAuthenticated, book, updateReadingProgress]);
 
   if (!isAuthenticated) {
     return (

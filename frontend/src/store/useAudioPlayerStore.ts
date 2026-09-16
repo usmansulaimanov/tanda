@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Book, AudioChapter } from '../types';
 import { api } from '../lib/api';
+import { useMyBooksStore } from './useMyBooksStore';
 
 interface AudioPlayerState {
   currentBook: Book | null;
@@ -79,6 +80,7 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
           isPlaying: true,
           progress: 0,
         });
+        useMyBooksStore.getState().markAsReading(book.id);
         debouncedSyncProgress(book.id, chapter?.id, 0);
       },
 

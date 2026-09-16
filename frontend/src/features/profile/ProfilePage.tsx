@@ -268,20 +268,33 @@ export const ProfilePage: React.FC = () => {
             </p>
           </div>
 
-          <Link
-            to="/catalog"
-            className="btn-outline"
-            style={{
-              borderColor: 'var(--blue)',
-              color: 'var(--blue)',
-              padding: '10px 22px',
-              fontSize: '13px',
-              fontWeight: 700,
-              textDecoration: 'none',
-            }}
-          >
-            + Жаңа кітап қосу
-          </Link>
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+            <Link
+              to="/my-books"
+              className="btn-primary"
+              style={{
+                padding: '10px 20px',
+                fontSize: '13px',
+                textDecoration: 'none',
+              }}
+            >
+              Менің кітаптарым сөресі
+            </Link>
+            <Link
+              to="/catalog"
+              className="btn-outline"
+              style={{
+                borderColor: 'var(--blue)',
+                color: 'var(--blue)',
+                padding: '10px 20px',
+                fontSize: '13px',
+                fontWeight: 700,
+                textDecoration: 'none',
+              }}
+            >
+              + Жаңа кітап қосу
+            </Link>
+          </div>
         </div>
 
         {/* Books Grid */}

@@ -14,6 +14,7 @@ const ReadersPage = lazy(() => import('../features/admin/ReadersPage').then((m) 
 const ReaderCreatePage = lazy(() => import('../features/admin/ReaderCreatePage').then((m) => ({ default: m.ReaderCreatePage })));
 const ReaderEditPage = lazy(() => import('../features/admin/ReaderEditPage').then((m) => ({ default: m.ReaderEditPage })));
 const ProfilePage = lazy(() => import('../features/profile/ProfilePage').then((m) => ({ default: m.ProfilePage })));
+const MyBooksPage = lazy(() => import('../features/books/MyBooksPage').then((m) => ({ default: m.MyBooksPage })));
 const SettingsPage = lazy(() => import('../features/settings/SettingsPage').then((m) => ({ default: m.SettingsPage })));
 const PromoCodePage = lazy(() => import('../features/promo/PromoCodePage').then((m) => ({ default: m.PromoCodePage })));
 const AdminPromoCodesPage = lazy(() => import('../features/admin/AdminPromoCodesPage').then((m) => ({ default: m.AdminPromoCodesPage })));
@@ -86,6 +87,14 @@ export const router = createBrowserRouter([
         element: (
           <Suspense fallback={<PageLoader />}>
             <ProfilePage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'my-books',
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <MyBooksPage />
           </Suspense>
         ),
       },

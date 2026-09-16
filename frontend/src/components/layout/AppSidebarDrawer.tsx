@@ -4,6 +4,7 @@ import { useSidebarStore } from '../../store/useSidebarStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useBookStore } from '../../store/useBookStore';
 import { useSavedBooksStore } from '../../store/useSavedBooksStore';
+import { useMyBooksStore } from '../../store/useMyBooksStore';
 import { api } from '../../lib/api';
 
 export const AppSidebarDrawer: React.FC = () => {
@@ -11,6 +12,7 @@ export const AppSidebarDrawer: React.FC = () => {
   const { user, role, isAuthenticated, logout } = useAuthStore();
   const { books } = useBookStore();
   const { savedBookIds } = useSavedBooksStore();
+  const { currentShelf } = useMyBooksStore();
   const location = useLocation();
   const navigate = useNavigate();
   const [readersCount, setReadersCount] = React.useState<number>(() => {
@@ -169,7 +171,7 @@ export const AppSidebarDrawer: React.FC = () => {
 
             <a
               href="/#catalog"
-              className={`sidebar-nav-link ${location.hash === '#catalog' ? 'active' : ''}`}
+              className={`sidebar-nav-link ${location.pathname === '/' && location.hash === '#catalog' ? 'active' : ''}`}
               onClick={(e) => {
                 closeSidebar();
                 if (location.pathname === '/') {
@@ -189,6 +191,22 @@ export const AppSidebarDrawer: React.FC = () => {
               </svg>
               <span>Кітаптар қоры (Каталог)</span>
             </a>
+
+            <Link
+              to="/my-books"
+              className={`sidebar-nav-link ${location.pathname === '/my-books' ? 'active' : ''}`}
+              onClick={closeSidebar}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path>
+                <path d="M6 6h10"></path>
+                <path d="M6 10h10"></path>
+              </svg>
+              <span>Менің кітаптарым</span>
+              {isAuthenticated && Object.keys(currentShelf).length > 0 && (
+                <span className="sidebar-badge orange">{Object.keys(currentShelf).length}</span>
+              )}
+            </Link>
 
             {role === 'admin' && (
               <>

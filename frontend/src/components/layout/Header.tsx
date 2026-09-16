@@ -282,11 +282,20 @@ export const Header: React.FC = () => {
                       }
                     }
                   }}
-                  className={location.hash === '#catalog' ? 'active' : ''}
+                  className={location.pathname === '/' && location.hash === '#catalog' ? 'active' : ''}
                   style={{ textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}
                 >
                   Кітаптар қоры
                 </a>
+              </li>
+              <li>
+                <Link
+                  to="/my-books"
+                  className={location.pathname === '/my-books' ? 'active' : ''}
+                  style={{ textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}
+                >
+                  Менің кітаптарым
+                </Link>
               </li>
             </ul>
           )}
@@ -389,6 +398,19 @@ export const Header: React.FC = () => {
                     <div className="profile-card-actions">
                       {user.role !== 'admin' && (
                         <>
+                          <Link
+                            to="/my-books"
+                            className="profile-menu-item"
+                            onClick={() => setProfileOpen(false)}
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path>
+                              <path d="M6 6h10"></path>
+                              <path d="M6 10h10"></path>
+                            </svg>
+                            <span style={{ flex: 1 }}>Менің кітаптарым</span>
+                          </Link>
+
                           <Link
                             to="/profile"
                             className="profile-menu-item"
