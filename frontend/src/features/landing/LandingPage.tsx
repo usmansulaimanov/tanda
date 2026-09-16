@@ -99,12 +99,7 @@ export const LandingPage: React.FC = () => {
     }
   }, [location.hash]);
 
-  // If logged in as admin, show only the management panel
-  if (role === 'admin') {
-    return <AdminDashboard />;
-  }
-
-  // Readers only see active, non-archived books
+  // Active, non-archived books for catalog
   const activeBooks = useMemo(() => {
     return books.filter((b) => !b.isArchived);
   }, [books]);

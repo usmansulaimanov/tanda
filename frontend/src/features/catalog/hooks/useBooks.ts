@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { booksApi, BooksFilterParams } from '../../../shared/api/books.api';
 import { Book } from '../../../types';
-import { INITIAL_BOOKS } from '../../../data/initialBooks';
+import { useBookStore } from '../../../store/useBookStore';
 
 export function useBooks(filters?: BooksFilterParams) {
   return useQuery<Book[]>({
@@ -12,11 +12,10 @@ export function useBooks(filters?: BooksFilterParams) {
         if (Array.isArray(books) && books.length > 0) {
           return books;
         }
-        return INITIAL_BOOKS;
       } catch (error) {
-        console.warn('Backend unavailable, falling back to initial mock books:', error);
-        return INITIAL_BOOKS;
+        // Backend unavailable
       }
+      return useBookStore.getState().books;
     },
   });
 }
@@ -30,9 +29,9 @@ export function useBookDetail(id: string | undefined) {
         const book = await booksApi.getById(id);
         if (book) return book;
       } catch (e) {
-        console.warn('Backend getById failed, checking initialBooks:', e);
+        // Backend getById failed
       }
-      const fallback = INITIAL_BOOKS.find((b: Book) => b.id === id);
+      const fallback = useBookStore.getState().books.find((b: Book) => b.id === id);
       if (fallback) return fallback;
       throw new Error('Кітап табылмады');
     },

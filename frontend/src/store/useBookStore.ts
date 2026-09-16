@@ -51,7 +51,10 @@ export const useBookStore = create<BookState>()(
         try {
           const { data } = await api.get('/api/books', { params });
           if (Array.isArray(data) && data.length > 0) {
-            set({ books: data });
+            const currentBooks = get().books || [];
+            const serverMap = new Map(data.map((b: Book) => [b.id, b]));
+            const localOnly = currentBooks.filter((b) => !serverMap.has(b.id));
+            set({ books: [...data, ...localOnly] });
           }
         } catch {
           // If backend is not available (e.g. GitHub Pages), preserve cached books
@@ -67,10 +70,9 @@ export const useBookStore = create<BookState>()(
       fetchBookById: async (id: string) => {
         try {
           const { data } = await api.get(`/api/books/${id}`);
-          return data;
-        } catch {
-          return get().books.find((b) => b.id === id);
-        }
+          if (data && data.id) return data;
+        } catch {}
+        return get().books.find((b) => b.id === id);
       },
 
       addBook: async (newBook, customId) => {
@@ -79,48 +81,56 @@ export const useBookStore = create<BookState>()(
         const localBook: Book = {
           ...newBook,
           id: localId,
-          title: sanitizeInput(newBook.title) || 'Атаусыз кітап',
-          author: sanitizeInput(newBook.author) || 'Белгісіз автор',
+          title: newBook.title?.trim() || 'Атаусыз кітап',
+          author: newBook.author?.trim() || 'Белгісіз автор',
           category: newBook.category || 'Көркем әдебиет',
           pages: newBook.pages ? Number(newBook.pages) : null,
           hasAudio: Boolean(newBook.hasAudio),
-          audioNarrator: sanitizeInput(newBook.audioNarrator || ''),
-          audioDuration: sanitizeInput(newBook.audioDuration || ''),
+          audioNarrator: newBook.audioNarrator?.trim() || '',
+          audioDuration: newBook.audioDuration?.trim() || '',
           audioChapters: newBook.audioChapters || [],
           audioUrl: sanitizeUrl(newBook.audioUrl),
           coverImage: sanitizeUrl(newBook.coverImage),
           gradient: newBook.gradient || 'linear-gradient(135deg, #0057A8, #003d7a)',
-          description: sanitizeInput(newBook.description || ''),
+          description: newBook.description?.trim() || '',
           isFree: Boolean(newBook.isFree),
           isArchived: Boolean(newBook.isArchived),
           createdAt: new Date().toISOString(),
         };
 
+        // Immediately update state and persist
+        set((state) => ({ books: [localBook, ...state.books.filter((b) => b.id !== localId)] }));
+
         try {
           const { data } = await api.post('/api/books', localBook);
-          set((state) => ({ books: [data, ...state.books.filter((b) => b.id !== data.id)] }));
-          return data;
+          if (data && data.id) {
+            set((state) => ({
+              books: [data, ...state.books.filter((b) => b.id !== data.id && b.id !== localId)],
+            }));
+            return data;
+          }
         } catch {
-          // Fallback to local state
-          set((state) => ({ books: [localBook, ...state.books.filter((b) => b.id !== localId)] }));
-          return localBook;
+          // Local state already updated
         } finally {
           set({ isLoading: false });
         }
+        return localBook;
       },
 
       updateBook: async (id: string, updates: Partial<Book>) => {
         set({ isLoading: true });
+        set((state) => ({
+          books: state.books.map((b) => (b.id === id ? { ...b, ...updates } : b)),
+        }));
         try {
           const { data } = await api.put(`/api/books/${id}`, updates);
-          set((state) => ({
-            books: state.books.map((b) => (b.id === id ? data : b)),
-          }));
+          if (data && data.id) {
+            set((state) => ({
+              books: state.books.map((b) => (b.id === id ? data : b)),
+            }));
+          }
         } catch {
-          // Fallback to local update
-          set((state) => ({
-            books: state.books.map((b) => (b.id === id ? { ...b, ...updates } : b)),
-          }));
+          // Local state already updated
         } finally {
           set({ isLoading: false });
         }
