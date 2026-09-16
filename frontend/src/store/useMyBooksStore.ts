@@ -35,11 +35,13 @@ interface MyBooksState {
 }
 
 function resolveUserKey(explicitKey?: string): string {
-  if (explicitKey) return explicitKey.trim().toLowerCase();
+  if (explicitKey && typeof explicitKey === 'string') {
+    return explicitKey.trim().toLowerCase();
+  }
   try {
     const currentUser = useAuthStore?.getState?.()?.user;
     if (currentUser?.email || currentUser?.id) {
-      return (currentUser.email || currentUser.id).trim().toLowerCase();
+      return String(currentUser.email || currentUser.id).trim().toLowerCase();
     }
   } catch {}
 
@@ -49,7 +51,7 @@ function resolveUserKey(explicitKey?: string): string {
       const parsed = JSON.parse(authStorage);
       const user = parsed?.state?.user;
       if (user?.email || user?.id) {
-        return (user.email || user.id).trim().toLowerCase();
+        return String(user.email || user.id).trim().toLowerCase();
       }
     }
   } catch {}
@@ -68,13 +70,14 @@ export const useMyBooksStore = create<MyBooksState>()(
 
       setBookStatus: (bookId: string, status: BookShelfStatus, userKey?: string) => {
         const key = resolveUserKey(userKey);
+        const strId = String(bookId);
         const allShelves = { ...get().shelfByUser };
         const userShelf = { ...(allShelves[key] || {}) };
-        const existing = userShelf[bookId];
+        const existing = userShelf[strId];
         const nowIso = new Date().toISOString();
 
-        userShelf[bookId] = {
-          bookId,
+        userShelf[strId] = {
+          bookId: strId,
           status,
           addedAt: existing?.addedAt || nowIso,
           lastReadAt: status === 'reading' ? nowIso : existing?.lastReadAt,
@@ -90,17 +93,20 @@ export const useMyBooksStore = create<MyBooksState>()(
           currentShelf: userShelf,
         });
 
-        // If marked as want_to_read or reading, make sure it's in saved store as well
+        // If marked as want_to_read, make sure it's in saved store as well
         if (status === 'want_to_read') {
-          useSavedBooksStore.getState().addSavedBook(bookId, key);
+          try {
+            useSavedBooksStore.getState().addSavedBook(strId, key);
+          } catch {}
         }
       },
 
       removeBookFromShelf: (bookId: string, userKey?: string) => {
         const key = resolveUserKey(userKey);
+        const strId = String(bookId);
         const allShelves = { ...get().shelfByUser };
         const userShelf = { ...(allShelves[key] || {}) };
-        delete userShelf[bookId];
+        delete userShelf[strId];
 
         allShelves[key] = userShelf;
         set({
@@ -109,24 +115,32 @@ export const useMyBooksStore = create<MyBooksState>()(
         });
 
         // Also remove from saved store if present
-        useSavedBooksStore.getState().removeSavedBook(bookId, key);
+        try {
+          useSavedBooksStore.getState().removeSavedBook(strId, key);
+        } catch {}
       },
 
       getBookRecord: (bookId: string, userKey?: string) => {
         const key = resolveUserKey(userKey);
+        const strId = String(bookId);
         const userShelf = get().shelfByUser[key] || {};
-        return userShelf[bookId];
+        return userShelf[strId];
       },
 
       getBookStatus: (bookId: string, userKey?: string) => {
         const key = resolveUserKey(userKey);
+        const strId = String(bookId);
         const userShelf = get().shelfByUser[key] || {};
-        const rec = userShelf[bookId];
+        const rec = userShelf[strId];
         if (rec) return rec.status;
 
         // Fallback: check saved store (saved books automatically count as 'want_to_read')
-        const isSaved = useSavedBooksStore.getState().isBookSaved(bookId, key);
-        return isSaved ? 'want_to_read' : null;
+        try {
+          const isSaved = useSavedBooksStore.getState().isBookSaved(strId, key);
+          return isSaved ? 'want_to_read' : null;
+        } catch {
+          return null;
+        }
       },
 
       getBooksByStatus: (status: BookShelfStatus, userKey?: string) => {
@@ -136,18 +150,21 @@ export const useMyBooksStore = create<MyBooksState>()(
 
         // If requesting 'want_to_read', also include any savedBookIds not yet explicitly in userShelf
         if (status === 'want_to_read') {
-          const savedIds = useSavedBooksStore.getState().getSavedBookIds(key);
-          const shelfBookIds = new Set(Object.keys(userShelf));
-          
-          for (const sId of savedIds) {
-            if (!shelfBookIds.has(sId)) {
-              list.push({
-                bookId: sId,
-                status: 'want_to_read',
-                addedAt: new Date().toISOString(),
-              });
+          try {
+            const savedIds = useSavedBooksStore.getState().getSavedBookIds(key);
+            const shelfBookIds = new Set(Object.keys(userShelf));
+            
+            for (const sId of savedIds) {
+              const strSId = String(sId);
+              if (!shelfBookIds.has(strSId)) {
+                list.push({
+                  bookId: strSId,
+                  status: 'want_to_read',
+                  addedAt: new Date().toISOString(),
+                });
+              }
             }
-          }
+          } catch {}
         }
 
         return list;
@@ -155,9 +172,10 @@ export const useMyBooksStore = create<MyBooksState>()(
 
       markAsReading: (bookId: string, currentPage = 1, totalPages?: number, userKey?: string) => {
         const key = resolveUserKey(userKey);
+        const strId = String(bookId);
         const allShelves = { ...get().shelfByUser };
         const userShelf = { ...(allShelves[key] || {}) };
-        const existing = userShelf[bookId];
+        const existing = userShelf[strId];
 
         // Don't downgrade completed books automatically unless requested
         if (existing?.status === 'completed') {
@@ -169,8 +187,8 @@ export const useMyBooksStore = create<MyBooksState>()(
           ? Math.min(100, Math.round((currentPage / totalPages) * 100))
           : existing?.progressPercent || 5;
 
-        userShelf[bookId] = {
-          bookId,
+        userShelf[strId] = {
+          bookId: strId,
           status: 'reading',
           addedAt: existing?.addedAt || nowIso,
           lastReadAt: nowIso,
@@ -188,13 +206,14 @@ export const useMyBooksStore = create<MyBooksState>()(
 
       markAsCompleted: (bookId: string, userKey?: string) => {
         const key = resolveUserKey(userKey);
+        const strId = String(bookId);
         const allShelves = { ...get().shelfByUser };
         const userShelf = { ...(allShelves[key] || {}) };
-        const existing = userShelf[bookId];
+        const existing = userShelf[strId];
         const nowIso = new Date().toISOString();
 
-        userShelf[bookId] = {
-          bookId,
+        userShelf[strId] = {
+          bookId: strId,
           status: 'completed',
           addedAt: existing?.addedAt || nowIso,
           lastReadAt: nowIso,
@@ -218,17 +237,18 @@ export const useMyBooksStore = create<MyBooksState>()(
 
       updateReadingProgress: (bookId: string, currentPage: number, totalPages?: number, userKey?: string) => {
         const key = resolveUserKey(userKey);
+        const strId = String(bookId);
         const allShelves = { ...get().shelfByUser };
         const userShelf = { ...(allShelves[key] || {}) };
-        const existing = userShelf[bookId];
+        const existing = userShelf[strId];
         const nowIso = new Date().toISOString();
 
         const tot = totalPages || existing?.totalPages || 100;
         const percent = Math.min(100, Math.max(0, Math.round((currentPage / tot) * 100)));
         const isFinished = percent >= 100;
 
-        userShelf[bookId] = {
-          bookId,
+        userShelf[strId] = {
+          bookId: strId,
           status: isFinished ? 'completed' : 'reading',
           addedAt: existing?.addedAt || nowIso,
           lastReadAt: nowIso,

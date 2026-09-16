@@ -1,8 +1,9 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useBookStore } from '../../store/useBookStore';
 import { useMyBooksStore, BookShelfStatus } from '../../store/useMyBooksStore';
+import { useSavedBooksStore } from '../../store/useSavedBooksStore';
 import { useAudioPlayerStore } from '../../store/useAudioPlayerStore';
 import { useToastStore } from '../../store/useToastStore';
 import { Book } from '../../types';
@@ -10,16 +11,23 @@ import { Book } from '../../types';
 export const MyBooksPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuthStore();
-  const { books } = useBookStore();
+  const { books, fetchBooks } = useBookStore();
   const { activeTab, setActiveTab, setBookStatus, removeBookFromShelf, currentShelf, getBooksByStatus } = useMyBooksStore();
+  const { savedBookIds, fetchSavedBooks } = useSavedBooksStore();
   const { playBook } = useAudioPlayerStore();
   const { showToast } = useToastStore();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [activeMenuBookId, setActiveMenuBookId] = useState<string | null>(null);
 
+  // Fetch books & saved books on mount
+  useEffect(() => {
+    fetchBooks();
+    fetchSavedBooks();
+  }, [fetchBooks, fetchSavedBooks]);
+
   // Close status dropdown menu when clicked outside
-  React.useEffect(() => {
+  useEffect(() => {
     const handleClick = () => setActiveMenuBookId(null);
     window.addEventListener('click', handleClick);
     return () => window.removeEventListener('click', handleClick);
@@ -28,7 +36,7 @@ export const MyBooksPage: React.FC = () => {
   // Compute records for all three tabs
   const readingRecords = useMemo(() => getBooksByStatus('reading'), [currentShelf, getBooksByStatus]);
   const completedRecords = useMemo(() => getBooksByStatus('completed'), [currentShelf, getBooksByStatus]);
-  const wantToReadRecords = useMemo(() => getBooksByStatus('want_to_read'), [currentShelf, getBooksByStatus]);
+  const wantToReadRecords = useMemo(() => getBooksByStatus('want_to_read'), [currentShelf, savedBookIds, getBooksByStatus]);
 
   const activeRecords = useMemo(() => {
     switch (activeTab) {
@@ -47,7 +55,7 @@ export const MyBooksPage: React.FC = () => {
   const shelfBooksWithRecords = useMemo(() => {
     return activeRecords
       .map((rec) => {
-        const book = books.find((b) => b.id === rec.bookId);
+        const book = books.find((b) => String(b.id) === String(rec.bookId));
         if (!book || book.isArchived) return null;
         return { book, record: rec };
       })
