@@ -298,32 +298,32 @@ export const AudioPlayerPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#F0F5FA] to-[#FFFFFF] pb-24 text-slate-800">
+    <div className="h-full w-full flex flex-col overflow-hidden bg-gradient-to-b from-[#F0F5FA] to-[#FFFFFF] p-3 sm:p-4 md:p-6 text-slate-800">
       
       {/* Top Header Navigation */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-6 pb-4">
-        <div className="flex flex-wrap items-center justify-between gap-3 bg-white/80 backdrop-blur-md px-5 py-3.5 rounded-2xl border border-slate-200/80 shadow-sm">
+      <div className="w-full max-w-7xl mx-auto shrink-0 mb-3 sm:mb-4">
+        <div className="flex flex-wrap items-center justify-between gap-2.5 bg-white/90 backdrop-blur-md px-4 sm:px-5 py-2.5 sm:py-3 rounded-2xl border border-slate-200/80 shadow-sm">
           
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="inline-flex items-center gap-2 text-sm font-bold text-slate-600 hover:text-[#005494] transition cursor-pointer"
+            className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-600 hover:text-[#005494] transition cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Артқа қайту</span>
           </button>
 
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#005494]/10 text-[#005494] text-xs font-black uppercase tracking-wider">
+          <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1 rounded-full bg-[#005494]/10 text-[#005494] text-[11px] sm:text-xs font-black uppercase tracking-wider">
             <Headphones className="w-3.5 h-3.5" />
             <span>Аудиокітап ойнатқышы</span>
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Link to read text if available */}
+            {/* Link to read text */}
             <button
               type="button"
               onClick={() => navigate(`/read/${activeBook.id}`)}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer"
               title="Кітапты мәтін түрінде оқу"
             >
               <BookOpen className="w-3.5 h-3.5 text-[#005494]" />
@@ -334,7 +334,7 @@ export const AudioPlayerPage: React.FC = () => {
             <button
               type="button"
               onClick={handleToggleBookmark}
-              className={`p-2 rounded-xl border text-xs font-bold transition cursor-pointer flex items-center justify-center ${
+              className={`p-1.5 sm:p-2 rounded-xl border text-xs font-bold transition cursor-pointer flex items-center justify-center ${
                 isSaved
                   ? 'bg-[#EF7E00] text-white border-[#EF7E00] shadow-sm'
                   : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
@@ -342,8 +342,8 @@ export const AudioPlayerPage: React.FC = () => {
               title={isSaved ? 'Сөреден өшіру' : 'Кейін оқимын (Сақтау)'}
             >
               <svg
-                width="15"
-                height="15"
+                width="14"
+                height="14"
                 viewBox="0 0 24 24"
                 fill={isSaved ? 'currentColor' : 'none'}
                 stroke="currentColor"
@@ -357,7 +357,7 @@ export const AudioPlayerPage: React.FC = () => {
             <button
               type="button"
               onClick={handleToggleCompleted}
-              className={`p-2 rounded-xl border text-xs font-bold transition cursor-pointer flex items-center justify-center ${
+              className={`p-1.5 sm:p-2 rounded-xl border text-xs font-bold transition cursor-pointer flex items-center justify-center ${
                 isCompleted
                   ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
                   : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
@@ -365,8 +365,8 @@ export const AudioPlayerPage: React.FC = () => {
               title={isCompleted ? 'Оқылғандардан өшіру' : 'Оқылған деп белгілеу'}
             >
               <svg
-                width="15"
-                height="15"
+                width="14"
+                height="14"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -379,27 +379,25 @@ export const AudioPlayerPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Grid: Left (Cover, Info, Controls, Description) + Right (Chapters List) */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      {/* Main Container: Left (Fixed Compact Console) + Right (Only chapters scroll) */}
+      <div className="w-full max-w-7xl mx-auto flex-1 min-h-0 overflow-hidden">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 h-full min-h-0">
           
-          {/* LEFT / CENTER COLUMN: Player & Book Details (7 cols) */}
-          <div className="lg:col-span-7 flex flex-col gap-6">
-            
-            {/* Top Card: Cover + Title + Metadata */}
-            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-lg relative overflow-hidden">
+          {/* LEFT COLUMN: Unified Compact Book & Player Console (7 cols, fixed in view) */}
+          <div className="lg:col-span-7 h-full flex flex-col min-h-0">
+            <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-6 border border-slate-200/90 shadow-lg flex flex-col justify-between h-full overflow-hidden relative">
               
-              {/* Background Glow */}
+              {/* Subtle background glow */}
               <div
-                className="absolute -top-24 -right-24 w-72 h-72 rounded-full opacity-15 pointer-events-none blur-3xl"
+                className="absolute -top-20 -right-20 w-64 h-64 rounded-full opacity-10 pointer-events-none blur-3xl"
                 style={{ background: activeBook.gradient || '#005494' }}
               />
 
-              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 relative z-10">
-                
+              {/* 1. Book Meta Row */}
+              <div className="flex items-center gap-4 sm:gap-5 min-h-0 relative z-10">
                 {/* Book Cover Image */}
                 <div
-                  className="w-44 sm:w-48 aspect-[3/4] rounded-2xl shrink-0 shadow-2xl relative overflow-hidden flex flex-col justify-end p-4 border-2 border-white/60 group"
+                  className="w-28 sm:w-32 md:w-36 aspect-[3/4] rounded-2xl shrink-0 shadow-lg relative overflow-hidden flex flex-col justify-end p-2.5 border-2 border-white/80 group"
                   style={{
                     background: activeBook.gradient || 'linear-gradient(135deg, #0057A8, #003d7a)',
                   }}
@@ -418,336 +416,334 @@ export const AudioPlayerPage: React.FC = () => {
 
                   <span
                     className={`cover-badge ${activeBook.isFree ? 'badge-free' : 'badge-premium'}`}
-                    style={{ position: 'absolute', top: '10px', right: '10px', zIndex: 3 }}
+                    style={{ position: 'absolute', top: '8px', right: '8px', zIndex: 3, fontSize: '10px', padding: '2px 7px' }}
                   >
                     {activeBook.isFree ? 'Тегін' : 'Премиум'}
                   </span>
 
                   {!activeBook.coverImage && (
                     <div className="relative z-10 text-white">
-                      <div className="font-extrabold text-base leading-tight mb-1">{activeBook.title}</div>
-                      <div className="text-xs text-white/80">{activeBook.author}</div>
+                      <div className="font-extrabold text-xs sm:text-sm leading-tight mb-0.5">{activeBook.title}</div>
+                      <div className="text-[10px] text-white/80">{activeBook.author}</div>
                     </div>
                   )}
 
-                  {/* Playing Animated Soundwave on Cover */}
+                  {/* Playing Animated Soundwave */}
                   {isPlaying && (
-                    <div className="absolute bottom-2 left-2 z-20 flex items-end gap-1 bg-black/50 backdrop-blur-md px-2 py-1 rounded-lg">
-                      <span className="w-1 bg-[#EF7E00] rounded-full animate-pulse h-3"></span>
-                      <span className="w-1 bg-[#EF7E00] rounded-full animate-bounce h-5"></span>
-                      <span className="w-1 bg-[#EF7E00] rounded-full animate-pulse h-4"></span>
+                    <div className="absolute bottom-1.5 left-1.5 z-20 flex items-end gap-0.5 bg-black/60 backdrop-blur-md px-1.5 py-0.5 rounded">
+                      <span className="w-0.5 bg-[#EF7E00] rounded-full animate-pulse h-2.5"></span>
+                      <span className="w-0.5 bg-[#EF7E00] rounded-full animate-bounce h-4"></span>
+                      <span className="w-0.5 bg-[#EF7E00] rounded-full animate-pulse h-3"></span>
                     </div>
                   )}
                 </div>
 
-                {/* Book Metadata */}
-                <div className="flex-1 text-center sm:text-left min-w-0">
-                  <div className="inline-block px-3 py-1 rounded-lg bg-slate-100 text-[#005494] text-xs font-bold mb-2.5">
+                {/* Metadata details */}
+                <div className="flex-1 min-w-0">
+                  <div className="inline-block px-2.5 py-0.5 rounded-md bg-slate-100 text-[#005494] text-[11px] font-bold mb-1.5">
                     {activeBook.category}
                   </div>
 
-                  <h1 className="text-2xl sm:text-3xl font-black text-slate-900 leading-tight mb-1.5 tracking-tight">
+                  <h1 className="text-xl sm:text-2xl font-black text-slate-900 leading-tight mb-1 truncate tracking-tight">
                     {activeBook.title}
                   </h1>
 
-                  <p className="text-base font-semibold text-slate-600 mb-4">
+                  <p className="text-xs sm:text-sm font-semibold text-slate-600 mb-2 sm:mb-3">
                     Авторы: <span className="text-slate-900 font-bold">{activeBook.author}</span>
                   </p>
 
-                  <div className="grid grid-cols-2 gap-2 text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-100">
-                    <div>
+                  <div className="grid grid-cols-2 gap-1.5 text-[11px] sm:text-xs text-slate-600 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                    <div className="truncate">
                       🎙️ Диктор: <strong className="text-slate-900">{activeBook.audioNarrator || 'Танда Аудио'}</strong>
                     </div>
-                    <div>
+                    <div className="truncate">
                       ⏱️ Ұзақтығы: <strong className="text-slate-900">{activeBook.audioDuration || 'Толық аудио'}</strong>
                     </div>
-                    <div>
+                    <div className="truncate">
                       📑 Бөлімдер: <strong className="text-slate-900">{chapters.length} бөлім</strong>
                     </div>
-                    <div>
+                    <div className="truncate">
                       ⭐ Қолжетімділік: <strong className="text-[#005494]">{activeBook.isFree ? 'Тегін' : 'Премиум'}</strong>
                     </div>
                   </div>
                 </div>
-
               </div>
 
-            </div>
-
-            {/* Audio Controls Console Card */}
-            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-xl flex flex-col gap-6">
-              
-              {/* Active Chapter indicator */}
-              <div className="flex items-center justify-between gap-3 bg-[#005494]/5 border border-[#005494]/15 px-4 py-3 rounded-2xl">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${isPlaying ? 'bg-[#EF7E00] text-white shadow-md' : 'bg-slate-200 text-slate-700'}`}>
-                    {isPlaying ? <Music className="w-4 h-4 animate-pulse" /> : <Headphones className="w-4 h-4" />}
+              {/* 2. Active Chapter Indicator Banner */}
+              <div className="my-3 sm:my-4 flex items-center justify-between gap-3 bg-[#005494]/5 border border-[#005494]/15 px-3.5 py-2 rounded-xl">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${isPlaying ? 'bg-[#EF7E00] text-white shadow-sm' : 'bg-slate-200 text-slate-700'}`}>
+                    {isPlaying ? <Music className="w-3.5 h-3.5 animate-pulse" /> : <Headphones className="w-3.5 h-3.5" />}
                   </div>
                   <div className="min-w-0">
-                    <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide block">
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">
                       Қазір ойналуда ({chapterIndex + 1}/{chapters.length})
                     </span>
-                    <h4 className="text-sm font-black text-slate-900 truncate">
+                    <h4 className="text-xs sm:text-sm font-black text-slate-900 truncate">
                       {currentChapterTitle}
                     </h4>
                   </div>
                 </div>
 
-                <span className={`text-[11px] font-black px-2.5 py-1 rounded-full uppercase ${isPlaying ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}`}>
+                <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase shrink-0 ${isPlaying ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}`}>
                   {isPlaying ? 'Ойнап тұр' : 'Кідіртілді'}
                 </span>
               </div>
 
-              {/* Progress Slider Bar */}
-              <div className="flex flex-col gap-2">
-                <input
-                  type="range"
-                  min={0}
-                  max={duration || 100}
-                  value={progress}
-                  onChange={handleSeek}
-                  className="w-full h-2.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[#EF7E00] transition-all"
-                  style={{ accentColor: '#EF7E00' }}
-                />
-                <div className="flex items-center justify-between text-xs font-mono font-bold text-slate-500 px-1">
-                  <span>{formatTime(progress)}</span>
-                  <span>{formatTime(duration)}</span>
-                </div>
-              </div>
-
-              {/* Main Controls Row */}
-              <div className="flex items-center justify-center gap-2 sm:gap-4 flex-wrap">
+              {/* 3. Progress Slider & Controls Console */}
+              <div className="flex flex-col gap-3">
                 
-                {/* Repeat Button */}
-                <button
-                  type="button"
-                  onClick={toggleRepeatMode}
-                  className={`p-3 rounded-2xl border text-xs font-bold transition cursor-pointer flex items-center justify-center ${
-                    repeatMode !== 'off'
-                      ? 'bg-[#EF7E00]/10 border-[#EF7E00] text-[#EF7E00] shadow-sm'
-                      : 'bg-[#F8FAFC] border-slate-200 text-slate-600 hover:bg-slate-100'
-                  }`}
-                  style={{ width: '44px', height: '44px' }}
-                  title={
-                    repeatMode === 'one'
-                      ? 'Осы аудионы қайталау қосулы (1)'
-                      : repeatMode === 'all'
-                      ? 'Барлық тарауларды қайталау қосулы (Барлығы)'
-                      : 'Қайталауды қосу'
-                  }
-                >
-                  {repeatMode === 'one' ? <Repeat1 className="w-5 h-5" /> : <Repeat className="w-5 h-5" />}
-                </button>
+                {/* Progress bar */}
+                <div className="flex flex-col gap-1">
+                  <input
+                    type="range"
+                    min={0}
+                    max={duration || 100}
+                    value={progress}
+                    onChange={handleSeek}
+                    className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[#EF7E00] transition-all"
+                    style={{ accentColor: '#EF7E00' }}
+                  />
+                  <div className="flex items-center justify-between text-[11px] font-mono font-bold text-slate-500 px-1">
+                    <span>{formatTime(progress)}</span>
+                    <span>{formatTime(duration)}</span>
+                  </div>
+                </div>
 
-                {/* Previous Chapter */}
-                <button
-                  type="button"
-                  onClick={prevChapter}
-                  className="w-11 h-11 rounded-2xl bg-[#F8FAFC] border border-slate-200 text-slate-700 hover:bg-[#E8F1FB] hover:text-[#005494] transition cursor-pointer flex items-center justify-center shadow-sm"
-                  title="Алдыңғы тарау"
-                >
-                  <SkipBack className="w-5 h-5" />
-                </button>
-
-                {/* Rewind -10s */}
-                <button
-                  type="button"
-                  onClick={() => handleSkip(-10)}
-                  className="px-3 h-11 rounded-2xl bg-[#F8FAFC] border border-slate-200 text-slate-700 hover:bg-[#E8F1FB] hover:text-[#005494] transition cursor-pointer flex items-center gap-1 shadow-sm font-bold text-xs"
-                  title="10 секунд артқа"
-                >
-                  <RotateCcw className="w-4 h-4 text-[#005494]" />
-                  <span>-10с</span>
-                </button>
-
-                {/* Large Center Play / Pause Button */}
-                <button
-                  type="button"
-                  onClick={togglePlay}
-                  className="w-16 h-16 rounded-full bg-gradient-to-r from-[#EF7E00] to-[#FF9800] text-white flex items-center justify-center shadow-2xl transition-transform active:scale-95 cursor-pointer hover:shadow-orange-500/30 border-4 border-white mx-1 sm:mx-2"
-                  title={isPlaying ? 'Тоқтату (Пауза)' : 'Ойнату'}
-                >
-                  {isPlaying ? (
-                    <Pause className="w-7 h-7 fill-current" />
-                  ) : (
-                    <Play className="w-7 h-7 fill-current ml-1" />
-                  )}
-                </button>
-
-                {/* Forward +10s */}
-                <button
-                  type="button"
-                  onClick={() => handleSkip(10)}
-                  className="px-3 h-11 rounded-2xl bg-[#F8FAFC] border border-slate-200 text-slate-700 hover:bg-[#E8F1FB] hover:text-[#005494] transition cursor-pointer flex items-center gap-1 shadow-sm font-bold text-xs"
-                  title="10 секунд алға"
-                >
-                  <span>+10с</span>
-                  <RotateCw className="w-4 h-4 text-[#005494]" />
-                </button>
-
-                {/* Next Chapter */}
-                <button
-                  type="button"
-                  onClick={nextChapter}
-                  className="w-11 h-11 rounded-2xl bg-[#F8FAFC] border border-slate-200 text-slate-700 hover:bg-[#E8F1FB] hover:text-[#005494] transition cursor-pointer flex items-center justify-center shadow-sm"
-                  title="Келесі тарау"
-                >
-                  <SkipForward className="w-5 h-5" />
-                </button>
-
-                {/* Sleep Timer Popover */}
-                <div className="relative" ref={timerMenuRef}>
+                {/* Main Controls Row */}
+                <div className="flex items-center justify-center gap-1.5 sm:gap-3 flex-wrap">
+                  
+                  {/* Repeat Button */}
                   <button
                     type="button"
-                    onClick={() => {
-                      setShowTimerMenu((prev) => !prev);
-                      setShowSpeedMenu(false);
-                    }}
-                    className={`h-11 px-3 rounded-2xl border text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shadow-sm ${
-                      sleepTimerMinutes
-                        ? 'bg-[#EF7E00] text-white border-[#EF7E00]'
-                        : 'bg-[#F8FAFC] border-slate-200 text-slate-700 hover:bg-slate-100'
+                    onClick={toggleRepeatMode}
+                    className={`p-2 sm:p-2.5 rounded-xl border text-xs font-bold transition cursor-pointer flex items-center justify-center ${
+                      repeatMode !== 'off'
+                        ? 'bg-[#EF7E00]/10 border-[#EF7E00] text-[#EF7E00] shadow-sm'
+                        : 'bg-[#F8FAFC] border-slate-200 text-slate-600 hover:bg-slate-100'
                     }`}
-                    title="Ұйқы таймері"
+                    style={{ width: '38px', height: '38px' }}
+                    title={
+                      repeatMode === 'one'
+                        ? 'Осы аудионы қайталау қосулы (1)'
+                        : repeatMode === 'all'
+                        ? 'Барлық тарауларды қайталау қосулы (Барлығы)'
+                        : 'Қайталауды қосу'
+                    }
                   >
-                    <Timer className="w-4 h-4" />
-                    {sleepTimerMinutes ? (
-                      <span className="font-mono font-bold text-[11px]">
-                        {formatRemainingTimer(remainingTimerSec) || `${sleepTimerMinutes}м`}
-                      </span>
+                    {repeatMode === 'one' ? <Repeat1 className="w-4 h-4" /> : <Repeat className="w-4 h-4" />}
+                  </button>
+
+                  {/* Previous Chapter */}
+                  <button
+                    type="button"
+                    onClick={prevChapter}
+                    className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#F8FAFC] border border-slate-200 text-slate-700 hover:bg-[#E8F1FB] hover:text-[#005494] transition cursor-pointer flex items-center justify-center shadow-sm"
+                    title="Алдыңғы тарау"
+                  >
+                    <SkipBack className="w-4 h-4" />
+                  </button>
+
+                  {/* Rewind -10s */}
+                  <button
+                    type="button"
+                    onClick={() => handleSkip(-10)}
+                    className="px-2.5 h-9 sm:h-10 rounded-xl bg-[#F8FAFC] border border-slate-200 text-slate-700 hover:bg-[#E8F1FB] hover:text-[#005494] transition cursor-pointer flex items-center gap-1 shadow-sm font-bold text-[11px]"
+                    title="10 секунд артқа"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5 text-[#005494]" />
+                    <span>-10с</span>
+                  </button>
+
+                  {/* Center Big Play / Pause Button */}
+                  <button
+                    type="button"
+                    onClick={togglePlay}
+                    className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-r from-[#EF7E00] to-[#FF9800] text-white flex items-center justify-center shadow-xl transition-transform active:scale-95 cursor-pointer hover:shadow-orange-500/30 border-2 sm:border-4 border-white mx-1"
+                    title={isPlaying ? 'Тоқтату (Пауза)' : 'Ойнату'}
+                  >
+                    {isPlaying ? (
+                      <Pause className="w-6 h-6 fill-current" />
                     ) : (
-                      <span className="hidden sm:inline">Таймер</span>
+                      <Play className="w-6 h-6 fill-current ml-0.5" />
                     )}
                   </button>
 
-                  {showTimerMenu && (
-                    <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-56 bg-white rounded-2xl border border-slate-200 shadow-2xl p-2.5 z-50 text-slate-900">
-                      <div className="px-2 py-1.5 border-b border-slate-100 mb-1 flex items-center justify-between">
-                        <span className="text-xs font-black text-slate-900 flex items-center gap-1.5">
-                          <Timer className="w-3.5 h-3.5 text-[#005494]" />
-                          Ұйқы таймері
-                        </span>
-                        {sleepTimerMinutes && (
-                          <span className="text-[10px] font-extrabold text-[#EF7E00] bg-[#EF7E00]/10 px-1.5 py-0.5 rounded">
-                            {formatRemainingTimer(remainingTimerSec)}
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="flex flex-col gap-1 max-h-56 overflow-y-auto">
-                        {TIMER_OPTIONS.map((opt) => (
-                          <button
-                            key={opt.value}
-                            type="button"
-                            onClick={() => {
-                              setSleepTimer(opt.value);
-                              setShowTimerMenu(false);
-                              showToast(`Таймер қойылды: аудио ${opt.value} минуттан кейін өшеді`, 'success');
-                            }}
-                            className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-between transition ${
-                              sleepTimerMinutes === opt.value
-                                ? 'bg-[#005494] text-white'
-                                : 'hover:bg-slate-100 text-slate-700'
-                            }`}
-                          >
-                            <span>{opt.label}</span>
-                            {sleepTimerMinutes === opt.value && <Check className="w-3.5 h-3.5" />}
-                          </button>
-                        ))}
-
-                        {sleepTimerMinutes && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              cancelSleepTimer();
-                              setShowTimerMenu(false);
-                              showToast('Таймер өшірілді', 'info');
-                            }}
-                            className="w-full text-left px-3 py-1.5 rounded-lg text-xs font-bold text-rose-600 hover:bg-rose-50 transition mt-1 border-t border-slate-100"
-                          >
-                            Таймерді өшіру
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Speed Popover */}
-                <div className="relative" ref={speedMenuRef}>
+                  {/* Forward +10s */}
                   <button
                     type="button"
-                    onClick={() => {
-                      setShowSpeedMenu((prev) => !prev);
-                      setShowTimerMenu(false);
-                    }}
-                    className={`h-11 px-3 rounded-2xl border text-xs font-bold transition cursor-pointer flex items-center justify-center min-w-[44px] shadow-sm ${
-                      playbackRate !== 1
-                        ? 'bg-[#005494] text-white border-[#005494]'
-                        : 'bg-[#F8FAFC] border-slate-200 text-slate-700 hover:bg-slate-100'
-                    }`}
-                    title="Ойнату жылдамдығы"
+                    onClick={() => handleSkip(10)}
+                    className="px-2.5 h-9 sm:h-10 rounded-xl bg-[#F8FAFC] border border-slate-200 text-slate-700 hover:bg-[#E8F1FB] hover:text-[#005494] transition cursor-pointer flex items-center gap-1 shadow-sm font-bold text-[11px]"
+                    title="10 секунд алға"
                   >
-                    {playbackRate}x
+                    <span>+10с</span>
+                    <RotateCw className="w-3.5 h-3.5 text-[#005494]" />
                   </button>
 
-                  {showSpeedMenu && (
-                    <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-36 bg-white rounded-2xl border border-slate-200 shadow-2xl p-2 z-50 text-slate-900">
-                      <div className="px-2 py-1 border-b border-slate-100 mb-1 text-xs font-black text-slate-900">
-                        Жылдамдық
+                  {/* Next Chapter */}
+                  <button
+                    type="button"
+                    onClick={nextChapter}
+                    className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#F8FAFC] border border-slate-200 text-slate-700 hover:bg-[#E8F1FB] hover:text-[#005494] transition cursor-pointer flex items-center justify-center shadow-sm"
+                    title="Келесі тарау"
+                  >
+                    <SkipForward className="w-4 h-4" />
+                  </button>
+
+                  {/* Sleep Timer Popover */}
+                  <div className="relative" ref={timerMenuRef}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowTimerMenu((prev) => !prev);
+                        setShowSpeedMenu(false);
+                      }}
+                      className={`h-9 sm:h-10 px-2.5 rounded-xl border text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shadow-sm ${
+                        sleepTimerMinutes
+                          ? 'bg-[#EF7E00] text-white border-[#EF7E00]'
+                          : 'bg-[#F8FAFC] border-slate-200 text-slate-700 hover:bg-slate-100'
+                      }`}
+                      title="Ұйқы таймері"
+                    >
+                      <Timer className="w-3.5 h-3.5" />
+                      {sleepTimerMinutes ? (
+                        <span className="font-mono font-bold text-[10px]">
+                          {formatRemainingTimer(remainingTimerSec) || `${sleepTimerMinutes}м`}
+                        </span>
+                      ) : (
+                        <span className="hidden sm:inline text-[11px]">Таймер</span>
+                      )}
+                    </button>
+
+                    {showTimerMenu && (
+                      <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-52 bg-white rounded-2xl border border-slate-200 shadow-2xl p-2 z-50 text-slate-900">
+                        <div className="px-2 py-1 border-b border-slate-100 mb-1 flex items-center justify-between">
+                          <span className="text-xs font-black text-slate-900 flex items-center gap-1">
+                            <Timer className="w-3 h-3 text-[#005494]" />
+                            Ұйқы таймері
+                          </span>
+                          {sleepTimerMinutes && (
+                            <span className="text-[10px] font-extrabold text-[#EF7E00] bg-[#EF7E00]/10 px-1 py-0.5 rounded">
+                              {formatRemainingTimer(remainingTimerSec)}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="flex flex-col gap-0.5 max-h-48 overflow-y-auto">
+                          {TIMER_OPTIONS.map((opt) => (
+                            <button
+                              key={opt.value}
+                              type="button"
+                              onClick={() => {
+                                setSleepTimer(opt.value);
+                                setShowTimerMenu(false);
+                                showToast(`Таймер қойылды: ${opt.value} минут`, 'success');
+                              }}
+                              className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-between transition ${
+                                sleepTimerMinutes === opt.value
+                                  ? 'bg-[#005494] text-white'
+                                  : 'hover:bg-slate-100 text-slate-700'
+                              }`}
+                            >
+                              <span>{opt.label}</span>
+                              {sleepTimerMinutes === opt.value && <Check className="w-3 h-3" />}
+                            </button>
+                          ))}
+
+                          {sleepTimerMinutes && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                cancelSleepTimer();
+                                setShowTimerMenu(false);
+                                showToast('Таймер өшірілді', 'info');
+                              }}
+                              className="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-bold text-rose-600 hover:bg-rose-50 transition mt-1 border-t border-slate-100"
+                            >
+                              Таймерді өшіру
+                            </button>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex flex-col gap-0.5">
-                        {SPEED_OPTIONS.map((rate) => (
-                          <button
-                            key={rate}
-                            type="button"
-                            onClick={() => {
-                              setPlaybackRate(rate);
-                              setShowSpeedMenu(false);
-                            }}
-                            className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-bold flex items-center justify-between transition ${
-                              playbackRate === rate
-                                ? 'bg-[#005494] text-white'
-                                : 'hover:bg-slate-100 text-slate-700'
-                            }`}
-                          >
-                            <span>{rate}x</span>
-                            {playbackRate === rate && <Check className="w-3.5 h-3.5" />}
-                          </button>
-                        ))}
+                    )}
+                  </div>
+
+                  {/* Speed Popover */}
+                  <div className="relative" ref={speedMenuRef}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowSpeedMenu((prev) => !prev);
+                        setShowTimerMenu(false);
+                      }}
+                      className={`h-9 sm:h-10 px-2.5 rounded-xl border text-xs font-bold transition cursor-pointer flex items-center justify-center min-w-[38px] shadow-sm ${
+                        playbackRate !== 1
+                          ? 'bg-[#005494] text-white border-[#005494]'
+                          : 'bg-[#F8FAFC] border-slate-200 text-slate-700 hover:bg-slate-100'
+                      }`}
+                      title="Ойнату жылдамдығы"
+                    >
+                      {playbackRate}x
+                    </button>
+
+                    {showSpeedMenu && (
+                      <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-32 bg-white rounded-2xl border border-slate-200 shadow-2xl p-1.5 z-50 text-slate-900">
+                        <div className="px-2 py-1 border-b border-slate-100 mb-1 text-[11px] font-black text-slate-900">
+                          Жылдамдық
+                        </div>
+                        <div className="flex flex-col gap-0.5">
+                          {SPEED_OPTIONS.map((rate) => (
+                            <button
+                              key={rate}
+                              type="button"
+                              onClick={() => {
+                                setPlaybackRate(rate);
+                                setShowSpeedMenu(false);
+                              }}
+                              className={`w-full text-left px-2 py-1 rounded-lg text-xs font-bold flex items-center justify-between transition ${
+                                playbackRate === rate
+                                  ? 'bg-[#005494] text-white'
+                                  : 'hover:bg-slate-100 text-slate-700'
+                              }`}
+                            >
+                              <span>{rate}x</span>
+                              {playbackRate === rate && <Check className="w-3 h-3" />}
+                            </button>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
+
                 </div>
 
               </div>
 
             </div>
-
           </div>
 
-          {/* RIGHT COLUMN: Chapters List («Оң жақта кітаптың бөлімдері болсын. Сол бөлімді басқан кезде бірден сол бөлімнен ойнап кететіндей») (5 cols) */}
-          <div className="lg:col-span-5">
-            <div className="bg-white rounded-3xl p-6 border border-slate-200/90 shadow-lg sticky top-6">
+          {/* RIGHT COLUMN: Chapters List (5 cols, ONLY this scrolls internally when chapters overflow) */}
+          <div className="lg:col-span-5 h-full flex flex-col min-h-0">
+            <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-slate-200/90 shadow-lg flex flex-col h-full min-h-0 overflow-hidden">
               
-              <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100 shrink-0 mb-3">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-xl bg-[#005494]/10 text-[#005494] flex items-center justify-center font-bold">
+                  <div className="w-7 h-7 rounded-lg bg-[#005494]/10 text-[#005494] flex items-center justify-center font-bold">
                     📑
                   </div>
                   <div>
-                    <h3 className="text-base font-black text-slate-900">Кітап бөлімдері</h3>
-                    <p className="text-xs text-slate-500 font-medium">Тарауды таңдап тыңдаңыз</p>
+                    <h3 className="text-sm sm:text-base font-black text-slate-900 leading-tight">Кітап бөлімдері</h3>
+                    <p className="text-[11px] text-slate-500 font-medium">Тарауды басып тыңдаңыз</p>
                   </div>
                 </div>
 
-                <span className="text-xs font-extrabold px-3 py-1 bg-slate-100 text-slate-700 rounded-full border border-slate-200">
+                <span className="text-[11px] font-extrabold px-2.5 py-0.5 bg-slate-100 text-slate-700 rounded-full border border-slate-200">
                   {chapters.length} бөлім
                 </span>
               </div>
 
-              {/* Scrollable list of chapters */}
-              <div className="flex flex-col gap-2.5 max-h-[580px] overflow-y-auto pr-1">
+              {/* Scrollable list of chapters - ONLY THIS SCROLLS */}
+              <div className="flex-1 overflow-y-auto min-h-0 pr-1 space-y-2">
                 {chapters.map((ch, idx) => {
                   const isActive = chapterIndex === idx && currentBook?.id === activeBook.id;
 
@@ -756,27 +752,27 @@ export const AudioPlayerPage: React.FC = () => {
                       key={ch.id || idx}
                       type="button"
                       onClick={() => handleChapterSelect(idx)}
-                      className={`w-full text-left p-3.5 rounded-2xl border transition-all flex items-center justify-between gap-3 cursor-pointer ${
+                      className={`w-full text-left p-3 rounded-2xl border transition-all flex items-center justify-between gap-2.5 cursor-pointer ${
                         isActive
-                          ? 'bg-[#005494]/5 border-[#005494] shadow-md ring-2 ring-[#005494]/20'
+                          ? 'bg-[#005494]/5 border-[#005494] shadow-sm ring-2 ring-[#005494]/20'
                           : 'bg-slate-50/70 border-slate-200 hover:bg-slate-100/90 hover:border-slate-300'
                       }`}
                     >
-                      <div className="flex items-center gap-3 min-w-0">
+                      <div className="flex items-center gap-2.5 min-w-0">
                         
-                        {/* Status / Index Badge */}
+                        {/* Index / Playing Equalizer */}
                         <div
-                          className={`w-9 h-9 rounded-xl shrink-0 flex items-center justify-center font-extrabold text-xs transition ${
+                          className={`w-8 h-8 rounded-xl shrink-0 flex items-center justify-center font-extrabold text-xs transition ${
                             isActive
                               ? 'bg-[#005494] text-white shadow-sm'
                               : 'bg-white border border-slate-200 text-slate-700'
                           }`}
                         >
                           {isActive && isPlaying ? (
-                            <div className="flex items-end gap-0.5 h-3.5">
+                            <div className="flex items-end gap-0.5 h-3">
+                              <span className="w-0.5 bg-white rounded-full animate-pulse h-1.5"></span>
+                              <span className="w-0.5 bg-white rounded-full animate-bounce h-3"></span>
                               <span className="w-0.5 bg-white rounded-full animate-pulse h-2"></span>
-                              <span className="w-0.5 bg-white rounded-full animate-bounce h-3.5"></span>
-                              <span className="w-0.5 bg-white rounded-full animate-pulse h-2.5"></span>
                             </div>
                           ) : (
                             <span>{idx + 1}</span>
@@ -785,37 +781,37 @@ export const AudioPlayerPage: React.FC = () => {
 
                         {/* Title */}
                         <div className="min-w-0">
-                          <h4 className={`text-sm font-bold truncate ${isActive ? 'text-[#005494]' : 'text-slate-800'}`}>
+                          <h4 className={`text-xs sm:text-sm font-bold truncate ${isActive ? 'text-[#005494]' : 'text-slate-800'}`}>
                             {ch.title}
                           </h4>
                           {isActive && (
-                            <span className="text-[11px] font-extrabold text-[#EF7E00] flex items-center gap-1 mt-0.5">
-                              <Sparkles className="w-3 h-3" />
+                            <span className="text-[10px] font-extrabold text-[#EF7E00] flex items-center gap-1 mt-0.5">
+                              <Sparkles className="w-2.5 h-2.5" />
                               Қазір таңдалған
                             </span>
                           )}
                         </div>
                       </div>
 
-                      {/* Duration & Play action icon */}
+                      {/* Duration & Play icon */}
                       <div className="flex items-center gap-2 shrink-0">
                         {ch.duration && (
-                          <span className="text-xs font-mono font-semibold text-slate-500">
+                          <span className="text-[11px] font-mono font-semibold text-slate-500">
                             {ch.duration}
                           </span>
                         )}
 
                         <div
-                          className={`w-7 h-7 rounded-lg flex items-center justify-center ${
+                          className={`w-6 h-6 rounded-lg flex items-center justify-center ${
                             isActive
                               ? 'bg-[#EF7E00] text-white'
                               : 'bg-slate-200/80 text-slate-600'
                           }`}
                         >
                           {isActive && isPlaying ? (
-                            <Pause className="w-3.5 h-3.5 fill-current" />
+                            <Pause className="w-3 h-3 fill-current" />
                           ) : (
-                            <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
+                            <Play className="w-3 h-3 fill-current ml-0.5" />
                           )}
                         </div>
                       </div>
