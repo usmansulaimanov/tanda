@@ -16,7 +16,7 @@ import {
   ChevronUp,
   Maximize2,
 } from 'lucide-react';
-import { useAudioPlayerStore } from '../../store/useAudioPlayerStore';
+import { useAudioPlayerStore, getChapterStartTime, parseDurationToSeconds } from '../../store/useAudioPlayerStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useToastStore } from '../../store/useToastStore';
 import { extractYouTubeVideoId, loadYouTubeIFrameApi } from '../../utils/youtube';
@@ -323,6 +323,55 @@ export const AudioPlayerBar: React.FC = () => {
     };
   }, [isPlaying, isYouTube]);
 
+  // Sync chapter change / new track loading with audio player and YouTube
+  useEffect(() => {
+    if (!currentBook) return;
+
+    const chapters = currentBook.audioChapters || [];
+    const chapter = currentChapter || chapters[chapterIndex];
+    const hasOwnAudio = Boolean(chapter?.audioUrl && chapter.audioUrl.trim());
+    
+    let targetTime = 0;
+    if (hasOwnAudio) {
+      targetTime = 0;
+    } else if (chapters.length > 0) {
+      targetTime = getChapterStartTime(chapters, chapterIndex);
+    }
+
+    if (isYouTube) {
+      if (ytPlayerRef.current) {
+        if (typeof ytPlayerRef.current.loadVideoById === 'function' && ytVideoId) {
+          try {
+            ytPlayerRef.current.loadVideoById({
+              videoId: ytVideoId,
+              startSeconds: targetTime,
+            });
+            if (isPlaying) {
+              ytPlayerRef.current.playVideo();
+            }
+          } catch {
+            ytPlayerRef.current.seekTo(targetTime, true);
+            if (isPlaying) ytPlayerRef.current.playVideo();
+          }
+        } else if (typeof ytPlayerRef.current.seekTo === 'function') {
+          ytPlayerRef.current.seekTo(targetTime, true);
+          if (isPlaying) ytPlayerRef.current.playVideo();
+        }
+      }
+    } else if (audioRef.current) {
+      const srcToPlay = chapter?.audioUrl || currentBook.audioUrl || '';
+      if (srcToPlay) {
+        if (audioRef.current.src !== srcToPlay) {
+          audioRef.current.src = srcToPlay;
+        }
+        audioRef.current.currentTime = targetTime;
+        if (isPlaying) {
+          audioRef.current.play().catch(() => {});
+        }
+      }
+    }
+  }, [currentChapter, chapterIndex, isYouTube, ytVideoId, currentBook?.id]);
+
   // Sync play/pause with players
   useEffect(() => {
     if (isYouTube) {
@@ -348,7 +397,7 @@ export const AudioPlayerBar: React.FC = () => {
         }
       }
     }
-  }, [isPlaying, isYouTube, currentChapter]);
+  }, [isPlaying, isYouTube]);
 
   // Sync playback rate and loop
   useEffect(() => {

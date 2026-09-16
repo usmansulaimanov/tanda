@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { useBookStore } from '../../store/useBookStore';
 import { useAuthStore } from '../../store/useAuthStore';
-import { useAudioPlayerStore } from '../../store/useAudioPlayerStore';
+import { useAudioPlayerStore, getChapterStartTime } from '../../store/useAudioPlayerStore';
 import { useSavedBooksStore } from '../../store/useSavedBooksStore';
 import { useMyBooksStore } from '../../store/useMyBooksStore';
 import { useToastStore } from '../../store/useToastStore';
@@ -273,6 +273,11 @@ export const AudioPlayerPage: React.FC = () => {
     } else {
       playChapter(idx);
     }
+    const currentChapters = activeBook.audioChapters || [];
+    const ch = currentChapters[idx];
+    const hasOwnAudio = Boolean(ch?.audioUrl && ch.audioUrl.trim());
+    const targetStartTime = !hasOwnAudio ? getChapterStartTime(currentChapters, idx) : 0;
+    window.dispatchEvent(new CustomEvent('tanda:audio:seek', { detail: { time: targetStartTime } }));
     showToast(`«${chapters[idx]?.title || `${idx + 1}-бөлім`}» ойнатылуда`, 'info');
   };
 

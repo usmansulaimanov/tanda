@@ -55,6 +55,43 @@ function debouncedSyncProgress(bookId: string, chapterId?: string, timeSec?: num
   }, 3000);
 }
 
+export function parseDurationToSeconds(durStr?: string): number {
+  if (!durStr) return 300;
+  const clean = durStr.trim().toLowerCase();
+  
+  if (clean.includes(':')) {
+    const parts = clean.split(':').map((p) => parseInt(p, 10) || 0);
+    if (parts.length === 2) {
+      return parts[0] * 60 + parts[1];
+    } else if (parts.length === 3) {
+      return parts[0] * 3600 + parts[1] * 60 + parts[2];
+    }
+  }
+  
+  const minMatch = clean.match(/(\d+)\s*(мин|m|минут)/);
+  if (minMatch) {
+    return parseInt(minMatch[1], 10) * 60;
+  }
+
+  const hrMatch = clean.match(/(\d+)\s*(сағ|h|сағат)/);
+  if (hrMatch) {
+    return parseInt(hrMatch[1], 10) * 3600;
+  }
+
+  const num = parseInt(clean, 10);
+  if (!isNaN(num) && num > 0) return num;
+
+  return 300;
+}
+
+export function getChapterStartTime(chapters: AudioChapter[], targetIndex: number): number {
+  let startTime = 0;
+  for (let i = 0; i < targetIndex && i < chapters.length; i++) {
+    startTime += parseDurationToSeconds(chapters[i].duration);
+  }
+  return startTime;
+}
+
 export const useAudioPlayerStore = create<AudioPlayerState>()(
   persist(
     (set, get) => ({
@@ -73,15 +110,20 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
       playBook: (book, chapterIndex = 0) => {
         const chapters = book.audioChapters || [];
         const chapter = chapters[chapterIndex] || null;
+        const hasOwnAudio = Boolean(chapter?.audioUrl && chapter.audioUrl.trim());
+        const startProgress = !hasOwnAudio && chapters.length > 0 ? getChapterStartTime(chapters, chapterIndex) : 0;
+        const chapterDur = chapter?.duration ? parseDurationToSeconds(chapter.duration) : 180;
+
         set({
           currentBook: book,
           currentChapter: chapter,
           chapterIndex,
           isPlaying: true,
-          progress: 0,
+          progress: startProgress,
+          duration: chapterDur,
         });
         useMyBooksStore.getState().markAsReading(book.id);
-        debouncedSyncProgress(book.id, chapter?.id, 0);
+        debouncedSyncProgress(book.id, chapter?.id, startProgress);
       },
 
       playChapter: (index) => {
@@ -89,13 +131,19 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
         if (!currentBook) return;
         const chapters = currentBook.audioChapters || [];
         if (chapters.length > 0 && chapters[index]) {
+          const chapter = chapters[index];
+          const hasOwnAudio = Boolean(chapter.audioUrl && chapter.audioUrl.trim());
+          const startProgress = !hasOwnAudio ? getChapterStartTime(chapters, index) : 0;
+          const chapterDur = chapter.duration ? parseDurationToSeconds(chapter.duration) : 180;
+
           set({
             chapterIndex: index,
-            currentChapter: chapters[index],
+            currentChapter: chapter,
             isPlaying: true,
-            progress: 0,
+            progress: startProgress,
+            duration: chapterDur,
           });
-          debouncedSyncProgress(currentBook.id, chapters[index]?.id, 0);
+          debouncedSyncProgress(currentBook.id, chapter?.id, startProgress);
         }
       },
 
