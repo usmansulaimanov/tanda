@@ -40,11 +40,12 @@ export const BookCard: React.FC<BookCardProps> = ({ book }) => {
     e.stopPropagation();
     if (!isAuthenticated) {
       showToast('Аудионы тыңдау үшін тіркеліңіз немесе аккаунтқа кіріңіз', 'info');
-      navigate(`/login?redirect=${encodeURIComponent(`/book/${book.id}`)}`);
+      navigate(`/login?redirect=${encodeURIComponent(`/listen/${book.id}`)}`);
       return;
     }
     markAsReading(book.id, 1, book.pages ? parseInt(String(book.pages)) : undefined);
     playBook(book);
+    navigate(`/listen/${book.id}`);
   };
 
   const handleBookmarkClick = async (e: React.MouseEvent) => {

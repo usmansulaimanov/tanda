@@ -1,0 +1,849 @@
+import React, { useEffect, useState, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import {
+  Play,
+  Pause,
+  SkipBack,
+  SkipForward,
+  RotateCcw,
+  RotateCw,
+  Repeat,
+  Repeat1,
+  Timer,
+  BookOpen,
+  ArrowLeft,
+  Check,
+  Headphones,
+  Sparkles,
+  Music,
+} from 'lucide-react';
+import { useBookStore } from '../../store/useBookStore';
+import { useAuthStore } from '../../store/useAuthStore';
+import { useAudioPlayerStore } from '../../store/useAudioPlayerStore';
+import { useSavedBooksStore } from '../../store/useSavedBooksStore';
+import { useMyBooksStore } from '../../store/useMyBooksStore';
+import { useToastStore } from '../../store/useToastStore';
+import { Book } from '../../types';
+
+const TIMER_OPTIONS = [
+  { label: '5 минут', value: 5 },
+  { label: '10 минут', value: 10 },
+  { label: '15 минут', value: 15 },
+  { label: '30 минут', value: 30 },
+  { label: '45 минут', value: 45 },
+  { label: '60 минут (1 сағат)', value: 60 },
+];
+
+const SPEED_OPTIONS = [0.75, 1, 1.25, 1.5, 1.75, 2];
+
+export const AudioPlayerPage: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+
+  const { books, fetchBookById } = useBookStore();
+  const { role, isAuthenticated } = useAuthStore();
+  const { isBookSaved, toggleSavedBook } = useSavedBooksStore();
+  const { markAsReading, markAsWantToRead, markAsCompleted, removeBookFromShelf, getBookStatus } = useMyBooksStore();
+  const { showToast } = useToastStore();
+
+  const {
+    currentBook,
+    currentChapter,
+    chapterIndex,
+    isPlaying,
+    progress,
+    duration,
+    playbackRate,
+    repeatMode,
+    sleepTimerMinutes,
+    sleepTimerEndTime,
+    playBook,
+    playChapter,
+    togglePlay,
+    nextChapter,
+    prevChapter,
+    setPlaybackRate,
+    toggleRepeatMode,
+    setSleepTimer,
+    cancelSleepTimer,
+  } = useAudioPlayerStore();
+
+  const [book, setBook] = useState<Book | null>(books.find((b) => b.id === id) || null);
+  const [showTimerMenu, setShowTimerMenu] = useState(false);
+  const [showSpeedMenu, setShowSpeedMenu] = useState(false);
+  const [remainingTimerSec, setRemainingTimerSec] = useState<number | null>(null);
+
+  const timerMenuRef = useRef<HTMLDivElement>(null);
+  const speedMenuRef = useRef<HTMLDivElement>(null);
+
+  // Fetch book if not in memory
+  useEffect(() => {
+    if (!book && id) {
+      fetchBookById(id)
+        .then((b) => {
+          if (b) setBook(b);
+        })
+        .catch(() => {});
+    }
+  }, [book, id, fetchBookById]);
+
+  // If this book is opened and isn't currently loaded in the player store, start playing it
+  useEffect(() => {
+    if (book && isAuthenticated && (!currentBook || currentBook.id !== book.id)) {
+      playBook(book, 0);
+    }
+  }, [book, isAuthenticated, currentBook, playBook]);
+
+  // Close menus when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (timerMenuRef.current && !timerMenuRef.current.contains(e.target as Node)) {
+        setShowTimerMenu(false);
+      }
+      if (speedMenuRef.current && !speedMenuRef.current.contains(e.target as Node)) {
+        setShowSpeedMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Sleep timer countdown
+  useEffect(() => {
+    if (!sleepTimerEndTime) {
+      setRemainingTimerSec(null);
+      return;
+    }
+
+    const checkTimer = () => {
+      const now = Date.now();
+      const diff = Math.max(0, Math.floor((sleepTimerEndTime - now) / 1000));
+      setRemainingTimerSec(diff);
+    };
+
+    checkTimer();
+    const interval = setInterval(checkTimer, 1000);
+    return () => clearInterval(interval);
+  }, [sleepTimerEndTime]);
+
+  if (!isAuthenticated) {
+    return (
+      <div style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 20px' }}>
+        <div
+          style={{
+            maxWidth: '520px',
+            width: '100%',
+            background: '#FFFFFF',
+            borderRadius: '24px',
+            padding: '44px 32px',
+            textAlign: 'center',
+            boxShadow: '0 14px 40px rgba(0,0,0,0.08)',
+            border: '1px solid #E2E8F0',
+          }}
+        >
+          <div
+            style={{
+              width: '64px',
+              height: '64px',
+              borderRadius: '50%',
+              background: 'rgba(239,126,0,0.12)',
+              color: 'var(--orange)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 20px',
+            }}
+          >
+            <Headphones className="w-8 h-8" />
+          </div>
+          <h2 style={{ fontSize: '22px', fontWeight: 900, color: 'var(--text-dark)', marginBottom: '10px' }}>
+            Аудионы тыңдау үшін тіркеліңіз
+          </h2>
+          <p style={{ fontSize: '14px', color: 'var(--text-mid)', lineHeight: 1.6, marginBottom: '28px' }}>
+            Аудиокітаптарды тыңдау және тараулар бойынша бөліп көру тек тіркелген оқырмандарға қолжетімді.
+          </p>
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              onClick={() => navigate(`/signup?redirect=${encodeURIComponent(`/listen/${id}`)}`)}
+              className="btn-primary"
+              style={{ padding: '12px 28px', fontSize: '14px', background: 'var(--orange)', border: 'none', cursor: 'pointer' }}
+            >
+              Тіркелу
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate(`/login?redirect=${encodeURIComponent(`/listen/${id}`)}`)}
+              style={{
+                padding: '12px 28px',
+                fontSize: '14px',
+                fontWeight: 700,
+                borderRadius: '50px',
+                border: '1.5px solid var(--orange)',
+                background: '#FFF',
+                color: 'var(--orange)',
+                cursor: 'pointer',
+              }}
+            >
+              Кіру
+            </button>
+          </div>
+          <div style={{ marginTop: '24px' }}>
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              style={{ background: 'none', border: 'none', color: 'var(--text-mid)', fontSize: '13px', cursor: 'pointer', fontWeight: 600 }}
+            >
+              ← Артқа қайту
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const activeBook = book || currentBook;
+
+  if (!activeBook || (activeBook.isArchived && role !== 'admin')) {
+    return (
+      <div style={{ maxWidth: '600px', margin: '80px auto', textAlign: 'center', padding: '0 20px' }}>
+        <h2 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-dark)' }}>Кітап табылмады немесе архивтелген</h2>
+        <p style={{ color: 'var(--text-mid)', marginTop: '8px' }}>
+          Бұл кітап әкімші тарапынан өшірілген немесе архивке қойылған.
+        </p>
+        <button onClick={() => navigate('/catalog')} className="btn-primary" style={{ marginTop: '24px' }}>
+          Каталогқа оралу
+        </button>
+      </div>
+    );
+  }
+
+  const isSaved = isBookSaved(activeBook.id);
+  const bookStatus = getBookStatus(activeBook.id);
+  const isCompleted = bookStatus === 'completed';
+
+  const chapters = activeBook.audioChapters && activeBook.audioChapters.length > 0
+    ? activeBook.audioChapters
+    : [
+        {
+          id: 'main-track',
+          title: '1-бөлім. Негізгі толық аудио',
+          duration: activeBook.audioDuration || 'Толық жазба',
+        },
+      ];
+
+  const currentChapterTitle = currentChapter?.title || chapters[chapterIndex]?.title || '1-бөлім';
+
+  const formatTime = (secs: number) => {
+    if (!secs || isNaN(secs)) return '0:00';
+    const hours = Math.floor(secs / 3600);
+    const mins = Math.floor((secs % 3600) / 60);
+    const s = Math.floor(secs % 60);
+    if (hours > 0) {
+      return `${hours}:${mins < 10 ? '0' : ''}${mins}:${s < 10 ? '0' : ''}${s}`;
+    }
+    return `${mins}:${s < 10 ? '0' : ''}${s}`;
+  };
+
+  const formatRemainingTimer = (secs: number | null) => {
+    if (secs === null || secs <= 0) return '';
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    if (m >= 60) {
+      const h = Math.floor(m / 60);
+      const remM = m % 60;
+      return `${h}с ${remM}м`;
+    }
+    return `${m}:${s < 10 ? '0' : ''}${s}`;
+  };
+
+  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = Number(e.target.value);
+    window.dispatchEvent(new CustomEvent('tanda:audio:seek', { detail: { time: val } }));
+  };
+
+  const handleSkip = (seconds: number) => {
+    window.dispatchEvent(new CustomEvent('tanda:audio:skip', { detail: { seconds } }));
+  };
+
+  const handleChapterSelect = (idx: number) => {
+    markAsReading(activeBook.id, 1, activeBook.pages ? parseInt(String(activeBook.pages)) : undefined);
+    if (currentBook?.id !== activeBook.id) {
+      playBook(activeBook, idx);
+    } else {
+      playChapter(idx);
+    }
+    showToast(`«${chapters[idx]?.title || `${idx + 1}-бөлім`}» ойнатылуда`, 'info');
+  };
+
+  const handleToggleBookmark = async () => {
+    const nowSaved = await toggleSavedBook(activeBook.id);
+    if (nowSaved) {
+      markAsWantToRead(activeBook.id);
+      showToast(`«${activeBook.title}» — «Енді оқимын» сөресіне сақталды!`, 'success');
+    } else {
+      removeBookFromShelf(activeBook.id);
+      showToast(`«${activeBook.title}» сөреден өшірілді`, 'info');
+    }
+  };
+
+  const handleToggleCompleted = () => {
+    if (isCompleted) {
+      removeBookFromShelf(activeBook.id);
+      showToast(`«${activeBook.title}» — «Оқып болған кітаптар» сөресінен алынды`, 'info');
+    } else {
+      markAsCompleted(activeBook.id);
+      showToast(`«${activeBook.title}» — «Менің сөремдегі» оқылған кітаптар сөресіне қосылды!`, 'success');
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-[#F0F5FA] to-[#FFFFFF] pb-24 text-slate-800">
+      
+      {/* Top Header Navigation */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-6 pb-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 bg-white/80 backdrop-blur-md px-5 py-3.5 rounded-2xl border border-slate-200/80 shadow-sm">
+          
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="inline-flex items-center gap-2 text-sm font-bold text-slate-600 hover:text-[#005494] transition cursor-pointer"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Артқа қайту</span>
+          </button>
+
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#005494]/10 text-[#005494] text-xs font-black uppercase tracking-wider">
+            <Headphones className="w-3.5 h-3.5" />
+            <span>Аудиокітап ойнатқышы</span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {/* Link to read text if available */}
+            <button
+              type="button"
+              onClick={() => navigate(`/read/${activeBook.id}`)}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer"
+              title="Кітапты мәтін түрінде оқу"
+            >
+              <BookOpen className="w-3.5 h-3.5 text-[#005494]" />
+              <span className="hidden sm:inline">Кітапты оқу</span>
+            </button>
+
+            {/* Quick Bookmark */}
+            <button
+              type="button"
+              onClick={handleToggleBookmark}
+              className={`p-2 rounded-xl border text-xs font-bold transition cursor-pointer flex items-center justify-center ${
+                isSaved
+                  ? 'bg-[#EF7E00] text-white border-[#EF7E00] shadow-sm'
+                  : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+              }`}
+              title={isSaved ? 'Сөреден өшіру' : 'Кейін оқимын (Сақтау)'}
+            >
+              <svg
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill={isSaved ? 'currentColor' : 'none'}
+                stroke="currentColor"
+                strokeWidth="2.2"
+              >
+                <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path>
+              </svg>
+            </button>
+
+            {/* Quick Completed */}
+            <button
+              type="button"
+              onClick={handleToggleCompleted}
+              className={`p-2 rounded-xl border text-xs font-bold transition cursor-pointer flex items-center justify-center ${
+                isCompleted
+                  ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
+                  : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+              }`}
+              title={isCompleted ? 'Оқылғандардан өшіру' : 'Оқылған деп белгілеу'}
+            >
+              <svg
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+              >
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Grid: Left (Cover, Info, Controls, Description) + Right (Chapters List) */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          
+          {/* LEFT / CENTER COLUMN: Player & Book Details (7 cols) */}
+          <div className="lg:col-span-7 flex flex-col gap-6">
+            
+            {/* Top Card: Cover + Title + Metadata */}
+            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-lg relative overflow-hidden">
+              
+              {/* Background Glow */}
+              <div
+                className="absolute -top-24 -right-24 w-72 h-72 rounded-full opacity-15 pointer-events-none blur-3xl"
+                style={{ background: activeBook.gradient || '#005494' }}
+              />
+
+              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 relative z-10">
+                
+                {/* Book Cover Image */}
+                <div
+                  className="w-44 sm:w-48 aspect-[3/4] rounded-2xl shrink-0 shadow-2xl relative overflow-hidden flex flex-col justify-end p-4 border-2 border-white/60 group"
+                  style={{
+                    background: activeBook.gradient || 'linear-gradient(135deg, #0057A8, #003d7a)',
+                  }}
+                >
+                  {activeBook.coverImage ? (
+                    <img
+                      src={activeBook.coverImage}
+                      alt={activeBook.title}
+                      referrerPolicy="no-referrer"
+                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
+                  ) : null}
+
+                  <span
+                    className={`cover-badge ${activeBook.isFree ? 'badge-free' : 'badge-premium'}`}
+                    style={{ position: 'absolute', top: '10px', right: '10px', zIndex: 3 }}
+                  >
+                    {activeBook.isFree ? 'Тегін' : 'Премиум'}
+                  </span>
+
+                  {!activeBook.coverImage && (
+                    <div className="relative z-10 text-white">
+                      <div className="font-extrabold text-base leading-tight mb-1">{activeBook.title}</div>
+                      <div className="text-xs text-white/80">{activeBook.author}</div>
+                    </div>
+                  )}
+
+                  {/* Playing Animated Soundwave on Cover */}
+                  {isPlaying && (
+                    <div className="absolute bottom-2 left-2 z-20 flex items-end gap-1 bg-black/50 backdrop-blur-md px-2 py-1 rounded-lg">
+                      <span className="w-1 bg-[#EF7E00] rounded-full animate-pulse h-3"></span>
+                      <span className="w-1 bg-[#EF7E00] rounded-full animate-bounce h-5"></span>
+                      <span className="w-1 bg-[#EF7E00] rounded-full animate-pulse h-4"></span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Book Metadata */}
+                <div className="flex-1 text-center sm:text-left min-w-0">
+                  <div className="inline-block px-3 py-1 rounded-lg bg-slate-100 text-[#005494] text-xs font-bold mb-2.5">
+                    {activeBook.category}
+                  </div>
+
+                  <h1 className="text-2xl sm:text-3xl font-black text-slate-900 leading-tight mb-1.5 tracking-tight">
+                    {activeBook.title}
+                  </h1>
+
+                  <p className="text-base font-semibold text-slate-600 mb-4">
+                    Авторы: <span className="text-slate-900 font-bold">{activeBook.author}</span>
+                  </p>
+
+                  <div className="grid grid-cols-2 gap-2 text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                    <div>
+                      🎙️ Диктор: <strong className="text-slate-900">{activeBook.audioNarrator || 'Танда Аудио'}</strong>
+                    </div>
+                    <div>
+                      ⏱️ Ұзақтығы: <strong className="text-slate-900">{activeBook.audioDuration || 'Толық аудио'}</strong>
+                    </div>
+                    <div>
+                      📑 Бөлімдер: <strong className="text-slate-900">{chapters.length} бөлім</strong>
+                    </div>
+                    <div>
+                      ⭐ Қолжетімділік: <strong className="text-[#005494]">{activeBook.isFree ? 'Тегін' : 'Премиум'}</strong>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+
+            {/* Audio Controls Console Card */}
+            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-xl flex flex-col gap-6">
+              
+              {/* Active Chapter indicator */}
+              <div className="flex items-center justify-between gap-3 bg-[#005494]/5 border border-[#005494]/15 px-4 py-3 rounded-2xl">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${isPlaying ? 'bg-[#EF7E00] text-white shadow-md' : 'bg-slate-200 text-slate-700'}`}>
+                    {isPlaying ? <Music className="w-4 h-4 animate-pulse" /> : <Headphones className="w-4 h-4" />}
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide block">
+                      Қазір ойналуда ({chapterIndex + 1}/{chapters.length})
+                    </span>
+                    <h4 className="text-sm font-black text-slate-900 truncate">
+                      {currentChapterTitle}
+                    </h4>
+                  </div>
+                </div>
+
+                <span className={`text-[11px] font-black px-2.5 py-1 rounded-full uppercase ${isPlaying ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}`}>
+                  {isPlaying ? 'Ойнап тұр' : 'Кідіртілді'}
+                </span>
+              </div>
+
+              {/* Progress Slider Bar */}
+              <div className="flex flex-col gap-2">
+                <input
+                  type="range"
+                  min={0}
+                  max={duration || 100}
+                  value={progress}
+                  onChange={handleSeek}
+                  className="w-full h-2.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[#EF7E00] transition-all"
+                  style={{ accentColor: '#EF7E00' }}
+                />
+                <div className="flex items-center justify-between text-xs font-mono font-bold text-slate-500 px-1">
+                  <span>{formatTime(progress)}</span>
+                  <span>{formatTime(duration)}</span>
+                </div>
+              </div>
+
+              {/* Main Controls Row */}
+              <div className="flex items-center justify-center gap-2 sm:gap-4 flex-wrap">
+                
+                {/* Repeat Button */}
+                <button
+                  type="button"
+                  onClick={toggleRepeatMode}
+                  className={`p-3 rounded-2xl border text-xs font-bold transition cursor-pointer flex items-center justify-center ${
+                    repeatMode !== 'off'
+                      ? 'bg-[#EF7E00]/10 border-[#EF7E00] text-[#EF7E00] shadow-sm'
+                      : 'bg-[#F8FAFC] border-slate-200 text-slate-600 hover:bg-slate-100'
+                  }`}
+                  style={{ width: '44px', height: '44px' }}
+                  title={
+                    repeatMode === 'one'
+                      ? 'Осы аудионы қайталау қосулы (1)'
+                      : repeatMode === 'all'
+                      ? 'Барлық тарауларды қайталау қосулы (Барлығы)'
+                      : 'Қайталауды қосу'
+                  }
+                >
+                  {repeatMode === 'one' ? <Repeat1 className="w-5 h-5" /> : <Repeat className="w-5 h-5" />}
+                </button>
+
+                {/* Previous Chapter */}
+                <button
+                  type="button"
+                  onClick={prevChapter}
+                  className="w-11 h-11 rounded-2xl bg-[#F8FAFC] border border-slate-200 text-slate-700 hover:bg-[#E8F1FB] hover:text-[#005494] transition cursor-pointer flex items-center justify-center shadow-sm"
+                  title="Алдыңғы тарау"
+                >
+                  <SkipBack className="w-5 h-5" />
+                </button>
+
+                {/* Rewind -10s */}
+                <button
+                  type="button"
+                  onClick={() => handleSkip(-10)}
+                  className="px-3 h-11 rounded-2xl bg-[#F8FAFC] border border-slate-200 text-slate-700 hover:bg-[#E8F1FB] hover:text-[#005494] transition cursor-pointer flex items-center gap-1 shadow-sm font-bold text-xs"
+                  title="10 секунд артқа"
+                >
+                  <RotateCcw className="w-4 h-4 text-[#005494]" />
+                  <span>-10с</span>
+                </button>
+
+                {/* Large Center Play / Pause Button */}
+                <button
+                  type="button"
+                  onClick={togglePlay}
+                  className="w-16 h-16 rounded-full bg-gradient-to-r from-[#EF7E00] to-[#FF9800] text-white flex items-center justify-center shadow-2xl transition-transform active:scale-95 cursor-pointer hover:shadow-orange-500/30 border-4 border-white mx-1 sm:mx-2"
+                  title={isPlaying ? 'Тоқтату (Пауза)' : 'Ойнату'}
+                >
+                  {isPlaying ? (
+                    <Pause className="w-7 h-7 fill-current" />
+                  ) : (
+                    <Play className="w-7 h-7 fill-current ml-1" />
+                  )}
+                </button>
+
+                {/* Forward +10s */}
+                <button
+                  type="button"
+                  onClick={() => handleSkip(10)}
+                  className="px-3 h-11 rounded-2xl bg-[#F8FAFC] border border-slate-200 text-slate-700 hover:bg-[#E8F1FB] hover:text-[#005494] transition cursor-pointer flex items-center gap-1 shadow-sm font-bold text-xs"
+                  title="10 секунд алға"
+                >
+                  <span>+10с</span>
+                  <RotateCw className="w-4 h-4 text-[#005494]" />
+                </button>
+
+                {/* Next Chapter */}
+                <button
+                  type="button"
+                  onClick={nextChapter}
+                  className="w-11 h-11 rounded-2xl bg-[#F8FAFC] border border-slate-200 text-slate-700 hover:bg-[#E8F1FB] hover:text-[#005494] transition cursor-pointer flex items-center justify-center shadow-sm"
+                  title="Келесі тарау"
+                >
+                  <SkipForward className="w-5 h-5" />
+                </button>
+
+                {/* Sleep Timer Popover */}
+                <div className="relative" ref={timerMenuRef}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowTimerMenu((prev) => !prev);
+                      setShowSpeedMenu(false);
+                    }}
+                    className={`h-11 px-3 rounded-2xl border text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shadow-sm ${
+                      sleepTimerMinutes
+                        ? 'bg-[#EF7E00] text-white border-[#EF7E00]'
+                        : 'bg-[#F8FAFC] border-slate-200 text-slate-700 hover:bg-slate-100'
+                    }`}
+                    title="Ұйқы таймері"
+                  >
+                    <Timer className="w-4 h-4" />
+                    {sleepTimerMinutes ? (
+                      <span className="font-mono font-bold text-[11px]">
+                        {formatRemainingTimer(remainingTimerSec) || `${sleepTimerMinutes}м`}
+                      </span>
+                    ) : (
+                      <span className="hidden sm:inline">Таймер</span>
+                    )}
+                  </button>
+
+                  {showTimerMenu && (
+                    <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-56 bg-white rounded-2xl border border-slate-200 shadow-2xl p-2.5 z-50 text-slate-900">
+                      <div className="px-2 py-1.5 border-b border-slate-100 mb-1 flex items-center justify-between">
+                        <span className="text-xs font-black text-slate-900 flex items-center gap-1.5">
+                          <Timer className="w-3.5 h-3.5 text-[#005494]" />
+                          Ұйқы таймері
+                        </span>
+                        {sleepTimerMinutes && (
+                          <span className="text-[10px] font-extrabold text-[#EF7E00] bg-[#EF7E00]/10 px-1.5 py-0.5 rounded">
+                            {formatRemainingTimer(remainingTimerSec)}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="flex flex-col gap-1 max-h-56 overflow-y-auto">
+                        {TIMER_OPTIONS.map((opt) => (
+                          <button
+                            key={opt.value}
+                            type="button"
+                            onClick={() => {
+                              setSleepTimer(opt.value);
+                              setShowTimerMenu(false);
+                              showToast(`Таймер қойылды: аудио ${opt.value} минуттан кейін өшеді`, 'success');
+                            }}
+                            className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-between transition ${
+                              sleepTimerMinutes === opt.value
+                                ? 'bg-[#005494] text-white'
+                                : 'hover:bg-slate-100 text-slate-700'
+                            }`}
+                          >
+                            <span>{opt.label}</span>
+                            {sleepTimerMinutes === opt.value && <Check className="w-3.5 h-3.5" />}
+                          </button>
+                        ))}
+
+                        {sleepTimerMinutes && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              cancelSleepTimer();
+                              setShowTimerMenu(false);
+                              showToast('Таймер өшірілді', 'info');
+                            }}
+                            className="w-full text-left px-3 py-1.5 rounded-lg text-xs font-bold text-rose-600 hover:bg-rose-50 transition mt-1 border-t border-slate-100"
+                          >
+                            Таймерді өшіру
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Speed Popover */}
+                <div className="relative" ref={speedMenuRef}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowSpeedMenu((prev) => !prev);
+                      setShowTimerMenu(false);
+                    }}
+                    className={`h-11 px-3 rounded-2xl border text-xs font-bold transition cursor-pointer flex items-center justify-center min-w-[44px] shadow-sm ${
+                      playbackRate !== 1
+                        ? 'bg-[#005494] text-white border-[#005494]'
+                        : 'bg-[#F8FAFC] border-slate-200 text-slate-700 hover:bg-slate-100'
+                    }`}
+                    title="Ойнату жылдамдығы"
+                  >
+                    {playbackRate}x
+                  </button>
+
+                  {showSpeedMenu && (
+                    <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-36 bg-white rounded-2xl border border-slate-200 shadow-2xl p-2 z-50 text-slate-900">
+                      <div className="px-2 py-1 border-b border-slate-100 mb-1 text-xs font-black text-slate-900">
+                        Жылдамдық
+                      </div>
+                      <div className="flex flex-col gap-0.5">
+                        {SPEED_OPTIONS.map((rate) => (
+                          <button
+                            key={rate}
+                            type="button"
+                            onClick={() => {
+                              setPlaybackRate(rate);
+                              setShowSpeedMenu(false);
+                            }}
+                            className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-bold flex items-center justify-between transition ${
+                              playbackRate === rate
+                                ? 'bg-[#005494] text-white'
+                                : 'hover:bg-slate-100 text-slate-700'
+                            }`}
+                          >
+                            <span>{rate}x</span>
+                            {playbackRate === rate && <Check className="w-3.5 h-3.5" />}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+              </div>
+
+            </div>
+
+            {/* Book Description Card («қысқаша описаниесі тұрсын») */}
+            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-md">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-7 h-7 rounded-lg bg-orange-100 text-[#EF7E00] flex items-center justify-center font-bold">
+                  📝
+                </div>
+                <h3 className="text-lg font-black text-slate-900">Кітап туралы қысқаша</h3>
+              </div>
+              <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-line">
+                {activeBook.description || 'Бұл кітапқа әзірге қысқаша сипаттама берілмеген.'}
+              </p>
+            </div>
+
+          </div>
+
+          {/* RIGHT COLUMN: Chapters List («Оң жақта кітаптың бөлімдері болсын. Сол бөлімді басқан кезде бірден сол бөлімнен ойнап кететіндей») (5 cols) */}
+          <div className="lg:col-span-5">
+            <div className="bg-white rounded-3xl p-6 border border-slate-200/90 shadow-lg sticky top-6">
+              
+              <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-xl bg-[#005494]/10 text-[#005494] flex items-center justify-center font-bold">
+                    📑
+                  </div>
+                  <div>
+                    <h3 className="text-base font-black text-slate-900">Кітап бөлімдері</h3>
+                    <p className="text-xs text-slate-500 font-medium">Тарауды таңдап тыңдаңыз</p>
+                  </div>
+                </div>
+
+                <span className="text-xs font-extrabold px-3 py-1 bg-slate-100 text-slate-700 rounded-full border border-slate-200">
+                  {chapters.length} бөлім
+                </span>
+              </div>
+
+              {/* Scrollable list of chapters */}
+              <div className="flex flex-col gap-2.5 max-h-[580px] overflow-y-auto pr-1">
+                {chapters.map((ch, idx) => {
+                  const isActive = chapterIndex === idx && currentBook?.id === activeBook.id;
+
+                  return (
+                    <button
+                      key={ch.id || idx}
+                      type="button"
+                      onClick={() => handleChapterSelect(idx)}
+                      className={`w-full text-left p-3.5 rounded-2xl border transition-all flex items-center justify-between gap-3 cursor-pointer ${
+                        isActive
+                          ? 'bg-[#005494]/5 border-[#005494] shadow-md ring-2 ring-[#005494]/20'
+                          : 'bg-slate-50/70 border-slate-200 hover:bg-slate-100/90 hover:border-slate-300'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        
+                        {/* Status / Index Badge */}
+                        <div
+                          className={`w-9 h-9 rounded-xl shrink-0 flex items-center justify-center font-extrabold text-xs transition ${
+                            isActive
+                              ? 'bg-[#005494] text-white shadow-sm'
+                              : 'bg-white border border-slate-200 text-slate-700'
+                          }`}
+                        >
+                          {isActive && isPlaying ? (
+                            <div className="flex items-end gap-0.5 h-3.5">
+                              <span className="w-0.5 bg-white rounded-full animate-pulse h-2"></span>
+                              <span className="w-0.5 bg-white rounded-full animate-bounce h-3.5"></span>
+                              <span className="w-0.5 bg-white rounded-full animate-pulse h-2.5"></span>
+                            </div>
+                          ) : (
+                            <span>{idx + 1}</span>
+                          )}
+                        </div>
+
+                        {/* Title */}
+                        <div className="min-w-0">
+                          <h4 className={`text-sm font-bold truncate ${isActive ? 'text-[#005494]' : 'text-slate-800'}`}>
+                            {ch.title}
+                          </h4>
+                          {isActive && (
+                            <span className="text-[11px] font-extrabold text-[#EF7E00] flex items-center gap-1 mt-0.5">
+                              <Sparkles className="w-3 h-3" />
+                              Қазір таңдалған
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Duration & Play action icon */}
+                      <div className="flex items-center gap-2 shrink-0">
+                        {ch.duration && (
+                          <span className="text-xs font-mono font-semibold text-slate-500">
+                            {ch.duration}
+                          </span>
+                        )}
+
+                        <div
+                          className={`w-7 h-7 rounded-lg flex items-center justify-center ${
+                            isActive
+                              ? 'bg-[#EF7E00] text-white'
+                              : 'bg-slate-200/80 text-slate-600'
+                          }`}
+                        >
+                          {isActive && isPlaying ? (
+                            <Pause className="w-3.5 h-3.5 fill-current" />
+                          ) : (
+                            <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
+                          )}
+                        </div>
+                      </div>
+
+                    </button>
+                  );
+                })}
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  );
+};

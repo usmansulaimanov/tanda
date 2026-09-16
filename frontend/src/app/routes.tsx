@@ -20,6 +20,7 @@ const PromoCodePage = lazy(() => import('../features/promo/PromoCodePage').then(
 const AdminPromoCodesPage = lazy(() => import('../features/admin/AdminPromoCodesPage').then((m) => ({ default: m.AdminPromoCodesPage })));
 const AdminPromoBatchDetailPage = lazy(() => import('../features/admin/AdminPromoBatchDetailPage').then((m) => ({ default: m.AdminPromoBatchDetailPage })));
 const AuthPage = lazy(() => import('../features/auth/AuthPage').then((m) => ({ default: m.AuthPage })));
+const AudioPlayerPage = lazy(() => import('../features/player/AudioPlayerPage').then((m) => ({ default: m.AudioPlayerPage })));
 
 const PageLoader = () => (
   <div className="max-w-7xl mx-auto px-4 py-8 flex flex-col gap-6">
@@ -79,6 +80,14 @@ export const router = createBrowserRouter([
         element: (
           <Suspense fallback={<PageLoader />}>
             <BookDetailPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'listen/:id',
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <AudioPlayerPage />
           </Suspense>
         ),
       },

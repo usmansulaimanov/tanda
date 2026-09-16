@@ -639,7 +639,10 @@ export const MyBooksPage: React.FC = () => {
                   {book.hasAudio && (
                     <button
                       type="button"
-                      onClick={() => playBook(book)}
+                      onClick={() => {
+                        playBook(book);
+                        navigate(`/listen/${book.id}`);
+                      }}
                       className="btn-book-action btn-listen"
                     >
                       Тыңдау

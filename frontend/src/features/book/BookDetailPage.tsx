@@ -56,21 +56,20 @@ export const BookDetailPage: React.FC = () => {
   const handleAudioClick = () => {
     if (!isAuthenticated) {
       showToast('Аудионы тыңдау үшін тіркеліңіз немесе аккаунтқа кіріңіз', 'info');
-      navigate(`/login?redirect=${encodeURIComponent(`/book/${book.id}`)}`);
+      navigate(`/login?redirect=${encodeURIComponent(`/listen/${book.id}`)}`);
       return;
     }
     markAsReading(book.id, 1, book.pages ? parseInt(String(book.pages)) : undefined);
-    if (currentBook?.id === book.id) {
-      togglePlay();
-    } else {
-      playBook(book);
+    if (currentBook?.id !== book.id) {
+      playBook(book, 0);
     }
+    navigate(`/listen/${book.id}`);
   };
 
   const handleChapterClick = (idx: number) => {
     if (!isAuthenticated) {
       showToast('Аудионы тыңдау үшін тіркеліңіз немесе аккаунтқа кіріңіз', 'info');
-      navigate(`/login?redirect=${encodeURIComponent(`/book/${book.id}`)}`);
+      navigate(`/login?redirect=${encodeURIComponent(`/listen/${book.id}`)}`);
       return;
     }
     markAsReading(book.id, 1, book.pages ? parseInt(String(book.pages)) : undefined);
@@ -79,6 +78,7 @@ export const BookDetailPage: React.FC = () => {
     } else {
       playChapter(idx);
     }
+    navigate(`/listen/${book.id}`);
   };
 
   const handleToggleSave = async () => {
