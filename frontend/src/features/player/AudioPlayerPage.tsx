@@ -313,11 +313,6 @@ export const AudioPlayerPage: React.FC = () => {
             <span>Артқа қайту</span>
           </button>
 
-          <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1 rounded-full bg-[#005494]/10 text-[#005494] text-[11px] sm:text-xs font-black uppercase tracking-wider">
-            <Headphones className="w-3.5 h-3.5" />
-            <span>Аудиокітап ойнатқышы</span>
-          </div>
-
           <div className="flex items-center gap-2">
             {/* Link to read text */}
             <button
