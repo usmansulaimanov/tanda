@@ -197,3 +197,11 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
     }
   )
 );
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('tanda:logout', () => {
+    try {
+      useAudioPlayerStore.getState().closePlayer();
+    } catch {}
+  });
+}

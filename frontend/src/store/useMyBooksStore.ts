@@ -36,9 +36,25 @@ interface MyBooksState {
 
 function resolveUserKey(explicitKey?: string): string {
   if (explicitKey) return explicitKey.trim().toLowerCase();
-  const currentUser = useAuthStore.getState().user;
-  if (!currentUser) return 'guest';
-  return (currentUser.email || currentUser.id || 'guest').trim().toLowerCase();
+  try {
+    const currentUser = useAuthStore?.getState?.()?.user;
+    if (currentUser?.email || currentUser?.id) {
+      return (currentUser.email || currentUser.id).trim().toLowerCase();
+    }
+  } catch {}
+
+  try {
+    const authStorage = typeof window !== 'undefined' ? localStorage.getItem('tanda_auth_storage') : null;
+    if (authStorage) {
+      const parsed = JSON.parse(authStorage);
+      const user = parsed?.state?.user;
+      if (user?.email || user?.id) {
+        return (user.email || user.id).trim().toLowerCase();
+      }
+    }
+  } catch {}
+
+  return 'guest';
 }
 
 export const useMyBooksStore = create<MyBooksState>()(
@@ -242,9 +258,13 @@ export const useMyBooksStore = create<MyBooksState>()(
 );
 
 // Synchronize currentShelf on user change (login/logout/switch)
-useAuthStore.subscribe((authState) => {
-  const key = (authState.user?.email || authState.user?.id || 'guest').trim().toLowerCase();
-  const state = useMyBooksStore.getState();
-  const current = state.shelfByUser[key] || {};
-  useMyBooksStore.setState({ currentShelf: current });
-});
+if (typeof window !== 'undefined') {
+  setTimeout(() => {
+    useAuthStore?.subscribe?.((authState) => {
+      const key = (authState?.user?.email || authState?.user?.id || 'guest').trim().toLowerCase();
+      const state = useMyBooksStore.getState();
+      const current = state.shelfByUser[key] || {};
+      useMyBooksStore.setState({ currentShelf: current });
+    });
+  }, 0);
+}

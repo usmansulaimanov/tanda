@@ -2,7 +2,6 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { api } from '../lib/api';
 import { User } from '../types';
-import { useAudioPlayerStore } from './useAudioPlayerStore';
 
 interface AuthState {
   user: User | null;
@@ -695,10 +694,10 @@ export const useAuthStore = create<AuthState>()(
       },
 
       logout: () => {
-        // Automatically close audio player and stop playback completely on logout
-        try {
-          useAudioPlayerStore.getState().closePlayer();
-        } catch {}
+        // Automatically notify listeners (e.g. audio player) on logout
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('tanda:logout'));
+        }
 
         localStorage.removeItem('tanda_token');
         api.post('/api/auth/logout').catch(() => {});
