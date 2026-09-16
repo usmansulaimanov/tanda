@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useBookStore } from '../../store/useBookStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { BookCard } from '../../components/ui/BookCard';
@@ -63,10 +63,22 @@ function useCountUp(target: number, duration = 1800): number {
 }
 
 export const LandingPage: React.FC = () => {
+  const location = useLocation();
   const { books } = useBookStore();
   const { role } = useAuthStore();
   const [selectedCat, setSelectedCat] = useState('Бәрі');
   const [search, setSearch] = useState('');
+
+  useEffect(() => {
+    if (location.hash === '#catalog') {
+      const el = document.getElementById('catalog');
+      if (el) {
+        setTimeout(() => {
+          el.scrollIntoView({ behavior: 'smooth' });
+        }, 80);
+      }
+    }
+  }, [location.hash]);
 
   // If logged in as admin, show only the management panel
   if (role === 'admin') {

@@ -17,7 +17,7 @@ public class JwtProperties {
     private String secret = "tanda-super-secret-jwt-key-minimum-256-bits-for-security-2026";
 
     /**
-     * Expiration time in milliseconds (default: 7 days = 604800000 ms, or 24 hours = 86400000 ms).
+     * Expiration time in milliseconds (default: 15 minutes = 900000 ms).
      */
-    private long expiration = 604800000L;
+    private long expiration = 900000L;
 }

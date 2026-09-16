@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useToastStore } from '../../store/useToastStore';
 
@@ -55,16 +55,32 @@ const getPhoneNationalDigitsCount = (val: string): number => {
 
 export const SettingsPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, isAuthenticated, updateProfile, checkUsernameAvailable } = useAuthStore();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { user, isAuthenticated, updateProfile, changePassword, checkUsernameAvailable } = useAuthStore();
   const { showToast } = useToastStore();
 
+  // Navigation mode: 'menu' | 'profile' | 'password'
+  const initialMode = (searchParams.get('mode') as 'profile' | 'password' | null) || 'menu';
+  const [viewMode, setViewMode] = useState<'menu' | 'profile' | 'password'>(initialMode);
+
+  // Profile Form state
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [phoneError, setPhoneError] = useState('');
   const [username, setUsername] = useState('');
   const [usernameError, setUsernameError] = useState('');
-  const [isSaving, setIsSaving] = useState(false);
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+
+  // Password Form state
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
+  const [isSavingPassword, setIsSavingPassword] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated || !user) {
@@ -75,6 +91,15 @@ export const SettingsPage: React.FC = () => {
     setPhone(user.phone ? formatPhoneNumber(user.phone) : '');
     setUsername(user.username ? (user.username.startsWith('@') ? user.username : `@${user.username}`) : '');
   }, [isAuthenticated, user]);
+
+  const switchMode = (mode: 'menu' | 'profile' | 'password') => {
+    setViewMode(mode);
+    if (mode === 'menu') {
+      setSearchParams({});
+    } else {
+      setSearchParams({ mode });
+    }
+  };
 
   if (!isAuthenticated || !user) {
     return (
@@ -157,7 +182,7 @@ export const SettingsPage: React.FC = () => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
       showToast('Аты-жөніңізді енгізіңіз', 'error');
@@ -187,7 +212,7 @@ export const SettingsPage: React.FC = () => {
       }
     }
 
-    setIsSaving(true);
+    setIsSavingProfile(true);
     try {
       const res = await updateProfile({
         name: name.trim(),
@@ -197,17 +222,58 @@ export const SettingsPage: React.FC = () => {
       });
 
       if (res.success) {
-        showToast('Баптаулар сәтті сақталды!', 'success');
+        showToast('Ақпарат сәтті сақталды!', 'success');
         setUsernameError('');
         setPhoneError('');
-        navigate('/');
+        switchMode('menu');
       } else {
         showToast(res.error || 'Сақтау кезінде қате орын алды', 'error');
       }
     } catch {
-      showToast('Баптауларды сақтау мүмкін болмады', 'error');
+      showToast('Ақпаратты сақтау мүмкін болмады', 'error');
     } finally {
-      setIsSaving(false);
+      setIsSavingProfile(false);
+    }
+  };
+
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordError('');
+
+    if (!currentPassword) {
+      setPasswordError('Қазіргі құпиясөзді енгізіңіз');
+      showToast('Қазіргі құпиясөзді енгізіңіз', 'error');
+      return;
+    }
+    if (!newPassword || newPassword.length < 6) {
+      setPasswordError('Жаңа құпиясөз кемінде 6 таңбадан тұруы керек');
+      showToast('Жаңа құпиясөз кемінде 6 таңбадан тұруы керек', 'error');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordError('Жаңа құпиясөздер бір-біріне сәйкес келмейді');
+      showToast('Жаңа құпиясөздер сәйкес келмейді', 'error');
+      return;
+    }
+
+    setIsSavingPassword(true);
+    try {
+      const res = await changePassword(currentPassword, newPassword);
+      if (res.success) {
+        showToast('Пароль сәтті өзгертілді!', 'success');
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+        setPasswordError('');
+        switchMode('menu');
+      } else {
+        setPasswordError(res.error || 'Парольді өзгерту кезінде қате орын алды');
+        showToast(res.error || 'Парольді өзгерту сәтсіз аяқталды', 'error');
+      }
+    } catch {
+      showToast('Парольді өзгерту мүмкін болмады', 'error');
+    } finally {
+      setIsSavingPassword(false);
     }
   };
 
@@ -220,7 +286,13 @@ export const SettingsPage: React.FC = () => {
       <div style={{ marginBottom: '24px' }}>
         <button
           type="button"
-          onClick={() => navigate(-1)}
+          onClick={() => {
+            if (viewMode !== 'menu') {
+              switchMode('menu');
+            } else {
+              navigate(-1);
+            }
+          }}
           style={{
             background: 'none',
             border: 'none',
@@ -233,7 +305,7 @@ export const SettingsPage: React.FC = () => {
             gap: '6px',
           }}
         >
-          ← Артқа оралу
+          ← {viewMode !== 'menu' ? 'Баптаулар мәзіріне оралу' : 'Артқа оралу'}
         </button>
       </div>
 
@@ -248,7 +320,7 @@ export const SettingsPage: React.FC = () => {
         }}
       >
         {/* Header section with user summary */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px', paddingBottom: '28px', borderBottom: '1.5px solid #F1F5F9', marginBottom: '32px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '20px', paddingBottom: '24px', borderBottom: '1.5px solid #F1F5F9', marginBottom: '28px', flexWrap: 'wrap' }}>
           <div
             style={{
               width: '64px',
@@ -301,200 +373,604 @@ export const SettingsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Section title */}
-        <div style={{ marginBottom: '24px' }}>
-          <span className="section-tag" style={{ marginBottom: '8px' }}>Профиль баптаулары</span>
-          <h2 style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-dark)', margin: '4px 0' }}>
-            Жеке деректерді өзгерту
-          </h2>
-          <p style={{ fontSize: '13px', color: 'var(--text-mid)', margin: 0 }}>
-            Аты-жөніңізді, электронды поштаңызды, байланыс нөміріңізді және бірегей юзернейміңізді осы жерден баптаңыз.
-          </p>
-        </div>
-
-        {/* Settings Form */}
-        <form onSubmit={handleSubmit}>
-          
-          {/* Row 1: Name and Username */}
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-              gap: '20px',
-              marginBottom: '20px',
-            }}
-          >
-            {/* Full Name */}
-            <div className="form-group" style={{ margin: 0 }}>
-              <label className="form-label">
-                Аты-жөніңіз <span className="req">*</span>
-              </label>
-              <input
-                type="text"
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Мысалы: Азамат Серікұлы"
-                className="form-input"
-              />
-              <span className="form-hint">Сайтта және пікірлерде көрсетілетін ресми атыңыз</span>
+        {/* 1. MENU VIEW: Two Main Action Buttons */}
+        {viewMode === 'menu' && (
+          <div>
+            <div style={{ marginBottom: '24px' }}>
+              <span className="section-tag" style={{ marginBottom: '8px' }}>Баптаулар бөлімі</span>
+              <h2 style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-dark)', margin: '4px 0' }}>
+                Аккаунт баптаулары
+              </h2>
+              <p style={{ fontSize: '13px', color: 'var(--text-mid)', margin: 0 }}>
+                Өзгеріс енгізу үшін төмендегі батырмалардың бірін таңдаңыз:
+              </p>
             </div>
 
-            {/* Username */}
-            <div className="form-group" style={{ margin: 0 }}>
-              <label className="form-label">
-                Юзернейм (Username) <span className="req">*</span>
-              </label>
-              <div style={{ position: 'relative' }}>
-                <input
-                  type="text"
-                  value={username}
-                  onChange={(e) => handleUsernameChange(e.target.value)}
-                  placeholder="@azamat_01"
-                  className="form-input"
-                  style={{
-                    borderColor: usernameError ? '#DC2626' : undefined,
-                    paddingLeft: '14px',
-                    fontWeight: 700,
-                  }}
-                />
-              </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px', marginBottom: '16px' }}>
               
-              {usernameError ? (
-                <span style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#DC2626', marginTop: '6px' }}>
-                  {usernameError}
-                </span>
-              ) : (
-                <span className="form-hint">
-                  Бір юзернеймді бір ғана адам тіркей алады (латын әріптері мен сандар)
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* Row 2: Email and Phone */}
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-              gap: '20px',
-              marginBottom: '28px',
-            }}
-          >
-            {/* Email */}
-            <div className="form-group" style={{ margin: 0 }}>
-              <label className="form-label">
-                Электронды пошта (Email) <span className="req">*</span>
-              </label>
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="siz@mail.kz"
-                className="form-input"
-              />
-              <span className="form-hint">Сайтқа кіру және хабарламалар үшін қолданылады</span>
-            </div>
-
-            {/* Phone number */}
-            <div className="form-group" style={{ margin: 0 }}>
-              <label className="form-label">
-                Телефон нөмірі
-              </label>
-              <div style={{ position: 'relative' }}>
-                <input
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => handlePhoneChange(e.target.value)}
-                  placeholder="+7 (777) 123-45-67"
-                  className="form-input"
-                  style={{
-                    borderColor: phoneError ? '#DC2626' : undefined,
-                    fontWeight: phone ? 700 : 500,
-                    letterSpacing: phone ? '0.03em' : 'normal',
-                    paddingRight: phone ? '36px' : undefined,
-                  }}
-                />
-                {phone && (
-                  <button
-                    type="button"
-                    onClick={() => handlePhoneChange('')}
-                    title="Нөмірді өшіру"
+              {/* Button 1: Ақпаратты өңдеу */}
+              <button
+                type="button"
+                onClick={() => switchMode('profile')}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '22px 24px',
+                  borderRadius: '16px',
+                  background: '#FFFFFF',
+                  border: '1.5px solid #CBD5E1',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--blue)';
+                  e.currentTarget.style.background = '#F8FAFC';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 84, 148, 0.12)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = '#CBD5E1';
+                  e.currentTarget.style.background = '#FFFFFF';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.04)';
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                  <div
                     style={{
-                      position: 'absolute',
-                      right: '10px',
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      background: '#E2E8F0',
-                      border: 'none',
-                      borderRadius: '50%',
-                      width: '22px',
-                      height: '22px',
-                      fontSize: '12px',
-                      fontWeight: 700,
-                      color: '#475569',
-                      cursor: 'pointer',
+                      width: '48px',
+                      height: '48px',
+                      borderRadius: '12px',
+                      background: 'rgba(0, 84, 148, 0.1)',
+                      color: 'var(--blue)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      lineHeight: 1,
+                      flexShrink: 0,
                     }}
                   >
-                    ✕
-                  </button>
-                )}
-              </div>
-              {phoneError ? (
-                <span style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#DC2626', marginTop: '6px' }}>
-                  {phoneError}
-                </span>
-              ) : (
-                <span className="form-hint">
-                  Тек сандар жазылады: +7 (777) 123-45-67 (толық жазыңыз немесе бос қалдырыңыз)
-                </span>
-              )}
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-dark)', margin: '0 0 4px 0' }}>
+                      Ақпаратты өңдеу
+                    </h3>
+                    <p style={{ fontSize: '13px', color: 'var(--text-mid)', margin: 0, lineHeight: 1.4 }}>
+                      Аты-жөні, пошта, телефон және юзернеймді өзгерту
+                    </p>
+                  </div>
+                </div>
+                <div style={{ color: 'var(--blue)', paddingLeft: '12px' }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                  </svg>
+                </div>
+              </button>
+
+              {/* Button 2: Парольді өзгерту */}
+              <button
+                type="button"
+                onClick={() => switchMode('password')}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '22px 24px',
+                  borderRadius: '16px',
+                  background: '#FFFFFF',
+                  border: '1.5px solid #CBD5E1',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--blue)';
+                  e.currentTarget.style.background = '#F8FAFC';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 84, 148, 0.12)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = '#CBD5E1';
+                  e.currentTarget.style.background = '#FFFFFF';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.04)';
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                  <div
+                    style={{
+                      width: '48px',
+                      height: '48px',
+                      borderRadius: '12px',
+                      background: 'rgba(239, 126, 0, 0.12)',
+                      color: 'var(--orange)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-dark)', margin: '0 0 4px 0' }}>
+                      Парольді өзгерту
+                    </h3>
+                    <p style={{ fontSize: '13px', color: 'var(--text-mid)', margin: 0, lineHeight: 1.4 }}>
+                      Қауіпсіздік үшін жаңа құпиясөз орнату
+                    </p>
+                  </div>
+                </div>
+                <div style={{ color: 'var(--blue)', paddingLeft: '12px' }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                  </svg>
+                </div>
+              </button>
+
             </div>
           </div>
+        )}
 
-          {/* Action buttons */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '12px', paddingTop: '20px', borderTop: '1.5px solid #F1F5F9' }}>
-            <button
-              type="button"
-              onClick={() => navigate(-1)}
-              style={{
-                padding: '12px 24px',
-                borderRadius: '50px',
-                background: '#F1F5F9',
-                color: 'var(--text-mid)',
-                border: 'none',
-                fontSize: '14px',
-                fontWeight: 700,
-                cursor: 'pointer',
-              }}
-            >
-              Бас тарту
-            </button>
+        {/* 2. SUB-PAGE 1: Ақпаратты өңдеу (Edit Info) */}
+        {viewMode === 'profile' && (
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
+              <div>
+                <span className="section-tag" style={{ marginBottom: '8px' }}>Профиль баптаулары</span>
+                <h2 style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-dark)', margin: '4px 0' }}>
+                  Ақпаратты өңдеу
+                </h2>
+                <p style={{ fontSize: '13px', color: 'var(--text-mid)', margin: 0 }}>
+                  Аты-жөніңізді, электронды поштаңызды, байланыс нөміріңізді және бірегей юзернейміңізді осы жерден баптаңыз.
+                </p>
+              </div>
 
-            <button
-              type="submit"
-              disabled={isSaving || Boolean(usernameError) || Boolean(phoneError)}
-              className="btn-primary"
-              style={{
-                padding: '12px 32px',
-                borderRadius: '50px',
-                fontSize: '14px',
-                fontWeight: 700,
-                background: 'var(--blue)',
-                opacity: isSaving || Boolean(usernameError) || Boolean(phoneError) ? 0.6 : 1,
-                cursor: isSaving || Boolean(usernameError) || Boolean(phoneError) ? 'not-allowed' : 'pointer',
-              }}
-            >
-              {isSaving ? 'Сақталуда...' : 'Өзгерістерді сақтау'}
-            </button>
+              <button
+                type="button"
+                onClick={() => switchMode('menu')}
+                style={{
+                  background: '#F1F5F9',
+                  border: '1px solid #CBD5E1',
+                  borderRadius: '50px',
+                  padding: '7px 16px',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  color: 'var(--text-mid)',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                ← Баптауларға қайту
+              </button>
+            </div>
+
+            <form onSubmit={handleProfileSubmit}>
+              {/* Row 1: Name and Username */}
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                  gap: '20px',
+                  marginBottom: '20px',
+                }}
+              >
+                {/* Full Name */}
+                <div className="form-group" style={{ margin: 0 }}>
+                  <label className="form-label">
+                    Аты-жөніңіз <span className="req">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Мысалы: Азамат Серікұлы"
+                    className="form-input"
+                  />
+                  <span className="form-hint">Сайтта және пікірлерде көрсетілетін ресми атыңыз</span>
+                </div>
+
+                {/* Username */}
+                <div className="form-group" style={{ margin: 0 }}>
+                  <label className="form-label">
+                    Юзернейм (Username) <span className="req">*</span>
+                  </label>
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type="text"
+                      value={username}
+                      onChange={(e) => handleUsernameChange(e.target.value)}
+                      placeholder="@azamat_01"
+                      className="form-input"
+                      style={{
+                        borderColor: usernameError ? '#DC2626' : undefined,
+                        paddingLeft: '14px',
+                        fontWeight: 700,
+                      }}
+                    />
+                  </div>
+                  
+                  {usernameError ? (
+                    <span style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#DC2626', marginTop: '6px' }}>
+                      {usernameError}
+                    </span>
+                  ) : (
+                    <span className="form-hint">
+                      Бір юзернеймді бір ғана адам тіркей алады (латын әріптері мен сандар)
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Row 2: Email and Phone */}
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                  gap: '20px',
+                  marginBottom: '28px',
+                }}
+              >
+                {/* Email */}
+                <div className="form-group" style={{ margin: 0 }}>
+                  <label className="form-label">
+                    Электронды пошта (Email) <span className="req">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="siz@mail.kz"
+                    className="form-input"
+                  />
+                  <span className="form-hint">Сайтқа кіру және хабарламалар үшін қолданылады</span>
+                </div>
+
+                {/* Phone number */}
+                <div className="form-group" style={{ margin: 0 }}>
+                  <label className="form-label">
+                    Телефон нөмірі
+                  </label>
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => handlePhoneChange(e.target.value)}
+                      placeholder="+7 (777) 123-45-67"
+                      className="form-input"
+                      style={{
+                        borderColor: phoneError ? '#DC2626' : undefined,
+                        fontWeight: phone ? 700 : 500,
+                        letterSpacing: phone ? '0.03em' : 'normal',
+                        paddingRight: phone ? '36px' : undefined,
+                      }}
+                    />
+                    {phone && (
+                      <button
+                        type="button"
+                        onClick={() => handlePhoneChange('')}
+                        title="Нөмірді өшіру"
+                        style={{
+                          position: 'absolute',
+                          right: '10px',
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          background: '#E2E8F0',
+                          border: 'none',
+                          borderRadius: '50%',
+                          width: '22px',
+                          height: '22px',
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          color: '#475569',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          lineHeight: 1,
+                        }}
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+                  {phoneError ? (
+                    <span style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#DC2626', marginTop: '6px' }}>
+                      {phoneError}
+                    </span>
+                  ) : (
+                    <span className="form-hint">
+                      Тек сандар жазылады: +7 (777) 123-45-67 (толық жазыңыз немесе бос қалдырыңыз)
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Action buttons */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '12px', paddingTop: '20px', borderTop: '1.5px solid #F1F5F9' }}>
+                <button
+                  type="button"
+                  onClick={() => switchMode('menu')}
+                  style={{
+                    padding: '12px 24px',
+                    borderRadius: '50px',
+                    background: '#F1F5F9',
+                    color: 'var(--text-mid)',
+                    border: 'none',
+                    fontSize: '14px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Бас тарту
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={isSavingProfile || Boolean(usernameError) || Boolean(phoneError)}
+                  className="btn-primary"
+                  style={{
+                    padding: '12px 32px',
+                    borderRadius: '50px',
+                    fontSize: '14px',
+                    fontWeight: 700,
+                    background: 'var(--blue)',
+                    opacity: isSavingProfile || Boolean(usernameError) || Boolean(phoneError) ? 0.6 : 1,
+                    cursor: isSavingProfile || Boolean(usernameError) || Boolean(phoneError) ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  {isSavingProfile ? 'Сақталуда...' : 'Өзгерістерді сақтау'}
+                </button>
+              </div>
+            </form>
           </div>
+        )}
 
-        </form>
+        {/* 3. SUB-PAGE 2: Парольді өзгерту (Change Password) */}
+        {viewMode === 'password' && (
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
+              <div>
+                <span className="section-tag" style={{ marginBottom: '8px' }}>Қауіпсіздік</span>
+                <h2 style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-dark)', margin: '4px 0' }}>
+                  Парольді өзгерту
+                </h2>
+                <p style={{ fontSize: '13px', color: 'var(--text-mid)', margin: 0 }}>
+                  Аккаунтыңыздың қауіпсіздігі үшін сенімді әрі күрделі құпиясөзді таңдаңыз.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => switchMode('menu')}
+                style={{
+                  background: '#F1F5F9',
+                  border: '1px solid #CBD5E1',
+                  borderRadius: '50px',
+                  padding: '7px 16px',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  color: 'var(--text-mid)',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                ← Баптауларға қайту
+              </button>
+            </div>
+
+            <form onSubmit={handlePasswordSubmit}>
+              <div style={{ maxWidth: '480px', display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '28px' }}>
+                
+                {/* Current Password */}
+                <div className="form-group" style={{ margin: 0 }}>
+                  <label className="form-label">
+                    Қазіргі құпиясөз <span className="req">*</span>
+                  </label>
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type={showCurrentPassword ? 'text' : 'password'}
+                      required
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="form-input"
+                      style={{ paddingRight: '42px' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                      style={{
+                        position: 'absolute',
+                        right: '12px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'none',
+                        border: 'none',
+                        color: '#64748B',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                      title={showCurrentPassword ? 'Жасыру' : 'Көрсету'}
+                    >
+                      {showCurrentPassword ? (
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                          <line x1="1" y1="1" x2="23" y2="23"></line>
+                        </svg>
+                      ) : (
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                          <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+                  <span className="form-hint">Жеке аккаунтыңыздың қазіргі құпиясөзі</span>
+                </div>
+
+                {/* New Password */}
+                <div className="form-group" style={{ margin: 0 }}>
+                  <label className="form-label">
+                    Жаңа құпиясөз <span className="req">*</span>
+                  </label>
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type={showNewPassword ? 'text' : 'password'}
+                      required
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="Кемінде 6 таңба"
+                      className="form-input"
+                      style={{ paddingRight: '42px' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                      style={{
+                        position: 'absolute',
+                        right: '12px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'none',
+                        border: 'none',
+                        color: '#64748B',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                      title={showNewPassword ? 'Жасыру' : 'Көрсету'}
+                    >
+                      {showNewPassword ? (
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                          <line x1="1" y1="1" x2="23" y2="23"></line>
+                        </svg>
+                      ) : (
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                          <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+                  <span className="form-hint">Кемінде 6 таңбадан тұруы керек</span>
+                </div>
+
+                {/* Confirm New Password */}
+                <div className="form-group" style={{ margin: 0 }}>
+                  <label className="form-label">
+                    Жаңа құпиясөзді қайталау <span className="req">*</span>
+                  </label>
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      required
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="Жаңа құпиясөзді қайталаңыз"
+                      className="form-input"
+                      style={{ paddingRight: '42px' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      style={{
+                        position: 'absolute',
+                        right: '12px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'none',
+                        border: 'none',
+                        color: '#64748B',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                      title={showConfirmPassword ? 'Жасыру' : 'Көрсету'}
+                    >
+                      {showConfirmPassword ? (
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                          <line x1="1" y1="1" x2="23" y2="23"></line>
+                        </svg>
+                      ) : (
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                          <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {passwordError && (
+                  <div style={{ padding: '10px 14px', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '8px', color: '#DC2626', fontSize: '13px', fontWeight: 600 }}>
+                    {passwordError}
+                  </div>
+                )}
+              </div>
+
+              {/* Action buttons */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '12px', paddingTop: '20px', borderTop: '1.5px solid #F1F5F9' }}>
+                <button
+                  type="button"
+                  onClick={() => switchMode('menu')}
+                  style={{
+                    padding: '12px 24px',
+                    borderRadius: '50px',
+                    background: '#F1F5F9',
+                    color: 'var(--text-mid)',
+                    border: 'none',
+                    fontSize: '14px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Бас тарту
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={isSavingPassword || !currentPassword || !newPassword || !confirmPassword}
+                  className="btn-primary"
+                  style={{
+                    padding: '12px 32px',
+                    borderRadius: '50px',
+                    fontSize: '14px',
+                    fontWeight: 700,
+                    background: 'var(--blue)',
+                    opacity: isSavingPassword || !currentPassword || !newPassword || !confirmPassword ? 0.6 : 1,
+                    cursor: isSavingPassword || !currentPassword || !newPassword || !confirmPassword ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  {isSavingPassword ? 'Сақталуда...' : 'Парольді жаңарту'}
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
       </div>
 
     </div>

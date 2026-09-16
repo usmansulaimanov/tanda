@@ -97,7 +97,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialMode }) => {
       } else {
         await loginAsClient('reader@tanda.kz', 'Оқырман');
         showToast('Оқырман (Reader) аккаунтымен кірдіңіз', 'success');
-        navigate(redirectUrl === '/' ? '/catalog' : redirectUrl);
+        navigate(redirectUrl);
       }
     } catch {
       showToast('Жүйеге кіру мүмкін болмады', 'error');

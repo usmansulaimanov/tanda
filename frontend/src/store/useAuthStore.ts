@@ -18,7 +18,10 @@ interface AuthState {
   logout: () => void;
   restoreSession: () => Promise<void>;
   updateProfile: (data: { name: string; email: string; phone?: string; username?: string }) => Promise<{ success: boolean; error?: string }>;
-  checkUsernameAvailable: (username: string) => { available: boolean; error?: string };
+  changePassword: (currentPassword: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
+  updateUserByAdmin: (userId: string, data: { name: string; email: string; phone?: string; username?: string; idNumber?: string; role?: 'admin' | 'client'; isActive?: boolean }) => Promise<{ success: boolean; error?: string }>;
+  getUserById: (userId: string) => User | undefined;
+  checkUsernameAvailable: (username: string, excludeUserId?: string) => { available: boolean; error?: string };
 
   // Modal helpers
   openAuthModal: (mode?: 'login' | 'signup') => void;
@@ -88,7 +91,7 @@ export const useAuthStore = create<AuthState>()(
         set({ authModalOpen: false });
       },
 
-      checkUsernameAvailable: (username: string) => {
+      checkUsernameAvailable: (username: string, excludeUserId?: string) => {
         const trimmed = username.trim().toLowerCase().replace(/^@/, '');
         if (!trimmed) {
           return { available: true };
@@ -100,10 +103,10 @@ export const useAuthStore = create<AuthState>()(
           return { available: false, error: 'Юзернеймде тек латын әріптері, сандар, _ және . рұқсат етілген' };
         }
 
-        const currentUser = get().user;
+        const effectiveExcludeId = excludeUserId !== undefined ? excludeUserId : get().user?.id;
         const allUsers = getStoredUsers();
         const existing = allUsers.find(
-          (u) => (u.username?.toLowerCase() === trimmed) && u.id !== currentUser?.id
+          (u) => (u.username?.toLowerCase() === trimmed) && u.id !== effectiveExcludeId
         );
 
         if (existing) {
@@ -111,6 +114,101 @@ export const useAuthStore = create<AuthState>()(
         }
 
         return { available: true };
+      },
+
+      getUserById: (userId: string): User | undefined => {
+        const allUsers = getStoredUsers();
+        return allUsers.find((u) => u.id === userId);
+      },
+
+      updateUserByAdmin: async (
+        userId: string,
+        data: { name: string; email: string; phone?: string; username?: string; idNumber?: string; role?: 'admin' | 'client'; isActive?: boolean }
+      ) => {
+        const allUsers = getStoredUsers();
+        const existingIdx = allUsers.findIndex((u) => u.id === userId);
+        if (existingIdx === -1) {
+          return { success: false, error: 'Оқырман дерекқорынан табылмады' };
+        }
+
+        const targetUser = allUsers[existingIdx];
+        const cleanName = data.name.trim();
+        const cleanEmail = data.email.trim().toLowerCase();
+        const cleanPhone = data.phone?.trim() || '';
+        const rawUsername = data.username?.trim().toLowerCase().replace(/^@/, '') || '';
+        const cleanIdNumber = data.idNumber?.trim() || targetUser.idNumber;
+        const cleanRole = data.role || targetUser.role;
+
+        if (!cleanName) {
+          return { success: false, error: 'Аты-жөнін енгізіңіз' };
+        }
+        if (!cleanEmail) {
+          return { success: false, error: 'Электронды поштасын енгізіңіз' };
+        }
+
+        // Validate email uniqueness across other users
+        const emailConflict = allUsers.find(
+          (u) => u.email.toLowerCase() === cleanEmail && u.id !== userId
+        );
+        if (emailConflict) {
+          return { success: false, error: 'Бұл электронды поштамен басқа оқырман тіркелген' };
+        }
+
+        // Validate phone format: either empty or 10 national digits
+        if (cleanPhone) {
+          const rawDigits = cleanPhone.replace(/\D/g, '');
+          let national = rawDigits;
+          if (rawDigits.length > 10 && (rawDigits.startsWith('7') || rawDigits.startsWith('8'))) {
+            national = rawDigits.substring(1, 11);
+          } else if (rawDigits === '8') {
+            national = '';
+          } else {
+            national = rawDigits.substring(0, 10);
+          }
+          if (national.length !== 10) {
+            return { success: false, error: 'Телефон нөмірін толық жазыңыз (+7 (777) 123-45-67) немесе бос қалдырыңыз' };
+          }
+        }
+
+        // Validate username uniqueness
+        if (rawUsername) {
+          const check = get().checkUsernameAvailable(rawUsername, userId);
+          if (!check.available) {
+            return { success: false, error: check.error || 'Бұл юзернейм бос емес' };
+          }
+        }
+
+        const updatedUser: User = {
+          ...targetUser,
+          name: cleanName,
+          email: cleanEmail,
+          phone: cleanPhone,
+          username: rawUsername || undefined,
+          idNumber: cleanIdNumber,
+          role: cleanRole,
+          isActive: data.isActive !== undefined ? data.isActive : targetUser.isActive,
+        };
+
+        // Update registry
+        allUsers[existingIdx] = updatedUser;
+        saveStoredUsers(allUsers);
+
+        // If the current logged-in user in session is this user, update active auth user immediately!
+        const currentUser = get().user;
+        if (currentUser && currentUser.id === userId) {
+          set({ user: updatedUser, role: updatedUser.role });
+        }
+
+        // Optional sync with backend
+        try {
+          await api.patch(`/api/admin/users/${userId}`, {
+            name: cleanName,
+            role: cleanRole,
+            isActive: updatedUser.isActive,
+          });
+        } catch {}
+
+        return { success: true };
       },
 
       updateProfile: async (data: { name: string; email: string; phone?: string; username?: string }) => {
@@ -183,6 +281,29 @@ export const useAuthStore = create<AuthState>()(
             email: cleanEmail,
             phone: cleanPhone,
             username: rawUsername,
+          });
+        } catch {}
+
+        return { success: true };
+      },
+
+      changePassword: async (currentPassword: string, newPassword: string) => {
+        const currentUser = get().user;
+        if (!currentUser) {
+          return { success: false, error: 'Жүйеге кірмегенсіз' };
+        }
+        if (!currentPassword.trim()) {
+          return { success: false, error: 'Қазіргі құпиясөзді енгізіңіз' };
+        }
+        if (!newPassword || newPassword.length < 6) {
+          return { success: false, error: 'Жаңа құпиясөз кемінде 6 таңбадан тұруы керек' };
+        }
+
+        // Try backend sync if available
+        try {
+          await api.put('/api/auth/password', {
+            currentPassword,
+            newPassword,
           });
         } catch {}
 

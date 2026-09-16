@@ -7,6 +7,7 @@ import com.tanda.dto.auth.RegisterRequestDto;
 import com.tanda.dto.user.UserResponseDto;
 import com.tanda.entity.User;
 import com.tanda.exception.ResourceNotFoundException;
+import com.tanda.exception.UnauthorizedException;
 import com.tanda.repository.UserRepository;
 import com.tanda.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
@@ -27,9 +28,12 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final GoogleTokenVerifier googleTokenVerifier;
+    private final RefreshTokenService refreshTokenService;
+
+    public record AuthResult(AuthResponseDto responseDto, String rawRefreshToken) {}
 
     @Transactional
-    public AuthResponseDto loginWithGoogle(String credential) {
+    public AuthResult loginWithGoogle(String credential, String userAgent, String ipAddress) {
         // Step 1: Verify Google ID token signature, audience, expiry
         GoogleIdToken.Payload payload = googleTokenVerifier.verify(credential);
 
@@ -94,14 +98,17 @@ public class AuthService {
 
         user = userRepository.save(user);
         String token = jwtTokenProvider.generateToken(user);
-        return AuthResponseDto.builder()
+        String rawRefreshToken = refreshTokenService.createRefreshToken(user, userAgent, ipAddress);
+
+        AuthResponseDto dto = AuthResponseDto.builder()
                 .token(token)
                 .user(toUserDto(user))
                 .build();
+        return new AuthResult(dto, rawRefreshToken);
     }
 
-    @Transactional(readOnly = true)
-    public AuthResponseDto login(LoginRequestDto dto) {
+    @Transactional
+    public AuthResult login(LoginRequestDto dto, String userAgent, String ipAddress) {
         String email = dto.getEmail().trim().toLowerCase();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BadCredentialsException("Пайдаланушы табылмады немесе құпия сөз қате"));
@@ -115,14 +122,17 @@ public class AuthService {
         }
 
         String token = jwtTokenProvider.generateToken(user);
-        return AuthResponseDto.builder()
+        String rawRefreshToken = refreshTokenService.createRefreshToken(user, userAgent, ipAddress);
+
+        AuthResponseDto responseDto = AuthResponseDto.builder()
                 .token(token)
                 .user(toUserDto(user))
                 .build();
+        return new AuthResult(responseDto, rawRefreshToken);
     }
 
     @Transactional
-    public AuthResponseDto register(RegisterRequestDto dto) {
+    public AuthResult register(RegisterRequestDto dto, String userAgent, String ipAddress) {
         String email = dto.getEmail().trim().toLowerCase();
 
         if (userRepository.existsByEmail(email)) {
@@ -146,10 +156,43 @@ public class AuthService {
         user = userRepository.save(user);
 
         String token = jwtTokenProvider.generateToken(user);
-        return AuthResponseDto.builder()
+        String rawRefreshToken = refreshTokenService.createRefreshToken(user, userAgent, ipAddress);
+
+        AuthResponseDto responseDto = AuthResponseDto.builder()
                 .token(token)
                 .user(toUserDto(user))
                 .build();
+        return new AuthResult(responseDto, rawRefreshToken);
+    }
+
+    @Transactional
+    public AuthResponseDto loginWithGoogle(String credential) {
+        return loginWithGoogle(credential, null, null).responseDto();
+    }
+
+    @Transactional
+    public AuthResponseDto login(LoginRequestDto dto) {
+        return login(dto, null, null).responseDto();
+    }
+
+    @Transactional
+    public AuthResponseDto register(RegisterRequestDto dto) {
+        return register(dto, null, null).responseDto();
+    }
+
+    @Transactional(noRollbackFor = UnauthorizedException.class)
+    public AuthResult refreshToken(String rawRefreshToken, String userAgent, String ipAddress) {
+        RefreshTokenService.TokenRotationResult result = refreshTokenService.rotateRefreshToken(rawRefreshToken, userAgent, ipAddress);
+        AuthResponseDto responseDto = AuthResponseDto.builder()
+                .token(result.newAccessToken())
+                .user(toUserDto(result.user()))
+                .build();
+        return new AuthResult(responseDto, result.newRawRefreshToken());
+    }
+
+    @Transactional
+    public void logout(String rawRefreshToken) {
+        refreshTokenService.revokeToken(rawRefreshToken);
     }
 
     @Transactional(readOnly = true)

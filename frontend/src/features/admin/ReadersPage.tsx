@@ -197,7 +197,7 @@ export const ReadersPage: React.FC = () => {
                   <th>Электрондық поштасы</th>
                   <th style={{ width: '130px', whiteSpace: 'nowrap' }}>Тіркелген күні</th>
                   <th style={{ width: '110px', whiteSpace: 'nowrap' }}>Мәртебесі</th>
-                  <th style={{ width: '90px', textAlign: 'right', whiteSpace: 'nowrap' }}>Әрекеттер</th>
+                  <th style={{ width: '160px', textAlign: 'right', whiteSpace: 'nowrap' }}>Әрекеттер</th>
                 </tr>
               </thead>
               <tbody>
@@ -294,24 +294,50 @@ export const ReadersPage: React.FC = () => {
                       </td>
 
                       {/* Actions */}
-                      <td style={{ textAlign: 'right' }}>
-                        <button
-                          type="button"
-                          onClick={() => setUserToDelete(reader)}
-                          style={{
-                            padding: '6px 12px',
-                            fontSize: '12px',
-                            fontWeight: 700,
-                            background: '#FEF2F2',
-                            color: '#B91C1C',
-                            borderRadius: '6px',
-                            border: '1px solid #FECACA',
-                            cursor: 'pointer',
-                            transition: 'all 0.15s',
-                          }}
-                        >
-                          Өшіру
-                        </button>
+                      <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-end' }}>
+                          <Link
+                            to={`/admin/readers/${reader.id}/edit`}
+                            style={{
+                              padding: '6px 12px',
+                              fontSize: '12px',
+                              fontWeight: 700,
+                              background: '#EFF6FF',
+                              color: 'var(--blue)',
+                              borderRadius: '6px',
+                              border: '1px solid #BFDBFE',
+                              textDecoration: 'none',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              transition: 'all 0.15s',
+                              cursor: 'pointer',
+                            }}
+                          >
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                            </svg>
+                            Өңдеу
+                          </Link>
+                          <button
+                            type="button"
+                            onClick={() => setUserToDelete(reader)}
+                            style={{
+                              padding: '6px 12px',
+                              fontSize: '12px',
+                              fontWeight: 700,
+                              background: '#FEF2F2',
+                              color: '#B91C1C',
+                              borderRadius: '6px',
+                              border: '1px solid #FECACA',
+                              cursor: 'pointer',
+                              transition: 'all 0.15s',
+                            }}
+                          >
+                            Өшіру
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );

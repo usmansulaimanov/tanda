@@ -251,14 +251,37 @@ export const Header: React.FC = () => {
           {role !== 'admin' && (
             <ul className="nav-links" style={{ display: 'flex', alignItems: 'center', gap: '24px', margin: 0, padding: 0, listStyle: 'none', flexShrink: 0 }}>
               <li>
-                <Link to="/" className={location.pathname === '/' ? 'active' : ''} style={{ textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}>
+                <Link
+                  to="/"
+                  onClick={() => {
+                    if (location.pathname === '/') {
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
+                  }}
+                  className={location.pathname === '/' && !location.hash ? 'active' : ''}
+                  style={{ textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}
+                >
                   Басты бет
                 </Link>
               </li>
               <li>
-                <Link to="/catalog" className={location.pathname === '/catalog' ? 'active' : ''} style={{ textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}>
+                <a
+                  href="/#catalog"
+                  onClick={(e) => {
+                    if (location.pathname === '/') {
+                      e.preventDefault();
+                      const el = document.getElementById('catalog');
+                      if (el) {
+                        el.scrollIntoView({ behavior: 'smooth' });
+                        window.history.replaceState(null, '', '/#catalog');
+                      }
+                    }
+                  }}
+                  className={location.hash === '#catalog' ? 'active' : ''}
+                  style={{ textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}
+                >
                   Кітаптар қоры
-                </Link>
+                </a>
               </li>
             </ul>
           )}

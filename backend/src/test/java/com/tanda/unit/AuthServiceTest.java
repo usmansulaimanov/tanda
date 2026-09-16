@@ -9,6 +9,7 @@ import com.tanda.repository.UserRepository;
 import com.tanda.security.JwtTokenProvider;
 import com.tanda.service.AuthService;
 import com.tanda.service.GoogleTokenVerifier;
+import com.tanda.service.RefreshTokenService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -40,6 +41,9 @@ class AuthServiceTest {
     @Mock
     private GoogleTokenVerifier googleTokenVerifier;
 
+    @Mock
+    private RefreshTokenService refreshTokenService;
+
     private PasswordEncoder passwordEncoder;
     private JwtTokenProvider jwtTokenProvider;
 
@@ -54,7 +58,7 @@ class AuthServiceTest {
         jwtTokenProvider = new JwtTokenProvider(props);
         jwtTokenProvider.init();
 
-        authService = new AuthService(userRepository, passwordEncoder, jwtTokenProvider, googleTokenVerifier);
+        authService = new AuthService(userRepository, passwordEncoder, jwtTokenProvider, googleTokenVerifier, refreshTokenService);
     }
 
     // ============================

@@ -44,3 +44,7 @@ playwright-report/
 **/playwright-report/
 blob-report/
 **/blob-report/
+
+# Agents & scratch
+.agents/
+**/scratch/
