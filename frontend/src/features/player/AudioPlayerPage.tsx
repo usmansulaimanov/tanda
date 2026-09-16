@@ -314,17 +314,6 @@ export const AudioPlayerPage: React.FC = () => {
           </button>
 
           <div className="flex items-center gap-2">
-            {/* Link to read text */}
-            <button
-              type="button"
-              onClick={() => navigate(`/read/${activeBook.id}`)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer"
-              title="Кітапты мәтін түрінде оқу"
-            >
-              <BookOpen className="w-3.5 h-3.5 text-[#005494]" />
-              <span className="hidden sm:inline">Кітапты оқу</span>
-            </button>
-
             {/* Quick Bookmark */}
             <button
               type="button"
