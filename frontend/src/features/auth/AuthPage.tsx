@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, User as UserIcon, ArrowRight, ArrowLeft, Shield, CheckCircle2 } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, User as UserIcon, ArrowRight, ArrowLeft, Shield, CheckCircle2, Tag, Gift } from 'lucide-react';
 import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
 import { useAuthStore } from '../../store/useAuthStore';
+import { usePromoStore } from '../../store/usePromoStore';
 import { useToastStore } from '../../store/useToastStore';
 import tandaLogo from '../../assets/tanda-logo.png';
 
@@ -21,11 +22,13 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialMode }) => {
   const mode: 'login' | 'signup' = initialMode || (isSignupPath ? 'signup' : 'login');
 
   const { isAuthenticated, user, role, isLoading, login, register, loginAsAdmin, loginAsClient, loginWithGoogle } = useAuthStore();
+  const { activatePromoCode } = usePromoStore();
   const { showToast } = useToastStore();
 
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
+  const [promoCode, setPromoCode] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -43,7 +46,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialMode }) => {
   // Clear error when mode or inputs change
   useEffect(() => {
     setErrorMessage('');
-  }, [location.pathname, email, password, name]);
+  }, [location.pathname, email, password, name, promoCode]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,6 +55,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialMode }) => {
     const cleanEmail = email.trim().toLowerCase();
     const cleanPassword = password.trim();
     const cleanName = name.trim();
+    const cleanPromo = promoCode.trim().toUpperCase();
 
     if (!cleanEmail) {
       setErrorMessage('Электронды поштаны енгізіңіз');
@@ -72,7 +76,24 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialMode }) => {
         showToast('Жүйеге сәтті кірдіңіз!', 'success');
       } else {
         await register(cleanName, cleanEmail, cleanPassword);
-        showToast(`Қош келдіңіз, ${cleanName}!`, 'success');
+        
+        // Auto-activate promo code if provided during registration
+        if (cleanPromo) {
+          const registeredUser = useAuthStore.getState().user;
+          const promoRes = activatePromoCode(cleanPromo, {
+            id: registeredUser?.id || `user-${Date.now()}`,
+            name: cleanName,
+            email: cleanEmail,
+          });
+
+          if (promoRes.success) {
+            showToast(`Қош келдіңіз, ${cleanName}! Промокод сәтті іске қосылды: «${promoRes.rewardTitle}»`, 'success');
+          } else {
+            showToast(`Қош келдіңіз, ${cleanName}! Промокод қатесі: ${promoRes.error}`, 'info');
+          }
+        } else {
+          showToast(`Қош келдіңіз, ${cleanName}!`, 'success');
+        }
       }
 
       const updatedRole = useAuthStore.getState().role;
@@ -196,7 +217,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialMode }) => {
             {mode === 'signup' && (
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">
-                  Аты-жөніңіз <span className="text-rose-500">*</span>
+                  Аты-жөніңіз
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -217,7 +238,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialMode }) => {
             {/* Email Field */}
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">
-                Email <span className="text-rose-500">*</span>
+                Email
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -237,7 +258,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialMode }) => {
             {/* Password Field */}
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">
-                Құпиясөз <span className="text-rose-500">*</span>
+                Құпиясөз
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -261,6 +282,27 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialMode }) => {
                 </button>
               </div>
             </div>
+
+            {/* Promo Code Input */}
+            {mode === 'signup' && (
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">
+                  Промокод
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                    <Tag size={18} />
+                  </div>
+                  <input
+                    type="text"
+                    value={promoCode}
+                    onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                    placeholder="Промокод"
+                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-[#0057A8] focus:ring-4 focus:ring-[#0057A8]/10 transition-all uppercase tracking-wider font-mono"
+                  />
+                </div>
+              </div>
+            )}
 
             {/* Forgot password link */}
             {mode === 'login' && (

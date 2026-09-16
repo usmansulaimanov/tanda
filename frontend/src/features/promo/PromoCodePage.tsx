@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/useAuthStore';
 import { usePromoStore } from '../../store/usePromoStore';
@@ -6,7 +6,7 @@ import { useToastStore } from '../../store/useToastStore';
 
 export const PromoCodePage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, isAuthenticated, openAuthModal } = useAuthStore();
+  const { user, role, isAuthenticated, openAuthModal } = useAuthStore();
   const { activatePromoCode, getUserActivatedPromos } = usePromoStore();
   const { showToast } = useToastStore();
 
@@ -14,7 +14,20 @@ export const PromoCodePage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activatedReward, setActivatedReward] = useState<string | null>(null);
 
+  // Authentication protection: only registered readers can access promo codes
+  useEffect(() => {
+    if (!isAuthenticated || !user) {
+      showToast('Промокодты белсендіру үшін алдымен тіркеліңіз немесе жүйеге кіріңіз!', 'info');
+      openAuthModal('signup');
+      navigate('/', { replace: true });
+    }
+  }, [isAuthenticated, user, navigate, openAuthModal, showToast]);
+
   const activatedList = user ? getUserActivatedPromos(user.id) : [];
+
+  if (!isAuthenticated || !user) {
+    return null;
+  }
 
   const handleActivate = (e: React.FormEvent) => {
     e.preventDefault();

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useSidebarStore } from '../../store/useSidebarStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useBookStore } from '../../store/useBookStore';
@@ -12,6 +12,7 @@ export const AppSidebarDrawer: React.FC = () => {
   const { books } = useBookStore();
   const { savedBookIds } = useSavedBooksStore();
   const location = useLocation();
+  const navigate = useNavigate();
   const [readersCount, setReadersCount] = React.useState<number>(0);
 
   useEffect(() => {
@@ -282,6 +283,14 @@ export const AppSidebarDrawer: React.FC = () => {
               onClick={() => {
                 logout();
                 closeSidebar();
+                if (
+                  location.pathname.startsWith('/admin') ||
+                  location.pathname.startsWith('/promocode') ||
+                  location.pathname.startsWith('/profile') ||
+                  location.pathname.startsWith('/settings')
+                ) {
+                  navigate('/');
+                }
               }}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
