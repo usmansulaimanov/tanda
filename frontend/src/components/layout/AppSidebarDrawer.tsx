@@ -30,36 +30,34 @@ export const AppSidebarDrawer: React.FC = () => {
         const localCount = useAuthStore.getState().getClientsCount();
         setReadersCount(localCount);
       } catch {}
-      api.get('/api/admin/users?role=client').then((res) => {
-        if (res.data?.users && Array.isArray(res.data.users)) {
-          setReadersCount(res.data.users.length);
-        }
-      }).catch(() => {});
+
+      api.get('/api/admin/users', { params: { role: 'client' } })
+        .then(({ data }) => {
+          if (Array.isArray(data)) {
+            setReadersCount(data.length);
+          }
+        })
+        .catch(() => {});
     }
   }, [role, isOpen]);
 
-  // Lock body scroll when drawer is open
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [isOpen]);
-
-  const handleLogout = () => {
     closeSidebar();
-    logout();
-    navigate('/');
-  };
+  }, [location.pathname, closeSidebar]);
 
-  const isReadingShelfCount = Object.values(currentShelf).filter(r => r.status === 'reading').length;
-  const isCompletedShelfCount = Object.values(currentShelf).filter(r => r.status === 'completed').length;
-  const isWantToReadShelfCount = Object.values(currentShelf).filter(r => r.status === 'want_to_read').length || savedBookIds.length;
-  const totalShelfCount = isReadingShelfCount + isCompletedShelfCount + isWantToReadShelfCount;
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        closeSidebar();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, closeSidebar]);
+
+  const activeBooksCount = books.filter((b) => !b.isArchived).length;
+  const archivedBooksCount = books.filter((b) => b.isArchived).length;
+  const audioBooksCount = books.filter((b) => b.hasAudio).length;
 
   const canViewBooks = hasAdminPermission(user, 'books_view');
   const canCreateBooks = hasAdminPermission(user, 'books_create');
@@ -67,35 +65,42 @@ export const AppSidebarDrawer: React.FC = () => {
   const canManagePromos = hasAdminPermission(user, 'promocodes_manage');
   const canManageManagers = hasAdminPermission(user, 'managers_manage');
 
-  const activeBooksCount = books.filter((b) => !b.isArchived).length;
-  const archivedBooksCount = books.filter((b) => b.isArchived).length;
-  const audioBooksCount = books.filter((b) => b.hasAudio).length;
+  if (!isOpen) return null;
 
   return (
-    <>
-      {/* Backdrop overlay */}
+    <div className="sidebar-drawer-overlay" onClick={closeSidebar}>
       <div
-        className={`sidebar-overlay ${isOpen ? 'active' : ''}`}
-        onClick={closeSidebar}
-        aria-hidden={!isOpen}
-      />
-
-      {/* Drawer panel */}
-      <aside
-        className={`sidebar-drawer ${isOpen ? 'open' : ''}`}
-        aria-label="Навигациялық мәзір"
+        className="sidebar-drawer-content"
+        onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className="sidebar-header">
-          <div className="sidebar-logo">
-            <span className="sidebar-logo-text">TANDA</span>
-            <span className="sidebar-badge-pro">KAZ</span>
+        {/* Drawer Header */}
+        <div className="sidebar-drawer-header">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div className="sidebar-drawer-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="7" height="7"></rect>
+                <rect x="14" y="3" width="7" height="7"></rect>
+                <rect x="14" y="14" width="7" height="7"></rect>
+                <rect x="3" y="14" width="7" height="7"></rect>
+              </svg>
+            </div>
+            <div>
+              <h3 className="sidebar-drawer-title">
+                {role === 'admin' ? (user?.isSuperAdmin ? 'Бас әкімші (Super Admin)' : 'Басқару панелі') : 'Tanda Мәзірі'}
+              </h3>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
+                <span className="sidebar-id-pill">
+                  ID: {user?.idNumber || (role === 'admin' ? '000 001' : '001 001')}
+                </span>
+              </div>
+            </div>
           </div>
+
           <button
             type="button"
-            className="sidebar-close-btn"
+            className="sidebar-drawer-close"
             onClick={closeSidebar}
-            aria-label="Мәзірді жабу"
+            aria-label="Жабу"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -104,18 +109,29 @@ export const AppSidebarDrawer: React.FC = () => {
           </button>
         </div>
 
-        {/* Content */}
-        <div className="sidebar-content">
-          {/* Admin Fast Actions if admin */}
-          {role === 'admin' && (canViewBooks || canCreateBooks) && (
-            <div className="sidebar-admin-badge-box">
-              <div className="sidebar-admin-title">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                </svg>
-                <span>{user?.isSuperAdmin ? 'Бас әкімші (Super Admin)' : 'Әкімшілік панель'}</span>
+        {/* User Card */}
+        {isAuthenticated && user && (
+          <div className="sidebar-user-box">
+            <div className="sidebar-user-avatar">
+              {user.name ? user.name.trim().charAt(0).toUpperCase() : (role === 'admin' ? 'А' : 'О')}
+            </div>
+            <div className="sidebar-user-info">
+              <div className="sidebar-user-name" title={user.name}>
+                {user.role === 'admin' ? user.name || 'Әкімші' : (user.name || 'Оқырман')}
               </div>
+              <div className="sidebar-user-email" title={user.email}>
+                {user.email}
+              </div>
+            </div>
+          </div>
+        )}
 
+        <div className="sidebar-drawer-body">
+          {/* Admin Management Section */}
+          {role === 'admin' && (
+            <div className="sidebar-nav-group">
+              <div className="sidebar-nav-group-title">Басқару бөлімдері</div>
+              
               {canViewBooks && (
                 <Link
                   to="/admin"
@@ -350,7 +366,7 @@ export const AppSidebarDrawer: React.FC = () => {
             </div>
           )}
         </div>
-      </aside>
-    </>
+      </div>
+    </div>
   );
 };
