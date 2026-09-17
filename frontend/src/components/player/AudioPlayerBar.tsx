@@ -65,6 +65,8 @@ export const AudioPlayerBar: React.FC = () => {
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const ytPlayerRef = useRef<any>(null);
+  const pendingSeekTimeRef = useRef<number | null>(null);
+  const currentPlayingSrcRef = useRef<string>('');
 
   // Popover menus state
   const [showTimerMenu, setShowTimerMenu] = useState(false);
@@ -166,10 +168,12 @@ export const AudioPlayerBar: React.FC = () => {
     return () => clearInterval(interval);
   }, [sleepTimerEndTime, cancelSleepTimer, setIsPlaying, showToast]);
 
-  // Handle Track End with Repeat Logic
+  // Handle Track End with Repeat Logic & Continuous Auto-play
   const handleTrackEnd = useCallback(() => {
-    const currentRepeatMode = useAudioPlayerStore.getState().repeatMode;
-    if (currentRepeatMode === 'one') {
+    const { repeatMode, currentBook, chapterIndex, nextChapter, setProgress, setIsPlaying } = useAudioPlayerStore.getState();
+    if (!currentBook) return;
+
+    if (repeatMode === 'one') {
       setProgress(0);
       if (isYouTube && ytPlayerRef.current && typeof ytPlayerRef.current.seekTo === 'function') {
         ytPlayerRef.current.seekTo(0, true);
@@ -182,8 +186,44 @@ export const AudioPlayerBar: React.FC = () => {
       return;
     }
 
-    // Otherwise next chapter or loop all
-    nextChapter();
+    const chapters = currentBook.audioChapters || [];
+    if (chapters.length > 1) {
+      if (chapterIndex < chapters.length - 1) {
+        // Automatically advance to the next audio chapter
+        nextChapter();
+      } else if (repeatMode === 'all') {
+        // Loop back to the first chapter
+        nextChapter();
+      } else {
+        // Reached end of book and repeat is off -> stop cleanly
+        setIsPlaying(false);
+        setProgress(0);
+        if (audioRef.current) audioRef.current.pause();
+        if (ytPlayerRef.current && typeof ytPlayerRef.current.pauseVideo === 'function') {
+          ytPlayerRef.current.pauseVideo();
+        }
+      }
+    } else {
+      // Single audio track in book
+      if (repeatMode === 'all') {
+        setProgress(0);
+        if (isYouTube && ytPlayerRef.current && typeof ytPlayerRef.current.seekTo === 'function') {
+          ytPlayerRef.current.seekTo(0, true);
+          ytPlayerRef.current.playVideo();
+        } else if (audioRef.current) {
+          audioRef.current.currentTime = 0;
+          audioRef.current.play().catch(() => {});
+        }
+        setIsPlaying(true);
+      } else {
+        setIsPlaying(false);
+        setProgress(0);
+        if (audioRef.current) audioRef.current.pause();
+        if (ytPlayerRef.current && typeof ytPlayerRef.current.pauseVideo === 'function') {
+          ytPlayerRef.current.pauseVideo();
+        }
+      }
+    }
   }, [isYouTube, nextChapter, setProgress, setIsPlaying]);
 
   // Initialize YouTube Player in offscreen container
@@ -379,6 +419,8 @@ export const AudioPlayerBar: React.FC = () => {
       targetTime = getChapterStartTime(chapters, chapterIndex);
     }
 
+    pendingSeekTimeRef.current = targetTime;
+
     if (isYouTube) {
       if (ytPlayerRef.current) {
         if (typeof ytPlayerRef.current.loadVideoById === 'function' && ytVideoId) {
@@ -402,16 +444,20 @@ export const AudioPlayerBar: React.FC = () => {
     } else if (audioRef.current) {
       const srcToPlay = chapter?.audioUrl || currentBook.audioUrl || '';
       if (srcToPlay) {
-        if (audioRef.current.src !== srcToPlay) {
+        if (currentPlayingSrcRef.current !== srcToPlay) {
+          currentPlayingSrcRef.current = srcToPlay;
           audioRef.current.src = srcToPlay;
-        }
-        audioRef.current.currentTime = targetTime;
-        if (isPlaying) {
-          audioRef.current.play().catch(() => {});
+          audioRef.current.load();
+        } else {
+          audioRef.current.currentTime = targetTime;
+          pendingSeekTimeRef.current = null;
+          if (isPlaying) {
+            audioRef.current.play().catch(() => {});
+          }
         }
       }
     }
-  }, [currentChapter, chapterIndex, isYouTube, ytVideoId, currentBook?.id]);
+  }, [currentChapter, chapterIndex, isYouTube, ytVideoId, currentBook?.id, isPlaying]);
 
   // Sync play/pause with players
   useEffect(() => {
@@ -452,7 +498,7 @@ export const AudioPlayerBar: React.FC = () => {
     }
   }, [playbackRate, repeatMode, isYouTube]);
 
-  // Polling YouTube progress
+  // Polling YouTube progress & chapter boundary transitions
   useEffect(() => {
     if (!isYouTube || !isPlaying) return;
 
@@ -467,6 +513,22 @@ export const AudioPlayerBar: React.FC = () => {
           if (dur !== undefined && !isNaN(dur) && dur > 0) {
             setDuration(dur);
           }
+
+          // Check virtual chapter boundary for YouTube
+          const curBook = useAudioPlayerStore.getState().currentBook;
+          const curIdx = useAudioPlayerStore.getState().chapterIndex;
+          const curChaps = curBook?.audioChapters || [];
+          const curChap = curChaps[curIdx];
+          const hasOwn = Boolean(curChap?.audioUrl && curChap.audioUrl.trim());
+
+          if (!hasOwn && curChaps.length > 1 && curChap?.duration) {
+            const chStart = getChapterStartTime(curChaps, curIdx);
+            const chDur = parseDurationToSeconds(curChap.duration);
+            const chEnd = chStart + chDur;
+            if (current >= chEnd - 0.4) {
+              handleTrackEnd();
+            }
+          }
         } catch {
           // ignore
         }
@@ -474,7 +536,7 @@ export const AudioPlayerBar: React.FC = () => {
     }, 400);
 
     return () => clearInterval(interval);
-  }, [isYouTube, isPlaying, setProgress, setDuration]);
+  }, [isYouTube, isPlaying, setProgress, setDuration, handleTrackEnd]);
 
   const formatTime = (secs: number) => {
     if (!secs || isNaN(secs)) return '0:00';
@@ -563,8 +625,18 @@ export const AudioPlayerBar: React.FC = () => {
           onLoadedMetadata={(e) => {
             const dur = e.currentTarget.duration;
             if (dur && !isNaN(dur) && dur > 0) setDuration(dur);
-            if (progress > 0 && Math.abs(e.currentTarget.currentTime - progress) > 1) {
-              e.currentTarget.currentTime = progress;
+            if (pendingSeekTimeRef.current !== null) {
+              e.currentTarget.currentTime = pendingSeekTimeRef.current;
+              pendingSeekTimeRef.current = null;
+            }
+            if (isPlaying) {
+              e.currentTarget.play().catch(() => {});
+            }
+          }}
+          onCanPlay={(e) => {
+            if (pendingSeekTimeRef.current !== null) {
+              e.currentTarget.currentTime = pendingSeekTimeRef.current;
+              pendingSeekTimeRef.current = null;
             }
             if (isPlaying) {
               e.currentTarget.play().catch(() => {});
@@ -575,6 +647,22 @@ export const AudioPlayerBar: React.FC = () => {
             const dur = e.currentTarget.duration || duration;
             setProgress(current);
             if (dur && !isNaN(dur)) setDuration(dur);
+
+            // Check if virtual chapter boundary reached (single audio with multiple timestamp chapters)
+            const curBook = useAudioPlayerStore.getState().currentBook;
+            const curIdx = useAudioPlayerStore.getState().chapterIndex;
+            const curChaps = curBook?.audioChapters || [];
+            const curChap = curChaps[curIdx];
+            const hasOwn = Boolean(curChap?.audioUrl && curChap.audioUrl.trim());
+
+            if (!hasOwn && curChaps.length > 1 && curChap?.duration) {
+              const chStart = getChapterStartTime(curChaps, curIdx);
+              const chDur = parseDurationToSeconds(curChap.duration);
+              const chEnd = chStart + chDur;
+              if (current >= chEnd - 0.3) {
+                handleTrackEnd();
+              }
+            }
           }}
           onEnded={handleTrackEnd}
         />
