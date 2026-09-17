@@ -123,6 +123,15 @@ export const Header: React.FC = () => {
               onClick={toggleSidebar}
               title={isSidebarOpen ? 'Сайдбарды жабу' : 'Сайдбарды ашу'}
               aria-label="Сайдбарды ашу/жабу"
+              style={{
+                width: '40px',
+                height: '40px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+                boxSizing: 'border-box',
+              }}
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="3" y1="12" x2="21" y2="12"></line>
@@ -132,17 +141,40 @@ export const Header: React.FC = () => {
             </button>
 
             {/* Logo */}
-            <Link to="/" className="nav-logo" style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>
+            <Link
+              to="/"
+              className="nav-logo"
+              style={{
+                flexShrink: 0,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: '40px',
+                margin: 0,
+                padding: 0,
+              }}
+            >
               <img
                 src={tandaLogo}
                 alt="Tanda"
-                style={{ height: '36px', width: 'auto', display: 'block', objectFit: 'contain' }}
+                style={{ height: '34px', width: 'auto', display: 'block', objectFit: 'contain' }}
               />
             </Link>
 
             {/* Header Search with Autocomplete */}
-            <div ref={searchWrapRef} style={{ position: 'relative', flex: 1, minWidth: '160px', maxWidth: '300px' }}>
-              <div style={{ position: 'relative', width: '100%' }}>
+            <div
+              ref={searchWrapRef}
+              style={{
+                position: 'relative',
+                flex: 1,
+                minWidth: '160px',
+                maxWidth: '300px',
+                display: 'flex',
+                alignItems: 'center',
+                height: '40px',
+              }}
+            >
+              <div style={{ position: 'relative', width: '100%', display: 'flex', alignItems: 'center' }}>
                 <input
                   type="text"
                   value={headerSearch}
@@ -151,7 +183,8 @@ export const Header: React.FC = () => {
                   autoComplete="off"
                   style={{
                     width: '100%',
-                    padding: '8px 14px 8px 34px',
+                    height: '40px',
+                    padding: '0 14px 0 36px',
                     border: '1.5px solid #CBD5E1',
                     borderRadius: '50px',
                     fontSize: '13px',
@@ -160,10 +193,19 @@ export const Header: React.FC = () => {
                     color: 'var(--text-dark)',
                     outline: 'none',
                     transition: 'all 0.2s',
+                    boxSizing: 'border-box',
+                    display: 'block',
                   }}
                 />
                 <svg
-                  style={{ position: 'absolute', left: '11px', top: '50%', transform: 'translateY(-50%)', color: '#64748B', pointerEvents: 'none' }}
+                  style={{
+                    position: 'absolute',
+                    left: '12px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    color: '#64748B',
+                    pointerEvents: 'none',
+                  }}
                   width="15"
                   height="15"
                   viewBox="0 0 24 24"
