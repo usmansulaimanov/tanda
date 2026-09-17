@@ -267,10 +267,14 @@ export const useMyBooksStore = create<MyBooksState>()(
     }),
     {
       name: 'tanda_my_books_shelf_storage_v1',
+      partialize: (state) => ({
+        shelfByUser: state.shelfByUser,
+      }),
       onRehydrateStorage: () => (state) => {
         if (state) {
           const key = resolveUserKey();
           state.currentShelf = state.shelfByUser[key] || {};
+          state.activeTab = 'reading';
         }
       },
     }

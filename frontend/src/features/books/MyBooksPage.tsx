@@ -20,11 +20,12 @@ export const MyBooksPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeMenuBookId, setActiveMenuBookId] = useState<string | null>(null);
 
-  // Fetch books & saved books on mount
+  // Always default to 'reading' tab on page mount, fetch books & saved books
   useEffect(() => {
+    setActiveTab('reading');
     fetchBooks();
     fetchSavedBooks();
-  }, [fetchBooks, fetchSavedBooks]);
+  }, [fetchBooks, fetchSavedBooks, setActiveTab]);
 
   // Close status dropdown menu when clicked outside
   useEffect(() => {
