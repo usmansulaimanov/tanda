@@ -152,7 +152,7 @@ export const Header: React.FC = () => {
                 height: '40px',
                 margin: 0,
                 padding: 0,
-                transform: 'translateY(-7px)',
+                transform: 'translateY(-6px)',
               }}
             >
               <img
