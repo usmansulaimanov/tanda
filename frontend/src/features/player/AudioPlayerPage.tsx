@@ -698,15 +698,7 @@ export const AudioPlayerPage: React.FC = () => {
             <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-slate-200/90 shadow-lg flex flex-col h-full min-h-0 overflow-hidden">
               
               <div className="flex items-center justify-between pb-3 border-b border-slate-100 shrink-0 mb-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-[#005494]/10 text-[#005494] flex items-center justify-center font-bold">
-                    📑
-                  </div>
-                  <div>
-                    <h3 className="text-sm sm:text-base font-black text-slate-900 leading-tight">Кітап бөлімдері</h3>
-                    <p className="text-[11px] text-slate-500 font-medium">Тарауды басып тыңдаңыз</p>
-                  </div>
-                </div>
+                <h3 className="text-sm sm:text-base font-black text-slate-900 leading-tight">Кітап бөлімдері</h3>
 
                 <span className="text-[11px] font-extrabold px-2.5 py-0.5 bg-slate-100 text-slate-700 rounded-full border border-slate-200">
                   {chapters.length} бөлім
