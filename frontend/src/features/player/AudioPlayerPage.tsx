@@ -285,12 +285,10 @@ export const AudioPlayerPage: React.FC = () => {
       if (!isCompleted) {
         markAsWantToRead(activeBook.id);
       }
-      showToast(`«${activeBook.title}» — «Енді оқимын» сөресіне сақталды!`, 'success');
     } else {
       if (bookStatus === 'want_to_read') {
         removeBookFromShelf(activeBook.id);
       }
-      showToast(`«${activeBook.title}» сақталғандардан өшірілді`, 'info');
     }
   };
 
@@ -301,10 +299,8 @@ export const AudioPlayerPage: React.FC = () => {
       } else {
         removeBookFromShelf(activeBook.id);
       }
-      showToast(`«${activeBook.title}» — «Оқып болған кітаптар» сөресінен алынды`, 'info');
     } else {
       markAsCompleted(activeBook.id);
-      showToast(`«${activeBook.title}» — «Менің сөремдегі» оқылған кітаптар сөресіне қосылды!`, 'success');
     }
   };
 
@@ -334,7 +330,6 @@ export const AudioPlayerPage: React.FC = () => {
                   ? 'bg-[#EF7E00] text-white border-[#EF7E00] shadow-sm'
                   : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
               }`}
-              title={isSaved ? 'Сөреден өшіру' : 'Кейін оқимын (Сақтау)'}
             >
               <svg
                 width="14"
@@ -357,7 +352,6 @@ export const AudioPlayerPage: React.FC = () => {
                   ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
                   : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
               }`}
-              title={isCompleted ? 'Оқылғандардан өшіру' : 'Оқылған деп белгілеу'}
             >
               <svg
                 width="14"

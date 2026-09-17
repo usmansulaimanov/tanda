@@ -92,12 +92,10 @@ export const BookDetailPage: React.FC = () => {
       if (!isCompleted) {
         markAsWantToRead(book.id);
       }
-      showToast(`«${book.title}» — «Енді оқимын» сөресіне сақталды!`, 'success');
     } else {
       if (bookStatus === 'want_to_read') {
         removeBookFromShelf(book.id);
       }
-      showToast(`«${book.title}» сақталғандардан өшірілді`, 'info');
     }
   };
 
@@ -113,10 +111,8 @@ export const BookDetailPage: React.FC = () => {
       } else {
         removeBookFromShelf(book.id);
       }
-      showToast(`«${book.title}» — «Оқып болған кітаптар» сөресінен алынды`, 'info');
     } else {
       markAsCompleted(book.id);
-      showToast(`«${book.title}» — «Менің сөремдегі» оқылған кітаптар сөресіне қосылды!`, 'success');
     }
   };
 

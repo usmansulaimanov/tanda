@@ -61,12 +61,10 @@ export const BookCard: React.FC<BookCardProps> = ({ book }) => {
       if (!isCompleted) {
         markAsWantToRead(book.id);
       }
-      showToast(`«${book.title}» — «Енді оқимын» сөресіне сақталды`, 'success');
     } else {
       if (bookStatus === 'want_to_read') {
         removeBookFromShelf(book.id);
       }
-      showToast(`«${book.title}» сақталғандардан өшірілді`, 'info');
     }
   };
 
@@ -84,10 +82,8 @@ export const BookCard: React.FC<BookCardProps> = ({ book }) => {
       } else {
         removeBookFromShelf(book.id);
       }
-      showToast(`«${book.title}» — «Оқып болған кітаптар» сөресінен алынды`, 'info');
     } else {
       markAsCompleted(book.id);
-      showToast(`«${book.title}» — «Менің сөремдегі» оқылған кітаптар сөресіне қосылды!`, 'success');
     }
   };
 
@@ -134,7 +130,6 @@ export const BookCard: React.FC<BookCardProps> = ({ book }) => {
             <button
               type="button"
               onClick={handleBookmarkClick}
-              title={isSaved ? 'Сақталғандардан өшіру' : 'Кейін оқимын (Сақтау)'}
               style={{
                 position: 'absolute',
                 top: '12px',
@@ -172,7 +167,6 @@ export const BookCard: React.FC<BookCardProps> = ({ book }) => {
             <button
               type="button"
               onClick={handleCompletedClick}
-              title={isCompleted ? '«Оқып болғандардан» өшіру' : 'Оқылған деп белгілеу (Менің сөрем)'}
               style={{
                 position: 'absolute',
                 top: '12px',
