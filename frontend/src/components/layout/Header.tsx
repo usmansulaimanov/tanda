@@ -111,7 +111,7 @@ export const Header: React.FC = () => {
 
   return (
     <>
-      <nav className="tanda-nav" style={{ padding: '26px 32px', minHeight: '90px' }}>
+      <nav className="tanda-nav" style={{ padding: '16px 32px', minHeight: '70px' }}>
         <div style={{ maxWidth: '1280px', width: '100%', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
           
           {/* Left: Sidebar Toggle, Logo & Search */}
