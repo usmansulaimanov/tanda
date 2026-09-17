@@ -171,12 +171,10 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
         if (chapters.length > 1) {
           if (chapterIndex < chapters.length - 1) {
             get().playChapter(chapterIndex + 1);
-          } else {
-            // Reached last chapter -> wrap to first chapter and continue playing
-            get().playChapter(0);
           }
+          // If already at the last chapter: stay on the last chapter without jumping to chapter 1
         } else if (chapters.length === 1) {
-          // Single chapter -> replay that single audio and keep playing
+          // Single chapter -> replay from 0:00
           get().playChapter(0);
         } else {
           // Single audio track with no chapters
@@ -196,11 +194,11 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
           } else if (chapterIndex > 0) {
             get().playChapter(chapterIndex - 1);
           } else {
-            // Reached first chapter -> wrap to last chapter
-            get().playChapter(chapters.length - 1);
+            // Already at the 1st chapter: restart 1st chapter from 0:00 (do not jump to the last chapter)
+            get().playChapter(0);
           }
         } else if (chapters.length === 1) {
-          // Single chapter -> replay that single audio and keep playing
+          // Single chapter -> replay from 0:00
           get().playChapter(0);
         } else {
           // Single audio track with no chapters

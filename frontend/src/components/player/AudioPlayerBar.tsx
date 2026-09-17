@@ -387,21 +387,41 @@ export const AudioPlayerBar: React.FC = () => {
 
       if (e.key === 'ArrowRight') {
         e.preventDefault();
-        store.nextChapter();
         if (chapters.length > 1) {
-          const nextIdx = store.chapterIndex < chapters.length - 1 ? store.chapterIndex + 1 : 0;
-          showToast(`«${chapters[nextIdx]?.title || `${nextIdx + 1}-бөлім`}»`, 'info');
+          if (store.chapterIndex < chapters.length - 1) {
+            const nextIdx = store.chapterIndex + 1;
+            store.nextChapter();
+            showToast(`«${chapters[nextIdx]?.title || `${nextIdx + 1}-бөлім`}»`, 'info');
+          } else {
+            // Last chapter reached: stay on current without jumping to first chapter
+            showToast('Соңғы бөлім', 'info');
+          }
         } else if (chapters.length === 1) {
+          store.nextChapter();
           showToast(`«${chapters[0]?.title || store.currentBook.title}»`, 'info');
+        } else {
+          store.nextChapter();
         }
       } else if (e.key === 'ArrowLeft') {
         e.preventDefault();
-        store.prevChapter();
         if (chapters.length > 1) {
-          const prevIdx = store.progress > 4 ? store.chapterIndex : store.chapterIndex > 0 ? store.chapterIndex - 1 : chapters.length - 1;
-          showToast(`«${chapters[prevIdx]?.title || `${prevIdx + 1}-бөлім`}»`, 'info');
+          if (store.progress > 4) {
+            store.prevChapter();
+            showToast(`«${chapters[store.chapterIndex]?.title || `${store.chapterIndex + 1}-бөлім`}» (Басынан)`, 'info');
+          } else if (store.chapterIndex > 0) {
+            const prevIdx = store.chapterIndex - 1;
+            store.prevChapter();
+            showToast(`«${chapters[prevIdx]?.title || `${prevIdx + 1}-бөлім`}»`, 'info');
+          } else {
+            // Already on 1st chapter: restart 1st chapter without jumping to last chapter
+            store.prevChapter();
+            showToast(`«${chapters[0]?.title || '1-бөлім'}» (Басынан)`, 'info');
+          }
         } else if (chapters.length === 1) {
-          showToast(`«${chapters[0]?.title || store.currentBook.title}»`, 'info');
+          store.prevChapter();
+          showToast(`«${chapters[0]?.title || store.currentBook.title}» (Басынан)`, 'info');
+        } else {
+          store.prevChapter();
         }
       }
     };
