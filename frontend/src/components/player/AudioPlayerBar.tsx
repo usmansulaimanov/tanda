@@ -379,6 +379,12 @@ export const AudioPlayerBar: React.FC = () => {
 
       const chapters = store.currentBook.audioChapters || [];
 
+      if (e.key === ' ' || e.code === 'Space') {
+        e.preventDefault();
+        store.togglePlay();
+        return;
+      }
+
       if (e.key === 'ArrowRight') {
         e.preventDefault();
         store.nextChapter();
