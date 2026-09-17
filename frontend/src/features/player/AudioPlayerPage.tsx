@@ -14,7 +14,6 @@ import {
   ArrowLeft,
   Check,
   Headphones,
-  Sparkles,
   Music,
 } from 'lucide-react';
 import { useBookStore } from '../../store/useBookStore';
@@ -755,12 +754,6 @@ export const AudioPlayerPage: React.FC = () => {
                           <h4 className={`text-xs sm:text-sm font-bold truncate ${isActive ? 'text-[#005494]' : 'text-slate-800'}`}>
                             {ch.title}
                           </h4>
-                          {isActive && (
-                            <span className="text-[10px] font-extrabold text-[#EF7E00] flex items-center gap-1 mt-0.5">
-                              <Sparkles className="w-2.5 h-2.5" />
-                              Қазір таңдалған
-                            </span>
-                          )}
                         </div>
                       </div>
 
