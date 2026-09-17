@@ -284,17 +284,25 @@ export const AudioPlayerPage: React.FC = () => {
   const handleToggleBookmark = async () => {
     const nowSaved = await toggleSavedBook(activeBook.id);
     if (nowSaved) {
-      markAsWantToRead(activeBook.id);
+      if (!isCompleted) {
+        markAsWantToRead(activeBook.id);
+      }
       showToast(`«${activeBook.title}» — «Енді оқимын» сөресіне сақталды!`, 'success');
     } else {
-      removeBookFromShelf(activeBook.id);
-      showToast(`«${activeBook.title}» сөреден өшірілді`, 'info');
+      if (bookStatus === 'want_to_read') {
+        removeBookFromShelf(activeBook.id);
+      }
+      showToast(`«${activeBook.title}» сақталғандардан өшірілді`, 'info');
     }
   };
 
   const handleToggleCompleted = () => {
     if (isCompleted) {
-      removeBookFromShelf(activeBook.id);
+      if (isSaved) {
+        markAsWantToRead(activeBook.id);
+      } else {
+        removeBookFromShelf(activeBook.id);
+      }
       showToast(`«${activeBook.title}» — «Оқып болған кітаптар» сөресінен алынды`, 'info');
     } else {
       markAsCompleted(activeBook.id);

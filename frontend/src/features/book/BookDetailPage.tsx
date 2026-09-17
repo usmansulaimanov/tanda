@@ -89,10 +89,14 @@ export const BookDetailPage: React.FC = () => {
     }
     const nowSaved = await toggleSavedBook(book.id);
     if (nowSaved) {
-      markAsWantToRead(book.id);
+      if (!isCompleted) {
+        markAsWantToRead(book.id);
+      }
       showToast(`«${book.title}» — «Енді оқимын» сөресіне сақталды!`, 'success');
     } else {
-      removeBookFromShelf(book.id);
+      if (bookStatus === 'want_to_read') {
+        removeBookFromShelf(book.id);
+      }
       showToast(`«${book.title}» сақталғандардан өшірілді`, 'info');
     }
   };
@@ -104,7 +108,11 @@ export const BookDetailPage: React.FC = () => {
       return;
     }
     if (isCompleted) {
-      removeBookFromShelf(book.id);
+      if (isSaved) {
+        markAsWantToRead(book.id);
+      } else {
+        removeBookFromShelf(book.id);
+      }
       showToast(`«${book.title}» — «Оқып болған кітаптар» сөресінен алынды`, 'info');
     } else {
       markAsCompleted(book.id);

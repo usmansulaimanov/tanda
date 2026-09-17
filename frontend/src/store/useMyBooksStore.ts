@@ -113,11 +113,6 @@ export const useMyBooksStore = create<MyBooksState>()(
           shelfByUser: allShelves,
           currentShelf: userShelf,
         });
-
-        // Also remove from saved store if present
-        try {
-          useSavedBooksStore.getState().removeSavedBook(strId, key);
-        } catch {}
       },
 
       getBookRecord: (bookId: string, userKey?: string) => {
