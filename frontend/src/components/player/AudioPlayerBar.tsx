@@ -94,8 +94,8 @@ export const AudioPlayerBar: React.FC = () => {
 
     const handleSkipEvent = (e: any) => {
       const delta = Number(e.detail?.seconds || 0);
-      const currentT = useAudioPlayerStore.getState().progress;
-      const dur = useAudioPlayerStore.getState().duration || 999999;
+      const currentT = audioRef.current?.currentTime ?? useAudioPlayerStore.getState().progress;
+      const dur = audioRef.current?.duration || useAudioPlayerStore.getState().duration || 999999;
       const newT = Math.max(0, Math.min(dur, currentT + delta));
       setProgress(newT);
       if (isYouTube && ytPlayerRef.current && typeof ytPlayerRef.current.seekTo === 'function') {
@@ -385,6 +385,21 @@ export const AudioPlayerBar: React.FC = () => {
         return;
       }
 
+      // Shift + ArrowRight: Seek +10 seconds
+      if (e.shiftKey && e.key === 'ArrowRight') {
+        e.preventDefault();
+        window.dispatchEvent(new CustomEvent('tanda:audio:skip', { detail: { seconds: 10 } }));
+        return;
+      }
+
+      // Shift + ArrowLeft: Seek -10 seconds
+      if (e.shiftKey && e.key === 'ArrowLeft') {
+        e.preventDefault();
+        window.dispatchEvent(new CustomEvent('tanda:audio:skip', { detail: { seconds: -10 } }));
+        return;
+      }
+
+      // Plain ArrowRight (without Shift): Next chapter
       if (e.key === 'ArrowRight') {
         e.preventDefault();
         if (chapters.length > 1) {
@@ -394,9 +409,14 @@ export const AudioPlayerBar: React.FC = () => {
         } else {
           store.nextChapter();
         }
-      } else if (e.key === 'ArrowLeft') {
+        return;
+      }
+
+      // Plain ArrowLeft (without Shift): Previous chapter
+      if (e.key === 'ArrowLeft') {
         e.preventDefault();
         store.prevChapter();
+        return;
       }
     };
 
