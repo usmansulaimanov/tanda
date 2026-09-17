@@ -144,6 +144,7 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
             duration: chapterDur,
           });
           debouncedSyncProgress(currentBook.id, chapter?.id, startProgress);
+          window.dispatchEvent(new CustomEvent('tanda:audio:seek', { detail: { time: startProgress } }));
         }
       },
 
@@ -162,25 +163,25 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
             get().playChapter(chapterIndex);
           } else {
             set({ progress: 0, isPlaying: true });
+            window.dispatchEvent(new CustomEvent('tanda:audio:seek', { detail: { time: 0 } }));
           }
           return;
         }
 
-        if (chapters.length > 0) {
+        if (chapters.length > 1) {
           if (chapterIndex < chapters.length - 1) {
             get().playChapter(chapterIndex + 1);
-          } else if (repeatMode === 'all') {
+          } else {
+            // Reached last chapter -> wrap to first chapter and continue playing
             get().playChapter(0);
-          } else {
-            set({ isPlaying: false, progress: 0 });
           }
+        } else if (chapters.length === 1) {
+          // Single chapter -> replay that single audio and keep playing
+          get().playChapter(0);
         } else {
-          // Single audio track
-          if (repeatMode === 'all') {
-            set({ progress: 0, isPlaying: true });
-          } else {
-            set({ isPlaying: false, progress: 0 });
-          }
+          // Single audio track with no chapters
+          set({ progress: 0, isPlaying: true });
+          window.dispatchEvent(new CustomEvent('tanda:audio:seek', { detail: { time: 0 } }));
         }
       },
 
@@ -189,19 +190,22 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
         if (!currentBook) return;
         const chapters = currentBook.audioChapters || [];
 
-        if (progress > 4) {
-          set({ progress: 0 });
-          return;
-        }
-
-        if (chapters.length > 0) {
-          if (chapterIndex > 0) {
+        if (chapters.length > 1) {
+          if (progress > 4) {
+            get().playChapter(chapterIndex);
+          } else if (chapterIndex > 0) {
             get().playChapter(chapterIndex - 1);
           } else {
-            set({ progress: 0 });
+            // Reached first chapter -> wrap to last chapter
+            get().playChapter(chapters.length - 1);
           }
+        } else if (chapters.length === 1) {
+          // Single chapter -> replay that single audio and keep playing
+          get().playChapter(0);
         } else {
-          set({ progress: 0 });
+          // Single audio track with no chapters
+          set({ progress: 0, isPlaying: true });
+          window.dispatchEvent(new CustomEvent('tanda:audio:seek', { detail: { time: 0 } }));
         }
       },
 

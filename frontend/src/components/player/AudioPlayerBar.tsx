@@ -323,6 +323,47 @@ export const AudioPlayerBar: React.FC = () => {
     };
   }, [isPlaying, isYouTube]);
 
+  // Keyboard navigation for ArrowRight (next chapter) and ArrowLeft (previous chapter)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if user is currently typing in input, textarea, select, or contentEditable element
+      const activeEl = document.activeElement;
+      if (activeEl) {
+        const tag = activeEl.tagName.toLowerCase();
+        if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+        if ((activeEl as HTMLElement).isContentEditable) return;
+      }
+
+      const store = useAudioPlayerStore.getState();
+      if (!store.currentBook) return;
+
+      const chapters = store.currentBook.audioChapters || [];
+
+      if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        store.nextChapter();
+        if (chapters.length > 1) {
+          const nextIdx = store.chapterIndex < chapters.length - 1 ? store.chapterIndex + 1 : 0;
+          showToast(`«${chapters[nextIdx]?.title || `${nextIdx + 1}-бөлім`}»`, 'info');
+        } else if (chapters.length === 1) {
+          showToast(`«${chapters[0]?.title || store.currentBook.title}»`, 'info');
+        }
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        store.prevChapter();
+        if (chapters.length > 1) {
+          const prevIdx = store.progress > 4 ? store.chapterIndex : store.chapterIndex > 0 ? store.chapterIndex - 1 : chapters.length - 1;
+          showToast(`«${chapters[prevIdx]?.title || `${prevIdx + 1}-бөлім`}»`, 'info');
+        } else if (chapters.length === 1) {
+          showToast(`«${chapters[0]?.title || store.currentBook.title}»`, 'info');
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showToast]);
+
   // Sync chapter change / new track loading with audio player and YouTube
   useEffect(() => {
     if (!currentBook) return;
