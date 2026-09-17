@@ -1,18 +1,22 @@
-import React, { useMemo, useEffect } from 'react';
+import React, { useMemo, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useBookStore } from '../../store/useBookStore';
 import { useSavedBooksStore } from '../../store/useSavedBooksStore';
 import { useAudioPlayerStore } from '../../store/useAudioPlayerStore';
 import { useToastStore } from '../../store/useToastStore';
+import { resizeAndCompressImage } from '../../utils/imageUtils';
 
 export const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, isAuthenticated, logout } = useAuthStore();
+  const { user, isAuthenticated, logout, updateAvatar } = useAuthStore();
   const { books, fetchBooks } = useBookStore();
   const { savedBookIds, fetchSavedBooks, removeSavedBook } = useSavedBooksStore();
   const { playBook } = useAudioPlayerStore();
   const { showToast } = useToastStore();
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
 
   // If user is admin, redirect to admin dashboard
   useEffect(() => {
@@ -42,6 +46,44 @@ export const ProfilePage: React.FC = () => {
   const handleRemoveSaved = (bookId: string, bookTitle: string) => {
     removeSavedBook(bookId);
     showToast(`«${bookTitle}» сақталғандардан өшірілді`, 'info');
+  };
+
+  const handleAvatarFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = '';
+
+    setIsUploadingAvatar(true);
+    try {
+      const dataUrl = await resizeAndCompressImage(file, 400, 0.85);
+      const res = await updateAvatar(dataUrl);
+      if (res.success) {
+        showToast('Профиль фотосы сәтті жаңартылды!', 'success');
+      } else {
+        showToast(res.error || 'Фотоны сақтау мүмкін болмады', 'error');
+      }
+    } catch (err: any) {
+      showToast(err.message || 'Суретті жүктеу кезінде қате орын алды', 'error');
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
+
+  const handleRemoveAvatar = async () => {
+    if (!window.confirm('Профиль фотосын өшіргіңіз келетініне сенімдісіз бе?')) return;
+    setIsUploadingAvatar(true);
+    try {
+      const res = await updateAvatar(null);
+      if (res.success) {
+        showToast('Профиль фотосы өшірілді', 'info');
+      } else {
+        showToast(res.error || 'Фотоны өшіру мүмкін болмады', 'error');
+      }
+    } catch {
+      showToast('Фотоны өшіру мүмкін болмады', 'error');
+    } finally {
+      setIsUploadingAvatar(false);
+    }
   };
 
   if (!isAuthenticated || !user) {
@@ -113,6 +155,15 @@ export const ProfilePage: React.FC = () => {
         ← Артқа оралу
       </button>
 
+      {/* Hidden File Input for Avatar Upload */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        accept="image/jpeg,image/png,image/webp,image/jpg"
+        onChange={handleAvatarFileChange}
+        style={{ display: 'none' }}
+      />
+
       {/* Profile Header Card */}
       <div
         style={{
@@ -130,24 +181,107 @@ export const ProfilePage: React.FC = () => {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px', minWidth: '280px' }}>
-          <div
-            style={{
-              width: '68px',
-              height: '68px',
-              borderRadius: '50%',
-              background: 'linear-gradient(135deg, #005494 0%, #EF7E00 100%)',
-              color: '#FFFFFF',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '28px',
-              fontWeight: 900,
-              boxShadow: '0 6px 18px rgba(0, 84, 148, 0.25)',
-              flexShrink: 0,
-              textTransform: 'uppercase',
-            }}
-          >
-            {initialLetter}
+          {/* Avatar with click-to-upload & hover indicator */}
+          <div style={{ position: 'relative', flexShrink: 0 }}>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploadingAvatar}
+              title="Профиль фотосын өзгерту үшін басыңыз"
+              style={{
+                width: '74px',
+                height: '74px',
+                borderRadius: '50%',
+                background: user.avatarUrl ? '#F1F5F9' : 'linear-gradient(135deg, #005494 0%, #EF7E00 100%)',
+                color: '#FFFFFF',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '28px',
+                fontWeight: 900,
+                boxShadow: '0 6px 18px rgba(0, 84, 148, 0.25)',
+                flexShrink: 0,
+                textTransform: 'uppercase',
+                border: '3px solid #FFFFFF',
+                cursor: 'pointer',
+                padding: 0,
+                position: 'relative',
+                overflow: 'hidden',
+                outline: 'none',
+                transition: 'transform 0.2s, box-shadow 0.2s',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'scale(1.04)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'scale(1)';
+              }}
+            >
+              {user.avatarUrl ? (
+                <img
+                  src={user.avatarUrl}
+                  alt={user.name || 'Avatar'}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                initialLetter
+              )}
+
+              {/* Hover overlay */}
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  background: 'rgba(0, 0, 0, 0.45)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  opacity: isUploadingAvatar ? 1 : 0,
+                  transition: 'opacity 0.2s',
+                }}
+                className="avatar-hover-overlay"
+              >
+                {isUploadingAvatar ? (
+                  <div className="spinner" style={{ width: '22px', height: '22px', borderWidth: '2px', borderColor: '#FFFFFF', borderTopColor: 'transparent' }}></div>
+                ) : (
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                    <circle cx="12" cy="13" r="4"></circle>
+                  </svg>
+                )}
+              </div>
+            </button>
+
+            {/* Camera badge icon */}
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploadingAvatar}
+              title="Фотоны ауыстыру"
+              style={{
+                position: 'absolute',
+                bottom: '-2px',
+                right: '-2px',
+                width: '28px',
+                height: '28px',
+                borderRadius: '50%',
+                background: 'var(--blue)',
+                color: '#FFFFFF',
+                border: '2.5px solid #FFFFFF',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.18)',
+                padding: 0,
+              }}
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                <circle cx="12" cy="13" r="4"></circle>
+              </svg>
+            </button>
           </div>
 
           <div>
@@ -171,16 +305,75 @@ export const ProfilePage: React.FC = () => {
               </span>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px', color: 'var(--text-mid)', fontSize: '14px' }}>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect width="20" height="16" x="2" y="4" rx="2"></rect>
-                <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
-              </svg>
-              <span>{user.email}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px', color: 'var(--text-mid)', fontSize: '14px', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect width="20" height="16" x="2" y="4" rx="2"></rect>
+                  <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+                </svg>
+                <span>{user.email}</span>
+              </div>
+              {user.username && (
+                <span
+                  style={{
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    background: 'rgba(235, 130, 60, 0.12)',
+                    color: 'var(--orange)',
+                    padding: '2px 8px',
+                    borderRadius: '4px',
+                  }}
+                >
+                  @{user.username.replace(/^@/, '')}
+                </span>
+              )}
             </div>
 
-            <div style={{ marginTop: '8px', fontSize: '13px', color: '#64748B' }}>
-              Сақталған кітаптар: <strong style={{ color: 'var(--orange)' }}>{savedBooks.length} кітап</strong>
+            {/* Quick action buttons for avatar */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '10px', fontSize: '12px' }}>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploadingAvatar}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--blue)',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  padding: 0,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                  <circle cx="12" cy="13" r="4"></circle>
+                </svg>
+                <span>Фотоны ауыстыру</span>
+              </button>
+
+              {user.avatarUrl && (
+                <>
+                  <span style={{ color: '#CBD5E1' }}>&bull;</span>
+                  <button
+                    type="button"
+                    onClick={handleRemoveAvatar}
+                    disabled={isUploadingAvatar}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#EF4444',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      padding: 0,
+                    }}
+                  >
+                    Фотоны өшіру
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>

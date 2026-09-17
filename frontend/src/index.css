@@ -1535,3 +1535,13 @@ body {
   .stat-num { font-size: 26px; }
   .books-grid { grid-template-columns: 1fr; }
 }
+
+/* Avatar Hover Effect */
+.avatar-hover-overlay {
+  opacity: 0;
+  pointer-events: none;
+}
+button:hover .avatar-hover-overlay {
+  opacity: 1 !important;
+}
+

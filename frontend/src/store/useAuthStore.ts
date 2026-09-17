@@ -16,7 +16,8 @@ interface AuthState {
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
   restoreSession: () => Promise<void>;
-  updateProfile: (data: { name: string; email: string; phone?: string; username?: string }) => Promise<{ success: boolean; error?: string }>;
+  updateProfile: (data: { name: string; email: string; phone?: string; username?: string; avatarUrl?: string }) => Promise<{ success: boolean; error?: string }>;
+  updateAvatar: (avatarUrl: string | null) => Promise<{ success: boolean; error?: string }>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
   updateUserByAdmin: (userId: string, data: { name: string; email: string; phone?: string; username?: string; idNumber?: string; role?: 'admin' | 'client'; isActive?: boolean; personalMessage?: { text: string; days?: number; isActive?: boolean } | null }) => Promise<{ success: boolean; error?: string }>;
   createReaderByAdmin: (data: { name: string; email: string; phone?: string; password?: string; username?: string; idNumber?: string; role?: 'admin' | 'client'; personalMessage?: { text: string; days?: number; isActive?: boolean } }) => Promise<{ success: boolean; user?: User; error?: string }>;
@@ -555,7 +556,7 @@ export const useAuthStore = create<AuthState>()(
         return { success: true, user: newUser };
       },
 
-      updateProfile: async (data: { name: string; email: string; phone?: string; username?: string }) => {
+      updateProfile: async (data: { name: string; email: string; phone?: string; username?: string; avatarUrl?: string }) => {
         const currentUser = get().user;
         if (!currentUser) {
           return { success: false, error: 'Жүйеге кірмегенсіз' };
@@ -565,6 +566,7 @@ export const useAuthStore = create<AuthState>()(
         const cleanEmail = data.email.trim().toLowerCase();
         const cleanPhone = data.phone?.trim() || '';
         const rawUsername = data.username?.trim().toLowerCase().replace(/^@/, '') || '';
+        const newAvatarUrl = data.avatarUrl !== undefined ? (data.avatarUrl || undefined) : currentUser.avatarUrl;
 
         if (!cleanName) {
           return { success: false, error: 'Аты-жөніңізді енгізіңіз' };
@@ -603,6 +605,7 @@ export const useAuthStore = create<AuthState>()(
           email: cleanEmail,
           phone: cleanPhone,
           username: rawUsername || undefined,
+          avatarUrl: newAvatarUrl,
         };
 
         // Update registry
@@ -625,6 +628,43 @@ export const useAuthStore = create<AuthState>()(
             email: cleanEmail,
             phone: cleanPhone,
             username: rawUsername,
+            avatarUrl: newAvatarUrl || null,
+          });
+        } catch {}
+
+        return { success: true };
+      },
+
+      updateAvatar: async (avatarUrl: string | null) => {
+        const currentUser = get().user;
+        if (!currentUser) {
+          return { success: false, error: 'Жүйеге кірмегенсіз' };
+        }
+
+        const updatedUser: User = {
+          ...currentUser,
+          avatarUrl: avatarUrl || undefined,
+        };
+
+        // Update registry
+        const allUsers = getStoredUsers();
+        const existingIdx = allUsers.findIndex((u) => u.id === currentUser.id);
+        if (existingIdx >= 0) {
+          allUsers[existingIdx] = updatedUser;
+        } else {
+          allUsers.push(updatedUser);
+        }
+        saveStoredUsers(allUsers);
+
+        // Update state
+        set({ user: updatedUser });
+
+        // Optional sync with backend
+        try {
+          await api.put('/api/auth/profile', {
+            name: currentUser.name,
+            email: currentUser.email,
+            avatarUrl: avatarUrl || null,
           });
         } catch {}
 

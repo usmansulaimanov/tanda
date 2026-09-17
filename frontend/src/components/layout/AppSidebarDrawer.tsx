@@ -112,8 +112,17 @@ export const AppSidebarDrawer: React.FC = () => {
         {/* User Card */}
         {isAuthenticated && user && (
           <div className="sidebar-user-box">
-            <div className="sidebar-user-avatar">
-              {user.name ? user.name.trim().charAt(0).toUpperCase() : (role === 'admin' ? 'А' : 'О')}
+            <div className="sidebar-user-avatar" style={{ overflow: 'hidden' }}>
+              {user.avatarUrl ? (
+                <img
+                  src={user.avatarUrl}
+                  alt={user.name || 'Avatar'}
+                  style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }}
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                user.name ? user.name.trim().charAt(0).toUpperCase() : (role === 'admin' ? 'А' : 'О')
+              )}
             </div>
             <div className="sidebar-user-info">
               <div className="sidebar-user-name" title={user.name}>
