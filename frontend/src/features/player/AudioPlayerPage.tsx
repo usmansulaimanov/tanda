@@ -389,7 +389,7 @@ export const AudioPlayerPage: React.FC = () => {
               />
 
               {/* 1. Book Meta Row */}
-              <div className="flex items-center gap-5 sm:gap-6 min-h-0 relative z-10">
+              <div className="flex items-start gap-5 sm:gap-6 min-h-0 relative z-10">
                 {/* Book Cover Image - Enlarged & High Shadow */}
                 <div
                   className="w-40 sm:w-48 md:w-52 aspect-[3/4] rounded-2xl sm:rounded-3xl shrink-0 shadow-2xl relative overflow-hidden flex flex-col justify-end p-3 border-2 border-white/90 group"
@@ -433,18 +433,18 @@ export const AudioPlayerPage: React.FC = () => {
                     Авторы: <span className="text-slate-900 font-bold">{activeBook.author}</span>
                   </p>
 
-                  <div className="grid grid-cols-2 gap-2 text-xs text-slate-600 bg-slate-50 p-3 rounded-2xl border border-slate-100">
-                    <div className="truncate">
-                      🎙️ Диктор: <strong className="text-slate-900">{activeBook.audioNarrator || 'Танда Аудио'}</strong>
+                  <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1.5 text-xs text-slate-600 bg-slate-50 px-3.5 py-2.5 rounded-2xl border border-slate-100">
+                    <div className="flex items-center gap-1 shrink-0">
+                      <span>🎙️ Диктор:</span> <strong className="text-slate-900">{activeBook.audioNarrator || 'Танда Аудио'}</strong>
                     </div>
-                    <div className="truncate">
-                      ⏱️ Ұзақтығы: <strong className="text-slate-900">{activeBook.audioDuration || 'Толық аудио'}</strong>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <span>⏱️ Ұзақтығы:</span> <strong className="text-slate-900">{activeBook.audioDuration || 'Толық аудио'}</strong>
                     </div>
-                    <div className="truncate">
-                      📑 Бөлімдер: <strong className="text-slate-900">{chapters.length} бөлім</strong>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <span>📑 Бөлімдер:</span> <strong className="text-slate-900">{chapters.length} бөлім</strong>
                     </div>
-                    <div className="truncate">
-                      ⭐ Қолжетімділік: <strong className="text-[#005494]">{activeBook.isFree ? 'Тегін' : 'Премиум'}</strong>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <span>⭐ Қолжетімділік:</span> <strong className="text-[#005494]">{activeBook.isFree ? 'Тегін' : 'Премиум'}</strong>
                     </div>
                   </div>
                 </div>
