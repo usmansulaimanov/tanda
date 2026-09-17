@@ -429,16 +429,16 @@ export const AudioPlayerBar: React.FC = () => {
               videoId: ytVideoId,
               startSeconds: targetTime,
             });
-            if (isPlaying) {
+            if (useAudioPlayerStore.getState().isPlaying) {
               ytPlayerRef.current.playVideo();
             }
           } catch {
             ytPlayerRef.current.seekTo(targetTime, true);
-            if (isPlaying) ytPlayerRef.current.playVideo();
+            if (useAudioPlayerStore.getState().isPlaying) ytPlayerRef.current.playVideo();
           }
         } else if (typeof ytPlayerRef.current.seekTo === 'function') {
           ytPlayerRef.current.seekTo(targetTime, true);
-          if (isPlaying) ytPlayerRef.current.playVideo();
+          if (useAudioPlayerStore.getState().isPlaying) ytPlayerRef.current.playVideo();
         }
       }
     } else if (audioRef.current) {
@@ -451,13 +451,13 @@ export const AudioPlayerBar: React.FC = () => {
         } else {
           audioRef.current.currentTime = targetTime;
           pendingSeekTimeRef.current = null;
-          if (isPlaying) {
+          if (useAudioPlayerStore.getState().isPlaying) {
             audioRef.current.play().catch(() => {});
           }
         }
       }
     }
-  }, [currentChapter, chapterIndex, isYouTube, ytVideoId, currentBook?.id, isPlaying]);
+  }, [currentChapter?.id, chapterIndex, isYouTube, ytVideoId, currentBook?.id]);
 
   // Sync play/pause with players
   useEffect(() => {
