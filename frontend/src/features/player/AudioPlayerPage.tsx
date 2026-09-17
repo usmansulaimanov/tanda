@@ -459,10 +459,6 @@ export const AudioPlayerPage: React.FC = () => {
                     </h4>
                   </div>
                 </div>
-
-                <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase shrink-0 ${isPlaying ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}`}>
-                  {isPlaying ? 'Ойнап тұр' : 'Кідіртілді'}
-                </span>
               </div>
 
               {/* 3. Progress Slider & Controls Console */}
