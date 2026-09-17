@@ -277,7 +277,6 @@ export const AudioPlayerPage: React.FC = () => {
     const hasOwnAudio = Boolean(ch?.audioUrl && ch.audioUrl.trim());
     const targetStartTime = !hasOwnAudio ? getChapterStartTime(currentChapters, idx) : 0;
     window.dispatchEvent(new CustomEvent('tanda:audio:seek', { detail: { time: targetStartTime } }));
-    showToast(`«${chapters[idx]?.title || `${idx + 1}-бөлім`}» ойнатылуда`, 'info');
   };
 
   const handleToggleBookmark = async () => {

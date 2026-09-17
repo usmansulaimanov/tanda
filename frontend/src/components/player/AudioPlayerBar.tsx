@@ -389,46 +389,20 @@ export const AudioPlayerBar: React.FC = () => {
         e.preventDefault();
         if (chapters.length > 1) {
           if (store.chapterIndex < chapters.length - 1) {
-            const nextIdx = store.chapterIndex + 1;
             store.nextChapter();
-            showToast(`«${chapters[nextIdx]?.title || `${nextIdx + 1}-бөлім`}»`, 'info');
-          } else {
-            // Last chapter reached: stay on current without jumping to first chapter
-            showToast('Соңғы бөлім', 'info');
           }
-        } else if (chapters.length === 1) {
-          store.nextChapter();
-          showToast(`«${chapters[0]?.title || store.currentBook.title}»`, 'info');
         } else {
           store.nextChapter();
         }
       } else if (e.key === 'ArrowLeft') {
         e.preventDefault();
-        if (chapters.length > 1) {
-          if (store.progress > 4) {
-            store.prevChapter();
-            showToast(`«${chapters[store.chapterIndex]?.title || `${store.chapterIndex + 1}-бөлім`}» (Басынан)`, 'info');
-          } else if (store.chapterIndex > 0) {
-            const prevIdx = store.chapterIndex - 1;
-            store.prevChapter();
-            showToast(`«${chapters[prevIdx]?.title || `${prevIdx + 1}-бөлім`}»`, 'info');
-          } else {
-            // Already on 1st chapter: restart 1st chapter without jumping to last chapter
-            store.prevChapter();
-            showToast(`«${chapters[0]?.title || '1-бөлім'}» (Басынан)`, 'info');
-          }
-        } else if (chapters.length === 1) {
-          store.prevChapter();
-          showToast(`«${chapters[0]?.title || store.currentBook.title}» (Басынан)`, 'info');
-        } else {
-          store.prevChapter();
-        }
+        store.prevChapter();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showToast]);
+  }, []);
 
   // Sync chapter change / new track loading with audio player and YouTube
   useEffect(() => {
