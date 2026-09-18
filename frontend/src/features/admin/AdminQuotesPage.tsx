@@ -389,7 +389,7 @@ export const AdminQuotesPage: React.FC = () => {
           >
             <div>
               <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
-                1-цитата уақыты (Таңертең)
+                1-цитата уақыты
               </label>
               <input
                 type="time"
@@ -411,7 +411,7 @@ export const AdminQuotesPage: React.FC = () => {
 
             <div>
               <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
-                2-цитата уақыты (Түскі)
+                2-цитата уақыты
               </label>
               <input
                 type="time"
@@ -433,7 +433,7 @@ export const AdminQuotesPage: React.FC = () => {
 
             <div>
               <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
-                3-цитата уақыты (Кешкі)
+                3-цитата уақыты
               </label>
               <input
                 type="time"
