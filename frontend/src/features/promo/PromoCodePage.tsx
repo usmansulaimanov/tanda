@@ -264,57 +264,72 @@ export const PromoCodePage: React.FC = () => {
               Сіздің белсенді промокодтарыңыз:
             </h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {activatedList.map((p) => (
-                <div
-                  key={p.id}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '12px 18px',
-                    borderRadius: '12px',
-                    background: '#F8FAFC',
-                    border: '1px solid #E2E8F0',
-                    flexWrap: 'wrap',
-                    gap: '10px',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <span
-                      style={{
-                        fontFamily: 'monospace',
-                        fontWeight: 800,
-                        fontSize: '13px',
-                        color: 'var(--blue)',
-                        background: 'rgba(0, 84, 148, 0.08)',
-                        padding: '4px 10px',
-                        borderRadius: '6px',
-                      }}
-                    >
-                      {p.code}
-                    </span>
-                    <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-dark)' }}>
-                      {p.rewardTitle}
-                    </span>
-                  </div>
-                  <span
+              {activatedList.map((p) => {
+                const now = Date.now();
+                const usage = user?.id ? p.usedBy?.find((u) => u.userId === user.id) : null;
+                let expiryMs: number;
+                if (usage && usage.usedAt && p.durationDays) {
+                  expiryMs = new Date(usage.usedAt).getTime() + p.durationDays * 24 * 60 * 60 * 1000;
+                } else if (p.expiresAt) {
+                  expiryMs = new Date(p.expiresAt).getTime();
+                } else {
+                  expiryMs = now + (p.durationDays || 30) * 24 * 60 * 60 * 1000;
+                }
+                const diffMs = expiryMs - now;
+                const daysRemaining = diffMs > 0 ? Math.ceil(diffMs / (24 * 60 * 60 * 1000)) : 0;
+
+                return (
+                  <div
+                    key={p.id}
                     style={{
-                      fontSize: '11px',
-                      fontWeight: 700,
-                      padding: '3px 10px',
-                      borderRadius: '20px',
-                      background: '#D1FAE5',
-                      color: '#047857',
-                      display: 'inline-flex',
+                      display: 'flex',
                       alignItems: 'center',
-                      gap: '4px',
+                      justifyContent: 'space-between',
+                      padding: '12px 18px',
+                      borderRadius: '12px',
+                      background: '#F8FAFC',
+                      border: '1px solid #E2E8F0',
+                      flexWrap: 'wrap',
+                      gap: '10px',
                     }}
                   >
-                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10B981' }}></span>
-                    Белсенді
-                  </span>
-                </div>
-              ))}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <span
+                        style={{
+                          fontFamily: 'monospace',
+                          fontWeight: 800,
+                          fontSize: '13px',
+                          color: 'var(--blue)',
+                          background: 'rgba(0, 84, 148, 0.08)',
+                          padding: '4px 10px',
+                          borderRadius: '6px',
+                        }}
+                      >
+                        {p.code}
+                      </span>
+                      <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-dark)' }}>
+                        {p.rewardTitle}
+                      </span>
+                    </div>
+                    <span
+                      style={{
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        padding: '3px 10px',
+                        borderRadius: '20px',
+                        background: '#D1FAE5',
+                        color: '#047857',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                      }}
+                    >
+                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10B981' }}></span>
+                      {daysRemaining > 0 ? `Белсенді (${daysRemaining} күн қалды)` : 'Мерзімі аяқталды'}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
