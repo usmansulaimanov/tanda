@@ -9,6 +9,7 @@ import { useQuoteStore } from '../../store/useQuoteStore';
 import { useMessageStore } from '../../store/useMessageStore';
 import { hasAdminPermission } from '../../utils/permissions';
 import { api } from '../../lib/api';
+import tandaLogo from '../../assets/tanda-logo.png';
 
 export const AppSidebarDrawer: React.FC = () => {
   const { isOpen, closeSidebar } = useSidebarStore();
@@ -85,28 +86,23 @@ export const AppSidebarDrawer: React.FC = () => {
       >
         {/* Drawer Header */}
         <div className="sidebar-drawer-header">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div className="sidebar-drawer-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="3" width="7" height="7"></rect>
-                <rect x="14" y="3" width="7" height="7"></rect>
-                <rect x="14" y="14" width="7" height="7"></rect>
-                <rect x="3" y="14" width="7" height="7"></rect>
-              </svg>
-            </div>
-            <div>
-              <h3 className="sidebar-drawer-title">
-                {role === 'admin' ? (user?.isSuperAdmin ? 'Бас әкімші (Super Admin)' : 'Басқару панелі') : 'Tanda Мәзірі'}
-              </h3>
-              {isAuthenticated && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
-                  <span className="sidebar-id-pill">
-                    ID: {user?.idNumber || (role === 'admin' ? '000 001' : '001 001')}
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
+          <Link
+            to="/"
+            onClick={closeSidebar}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              textDecoration: 'none',
+              padding: 0,
+              margin: 0,
+            }}
+          >
+            <img
+              src={tandaLogo}
+              alt="Tanda"
+              style={{ height: '34px', width: 'auto', display: 'block', objectFit: 'contain' }}
+            />
+          </Link>
 
           <button
             type="button"
