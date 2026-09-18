@@ -370,15 +370,12 @@ export const AdminQuotesPage: React.FC = () => {
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1.5px solid #F1F5F9', paddingBottom: '16px', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span style={{ width: '8px', height: '22px', backgroundColor: 'var(--orange)', borderRadius: '4px', display: 'inline-block' }} />
                 <h2 style={{ fontSize: '18px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
-                  Күнделікті уақыт кестесін баптау (Күніне 3 уақыт)
+                  Уақыт баптаулары
                 </h2>
               </div>
-              <p style={{ fontSize: '13px', color: 'var(--text-mid)', margin: '4px 0 0 16px' }}>
-                Оқырмандарға күн сайын келетін 3 цитатаның нақты уақыттарын белгілеңіз:
-              </p>
             </div>
 
             {/* Clean toggle button */}
