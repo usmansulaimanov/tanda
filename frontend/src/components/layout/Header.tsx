@@ -411,16 +411,17 @@ export const Header: React.FC = () => {
                         <div className="profile-card-name" title={user.role === 'admin' ? 'Админ' : (user.name || 'Оқырман')}>
                           {user.role === 'admin' ? 'Админ' : (user.name || 'Оқырман')}
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', margin: '3px 0', flexWrap: 'wrap' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '4px', marginTop: '4px' }}>
                           <span
                             style={{
+                              display: 'inline-block',
                               fontSize: '11px',
                               fontWeight: 800,
                               fontFamily: 'monospace',
                               background: 'rgba(0, 84, 148, 0.1)',
                               color: 'var(--blue)',
-                              padding: '1px 7px',
-                              borderRadius: '4px',
+                              padding: '2px 8px',
+                              borderRadius: '6px',
                               letterSpacing: '0.04em',
                             }}
                           >
@@ -429,19 +430,20 @@ export const Header: React.FC = () => {
                           {user.username && (
                             <span
                               style={{
+                                display: 'inline-block',
                                 fontSize: '11px',
                                 fontWeight: 700,
                                 background: 'rgba(235, 130, 60, 0.12)',
                                 color: 'var(--orange)',
-                                padding: '1px 7px',
-                                borderRadius: '4px',
+                                padding: '2px 8px',
+                                borderRadius: '6px',
                               }}
                             >
                               @{user.username.replace(/^@/, '')}
                             </span>
                           )}
                         </div>
-                        <div className="profile-card-email" title={user.email}>
+                        <div className="profile-card-email" title={user.email} style={{ marginTop: '4px' }}>
                           {user.email}
                         </div>
                       </div>
