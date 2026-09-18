@@ -183,9 +183,9 @@ export const ReaderMessagesPage: React.FC = () => {
             const matchedBook = msg.bookId ? books.find((b) => b.id === msg.bookId) : null;
 
             const priorityLabels = {
-              normal: { text: 'Қалыпты', bg: '#F1F5F9', color: '#475569' },
-              news: { text: 'Жаңалық', bg: '#EFF6FF', color: '#1D4ED8' },
-              important: { text: 'Маңызды', bg: '#FEF2F2', color: '#B91C1C' },
+              normal: { text: 'Қалыпты' },
+              news: { text: 'Жаңалық' },
+              important: { text: 'Маңызды' },
             };
             const pri = priorityLabels[msg.priority || 'normal'];
 
@@ -245,12 +245,12 @@ export const ReaderMessagesPage: React.FC = () => {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                       <span
                         style={{
-                          fontSize: '11px',
+                          fontSize: '12px',
                           fontWeight: 700,
-                          padding: '3px 8px',
-                          borderRadius: '6px',
-                          background: pri.bg,
-                          color: pri.color,
+                          color: '#0F172A',
+                          background: 'transparent',
+                          padding: 0,
+                          border: 'none',
                         }}
                       >
                         {pri.text}
