@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { Mail, X, BookOpen, Clock } from 'lucide-react';
 import { useMessageStore, AdminMessage } from '../../store/useMessageStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useBookStore } from '../../store/useBookStore';
@@ -94,7 +95,8 @@ export const ReaderMessagesPage: React.FC = () => {
               marginBottom: '14px',
             }}
           >
-            ✉️ ХАБАРЛАМАЛАР ЖӘНЕ ХАТТАР
+            <Mail size={13} color="#93C5FD" />
+            <span>ХАБАРЛАМАЛАР ЖӘНЕ ХАТТАР</span>
           </div>
 
           <h1 style={{ fontSize: '28px', fontWeight: 900, margin: '0 0 10px 0', lineHeight: 1.25 }}>
@@ -268,17 +270,20 @@ export const ReaderMessagesPage: React.FC = () => {
                             border: '1px solid #FDE68A',
                             display: 'inline-flex',
                             alignItems: 'center',
-                            gap: '3px',
+                            gap: '4px',
                           }}
                         >
-                          ⏳ {(() => {
-                            const diffMs = new Date(msg.expiresAt!).getTime() - Date.now();
-                            if (diffMs <= 0) return 'Мерзімі бітті';
-                            const diffHours = Math.ceil(diffMs / (1000 * 60 * 60));
-                            if (diffHours < 24) return `${diffHours} сағатта өшеді`;
-                            const diffDays = Math.ceil(diffHours / 24);
-                            return `${diffDays} күнде өшеді`;
-                          })()}
+                          <Clock size={12} color="#92400E" />
+                          <span>
+                            {(() => {
+                              const diffMs = new Date(msg.expiresAt!).getTime() - Date.now();
+                              if (diffMs <= 0) return 'Мерзімі бітті';
+                              const diffHours = Math.ceil(diffMs / (1000 * 60 * 60));
+                              if (diffHours < 24) return `${diffHours} сағатта өшеді`;
+                              const diffDays = Math.ceil(diffHours / 24);
+                              return `${diffDays} күнде өшеді`;
+                            })()}
+                          </span>
                         </span>
                       )}
 
@@ -311,10 +316,12 @@ export const ReaderMessagesPage: React.FC = () => {
                             cursor: 'pointer',
                             color: '#94A3B8',
                             padding: '4px',
-                            fontSize: '14px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
                           }}
                         >
-                          ✕
+                          <X size={15} />
                         </button>
                       )}
                     </div>
@@ -329,31 +336,32 @@ export const ReaderMessagesPage: React.FC = () => {
                 <div
                   style={{
                     fontSize: '14px',
-                    color: '#334155',
-                    lineHeight: 1.65,
+                    color: 'var(--text-dark)',
+                    lineHeight: 1.6,
                     whiteSpace: 'pre-wrap',
-                    marginBottom: matchedBook || msg.bookTitle ? '18px' : '0',
+                    wordBreak: 'break-word',
                   }}
                 >
                   {msg.content}
                 </div>
 
-                {/* Attached Book (if any) */}
-                {(matchedBook || msg.bookTitle) && (
+                {/* Attached Book Link (if any) */}
+                {msg.bookId && (
                   <div
                     style={{
                       marginTop: '16px',
                       padding: '12px 16px',
                       borderRadius: '12px',
                       background: '#F8FAFC',
-                      border: '1.5px solid #E2E8F0',
+                      border: '1px solid #E2E8F0',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
                       gap: '12px',
+                      flexWrap: 'wrap',
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
                       <div
                         style={{
                           width: '32px',
@@ -369,7 +377,7 @@ export const ReaderMessagesPage: React.FC = () => {
                           fontWeight: 800,
                         }}
                       >
-                        {!matchedBook?.coverImage && '📖'}
+                        {!matchedBook?.coverImage && <BookOpen size={16} color="#FFF" />}
                       </div>
                       <div style={{ minWidth: 0 }}>
                         <div
@@ -447,10 +455,9 @@ export const ReaderMessagesPage: React.FC = () => {
               alignItems: 'center',
               justifyContent: 'center',
               margin: '0 auto 16px auto',
-              fontSize: '28px',
             }}
           >
-            ✉️
+            <Mail size={32} color="#94A3B8" />
           </div>
           <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-dark)', marginBottom: '8px' }}>
             Әзірге хабарламалар жоқ

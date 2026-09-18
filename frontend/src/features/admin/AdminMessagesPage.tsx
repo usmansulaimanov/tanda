@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Globe, User as UserIcon, Users, Lock, Unlock, Shield } from 'lucide-react';
+import { Globe, User as UserIcon, Users, Lock, Unlock, Shield, Mail, X } from 'lucide-react';
 import { useMessageStore, AdminMessage, MessageTargetType, MessagePriority } from '../../store/useMessageStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useToastStore } from '../../store/useToastStore';
@@ -484,7 +484,7 @@ export const AdminMessagesPage: React.FC = () => {
                         <td>
                           {msg.bookTitle ? (
                             <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--blue)' }}>
-                              📖 {msg.bookTitle}
+                              {msg.bookTitle}
                             </span>
                           ) : (
                             <span style={{ fontSize: '12px', color: '#94A3B8' }}>—</span>
@@ -508,7 +508,7 @@ export const AdminMessagesPage: React.FC = () => {
                                 width: 'fit-content',
                               }}
                             >
-                              {msg.canReaderDelete ? '🔓 Өшіруге болады' : '🔒 Өшірілмейді'}
+                              {msg.canReaderDelete ? 'Өшіруге болады' : 'Өшірілмейді'}
                             </span>
 
                             {msg.expiresAt ? (
@@ -522,11 +522,11 @@ export const AdminMessagesPage: React.FC = () => {
                                   gap: '3px',
                                 }}
                               >
-                                {new Date(msg.expiresAt).getTime() <= Date.now() ? '⚠️ Мерзімі өткен' : `⏳ ${msg.expiresInHours ? `${msg.expiresInHours} сағ` : 'Мерзімді'}`}
+                                {new Date(msg.expiresAt).getTime() <= Date.now() ? 'Мерзімі өткен' : (msg.expiresInHours ? `${msg.expiresInHours} сағ` : 'Мерзімді')}
                               </span>
                             ) : (
                               <span style={{ fontSize: '11px', color: '#94A3B8' }}>
-                                ♾️ Шексіз
+                                Шексіз
                               </span>
                             )}
                           </div>
@@ -575,7 +575,9 @@ export const AdminMessagesPage: React.FC = () => {
             </div>
           ) : (
             <div style={{ textAlign: 'center', padding: '50px 20px', color: '#64748B' }}>
-              <div style={{ fontSize: '32px', marginBottom: '8px' }}>✉️</div>
+              <div style={{ marginBottom: '10px', display: 'flex', justifyContent: 'center' }}>
+                <Mail size={36} color="#94A3B8" strokeWidth={1.5} />
+              </div>
               <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-dark)', marginBottom: '4px' }}>
                 Хабарламалар табылмады
               </h3>
@@ -624,9 +626,9 @@ export const AdminMessagesPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setShowSendModal(false)}
-                style={{ background: 'transparent', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#64748B' }}
+                style={{ background: 'transparent', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748B', padding: '4px' }}
               >
-                ✕
+                <X size={20} />
               </button>
             </div>
 
