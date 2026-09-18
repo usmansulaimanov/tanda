@@ -241,23 +241,23 @@ export const AdminMessagesPage: React.FC = () => {
             <div style={{ fontSize: '28px', fontWeight: 900, color: 'var(--text-dark)' }}>{messages.length} хабарлама</div>
           </div>
 
-          <div style={{ background: '#FFFFFF', borderRadius: '16px', padding: '20px 24px', border: '1.5px solid #BBF7D0', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
-            <div style={{ fontSize: '13px', fontWeight: 700, color: '#15803D', marginBottom: '6px' }}>Барлығына жіберілген</div>
-            <div style={{ fontSize: '28px', fontWeight: 900, color: '#16A34A' }}>
+          <div style={{ background: '#FFFFFF', borderRadius: '16px', padding: '20px 24px', border: '1.5px solid #E2E8F0', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
+            <div style={{ fontSize: '13px', fontWeight: 700, color: '#64748B', marginBottom: '6px' }}>Барлығына жіберілген</div>
+            <div style={{ fontSize: '28px', fontWeight: 900, color: 'var(--text-dark)' }}>
               {messages.filter((m) => m.targetType === 'all').length} хабарлама
             </div>
           </div>
 
-          <div style={{ background: '#FFFFFF', borderRadius: '16px', padding: '20px 24px', border: '1.5px solid #FED7AA', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
-            <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--orange)', marginBottom: '6px' }}>Жеке хаттар</div>
-            <div style={{ fontSize: '28px', fontWeight: 900, color: 'var(--orange)' }}>
+          <div style={{ background: '#FFFFFF', borderRadius: '16px', padding: '20px 24px', border: '1.5px solid #E2E8F0', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
+            <div style={{ fontSize: '13px', fontWeight: 700, color: '#64748B', marginBottom: '6px' }}>Жеке хаттар</div>
+            <div style={{ fontSize: '28px', fontWeight: 900, color: 'var(--text-dark)' }}>
               {messages.filter((m) => m.targetType === 'single').length} хат
             </div>
           </div>
 
-          <div style={{ background: '#FFFFFF', borderRadius: '16px', padding: '20px 24px', border: '1.5px solid #C7D2FE', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
-            <div style={{ fontSize: '13px', fontWeight: 700, color: '#4F46E5', marginBottom: '6px' }}>Топтық хаттар</div>
-            <div style={{ fontSize: '28px', fontWeight: 900, color: '#4F46E5' }}>
+          <div style={{ background: '#FFFFFF', borderRadius: '16px', padding: '20px 24px', border: '1.5px solid #E2E8F0', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
+            <div style={{ fontSize: '13px', fontWeight: 700, color: '#64748B', marginBottom: '6px' }}>Топтық хаттар</div>
+            <div style={{ fontSize: '28px', fontWeight: 900, color: 'var(--text-dark)' }}>
               {messages.filter((m) => m.targetType === 'multiple').length} хат
             </div>
           </div>
