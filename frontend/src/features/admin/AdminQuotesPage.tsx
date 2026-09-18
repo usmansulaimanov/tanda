@@ -55,6 +55,7 @@ export const AdminQuotesPage: React.FC = () => {
   // Search & Filter
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all');
+  const [filterBookId, setFilterBookId] = useState<string>('all');
 
   // Time slots local editor
   const [time1, setTime1] = useState(settings.scheduledTimes[0] || '09:00');
@@ -77,6 +78,18 @@ export const AdminQuotesPage: React.FC = () => {
     return quotes.filter((q) => {
       if (filterStatus === 'active' && !q.isActive) return false;
       if (filterStatus === 'inactive' && q.isActive) return false;
+      if (filterBookId !== 'all') {
+        if (q.bookId) {
+          if (q.bookId !== filterBookId) return false;
+        } else if (q.bookTitle) {
+          const selBook = books.find((b) => b.id === filterBookId);
+          if (!selBook || selBook.title.toLowerCase().trim() !== q.bookTitle.toLowerCase().trim()) {
+            return false;
+          }
+        } else {
+          return false;
+        }
+      }
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase().trim();
         return (
@@ -87,7 +100,7 @@ export const AdminQuotesPage: React.FC = () => {
       }
       return true;
     });
-  }, [quotes, filterStatus, searchQuery]);
+  }, [quotes, filterStatus, filterBookId, searchQuery, books]);
 
   const activeQuotesCount = useMemo(() => quotes.filter((q) => q.isActive).length, [quotes]);
   const totalSentCount = useMemo(() => quotes.reduce((acc, q) => acc + (q.sentCount || 0), 0), [quotes]);
@@ -667,7 +680,7 @@ export const AdminQuotesPage: React.FC = () => {
           >
             <div>
               <h2 style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
-                Цитаталар тізімі ({quotes.length})
+                Цитаталар тізімі ({filteredQuotes.length !== quotes.length ? `${filteredQuotes.length} / ${quotes.length}` : quotes.length})
               </h2>
               <p style={{ fontSize: '13px', color: 'var(--text-mid)', marginTop: '4px' }}>
                 Белсенді цитаталар кесте бойынша кезекпен оқырмандарға жіберіледі
@@ -675,7 +688,8 @@ export const AdminQuotesPage: React.FC = () => {
             </div>
 
             {/* Filter and Search */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+              {/* Status filter buttons */}
               <div style={{ display: 'flex', gap: '6px' }}>
                 <button
                   type="button"
@@ -729,7 +743,44 @@ export const AdminQuotesPage: React.FC = () => {
                 </button>
               </div>
 
-              <div style={{ position: 'relative', width: '240px' }}>
+              {/* Book filter dropdown */}
+              <div style={{ minWidth: '180px', maxWidth: '240px' }}>
+                <select
+                  value={filterBookId}
+                  onChange={(e) => setFilterBookId(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '7px 10px',
+                    borderRadius: '6px',
+                    border: `1.5px solid ${filterBookId !== 'all' ? 'var(--blue)' : '#CBD5E1'}`,
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    outline: 'none',
+                    background: filterBookId !== 'all' ? '#EFF6FF' : '#F8FAFC',
+                    color: filterBookId !== 'all' ? 'var(--blue)' : 'var(--text-dark)',
+                    cursor: 'pointer',
+                    textOverflow: 'ellipsis',
+                  }}
+                  title="Кітап бойынша сүзу"
+                >
+                  <option value="all">Барлық кітаптар</option>
+                  {availableBooks.map((b) => {
+                    const count = quotes.filter(
+                      (q) =>
+                        q.bookId === b.id ||
+                        (q.bookTitle && q.bookTitle.toLowerCase().trim() === b.title.toLowerCase().trim())
+                    ).length;
+                    return (
+                      <option key={b.id} value={b.id}>
+                        «{b.title}» {count > 0 ? `(${count})` : ''}
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+
+              {/* Search input */}
+              <div style={{ position: 'relative', width: '220px' }}>
                 <input
                   type="text"
                   value={searchQuery}
