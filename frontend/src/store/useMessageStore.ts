@@ -17,6 +17,9 @@ export interface AdminMessage {
   senderName: string;
   senderRole: string;
   createdAt: string;
+  canReaderDelete: boolean; // Whether readers are permitted to delete this message (default: false)
+  expiresInHours?: number | null; // e.g. 1, 6, 12, 24, 72 (3 days), 168 (7 days), null for never
+  expiresAt?: string | null; // Exact expiration ISO timestamp
   readByUserIds: string[]; // User IDs who marked/viewed this message
   deletedByUserIds?: string[]; // User IDs who deleted/hidden this message from their personal inbox
 }
@@ -36,6 +39,8 @@ interface MessageState {
     bookTitle?: string;
     priority?: MessagePriority;
     senderName?: string;
+    canReaderDelete?: boolean;
+    expiresInHours?: number | null;
   }) => AdminMessage;
 
   deleteMessage: (id: string) => void;
@@ -57,7 +62,11 @@ const DEFAULT_MESSAGES: AdminMessage[] = [
     senderName: 'Tanda Әкімшілігі',
     senderRole: 'admin',
     createdAt: new Date(Date.now() - 3600000 * 24).toISOString(),
+    canReaderDelete: false,
+    expiresInHours: null,
+    expiresAt: null,
     readByUserIds: [],
+    deletedByUserIds: [],
   },
 ];
 
@@ -68,8 +77,15 @@ export const useMessageStore = create<MessageState>()(
       activePopupMessage: null,
 
       sendMessage: (data) => {
+        const now = Date.now();
+        let expiresAt: string | null = null;
+        const expHours = data.expiresInHours && data.expiresInHours > 0 ? data.expiresInHours : null;
+        if (expHours) {
+          expiresAt = new Date(now + expHours * 3600 * 1000).toISOString();
+        }
+
         const newMessage: AdminMessage = {
-          id: `msg-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+          id: `msg-${now}-${Math.random().toString(36).substring(2, 6)}`,
           title: data.title.trim(),
           content: data.content.trim(),
           targetType: data.targetType,
@@ -80,7 +96,10 @@ export const useMessageStore = create<MessageState>()(
           priority: data.priority || 'normal',
           senderName: data.senderName || 'Бас әкімші',
           senderRole: 'admin',
-          createdAt: new Date().toISOString(),
+          createdAt: new Date(now).toISOString(),
+          canReaderDelete: data.canReaderDelete ?? false,
+          expiresInHours: expHours,
+          expiresAt,
           readByUserIds: [],
           deletedByUserIds: [],
         };
@@ -105,9 +124,12 @@ export const useMessageStore = create<MessageState>()(
         set((state) => ({
           messages: state.messages.map((m) => {
             if (m.id === messageId) {
-              const deletedBy = m.deletedByUserIds || [];
-              if (!deletedBy.includes(userId)) {
-                return { ...m, deletedByUserIds: [...deletedBy, userId] };
+              // Only allow deleting if message permits reader deletion
+              if (m.canReaderDelete) {
+                const deletedBy = m.deletedByUserIds || [];
+                if (!deletedBy.includes(userId)) {
+                  return { ...m, deletedByUserIds: [...deletedBy, userId] };
+                }
               }
             }
             return m;
@@ -155,14 +177,23 @@ export const useMessageStore = create<MessageState>()(
 
       getMessagesForUser: (userId) => {
         const { messages } = get();
-        if (!userId) {
-          return messages.filter((m) => m.targetType === 'all');
-        }
+        const now = Date.now();
+
         return messages.filter((m) => {
-          // Check if hidden/deleted by this user
-          if (m.deletedByUserIds && m.deletedByUserIds.includes(userId)) {
+          // Check if message is auto-expired
+          if (m.expiresAt && new Date(m.expiresAt).getTime() <= now) {
             return false;
           }
+
+          // Check if user has explicitly deleted this message (if deletion was allowed)
+          if (userId && m.deletedByUserIds && m.deletedByUserIds.includes(userId)) {
+            return false;
+          }
+
+          if (!userId) {
+            return m.targetType === 'all';
+          }
+
           if (m.targetType === 'all') return true;
           return m.targetUserIds && m.targetUserIds.includes(userId);
         });

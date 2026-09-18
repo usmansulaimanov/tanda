@@ -37,6 +37,8 @@ export const AdminMessagesPage: React.FC = () => {
   const [recipientSearch, setRecipientSearch] = useState('');
   const [priority, setPriority] = useState<MessagePriority>('normal');
   const [selectedBookId, setSelectedBookId] = useState('');
+  const [canReaderDelete, setCanReaderDelete] = useState(false);
+  const [expiresInHours, setExpiresInHours] = useState<number | null>(null);
 
   // Delete modal state
   const [messageToDelete, setMessageToDelete] = useState<AdminMessage | null>(null);
@@ -121,6 +123,8 @@ export const AdminMessagesPage: React.FC = () => {
       bookTitle: linkedBook?.title || undefined,
       priority,
       senderName: user?.name || 'Бас әкімші',
+      canReaderDelete,
+      expiresInHours,
     });
 
     showToast(
@@ -140,6 +144,8 @@ export const AdminMessagesPage: React.FC = () => {
     setRecipientSearch('');
     setPriority('normal');
     setSelectedBookId('');
+    setCanReaderDelete(false);
+    setExpiresInHours(null);
   };
 
   // Filtered messages list
@@ -381,6 +387,7 @@ export const AdminMessagesPage: React.FC = () => {
                     <th style={{ width: '200px' }}>Алушылар</th>
                     <th style={{ width: '120px' }}>Маңыздылығы</th>
                     <th style={{ width: '160px' }}>Бекітілген кітап</th>
+                    <th style={{ width: '160px' }}>Өшу / Өшіру құқығы</th>
                     <th style={{ width: '140px' }}>Уақыты</th>
                     <th style={{ width: '80px', textAlign: 'center' }}>Оқығандар</th>
                     <th style={{ width: '80px', textAlign: 'right' }}>Әрекет</th>
@@ -470,6 +477,47 @@ export const AdminMessagesPage: React.FC = () => {
                           ) : (
                             <span style={{ fontSize: '12px', color: '#94A3B8' }}>—</span>
                           )}
+                        </td>
+
+                        <td>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            <span
+                              style={{
+                                fontSize: '11px',
+                                fontWeight: 700,
+                                color: msg.canReaderDelete ? '#C2410C' : '#005494',
+                                background: msg.canReaderDelete ? '#FFF7ED' : '#EFF6FF',
+                                padding: '2px 6px',
+                                borderRadius: '4px',
+                                border: msg.canReaderDelete ? '1px solid #FFEDD5' : '1px solid #DBEAFE',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '3px',
+                                width: 'fit-content',
+                              }}
+                            >
+                              {msg.canReaderDelete ? '🔓 Өшіруге болады' : '🔒 Өшірілмейді'}
+                            </span>
+
+                            {msg.expiresAt ? (
+                              <span
+                                style={{
+                                  fontSize: '11px',
+                                  fontWeight: 600,
+                                  color: new Date(msg.expiresAt).getTime() <= Date.now() ? '#DC2626' : '#64748B',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '3px',
+                                }}
+                              >
+                                {new Date(msg.expiresAt).getTime() <= Date.now() ? '⚠️ Мерзімі өткен' : `⏳ ${msg.expiresInHours ? `${msg.expiresInHours} сағ` : 'Мерзімді'}`}
+                              </span>
+                            ) : (
+                              <span style={{ fontSize: '11px', color: '#94A3B8' }}>
+                                ♾️ Шексіз
+                              </span>
+                            )}
+                          </div>
                         </td>
 
                         <td style={{ fontSize: '12px', color: '#64748B' }}>
@@ -811,7 +859,7 @@ export const AdminMessagesPage: React.FC = () => {
               </div>
 
               {/* Priority and Optional Book in one row */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '24px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '18px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
                     Маңыздылығы
@@ -864,6 +912,110 @@ export const AdminMessagesPage: React.FC = () => {
                         {b.title} — {b.author}
                       </option>
                     ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Reader Delete Permission & Auto-delete Expiration Settings */}
+              <div
+                style={{
+                  background: '#F8FAFC',
+                  borderRadius: '14px',
+                  padding: '16px',
+                  border: '1.5px solid #E2E8F0',
+                  marginBottom: '24px',
+                }}
+              >
+                <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-dark)', marginBottom: '12px' }}>
+                  ⚙️ Қауіпсіздік және өшу баптаулары
+                </div>
+
+                {/* Reader Deletion Permission */}
+                <div style={{ marginBottom: '14px' }}>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
+                    Оқырман бұл хабарламаны өшіре ала ма?
+                  </label>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                    <button
+                      type="button"
+                      onClick={() => setCanReaderDelete(false)}
+                      style={{
+                        padding: '8px 12px',
+                        borderRadius: '8px',
+                        border: !canReaderDelete ? '2px solid #005494' : '1.5px solid #CBD5E1',
+                        background: !canReaderDelete ? '#EFF6FF' : '#FFFFFF',
+                        color: !canReaderDelete ? '#005494' : '#64748B',
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                      }}
+                    >
+                      <span>🔒</span>
+                      <span>Өшіре алмайды (Ұсынылады)</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setCanReaderDelete(true)}
+                      style={{
+                        padding: '8px 12px',
+                        borderRadius: '8px',
+                        border: canReaderDelete ? '2px solid #F08000' : '1.5px solid #CBD5E1',
+                        background: canReaderDelete ? '#FFF7ED' : '#FFFFFF',
+                        color: canReaderDelete ? '#C2410C' : '#64748B',
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                      }}
+                    >
+                      <span>🔓</span>
+                      <span>Оқырман өшіре алады</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Auto-delete expiration */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
+                    Автоматты түрде өшу уақыты (Мерзімі)
+                  </label>
+                  <select
+                    value={expiresInHours === null ? '' : String(expiresInHours)}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setExpiresInHours(val === '' ? null : Number(val));
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '9px 12px',
+                      borderRadius: '8px',
+                      border: '1.5px solid #CBD5E1',
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      outline: 'none',
+                      background: '#FFFFFF',
+                      color: 'var(--text-dark)',
+                      boxSizing: 'border-box',
+                    }}
+                  >
+                    <option value="">♾️ Шексіз (Автоматты түрде өшпейді)</option>
+                    <option value="1">⏱️ 1 сағаттан кейін өшсін</option>
+                    <option value="3">⏱️ 3 сағаттан кейін өшсін</option>
+                    <option value="6">⏱️ 6 сағаттан кейін өшсін</option>
+                    <option value="12">⏱️ 12 сағаттан кейін өшсін</option>
+                    <option value="24">📅 24 сағаттан (1 күн) кейін өшсін</option>
+                    <option value="48">📅 2 күннен кейін өшсін</option>
+                    <option value="72">📅 3 күннен кейін өшсін</option>
+                    <option value="168">📅 7 күннен (1 апта) кейін өшсін</option>
+                    <option value="720">📅 30 күннен (1 ай) кейін өшсін</option>
                   </select>
                 </div>
               </div>

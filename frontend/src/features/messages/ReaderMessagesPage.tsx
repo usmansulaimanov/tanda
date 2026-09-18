@@ -242,55 +242,83 @@ export const ReaderMessagesPage: React.FC = () => {
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span
-                      style={{
-                        fontSize: '11px',
-                        fontWeight: 700,
-                        padding: '3px 8px',
-                        borderRadius: '6px',
-                        background: pri.bg,
-                        color: pri.color,
-                      }}
-                    >
-                      {pri.text}
-                    </span>
-
-                    {!isRead && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                       <span
                         style={{
                           fontSize: '11px',
-                          fontWeight: 800,
+                          fontWeight: 700,
                           padding: '3px 8px',
                           borderRadius: '6px',
-                          background: '#DBEAFE',
-                          color: '#1E40AF',
+                          background: pri.bg,
+                          color: pri.color,
                         }}
                       >
-                        Жаңа
+                        {pri.text}
                       </span>
-                    )}
 
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteForMe(msg.id);
-                      }}
-                      title="Өшіру"
-                      style={{
-                        background: 'transparent',
-                        border: 'none',
-                        cursor: 'pointer',
-                        color: '#94A3B8',
-                        padding: '4px',
-                        fontSize: '14px',
-                      }}
-                    >
-                      ✕
-                    </button>
+                      {msg.expiresAt && (
+                        <span
+                          style={{
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            padding: '3px 8px',
+                            borderRadius: '6px',
+                            background: '#FEF3C7',
+                            color: '#92400E',
+                            border: '1px solid #FDE68A',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '3px',
+                          }}
+                        >
+                          ⏳ {(() => {
+                            const diffMs = new Date(msg.expiresAt!).getTime() - Date.now();
+                            if (diffMs <= 0) return 'Мерзімі бітті';
+                            const diffHours = Math.ceil(diffMs / (1000 * 60 * 60));
+                            if (diffHours < 24) return `${diffHours} сағатта өшеді`;
+                            const diffDays = Math.ceil(diffHours / 24);
+                            return `${diffDays} күнде өшеді`;
+                          })()}
+                        </span>
+                      )}
+
+                      {!isRead && (
+                        <span
+                          style={{
+                            fontSize: '11px',
+                            fontWeight: 800,
+                            padding: '3px 8px',
+                            borderRadius: '6px',
+                            background: '#DBEAFE',
+                            color: '#1E40AF',
+                          }}
+                        >
+                          Жаңа
+                        </span>
+                      )}
+
+                      {msg.canReaderDelete && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteForMe(msg.id);
+                          }}
+                          title="Өшіру"
+                          style={{
+                            background: 'transparent',
+                            border: 'none',
+                            cursor: 'pointer',
+                            color: '#94A3B8',
+                            padding: '4px',
+                            fontSize: '14px',
+                          }}
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
 
                 {/* Message Title */}
                 <h3 style={{ fontSize: '17px', fontWeight: 800, color: 'var(--text-dark)', margin: '0 0 10px 0' }}>
