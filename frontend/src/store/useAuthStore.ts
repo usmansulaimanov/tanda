@@ -2,6 +2,22 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { api } from '../lib/api';
 import { User, AdminPermission } from '../types';
+import { useMessageStore } from './useMessageStore';
+
+function sendWelcomeMessage(user: { id: string; name?: string; email: string }) {
+  try {
+    useMessageStore.getState().sendMessage({
+      title: 'Tanda әлеміне қош келдіңіз!',
+      content: `Құрметті ${user.name || 'оқырман'}! Tanda онлайн кітапханасына сәтті тіркелуіңізбен құттықтаймыз! Мұнда қазақ және әлем әдебиетінің таңдаулы жауһарларын электронды түрде оқып, аудио нұсқасын тыңдай аласыз. Өзіңізге ұнаған кітаптарды «Менің сөрем» бөліміне қосып, кітап оқу сапарыңызды бастаңыз!`,
+      targetType: 'single',
+      targetUserIds: [user.id],
+      targetUserNames: [user.name || 'Оқырман'],
+      priority: 'news',
+      senderName: 'Tanda',
+      canReaderDelete: false,
+    });
+  } catch {}
+}
 
 interface AuthState {
   user: User | null;
@@ -541,6 +557,7 @@ export const useAuthStore = create<AuthState>()(
 
         allUsers.push(newUser);
         saveStoredUsers(allUsers);
+        sendWelcomeMessage(newUser);
 
         // Try backend sync if online
         try {
@@ -815,6 +832,7 @@ export const useAuthStore = create<AuthState>()(
             };
             allUsers.push(matched);
             saveStoredUsers(allUsers);
+            sendWelcomeMessage(matched);
           } else {
             if (picture) {
               matched.avatarUrl = picture;
@@ -850,6 +868,7 @@ export const useAuthStore = create<AuthState>()(
             isAuthenticated: true,
             authModalOpen: false,
           });
+          sendWelcomeMessage(data.user);
         } catch {
           // Fallback mock registration
           const allUsers = getStoredUsers();
@@ -877,6 +896,7 @@ export const useAuthStore = create<AuthState>()(
             isAuthenticated: true,
             authModalOpen: false,
           });
+          sendWelcomeMessage(mockUser);
         } finally {
           set({ isLoading: false });
         }
