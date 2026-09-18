@@ -56,6 +56,7 @@ export const AdminQuotesPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all');
   const [filterBookId, setFilterBookId] = useState<string>('all');
+  const [filterAuthor, setFilterAuthor] = useState<string>('all');
 
   // Time slots local editor
   const [time1, setTime1] = useState(settings.scheduledTimes[0] || '09:00');
@@ -72,6 +73,18 @@ export const AdminQuotesPage: React.FC = () => {
   const availableBooks = useMemo(() => {
     return books.filter((b) => !b.isArchived);
   }, [books]);
+
+  // Unique authors for selector
+  const availableAuthors = useMemo(() => {
+    const authorSet = new Set<string>();
+    quotes.forEach((q) => {
+      if (q.author && q.author.trim()) authorSet.add(q.author.trim());
+    });
+    books.forEach((b) => {
+      if (b.author && b.author.trim()) authorSet.add(b.author.trim());
+    });
+    return Array.from(authorSet).sort((a, b) => a.localeCompare(b));
+  }, [quotes, books]);
 
   // Filtered quotes
   const filteredQuotes = useMemo(() => {
@@ -90,6 +103,11 @@ export const AdminQuotesPage: React.FC = () => {
           return false;
         }
       }
+      if (filterAuthor !== 'all') {
+        if (q.author.toLowerCase().trim() !== filterAuthor.toLowerCase().trim()) {
+          return false;
+        }
+      }
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase().trim();
         return (
@@ -100,7 +118,7 @@ export const AdminQuotesPage: React.FC = () => {
       }
       return true;
     });
-  }, [quotes, filterStatus, filterBookId, searchQuery, books]);
+  }, [quotes, filterStatus, filterBookId, filterAuthor, searchQuery, books]);
 
   const activeQuotesCount = useMemo(() => quotes.filter((q) => q.isActive).length, [quotes]);
   const totalSentCount = useMemo(() => quotes.reduce((acc, q) => acc + (q.sentCount || 0), 0), [quotes]);
@@ -744,7 +762,7 @@ export const AdminQuotesPage: React.FC = () => {
               </div>
 
               {/* Book filter dropdown */}
-              <div style={{ minWidth: '180px', maxWidth: '240px' }}>
+              <div style={{ minWidth: '170px', maxWidth: '220px' }}>
                 <select
                   value={filterBookId}
                   onChange={(e) => setFilterBookId(e.target.value)}
@@ -779,8 +797,42 @@ export const AdminQuotesPage: React.FC = () => {
                 </select>
               </div>
 
+              {/* Author filter dropdown */}
+              <div style={{ minWidth: '160px', maxWidth: '210px' }}>
+                <select
+                  value={filterAuthor}
+                  onChange={(e) => setFilterAuthor(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '7px 10px',
+                    borderRadius: '6px',
+                    border: `1.5px solid ${filterAuthor !== 'all' ? 'var(--blue)' : '#CBD5E1'}`,
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    outline: 'none',
+                    background: filterAuthor !== 'all' ? '#EFF6FF' : '#F8FAFC',
+                    color: filterAuthor !== 'all' ? 'var(--blue)' : 'var(--text-dark)',
+                    cursor: 'pointer',
+                    textOverflow: 'ellipsis',
+                  }}
+                  title="Автор бойынша сүзу"
+                >
+                  <option value="all">Барлық авторлар</option>
+                  {availableAuthors.map((author) => {
+                    const count = quotes.filter(
+                      (q) => q.author.toLowerCase().trim() === author.toLowerCase().trim()
+                    ).length;
+                    return (
+                      <option key={author} value={author}>
+                        {author} {count > 0 ? `(${count})` : ''}
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+
               {/* Search input */}
-              <div style={{ position: 'relative', width: '220px' }}>
+              <div style={{ position: 'relative', width: '200px' }}>
                 <input
                   type="text"
                   value={searchQuery}
