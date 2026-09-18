@@ -336,7 +336,7 @@ export const AdminQuotesPage: React.FC = () => {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
             gap: '16px',
             marginBottom: '24px',
           }}
@@ -349,11 +349,6 @@ export const AdminQuotesPage: React.FC = () => {
           <div style={{ background: '#FFFFFF', borderRadius: '16px', padding: '20px 24px', border: '1.5px solid #A7F3D0', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
             <div style={{ fontSize: '13px', fontWeight: 700, color: '#047857', marginBottom: '6px' }}>Белсенді цитаталар</div>
             <div style={{ fontSize: '28px', fontWeight: 900, color: '#059669' }}>{activeQuotesCount} дана</div>
-          </div>
-
-          <div style={{ background: '#FFFFFF', borderRadius: '16px', padding: '20px 24px', border: '1.5px solid #E2E8F0', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
-            <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--blue)', marginBottom: '6px' }}>Күнделікті жоспар</div>
-            <div style={{ fontSize: '28px', fontWeight: 900, color: 'var(--blue)' }}>Күніне 3 рет</div>
           </div>
 
           <div style={{ background: '#FFFFFF', borderRadius: '16px', padding: '20px 24px', border: '1.5px solid #E2E8F0', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
