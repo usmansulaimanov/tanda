@@ -113,7 +113,7 @@ export const PromoCodePage: React.FC = () => {
 
         {/* Card Header */}
         <div style={{ marginBottom: '28px', position: 'relative' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '4px 12px', background: 'rgba(239, 126, 0, 0.1)', color: 'var(--orange)', borderRadius: '50px', fontSize: '12px', fontWeight: 800, marginBottom: '12px', letterSpacing: '0.04em' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: 'var(--orange)', fontSize: '12px', fontWeight: 800, marginBottom: '10px', letterSpacing: '0.04em' }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
               <line x1="7" y1="7" x2="7.01" y2="7"></line>
