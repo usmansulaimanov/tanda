@@ -148,7 +148,7 @@ export const MessageNotificationPopup: React.FC = () => {
                 Жаңа хабарлама
               </span>
               <span style={{ fontSize: '11px', color: '#94A3B8' }}>
-                {activePopupMessage.senderName || 'Tanda Әкімшілігі'}
+                {activePopupMessage.senderName && !activePopupMessage.senderName.includes('кімші') ? activePopupMessage.senderName : 'Tanda'}
               </span>
             </div>
           </div>

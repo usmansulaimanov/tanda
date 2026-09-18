@@ -122,7 +122,7 @@ export const AdminMessagesPage: React.FC = () => {
       bookId: selectedBookId || undefined,
       bookTitle: linkedBook?.title || undefined,
       priority,
-      senderName: user?.name || 'Бас әкімші',
+      senderName: 'Tanda',
       canReaderDelete,
       expiresInHours,
     });

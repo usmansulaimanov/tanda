@@ -228,7 +228,7 @@ export const ReaderMessagesPage: React.FC = () => {
                     </div>
                     <div>
                       <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-dark)' }}>
-                        {msg.senderName || 'Tanda Әкімшілігі'}
+                        {msg.senderName && !msg.senderName.includes('кімші') ? msg.senderName : 'Tanda'}
                       </div>
                       <div style={{ fontSize: '11px', color: '#64748B' }}>
                         {new Date(msg.createdAt).toLocaleDateString('kk-KZ', {
