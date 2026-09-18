@@ -896,27 +896,23 @@ export const AdminQuotesPage: React.FC = () => {
                       </td>
 
                       <td>
-                        <strong style={{ fontSize: '13px', color: 'var(--text-dark)', display: 'block' }}>
-                          {quote.author}
-                        </strong>
                         {linkedBook ? (
                           <Link
                             to={`/book/${linkedBook.id}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             style={{
-                              fontSize: '11px',
+                              fontSize: '13px',
                               color: 'var(--blue)',
-                              fontWeight: 700,
+                              fontWeight: 800,
                               textDecoration: 'none',
                               display: 'inline-flex',
                               alignItems: 'center',
                               gap: '4px',
-                              marginTop: '2px',
                             }}
                             title="Кітап карточкасын ашу"
                           >
-                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                               <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path>
                               <path d="M6 6h10"></path>
                               <path d="M6 10h10"></path>
@@ -924,10 +920,15 @@ export const AdminQuotesPage: React.FC = () => {
                             «{linkedBook.title}» ↗
                           </Link>
                         ) : quote.bookTitle ? (
-                          <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
+                          <strong style={{ fontSize: '13px', color: 'var(--text-dark)', display: 'block', fontWeight: 800 }}>
                             «{quote.bookTitle}»
-                          </span>
-                        ) : null}
+                          </strong>
+                        ) : (
+                          <span style={{ fontSize: '13px', color: '#64748B', fontWeight: 700 }}>—</span>
+                        )}
+                        <div style={{ fontSize: '12px', color: '#64748B', fontWeight: 600, marginTop: '2px' }}>
+                          {quote.author}
+                        </div>
                       </td>
 
                       <td style={{ textAlign: 'center' }}>
