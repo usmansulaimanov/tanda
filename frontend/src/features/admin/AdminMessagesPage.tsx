@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Globe, User as UserIcon, Users } from 'lucide-react';
 import { useMessageStore, AdminMessage, MessageTargetType, MessagePriority } from '../../store/useMessageStore';
 import { useAuthStore } from '../../store/useAuthStore';
-import { useBookStore } from '../../store/useBookStore';
 import { useToastStore } from '../../store/useToastStore';
 import { hasAdminPermission } from '../../utils/permissions';
 import { User } from '../../types';
@@ -11,7 +10,6 @@ import { User } from '../../types';
 export const AdminMessagesPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, role, getAllClients } = useAuthStore();
-  const { books } = useBookStore();
   const { messages, sendMessage, deleteMessage } = useMessageStore();
   const { showToast } = useToastStore();
 
@@ -37,7 +35,6 @@ export const AdminMessagesPage: React.FC = () => {
   const [selectedMultipleUserIds, setSelectedMultipleUserIds] = useState<string[]>([]);
   const [recipientSearch, setRecipientSearch] = useState('');
   const [priority, setPriority] = useState<MessagePriority>('normal');
-  const [selectedBookId, setSelectedBookId] = useState('');
   const [canReaderDelete, setCanReaderDelete] = useState(false);
   const [expiresInHours, setExpiresInHours] = useState<number | null>(null);
 
@@ -112,16 +109,12 @@ export const AdminMessagesPage: React.FC = () => {
       });
     }
 
-    const linkedBook = books.find((b) => b.id === selectedBookId);
-
     sendMessage({
       title: title.trim(),
       content: content.trim(),
       targetType,
       targetUserIds: targetType === 'all' ? undefined : targetUserIds,
       targetUserNames: targetType === 'all' ? undefined : targetUserNames,
-      bookId: selectedBookId || undefined,
-      bookTitle: linkedBook?.title || undefined,
       priority,
       senderName: 'Tanda',
       canReaderDelete,
@@ -144,7 +137,6 @@ export const AdminMessagesPage: React.FC = () => {
     setSelectedMultipleUserIds([]);
     setRecipientSearch('');
     setPriority('normal');
-    setSelectedBookId('');
     setCanReaderDelete(false);
     setExpiresInHours(null);
   };
@@ -909,62 +901,31 @@ export const AdminMessagesPage: React.FC = () => {
                 />
               </div>
 
-              {/* Priority and Optional Book in one row */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '18px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
-                    Маңыздылығы
-                  </label>
-                  <select
-                    value={priority}
-                    onChange={(e) => setPriority(e.target.value as MessagePriority)}
-                    style={{
-                      width: '100%',
-                      padding: '10px 12px',
-                      borderRadius: '10px',
-                      border: '1.5px solid #CBD5E1',
-                      fontSize: '13px',
-                      fontWeight: 600,
-                      outline: 'none',
-                      background: '#F8FAFC',
-                      color: 'var(--text-dark)',
-                      boxSizing: 'border-box',
-                    }}
-                  >
-                    <option value="normal">Қалыпты хабарлама</option>
-                    <option value="news">Жаңалық / Хабарландыру</option>
-                    <option value="important">Маңызды ескерту</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
-                    Кітапты бекіту (міндетті емес)
-                  </label>
-                  <select
-                    value={selectedBookId}
-                    onChange={(e) => setSelectedBookId(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '10px 12px',
-                      borderRadius: '10px',
-                      border: '1.5px solid #CBD5E1',
-                      fontSize: '13px',
-                      fontWeight: 600,
-                      outline: 'none',
-                      background: '#F8FAFC',
-                      color: 'var(--text-dark)',
-                      boxSizing: 'border-box',
-                    }}
-                  >
-                    <option value="">Кітап бекітілмейді</option>
-                    {books.filter((b) => !b.isArchived).map((b) => (
-                      <option key={b.id} value={b.id}>
-                        {b.title} — {b.author}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+              {/* Priority */}
+              <div style={{ marginBottom: '18px' }}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+                  Маңыздылығы
+                </label>
+                <select
+                  value={priority}
+                  onChange={(e) => setPriority(e.target.value as MessagePriority)}
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px',
+                    borderRadius: '10px',
+                    border: '1.5px solid #CBD5E1',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    outline: 'none',
+                    background: '#F8FAFC',
+                    color: 'var(--text-dark)',
+                    boxSizing: 'border-box',
+                  }}
+                >
+                  <option value="normal">Қалыпты хабарлама</option>
+                  <option value="news">Жаңалық / Хабарландыру</option>
+                  <option value="important">Маңызды ескерту</option>
+                </select>
               </div>
 
               {/* Reader Delete Permission & Auto-delete Expiration Settings */}
