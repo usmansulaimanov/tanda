@@ -290,45 +290,12 @@ export const QuoteNotificationPopup: React.FC = () => {
           style={{
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '8px',
+            justifyContent: 'flex-end',
             borderTop: '1px solid rgba(255, 255, 255, 0.1)',
             paddingTop: '10px',
             marginTop: '6px',
           }}
         >
-          {matchedBook ? (
-            <button
-              type="button"
-              onClick={() => handleGoToBook(matchedBook.id)}
-              style={{
-                background: 'rgba(255, 255, 255, 0.12)',
-                color: '#FFFFFF',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                borderRadius: '8px',
-                padding: '6px 14px',
-                fontSize: '12px',
-                fontWeight: 700,
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                transition: 'all 0.15s',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)')}
-              onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.12)')}
-            >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path>
-                <path d="M6 6h10"></path>
-                <path d="M6 10h10"></path>
-              </svg>
-              Кітапқа өту
-            </button>
-          ) : (
-            <div />
-          )}
-
           <button
             type="button"
             onClick={handleClose}
@@ -337,7 +304,7 @@ export const QuoteNotificationPopup: React.FC = () => {
               color: '#FFFFFF',
               border: 'none',
               borderRadius: '8px',
-              padding: '6px 16px',
+              padding: '6px 18px',
               fontSize: '12px',
               fontWeight: 700,
               cursor: 'pointer',
