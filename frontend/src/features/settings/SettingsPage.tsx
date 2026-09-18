@@ -372,7 +372,7 @@ export const SettingsPage: React.FC = () => {
       >
         {/* Header section with user summary */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px', paddingBottom: '24px', borderBottom: '1.5px solid #F1F5F9', marginBottom: '28px', flexWrap: 'wrap' }}>
-          {/* Avatar */}
+          {/* Avatar with small camera icon */}
           <div style={{ position: 'relative', flexShrink: 0 }}>
             <div
               style={{
@@ -386,10 +386,10 @@ export const SettingsPage: React.FC = () => {
                 justifyContent: 'center',
                 fontSize: '26px',
                 fontWeight: 900,
-                boxShadow: '0 6px 18px rgba(0, 84, 148, 0.25)',
+                boxShadow: '0 4px 14px rgba(0, 0, 0, 0.08)',
                 flexShrink: 0,
                 textTransform: 'uppercase',
-                border: '3px solid #FFFFFF',
+                border: '2.5px solid #FFFFFF',
                 overflow: 'hidden',
               }}
             >
@@ -404,33 +404,63 @@ export const SettingsPage: React.FC = () => {
                 initialLetter
               )}
             </div>
+
+            {/* Small camera icon button */}
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploadingAvatar}
+              title="Фотоны ауыстыру"
+              style={{
+                position: 'absolute',
+                bottom: '-2px',
+                right: '-2px',
+                width: '24px',
+                height: '24px',
+                borderRadius: '50%',
+                background: '#0F172A',
+                color: '#FFFFFF',
+                border: '2px solid #FFFFFF',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+                padding: 0,
+              }}
+            >
+              {isUploadingAvatar ? (
+                <div style={{ width: '10px', height: '10px', border: '1.5px solid #fff', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }} />
+              ) : (
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                  <circle cx="12" cy="13" r="4"></circle>
+                </svg>
+              )}
+            </button>
           </div>
 
           <div style={{ minWidth: 0, flex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-              <h1 style={{ fontSize: '22px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
+              <h1 style={{ fontSize: '22px', fontWeight: 900, color: '#0F172A', margin: 0 }}>
                 {user.name || 'Оқырман'}
               </h1>
               <span
                 style={{
-                  fontSize: '11px',
-                  fontWeight: 800,
+                  fontSize: '13px',
+                  fontWeight: 700,
                   fontFamily: 'monospace',
-                  background: 'rgba(0, 84, 148, 0.1)',
-                  color: 'var(--blue)',
-                  padding: '2px 8px',
-                  borderRadius: '4px',
-                  letterSpacing: '0.04em',
+                  color: '#0F172A',
                 }}
               >
                 ID: {user.idNumber || (user.role === 'admin' ? '000 001' : '001 001')}
               </span>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '4px', color: 'var(--text-mid)', fontSize: '13px', flexWrap: 'wrap' }}>
-              <span>{user.email}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '4px', fontSize: '13px', flexWrap: 'wrap' }}>
+              <span style={{ color: '#64748B' }}>{user.email}</span>
               {user.username && (
-                <span style={{ color: 'var(--blue)', fontWeight: 700 }}>
+                <span style={{ color: '#0F172A', fontWeight: 700 }}>
                   @{user.username.replace(/^@/, '')}
                 </span>
               )}
@@ -441,14 +471,10 @@ export const SettingsPage: React.FC = () => {
         {/* 1. MENU VIEW: Two Main Action Buttons */}
         {viewMode === 'menu' && (
           <div>
-            <div style={{ marginBottom: '24px' }}>
-              <span className="section-tag" style={{ marginBottom: '8px' }}>Баптаулар бөлімі</span>
-              <h2 style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-dark)', margin: '4px 0' }}>
+            <div style={{ marginBottom: '20px' }}>
+              <h2 style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
                 Аккаунт баптаулары
               </h2>
-              <p style={{ fontSize: '13px', color: 'var(--text-mid)', margin: 0 }}>
-                Өзгеріс енгізу үшін төмендегі батырмалардың бірін таңдаңыз:
-              </p>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px', marginBottom: '16px' }}>
