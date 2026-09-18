@@ -277,7 +277,7 @@ export const AdminMessagesPage: React.FC = () => {
           >
             <div>
               <h2 style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
-                Жіберілген хаттар тарихы ({filteredMessages.length})
+                Жіберілген хаттар тарихы
               </h2>
             </div>
 
@@ -298,7 +298,7 @@ export const AdminMessagesPage: React.FC = () => {
                     cursor: 'pointer',
                   }}
                 >
-                  Барлығы ({messages.length})
+                  Барлығы: {messages.length}
                 </button>
 
                 <button
@@ -315,7 +315,7 @@ export const AdminMessagesPage: React.FC = () => {
                     cursor: 'pointer',
                   }}
                 >
-                  Жалпы ({messages.filter((m) => m.targetType === 'all').length})
+                  Жалпы: {messages.filter((m) => m.targetType === 'all').length}
                 </button>
 
                 <button
@@ -332,7 +332,7 @@ export const AdminMessagesPage: React.FC = () => {
                     cursor: 'pointer',
                   }}
                 >
-                  Жеке ({messages.filter((m) => m.targetType === 'single').length})
+                  Жеке: {messages.filter((m) => m.targetType === 'single').length}
                 </button>
 
                 <button
@@ -349,7 +349,7 @@ export const AdminMessagesPage: React.FC = () => {
                     cursor: 'pointer',
                   }}
                 >
-                  Топтық ({messages.filter((m) => m.targetType === 'multiple').length})
+                  Топтық: {messages.filter((m) => m.targetType === 'multiple').length}
                 </button>
               </div>
 
