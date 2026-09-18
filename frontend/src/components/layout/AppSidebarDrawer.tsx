@@ -240,9 +240,6 @@ export const AppSidebarDrawer: React.FC = () => {
                     <path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z" />
                   </svg>
                   <span>Цитаталар</span>
-                  {quotes.filter((q) => (q.sentCount && q.sentCount > 0) || Boolean(q.lastSentAt)).length > 0 && (
-                    <span className="sidebar-badge">{quotes.filter((q) => (q.sentCount && q.sentCount > 0) || Boolean(q.lastSentAt)).length}</span>
-                  )}
                 </Link>
               </>
             )}
@@ -322,9 +319,6 @@ export const AppSidebarDrawer: React.FC = () => {
                     <circle cx="12" cy="7" r="4"></circle>
                   </svg>
                   <span>Сақталған кітаптар</span>
-                  {savedBookIds.length > 0 && (
-                    <span className="sidebar-badge orange">{savedBookIds.length}</span>
-                  )}
                 </Link>
 
                 <Link

@@ -476,20 +476,6 @@ export const Header: React.FC = () => {
                               <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path>
                             </svg>
                             <span style={{ flex: 1 }}>Сақталған кітаптар</span>
-                            {savedBookIds.length > 0 && (
-                              <span
-                                style={{
-                                  background: 'var(--orange)',
-                                  color: '#FFF',
-                                  fontSize: '11px',
-                                  fontWeight: 800,
-                                  padding: '1px 7px',
-                                  borderRadius: '50px',
-                                }}
-                              >
-                                {savedBookIds.length}
-                              </span>
-                            )}
                           </Link>
 
                           <Link
