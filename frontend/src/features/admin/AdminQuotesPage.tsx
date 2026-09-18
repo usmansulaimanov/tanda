@@ -1175,7 +1175,7 @@ export const AdminQuotesPage: React.FC = () => {
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ width: '8px', height: '22px', backgroundColor: 'var(--orange)', borderRadius: '4px', display: 'inline-block' }} />
+                <span style={{ width: '8px', height: '22px', backgroundColor: 'var(--blue)', borderRadius: '4px', display: 'inline-block' }} />
                 <h3 style={{ fontSize: '18px', fontWeight: 800, margin: 0, color: 'var(--text-dark)' }}>
                   Қазір цитата жіберу
                 </h3>
@@ -1190,7 +1190,7 @@ export const AdminQuotesPage: React.FC = () => {
             </div>
 
             <p style={{ fontSize: '13px', color: '#64748B', marginBottom: '18px', lineHeight: 1.5 }}>
-              Цитата мәтінін жазыңыз және кітапты таңдаңыз. «Жіберу» батырмасын басқанда, бұл цитата бірден барлық оқырмандарға notification ретінде барады және цитаталар қорына сақталады.
+              Цитата мәтінін жазып, кітапты таңдаңыз. «Жіберу» басқанда, цитата бірден барлық оқырмандарға барады және қорға қосылады.
             </p>
 
             <form onSubmit={handleInstantSend}>
@@ -1201,14 +1201,14 @@ export const AdminQuotesPage: React.FC = () => {
                 <textarea
                   value={instantText}
                   onChange={(e) => setInstantText(e.target.value)}
-                  placeholder="Цитата мәтінін осында жазыңыз..."
-                  rows={4}
+                  placeholder="Цитата мәтінін жазыңыз..."
+                  rows={5}
                   style={{
                     width: '100%',
-                    padding: '12px',
+                    padding: '12px 14px',
                     borderRadius: '10px',
                     border: '1.5px solid #CBD5E1',
-                    fontSize: '14px',
+                    fontSize: '13px',
                     outline: 'none',
                     background: '#F8FAFC',
                     boxSizing: 'border-box',
@@ -1253,22 +1253,22 @@ export const AdminQuotesPage: React.FC = () => {
                       marginTop: '10px',
                       padding: '8px 12px',
                       borderRadius: '8px',
-                      background: '#FFF7ED',
-                      border: '1.5px solid #FED7AA',
+                      background: '#F0FDF4',
+                      border: '1.5px solid #BBF7D0',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '16px',
                       fontSize: '12px',
-                      color: '#9A3412',
+                      color: '#166534',
                       flexWrap: 'wrap',
                     }}
                   >
                     <div>
-                      <span style={{ color: '#C2410C', fontWeight: 600 }}>Кітап: </span>
+                      <span style={{ color: '#15803D', fontWeight: 600 }}>Кітап: </span>
                       <strong>{instantBookTitle}</strong>
                     </div>
                     <div>
-                      <span style={{ color: '#C2410C', fontWeight: 600 }}>Авторы: </span>
+                      <span style={{ color: '#15803D', fontWeight: 600 }}>Авторы: </span>
                       <strong>{instantAuthor}</strong>
                     </div>
                   </div>
@@ -1293,25 +1293,21 @@ export const AdminQuotesPage: React.FC = () => {
                 </button>
                 <button
                   type="submit"
+                  className="btn-primary"
                   style={{
-                    padding: '9px 20px',
+                    padding: '9px 24px',
                     borderRadius: '8px',
                     fontSize: '13px',
                     fontWeight: 700,
-                    background: 'linear-gradient(135deg, #F08000 0%, #D96B00 100%)',
+                    background: 'var(--blue)',
                     color: '#FFF',
                     border: 'none',
                     cursor: 'pointer',
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '6px',
-                    boxShadow: '0 4px 12px rgba(240, 128, 0, 0.25)',
                   }}
                 >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <line x1="22" y1="2" x2="11" y2="13"></line>
-                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                  </svg>
                   Жіберу
                 </button>
               </div>
