@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuoteStore, QuoteItem } from '../../store/useQuoteStore';
+import { useBookStore } from '../../store/useBookStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useToastStore } from '../../store/useToastStore';
 import { hasAdminPermission } from '../../utils/permissions';
@@ -8,6 +9,7 @@ import { hasAdminPermission } from '../../utils/permissions';
 export const AdminQuotesPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, role } = useAuthStore();
+  const { books } = useBookStore();
   const {
     quotes,
     settings,
@@ -18,8 +20,6 @@ export const AdminQuotesPage: React.FC = () => {
     toggleQuoteActive,
     updateSettings,
     triggerQuoteNotification,
-    deliveredHistory,
-    clearHistory,
   } = useQuoteStore();
   const { showToast } = useToastStore();
 
@@ -35,6 +35,7 @@ export const AdminQuotesPage: React.FC = () => {
   // Form states
   const [newText, setNewText] = useState('');
   const [newAuthor, setNewAuthor] = useState('');
+  const [newBookId, setNewBookId] = useState('');
   const [newBookTitle, setNewBookTitle] = useState('');
 
   // Bulk add modal
@@ -45,6 +46,7 @@ export const AdminQuotesPage: React.FC = () => {
   const [editingQuote, setEditingQuote] = useState<QuoteItem | null>(null);
   const [editText, setEditText] = useState('');
   const [editAuthor, setEditAuthor] = useState('');
+  const [editBookId, setEditBookId] = useState('');
   const [editBookTitle, setEditBookTitle] = useState('');
 
   // Delete modal
@@ -64,6 +66,11 @@ export const AdminQuotesPage: React.FC = () => {
     setTime2(settings.scheduledTimes[1] || '14:00');
     setTime3(settings.scheduledTimes[2] || '20:00');
   }, [settings.scheduledTimes]);
+
+  // Active books for selector
+  const availableBooks = useMemo(() => {
+    return books.filter((b) => !b.isArchived);
+  }, [books]);
 
   // Filtered quotes
   const filteredQuotes = useMemo(() => {
@@ -85,6 +92,34 @@ export const AdminQuotesPage: React.FC = () => {
   const activeQuotesCount = useMemo(() => quotes.filter((q) => q.isActive).length, [quotes]);
   const totalSentCount = useMemo(() => quotes.reduce((acc, q) => acc + (q.sentCount || 0), 0), [quotes]);
 
+  const handleSelectNewBook = (bookId: string) => {
+    setNewBookId(bookId);
+    if (!bookId) {
+      return;
+    }
+    const selected = books.find((b) => b.id === bookId);
+    if (selected) {
+      setNewBookTitle(selected.title);
+      if (!newAuthor || newAuthor === 'Халық даналығы') {
+        setNewAuthor(selected.author);
+      }
+    }
+  };
+
+  const handleSelectEditBook = (bookId: string) => {
+    setEditBookId(bookId);
+    if (!bookId) {
+      return;
+    }
+    const selected = books.find((b) => b.id === bookId);
+    if (selected) {
+      setEditBookTitle(selected.title);
+      if (!editAuthor || editAuthor === 'Халық даналығы') {
+        setEditAuthor(selected.author);
+      }
+    }
+  };
+
   const handleCreateQuote = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newText.trim()) {
@@ -95,12 +130,14 @@ export const AdminQuotesPage: React.FC = () => {
     addQuote({
       text: newText.trim(),
       author: newAuthor.trim() || 'Халық даналығы',
+      bookId: newBookId || undefined,
       bookTitle: newBookTitle.trim() || undefined,
       isActive: true,
     });
 
     setNewText('');
     setNewAuthor('');
+    setNewBookId('');
     setNewBookTitle('');
     showToast('Жаңа цитата сәтті қосылды!', 'success');
   };
@@ -112,7 +149,6 @@ export const AdminQuotesPage: React.FC = () => {
       return;
     }
 
-    // Parse lines format: "Цитата мәтіні - Автор" or just "Цитата мәтіні"
     const lines = bulkText.split('\n').map((l) => l.trim()).filter(Boolean);
     const parsedItems = lines.map((line) => {
       if (line.includes('—')) {
@@ -135,6 +171,7 @@ export const AdminQuotesPage: React.FC = () => {
     setEditingQuote(quote);
     setEditText(quote.text);
     setEditAuthor(quote.author);
+    setEditBookId(quote.bookId || '');
     setEditBookTitle(quote.bookTitle || '');
   };
 
@@ -145,6 +182,7 @@ export const AdminQuotesPage: React.FC = () => {
     updateQuote(editingQuote.id, {
       text: editText.trim(),
       author: editAuthor.trim() || 'Халық даналығы',
+      bookId: editBookId || undefined,
       bookTitle: editBookTitle.trim() || undefined,
     });
 
@@ -540,7 +578,7 @@ export const AdminQuotesPage: React.FC = () => {
                 </h2>
               </div>
               <p style={{ fontSize: '13px', color: 'var(--text-mid)', margin: '4px 0 0 16px' }}>
-                Жеке-жеке немесе бірден бірнеше цитатаны топтап қосуға болады.
+                Платформадағы кітаптардың бірін таңдап немесе қолмен жазып қосуға болады.
               </p>
             </div>
 
@@ -570,6 +608,7 @@ export const AdminQuotesPage: React.FC = () => {
           </div>
 
           <form onSubmit={handleCreateQuote}>
+            {/* Quote Text */}
             <div style={{ marginBottom: '16px' }}>
               <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
                 Цитата мәтіні <span style={{ color: '#DC2626' }}>*</span>
@@ -598,20 +637,51 @@ export const AdminQuotesPage: React.FC = () => {
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
                 gap: '16px',
                 marginBottom: '18px',
               }}
             >
+              {/* Select book from platform */}
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: 'var(--blue)', marginBottom: '6px' }}>
+                  Платформадағы кітапты таңдау (Карточкаға сілтеме)
+                </label>
+                <select
+                  value={newBookId}
+                  onChange={(e) => handleSelectNewBook(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px',
+                    borderRadius: '10px',
+                    border: '1.5px solid #93C5FD',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    outline: 'none',
+                    background: '#F0F9FF',
+                    color: 'var(--text-dark)',
+                    boxSizing: 'border-box',
+                  }}
+                >
+                  <option value="">-- Тізімнен кітапты таңдау (Міндетті емес) --</option>
+                  {availableBooks.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.title} ({b.author})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Book title */}
               <div>
                 <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
-                  Авторы немесе дереккөзі
+                  Кітап атауы
                 </label>
                 <input
                   type="text"
-                  value={newAuthor}
-                  onChange={(e) => setNewAuthor(e.target.value)}
-                  placeholder="Мысалы: Абай Құнанбайұлы"
+                  value={newBookTitle}
+                  onChange={(e) => setNewBookTitle(e.target.value)}
+                  placeholder="Мысалы: Қара сөздер"
                   style={{
                     width: '100%',
                     padding: '10px 14px',
@@ -625,15 +695,16 @@ export const AdminQuotesPage: React.FC = () => {
                 />
               </div>
 
+              {/* Author */}
               <div>
                 <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
-                  Кітап атауы (Міндетті емес)
+                  Авторы немесе дереккөзі
                 </label>
                 <input
                   type="text"
-                  value={newBookTitle}
-                  onChange={(e) => setNewBookTitle(e.target.value)}
-                  placeholder="Мысалы: Қара сөздер"
+                  value={newAuthor}
+                  onChange={(e) => setNewAuthor(e.target.value)}
+                  placeholder="Мысалы: Абай Құнанбайұлы"
                   style={{
                     width: '100%',
                     padding: '10px 14px',
@@ -792,150 +863,184 @@ export const AdminQuotesPage: React.FC = () => {
                 <tr>
                   <th style={{ width: '40px', textAlign: 'center' }}>№</th>
                   <th>Цитата мәтіні</th>
-                  <th style={{ width: '180px' }}>Авторы / Кітап</th>
+                  <th style={{ width: '220px' }}>Кітап және Авторы</th>
                   <th style={{ width: '110px', textAlign: 'center' }}>Жіберілді</th>
                   <th style={{ width: '120px' }}>Күйі</th>
                   <th style={{ width: '200px', textAlign: 'right' }}>Әрекеттер</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredQuotes.map((quote, idx) => (
-                  <tr key={quote.id}>
-                    <td style={{ textAlign: 'center', fontWeight: 700, color: '#64748B', fontSize: '12px' }}>
-                      {idx + 1}
-                    </td>
+                {filteredQuotes.map((quote, idx) => {
+                  const linkedBook = quote.bookId
+                    ? books.find((b) => b.id === quote.bookId)
+                    : books.find(
+                        (b) =>
+                          quote.bookTitle &&
+                          b.title.toLowerCase().trim() === quote.bookTitle.toLowerCase().trim()
+                      );
 
-                    <td>
-                      <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-dark)', lineHeight: 1.5 }}>
-                        «{quote.text}»
-                      </div>
-                    </td>
+                  return (
+                    <tr key={quote.id}>
+                      <td style={{ textAlign: 'center', fontWeight: 700, color: '#64748B', fontSize: '12px' }}>
+                        {idx + 1}
+                      </td>
 
-                    <td>
-                      <strong style={{ fontSize: '13px', color: 'var(--text-dark)', display: 'block' }}>
-                        {quote.author}
-                      </strong>
-                      {quote.bookTitle && (
-                        <span style={{ fontSize: '11px', color: 'var(--blue)', fontWeight: 600 }}>
-                          «{quote.bookTitle}»
-                        </span>
-                      )}
-                    </td>
+                      <td>
+                        <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-dark)', lineHeight: 1.5 }}>
+                          «{quote.text}»
+                        </div>
+                      </td>
 
-                    <td style={{ textAlign: 'center' }}>
-                      <span
-                        style={{
-                          fontSize: '12px',
-                          fontWeight: 800,
-                          padding: '2px 8px',
-                          borderRadius: '6px',
-                          background: '#F1F5F9',
-                          color: quote.sentCount > 0 ? 'var(--orange)' : '#64748B',
-                        }}
-                      >
-                        {quote.sentCount || 0} рет
-                      </span>
-                    </td>
+                      <td>
+                        <strong style={{ fontSize: '13px', color: 'var(--text-dark)', display: 'block' }}>
+                          {quote.author}
+                        </strong>
+                        {linkedBook ? (
+                          <Link
+                            to={`/book/${linkedBook.id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              fontSize: '11px',
+                              color: 'var(--blue)',
+                              fontWeight: 700,
+                              textDecoration: 'none',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              marginTop: '2px',
+                            }}
+                            title="Кітап карточкасын ашу"
+                          >
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                              <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path>
+                              <path d="M6 6h10"></path>
+                              <path d="M6 10h10"></path>
+                            </svg>
+                            «{linkedBook.title}» ↗
+                          </Link>
+                        ) : quote.bookTitle ? (
+                          <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
+                            «{quote.bookTitle}»
+                          </span>
+                        ) : null}
+                      </td>
 
-                    <td>
-                      <button
-                        type="button"
-                        onClick={() => toggleQuoteActive(quote.id)}
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          padding: '4px 10px',
-                          borderRadius: '50px',
-                          fontSize: '11px',
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                          border: quote.isActive ? '1px solid #A7F3D0' : '1px solid #FECACA',
-                          background: quote.isActive ? '#ECFDF5' : '#FEF2F2',
-                          color: quote.isActive ? '#047857' : '#B91C1C',
-                        }}
-                      >
+                      <td style={{ textAlign: 'center' }}>
                         <span
                           style={{
-                            width: '6px',
-                            height: '6px',
-                            borderRadius: '50%',
-                            background: quote.isActive ? '#10B981' : '#EF4444',
+                            fontSize: '12px',
+                            fontWeight: 800,
+                            padding: '2px 8px',
+                            borderRadius: '6px',
+                            background: '#F1F5F9',
+                            color: quote.sentCount > 0 ? 'var(--orange)' : '#64748B',
                           }}
-                        />
-                        {quote.isActive ? 'Белсенді' : 'Өшірулі'}
-                      </button>
-                    </td>
+                        >
+                          {quote.sentCount || 0} рет
+                        </span>
+                      </td>
 
-                    <td style={{ textAlign: 'right' }}>
-                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                        {/* Test send this specific quote */}
+                      <td>
                         <button
                           type="button"
-                          onClick={() => handleTestNotification(quote.id)}
-                          title="Осы цитатаны қазір оқырмандарға жіберу"
+                          onClick={() => toggleQuoteActive(quote.id)}
                           style={{
-                            padding: '5px 10px',
-                            fontSize: '12px',
-                            fontWeight: 700,
-                            background: '#FFF7ED',
-                            color: '#C2410C',
-                            border: '1px solid #FFEDD5',
-                            borderRadius: '6px',
-                            cursor: 'pointer',
                             display: 'inline-flex',
                             alignItems: 'center',
-                            gap: '4px',
-                          }}
-                        >
-                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                          </svg>
-                          Жіберу
-                        </button>
-
-                        {/* Edit */}
-                        <button
-                          type="button"
-                          onClick={() => openEditModal(quote)}
-                          title="Өңдеу"
-                          style={{
-                            padding: '5px 10px',
-                            fontSize: '12px',
+                            gap: '6px',
+                            padding: '4px 10px',
+                            borderRadius: '50px',
+                            fontSize: '11px',
                             fontWeight: 700,
-                            background: '#EFF6FF',
-                            color: '#1D4ED8',
-                            border: '1px solid #BFDBFE',
-                            borderRadius: '6px',
                             cursor: 'pointer',
+                            border: quote.isActive ? '1px solid #A7F3D0' : '1px solid #FECACA',
+                            background: quote.isActive ? '#ECFDF5' : '#FEF2F2',
+                            color: quote.isActive ? '#047857' : '#B91C1C',
                           }}
                         >
-                          Өңдеу
+                          <span
+                            style={{
+                              width: '6px',
+                              height: '6px',
+                              borderRadius: '50%',
+                              background: quote.isActive ? '#10B981' : '#EF4444',
+                            }}
+                          />
+                          {quote.isActive ? 'Белсенді' : 'Өшірулі'}
                         </button>
+                      </td>
 
-                        {/* Delete */}
-                        <button
-                          type="button"
-                          onClick={() => setQuoteToDelete(quote)}
-                          title="Өшіру"
-                          style={{
-                            padding: '5px 10px',
-                            fontSize: '12px',
-                            fontWeight: 700,
-                            background: '#FEF2F2',
-                            color: '#B91C1C',
-                            border: '1px solid #FECACA',
-                            borderRadius: '6px',
-                            cursor: 'pointer',
-                          }}
-                        >
-                          Өшіру
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                      <td style={{ textAlign: 'right' }}>
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                          {/* Test send this specific quote */}
+                          <button
+                            type="button"
+                            onClick={() => handleTestNotification(quote.id)}
+                            title="Осы цитатаны қазір оқырмандарға жіберу"
+                            style={{
+                              padding: '5px 10px',
+                              fontSize: '12px',
+                              fontWeight: 700,
+                              background: '#FFF7ED',
+                              color: '#C2410C',
+                              border: '1px solid #FFEDD5',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                            }}
+                          >
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                            </svg>
+                            Жіберу
+                          </button>
+
+                          {/* Edit */}
+                          <button
+                            type="button"
+                            onClick={() => openEditModal(quote)}
+                            title="Өңдеу"
+                            style={{
+                              padding: '5px 10px',
+                              fontSize: '12px',
+                              fontWeight: 700,
+                              background: '#EFF6FF',
+                              color: '#1D4ED8',
+                              border: '1px solid #BFDBFE',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                            }}
+                          >
+                            Өңдеу
+                          </button>
+
+                          {/* Delete */}
+                          <button
+                            type="button"
+                            onClick={() => setQuoteToDelete(quote)}
+                            title="Өшіру"
+                            style={{
+                              padding: '5px 10px',
+                              fontSize: '12px',
+                              fontWeight: 700,
+                              background: '#FEF2F2',
+                              color: '#B91C1C',
+                              border: '1px solid #FECACA',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                            }}
+                          >
+                            Өшіру
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -1106,15 +1211,44 @@ export const AdminQuotesPage: React.FC = () => {
                 />
               </div>
 
+              {/* Book select dropdown in edit modal */}
+              <div style={{ marginBottom: '14px' }}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: 'var(--blue)', marginBottom: '6px' }}>
+                  Платформадағы кітапты таңдау
+                </label>
+                <select
+                  value={editBookId}
+                  onChange={(e) => handleSelectEditBook(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '9px 12px',
+                    borderRadius: '8px',
+                    border: '1.5px solid #93C5FD',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    outline: 'none',
+                    background: '#F0F9FF',
+                    boxSizing: 'border-box',
+                  }}
+                >
+                  <option value="">-- Тізімнен кітапты таңдау (Міндетті емес) --</option>
+                  {availableBooks.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.title} ({b.author})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
-                    Авторы
+                    Кітап атауы
                   </label>
                   <input
                     type="text"
-                    value={editAuthor}
-                    onChange={(e) => setEditAuthor(e.target.value)}
+                    value={editBookTitle}
+                    onChange={(e) => setEditBookTitle(e.target.value)}
                     style={{
                       width: '100%',
                       padding: '9px 12px',
@@ -1130,12 +1264,12 @@ export const AdminQuotesPage: React.FC = () => {
 
                 <div>
                   <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
-                    Кітап атауы
+                    Авторы
                   </label>
                   <input
                     type="text"
-                    value={editBookTitle}
-                    onChange={(e) => setEditBookTitle(e.target.value)}
+                    value={editAuthor}
+                    onChange={(e) => setEditAuthor(e.target.value)}
                     style={{
                       width: '100%',
                       padding: '9px 12px',

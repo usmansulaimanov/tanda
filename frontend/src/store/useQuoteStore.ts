@@ -5,6 +5,7 @@ export interface QuoteItem {
   id: string;
   text: string;
   author: string;
+  bookId?: string;
   bookTitle?: string;
   isActive: boolean;
   sentCount: number;
@@ -25,6 +26,7 @@ export interface DeliveredQuoteRecord {
   quoteId: string;
   text: string;
   author: string;
+  bookId?: string;
   bookTitle?: string;
   deliveredAt: string;
 }
@@ -38,8 +40,8 @@ interface QuoteState {
   lastShownQuoteIndex: number;
 
   // Actions
-  addQuote: (data: { text: string; author?: string; bookTitle?: string; isActive?: boolean }) => QuoteItem;
-  addBulkQuotes: (items: Array<{ text: string; author?: string; bookTitle?: string }>) => number;
+  addQuote: (data: { text: string; author?: string; bookId?: string; bookTitle?: string; isActive?: boolean }) => QuoteItem;
+  addBulkQuotes: (items: Array<{ text: string; author?: string; bookId?: string; bookTitle?: string }>) => number;
   updateQuote: (id: string, updates: Partial<QuoteItem>) => void;
   deleteQuote: (id: string) => void;
   toggleQuoteActive: (id: string) => void;
@@ -186,6 +188,7 @@ export const useQuoteStore = create<QuoteState>()(
           id: `quote-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
           text: data.text.trim(),
           author: data.author?.trim() || 'Халық даналығы',
+          bookId: data.bookId || undefined,
           bookTitle: data.bookTitle?.trim() || undefined,
           isActive: data.isActive !== undefined ? data.isActive : true,
           sentCount: 0,
@@ -207,6 +210,7 @@ export const useQuoteStore = create<QuoteState>()(
           id: `quote-${Date.now()}-${idx}-${Math.random().toString(36).substring(2, 6)}`,
           text: item.text.trim(),
           author: item.author?.trim() || 'Халық даналығы',
+          bookId: item.bookId || undefined,
           bookTitle: item.bookTitle?.trim() || undefined,
           isActive: true,
           sentCount: 0,
@@ -280,6 +284,7 @@ export const useQuoteStore = create<QuoteState>()(
           quoteId: selectedQuote.id,
           text: selectedQuote.text,
           author: selectedQuote.author,
+          bookId: selectedQuote.bookId,
           bookTitle: selectedQuote.bookTitle,
           deliveredAt: now,
         };

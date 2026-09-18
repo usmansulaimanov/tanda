@@ -1,9 +1,29 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuoteStore } from '../../store/useQuoteStore';
+import { useBookStore } from '../../store/useBookStore';
 
 export const QuoteNotificationPopup: React.FC = () => {
+  const navigate = useNavigate();
   const { activeNotification, dismissNotification, settings } = useQuoteStore();
+  const { books } = useBookStore();
   const [isVisible, setIsVisible] = useState(false);
+
+  const matchedBook = useMemo(() => {
+    if (!activeNotification) return null;
+    if (activeNotification.bookId) {
+      return books.find((b) => b.id === activeNotification.bookId) || null;
+    }
+    if (activeNotification.bookTitle) {
+      return (
+        books.find(
+          (b) =>
+            b.title.toLowerCase().trim() === activeNotification.bookTitle?.toLowerCase().trim()
+        ) || null
+      );
+    }
+    return null;
+  }, [activeNotification, books]);
 
   useEffect(() => {
     if (activeNotification) {
@@ -34,11 +54,11 @@ export const QuoteNotificationPopup: React.FC = () => {
         } catch {}
       }
 
-      // Auto dismiss after 14 seconds
+      // Auto dismiss after 15 seconds
       const timer = setTimeout(() => {
         setIsVisible(false);
         setTimeout(dismissNotification, 300);
-      }, 14000);
+      }, 15000);
 
       return () => clearTimeout(timer);
     } else {
@@ -51,6 +71,12 @@ export const QuoteNotificationPopup: React.FC = () => {
   const handleClose = () => {
     setIsVisible(false);
     setTimeout(dismissNotification, 300);
+  };
+
+  const handleGoToBook = (bookId: string) => {
+    setIsVisible(false);
+    setTimeout(dismissNotification, 150);
+    navigate(`/book/${bookId}`);
   };
 
   return (
@@ -184,7 +210,7 @@ export const QuoteNotificationPopup: React.FC = () => {
               fontWeight: 600,
               fontStyle: 'italic',
               color: '#F8FAFC',
-              margin: '0 0 8px 0',
+              margin: '0 0 10px 0',
               textShadow: '0 1px 2px rgba(0,0,0,0.3)',
             }}
           >
@@ -208,12 +234,54 @@ export const QuoteNotificationPopup: React.FC = () => {
               }}
             >
               — {activeNotification.author}
-              {activeNotification.bookTitle && (
-                <span style={{ color: '#94A3B8', fontWeight: 500 }}>
-                  {' '}(«{activeNotification.bookTitle}»)
-                </span>
-              )}
             </span>
+
+            {/* Clickable Book Source Link / Badge */}
+            {(matchedBook || activeNotification.bookTitle) && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (matchedBook) {
+                    handleGoToBook(matchedBook.id);
+                  }
+                }}
+                title={matchedBook ? `«${matchedBook.title}» кітабына өту` : undefined}
+                style={{
+                  background: matchedBook ? 'rgba(0, 84, 148, 0.4)' : 'rgba(255, 255, 255, 0.08)',
+                  border: matchedBook ? '1px solid rgba(147, 197, 253, 0.4)' : '1px solid rgba(255, 255, 255, 0.1)',
+                  color: matchedBook ? '#93C5FD' : '#94A3B8',
+                  padding: '3px 9px',
+                  borderRadius: '6px',
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  cursor: matchedBook ? 'pointer' : 'default',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  transition: 'all 0.15s',
+                }}
+                onMouseEnter={(e) => {
+                  if (matchedBook) {
+                    e.currentTarget.style.background = 'rgba(0, 84, 148, 0.7)';
+                    e.currentTarget.style.color = '#FFFFFF';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (matchedBook) {
+                    e.currentTarget.style.background = 'rgba(0, 84, 148, 0.4)';
+                    e.currentTarget.style.color = '#93C5FD';
+                  }
+                }}
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path>
+                  <path d="M6 6h10"></path>
+                  <path d="M6 10h10"></path>
+                </svg>
+                <span>«{matchedBook ? matchedBook.title : activeNotification.bookTitle}»</span>
+                {matchedBook && <span>→</span>}
+              </button>
+            )}
           </div>
         </div>
 
@@ -222,13 +290,45 @@ export const QuoteNotificationPopup: React.FC = () => {
           style={{
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'flex-end',
+            justifyContent: 'space-between',
             gap: '8px',
             borderTop: '1px solid rgba(255, 255, 255, 0.1)',
             paddingTop: '10px',
             marginTop: '6px',
           }}
         >
+          {matchedBook ? (
+            <button
+              type="button"
+              onClick={() => handleGoToBook(matchedBook.id)}
+              style={{
+                background: 'rgba(255, 255, 255, 0.12)',
+                color: '#FFFFFF',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                borderRadius: '8px',
+                padding: '6px 14px',
+                fontSize: '12px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                transition: 'all 0.15s',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)')}
+              onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.12)')}
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path>
+                <path d="M6 6h10"></path>
+                <path d="M6 10h10"></path>
+              </svg>
+              Кітапқа өту
+            </button>
+          ) : (
+            <div />
+          )}
+
           <button
             type="button"
             onClick={handleClose}
