@@ -868,7 +868,7 @@ export const AdminMessagesPage: React.FC = () => {
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Мысалы: Жаңа кітаптар қосылды!"
+                  placeholder="Хат тақырыбын жазыңыз..."
                   required
                   style={{
                     width: '100%',
