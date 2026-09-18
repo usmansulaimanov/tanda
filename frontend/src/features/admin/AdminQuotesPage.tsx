@@ -599,7 +599,7 @@ export const AdminQuotesPage: React.FC = () => {
             </div>
 
             {/* Select book from platform */}
-            <div style={{ marginBottom: '20px' }}>
+            <div style={{ marginBottom: '20px', maxWidth: '420px' }}>
               <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
                 Кітапты таңдау <span style={{ color: '#DC2626' }}>*</span>
               </label>
@@ -609,10 +609,10 @@ export const AdminQuotesPage: React.FC = () => {
                 required
                 style={{
                   width: '100%',
-                  padding: '11px 14px',
+                  padding: '10px 14px',
                   borderRadius: '10px',
                   border: '1.5px solid #CBD5E1',
-                  fontSize: '14px',
+                  fontSize: '13px',
                   fontWeight: 600,
                   outline: 'none',
                   background: '#F8FAFC',
@@ -620,7 +620,7 @@ export const AdminQuotesPage: React.FC = () => {
                   boxSizing: 'border-box',
                 }}
               >
-                <option value="">-- Тізімнен кітапты таңдаңыз --</option>
+                <option value="">Кітапты таңдаңыз</option>
                 {availableBooks.map((b) => (
                   <option key={b.id} value={b.id}>
                     {b.title} — {b.author}
@@ -632,20 +632,20 @@ export const AdminQuotesPage: React.FC = () => {
                 <div
                   style={{
                     marginTop: '10px',
-                    padding: '10px 14px',
+                    padding: '8px 12px',
                     borderRadius: '8px',
                     background: '#F0FDF4',
                     border: '1.5px solid #BBF7D0',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '20px',
-                    fontSize: '13px',
+                    gap: '16px',
+                    fontSize: '12px',
                     color: '#166534',
                     flexWrap: 'wrap',
                   }}
                 >
                   <div>
-                    <span style={{ color: '#15803D', fontWeight: 600 }}>Кітап атауы: </span>
+                    <span style={{ color: '#15803D', fontWeight: 600 }}>Кітап: </span>
                     <strong>«{newBookTitle}»</strong>
                   </div>
                   <div>
@@ -1240,7 +1240,7 @@ export const AdminQuotesPage: React.FC = () => {
                     boxSizing: 'border-box',
                   }}
                 >
-                  <option value="">-- Тізімнен кітапты таңдаңыз --</option>
+                  <option value="">Кітапты таңдаңыз</option>
                   {availableBooks.map((b) => (
                     <option key={b.id} value={b.id}>
                       {b.title} — {b.author}
