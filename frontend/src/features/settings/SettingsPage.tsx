@@ -372,13 +372,9 @@ export const SettingsPage: React.FC = () => {
       >
         {/* Header section with user summary */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px', paddingBottom: '24px', borderBottom: '1.5px solid #F1F5F9', marginBottom: '28px', flexWrap: 'wrap' }}>
-          {/* Avatar with click-to-upload & hover indicator */}
+          {/* Avatar */}
           <div style={{ position: 'relative', flexShrink: 0 }}>
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isUploadingAvatar}
-              title="Профиль фотосын өзгерту үшін басыңыз"
+            <div
               style={{
                 width: '70px',
                 height: '70px',
@@ -394,18 +390,7 @@ export const SettingsPage: React.FC = () => {
                 flexShrink: 0,
                 textTransform: 'uppercase',
                 border: '3px solid #FFFFFF',
-                cursor: 'pointer',
-                padding: 0,
-                position: 'relative',
                 overflow: 'hidden',
-                outline: 'none',
-                transition: 'transform 0.2s',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'scale(1.04)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'scale(1)';
               }}
             >
               {user.avatarUrl ? (
@@ -418,61 +403,7 @@ export const SettingsPage: React.FC = () => {
               ) : (
                 initialLetter
               )}
-
-              {/* Hover overlay */}
-              <div
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  background: 'rgba(0, 0, 0, 0.45)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  opacity: isUploadingAvatar ? 1 : 0,
-                  transition: 'opacity 0.2s',
-                }}
-                className="avatar-hover-overlay"
-              >
-                {isUploadingAvatar ? (
-                  <div className="spinner" style={{ width: '22px', height: '22px', borderWidth: '2px', borderColor: '#FFFFFF', borderTopColor: 'transparent' }}></div>
-                ) : (
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-                    <circle cx="12" cy="13" r="4"></circle>
-                  </svg>
-                )}
-              </div>
-            </button>
-
-            {/* Floating Camera Badge */}
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isUploadingAvatar}
-              title="Фотоны ауыстыру"
-              style={{
-                position: 'absolute',
-                bottom: '-2px',
-                right: '-2px',
-                width: '26px',
-                height: '26px',
-                borderRadius: '50%',
-                background: 'var(--blue)',
-                color: '#FFFFFF',
-                border: '2px solid #FFFFFF',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.18)',
-                padding: 0,
-              }}
-            >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-                <circle cx="12" cy="13" r="4"></circle>
-              </svg>
-            </button>
+            </div>
           </div>
 
           <div style={{ minWidth: 0, flex: 1 }}>
@@ -502,49 +433,6 @@ export const SettingsPage: React.FC = () => {
                 <span style={{ color: 'var(--blue)', fontWeight: 700 }}>
                   @{user.username.replace(/^@/, '')}
                 </span>
-              )}
-            </div>
-
-            {/* Quick avatar buttons */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '8px', fontSize: '12px' }}>
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isUploadingAvatar}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: 'var(--blue)',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  padding: 0,
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                }}
-              >
-                <span>📷 Фотоны ауыстыру</span>
-              </button>
-
-              {user.avatarUrl && (
-                <>
-                  <span style={{ color: '#CBD5E1' }}>&bull;</span>
-                  <button
-                    type="button"
-                    onClick={handleRemoveAvatar}
-                    disabled={isUploadingAvatar}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: '#EF4444',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      padding: 0,
-                    }}
-                  >
-                    Фотоны өшіру
-                  </button>
-                </>
               )}
             </div>
           </div>
