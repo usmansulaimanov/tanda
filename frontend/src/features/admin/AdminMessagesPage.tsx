@@ -167,8 +167,8 @@ export const AdminMessagesPage: React.FC = () => {
   }, [messages, filterTarget, searchQuery]);
 
   return (
-    <section className="admin-page" style={{ paddingBottom: '60px' }}>
-      <div className="admin-container">
+    <section className="admin-page-section" style={{ padding: '32px 24px 80px', backgroundColor: '#F8FAFC', minHeight: 'calc(100vh - 80px)' }}>
+      <div style={{ maxWidth: '1280px', margin: '0 auto', width: '100%' }}>
         {/* Header Breadcrumbs */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
           <div>
