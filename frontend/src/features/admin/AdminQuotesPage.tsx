@@ -95,28 +95,28 @@ export const AdminQuotesPage: React.FC = () => {
   const handleSelectNewBook = (bookId: string) => {
     setNewBookId(bookId);
     if (!bookId) {
+      setNewBookTitle('');
+      setNewAuthor('');
       return;
     }
     const selected = books.find((b) => b.id === bookId);
     if (selected) {
       setNewBookTitle(selected.title);
-      if (!newAuthor || newAuthor === 'Халық даналығы') {
-        setNewAuthor(selected.author);
-      }
+      setNewAuthor(selected.author);
     }
   };
 
   const handleSelectEditBook = (bookId: string) => {
     setEditBookId(bookId);
     if (!bookId) {
+      setEditBookTitle('');
+      setEditAuthor('');
       return;
     }
     const selected = books.find((b) => b.id === bookId);
     if (selected) {
       setEditBookTitle(selected.title);
-      if (!editAuthor || editAuthor === 'Халық даналығы') {
-        setEditAuthor(selected.author);
-      }
+      setEditAuthor(selected.author);
     }
   };
 
@@ -126,12 +126,20 @@ export const AdminQuotesPage: React.FC = () => {
       showToast('Цитата мәтінін енгізіңіз', 'error');
       return;
     }
+    if (!newBookId) {
+      showToast('Платформадағы кітапты таңдаңыз', 'error');
+      return;
+    }
+
+    const selected = books.find((b) => b.id === newBookId);
+    const bookTitle = selected?.title || newBookTitle.trim() || undefined;
+    const author = selected?.author || newAuthor.trim() || 'Халық даналығы';
 
     addQuote({
       text: newText.trim(),
-      author: newAuthor.trim() || 'Халық даналығы',
+      author: author,
       bookId: newBookId || undefined,
-      bookTitle: newBookTitle.trim() || undefined,
+      bookTitle: bookTitle,
       isActive: true,
     });
 
@@ -503,7 +511,7 @@ export const AdminQuotesPage: React.FC = () => {
                 </h2>
               </div>
               <p style={{ fontSize: '13px', color: 'var(--text-mid)', margin: '4px 0 0 16px' }}>
-                Платформадағы кітаптардың бірін таңдап немесе қолмен жазып қосуға болады.
+                Платформадағы кітаптардың бірін таңдаңыз. Кітап атауы мен авторы автоматты түрде бекітіледі.
               </p>
             </div>
 
@@ -559,89 +567,62 @@ export const AdminQuotesPage: React.FC = () => {
               />
             </div>
 
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-                gap: '16px',
-                marginBottom: '18px',
-              }}
-            >
-              {/* Select book from platform */}
-              <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: 'var(--blue)', marginBottom: '6px' }}>
-                  Платформадағы кітапты таңдау (Карточкаға сілтеме)
-                </label>
-                <select
-                  value={newBookId}
-                  onChange={(e) => handleSelectNewBook(e.target.value)}
+            {/* Select book from platform */}
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+                Кітапты таңдау <span style={{ color: '#DC2626' }}>*</span>
+              </label>
+              <select
+                value={newBookId}
+                onChange={(e) => handleSelectNewBook(e.target.value)}
+                required
+                style={{
+                  width: '100%',
+                  padding: '11px 14px',
+                  borderRadius: '10px',
+                  border: '1.5px solid #CBD5E1',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  outline: 'none',
+                  background: '#F8FAFC',
+                  color: 'var(--text-dark)',
+                  boxSizing: 'border-box',
+                }}
+              >
+                <option value="">-- Тізімнен кітапты таңдаңыз --</option>
+                {availableBooks.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.title} — {b.author}
+                  </option>
+                ))}
+              </select>
+
+              {newBookId && newBookTitle && (
+                <div
                   style={{
-                    width: '100%',
+                    marginTop: '10px',
                     padding: '10px 14px',
-                    borderRadius: '10px',
-                    border: '1.5px solid #93C5FD',
+                    borderRadius: '8px',
+                    background: '#F0FDF4',
+                    border: '1.5px solid #BBF7D0',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '20px',
                     fontSize: '13px',
-                    fontWeight: 600,
-                    outline: 'none',
-                    background: '#F0F9FF',
-                    color: 'var(--text-dark)',
-                    boxSizing: 'border-box',
+                    color: '#166534',
+                    flexWrap: 'wrap',
                   }}
                 >
-                  <option value="">-- Тізімнен кітапты таңдау (Міндетті емес) --</option>
-                  {availableBooks.map((b) => (
-                    <option key={b.id} value={b.id}>
-                      {b.title} ({b.author})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Book title */}
-              <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
-                  Кітап атауы
-                </label>
-                <input
-                  type="text"
-                  value={newBookTitle}
-                  onChange={(e) => setNewBookTitle(e.target.value)}
-                  placeholder="Мысалы: Қара сөздер"
-                  style={{
-                    width: '100%',
-                    padding: '10px 14px',
-                    borderRadius: '10px',
-                    border: '1.5px solid #CBD5E1',
-                    fontSize: '14px',
-                    outline: 'none',
-                    background: '#F8FAFC',
-                    boxSizing: 'border-box',
-                  }}
-                />
-              </div>
-
-              {/* Author */}
-              <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
-                  Авторы немесе дереккөзі
-                </label>
-                <input
-                  type="text"
-                  value={newAuthor}
-                  onChange={(e) => setNewAuthor(e.target.value)}
-                  placeholder="Мысалы: Абай Құнанбайұлы"
-                  style={{
-                    width: '100%',
-                    padding: '10px 14px',
-                    borderRadius: '10px',
-                    border: '1.5px solid #CBD5E1',
-                    fontSize: '14px',
-                    outline: 'none',
-                    background: '#F8FAFC',
-                    boxSizing: 'border-box',
-                  }}
-                />
-              </div>
+                  <div>
+                    <span style={{ color: '#15803D', fontWeight: 600 }}>Кітап атауы: </span>
+                    <strong>«{newBookTitle}»</strong>
+                  </div>
+                  <div>
+                    <span style={{ color: '#15803D', fontWeight: 600 }}>Авторы: </span>
+                    <strong>{newAuthor}</strong>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
@@ -1137,76 +1118,58 @@ export const AdminQuotesPage: React.FC = () => {
               </div>
 
               {/* Book select dropdown in edit modal */}
-              <div style={{ marginBottom: '14px' }}>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: 'var(--blue)', marginBottom: '6px' }}>
-                  Платформадағы кітапты таңдау
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+                  Кітапты таңдау
                 </label>
                 <select
                   value={editBookId}
                   onChange={(e) => handleSelectEditBook(e.target.value)}
                   style={{
                     width: '100%',
-                    padding: '9px 12px',
+                    padding: '10px 12px',
                     borderRadius: '8px',
-                    border: '1.5px solid #93C5FD',
+                    border: '1.5px solid #CBD5E1',
                     fontSize: '13px',
                     fontWeight: 600,
                     outline: 'none',
-                    background: '#F0F9FF',
+                    background: '#F8FAFC',
                     boxSizing: 'border-box',
                   }}
                 >
-                  <option value="">-- Тізімнен кітапты таңдау (Міндетті емес) --</option>
+                  <option value="">-- Тізімнен кітапты таңдаңыз --</option>
                   {availableBooks.map((b) => (
                     <option key={b.id} value={b.id}>
-                      {b.title} ({b.author})
+                      {b.title} — {b.author}
                     </option>
                   ))}
                 </select>
-              </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
-                    Кітап атауы
-                  </label>
-                  <input
-                    type="text"
-                    value={editBookTitle}
-                    onChange={(e) => setEditBookTitle(e.target.value)}
+                {(editBookTitle || editAuthor) && (
+                  <div
                     style={{
-                      width: '100%',
-                      padding: '9px 12px',
-                      borderRadius: '8px',
-                      border: '1.5px solid #CBD5E1',
-                      fontSize: '13px',
-                      outline: 'none',
-                      background: '#F8FAFC',
-                      boxSizing: 'border-box',
+                      marginTop: '10px',
+                      padding: '8px 12px',
+                      borderRadius: '6px',
+                      background: '#F0FDF4',
+                      border: '1.5px solid #BBF7D0',
+                      fontSize: '12px',
+                      color: '#166534',
+                      display: 'flex',
+                      gap: '16px',
+                      flexWrap: 'wrap',
                     }}
-                  />
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
-                    Авторы
-                  </label>
-                  <input
-                    type="text"
-                    value={editAuthor}
-                    onChange={(e) => setEditAuthor(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '9px 12px',
-                      borderRadius: '8px',
-                      border: '1.5px solid #CBD5E1',
-                      fontSize: '13px',
-                      outline: 'none',
-                      background: '#F8FAFC',
-                      boxSizing: 'border-box',
-                    }}
-                  />
-                </div>
+                  >
+                    <div>
+                      <span style={{ color: '#15803D', fontWeight: 600 }}>Кітап: </span>
+                      <strong>«{editBookTitle}»</strong>
+                    </div>
+                    <div>
+                      <span style={{ color: '#15803D', fontWeight: 600 }}>Авторы: </span>
+                      <strong>{editAuthor}</strong>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
