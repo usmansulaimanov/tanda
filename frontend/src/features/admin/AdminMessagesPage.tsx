@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Globe, User as UserIcon, Users } from 'lucide-react';
+import { Globe, User as UserIcon, Users, Lock, Unlock, Shield } from 'lucide-react';
 import { useMessageStore, AdminMessage, MessageTargetType, MessagePriority } from '../../store/useMessageStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useToastStore } from '../../store/useToastStore';
@@ -933,13 +933,14 @@ export const AdminMessagesPage: React.FC = () => {
                 style={{
                   background: '#F8FAFC',
                   borderRadius: '14px',
-                  padding: '16px',
-                  border: '1.5px solid #E2E8F0',
+                  padding: '16px 18px',
+                  border: '1px solid #E2E8F0',
                   marginBottom: '24px',
                 }}
               >
-                <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-dark)', marginBottom: '12px' }}>
-                  ⚙️ Қауіпсіздік және өшу баптаулары
+                <div style={{ display: 'flex', alignItems: 'center', gap: '7px', fontSize: '13px', fontWeight: 800, color: 'var(--text-dark)', marginBottom: '14px' }}>
+                  <Shield size={16} strokeWidth={2.2} color="var(--blue)" />
+                  <span>Қауіпсіздік және өшу баптаулары</span>
                 </div>
 
                 {/* Reader Deletion Permission */}
@@ -947,49 +948,61 @@ export const AdminMessagesPage: React.FC = () => {
                   <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
                     Оқырман бұл хабарламаны өшіре ала ма?
                   </label>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: '1fr 1fr',
+                      gap: '4px',
+                      background: '#FFFFFF',
+                      padding: '3px',
+                      borderRadius: '10px',
+                      border: '1px solid #E2E8F0',
+                    }}
+                  >
                     <button
                       type="button"
                       onClick={() => setCanReaderDelete(false)}
                       style={{
-                        padding: '8px 12px',
-                        borderRadius: '8px',
-                        border: !canReaderDelete ? '2px solid #005494' : '1.5px solid #CBD5E1',
-                        background: !canReaderDelete ? '#EFF6FF' : '#FFFFFF',
-                        color: !canReaderDelete ? '#005494' : '#64748B',
-                        fontSize: '12px',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        textAlign: 'left',
                         display: 'flex',
                         alignItems: 'center',
+                        justifyContent: 'center',
                         gap: '6px',
+                        padding: '8px 12px',
+                        borderRadius: '7px',
+                        border: 'none',
+                        background: !canReaderDelete ? 'var(--blue)' : 'transparent',
+                        color: !canReaderDelete ? '#FFFFFF' : '#64748B',
+                        fontSize: '12px',
+                        fontWeight: !canReaderDelete ? 700 : 500,
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease',
                       }}
                     >
-                      <span>🔒</span>
-                      <span>Өшіре алмайды (Ұсынылады)</span>
+                      <Lock size={13} strokeWidth={!canReaderDelete ? 2.5 : 2} color={!canReaderDelete ? '#FFFFFF' : '#94A3B8'} />
+                      <span>Өшіре алмайды</span>
                     </button>
 
                     <button
                       type="button"
                       onClick={() => setCanReaderDelete(true)}
                       style={{
-                        padding: '8px 12px',
-                        borderRadius: '8px',
-                        border: canReaderDelete ? '2px solid #F08000' : '1.5px solid #CBD5E1',
-                        background: canReaderDelete ? '#FFF7ED' : '#FFFFFF',
-                        color: canReaderDelete ? '#C2410C' : '#64748B',
-                        fontSize: '12px',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        textAlign: 'left',
                         display: 'flex',
                         alignItems: 'center',
+                        justifyContent: 'center',
                         gap: '6px',
+                        padding: '8px 12px',
+                        borderRadius: '7px',
+                        border: 'none',
+                        background: canReaderDelete ? '#F97316' : 'transparent',
+                        color: canReaderDelete ? '#FFFFFF' : '#64748B',
+                        fontSize: '12px',
+                        fontWeight: canReaderDelete ? 700 : 500,
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease',
                       }}
                     >
-                      <span>🔓</span>
-                      <span>Оқырман өшіре алады</span>
+                      <Unlock size={13} strokeWidth={canReaderDelete ? 2.5 : 2} color={canReaderDelete ? '#FFFFFF' : '#94A3B8'} />
+                      <span>Өшіре алады</span>
                     </button>
                   </div>
                 </div>
@@ -1010,7 +1023,7 @@ export const AdminMessagesPage: React.FC = () => {
                       padding: '9px 12px',
                       borderRadius: '8px',
                       border: '1.5px solid #CBD5E1',
-                      fontSize: '12px',
+                      fontSize: '12.5px',
                       fontWeight: 600,
                       outline: 'none',
                       background: '#FFFFFF',
@@ -1018,16 +1031,16 @@ export const AdminMessagesPage: React.FC = () => {
                       boxSizing: 'border-box',
                     }}
                   >
-                    <option value="">♾️ Шексіз (Автоматты түрде өшпейді)</option>
-                    <option value="1">⏱️ 1 сағаттан кейін өшсін</option>
-                    <option value="3">⏱️ 3 сағаттан кейін өшсін</option>
-                    <option value="6">⏱️ 6 сағаттан кейін өшсін</option>
-                    <option value="12">⏱️ 12 сағаттан кейін өшсін</option>
-                    <option value="24">📅 24 сағаттан (1 күн) кейін өшсін</option>
-                    <option value="48">📅 2 күннен кейін өшсін</option>
-                    <option value="72">📅 3 күннен кейін өшсін</option>
-                    <option value="168">📅 7 күннен (1 апта) кейін өшсін</option>
-                    <option value="720">📅 30 күннен (1 ай) кейін өшсін</option>
+                    <option value="">Шексіз (автоматты түрде өшпейді)</option>
+                    <option value="1">1 сағаттан кейін</option>
+                    <option value="3">3 сағаттан кейін</option>
+                    <option value="6">6 сағаттан кейін</option>
+                    <option value="12">12 сағаттан кейін</option>
+                    <option value="24">24 сағаттан кейін (1 күн)</option>
+                    <option value="48">2 күннен кейін</option>
+                    <option value="72">3 күннен кейін</option>
+                    <option value="168">7 күннен кейін (1 апта)</option>
+                    <option value="720">30 күннен кейін (1 ай)</option>
                   </select>
                 </div>
               </div>
