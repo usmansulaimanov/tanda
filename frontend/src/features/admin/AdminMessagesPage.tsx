@@ -409,12 +409,12 @@ export const AdminMessagesPage: React.FC = () => {
                 </thead>
                 <tbody>
                   {filteredMessages.map((msg, idx) => {
-                    const priorityLabels: Record<MessagePriority, { text: string; bg: string; color: string; border: string }> = {
-                      normal: { text: 'Қалыпты', bg: '#F1F5F9', color: '#475569', border: '#CBD5E1' },
-                      news: { text: 'Жаңалық', bg: '#EFF6FF', color: '#1D4ED8', border: '#BFDBFE' },
-                      important: { text: 'Маңызды', bg: '#FEF2F2', color: '#B91C1C', border: '#FECACA' },
+                    const priorityLabels: Record<MessagePriority, string> = {
+                      normal: 'Қалыпты',
+                      news: 'Жаңалық',
+                      important: 'Маңызды',
                     };
-                    const pri = priorityLabels[msg.priority || 'normal'];
+                    const priorityText = priorityLabels[msg.priority || 'normal'];
 
                     return (
                       <tr
@@ -423,7 +423,7 @@ export const AdminMessagesPage: React.FC = () => {
                         style={{ cursor: 'pointer' }}
                         title="Толық мәліметті көру үшін басыңыз"
                       >
-                        <td style={{ textAlign: 'center', fontWeight: 700, color: '#64748B', fontSize: '12px' }}>
+                        <td style={{ textAlign: 'center', fontWeight: 700, color: 'var(--text-dark)', fontSize: '12px' }}>
                           {idx + 1}
                         </td>
 
@@ -442,14 +442,13 @@ export const AdminMessagesPage: React.FC = () => {
                               style={{
                                 display: 'inline-flex',
                                 alignItems: 'center',
-                                gap: '4px',
                                 fontSize: '12px',
                                 fontWeight: 700,
-                                color: '#047857',
-                                background: '#ECFDF5',
+                                color: 'var(--text-dark)',
+                                background: '#F1F5F9',
                                 padding: '3px 8px',
                                 borderRadius: '6px',
-                                border: '1px solid #A7F3D0',
+                                border: '1px solid #E2E8F0',
                               }}
                             >
                               Барлық оқырмандарға
@@ -478,13 +477,13 @@ export const AdminMessagesPage: React.FC = () => {
                               fontWeight: 700,
                               padding: '3px 8px',
                               borderRadius: '6px',
-                              background: pri.bg,
-                              color: pri.color,
-                              border: `1px solid ${pri.border}`,
+                              background: '#F1F5F9',
+                              color: 'var(--text-dark)',
+                              border: '1px solid #E2E8F0',
                               display: 'inline-block',
                             }}
                           >
-                            {pri.text}
+                            {priorityText}
                           </span>
                         </td>
 
@@ -494,14 +493,13 @@ export const AdminMessagesPage: React.FC = () => {
                               style={{
                                 fontSize: '11px',
                                 fontWeight: 700,
-                                color: msg.canReaderDelete ? '#C2410C' : '#005494',
-                                background: msg.canReaderDelete ? '#FFF7ED' : '#EFF6FF',
+                                color: 'var(--text-dark)',
+                                background: '#F1F5F9',
                                 padding: '2px 6px',
                                 borderRadius: '4px',
-                                border: msg.canReaderDelete ? '1px solid #FFEDD5' : '1px solid #DBEAFE',
+                                border: '1px solid #E2E8F0',
                                 display: 'inline-flex',
                                 alignItems: 'center',
-                                gap: '3px',
                                 width: 'fit-content',
                               }}
                             >
@@ -513,16 +511,15 @@ export const AdminMessagesPage: React.FC = () => {
                                 style={{
                                   fontSize: '11px',
                                   fontWeight: 600,
-                                  color: new Date(msg.expiresAt).getTime() <= Date.now() ? '#DC2626' : '#64748B',
+                                  color: 'var(--text-dark)',
                                   display: 'inline-flex',
                                   alignItems: 'center',
-                                  gap: '3px',
                                 }}
                               >
                                 {new Date(msg.expiresAt).getTime() <= Date.now() ? 'Мерзімі өткен' : (msg.expiresInHours ? `${msg.expiresInHours} сағ` : 'Мерзімді')}
                               </span>
                             ) : (
-                              <span style={{ fontSize: '11px', color: '#94A3B8' }}>
+                              <span style={{ fontSize: '11px', color: '#64748B' }}>
                                 Шексіз
                               </span>
                             )}
@@ -1156,24 +1153,9 @@ export const AdminMessagesPage: React.FC = () => {
                   fontWeight: 700,
                   padding: '4px 10px',
                   borderRadius: '6px',
-                  background:
-                    selectedMessageForView.priority === 'important'
-                      ? '#FEF2F2'
-                      : selectedMessageForView.priority === 'news'
-                      ? '#EFF6FF'
-                      : '#F1F5F9',
-                  color:
-                    selectedMessageForView.priority === 'important'
-                      ? '#B91C1C'
-                      : selectedMessageForView.priority === 'news'
-                      ? '#1D4ED8'
-                      : '#475569',
-                  border:
-                    selectedMessageForView.priority === 'important'
-                      ? '1px solid #FECACA'
-                      : selectedMessageForView.priority === 'news'
-                      ? '1px solid #BFDBFE'
-                      : '1px solid #CBD5E1',
+                  background: '#F1F5F9',
+                  color: 'var(--text-dark)',
+                  border: '1px solid #E2E8F0',
                 }}
               >
                 {selectedMessageForView.priority === 'important'
@@ -1189,9 +1171,9 @@ export const AdminMessagesPage: React.FC = () => {
                   fontWeight: 700,
                   padding: '4px 10px',
                   borderRadius: '6px',
-                  background: selectedMessageForView.targetType === 'all' ? '#ECFDF5' : '#FFF7ED',
-                  color: selectedMessageForView.targetType === 'all' ? '#047857' : '#C2410C',
-                  border: selectedMessageForView.targetType === 'all' ? '1px solid #A7F3D0' : '1px solid #FFEDD5',
+                  background: '#F1F5F9',
+                  color: 'var(--text-dark)',
+                  border: '1px solid #E2E8F0',
                 }}
               >
                 {selectedMessageForView.targetType === 'all'
@@ -1208,7 +1190,7 @@ export const AdminMessagesPage: React.FC = () => {
                   padding: '4px 10px',
                   borderRadius: '6px',
                   background: '#F1F5F9',
-                  color: '#475569',
+                  color: 'var(--text-dark)',
                   border: '1px solid #E2E8F0',
                 }}
               >
@@ -1222,7 +1204,7 @@ export const AdminMessagesPage: React.FC = () => {
                   padding: '4px 10px',
                   borderRadius: '6px',
                   background: '#F1F5F9',
-                  color: '#475569',
+                  color: 'var(--text-dark)',
                   border: '1px solid #E2E8F0',
                 }}
               >
