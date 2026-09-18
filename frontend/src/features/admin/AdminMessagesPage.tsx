@@ -184,9 +184,6 @@ export const AdminMessagesPage: React.FC = () => {
             <h1 style={{ fontSize: '24px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
               Хабарламалар мен хаттар
             </h1>
-            <p style={{ fontSize: '14px', color: 'var(--text-mid)', marginTop: '4px', margin: 0 }}>
-              Оқырмандарға жеке, топтық немесе жалпы хабарламалар мен жаңалықтар жіберу
-            </p>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
