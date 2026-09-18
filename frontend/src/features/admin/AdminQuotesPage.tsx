@@ -1568,8 +1568,8 @@ export const AdminQuotesPage: React.FC = () => {
               </div>
             </div>
 
-            <p style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-dark)', margin: '0 0 20px 0' }}>
-              Ақпараттар дұрыс па? Барлық цитаталар қорға қосылсын ба?
+            <p style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-dark)', margin: '0 0 20px 0' }}>
+              «{bulkConfirmData.bookTitle}» кітабынан {bulkConfirmData.lines.length} цитата қосылайын деп жатыр. Ақпараттар дұрыс па?
             </p>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
