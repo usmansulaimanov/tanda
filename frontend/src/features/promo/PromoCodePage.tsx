@@ -140,7 +140,7 @@ export const PromoCodePage: React.FC = () => {
                 type="text"
                 value={inputCode}
                 onChange={(e) => setInputCode(e.target.value.toUpperCase())}
-                placeholder="ПРОМОКОДТЫ ЖАЗЫҢЫЗ (Мысалы: TANDA2026)"
+                placeholder="ПРОМОКОДТЫ ЖАЗЫҢЫЗ (TANDA2026)"
                 style={{
                   width: '100%',
                   height: '52px',
