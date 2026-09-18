@@ -17,8 +17,8 @@ export interface PromoCode {
   rewardType: 'subscription_1m' | 'subscription_3m' | 'subscription_6m' | 'subscription_1y' | 'discount_50' | 'premium_access' | 'custom';
   rewardTitle: string;
   description?: string;
-  durationDays: number; // Duration in days
-  expiresAt: string; // ISO date
+  durationDays: number; // Duration in days to claim/activate before code expires
+  expiresAt: string; // ISO date when unclaimed promo expires
   maxUses: number;
   usedCount: number;
   usedBy: PromoUsageRecord[];
@@ -26,6 +26,73 @@ export interface PromoCode {
   isIssued?: boolean; // Whether admin marked code as given/sent
   note?: string; // Admin note (e.g. whom it was given to)
   createdAt: string;
+}
+
+export function getPromoAccessDurationDays(promo: { rewardTitle?: string; rewardType?: string }): number | 'infinite' {
+  const title = (promo.rewardTitle || '').toLowerCase();
+  const type = promo.rewardType || '';
+
+  if (title.includes('мәңгі') || title.includes('шектеусіз') || title.includes('вечный') || title.includes('бессрочн')) {
+    return 'infinite';
+  }
+  if (title.includes('12 ай') || title.includes('1 жыл') || title.includes('жылдық') || type === 'subscription_1y') {
+    return 365;
+  }
+  if (title.includes('6 ай') || type === 'subscription_6m') {
+    return 180;
+  }
+  if (title.includes('3 ай') || type === 'subscription_3m') {
+    return 90;
+  }
+  if (title.includes('1 ай') || title.includes('айлық') || type === 'subscription_1m') {
+    return 30;
+  }
+
+  // Check for explicit "X күн" in title
+  const daysMatch = title.match(/(\d+)\s*(?:күн|day|дней|дня)/i);
+  if (daysMatch) {
+    return parseInt(daysMatch[1], 10);
+  }
+
+  // Fallback defaults based on type
+  if (type === 'subscription_3m') return 90;
+  if (type === 'subscription_6m') return 180;
+  if (type === 'subscription_1y') return 365;
+  if (type === 'subscription_1m') return 30;
+
+  return 30;
+}
+
+export function getPromoRemainingDays(
+  promo: PromoCode,
+  userId?: string
+): { isInfinite: boolean; daysRemaining: number; isActive: boolean; statusText: string } {
+  const accessDuration = getPromoAccessDurationDays(promo);
+  if (accessDuration === 'infinite') {
+    return {
+      isInfinite: true,
+      daysRemaining: Infinity,
+      isActive: true,
+      statusText: 'Белсенді (Мәңгі)',
+    };
+  }
+
+  const usage = userId ? promo.usedBy?.find((u) => u.userId === userId) : promo.usedBy?.[0];
+  const usedAtMs = usage?.usedAt
+    ? new Date(usage.usedAt).getTime()
+    : (promo.createdAt ? new Date(promo.createdAt).getTime() : Date.now());
+  const expiryMs = usedAtMs + accessDuration * 24 * 60 * 60 * 1000;
+  const now = Date.now();
+  const diffMs = expiryMs - now;
+  const daysRemaining = diffMs > 0 ? Math.ceil(diffMs / (24 * 60 * 60 * 1000)) : 0;
+  const isActive = daysRemaining > 0;
+
+  return {
+    isInfinite: false,
+    daysRemaining,
+    isActive,
+    statusText: isActive ? `Белсенді (${daysRemaining} күн қалды)` : 'Мерзімі аяқталды',
+  };
 }
 
 export interface PromoBatch {

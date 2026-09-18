@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/useAuthStore';
-import { usePromoStore } from '../../store/usePromoStore';
+import { usePromoStore, getPromoRemainingDays } from '../../store/usePromoStore';
 import { useToastStore } from '../../store/useToastStore';
 
 export const PromoCodePage: React.FC = () => {
@@ -265,18 +265,7 @@ export const PromoCodePage: React.FC = () => {
             </h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {activatedList.map((p) => {
-                const now = Date.now();
-                const usage = user?.id ? p.usedBy?.find((u) => u.userId === user.id) : null;
-                let expiryMs: number;
-                if (usage && usage.usedAt && p.durationDays) {
-                  expiryMs = new Date(usage.usedAt).getTime() + p.durationDays * 24 * 60 * 60 * 1000;
-                } else if (p.expiresAt) {
-                  expiryMs = new Date(p.expiresAt).getTime();
-                } else {
-                  expiryMs = now + (p.durationDays || 30) * 24 * 60 * 60 * 1000;
-                }
-                const diffMs = expiryMs - now;
-                const daysRemaining = diffMs > 0 ? Math.ceil(diffMs / (24 * 60 * 60 * 1000)) : 0;
+                const statusInfo = getPromoRemainingDays(p, user?.id);
 
                 return (
                   <div
@@ -317,15 +306,22 @@ export const PromoCodePage: React.FC = () => {
                         fontWeight: 700,
                         padding: '3px 10px',
                         borderRadius: '20px',
-                        background: '#D1FAE5',
-                        color: '#047857',
+                        background: statusInfo.isActive ? '#D1FAE5' : '#F1F5F9',
+                        color: statusInfo.isActive ? '#047857' : '#64748B',
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: '6px',
                       }}
                     >
-                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10B981' }}></span>
-                      {daysRemaining > 0 ? `Белсенді (${daysRemaining} күн қалды)` : 'Мерзімі аяқталды'}
+                      <span
+                        style={{
+                          width: '6px',
+                          height: '6px',
+                          borderRadius: '50%',
+                          background: statusInfo.isActive ? '#10B981' : '#94A3B8',
+                        }}
+                      />
+                      {statusInfo.statusText}
                     </span>
                   </div>
                 );
