@@ -5,6 +5,7 @@ import { useBookStore } from '../../store/useBookStore';
 import { useSavedBooksStore } from '../../store/useSavedBooksStore';
 import { useToastStore } from '../../store/useToastStore';
 import { useSidebarStore } from '../../store/useSidebarStore';
+import { useMessageStore } from '../../store/useMessageStore';
 import { Book } from '../../types';
 import { hasAdminPermission } from '../../utils/permissions';
 import tandaLogo from '../../assets/tanda-logo.png';
@@ -17,6 +18,12 @@ export const Header: React.FC = () => {
   const { savedBookIds } = useSavedBooksStore();
   const { showToast } = useToastStore();
   const { isOpen: isSidebarOpen, toggleSidebar } = useSidebarStore();
+  const { getUnreadCountForUser, messages } = useMessageStore();
+
+  const unreadMessagesCount = React.useMemo(() => {
+    if (!user) return 0;
+    return getUnreadCountForUser(user.id);
+  }, [user, messages, getUnreadCountForUser]);
 
   // Search state
   const [headerSearch, setHeaderSearch] = useState('');
@@ -479,6 +486,21 @@ export const Header: React.FC = () => {
                               <polyline points="22,6 12,13 2,6"></polyline>
                             </svg>
                             <span style={{ flex: 1 }}>Хабарламалар</span>
+                            {unreadMessagesCount > 0 && (
+                              <span
+                                style={{
+                                  background: 'var(--blue)',
+                                  color: '#fff',
+                                  fontSize: '11px',
+                                  fontWeight: 800,
+                                  borderRadius: '20px',
+                                  padding: '2px 8px',
+                                  lineHeight: 1.2,
+                                }}
+                              >
+                                {unreadMessagesCount}
+                              </span>
+                            )}
                           </Link>
 
                           <Link

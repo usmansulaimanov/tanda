@@ -6,6 +6,7 @@ import { useBookStore } from '../../store/useBookStore';
 import { useSavedBooksStore } from '../../store/useSavedBooksStore';
 import { useMyBooksStore } from '../../store/useMyBooksStore';
 import { useQuoteStore } from '../../store/useQuoteStore';
+import { useMessageStore } from '../../store/useMessageStore';
 import { hasAdminPermission } from '../../utils/permissions';
 import { api } from '../../lib/api';
 
@@ -16,6 +17,7 @@ export const AppSidebarDrawer: React.FC = () => {
   const { savedBookIds } = useSavedBooksStore();
   const { currentShelf } = useMyBooksStore();
   const { quotes } = useQuoteStore();
+  const { getUnreadCountForUser, messages } = useMessageStore();
   const location = useLocation();
   const navigate = useNavigate();
   const [readersCount, setReadersCount] = React.useState<number>(() => {
@@ -25,6 +27,11 @@ export const AppSidebarDrawer: React.FC = () => {
       return 0;
     }
   });
+
+  const unreadMessagesCount = React.useMemo(() => {
+    if (!user) return 0;
+    return getUnreadCountForUser(user.id);
+  }, [user, messages, getUnreadCountForUser]);
 
   useEffect(() => {
     if (role === 'admin') {
@@ -254,6 +261,9 @@ export const AppSidebarDrawer: React.FC = () => {
                     <polyline points="22,6 12,13 2,6"></polyline>
                   </svg>
                   <span>Хабарламалар</span>
+                  {unreadMessagesCount > 0 && (
+                    <span className="sidebar-badge">{unreadMessagesCount}</span>
+                  )}
                 </Link>
               </>
             )}
