@@ -438,24 +438,12 @@ export const AdminMessagesPage: React.FC = () => {
 
                         <td>
                           {msg.targetType === 'all' ? (
-                            <span
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                fontSize: '12px',
-                                fontWeight: 700,
-                                color: 'var(--text-dark)',
-                                background: '#F1F5F9',
-                                padding: '3px 8px',
-                                borderRadius: '6px',
-                                border: '1px solid #E2E8F0',
-                              }}
-                            >
+                            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-dark)' }}>
                               Барлық оқырмандарға
                             </span>
                           ) : (
                             <div>
-                              <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-dark)' }}>
+                              <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-dark)' }}>
                                 {msg.targetUserNames && msg.targetUserNames.length === 1
                                    ? msg.targetUserNames[0]
                                    : `${msg.targetUserNames?.length || 0} оқырман`}
@@ -471,58 +459,23 @@ export const AdminMessagesPage: React.FC = () => {
                         </td>
 
                         <td>
-                          <span
-                            style={{
-                              fontSize: '11px',
-                              fontWeight: 700,
-                              padding: '3px 8px',
-                              borderRadius: '6px',
-                              background: '#F1F5F9',
-                              color: 'var(--text-dark)',
-                              border: '1px solid #E2E8F0',
-                              display: 'inline-block',
-                            }}
-                          >
+                          <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-dark)' }}>
                             {priorityText}
                           </span>
                         </td>
 
                         <td>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                            <span
-                              style={{
-                                fontSize: '11px',
-                                fontWeight: 700,
-                                color: 'var(--text-dark)',
-                                background: '#F1F5F9',
-                                padding: '2px 6px',
-                                borderRadius: '4px',
-                                border: '1px solid #E2E8F0',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                width: 'fit-content',
-                              }}
-                            >
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-dark)' }}>
                               {msg.canReaderDelete ? 'Өшіруге болады' : 'Өшірілмейді'}
                             </span>
-
-                            {msg.expiresAt ? (
-                              <span
-                                style={{
-                                  fontSize: '11px',
-                                  fontWeight: 600,
-                                  color: 'var(--text-dark)',
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                }}
-                              >
-                                {new Date(msg.expiresAt).getTime() <= Date.now() ? 'Мерзімі өткен' : (msg.expiresInHours ? `${msg.expiresInHours} сағ` : 'Мерзімді')}
-                              </span>
-                            ) : (
-                              <span style={{ fontSize: '11px', color: '#64748B' }}>
-                                Шексіз
-                              </span>
-                            )}
+                            <span style={{ fontSize: '11px', color: '#64748B' }}>
+                              {msg.expiresAt
+                                ? (new Date(msg.expiresAt).getTime() <= Date.now()
+                                    ? 'Мерзімі өткен'
+                                    : (msg.expiresInHours ? `${msg.expiresInHours} сағат` : 'Мерзімді'))
+                                : 'Шексіз'}
+                            </span>
                           </div>
                         </td>
 
