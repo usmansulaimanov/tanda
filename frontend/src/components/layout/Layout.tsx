@@ -7,6 +7,7 @@ import { ToastContainer } from '../ui/Toast';
 import { AppSidebarDrawer } from './AppSidebarDrawer';
 import { QuoteNotificationPopup } from '../quotes/QuoteNotificationPopup';
 import { QuoteNotificationRunner } from '../quotes/QuoteNotificationRunner';
+import { MessageNotificationPopup } from '../messages/MessageNotificationPopup';
 import { useAudioPlayerStore } from '../../store/useAudioPlayerStore';
 import { useAuthStore } from '../../store/useAuthStore';
 
@@ -28,6 +29,7 @@ export const Layout: React.FC = () => {
       <AudioPlayerBar />
       <ToastContainer />
       <QuoteNotificationPopup />
+      <MessageNotificationPopup />
     </div>
   );
 };

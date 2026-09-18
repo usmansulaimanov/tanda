@@ -21,6 +21,8 @@ const ReaderQuotesPage = lazy(() => import('../features/quotes/ReaderQuotesPage'
 const AdminPromoCodesPage = lazy(() => import('../features/admin/AdminPromoCodesPage').then((m) => ({ default: m.AdminPromoCodesPage })));
 const AdminPromoBatchDetailPage = lazy(() => import('../features/admin/AdminPromoBatchDetailPage').then((m) => ({ default: m.AdminPromoBatchDetailPage })));
 const AdminQuotesPage = lazy(() => import('../features/admin/AdminQuotesPage').then((m) => ({ default: m.AdminQuotesPage })));
+const AdminMessagesPage = lazy(() => import('../features/admin/AdminMessagesPage').then((m) => ({ default: m.AdminMessagesPage })));
+const ReaderMessagesPage = lazy(() => import('../features/messages/ReaderMessagesPage').then((m) => ({ default: m.ReaderMessagesPage })));
 const AdminManagersPage = lazy(() => import('../features/admin/AdminManagersPage').then((m) => ({ default: m.AdminManagersPage })));
 const AuthPage = lazy(() => import('../features/auth/AuthPage').then((m) => ({ default: m.AuthPage })));
 const AudioPlayerPage = lazy(() => import('../features/player/AudioPlayerPage').then((m) => ({ default: m.AudioPlayerPage })));
@@ -119,6 +121,14 @@ export const router = createBrowserRouter([
         ),
       },
       {
+        path: 'messages',
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <ReaderMessagesPage />
+          </Suspense>
+        ),
+      },
+      {
         path: 'settings',
         element: (
           <Suspense fallback={<PageLoader />}>
@@ -163,6 +173,14 @@ export const router = createBrowserRouter([
         element: (
           <Suspense fallback={<PageLoader />}>
             <AdminQuotesPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'admin/messages',
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <AdminMessagesPage />
           </Suspense>
         ),
       },
