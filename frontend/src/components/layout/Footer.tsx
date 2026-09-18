@@ -225,49 +225,48 @@ export const Footer: React.FC = () => {
             <h4 style={{ fontSize: '14px', fontWeight: 800, color: '#FFFFFF', letterSpacing: '0.04em', textTransform: 'uppercase', margin: '0 0 16px 0' }}>
               Әлеуметтік желілер
             </h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <p style={{ fontSize: '13px', color: '#94A3B8', margin: '0 0 14px 0', lineHeight: 1.5 }}>
+              Бізді барлық желілерден табыңыз:
+            </p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px', flexWrap: 'wrap' }}>
               {socialLinks.map((item) => (
                 <a
                   key={item.name}
                   href={item.url}
                   target="_blank"
                   rel="noopener noreferrer"
+                  title={`${item.name} (${item.handle})`}
                   style={{
+                    width: '42px',
+                    height: '42px',
+                    borderRadius: '12px',
+                    background: 'rgba(255, 255, 255, 0.06)',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '7px 12px',
-                    borderRadius: '8px',
-                    background: 'rgba(255, 255, 255, 0.04)',
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    justifyContent: 'center',
                     color: '#E2E8F0',
                     textDecoration: 'none',
-                    fontSize: '13px',
-                    fontWeight: 600,
-                    transition: 'all 0.2s ease',
+                    transition: 'all 0.25s ease',
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
-                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                    e.currentTarget.style.background = 'var(--orange)';
                     e.currentTarget.style.color = '#FFFFFF';
+                    e.currentTarget.style.transform = 'translateY(-3px)';
+                    e.currentTarget.style.boxShadow = '0 6px 16px rgba(239, 126, 0, 0.35)';
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)';
-                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)';
                     e.currentTarget.style.color = '#E2E8F0';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = 'none';
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ color: 'var(--orange)', display: 'flex', alignItems: 'center' }}>
-                      {item.icon}
-                    </span>
-                    <span>{item.name}</span>
-                  </div>
-                  <span style={{ fontSize: '11px', color: '#64748B', fontFamily: 'monospace' }}>
-                    {item.handle}
-                  </span>
+                  {item.icon}
                 </a>
               ))}
+            </div>
+            <div style={{ fontSize: '13px', color: '#64748B', fontWeight: 600 }}>
+              Юзернейм: <span style={{ color: '#F8FAFC', fontFamily: 'monospace', fontWeight: 800 }}>@tandamen</span>
             </div>
           </div>
 
