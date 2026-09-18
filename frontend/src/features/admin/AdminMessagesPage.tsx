@@ -41,6 +41,9 @@ export const AdminMessagesPage: React.FC = () => {
   // Delete modal state
   const [messageToDelete, setMessageToDelete] = useState<AdminMessage | null>(null);
 
+  // View modal state
+  const [selectedMessageForView, setSelectedMessageForView] = useState<AdminMessage | null>(null);
+
   // Filter in list
   const [searchQuery, setSearchQuery] = useState('');
   const [filterTarget, setFilterTarget] = useState<'all' | 'broadcast' | 'single' | 'multiple'>('all');
@@ -396,12 +399,11 @@ export const AdminMessagesPage: React.FC = () => {
                   <tr>
                     <th style={{ width: '40px', textAlign: 'center' }}>№</th>
                     <th>Тақырыбы мен мәтіні</th>
-                    <th style={{ width: '200px' }}>Алушылар</th>
+                    <th style={{ width: '180px' }}>Алушылар</th>
                     <th style={{ width: '120px' }}>Маңыздылығы</th>
-                    <th style={{ width: '160px' }}>Бекітілген кітап</th>
                     <th style={{ width: '160px' }}>Өшу / Өшіру құқығы</th>
                     <th style={{ width: '140px' }}>Уақыты</th>
-                    <th style={{ width: '80px', textAlign: 'center' }}>Оқығандар</th>
+                    <th style={{ width: '90px', textAlign: 'center' }}>Оқығандар</th>
                     <th style={{ width: '80px', textAlign: 'right' }}>Әрекет</th>
                   </tr>
                 </thead>
@@ -415,7 +417,12 @@ export const AdminMessagesPage: React.FC = () => {
                     const pri = priorityLabels[msg.priority || 'normal'];
 
                     return (
-                      <tr key={msg.id}>
+                      <tr
+                        key={msg.id}
+                        onClick={() => setSelectedMessageForView(msg)}
+                        style={{ cursor: 'pointer' }}
+                        title="Толық мәліметті көру үшін басыңыз"
+                      >
                         <td style={{ textAlign: 'center', fontWeight: 700, color: '#64748B', fontSize: '12px' }}>
                           {idx + 1}
                         </td>
@@ -451,8 +458,8 @@ export const AdminMessagesPage: React.FC = () => {
                             <div>
                               <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-dark)' }}>
                                 {msg.targetUserNames && msg.targetUserNames.length === 1
-                                  ? msg.targetUserNames[0]
-                                  : `${msg.targetUserNames?.length || 0} оқырман`}
+                                   ? msg.targetUserNames[0]
+                                   : `${msg.targetUserNames?.length || 0} оқырман`}
                               </span>
                               {msg.targetUserNames && msg.targetUserNames.length > 1 && (
                                 <div style={{ fontSize: '11px', color: '#64748B', marginTop: '2px' }}>
@@ -479,16 +486,6 @@ export const AdminMessagesPage: React.FC = () => {
                           >
                             {pri.text}
                           </span>
-                        </td>
-
-                        <td>
-                          {msg.bookTitle ? (
-                            <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--blue)' }}>
-                              {msg.bookTitle}
-                            </span>
-                          ) : (
-                            <span style={{ fontSize: '12px', color: '#94A3B8' }}>—</span>
-                          )}
                         </td>
 
                         <td>
@@ -551,7 +548,10 @@ export const AdminMessagesPage: React.FC = () => {
                         <td style={{ textAlign: 'right' }}>
                           <button
                             type="button"
-                            onClick={() => setMessageToDelete(msg)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setMessageToDelete(msg);
+                            }}
                             title="Өшіру"
                             style={{
                               padding: '5px 10px',
@@ -1089,6 +1089,280 @@ export const AdminMessagesPage: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* MESSAGE DETAIL VIEW MODAL */}
+      {selectedMessageForView && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(13,27,42,0.7)',
+            backdropFilter: 'blur(6px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '20px',
+          }}
+          onClick={() => setSelectedMessageForView(null)}
+        >
+          <div
+            style={{
+              background: '#FFFFFF',
+              borderRadius: '20px',
+              maxWidth: '620px',
+              width: '100%',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              padding: '28px 30px',
+              boxShadow: '0 20px 60px rgba(0,0,0,0.25)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ width: '8px', height: '22px', backgroundColor: 'var(--blue)', borderRadius: '4px', display: 'inline-block' }} />
+                <h3 style={{ fontSize: '18px', fontWeight: 800, margin: 0, color: 'var(--text-dark)' }}>
+                  Хат туралы толық мәлімет
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedMessageForView(null)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  color: '#64748B',
+                  padding: '4px',
+                }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Badges */}
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>
+              <span
+                style={{
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  padding: '4px 10px',
+                  borderRadius: '6px',
+                  background:
+                    selectedMessageForView.priority === 'important'
+                      ? '#FEF2F2'
+                      : selectedMessageForView.priority === 'news'
+                      ? '#EFF6FF'
+                      : '#F1F5F9',
+                  color:
+                    selectedMessageForView.priority === 'important'
+                      ? '#B91C1C'
+                      : selectedMessageForView.priority === 'news'
+                      ? '#1D4ED8'
+                      : '#475569',
+                  border:
+                    selectedMessageForView.priority === 'important'
+                      ? '1px solid #FECACA'
+                      : selectedMessageForView.priority === 'news'
+                      ? '1px solid #BFDBFE'
+                      : '1px solid #CBD5E1',
+                }}
+              >
+                {selectedMessageForView.priority === 'important'
+                  ? 'Маңызды ескерту'
+                  : selectedMessageForView.priority === 'news'
+                  ? 'Жаңалық'
+                  : 'Қалыпты'}
+              </span>
+
+              <span
+                style={{
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  padding: '4px 10px',
+                  borderRadius: '6px',
+                  background: selectedMessageForView.targetType === 'all' ? '#ECFDF5' : '#FFF7ED',
+                  color: selectedMessageForView.targetType === 'all' ? '#047857' : '#C2410C',
+                  border: selectedMessageForView.targetType === 'all' ? '1px solid #A7F3D0' : '1px solid #FFEDD5',
+                }}
+              >
+                {selectedMessageForView.targetType === 'all'
+                  ? 'Барлық оқырмандарға'
+                  : selectedMessageForView.targetType === 'single'
+                  ? 'Жеке хат'
+                  : 'Топтық хат'}
+              </span>
+
+              <span
+                style={{
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  padding: '4px 10px',
+                  borderRadius: '6px',
+                  background: '#F1F5F9',
+                  color: '#475569',
+                  border: '1px solid #E2E8F0',
+                }}
+              >
+                {selectedMessageForView.canReaderDelete ? 'Оқырман өшіре алады' : 'Өшірілмейді'}
+              </span>
+
+              <span
+                style={{
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  padding: '4px 10px',
+                  borderRadius: '6px',
+                  background: '#F1F5F9',
+                  color: '#475569',
+                  border: '1px solid #E2E8F0',
+                }}
+              >
+                {selectedMessageForView.expiresInHours
+                  ? `${selectedMessageForView.expiresInHours} сағатта өшеді`
+                  : 'Мерзімі шексіз'}
+              </span>
+            </div>
+
+            {/* Title & Content Box */}
+            <div
+              style={{
+                background: '#F8FAFC',
+                borderRadius: '12px',
+                padding: '18px 20px',
+                border: '1px solid #E2E8F0',
+                marginBottom: '20px',
+              }}
+            >
+              <h4 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-dark)', margin: '0 0 10px 0' }}>
+                {selectedMessageForView.title}
+              </h4>
+              <div
+                style={{
+                  fontSize: '14px',
+                  color: '#334155',
+                  lineHeight: 1.65,
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-word',
+                }}
+              >
+                {selectedMessageForView.content}
+              </div>
+            </div>
+
+            {/* Details Grid */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(2, 1fr)',
+                gap: '12px',
+                marginBottom: '24px',
+                fontSize: '13px',
+              }}
+            >
+              <div style={{ background: '#FFFFFF', padding: '12px 14px', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748B', display: 'block', marginBottom: '2px' }}>
+                  Жіберілген уақыты:
+                </span>
+                <strong style={{ color: 'var(--text-dark)' }}>
+                  {new Date(selectedMessageForView.createdAt).toLocaleDateString('kk-KZ', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </strong>
+              </div>
+
+              <div style={{ background: '#FFFFFF', padding: '12px 14px', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748B', display: 'block', marginBottom: '2px' }}>
+                  Оқығандар:
+                </span>
+                <strong style={{ color: 'var(--text-dark)' }}>
+                  {selectedMessageForView.readByUserIds?.length || 0} оқырман
+                </strong>
+              </div>
+
+              <div style={{ gridColumn: 'span 2', background: '#FFFFFF', padding: '12px 14px', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748B', display: 'block', marginBottom: '4px' }}>
+                  Алушы оқырмандар:
+                </span>
+                {selectedMessageForView.targetType === 'all' ? (
+                  <span style={{ fontWeight: 700, color: '#047857' }}>
+                    Барлық оқырмандарға жіберілген
+                  </span>
+                ) : (
+                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '4px' }}>
+                    {selectedMessageForView.targetUserNames?.map((name, i) => (
+                      <span
+                        key={i}
+                        style={{
+                          fontSize: '12px',
+                          fontWeight: 600,
+                          background: '#EFF6FF',
+                          color: 'var(--blue)',
+                          padding: '3px 8px',
+                          borderRadius: '6px',
+                          border: '1px solid #BFDBFE',
+                        }}
+                      >
+                        {name}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  const msg = selectedMessageForView;
+                  setSelectedMessageForView(null);
+                  setMessageToDelete(msg);
+                }}
+                style={{
+                  padding: '9px 18px',
+                  borderRadius: '8px',
+                  border: '1px solid #FECACA',
+                  background: '#FEF2F2',
+                  color: '#B91C1C',
+                  fontWeight: 700,
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                }}
+              >
+                Хатты өшіру
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setSelectedMessageForView(null)}
+                style={{
+                  padding: '9px 22px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  background: 'var(--blue)',
+                  color: '#FFFFFF',
+                  fontWeight: 700,
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                }}
+              >
+                Жабу
+              </button>
+            </div>
           </div>
         </div>
       )}
