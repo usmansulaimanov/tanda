@@ -11,25 +11,30 @@ export const ReaderQuotesPage: React.FC = () => {
   const { showToast } = useToastStore();
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterType, setFilterType] = useState<'all' | 'with_book' | 'delivered'>('all');
+  const [filterType, setFilterType] = useState<'all' | 'with_book'>('all');
   const [selectedBookFilter, setSelectedBookFilter] = useState<string>('all');
 
-  // Combined unique quotes list prioritizing delivered history + active quotes
-  const allQuotes = useMemo(() => {
-    // Map existing active quotes
-    const active = quotes.filter((q) => q.isActive);
-    return active;
-  }, [quotes]);
+  // ONLY quotes that have been sent/delivered to readers
+  const sentQuotes = useMemo(() => {
+    return quotes
+      .filter((q) => {
+        const isSentInQuotes = (q.sentCount && q.sentCount > 0) || Boolean(q.lastSentAt);
+        const isDeliveredInHistory = (deliveredHistory || []).some(
+          (d) => d.quoteId === q.id || d.text.trim() === q.text.trim()
+        );
+        return isSentInQuotes || isDeliveredInHistory;
+      })
+      .sort((a, b) => {
+        const timeA = a.lastSentAt ? new Date(a.lastSentAt).getTime() : 0;
+        const timeB = b.lastSentAt ? new Date(b.lastSentAt).getTime() : 0;
+        return timeB - timeA;
+      });
+  }, [quotes, deliveredHistory]);
 
-  // Delivered quotes count
-  const deliveredCount = useMemo(() => {
-    return (deliveredHistory || []).length;
-  }, [deliveredHistory]);
-
-  // Available books that have quotes
+  // Available books from sent quotes
   const booksWithQuotes = useMemo(() => {
     const bookMap = new Map<string, { id: string; title: string; author: string }>();
-    allQuotes.forEach((q) => {
+    sentQuotes.forEach((q) => {
       if (q.bookId) {
         const found = books.find((b) => b.id === q.bookId);
         if (found) {
@@ -43,22 +48,14 @@ export const ReaderQuotesPage: React.FC = () => {
       }
     });
     return Array.from(bookMap.values()).sort((a, b) => a.title.localeCompare(b.title));
-  }, [allQuotes, books]);
+  }, [sentQuotes, books]);
 
   // Filtered quotes based on search and tabs
   const filteredQuotes = useMemo(() => {
-    return allQuotes.filter((quote) => {
+    return sentQuotes.filter((quote) => {
       // Filter by tab type
       if (filterType === 'with_book' && !quote.bookId && !quote.bookTitle) {
         return false;
-      }
-      if (filterType === 'delivered') {
-        const wasDelivered = (deliveredHistory || []).some(
-          (d) => d.quoteId === quote.id || d.text.trim() === quote.text.trim()
-        );
-        if (!wasDelivered && (quote.sentCount || 0) === 0) {
-          return false;
-        }
       }
 
       // Filter by specific book dropdown
@@ -87,7 +84,7 @@ export const ReaderQuotesPage: React.FC = () => {
 
       return true;
     });
-  }, [allQuotes, filterType, selectedBookFilter, searchQuery, deliveredHistory, books]);
+  }, [sentQuotes, filterType, selectedBookFilter, searchQuery, books]);
 
   const handleCopyQuote = (quote: QuoteItem) => {
     const textToCopy = `«${quote.text}»\n— ${quote.author}${quote.bookTitle ? ` (${quote.bookTitle})` : ''}\n\nTanda.kz арқылы оқыңыз`;
@@ -172,168 +169,150 @@ export const ReaderQuotesPage: React.FC = () => {
             Цитаталар қоры
           </h1>
           <p style={{ fontSize: '15px', color: '#CBD5E1', margin: 0, lineHeight: 1.6 }}>
-            Платформадан келген нақыл сөздер мен кітаптағы ой-толғамдар. Кез келген цитатаның кітабына өтіп, толық нұсқасын бірден оқи аласыз.
+            Платформадан жіберілген нақыл сөздер мен үзінділер. Кез келген цитатаның кітабына өтіп, толық нұсқасын бірден оқи аласыз.
           </p>
         </div>
       </div>
 
       {/* Search and Filters Toolbar */}
-      <div
-        style={{
-          background: '#FFFFFF',
-          borderRadius: '20px',
-          padding: '20px 24px',
-          border: '1.5px solid #E2E8F0',
-          boxShadow: '0 4px 16px rgba(0, 0, 0, 0.03)',
-          marginBottom: '28px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '16px',
-        }}
-      >
-        {/* Search bar */}
-        <div style={{ position: 'relative', width: '100%' }}>
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Цитата, автор немесе кітап бойынша іздеу..."
-            style={{
-              width: '100%',
-              padding: '12px 16px 12px 42px',
-              borderRadius: '12px',
-              border: '1.5px solid #CBD5E1',
-              fontSize: '14px',
-              fontWeight: 600,
-              outline: 'none',
-              background: '#F8FAFC',
-              boxSizing: 'border-box',
-              color: 'var(--text-dark)',
-            }}
-          />
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="#94A3B8"
-            strokeWidth="2.5"
-            style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)' }}
-          >
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-          </svg>
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={() => setSearchQuery('')}
+      {sentQuotes.length > 0 && (
+        <div
+          style={{
+            background: '#FFFFFF',
+            borderRadius: '20px',
+            padding: '20px 24px',
+            border: '1.5px solid #E2E8F0',
+            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.03)',
+            marginBottom: '28px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px',
+          }}
+        >
+          {/* Search bar */}
+          <div style={{ position: 'relative', width: '100%' }}>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Цитата, автор немесе кітап бойынша іздеу..."
               style={{
-                position: 'absolute',
-                right: '12px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                background: 'transparent',
-                border: 'none',
-                cursor: 'pointer',
-                color: '#94A3B8',
-                fontSize: '16px',
+                width: '100%',
+                padding: '12px 16px 12px 42px',
+                borderRadius: '12px',
+                border: '1.5px solid #CBD5E1',
+                fontSize: '14px',
+                fontWeight: 600,
+                outline: 'none',
+                background: '#F8FAFC',
+                boxSizing: 'border-box',
+                color: 'var(--text-dark)',
               }}
+            />
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#94A3B8"
+              strokeWidth="2.5"
+              style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)' }}
             >
-              ✕
-            </button>
-          )}
-        </div>
-
-        {/* Filter Tabs & Book Selector */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-            <button
-              type="button"
-              onClick={() => setFilterType('all')}
-              style={{
-                padding: '8px 16px',
-                borderRadius: '50px',
-                fontSize: '13px',
-                fontWeight: 700,
-                cursor: 'pointer',
-                border: filterType === 'all' ? '1.5px solid var(--blue)' : '1.5px solid #CBD5E1',
-                background: filterType === 'all' ? 'var(--blue)' : '#FFFFFF',
-                color: filterType === 'all' ? '#FFFFFF' : 'var(--text-dark)',
-                transition: 'all 0.15s',
-              }}
-            >
-              Барлығы ({allQuotes.length})
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setFilterType('with_book')}
-              style={{
-                padding: '8px 16px',
-                borderRadius: '50px',
-                fontSize: '13px',
-                fontWeight: 700,
-                cursor: 'pointer',
-                border: filterType === 'with_book' ? '1.5px solid var(--blue)' : '1.5px solid #CBD5E1',
-                background: filterType === 'with_book' ? 'var(--blue)' : '#FFFFFF',
-                color: filterType === 'with_book' ? '#FFFFFF' : 'var(--text-dark)',
-                transition: 'all 0.15s',
-              }}
-            >
-              Кітаппен байланысты
-            </button>
-
-            {deliveredCount > 0 && (
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            {searchQuery && (
               <button
                 type="button"
-                onClick={() => setFilterType('delivered')}
+                onClick={() => setSearchQuery('')}
+                style={{
+                  position: 'absolute',
+                  right: '12px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: '#94A3B8',
+                  fontSize: '16px',
+                }}
+              >
+                ✕
+              </button>
+            )}
+          </div>
+
+          {/* Filter Tabs & Book Selector */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={() => setFilterType('all')}
                 style={{
                   padding: '8px 16px',
                   borderRadius: '50px',
                   fontSize: '13px',
                   fontWeight: 700,
                   cursor: 'pointer',
-                  border: filterType === 'delivered' ? '1.5px solid var(--orange)' : '1.5px solid #CBD5E1',
-                  background: filterType === 'delivered' ? 'var(--orange)' : '#FFFFFF',
-                  color: filterType === 'delivered' ? '#FFFFFF' : 'var(--text-dark)',
+                  border: filterType === 'all' ? '1.5px solid var(--blue)' : '1.5px solid #CBD5E1',
+                  background: filterType === 'all' ? 'var(--blue)' : '#FFFFFF',
+                  color: filterType === 'all' ? '#FFFFFF' : 'var(--text-dark)',
                   transition: 'all 0.15s',
                 }}
               >
-                Келген хабарламалар ({deliveredCount})
+                Барлығы ({sentQuotes.length})
               </button>
-            )}
-          </div>
 
-          {/* Book Filter Dropdown */}
-          {booksWithQuotes.length > 0 && (
-            <div style={{ minWidth: '200px' }}>
-              <select
-                value={selectedBookFilter}
-                onChange={(e) => setSelectedBookFilter(e.target.value)}
+              <button
+                type="button"
+                onClick={() => setFilterType('with_book')}
                 style={{
-                  width: '100%',
-                  padding: '8px 14px',
-                  borderRadius: '10px',
-                  border: `1.5px solid ${selectedBookFilter !== 'all' ? 'var(--blue)' : '#CBD5E1'}`,
+                  padding: '8px 16px',
+                  borderRadius: '50px',
                   fontSize: '13px',
-                  fontWeight: 600,
-                  outline: 'none',
-                  background: selectedBookFilter !== 'all' ? '#EFF6FF' : '#F8FAFC',
-                  color: selectedBookFilter !== 'all' ? 'var(--blue)' : 'var(--text-dark)',
+                  fontWeight: 700,
                   cursor: 'pointer',
+                  border: filterType === 'with_book' ? '1.5px solid var(--blue)' : '1.5px solid #CBD5E1',
+                  background: filterType === 'with_book' ? 'var(--blue)' : '#FFFFFF',
+                  color: filterType === 'with_book' ? '#FFFFFF' : 'var(--text-dark)',
+                  transition: 'all 0.15s',
                 }}
               >
-                <option value="all">Барлық кітаптар бойынша</option>
-                {booksWithQuotes.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.title} ({b.author})
-                  </option>
-                ))}
-              </select>
+                Кітаппен байланысты
+              </button>
             </div>
-          )}
+
+            {/* Book Filter Dropdown */}
+            {booksWithQuotes.length > 0 && (
+              <div style={{ minWidth: '200px' }}>
+                <select
+                  value={selectedBookFilter}
+                  onChange={(e) => setSelectedBookFilter(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '8px 14px',
+                    borderRadius: '10px',
+                    border: `1.5px solid ${selectedBookFilter !== 'all' ? 'var(--blue)' : '#CBD5E1'}`,
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    outline: 'none',
+                    background: selectedBookFilter !== 'all' ? '#EFF6FF' : '#F8FAFC',
+                    color: selectedBookFilter !== 'all' ? 'var(--blue)' : 'var(--text-dark)',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <option value="all">Барлық кітаптар бойынша</option>
+                  {booksWithQuotes.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.title} ({b.author})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Quotes Cards Grid */}
       {filteredQuotes.length > 0 ? (
@@ -596,10 +575,12 @@ export const ReaderQuotesPage: React.FC = () => {
             </svg>
           </div>
           <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-dark)', marginBottom: '8px' }}>
-            Цитаталар табылмады
+            Әзірге жіберілген цитаталар жоқ
           </h3>
-          <p style={{ fontSize: '14px', color: '#64748B', maxWidth: '400px', margin: '0 auto 20px auto' }}>
-            {searchQuery ? 'Іздеу сұранысы бойынша ешқандай цитата табылмады.' : 'Әзірге қорда цитаталар жоқ.'}
+          <p style={{ fontSize: '14px', color: '#64748B', maxWidth: '440px', margin: '0 auto 20px auto', lineHeight: 1.6 }}>
+            {searchQuery
+              ? 'Іздеу сұранысы бойынша ешқандай цитата табылмады.'
+              : 'Әкімшілік тарапынан күнделікті цитаталар жіберілген кезде, олар осы жерде сақталады және кез келген уақытта сол кітапқа өтіп оқи аласыз.'}
           </p>
           {searchQuery && (
             <button
