@@ -144,7 +144,7 @@ export const ReaderQuotesPage: React.FC = () => {
 
         <div style={{ position: 'relative', zIndex: 1, maxWidth: '680px' }}>
           <h1 style={{ fontSize: '28px', fontWeight: 900, margin: '0 0 10px 0', lineHeight: 1.25 }}>
-            Цитаталар қоры
+            Кітаптан үзінділер
           </h1>
           <p style={{ fontSize: '15px', color: '#CBD5E1', margin: 0, lineHeight: 1.6 }}>
             Платформадан жіберілген нақыл сөздер мен үзінділер. Кез келген цитатаның кітабына өтіп, толық нұсқасын бірден оқи аласыз.
