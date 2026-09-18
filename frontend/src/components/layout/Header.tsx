@@ -332,15 +332,17 @@ export const Header: React.FC = () => {
                   Кітаптар қоры
                 </a>
               </li>
-              <li>
-                <Link
-                  to="/my-books"
-                  className={location.pathname === '/my-books' ? 'active' : ''}
-                  style={{ textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}
-                >
-                  Менің сөрем
-                </Link>
-              </li>
+              {isAuthenticated && (
+                <li>
+                  <Link
+                    to="/my-books"
+                    className={location.pathname === '/my-books' ? 'active' : ''}
+                    style={{ textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}
+                  >
+                    Менің сөрем
+                  </Link>
+                </li>
+              )}
             </ul>
           )}
 

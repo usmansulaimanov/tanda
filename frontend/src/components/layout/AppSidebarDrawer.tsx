@@ -91,11 +91,13 @@ export const AppSidebarDrawer: React.FC = () => {
               <h3 className="sidebar-drawer-title">
                 {role === 'admin' ? (user?.isSuperAdmin ? 'Бас әкімші (Super Admin)' : 'Басқару панелі') : 'Tanda Мәзірі'}
               </h3>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
-                <span className="sidebar-id-pill">
-                  ID: {user?.idNumber || (role === 'admin' ? '000 001' : '001 001')}
-                </span>
-              </div>
+              {isAuthenticated && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
+                  <span className="sidebar-id-pill">
+                    ID: {user?.idNumber || (role === 'admin' ? '000 001' : '001 001')}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -215,7 +217,7 @@ export const AppSidebarDrawer: React.FC = () => {
               <span>Кітаптар қоры (Каталог)</span>
             </a>
 
-            {role !== 'admin' && (
+            {isAuthenticated && role !== 'admin' && (
               <>
                 <Link
                   to="/my-books"
