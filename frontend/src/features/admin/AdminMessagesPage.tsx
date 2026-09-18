@@ -45,7 +45,7 @@ export const AdminMessagesPage: React.FC = () => {
 
   // Filter in list
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterTarget, setFilterTarget] = useState<'all' | 'broadcast' | 'direct'>('all');
+  const [filterTarget, setFilterTarget] = useState<'all' | 'broadcast' | 'single' | 'multiple'>('all');
 
   // Filtered readers for multi/single selection
   const filteredClientsForSelection = useMemo(() => {
@@ -152,7 +152,8 @@ export const AdminMessagesPage: React.FC = () => {
   const filteredMessages = useMemo(() => {
     return messages.filter((m) => {
       if (filterTarget === 'broadcast' && m.targetType !== 'all') return false;
-      if (filterTarget === 'direct' && m.targetType === 'all') return false;
+      if (filterTarget === 'single' && m.targetType !== 'single') return false;
+      if (filterTarget === 'multiple' && m.targetType !== 'multiple') return false;
 
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
@@ -237,7 +238,7 @@ export const AdminMessagesPage: React.FC = () => {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
             gap: '16px',
             marginBottom: '28px',
           }}
@@ -254,10 +255,17 @@ export const AdminMessagesPage: React.FC = () => {
             </div>
           </div>
 
-          <div style={{ background: '#FFFFFF', borderRadius: '16px', padding: '20px 24px', border: '1.5px solid #E2E8F0', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
-            <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--orange)', marginBottom: '6px' }}>Жеке / Топтық хаттар</div>
+          <div style={{ background: '#FFFFFF', borderRadius: '16px', padding: '20px 24px', border: '1.5px solid #FED7AA', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
+            <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--orange)', marginBottom: '6px' }}>Жеке хаттар</div>
             <div style={{ fontSize: '28px', fontWeight: 900, color: 'var(--orange)' }}>
-              {messages.filter((m) => m.targetType !== 'all').length} хат
+              {messages.filter((m) => m.targetType === 'single').length} хат
+            </div>
+          </div>
+
+          <div style={{ background: '#FFFFFF', borderRadius: '16px', padding: '20px 24px', border: '1.5px solid #C7D2FE', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
+            <div style={{ fontSize: '13px', fontWeight: 700, color: '#4F46E5', marginBottom: '6px' }}>Топтық хаттар</div>
+            <div style={{ fontSize: '28px', fontWeight: 900, color: '#4F46E5' }}>
+              {messages.filter((m) => m.targetType === 'multiple').length} хат
             </div>
           </div>
         </div>
@@ -285,7 +293,7 @@ export const AdminMessagesPage: React.FC = () => {
 
             {/* Filters & Search */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-              <div style={{ display: 'flex', gap: '6px' }}>
+              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                 <button
                   type="button"
                   onClick={() => setFilterTarget('all')}
@@ -317,24 +325,41 @@ export const AdminMessagesPage: React.FC = () => {
                     cursor: 'pointer',
                   }}
                 >
-                  Жалпы
+                  Жалпы ({messages.filter((m) => m.targetType === 'all').length})
                 </button>
 
                 <button
                   type="button"
-                  onClick={() => setFilterTarget('direct')}
+                  onClick={() => setFilterTarget('single')}
                   style={{
                     fontSize: '12px',
                     fontWeight: 700,
-                    color: filterTarget === 'direct' ? '#FFFFFF' : '#64748B',
-                    background: filterTarget === 'direct' ? 'var(--blue)' : '#F1F5F9',
+                    color: filterTarget === 'single' ? '#FFFFFF' : '#64748B',
+                    background: filterTarget === 'single' ? 'var(--blue)' : '#F1F5F9',
                     padding: '6px 14px',
                     borderRadius: '6px',
                     border: 'none',
                     cursor: 'pointer',
                   }}
                 >
-                  Жеке / Топтық
+                  Жеке ({messages.filter((m) => m.targetType === 'single').length})
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setFilterTarget('multiple')}
+                  style={{
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    color: filterTarget === 'multiple' ? '#FFFFFF' : '#64748B',
+                    background: filterTarget === 'multiple' ? 'var(--blue)' : '#F1F5F9',
+                    padding: '6px 14px',
+                    borderRadius: '6px',
+                    border: 'none',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Топтық ({messages.filter((m) => m.targetType === 'multiple').length})
                 </button>
               </div>
 
