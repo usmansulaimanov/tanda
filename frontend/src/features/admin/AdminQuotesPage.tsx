@@ -533,9 +533,6 @@ export const AdminQuotesPage: React.FC = () => {
                   Жаңа цитата енгізу
                 </h2>
               </div>
-              <p style={{ fontSize: '13px', color: 'var(--text-mid)', margin: '4px 0 0 16px' }}>
-                Платформадағы кітаптардың бірін таңдаңыз. Кітап атауы мен авторы автоматты түрде бекітіледі.
-              </p>
             </div>
 
             <button
