@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { Globe, User as UserIcon, Users } from 'lucide-react';
 import { useMessageStore, AdminMessage, MessageTargetType, MessagePriority } from '../../store/useMessageStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useBookStore } from '../../store/useBookStore';
@@ -639,63 +640,94 @@ export const AdminMessagesPage: React.FC = () => {
 
             <form onSubmit={handleSendMessage}>
               {/* Target Type selector */}
-              <div style={{ marginBottom: '18px' }}>
+              <div style={{ marginBottom: '20px' }}>
                 <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#334155', marginBottom: '8px' }}>
                   Хат кімге жіберіледі?
                 </label>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(3, 1fr)',
+                    gap: '4px',
+                    background: '#F1F5F9',
+                    padding: '4px',
+                    borderRadius: '12px',
+                    border: '1px solid #E2E8F0',
+                  }}
+                >
                   <button
                     type="button"
                     onClick={() => setTargetType('all')}
                     style={{
-                      padding: '10px 12px',
-                      borderRadius: '10px',
-                      border: targetType === 'all' ? '2px solid var(--blue)' : '1.5px solid #CBD5E1',
-                      background: targetType === 'all' ? '#EFF6FF' : '#FFFFFF',
-                      color: targetType === 'all' ? 'var(--blue)' : 'var(--text-dark)',
-                      fontSize: '12px',
-                      fontWeight: 700,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '7px',
+                      padding: '9px 12px',
+                      borderRadius: '8px',
+                      border: 'none',
+                      background: targetType === 'all' ? '#FFFFFF' : 'transparent',
+                      color: targetType === 'all' ? 'var(--blue)' : '#64748B',
+                      boxShadow: targetType === 'all' ? '0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04)' : 'none',
+                      fontSize: '12.5px',
+                      fontWeight: targetType === 'all' ? 700 : 600,
                       cursor: 'pointer',
-                      textAlign: 'center',
+                      transition: 'all 0.15s ease',
+                      whiteSpace: 'nowrap',
                     }}
                   >
-                    📢 Барлық оқырмандарға
+                    <Globe size={15} strokeWidth={targetType === 'all' ? 2.5 : 2} color={targetType === 'all' ? 'var(--blue)' : '#94A3B8'} />
+                    <span>Барлығына</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setTargetType('single')}
                     style={{
-                      padding: '10px 12px',
-                      borderRadius: '10px',
-                      border: targetType === 'single' ? '2px solid var(--blue)' : '1.5px solid #CBD5E1',
-                      background: targetType === 'single' ? '#EFF6FF' : '#FFFFFF',
-                      color: targetType === 'single' ? 'var(--blue)' : 'var(--text-dark)',
-                      fontSize: '12px',
-                      fontWeight: 700,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '7px',
+                      padding: '9px 12px',
+                      borderRadius: '8px',
+                      border: 'none',
+                      background: targetType === 'single' ? '#FFFFFF' : 'transparent',
+                      color: targetType === 'single' ? 'var(--blue)' : '#64748B',
+                      boxShadow: targetType === 'single' ? '0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04)' : 'none',
+                      fontSize: '12.5px',
+                      fontWeight: targetType === 'single' ? 700 : 600,
                       cursor: 'pointer',
-                      textAlign: 'center',
+                      transition: 'all 0.15s ease',
+                      whiteSpace: 'nowrap',
                     }}
                   >
-                    👤 Бір оқырманға
+                    <UserIcon size={15} strokeWidth={targetType === 'single' ? 2.5 : 2} color={targetType === 'single' ? 'var(--blue)' : '#94A3B8'} />
+                    <span>Бір оқырманға</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setTargetType('multiple')}
                     style={{
-                      padding: '10px 12px',
-                      borderRadius: '10px',
-                      border: targetType === 'multiple' ? '2px solid var(--blue)' : '1.5px solid #CBD5E1',
-                      background: targetType === 'multiple' ? '#EFF6FF' : '#FFFFFF',
-                      color: targetType === 'multiple' ? 'var(--blue)' : 'var(--text-dark)',
-                      fontSize: '12px',
-                      fontWeight: 700,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '7px',
+                      padding: '9px 12px',
+                      borderRadius: '8px',
+                      border: 'none',
+                      background: targetType === 'multiple' ? '#FFFFFF' : 'transparent',
+                      color: targetType === 'multiple' ? 'var(--blue)' : '#64748B',
+                      boxShadow: targetType === 'multiple' ? '0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04)' : 'none',
+                      fontSize: '12.5px',
+                      fontWeight: targetType === 'multiple' ? 700 : 600,
                       cursor: 'pointer',
-                      textAlign: 'center',
+                      transition: 'all 0.15s ease',
+                      whiteSpace: 'nowrap',
                     }}
                   >
-                    👥 Бірнеше оқырманға
+                    <Users size={15} strokeWidth={targetType === 'multiple' ? 2.5 : 2} color={targetType === 'multiple' ? 'var(--blue)' : '#94A3B8'} />
+                    <span>Бірнеше оқырманға</span>
                   </button>
                 </div>
               </div>
