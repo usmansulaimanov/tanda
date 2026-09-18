@@ -5,6 +5,8 @@ import { Footer } from './Footer';
 import { AudioPlayerBar } from '../player/AudioPlayerBar';
 import { ToastContainer } from '../ui/Toast';
 import { AppSidebarDrawer } from './AppSidebarDrawer';
+import { QuoteNotificationPopup } from '../quotes/QuoteNotificationPopup';
+import { QuoteNotificationRunner } from '../quotes/QuoteNotificationRunner';
 import { useAudioPlayerStore } from '../../store/useAudioPlayerStore';
 import { useAuthStore } from '../../store/useAuthStore';
 
@@ -16,6 +18,7 @@ export const Layout: React.FC = () => {
 
   return (
     <div className={`flex flex-col ${isListenPage ? 'h-screen overflow-hidden' : 'min-h-screen'}`}>
+      <QuoteNotificationRunner />
       <Header />
       <AppSidebarDrawer />
       <main className={`flex-1 ${isListenPage ? 'h-[calc(100vh-65px)] overflow-hidden flex flex-col' : isAuthenticated && currentBook ? 'pb-24' : ''}`}>
@@ -24,6 +27,7 @@ export const Layout: React.FC = () => {
       {!isListenPage && <Footer />}
       <AudioPlayerBar />
       <ToastContainer />
+      <QuoteNotificationPopup />
     </div>
   );
 };

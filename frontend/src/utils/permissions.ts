@@ -4,7 +4,7 @@ export interface PermissionDefinition {
   key: AdminPermission;
   label: string;
   description: string;
-  category: 'books' | 'readers' | 'promocodes' | 'system';
+  category: 'books' | 'readers' | 'promocodes' | 'quotes' | 'system';
 }
 
 export const ALL_PERMISSIONS: PermissionDefinition[] = [
@@ -62,6 +62,14 @@ export const ALL_PERMISSIONS: PermissionDefinition[] = [
     category: 'promocodes',
   },
 
+  // Quotes
+  {
+    key: 'quotes_manage',
+    label: 'Цитаталарды басқару',
+    description: 'Күнделікті цитаталарды енгізу, уақытын баптау және оқырмандарға тарату',
+    category: 'quotes',
+  },
+
   // System & Analytics
   {
     key: 'analytics_view',
@@ -81,6 +89,7 @@ export const PERMISSION_CATEGORIES = [
   { key: 'books', title: '📚 Кітаптар қоры' },
   { key: 'readers', title: '👥 Оқырмандар мен клиенттер' },
   { key: 'promocodes', title: '🎟️ Промокодтар жүйесі' },
+  { key: 'quotes', title: '📜 Цитаталар мен хабарламалар' },
   { key: 'system', title: '⚙️ Жүйе және басқару' },
 ] as const;
 

@@ -5,6 +5,7 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { useBookStore } from '../../store/useBookStore';
 import { useSavedBooksStore } from '../../store/useSavedBooksStore';
 import { useMyBooksStore } from '../../store/useMyBooksStore';
+import { useQuoteStore } from '../../store/useQuoteStore';
 import { hasAdminPermission } from '../../utils/permissions';
 import { api } from '../../lib/api';
 
@@ -14,6 +15,7 @@ export const AppSidebarDrawer: React.FC = () => {
   const { books } = useBookStore();
   const { savedBookIds } = useSavedBooksStore();
   const { currentShelf } = useMyBooksStore();
+  const { quotes } = useQuoteStore();
   const location = useLocation();
   const navigate = useNavigate();
   const [readersCount, setReadersCount] = React.useState<number>(() => {
@@ -63,6 +65,7 @@ export const AppSidebarDrawer: React.FC = () => {
   const canCreateBooks = hasAdminPermission(user, 'books_create');
   const canViewReaders = hasAdminPermission(user, 'readers_view');
   const canManagePromos = hasAdminPermission(user, 'promocodes_manage');
+  const canManageQuotes = hasAdminPermission(user, 'quotes_manage');
   const canManageManagers = hasAdminPermission(user, 'managers_manage');
 
   if (!isOpen) return null;
@@ -257,6 +260,21 @@ export const AppSidebarDrawer: React.FC = () => {
                       <line x1="7" y1="7" x2="7.01" y2="7"></line>
                     </svg>
                     <span>Промокодтар</span>
+                  </Link>
+                )}
+
+                {canManageQuotes && (
+                  <Link
+                    to="/admin/quotes"
+                    className={`sidebar-nav-link ${location.pathname.startsWith('/admin/quotes') ? 'active' : ''}`}
+                    onClick={closeSidebar}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z" />
+                      <path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z" />
+                    </svg>
+                    <span>Цитаталар</span>
+                    {quotes.length > 0 && <span className="sidebar-badge">{quotes.length}</span>}
                   </Link>
                 )}
 
