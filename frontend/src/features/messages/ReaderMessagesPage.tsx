@@ -79,26 +79,6 @@ export const ReaderMessagesPage: React.FC = () => {
         }}
       >
         <div style={{ position: 'relative', zIndex: 1, maxWidth: '640px' }}>
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '4px 12px',
-              borderRadius: '50px',
-              background: 'rgba(0, 84, 148, 0.3)',
-              border: '1px solid rgba(255, 255, 255, 0.15)',
-              color: '#93C5FD',
-              fontSize: '12px',
-              fontWeight: 800,
-              letterSpacing: '0.04em',
-              marginBottom: '14px',
-            }}
-          >
-            <Mail size={13} color="#93C5FD" />
-            <span>ХАБАРЛАМАЛАР ЖӘНЕ ХАТТАР</span>
-          </div>
-
           <h1 style={{ fontSize: '28px', fontWeight: 900, margin: '0 0 10px 0', lineHeight: 1.25 }}>
             Келген хабарламалар
           </h1>
