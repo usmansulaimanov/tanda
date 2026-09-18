@@ -265,8 +265,8 @@ export const Footer: React.FC = () => {
                 </a>
               ))}
             </div>
-            <div style={{ fontSize: '13px', color: '#64748B', fontWeight: 600 }}>
-              Юзернейм: <span style={{ color: '#F8FAFC', fontFamily: 'monospace', fontWeight: 800 }}>@tandamen</span>
+            <div style={{ fontSize: '13px', color: '#94A3B8', fontFamily: 'monospace', fontWeight: 800 }}>
+              @tandamen
             </div>
           </div>
 
