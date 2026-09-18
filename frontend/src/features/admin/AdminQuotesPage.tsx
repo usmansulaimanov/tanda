@@ -827,23 +827,6 @@ export const AdminQuotesPage: React.FC = () => {
                 >
                   Белсенді ({activeQuotesCount})
                 </button>
-
-                <button
-                  type="button"
-                  onClick={() => setFilterStatus('inactive')}
-                  style={{
-                    fontSize: '12px',
-                    fontWeight: 700,
-                    color: filterStatus === 'inactive' ? '#B91C1C' : '#64748B',
-                    background: filterStatus === 'inactive' ? '#FEE2E2' : '#F1F5F9',
-                    padding: '6px 12px',
-                    borderRadius: '6px',
-                    border: `1.5px solid ${filterStatus === 'inactive' ? '#FECACA' : '#CBD5E1'}`,
-                    cursor: 'pointer',
-                  }}
-                >
-                  Өшірулі ({quotes.length - activeQuotesCount})
-                </button>
               </div>
 
               {/* Book filter dropdown */}
