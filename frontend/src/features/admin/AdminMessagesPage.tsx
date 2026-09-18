@@ -286,9 +286,6 @@ export const AdminMessagesPage: React.FC = () => {
               <h2 style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
                 Жіберілген хаттар тарихы ({filteredMessages.length})
               </h2>
-              <p style={{ fontSize: '13px', color: 'var(--text-mid)', marginTop: '4px' }}>
-                Оқырмандарға жіберілген барлық хабарламалар тізімі
-              </p>
             </div>
 
             {/* Filters & Search */}
