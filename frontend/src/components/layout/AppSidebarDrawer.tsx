@@ -138,8 +138,11 @@ export const AppSidebarDrawer: React.FC = () => {
               <div className="sidebar-user-name" title={user.name}>
                 {user.role === 'admin' ? user.name || 'Әкімші' : (user.name || 'Оқырман')}
               </div>
-              <div className="sidebar-user-email" title={user.email}>
-                {user.email}
+              <div
+                className="sidebar-user-email"
+                title={user.username ? `@${user.username.replace(/^@/, '')}` : user.email}
+              >
+                {user.username ? `@${user.username.replace(/^@/, '')}` : (user.email ? `@${user.email.split('@')[0]}` : '@reader')}
               </div>
             </div>
           </div>
