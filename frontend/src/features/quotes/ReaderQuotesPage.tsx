@@ -202,12 +202,12 @@ export const ReaderQuotesPage: React.FC = () => {
                       margin: '0 0 14px 0',
                     }}
                   >
-                    «{quote.text}»
+                    {quote.text}
                   </p>
 
                   {/* Author */}
                   <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--blue)', marginBottom: '16px' }}>
-                    — {quote.author}
+                    {quote.author}
                   </div>
                 </div>
 
