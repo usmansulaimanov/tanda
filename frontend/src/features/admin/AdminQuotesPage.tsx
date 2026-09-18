@@ -293,114 +293,6 @@ export const AdminQuotesPage: React.FC = () => {
           </div>
         </div>
 
-        {/* MASTER SWITCH BANNER CARD */}
-        <div
-          style={{
-            background: settings.isEnabled
-              ? 'linear-gradient(135deg, #064E3B 0%, #047857 100%)'
-              : 'linear-gradient(135deg, #334155 0%, #1E293B 100%)',
-            borderRadius: '20px',
-            padding: '24px 30px',
-            color: '#FFFFFF',
-            boxShadow: '0 10px 30px rgba(0,0,0,0.12)',
-            marginBottom: '24px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: '20px',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', minWidth: '280px', flex: '1 1 400px' }}>
-            <div
-              style={{
-                width: '54px',
-                height: '54px',
-                borderRadius: '14px',
-                background: 'rgba(255,255,255,0.15)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-              }}
-            >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-              </svg>
-            </div>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                <h2 style={{ fontSize: '20px', fontWeight: 900, margin: 0 }}>
-                  Оқырмандарға цитаталар таратылымы:
-                </h2>
-                <span
-                  style={{
-                    padding: '4px 12px',
-                    borderRadius: '50px',
-                    fontSize: '12px',
-                    fontWeight: 800,
-                    background: settings.isEnabled ? '#A7F3D0' : '#CBD5E1',
-                    color: settings.isEnabled ? '#065F46' : '#1E293B',
-                  }}
-                >
-                  {settings.isEnabled ? 'ҚОСУЛЫ (Белсенді)' : 'УАҚЫТША ӨШІРУЛІ'}
-                </span>
-              </div>
-              <p style={{ fontSize: '13px', margin: '6px 0 0 0', opacity: 0.9, lineHeight: 1.5 }}>
-                {settings.isEnabled ? (
-                  <span>
-                    Цитаталар күнделікті <strong>3 рет ({settings.scheduledTimes.join(', ')})</strong> барлық оқырмандарға автоматты түрде уведомление боп барып тұрады.
-                  </span>
-                ) : (
-                  <span>
-                    Цитаталар жіберу тоқтатылды. Оқырмандарға уақытша ешқандай цитата уведомлениесі бармайды.
-                  </span>
-                )}
-              </p>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <button
-              type="button"
-              onClick={handleToggleMasterSwitch}
-              style={{
-                padding: '12px 24px',
-                borderRadius: '12px',
-                fontSize: '14px',
-                fontWeight: 800,
-                cursor: 'pointer',
-                background: settings.isEnabled ? '#FEF2F2' : '#10B981',
-                color: settings.isEnabled ? '#B91C1C' : '#FFFFFF',
-                border: 'none',
-                boxShadow: '0 4px 14px rgba(0,0,0,0.2)',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                transition: 'all 0.2s',
-              }}
-            >
-              {settings.isEnabled ? (
-                <>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <rect x="6" y="4" width="4" height="16"></rect>
-                    <rect x="14" y="4" width="4" height="16"></rect>
-                  </svg>
-                  Таратылымды өшіру
-                </>
-              ) : (
-                <>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                  </svg>
-                  Таратылымды қосу
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-
         {/* Stats Summary Grid */}
         <div
           style={{
@@ -442,16 +334,49 @@ export const AdminQuotesPage: React.FC = () => {
             marginBottom: '32px',
           }}
         >
-          <div style={{ borderBottom: '1.5px solid #F1F5F9', paddingBottom: '16px', marginBottom: '20px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-              <span style={{ width: '8px', height: '22px', backgroundColor: 'var(--orange)', borderRadius: '4px', display: 'inline-block' }} />
-              <h2 style={{ fontSize: '18px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
-                Күнделікті уақыт кестесін баптау (Күніне 3 уақыт)
-              </h2>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1.5px solid #F1F5F9', paddingBottom: '16px', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                <span style={{ width: '8px', height: '22px', backgroundColor: 'var(--orange)', borderRadius: '4px', display: 'inline-block' }} />
+                <h2 style={{ fontSize: '18px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
+                  Күнделікті уақыт кестесін баптау (Күніне 3 уақыт)
+                </h2>
+              </div>
+              <p style={{ fontSize: '13px', color: 'var(--text-mid)', margin: '4px 0 0 16px' }}>
+                Оқырмандарға күн сайын келетін 3 цитатаның нақты уақыттарын белгілеңіз:
+              </p>
             </div>
-            <p style={{ fontSize: '13px', color: 'var(--text-mid)', margin: '4px 0 0 16px' }}>
-              Оқырмандарға күн сайын келетін 3 цитатаның нақты уақыттарын белгілеңіз:
-            </p>
+
+            {/* Clean toggle button */}
+            <button
+              type="button"
+              onClick={handleToggleMasterSwitch}
+              style={{
+                padding: '8px 16px',
+                borderRadius: '8px',
+                fontSize: '13px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                background: settings.isEnabled ? '#ECFDF5' : '#FEF2F2',
+                color: settings.isEnabled ? '#047857' : '#B91C1C',
+                border: `1.5px solid ${settings.isEnabled ? '#A7F3D0' : '#FECACA'}`,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                transition: 'all 0.15s',
+              }}
+              title={settings.isEnabled ? 'Таратылымды уақытша тоқтату үшін басыңыз' : 'Таратылымды қосу үшін басыңыз'}
+            >
+              <span
+                style={{
+                  width: '8px',
+                  height: '8px',
+                  borderRadius: '50%',
+                  background: settings.isEnabled ? '#10B981' : '#EF4444',
+                }}
+              />
+              {settings.isEnabled ? 'Таратылым қосулы' : 'Таратылым өшірулі'}
+            </button>
           </div>
 
           <div
