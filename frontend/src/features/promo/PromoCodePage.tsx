@@ -120,12 +120,9 @@ export const PromoCodePage: React.FC = () => {
             </svg>
             АРНАЙЫ ҰСЫНЫС
           </div>
-          <h1 style={{ fontSize: '26px', fontWeight: 900, color: 'var(--text-dark)', margin: '0 0 8px 0', letterSpacing: '-0.02em' }}>
+          <h1 style={{ fontSize: '26px', fontWeight: 900, color: 'var(--text-dark)', margin: 0, letterSpacing: '-0.02em' }}>
             Промокодты белсендіру
           </h1>
-          <p style={{ fontSize: '14px', color: 'var(--text-mid)', margin: 0, lineHeight: 1.6, maxWidth: '540px' }}>
-            Өзіңіздегі арнайы промокодты енгізіп, тегін подписканы, премиум кітаптарға қолжетімділікті немесе жеңілдікті белсендіріңіз.
-          </p>
         </div>
 
         {/* Promocode Activation Form */}
