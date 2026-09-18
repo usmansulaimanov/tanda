@@ -115,7 +115,7 @@ export const ReaderQuotesPage: React.FC = () => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Цитата, автор немесе кітап бойынша іздеу..."
+              placeholder="Іздеу..."
               style={{
                 width: '100%',
                 padding: '11px 16px 11px 40px',
