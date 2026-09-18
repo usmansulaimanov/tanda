@@ -217,26 +217,6 @@ export const Footer: React.FC = () => {
                   Пайдалану шарттары
                 </button>
               </li>
-              <li style={{ marginTop: '6px' }}>
-                <div
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    fontSize: '11px',
-                    color: '#10B981',
-                    background: 'rgba(16, 185, 129, 0.1)',
-                    padding: '4px 10px',
-                    borderRadius: '6px',
-                    border: '1px solid rgba(16, 185, 129, 0.2)',
-                  }}
-                >
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                  </svg>
-                  256-bit SSL Қауіпсіз байланыс
-                </div>
-              </li>
             </ul>
           </div>
 
