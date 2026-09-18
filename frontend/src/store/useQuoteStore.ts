@@ -359,12 +359,29 @@ export const useQuoteStore = create<QuoteState>()(
       },
 
       clearHistory: () => {
-        set({ deliveredHistory: [] });
+        set((state) => ({
+          deliveredHistory: [],
+          quotes: state.quotes.map((q) => ({ ...q, sentCount: 0, lastSentAt: undefined })),
+        }));
       },
     }),
     {
-      name: 'tanda_quotes_v1',
-      version: 1,
+      name: 'tanda_quotes_v2',
+      version: 2,
+      migrate: (persistedState: any, version: number) => {
+        if (version < 2 && persistedState) {
+          return {
+            ...persistedState,
+            deliveredHistory: [],
+            quotes: (persistedState.quotes || DEFAULT_QUOTES).map((q: any) => ({
+              ...q,
+              sentCount: 0,
+              lastSentAt: undefined,
+            })),
+          };
+        }
+        return persistedState;
+      },
     }
   )
 );
