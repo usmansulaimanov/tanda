@@ -352,7 +352,7 @@ export const AdminQuotesPage: React.FC = () => {
           </div>
 
           <div style={{ background: '#FFFFFF', borderRadius: '16px', padding: '20px 24px', border: '1.5px solid #E2E8F0', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
-            <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--orange)', marginBottom: '6px' }}>Жіберілген рет (Жалпы)</div>
+            <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--orange)', marginBottom: '6px' }}>Жіберілгендер</div>
             <div style={{ fontSize: '28px', fontWeight: 900, color: 'var(--orange)' }}>{totalSentCount} рет</div>
           </div>
         </div>
