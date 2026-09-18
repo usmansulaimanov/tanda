@@ -564,7 +564,7 @@ export const AdminQuotesPage: React.FC = () => {
             {/* Quote Text */}
             <div style={{ marginBottom: '16px' }}>
               <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
-                Цитата мәтіні <span style={{ color: '#DC2626' }}>*</span>
+                Цитата
               </label>
               <textarea
                 value={newText}
@@ -590,7 +590,7 @@ export const AdminQuotesPage: React.FC = () => {
             {/* Select book from platform */}
             <div style={{ marginBottom: '20px', maxWidth: '420px' }}>
               <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
-                Кітапты таңдау <span style={{ color: '#DC2626' }}>*</span>
+                Кітап
               </label>
               <select
                 value={newBookId}
@@ -1189,7 +1189,7 @@ export const AdminQuotesPage: React.FC = () => {
             <form onSubmit={handleSaveEdit}>
               <div style={{ marginBottom: '14px' }}>
                 <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
-                  Цитата мәтіні
+                  Цитата
                 </label>
                 <textarea
                   value={editText}
@@ -1213,7 +1213,7 @@ export const AdminQuotesPage: React.FC = () => {
               {/* Book select dropdown in edit modal */}
               <div style={{ marginBottom: '20px' }}>
                 <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
-                  Кітапты таңдау
+                  Кітап
                 </label>
                 <select
                   value={editBookId}
