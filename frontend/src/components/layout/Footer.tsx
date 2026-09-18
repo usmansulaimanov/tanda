@@ -289,7 +289,7 @@ export const Footer: React.FC = () => {
             &copy; {new Date().getFullYear()} <strong style={{ color: '#94A3B8' }}>tanda.kz</strong>. Барлық құқықтар қорғалған.
           </div>
           <div style={{ color: '#64748B', fontSize: '12px' }}>
-            Қазақстанның кітап сүйер қауымына арналған 🇰🇿
+            Қазақстанның кітап сүйер қауымына арналған
           </div>
         </div>
 
