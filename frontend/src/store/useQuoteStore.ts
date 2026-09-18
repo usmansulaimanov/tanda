@@ -298,7 +298,7 @@ export const useQuoteStore = create<QuoteState>()(
           Notification.permission === 'granted'
         ) {
           try {
-            new Notification('Tanda • Күн цитатасы 📜', {
+            new Notification('Tanda • Күн цитатасы', {
               body: `«${selectedQuote.text}»\n— ${selectedQuote.author}`,
               icon: '/favicon.ico',
             });

@@ -117,10 +117,13 @@ export const QuoteNotificationPopup: React.FC = () => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: '14px',
+                color: 'var(--orange, #EB823C)',
               }}
             >
-              📜
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z" />
+                <path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z" />
+              </svg>
             </span>
             <div>
               <span
@@ -244,7 +247,7 @@ export const QuoteNotificationPopup: React.FC = () => {
               boxShadow: '0 2px 8px rgba(240, 128, 0, 0.3)',
             }}
           >
-            Керемет! ✨
+            Керемет!
           </button>
         </div>
       </div>
