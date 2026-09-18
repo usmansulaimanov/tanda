@@ -90,21 +90,14 @@ export const Footer: React.FC = () => {
                   fontSize: '13px',
                   fontWeight: 700,
                   textDecoration: 'none',
-                  background: 'rgba(255, 255, 255, 0.06)',
-                  padding: '8px 14px',
-                  borderRadius: '10px',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  transition: 'all 0.2s ease',
+                  padding: '2px 0',
+                  transition: 'color 0.2s ease',
                   width: 'fit-content',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--orange)';
-                  e.currentTarget.style.background = 'rgba(239, 126, 0, 0.12)';
-                  e.currentTarget.style.color = '#FFFFFF';
+                  e.currentTarget.style.color = 'var(--orange)';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)';
                   e.currentTarget.style.color = '#F8FAFC';
                 }}
               >
