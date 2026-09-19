@@ -338,7 +338,7 @@ export const TopAudioSection: React.FC = () => {
                     style={{
                       fontSize: '13px',
                       color: '#64748B',
-                      marginBottom: '10px',
+                      marginBottom: '4px',
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
@@ -346,43 +346,6 @@ export const TopAudioSection: React.FC = () => {
                     title={book.author}
                   >
                     {book.author}
-                  </div>
-
-                  {/* Listens & Duration Metrics */}
-                  <div
-                    style={{
-                      marginTop: 'auto',
-                      paddingTop: '8px',
-                      borderTop: '1px solid #F1F5F9',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      fontSize: '12px',
-                      fontWeight: 600,
-                      color: '#475569',
-                    }}
-                  >
-                    <span
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '5px',
-                        color: '#EA580C',
-                        fontWeight: 700,
-                      }}
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-                        <path d="M3 18v-6a9 9 0 0 1 18 0v6"></path>
-                        <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path>
-                      </svg>
-                      {todayListens} бүгін
-                    </span>
-
-                    {book.audioDuration && (
-                      <span style={{ color: '#64748B', fontSize: '11px' }}>
-                        ⏱ {book.audioDuration}
-                      </span>
-                    )}
                   </div>
                 </div>
               </div>
