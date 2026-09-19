@@ -44,6 +44,7 @@ interface QuoteState {
   addBulkQuotes: (items: Array<{ text: string; author?: string; bookId?: string; bookTitle?: string }>) => number;
   updateQuote: (id: string, updates: Partial<QuoteItem>) => void;
   deleteQuote: (id: string) => void;
+  deleteQuotes: (ids: string[]) => void;
   toggleQuoteActive: (id: string) => void;
   updateSettings: (partial: Partial<QuoteSettings>) => void;
   
@@ -234,6 +235,14 @@ export const useQuoteStore = create<QuoteState>()(
         set((state) => ({
           quotes: state.quotes.filter((q) => q.id !== id),
           activeNotification: state.activeNotification?.id === id ? null : state.activeNotification,
+        }));
+      },
+
+      deleteQuotes: (ids) => {
+        const idSet = new Set(ids);
+        set((state) => ({
+          quotes: state.quotes.filter((q) => !idSet.has(q.id)),
+          activeNotification: state.activeNotification && idSet.has(state.activeNotification.id) ? null : state.activeNotification,
         }));
       },
 

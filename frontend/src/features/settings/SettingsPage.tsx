@@ -618,13 +618,9 @@ export const SettingsPage: React.FC = () => {
           <div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
               <div>
-                <span className="section-tag" style={{ marginBottom: '8px' }}>Профиль баптаулары</span>
                 <h2 style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-dark)', margin: '4px 0' }}>
                   Ақпаратты өңдеу
                 </h2>
-                <p style={{ fontSize: '13px', color: 'var(--text-mid)', margin: 0 }}>
-                  Аты-жөніңізді, электронды поштаңызды, байланыс нөміріңізді және бірегей юзернейміңізді осы жерден баптаңыз.
-                </p>
               </div>
 
               <button
@@ -649,111 +645,6 @@ export const SettingsPage: React.FC = () => {
             </div>
 
             <form onSubmit={handleProfileSubmit}>
-              {/* Avatar Section */}
-              <div
-                style={{
-                  background: '#F8FAFC',
-                  borderRadius: '16px',
-                  padding: '18px 22px',
-                  border: '1.5px solid #E2E8F0',
-                  marginBottom: '24px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  flexWrap: 'wrap',
-                  gap: '16px',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                  <div
-                    style={{
-                      width: '60px',
-                      height: '60px',
-                      borderRadius: '50%',
-                      background: user.avatarUrl ? '#FFFFFF' : 'linear-gradient(135deg, var(--blue) 0%, var(--orange) 100%)',
-                      color: '#FFFFFF',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '24px',
-                      fontWeight: 900,
-                      border: '2px solid #CBD5E1',
-                      overflow: 'hidden',
-                      flexShrink: 0,
-                    }}
-                  >
-                    {user.avatarUrl ? (
-                      <img
-                        src={user.avatarUrl}
-                        alt={user.name || 'Avatar'}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        referrerPolicy="no-referrer"
-                      />
-                    ) : (
-                      initialLetter
-                    )}
-                  </div>
-                  <div>
-                    <h4 style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-dark)', margin: '0 0 2px 0' }}>
-                      Профиль фотосы
-                    </h4>
-                    <p style={{ fontSize: '12px', color: 'var(--text-mid)', margin: 0 }}>
-                      JPG, PNG немесе WebP форматы. Көлемі 10 МБ-қа дейін.
-                    </p>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={isUploadingAvatar}
-                    style={{
-                      background: 'var(--blue)',
-                      color: '#FFFFFF',
-                      border: 'none',
-                      borderRadius: '50px',
-                      padding: '8px 18px',
-                      fontSize: '12px',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      transition: 'background 0.2s',
-                    }}
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                      <polyline points="17 8 12 3 7 8"></polyline>
-                      <line x1="12" y1="3" x2="12" y2="15"></line>
-                    </svg>
-                    <span>{user.avatarUrl ? 'Фотоны ауыстыру' : 'Фото жүктеу'}</span>
-                  </button>
-
-                  {user.avatarUrl && (
-                    <button
-                      type="button"
-                      onClick={handleRemoveAvatar}
-                      disabled={isUploadingAvatar}
-                      style={{
-                        background: '#FFFFFF',
-                        color: '#EF4444',
-                        border: '1.5px solid #FCA5A5',
-                        borderRadius: '50px',
-                        padding: '7px 16px',
-                        fontSize: '12px',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        transition: 'all 0.2s',
-                      }}
-                    >
-                      Өшіру
-                    </button>
-                  )}
-                </div>
-              </div>
-
               {/* Row 1: Name and Username */}
               <div
                 style={{
@@ -776,7 +667,6 @@ export const SettingsPage: React.FC = () => {
                     placeholder="Мысалы: Азамат Серікұлы"
                     className="form-input"
                   />
-                  <span className="form-hint">Сайтта және пікірлерде көрсетілетін ресми атыңыз</span>
                 </div>
 
                 {/* Username */}
@@ -799,13 +689,9 @@ export const SettingsPage: React.FC = () => {
                     />
                   </div>
                   
-                  {usernameError ? (
+                  {usernameError && (
                     <span style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#DC2626', marginTop: '6px' }}>
                       {usernameError}
-                    </span>
-                  ) : (
-                    <span className="form-hint">
-                      Бір юзернеймді бір ғана адам тіркей алады (латын әріптері мен сандар)
                     </span>
                   )}
                 </div>
@@ -823,7 +709,7 @@ export const SettingsPage: React.FC = () => {
                 {/* Email */}
                 <div className="form-group" style={{ margin: 0 }}>
                   <label className="form-label">
-                    Электронды пошта (Email) <span className="req">*</span>
+                    Электронды пошта <span className="req">*</span>
                   </label>
                   <input
                     type="email"
@@ -833,7 +719,6 @@ export const SettingsPage: React.FC = () => {
                     placeholder="siz@mail.kz"
                     className="form-input"
                   />
-                  <span className="form-hint">Сайтқа кіру және хабарламалар үшін қолданылады</span>
                 </div>
 
                 {/* Phone number */}
@@ -884,13 +769,9 @@ export const SettingsPage: React.FC = () => {
                       </button>
                     )}
                   </div>
-                  {phoneError ? (
+                  {phoneError && (
                     <span style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#DC2626', marginTop: '6px' }}>
                       {phoneError}
-                    </span>
-                  ) : (
-                    <span className="form-hint">
-                      Тек сандар жазылады: +7 (777) 123-45-67 (толық жазыңыз немесе бос қалдырыңыз)
                     </span>
                   )}
                 </div>

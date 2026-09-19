@@ -143,6 +143,10 @@ export const AdminPromoBatchDetailPage: React.FC = () => {
   const activeCount = rawBatchCodes.filter((p) => p.isActive && !isExpired && p.usedCount < p.maxUses).length;
   const usedCount = rawBatchCodes.filter((p) => p.usedCount > 0).length;
   const issuedCount = rawBatchCodes.filter((p) => p.isIssued).length;
+  const now = new Date();
+  const expiresDate = new Date(currentBatch.expiresAt);
+  const diffTime = expiresDate.getTime() - now.getTime();
+  const remainingDays = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
 
   return (
     <section className="admin-page-section" style={{ padding: '32px 16px 80px', backgroundColor: '#F8FAFC', minHeight: 'calc(100vh - 80px)' }}>
@@ -247,32 +251,15 @@ export const AdminPromoBatchDetailPage: React.FC = () => {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontSize: '24px',
                   flexShrink: 0,
                 }}
               >
-                📁
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"></path>
+                </svg>
               </div>
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span
-                    style={{
-                      padding: '3px 8px',
-                      background: 'rgba(0, 84, 148, 0.1)',
-                      color: 'var(--blue)',
-                      borderRadius: '6px',
-                      fontSize: '11px',
-                      fontWeight: 800,
-                      textTransform: 'uppercase',
-                    }}
-                  >
-                    ГЕНЕРАЦИЯЛАНҒАН ФАЙЛ
-                  </span>
-                  <span style={{ fontSize: '13px', color: '#64748B' }}>
-                    Жасалған уақыты: {new Date(currentBatch.createdAt).toLocaleString('kk-KZ')}
-                  </span>
-                </div>
-                <h1 style={{ fontSize: '24px', fontWeight: 900, color: 'var(--text-dark)', margin: '4px 0 0 0' }}>
+                <h1 style={{ fontSize: '24px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
                   {currentBatch.name}
                 </h1>
               </div>
@@ -365,9 +352,11 @@ export const AdminPromoBatchDetailPage: React.FC = () => {
           {/* Info Summary Grid */}
           <div
             style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-              gap: '16px',
+              display: 'flex',
+              flexWrap: 'wrap',
+              alignItems: 'flex-start',
+              justifyContent: 'space-between',
+              gap: '20px 24px',
               padding: '20px 24px',
               background: '#F8FAFC',
               borderRadius: '16px',
@@ -377,10 +366,19 @@ export const AdminPromoBatchDetailPage: React.FC = () => {
           >
             <div>
               <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748B', display: 'block', textTransform: 'uppercase', marginBottom: '4px' }}>
-                Сыйлық / Жеңілдік:
+                Жеңілдік:
               </span>
-              <strong style={{ fontSize: '15px', color: 'var(--text-dark)' }}>
+              <strong style={{ fontSize: '15px', color: 'var(--text-dark)', whiteSpace: 'nowrap' }}>
                 {currentBatch.rewardTitle}
+              </strong>
+            </div>
+
+            <div>
+              <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748B', display: 'block', textTransform: 'uppercase', marginBottom: '4px' }}>
+                Жасалған күні:
+              </span>
+              <strong style={{ fontSize: '15px', color: 'var(--text-dark)', whiteSpace: 'nowrap' }}>
+                {new Date(currentBatch.createdAt).toLocaleDateString('kk-KZ')}
               </strong>
             </div>
 
@@ -388,30 +386,31 @@ export const AdminPromoBatchDetailPage: React.FC = () => {
               <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748B', display: 'block', textTransform: 'uppercase', marginBottom: '4px' }}>
                 Жарамдылық мерзімі:
               </span>
-              <strong style={{ fontSize: '15px', color: isExpired ? '#DC2626' : '#475569' }}>
-                {new Date(currentBatch.expiresAt).toLocaleDateString('kk-KZ')} ({currentBatch.durationDays} күн)
+              <strong style={{ fontSize: '15px', color: isExpired ? '#DC2626' : 'var(--text-dark)', whiteSpace: 'nowrap' }}>
+                {new Date(currentBatch.expiresAt).toLocaleDateString('kk-KZ')}{' '}
+                {isExpired ? (
+                  <span style={{ color: '#DC2626' }}>(Мерзімі өткен)</span>
+                ) : (
+                  <span>({remainingDays} күн қалды)</span>
+                )}
               </strong>
             </div>
 
-            <div style={{ background: '#FFFFFF', padding: '12px 16px', borderRadius: '12px', border: '1.5px solid #CBD5E1' }}>
+            <div>
               <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748B', display: 'block', textTransform: 'uppercase', marginBottom: '4px' }}>
-                Берілгендер белгісі (Галочка):
+                Берілгендер белгісі:
               </span>
-              <strong style={{ fontSize: '15px', color: issuedCount > 0 ? '#15803D' : '#64748B' }}>
+              <strong style={{ fontSize: '15px', color: 'var(--text-dark)', whiteSpace: 'nowrap' }}>
                 {issuedCount} / {rawBatchCodes.length} адамға берілді
               </strong>
             </div>
 
-            <div style={{ background: '#F0FDF4', padding: '12px 16px', borderRadius: '12px', border: '1.5px solid #86EFAC' }}>
-              <span style={{ fontSize: '11px', fontWeight: 800, color: '#166534', display: 'block', textTransform: 'uppercase', marginBottom: '4px' }}>
+            <div>
+              <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748B', display: 'block', textTransform: 'uppercase', marginBottom: '4px' }}>
                 Активация:
               </span>
-              <strong style={{ fontSize: '16px', color: '#15803D', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span>✅</span>
-                <span>{usedCount} / {rawBatchCodes.length} қолданылды</span>
-                <span style={{ fontSize: '12px', fontWeight: 600, color: '#64748B' }}>
-                  ({rawBatchCodes.length - usedCount} күтілуде)
-                </span>
+              <strong style={{ fontSize: '15px', color: 'var(--text-dark)', whiteSpace: 'nowrap' }}>
+                {usedCount} / {rawBatchCodes.length} қолданылды
               </strong>
             </div>
           </div>
@@ -444,7 +443,7 @@ export const AdminPromoBatchDetailPage: React.FC = () => {
                   transition: 'all 0.15s',
                 }}
               >
-                Барлығы ({rawBatchCodes.length})
+                Барлығы: {rawBatchCodes.length}
               </button>
 
               <button
@@ -465,8 +464,7 @@ export const AdminPromoBatchDetailPage: React.FC = () => {
                   transition: 'all 0.15s',
                 }}
               >
-                <span>✅</span>
-                <span>Активация болған ({usedCount})</span>
+                Активация болған: {usedCount}
               </button>
 
               <button
@@ -487,8 +485,7 @@ export const AdminPromoBatchDetailPage: React.FC = () => {
                   transition: 'all 0.15s',
                 }}
               >
-                <span>✔</span>
-                <span>Берілгендер ({issuedCount})</span>
+                Берілгендер: {issuedCount}
               </button>
             </div>
 
@@ -498,7 +495,7 @@ export const AdminPromoBatchDetailPage: React.FC = () => {
                 type="text"
                 value={codeSearchQuery}
                 onChange={(e) => setCodeSearchQuery(e.target.value)}
-                placeholder="Код, заметка немесе оқырман бойынша..."
+                placeholder="Іздеу..."
                 style={{
                   width: '100%',
                   padding: '9px 14px 9px 34px',
@@ -531,16 +528,15 @@ export const AdminPromoBatchDetailPage: React.FC = () => {
             <table className="admin-table">
               <thead>
                 <tr>
-                  <th style={{ width: '40px', textAlign: 'center' }}>№</th>
-                  <th style={{ width: '90px', textAlign: 'center', whiteSpace: 'nowrap' }}>Берілді ✔</th>
-                  <th style={{ width: '180px', whiteSpace: 'nowrap' }}>Промокод</th>
-                  <th style={{ width: '150px', whiteSpace: 'nowrap' }}>Активация</th>
-                  <th style={{ minWidth: '200px' }}>Заметка (Кімге берілді)</th>
-                  <th>Сыйлығы / Жеңілдігі</th>
-                  <th style={{ width: '110px', whiteSpace: 'nowrap' }}>Жарамдылығы</th>
-                  <th style={{ width: '100px', whiteSpace: 'nowrap' }}>Мәртебесі</th>
-                  <th>Қолданған оқырман</th>
-                  <th style={{ width: '180px', textAlign: 'right', whiteSpace: 'nowrap' }}>Әрекеттер</th>
+                  <th style={{ width: '36px', textAlign: 'center', padding: '10px 6px' }}>№</th>
+                  <th style={{ width: '50px', textAlign: 'center', whiteSpace: 'nowrap', padding: '10px 6px' }}>Берілді</th>
+                  <th style={{ width: '160px', whiteSpace: 'nowrap', padding: '10px 8px' }}>Промокод</th>
+                  <th style={{ width: '130px', whiteSpace: 'nowrap', padding: '10px 8px' }}>Активация</th>
+                  <th style={{ width: '150px', padding: '10px 8px' }}>Заметка (Кімге берілді)</th>
+                  <th style={{ width: '140px', padding: '10px 8px' }}>Жеңілдік</th>
+                  <th style={{ width: '90px', whiteSpace: 'nowrap', padding: '10px 8px' }}>Мәртебесі</th>
+                  <th style={{ width: '160px', padding: '10px 8px' }}>Қолданған оқырман</th>
+                  <th style={{ textAlign: 'right', whiteSpace: 'nowrap', padding: '10px 12px' }}>Әрекеттер</th>
                 </tr>
               </thead>
               <tbody>
@@ -565,47 +561,24 @@ export const AdminPromoBatchDetailPage: React.FC = () => {
 
                       {/* Checkbox (Берілді галочкасы) */}
                       <td style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>
-                        <label
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '5px',
-                            cursor: 'pointer',
-                            padding: '4px 8px',
-                            borderRadius: '6px',
-                            background: promo.isIssued ? '#E0F2FE' : '#F1F5F9',
-                            border: promo.isIssued ? '1px solid #7DD3FC' : '1px solid #CBD5E1',
-                            transition: 'all 0.15s',
-                            userSelect: 'none',
+                        <input
+                          type="checkbox"
+                          checked={promo.isIssued || false}
+                          onChange={(e) => {
+                            togglePromoIssued(promo.id, e.target.checked);
+                            if (e.target.checked) {
+                              showToast(`«${promo.code}» промокоды берілді деп белгіленді`, 'success');
+                            }
                           }}
-                          title={promo.isIssued ? 'Берілді деп белгіленген (алып тастау үшін басыңыз)' : 'Берілді деп белгілеу үшін басыңыз'}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={promo.isIssued || false}
-                            onChange={(e) => {
-                              togglePromoIssued(promo.id, e.target.checked);
-                              if (e.target.checked) {
-                                showToast(`«${promo.code}» промокоды берілді деп белгіленді`, 'success');
-                              }
-                            }}
-                            style={{
-                              width: '15px',
-                              height: '15px',
-                              cursor: 'pointer',
-                              accentColor: '#0284C7',
-                            }}
-                          />
-                          <span
-                            style={{
-                              fontSize: '11px',
-                              fontWeight: 800,
-                              color: promo.isIssued ? '#0369A1' : '#64748B',
-                            }}
-                          >
-                            {promo.isIssued ? 'Берілді' : 'Бос'}
-                          </span>
-                        </label>
+                          title={promo.isIssued ? 'Берілді деп белгіленген' : 'Берілді деп белгілеу үшін басыңыз'}
+                          style={{
+                            width: '18px',
+                            height: '18px',
+                            cursor: 'pointer',
+                            accentColor: '#0284C7',
+                            verticalAlign: 'middle',
+                          }}
+                        />
                       </td>
 
                       {/* Code badge */}
@@ -640,7 +613,7 @@ export const AdminPromoBatchDetailPage: React.FC = () => {
                       {/* ACTIVATION INDICATOR / BADGE */}
                       <td style={{ whiteSpace: 'nowrap' }}>
                         {isActivated ? (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                             <span
                               style={{
                                 display: 'inline-flex',
@@ -659,11 +632,11 @@ export const AdminPromoBatchDetailPage: React.FC = () => {
                               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
                                 <polyline points="20 6 9 17 4 12"></polyline>
                               </svg>
-                              Қолданылды ✔
+                              Қолданылды
                             </span>
                             {promo.usedBy[0]?.usedAt && (
                               <span style={{ fontSize: '11px', color: '#166534', fontWeight: 600, paddingLeft: '4px' }}>
-                                🕒 {new Date(promo.usedBy[0].usedAt).toLocaleString('kk-KZ')}
+                                {new Date(promo.usedBy[0].usedAt).toLocaleString('kk-KZ')}
                               </span>
                             )}
                           </div>
@@ -702,7 +675,7 @@ export const AdminPromoBatchDetailPage: React.FC = () => {
                                 showToast(`«${promo.code}» жазбасы сақталды`, 'info');
                               }
                             }}
-                            placeholder="Кімге берілді? (жазба...)"
+                            placeholder="Кімге?"
                             style={{
                               width: '100%',
                               padding: '6px 10px',
@@ -724,14 +697,6 @@ export const AdminPromoBatchDetailPage: React.FC = () => {
                         <strong style={{ color: 'var(--text-dark)', fontSize: '13px' }}>
                           {promo.rewardTitle}
                         </strong>
-                      </td>
-
-                      {/* Expiry */}
-                      <td style={{ whiteSpace: 'nowrap' }}>
-                        <div style={{ fontSize: '12px', fontWeight: 600, color: isCodeExpired ? '#DC2626' : '#475569' }}>
-                          {expiryDateStr}
-                          {isCodeExpired && <span style={{ display: 'block', fontSize: '10px', color: '#DC2626', fontWeight: 700 }}>Мерзімі өткен</span>}
-                        </div>
                       </td>
 
                       {/* Status */}
@@ -758,27 +723,23 @@ export const AdminPromoBatchDetailPage: React.FC = () => {
                       {/* Users who redeemed */}
                       <td>
                         {promo.usedBy.length > 0 ? (
-                          <div style={{ fontSize: '12px', color: 'var(--text-dark)' }}>
+                          <div style={{ fontSize: '13px', color: 'var(--text-dark)' }}>
                             {promo.usedBy.map((u, i) => (
-                              <div key={i} style={{ marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                <span style={{ color: '#16A34A', fontWeight: 800 }}>👤</span>
-                                <div>
-                                  <strong>{u.userName}</strong>
-                                  <span style={{ color: '#64748B', marginLeft: '4px' }}>({u.userEmail})</span>
-                                </div>
+                              <div key={i} style={{ marginBottom: '2px', fontWeight: 600 }}>
+                                {u.userEmail || u.userName}
                               </div>
                             ))}
                           </div>
                         ) : (
-                          <span style={{ color: '#94A3B8', fontSize: '12px', fontStyle: 'italic' }}>
-                            Әлі ешкім қолданбаған
+                          <span style={{ color: '#94A3B8', fontSize: '14px', fontWeight: 700 }}>
+                            —
                           </span>
                         )}
                       </td>
 
                       {/* Actions */}
                       <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
-                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', justifyContent: 'flex-end' }}>
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '12px', justifyContent: 'flex-end' }}>
                           {/* Toggle validity */}
                           <button
                             type="button"
@@ -793,13 +754,12 @@ export const AdminPromoBatchDetailPage: React.FC = () => {
                             }}
                             title={promo.isActive ? 'Жарамсыз ету (өшіру)' : 'Қайта белсендіру'}
                             style={{
-                              padding: '5px 12px',
-                              fontSize: '12px',
+                              padding: '4px 6px',
+                              fontSize: '13px',
                               fontWeight: 700,
-                              background: promo.isActive ? '#FFFBEB' : '#ECFDF5',
-                              color: promo.isActive ? '#D97706' : '#059669',
-                              borderRadius: '6px',
-                              border: promo.isActive ? '1px solid #FDE68A' : '1px solid #A7F3D0',
+                              background: 'transparent',
+                              border: 'none',
+                              color: 'var(--text-dark)',
                               cursor: 'pointer',
                             }}
                           >
@@ -812,13 +772,12 @@ export const AdminPromoBatchDetailPage: React.FC = () => {
                             onClick={() => setCodeToDelete(promo)}
                             title="Өшіру"
                             style={{
-                              padding: '5px 12px',
-                              fontSize: '12px',
+                              padding: '4px 6px',
+                              fontSize: '13px',
                               fontWeight: 700,
-                              background: '#FEF2F2',
+                              background: 'transparent',
+                              border: 'none',
                               color: '#DC2626',
-                              borderRadius: '6px',
-                              border: '1px solid #FECACA',
                               cursor: 'pointer',
                             }}
                           >

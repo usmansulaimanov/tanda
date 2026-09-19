@@ -17,6 +17,7 @@ export const AdminQuotesPage: React.FC = () => {
     addBulkQuotes,
     updateQuote,
     deleteQuote,
+    deleteQuotes,
     toggleQuoteActive,
     updateSettings,
     triggerQuoteNotification,
@@ -62,6 +63,10 @@ export const AdminQuotesPage: React.FC = () => {
 
   // Delete modal
   const [quoteToDelete, setQuoteToDelete] = useState<QuoteItem | null>(null);
+
+  // Bulk selection & deletion
+  const [selectedQuoteIds, setSelectedQuoteIds] = useState<string[]>([]);
+  const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false);
 
   // Search & Filter
   const [searchQuery, setSearchQuery] = useState('');
@@ -148,6 +153,26 @@ export const AdminQuotesPage: React.FC = () => {
     const start = (currentPage - 1) * pageSize;
     return filteredQuotes.slice(start, start + pageSize);
   }, [filteredQuotes, currentPage, pageSize]);
+
+  const isAllSelected = paginatedQuotes.length > 0 && paginatedQuotes.every((q) => selectedQuoteIds.includes(q.id));
+  const isSomeSelected = paginatedQuotes.some((q) => selectedQuoteIds.includes(q.id)) && !isAllSelected;
+
+  const handleSelectAll = () => {
+    if (isAllSelected) {
+      const pageIds = new Set(paginatedQuotes.map((q) => q.id));
+      setSelectedQuoteIds((prev) => prev.filter((id) => !pageIds.has(id)));
+    } else {
+      const newIds = new Set([...selectedQuoteIds, ...paginatedQuotes.map((q) => q.id)]);
+      setSelectedQuoteIds(Array.from(newIds));
+    }
+  };
+
+  const handleSelectQuote = (quoteId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedQuoteIds((prev) =>
+      prev.includes(quoteId) ? prev.filter((id) => id !== quoteId) : [...prev, quoteId]
+    );
+  };
 
   const handleSelectNewBook = (bookId: string) => {
     setNewBookId(bookId);
@@ -695,6 +720,8 @@ export const AdminQuotesPage: React.FC = () => {
                   resize: 'vertical',
                 }}
                 required
+                onInvalid={(e) => (e.target as HTMLTextAreaElement).setCustomValidity('Цитата мәтінін енгізіңіз')}
+                onInput={(e) => (e.target as HTMLTextAreaElement).setCustomValidity('')}
               />
             </div>
 
@@ -705,8 +732,13 @@ export const AdminQuotesPage: React.FC = () => {
               </label>
               <select
                 value={newBookId}
-                onChange={(e) => handleSelectNewBook(e.target.value)}
+                onChange={(e) => {
+                  (e.target as HTMLSelectElement).setCustomValidity('');
+                  handleSelectNewBook(e.target.value);
+                }}
                 required
+                onInvalid={(e) => (e.target as HTMLSelectElement).setCustomValidity('Тізімнен бір кітапты таңдаңыз')}
+                onInput={(e) => (e.target as HTMLSelectElement).setCustomValidity('')}
                 style={{
                   width: '100%',
                   padding: '10px 14px',
@@ -798,11 +830,8 @@ export const AdminQuotesPage: React.FC = () => {
           >
             <div>
               <h2 style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
-                Цитаталар тізімі ({filteredQuotes.length !== quotes.length ? `${filteredQuotes.length} / ${quotes.length}` : quotes.length})
+                Үзінділер тізімі: {quotes.length}
               </h2>
-              <p style={{ fontSize: '13px', color: 'var(--text-mid)', marginTop: '4px' }}>
-                Белсенді цитаталар кесте бойынша кезекпен оқырмандарға жіберіледі
-              </p>
             </div>
 
             {/* Filter and Search */}
@@ -823,7 +852,7 @@ export const AdminQuotesPage: React.FC = () => {
                     cursor: 'pointer',
                   }}
                 >
-                  Барлығы ({quotes.length})
+                  Барлығы: {quotes.length}
                 </button>
 
                 <button
@@ -840,7 +869,7 @@ export const AdminQuotesPage: React.FC = () => {
                     cursor: 'pointer',
                   }}
                 >
-                  Белсенді ({activeQuotesCount})
+                  Белсенді: {activeQuotesCount}
                 </button>
               </div>
 
@@ -920,7 +949,7 @@ export const AdminQuotesPage: React.FC = () => {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Цитата немесе автор..."
+                  placeholder="Іздеу..."
                   style={{
                     width: '100%',
                     padding: '7px 12px 7px 32px',
@@ -948,21 +977,119 @@ export const AdminQuotesPage: React.FC = () => {
             </div>
           </div>
 
+          {/* Bulk Selection Action Bar */}
+          {selectedQuoteIds.length > 0 && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '12px',
+                padding: '12px 18px',
+                background: 'linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%)',
+                border: '1.5px solid #93C5FD',
+                borderRadius: '12px',
+                marginBottom: '18px',
+                boxShadow: '0 4px 12px rgba(0, 84, 148, 0.08)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span
+                  style={{
+                    background: 'var(--blue)',
+                    color: '#FFFFFF',
+                    width: '24px',
+                    height: '24px',
+                    borderRadius: '50%',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '12px',
+                    fontWeight: 800,
+                  }}
+                >
+                  {selectedQuoteIds.length}
+                </span>
+                <span style={{ fontSize: '14px', fontWeight: 700, color: '#1E3A8A' }}>
+                  {selectedQuoteIds.length} үзінді таңдалды
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setSelectedQuoteIds([])}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: '#2563EB',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    textDecoration: 'underline',
+                    cursor: 'pointer',
+                    padding: '0 4px',
+                  }}
+                >
+                  Таңдауды алып тастау
+                </button>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => setIsBulkDeleteModalOpen(true)}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '8px 16px',
+                    background: '#DC2626',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '13px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 12px rgba(220, 38, 38, 0.25)',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  </svg>
+                  Таңдалғандарды өшіру ({selectedQuoteIds.length})
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Quotes Table */}
           <div style={{ overflowX: 'auto' }}>
             <table className="admin-table">
               <thead>
                 <tr>
+                  <th style={{ width: '40px', textAlign: 'center' }}>
+                    <input
+                      type="checkbox"
+                      checked={isAllSelected}
+                      ref={(el) => {
+                        if (el) el.indeterminate = isSomeSelected;
+                      }}
+                      onChange={handleSelectAll}
+                      style={{ cursor: 'pointer', width: '16px', height: '16px', accentColor: 'var(--blue)' }}
+                      title={isAllSelected ? 'Барлығын таңдаудан алу' : 'Барлығын таңдау'}
+                    />
+                  </th>
                   <th style={{ width: '40px', textAlign: 'center' }}>№</th>
                   <th>Цитата мәтіні</th>
                   <th style={{ width: '220px' }}>Кітап және Авторы</th>
                   <th style={{ width: '110px', textAlign: 'center' }}>Жіберілді</th>
                   <th style={{ width: '120px' }}>Күйі</th>
-                  <th style={{ width: '200px', textAlign: 'right' }}>Әрекеттер</th>
+                  <th style={{ width: '240px', textAlign: 'right', whiteSpace: 'nowrap' }}>Әрекеттер</th>
                 </tr>
               </thead>
               <tbody>
                 {paginatedQuotes.map((quote, idx) => {
+                  const isSelected = selectedQuoteIds.includes(quote.id);
                   const itemIndex = (currentPage - 1) * pageSize + idx + 1;
                   const linkedBook = quote.bookId
                     ? books.find((b) => b.id === quote.bookId)
@@ -973,14 +1100,31 @@ export const AdminQuotesPage: React.FC = () => {
                       );
 
                   return (
-                    <tr key={quote.id}>
+                    <tr
+                      key={quote.id}
+                      style={{
+                        backgroundColor: isSelected ? 'rgba(0, 84, 148, 0.06)' : undefined,
+                        transition: 'background-color 0.15s ease',
+                      }}
+                    >
+                      {/* Checkbox selection cell */}
+                      <td style={{ textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => {}}
+                          onClick={(e) => handleSelectQuote(quote.id, e)}
+                          style={{ cursor: 'pointer', width: '16px', height: '16px', accentColor: 'var(--blue)' }}
+                        />
+                      </td>
+
                       <td style={{ textAlign: 'center', fontWeight: 700, color: '#64748B', fontSize: '12px' }}>
                         {itemIndex}
                       </td>
 
                       <td>
                         <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-dark)', lineHeight: 1.5 }}>
-                          «{quote.text}»
+                          {quote.text.replace(/^[«"“]\s*|\s*[»"”]$/g, '')}
                         </div>
                       </td>
 
@@ -1023,12 +1167,9 @@ export const AdminQuotesPage: React.FC = () => {
                       <td style={{ textAlign: 'center' }}>
                         <span
                           style={{
-                            fontSize: '12px',
-                            fontWeight: 800,
-                            padding: '2px 8px',
-                            borderRadius: '6px',
-                            background: '#F1F5F9',
-                            color: quote.sentCount > 0 ? 'var(--orange)' : '#64748B',
+                            fontSize: '13px',
+                            fontWeight: 600,
+                            color: 'var(--text-dark)',
                           }}
                         >
                           {quote.sentCount || 0} рет
@@ -1043,20 +1184,19 @@ export const AdminQuotesPage: React.FC = () => {
                             display: 'inline-flex',
                             alignItems: 'center',
                             gap: '6px',
-                            padding: '4px 10px',
-                            borderRadius: '50px',
-                            fontSize: '11px',
-                            fontWeight: 700,
+                            padding: '4px 0',
+                            fontSize: '13px',
+                            fontWeight: 600,
                             cursor: 'pointer',
-                            border: quote.isActive ? '1px solid #A7F3D0' : '1px solid #FECACA',
-                            background: quote.isActive ? '#ECFDF5' : '#FEF2F2',
-                            color: quote.isActive ? '#047857' : '#B91C1C',
+                            border: 'none',
+                            background: 'transparent',
+                            color: 'var(--text-dark)',
                           }}
                         >
                           <span
                             style={{
-                              width: '6px',
-                              height: '6px',
+                              width: '7px',
+                              height: '7px',
                               borderRadius: '50%',
                               background: quote.isActive ? '#10B981' : '#EF4444',
                             }}
@@ -1065,21 +1205,20 @@ export const AdminQuotesPage: React.FC = () => {
                         </button>
                       </td>
 
-                      <td style={{ textAlign: 'right' }}>
-                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                      <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '22px', justifyContent: 'flex-end' }}>
                           {/* Test send this specific quote */}
                           <button
                             type="button"
                             onClick={() => handleTestNotification(quote.id)}
                             title="Осы цитатаны қазір оқырмандарға жіберу"
                             style={{
-                              padding: '5px 10px',
-                              fontSize: '12px',
+                              padding: '4px 0',
+                              fontSize: '13px',
                               fontWeight: 700,
-                              background: '#FFF7ED',
-                              color: '#C2410C',
-                              border: '1px solid #FFEDD5',
-                              borderRadius: '6px',
+                              background: 'transparent',
+                              color: 'var(--text-dark)',
+                              border: 'none',
                               cursor: 'pointer',
                               display: 'inline-flex',
                               alignItems: 'center',
@@ -1099,13 +1238,12 @@ export const AdminQuotesPage: React.FC = () => {
                             onClick={() => openEditModal(quote)}
                             title="Өңдеу"
                             style={{
-                              padding: '5px 10px',
-                              fontSize: '12px',
+                              padding: '4px 0',
+                              fontSize: '13px',
                               fontWeight: 700,
-                              background: '#EFF6FF',
-                              color: '#1D4ED8',
-                              border: '1px solid #BFDBFE',
-                              borderRadius: '6px',
+                              background: 'transparent',
+                              color: 'var(--text-dark)',
+                              border: 'none',
                               cursor: 'pointer',
                             }}
                           >
@@ -1118,13 +1256,12 @@ export const AdminQuotesPage: React.FC = () => {
                             onClick={() => setQuoteToDelete(quote)}
                             title="Өшіру"
                             style={{
-                              padding: '5px 10px',
-                              fontSize: '12px',
+                              padding: '4px 0',
+                              fontSize: '13px',
                               fontWeight: 700,
-                              background: '#FEF2F2',
-                              color: '#B91C1C',
-                              border: '1px solid #FECACA',
-                              borderRadius: '6px',
+                              background: 'transparent',
+                              color: '#DC2626',
+                              border: 'none',
                               cursor: 'pointer',
                             }}
                           >
@@ -1186,9 +1323,6 @@ export const AdminQuotesPage: React.FC = () => {
                   <option value={50}>50</option>
                   <option value={100}>100</option>
                 </select>
-                <span style={{ fontSize: '13px', color: '#64748B' }}>
-                  (Жалпы: <strong>{filteredQuotes.length}</strong>)
-                </span>
               </div>
 
               {/* Page navigation */}
@@ -1368,6 +1502,8 @@ export const AdminQuotesPage: React.FC = () => {
                     lineHeight: 1.5,
                   }}
                   required
+                  onInvalid={(e) => (e.target as HTMLTextAreaElement).setCustomValidity('Цитата мәтінін енгізіңіз')}
+                  onInput={(e) => (e.target as HTMLTextAreaElement).setCustomValidity('')}
                 />
               </div>
 
@@ -1377,8 +1513,13 @@ export const AdminQuotesPage: React.FC = () => {
                 </label>
                 <select
                   value={instantBookId}
-                  onChange={(e) => handleSelectInstantBook(e.target.value)}
+                  onChange={(e) => {
+                    (e.target as HTMLSelectElement).setCustomValidity('');
+                    handleSelectInstantBook(e.target.value);
+                  }}
                   required
+                  onInvalid={(e) => (e.target as HTMLSelectElement).setCustomValidity('Тізімнен бір кітапты таңдаңыз')}
+                  onInput={(e) => (e.target as HTMLSelectElement).setCustomValidity('')}
                   style={{
                     width: '100%',
                     padding: '10px 14px',
@@ -1536,6 +1677,8 @@ export const AdminQuotesPage: React.FC = () => {
                     lineHeight: 1.5,
                   }}
                   required
+                  onInvalid={(e) => (e.target as HTMLTextAreaElement).setCustomValidity('Цитаталарды енгізіңіз')}
+                  onInput={(e) => (e.target as HTMLTextAreaElement).setCustomValidity('')}
                 />
               </div>
 
@@ -1546,8 +1689,13 @@ export const AdminQuotesPage: React.FC = () => {
                 </label>
                 <select
                   value={bulkBookId}
-                  onChange={(e) => handleSelectBulkBook(e.target.value)}
+                  onChange={(e) => {
+                    (e.target as HTMLSelectElement).setCustomValidity('');
+                    handleSelectBulkBook(e.target.value);
+                  }}
                   required
+                  onInvalid={(e) => (e.target as HTMLSelectElement).setCustomValidity('Тізімнен бір кітапты таңдаңыз')}
+                  onInput={(e) => (e.target as HTMLSelectElement).setCustomValidity('')}
                   style={{
                     width: '100%',
                     padding: '10px 14px',
@@ -1809,6 +1957,8 @@ export const AdminQuotesPage: React.FC = () => {
                     lineHeight: 1.5,
                   }}
                   required
+                  onInvalid={(e) => (e.target as HTMLTextAreaElement).setCustomValidity('Цитата мәтінін енгізіңіз')}
+                  onInput={(e) => (e.target as HTMLTextAreaElement).setCustomValidity('')}
                 />
               </div>
 
@@ -1937,7 +2087,7 @@ export const AdminQuotesPage: React.FC = () => {
               Сіз шынымен мына цитатаны қордан біржола өшіргіңіз келе ме?
               <br />
               <strong style={{ color: 'var(--text-dark)', display: 'block', marginTop: '6px' }}>
-                «{quoteToDelete.text}»
+                {quoteToDelete.text.replace(/^[«"“]\s*|\s*[»"”]$/g, '')}
               </strong>
             </p>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
@@ -1960,7 +2110,6 @@ export const AdminQuotesPage: React.FC = () => {
                 type="button"
                 onClick={() => {
                   deleteQuote(quoteToDelete.id);
-                  showToast('Цитата қордан өшірілді', 'info');
                   setQuoteToDelete(null);
                 }}
                 style={{
@@ -1975,6 +2124,100 @@ export const AdminQuotesPage: React.FC = () => {
                 }}
               >
                 Иә, өшіру
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Delete Modal */}
+      {isBulkDeleteModalOpen && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(13,27,42,0.7)',
+            backdropFilter: 'blur(6px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '20px',
+          }}
+          onClick={() => setIsBulkDeleteModalOpen(false)}
+        >
+          <div
+            style={{
+              background: '#FFFFFF',
+              borderRadius: '16px',
+              maxWidth: '460px',
+              width: '100%',
+              padding: '30px',
+              boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+              <div
+                style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '50%',
+                  background: '#FEE2E2',
+                  color: '#DC2626',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+              </div>
+              <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-dark)', margin: 0 }}>
+                Таңдалған үзінділерді өшіру
+              </h3>
+            </div>
+            <p style={{ fontSize: '14px', color: 'var(--text-mid)', lineHeight: 1.6, marginBottom: '24px' }}>
+              Сіз шынымен таңдалған <strong style={{ color: '#DC2626' }}>{selectedQuoteIds.length} үзіндіні</strong> қордан біржола өшіргіңіз келе ме? Бұл әрекетті қайтару мүмкін емес.
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+              <button
+                type="button"
+                onClick={() => setIsBulkDeleteModalOpen(false)}
+                style={{
+                  padding: '9px 18px',
+                  borderRadius: '50px',
+                  border: '1px solid #CBD5E1',
+                  background: '#FFF',
+                  fontWeight: 600,
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                }}
+              >
+                Болдырмау
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  deleteQuotes(selectedQuoteIds);
+                  setSelectedQuoteIds([]);
+                  setIsBulkDeleteModalOpen(false);
+                }}
+                style={{
+                  padding: '9px 20px',
+                  borderRadius: '50px',
+                  border: 'none',
+                  background: '#DC2626',
+                  color: '#FFF',
+                  fontWeight: 700,
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                }}
+              >
+                Иә, барлығын өшіру ({selectedQuoteIds.length})
               </button>
             </div>
           </div>

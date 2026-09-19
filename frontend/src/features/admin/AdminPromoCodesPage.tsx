@@ -226,15 +226,12 @@ export const AdminPromoCodesPage: React.FC = () => {
           }}
         >
           <div style={{ borderBottom: '1.5px solid #F1F5F9', paddingBottom: '18px', marginBottom: '24px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{ width: '8px', height: '22px', backgroundColor: 'var(--blue)', borderRadius: '4px', display: 'inline-block' }} />
               <h2 style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
-                Жаңа топтама (Файл) генерациялау
+                Жаңа топтама генерациялау
               </h2>
             </div>
-            <p style={{ fontSize: '13px', color: 'var(--text-mid)', margin: '4px 0 0 16px' }}>
-              Қажетті промокод санын, жеңілдік түрін, жарамдылық мерзімін және қаласаңыз арнайы кілт сөзді енгізіп генерациялаңыз.
-            </p>
           </div>
 
           <form onSubmit={handleGenerate}>
@@ -270,7 +267,7 @@ export const AdminPromoCodesPage: React.FC = () => {
               {/* Reward Type */}
               <div className="form-group" style={{ margin: 0 }}>
                 <label className="form-label" style={{ fontSize: '13px' }}>
-                  Сыйлық / Жеңілдік түрі <span className="req">*</span>
+                  Жеңілдік түрі <span className="req">*</span>
                 </label>
                 <select
                   value={rewardTitle}
@@ -314,7 +311,7 @@ export const AdminPromoCodesPage: React.FC = () => {
               {/* Custom Word / Prefix */}
               <div className="form-group" style={{ margin: 0 }}>
                 <label className="form-label" style={{ fontSize: '13px', color: 'var(--blue)' }}>
-                  Арнайы сөз (Бастапқы сөз)
+                  Арнайы сөз
                 </label>
                 <input
                   type="text"
@@ -329,7 +326,7 @@ export const AdminPromoCodesPage: React.FC = () => {
               {/* Custom Batch Name */}
               <div className="form-group" style={{ margin: 0 }}>
                 <label className="form-label" style={{ fontSize: '13px' }}>
-                  Топтама (Файл) атауы
+                  Топтама атауы
                 </label>
                 <input
                   type="text"
@@ -384,15 +381,7 @@ export const AdminPromoCodesPage: React.FC = () => {
 
 
 
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', paddingTop: '16px', borderTop: '1px solid #F1F5F9', flexWrap: 'wrap' }}>
-              <div style={{ fontSize: '13px', color: '#64748B', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                  <polyline points="14 2 14 8 20 8"></polyline>
-                </svg>
-                Нәтижесінде жаңа <strong>«Файл/Топтама»</strong> жасалып, оған {count} промокод біріктіріледі
-              </div>
-
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '12px', paddingTop: '16px', borderTop: '1px solid #F1F5F9', flexWrap: 'wrap' }}>
               <button
                 type="submit"
                 className="btn-primary"
@@ -491,7 +480,7 @@ export const AdminPromoCodesPage: React.FC = () => {
                       gap: '6px',
                     }}
                   >
-                    Жаңа беттен ашу 📂
+                    Жаңа беттен ашу
                   </button>
                 </div>
               </div>
@@ -544,7 +533,7 @@ export const AdminPromoCodesPage: React.FC = () => {
           >
             <div>
               <h2 style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
-                Барлық промокод топтамалары (Файлдар тізімі)
+                Барлық топтамалар тізімі
               </h2>
               <p style={{ fontSize: '13px', color: 'var(--text-mid)', marginTop: '4px' }}>
                 Генерацияланған файлдар / топтамалар саны: <span style={{ fontWeight: 700, color: 'var(--blue)' }}>{allBatches.length}</span>
@@ -557,7 +546,7 @@ export const AdminPromoCodesPage: React.FC = () => {
                 type="text"
                 value={batchSearchQuery}
                 onChange={(e) => setBatchSearchQuery(e.target.value)}
-                placeholder="Файл атауы немесе сыйлық бойынша..."
+                placeholder="Іздеу..."
                 style={{
                   width: '100%',
                   padding: '9px 14px 9px 34px',
@@ -591,8 +580,8 @@ export const AdminPromoCodesPage: React.FC = () => {
               <thead>
                 <tr>
                   <th style={{ width: '40px', textAlign: 'center' }}>№</th>
-                  <th>Топтама / Файл атауы</th>
-                  <th>Сыйлығы / Жеңілдігі</th>
+                  <th>Топтама атауы</th>
+                  <th>Жеңілдік</th>
                   <th style={{ width: '130px', whiteSpace: 'nowrap' }}>Жасалған күні</th>
                   <th style={{ width: '130px', whiteSpace: 'nowrap' }}>Жарамдылығы</th>
                   <th style={{ width: '150px', whiteSpace: 'nowrap', textAlign: 'center' }}>Кодтар саны</th>
@@ -700,11 +689,11 @@ export const AdminPromoCodesPage: React.FC = () => {
                                 gap: '3px',
                               }}
                             >
-                              ✅ {usedInBatch} қолданылды
+                              {usedInBatch} қолданылды
                             </span>
                           ) : (
                             <span style={{ fontSize: '11px', color: '#94A3B8', fontWeight: 600 }}>
-                              ⏳ Әлі қолданылмаған
+                              Әлі қолданылмаған
                             </span>
                           )}
                         </div>
@@ -729,25 +718,26 @@ export const AdminPromoCodesPage: React.FC = () => {
 
                       {/* Actions */}
                       <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }} onClick={(e) => e.stopPropagation()}>
-                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', justifyContent: 'flex-end' }}>
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '12px', justifyContent: 'flex-end' }}>
                           {/* Open batch on new page */}
                           <Link
                             to={`/admin/promocodes/${batch.id}`}
                             title="Жаңа беттен ашу"
                             style={{
-                              padding: '5px 12px',
-                              fontSize: '12px',
+                              padding: '4px 6px',
+                              fontSize: '13px',
                               fontWeight: 700,
-                              background: 'var(--blue)',
-                              color: '#FFFFFF',
-                              borderRadius: '6px',
+                              background: 'transparent',
+                              border: 'none',
+                              color: 'var(--text-dark)',
                               textDecoration: 'none',
                               display: 'inline-flex',
                               alignItems: 'center',
                               gap: '4px',
+                              cursor: 'pointer',
                             }}
                           >
-                            Ашу 📂
+                            Ашу
                           </Link>
 
                           {/* Copy all codes in batch */}
@@ -756,13 +746,12 @@ export const AdminPromoCodesPage: React.FC = () => {
                             onClick={() => copyBatchCodes(batch.id)}
                             title="Барлық промокодтарды көшіру"
                             style={{
-                              padding: '5px 10px',
-                              fontSize: '12px',
+                              padding: '4px 6px',
+                              fontSize: '13px',
                               fontWeight: 700,
-                              background: '#EFF6FF',
-                              color: 'var(--blue)',
-                              borderRadius: '6px',
-                              border: '1px solid #BFDBFE',
+                              background: 'transparent',
+                              border: 'none',
+                              color: 'var(--text-dark)',
                               cursor: 'pointer',
                             }}
                           >
@@ -783,13 +772,12 @@ export const AdminPromoCodesPage: React.FC = () => {
                             }}
                             title={anyActive ? 'Жарамсыз ету' : 'Қайта белсендіру'}
                             style={{
-                              padding: '5px 10px',
-                              fontSize: '12px',
+                              padding: '4px 6px',
+                              fontSize: '13px',
                               fontWeight: 700,
-                              background: anyActive ? '#FFFBEB' : '#ECFDF5',
-                              color: anyActive ? '#D97706' : '#059669',
-                              borderRadius: '6px',
-                              border: anyActive ? '1px solid #FDE68A' : '1px solid #A7F3D0',
+                              background: 'transparent',
+                              border: 'none',
+                              color: 'var(--text-dark)',
                               cursor: 'pointer',
                             }}
                           >
@@ -802,13 +790,12 @@ export const AdminPromoCodesPage: React.FC = () => {
                             onClick={() => setBatchToDelete(batch)}
                             title="Өшіру"
                             style={{
-                              padding: '5px 10px',
-                              fontSize: '12px',
+                              padding: '4px 6px',
+                              fontSize: '13px',
                               fontWeight: 700,
-                              background: '#FEF2F2',
+                              background: 'transparent',
+                              border: 'none',
                               color: '#DC2626',
-                              borderRadius: '6px',
-                              border: '1px solid #FECACA',
                               cursor: 'pointer',
                             }}
                           >
