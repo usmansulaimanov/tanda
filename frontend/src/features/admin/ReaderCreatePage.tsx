@@ -304,39 +304,23 @@ export const ReaderCreatePage: React.FC = () => {
                 </h1>
                 <span
                   style={{
-                    fontSize: '11px',
-                    fontWeight: 800,
+                    fontSize: '13px',
+                    fontWeight: 700,
                     fontFamily: 'monospace',
-                    background: 'rgba(0, 84, 148, 0.1)',
-                    color: 'var(--blue)',
-                    padding: '2px 8px',
-                    borderRadius: '4px',
+                    color: 'var(--text-dark)',
                     letterSpacing: '0.04em',
                   }}
                 >
                   ID: {idNumber || '001 001'}
                 </span>
+                <span style={{ color: '#94A3B8', fontSize: '13px' }}>•</span>
                 <span
                   style={{
-                    fontSize: '11px',
+                    fontSize: '13px',
                     fontWeight: 700,
-                    padding: '2px 8px',
-                    borderRadius: '20px',
-                    background: role === 'admin' ? '#FEF3C7' : '#D1FAE5',
-                    color: role === 'admin' ? '#92400E' : '#047857',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '4px',
+                    color: 'var(--text-dark)',
                   }}
                 >
-                  <span
-                    style={{
-                      width: '6px',
-                      height: '6px',
-                      borderRadius: '50%',
-                      background: role === 'admin' ? '#F59E0B' : '#10B981',
-                    }}
-                  />
                   {role === 'admin' ? 'Әкімші' : 'Оқырман'}
                 </span>
               </div>
