@@ -310,13 +310,12 @@ export const TopAudioSection: React.FC = () => {
                       fontSize: '15px',
                       fontWeight: 700,
                       color: '#0F172A',
-                      margin: '0 0 4px 0',
+                      margin: '0 0 2px 0',
                       lineHeight: 1.3,
                       display: '-webkit-box',
                       WebkitLineClamp: 2,
                       WebkitBoxOrient: 'vertical',
                       overflow: 'hidden',
-                      minHeight: '38px',
                     }}
                     title={book.title}
                   >
@@ -328,7 +327,7 @@ export const TopAudioSection: React.FC = () => {
                     style={{
                       fontSize: '13px',
                       color: '#64748B',
-                      marginBottom: '6px',
+                      marginBottom: '8px',
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
