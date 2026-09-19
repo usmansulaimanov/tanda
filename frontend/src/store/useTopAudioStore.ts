@@ -87,18 +87,12 @@ export const useTopAudioStore = create<TopAudioState>()(
         const dateStr = getTodayString();
         const state = get();
 
-        // 1. Filter books that have audio (audio chapters, audio duration, or marked hasAudio)
+        // 1. Filter books that strictly have audio enabled
         const audioBooks = allBooks.filter((b) => {
           if (b.isArchived) return false;
-          return (
-            b.hasAudio ||
-            Boolean(b.audioUrl) ||
-            Boolean(b.audioDuration) ||
-            (Array.isArray(b.audioChapters) && b.audioChapters.length > 0)
-          );
+          return Boolean(b.hasAudio);
         });
 
-        // Fallback: if no explicit audio books found, use active books
         const candidateBooks = audioBooks.length > 0 ? audioBooks : allBooks.filter((b) => !b.isArchived);
 
         // 2. Count real listens for today
@@ -113,7 +107,8 @@ export const useTopAudioStore = create<TopAudioState>()(
         const scoredBooks = candidateBooks.map((book) => {
           const realListens = realListenCounts[book.id] || 0;
           const seedScore = getDailySeedScore(book.id, dateStr);
-          const totalScore = seedScore + realListens * 15;
+          // Each real user listen significantly boosts the book's rank today
+          const totalScore = seedScore + realListens * 25;
 
           return {
             book,

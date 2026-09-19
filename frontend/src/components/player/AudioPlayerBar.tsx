@@ -76,7 +76,8 @@ export const AudioPlayerBar: React.FC = () => {
   const timerMenuRef = useRef<HTMLDivElement>(null);
   const speedMenuRef = useRef<HTMLDivElement>(null);
 
-  const audioSrc = currentChapter?.audioUrl || currentBook?.audioUrl || '';
+  const DEFAULT_SAMPLE_AUDIO = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3';
+  const audioSrc = currentChapter?.audioUrl || currentBook?.audioUrl || (currentBook?.hasAudio ? DEFAULT_SAMPLE_AUDIO : '');
   const ytVideoId = extractYouTubeVideoId(audioSrc);
   const isYouTube = !!ytVideoId;
 

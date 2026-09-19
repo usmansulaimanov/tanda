@@ -1,5 +1,11 @@
 import { Book } from '../types';
 
+const SAMPLE_AUDIO_1 = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3';
+const SAMPLE_AUDIO_2 = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3';
+const SAMPLE_AUDIO_3 = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3';
+const SAMPLE_AUDIO_4 = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3';
+const SAMPLE_AUDIO_5 = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3';
+
 export const INITIAL_BOOKS: Book[] = [
   {
     id: "kara-sozder",
@@ -10,16 +16,16 @@ export const INITIAL_BOOKS: Book[] = [
     hasAudio: true,
     audioNarrator: "Берік Айтжанов",
     audioDuration: "2 сағат 15 минут",
+    audioUrl: SAMPLE_AUDIO_1,
     audioChapters: [
-      { id: "ch-1", title: "1-сөз", duration: "03:45", audioUrl: "" },
-      { id: "ch-2", title: "2-сөз", duration: "04:10", audioUrl: "" },
-      { id: "ch-3", title: "3-сөз", duration: "05:20", audioUrl: "" },
-      { id: "ch-4", title: "7-сөз", duration: "04:50", audioUrl: "" },
-      { id: "ch-5", title: "17-сөз", duration: "06:15", audioUrl: "" },
-      { id: "ch-6", title: "25-сөз", duration: "07:30", audioUrl: "" },
-      { id: "ch-7", title: "37-сөз", duration: "08:10", audioUrl: "" }
+      { id: "ch-1", title: "1-сөз", duration: "03:45", audioUrl: SAMPLE_AUDIO_1 },
+      { id: "ch-2", title: "2-сөз", duration: "04:10", audioUrl: SAMPLE_AUDIO_2 },
+      { id: "ch-3", title: "3-сөз", duration: "05:20", audioUrl: SAMPLE_AUDIO_3 },
+      { id: "ch-4", title: "7-сөз", duration: "04:50", audioUrl: SAMPLE_AUDIO_4 },
+      { id: "ch-5", title: "17-сөз", duration: "06:15", audioUrl: SAMPLE_AUDIO_5 },
+      { id: "ch-6", title: "25-сөз", duration: "07:30", audioUrl: SAMPLE_AUDIO_1 },
+      { id: "ch-7", title: "37-сөз", duration: "08:10", audioUrl: SAMPLE_AUDIO_2 }
     ],
-    audioUrl: "",
     coverImage: "",
     isFree: true,
     isArchived: false,
@@ -36,13 +42,13 @@ export const INITIAL_BOOKS: Book[] = [
     hasAudio: true,
     audioNarrator: "Азамат Сатыбалды",
     audioDuration: "8 сағат 40 минут",
+    audioUrl: SAMPLE_AUDIO_2,
     audioChapters: [
-      { id: "aj-1", title: "1-тарау: Қайтқанда", duration: "45:10", audioUrl: "" },
-      { id: "aj-2", title: "2-тарау: Қат-қабатта", duration: "52:30", audioUrl: "" },
-      { id: "aj-3", title: "3-тарау: Жолда", duration: "48:15", audioUrl: "" },
-      { id: "aj-4", title: "4-тарау: Шытырманда", duration: "56:40", audioUrl: "" }
+      { id: "aj-1", title: "1-тарау: Қайтқанда", duration: "45:10", audioUrl: SAMPLE_AUDIO_2 },
+      { id: "aj-2", title: "2-тарау: Қат-қабатта", duration: "52:30", audioUrl: SAMPLE_AUDIO_3 },
+      { id: "aj-3", title: "3-тарау: Жолда", duration: "48:15", audioUrl: SAMPLE_AUDIO_4 },
+      { id: "aj-4", title: "4-тарау: Шытырманда", duration: "56:40", audioUrl: SAMPLE_AUDIO_5 }
     ],
-    audioUrl: "",
     coverImage: "",
     isFree: false,
     isArchived: false,
@@ -59,12 +65,12 @@ export const INITIAL_BOOKS: Book[] = [
     hasAudio: true,
     audioNarrator: "Саят Мерекеұлы",
     audioDuration: "6 сағат 30 минут",
+    audioUrl: SAMPLE_AUDIO_3,
     audioChapters: [
-      { id: "kp-1", title: "1-бөлім: Қазақ хандығының бастауы", duration: "38:20", audioUrl: "" },
-      { id: "kp-2", title: "2-бөлім: Керей мен Жәнібек", duration: "42:15", audioUrl: "" },
-      { id: "kp-3", title: "3-бөлім: Қасым ханның қасқа жолы", duration: "49:50", audioUrl: "" }
+      { id: "kp-1", title: "1-бөлім: Қазақ хандығының бастауы", duration: "38:20", audioUrl: SAMPLE_AUDIO_3 },
+      { id: "kp-2", title: "2-бөлім: Керей мен Жәнібек", duration: "42:15", audioUrl: SAMPLE_AUDIO_4 },
+      { id: "kp-3", title: "3-бөлім: Қасым ханның қасқа жолы", duration: "49:50", audioUrl: SAMPLE_AUDIO_5 }
     ],
-    audioUrl: "",
     coverImage: "",
     isFree: false,
     isArchived: false,
@@ -81,12 +87,12 @@ export const INITIAL_BOOKS: Book[] = [
     hasAudio: true,
     audioNarrator: "Ерлан Төлеутай",
     audioDuration: "5 сағат 10 минут",
+    audioUrl: SAMPLE_AUDIO_4,
     audioChapters: [
-      { id: "ah-1", title: "1-тарау: 1% өзгерістің таңғажайып күші", duration: "25:40", audioUrl: "" },
-      { id: "ah-2", title: "2-тарау: Жеке болмыс пен әдет", duration: "31:10", audioUrl: "" },
-      { id: "ah-3", title: "3-тарау: Төрт қарапайым ереже", duration: "28:50", audioUrl: "" }
+      { id: "ah-1", title: "1-тарау: 1% өзгерістің таңғажайып күші", duration: "25:40", audioUrl: SAMPLE_AUDIO_4 },
+      { id: "ah-2", title: "2-тарау: Жеке болмыс пен әдет", duration: "31:10", audioUrl: SAMPLE_AUDIO_5 },
+      { id: "ah-3", title: "3-тарау: Төрт қарапайым ереже", duration: "28:50", audioUrl: SAMPLE_AUDIO_1 }
     ],
-    audioUrl: "",
     coverImage: "",
     isFree: false,
     isArchived: false,
@@ -103,12 +109,12 @@ export const INITIAL_BOOKS: Book[] = [
     hasAudio: true,
     audioNarrator: "Дәурен Серғазин",
     audioDuration: "4 сағат 45 минут",
+    audioUrl: SAMPLE_AUDIO_5,
     audioChapters: [
-      { id: "rd-1", title: "1-сабақ: Байлар ақша үшін жұмыс істемейді", duration: "35:10", audioUrl: "" },
-      { id: "rd-2", title: "2-сабақ: Қаржылық сауат неге маңызды?", duration: "40:20", audioUrl: "" },
-      { id: "rd-3", title: "3-сабақ: Өз бизнесіңізді ойлаңыз", duration: "32:15", audioUrl: "" }
+      { id: "rd-1", title: "1-сабақ: Байлар ақша үшін жұмыс істемейді", duration: "35:10", audioUrl: SAMPLE_AUDIO_5 },
+      { id: "rd-2", title: "2-сабақ: Қаржылық сауат неге маңызды?", duration: "40:20", audioUrl: SAMPLE_AUDIO_1 },
+      { id: "rd-3", title: "3-сабақ: Өз бизнесіңізді ойлаңыз", duration: "32:15", audioUrl: SAMPLE_AUDIO_2 }
     ],
-    audioUrl: "",
     coverImage: "",
     isFree: false,
     isArchived: false,
@@ -125,12 +131,12 @@ export const INITIAL_BOOKS: Book[] = [
     hasAudio: true,
     audioNarrator: "Дулыға Ақмолда",
     audioDuration: "1 сағат 45 минут",
+    audioUrl: SAMPLE_AUDIO_1,
     audioChapters: [
-      { id: "sh-1", title: "1-анық: Дене мен жан", duration: "22:15", audioUrl: "" },
-      { id: "sh-2", title: "2-анық: Ар-ұждан ілімі", duration: "28:40", audioUrl: "" },
-      { id: "sh-3", title: "3-анық: Ғылым мен иман", duration: "30:20", audioUrl: "" }
+      { id: "sh-1", title: "1-анық: Дене мен жан", duration: "22:15", audioUrl: SAMPLE_AUDIO_1 },
+      { id: "sh-2", title: "2-анық: Ар-ұждан ілімі", duration: "28:40", audioUrl: SAMPLE_AUDIO_2 },
+      { id: "sh-3", title: "3-анық: Ғылым мен иман", duration: "30:20", audioUrl: SAMPLE_AUDIO_3 }
     ],
-    audioUrl: "",
     coverImage: "",
     isFree: true,
     isArchived: false,
@@ -147,12 +153,12 @@ export const INITIAL_BOOKS: Book[] = [
     hasAudio: true,
     audioNarrator: "Гүлнәр Сейітқали",
     audioDuration: "1 сағат 35 минут",
+    audioUrl: SAMPLE_AUDIO_2,
     audioChapters: [
-      { id: "sb-1", title: "1-бөлім: Ауыл кеші", duration: "28:10", audioUrl: "" },
-      { id: "sb-2", title: "2-бөлім: Ғашықтар серті", duration: "34:20", audioUrl: "" },
-      { id: "sb-3", title: "3-бөлім: Шұғаның мұңы", duration: "32:50", audioUrl: "" }
+      { id: "sb-1", title: "1-бөлім: Ауыл кеші", duration: "28:10", audioUrl: SAMPLE_AUDIO_2 },
+      { id: "sb-2", title: "2-бөлім: Ғашықтар серті", duration: "34:20", audioUrl: SAMPLE_AUDIO_3 },
+      { id: "sb-3", title: "3-бөлім: Шұғаның мұңы", duration: "32:50", audioUrl: SAMPLE_AUDIO_4 }
     ],
-    audioUrl: "",
     coverImage: "",
     isFree: true,
     isArchived: false,
@@ -169,12 +175,12 @@ export const INITIAL_BOOKS: Book[] = [
     hasAudio: true,
     audioNarrator: "Шынар Жанысбекова",
     audioDuration: "2 сағат 05 минут",
+    audioUrl: SAMPLE_AUDIO_3,
     audioChapters: [
-      { id: "lp-1", title: "1-тарау: Шөл даладағы кездесу", duration: "20:15", audioUrl: "" },
-      { id: "lp-2", title: "2-тарау: Роза мен Кішкентай ханзада", duration: "24:30", audioUrl: "" },
-      { id: "lp-3", title: "3-тарау: Түлкінің құпиясы", duration: "26:40", audioUrl: "" }
+      { id: "lp-1", title: "1-тарау: Шөл даладағы кездесу", duration: "20:15", audioUrl: SAMPLE_AUDIO_3 },
+      { id: "lp-2", title: "2-тарау: Роза мен Кішкентай ханзада", duration: "24:30", audioUrl: SAMPLE_AUDIO_4 },
+      { id: "lp-3", title: "3-тарау: Түлкінің құпиясы", duration: "26:40", audioUrl: SAMPLE_AUDIO_5 }
     ],
-    audioUrl: "",
     coverImage: "",
     isFree: true,
     isArchived: false,
@@ -191,12 +197,12 @@ export const INITIAL_BOOKS: Book[] = [
     hasAudio: true,
     audioNarrator: "Тұңғышбай Жаманқұлов",
     audioDuration: "7 сағат 20 минут",
+    audioUrl: SAMPLE_AUDIO_4,
     audioChapters: [
-      { id: "kmt-1", title: "1-кітап: Ымырт", duration: "48:30", audioUrl: "" },
-      { id: "kmt-2", title: "2-кітап: Сергелдең", duration: "54:10", audioUrl: "" },
-      { id: "kmt-3", title: "3-кітап: Күйреу", duration: "58:40", audioUrl: "" }
+      { id: "kmt-1", title: "1-кітап: Ымырт", duration: "48:30", audioUrl: SAMPLE_AUDIO_4 },
+      { id: "kmt-2", title: "2-кітап: Сергелдең", duration: "54:10", audioUrl: SAMPLE_AUDIO_5 },
+      { id: "kmt-3", title: "3-кітап: Күйреу", duration: "58:40", audioUrl: SAMPLE_AUDIO_1 }
     ],
-    audioUrl: "",
     coverImage: "",
     isFree: false,
     isArchived: false,
@@ -213,12 +219,12 @@ export const INITIAL_BOOKS: Book[] = [
     hasAudio: true,
     audioNarrator: "Нұрлан Өнербаев",
     audioDuration: "3 сағат 50 минут",
+    audioUrl: SAMPLE_AUDIO_5,
     audioChapters: [
-      { id: "bo-1", title: "1-тарау: Шаңырақ көтерудің негізі", duration: "32:10", audioUrl: "" },
-      { id: "bo-2", title: "2-тарау: Ер мен әйел сыйластығы", duration: "38:45", audioUrl: "" },
-      { id: "bo-3", title: "3-тарау: Ұрпақ тәрбиесі", duration: "42:20", audioUrl: "" }
+      { id: "bo-1", title: "1-тарау: Шаңырақ көтерудің негізі", duration: "32:10", audioUrl: SAMPLE_AUDIO_5 },
+      { id: "bo-2", title: "2-тарау: Ер мен әйел сыйластығы", duration: "38:45", audioUrl: SAMPLE_AUDIO_1 },
+      { id: "bo-3", title: "3-тарау: Ұрпақ тәрбиесі", duration: "42:20", audioUrl: SAMPLE_AUDIO_2 }
     ],
-    audioUrl: "",
     coverImage: "",
     isFree: true,
     isArchived: false,
@@ -235,12 +241,12 @@ export const INITIAL_BOOKS: Book[] = [
     hasAudio: true,
     audioNarrator: "Усман Сулайманов",
     audioDuration: "2 сағат 40 минут",
+    audioUrl: SAMPLE_AUDIO_1,
     audioChapters: [
-      { id: "men-1", title: "1-тарау: Мен кіммін?", duration: "22:15", audioUrl: "" },
-      { id: "men-2", title: "2-тарау: Мақсат пен табандылық", duration: "30:40", audioUrl: "" },
-      { id: "men-3", title: "3-тарау: Ішкі еркіндік", duration: "32:20", audioUrl: "" }
+      { id: "men-1", title: "1-тарау: Мен кіммін?", duration: "22:15", audioUrl: SAMPLE_AUDIO_1 },
+      { id: "men-2", title: "2-тарау: Мақсат пен табандылық", duration: "30:40", audioUrl: SAMPLE_AUDIO_2 },
+      { id: "men-3", title: "3-тарау: Ішкі еркіндік", duration: "32:20", audioUrl: SAMPLE_AUDIO_3 }
     ],
-    audioUrl: "",
     coverImage: "",
     isFree: true,
     isArchived: false,
@@ -257,12 +263,12 @@ export const INITIAL_BOOKS: Book[] = [
     hasAudio: true,
     audioNarrator: "Болат Әбділманов",
     audioDuration: "3 сағат 15 минут",
+    audioUrl: SAMPLE_AUDIO_2,
     audioChapters: [
-      { id: "km-1", title: "1-бөлім: Ғайшаның зары", duration: "30:15", audioUrl: "" },
-      { id: "km-2", title: "2-бөлім: Ескі салттың шырмауы", duration: "35:40", audioUrl: "" },
-      { id: "km-3", title: "3-бөлім: Азаттыққа ұмтылыс", duration: "38:20", audioUrl: "" }
+      { id: "km-1", title: "1-бөлім: Ғайшаның зары", duration: "30:15", audioUrl: SAMPLE_AUDIO_2 },
+      { id: "km-2", title: "2-бөлім: Ескі салттың шырмауы", duration: "35:40", audioUrl: SAMPLE_AUDIO_3 },
+      { id: "km-3", title: "3-бөлім: Азаттыққа ұмтылыс", duration: "38:20", audioUrl: SAMPLE_AUDIO_4 }
     ],
-    audioUrl: "",
     coverImage: "",
     isFree: true,
     isArchived: false,
