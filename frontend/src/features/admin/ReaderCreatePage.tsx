@@ -561,16 +561,10 @@ export const ReaderCreatePage: React.FC = () => {
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '18px' }}>💌</span>
-                  <div>
-                    <h3 style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-dark)', margin: 0 }}>
-                      Оқырманға арналған жеке хабарлама (Қосымша)
-                    </h3>
-                    <p style={{ fontSize: '12px', color: 'var(--text-mid)', margin: 0 }}>
-                      Оқырман аккаунтына кірген кезде басты бетте көрсетілетін хабарлама
-                    </p>
-                  </div>
+                <div>
+                  <h3 style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-dark)', margin: 0 }}>
+                    Оқырманға арналған жеке хабарлама
+                  </h3>
                 </div>
 
                 {/* Toggle Enable */}
