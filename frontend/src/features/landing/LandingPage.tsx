@@ -453,67 +453,41 @@ export const LandingPage: React.FC = () => {
           </div>
 
           {/* Clean Horizontal Scrollable Genres Ribbon */}
-          <div style={{ position: 'relative', marginBottom: '28px' }}>
-            
+          <div
+            style={{
+              position: 'relative',
+              marginBottom: '28px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+            }}
+          >
             {/* Left arrow scroll */}
-            {canScrollLeft && (
-              <button
-                type="button"
-                onClick={() => scrollTabs('left')}
-                style={{
-                  position: 'absolute',
-                  left: '-14px',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  zIndex: 10,
-                  width: '34px',
-                  height: '34px',
-                  borderRadius: '50%',
-                  background: '#FFFFFF',
-                  border: '1.5px solid #E2E8F0',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  color: 'var(--text-dark)',
-                  fontWeight: 800,
-                  fontSize: '16px',
-                }}
-              >
-                ‹
-              </button>
-            )}
-
-            {/* Right arrow scroll */}
-            {canScrollRight && (
-              <button
-                type="button"
-                onClick={() => scrollTabs('right')}
-                style={{
-                  position: 'absolute',
-                  right: '-14px',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  zIndex: 10,
-                  width: '34px',
-                  height: '34px',
-                  borderRadius: '50%',
-                  background: '#FFFFFF',
-                  border: '1.5px solid #E2E8F0',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  color: 'var(--text-dark)',
-                  fontWeight: 800,
-                  fontSize: '16px',
-                }}
-              >
-                ›
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={() => scrollTabs('left')}
+              disabled={!canScrollLeft}
+              style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: '50%',
+                background: '#FFFFFF',
+                border: '1.5px solid #E2E8F0',
+                boxShadow: canScrollLeft ? '0 2px 8px rgba(0,0,0,0.06)' : 'none',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: canScrollLeft ? 'pointer' : 'default',
+                color: canScrollLeft ? 'var(--text-dark)' : '#CBD5E1',
+                fontWeight: 800,
+                fontSize: '16px',
+                flexShrink: 0,
+                opacity: canScrollLeft ? 1 : 0.3,
+                transition: 'all 0.2s ease',
+              }}
+            >
+              ‹
+            </button>
 
             {/* Categories Scrollable Row */}
             <div
@@ -526,6 +500,7 @@ export const LandingPage: React.FC = () => {
                 scrollbarWidth: 'none',
                 msOverflowStyle: 'none',
                 padding: '4px 2px',
+                flex: 1,
               }}
             >
               {CATEGORIES.map((cat) => {
@@ -588,6 +563,33 @@ export const LandingPage: React.FC = () => {
                 );
               })}
             </div>
+
+            {/* Right arrow scroll */}
+            <button
+              type="button"
+              onClick={() => scrollTabs('right')}
+              disabled={!canScrollRight}
+              style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: '50%',
+                background: '#FFFFFF',
+                border: '1.5px solid #E2E8F0',
+                boxShadow: canScrollRight ? '0 2px 8px rgba(0,0,0,0.06)' : 'none',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: canScrollRight ? 'pointer' : 'default',
+                color: canScrollRight ? 'var(--text-dark)' : '#CBD5E1',
+                fontWeight: 800,
+                fontSize: '16px',
+                flexShrink: 0,
+                opacity: canScrollRight ? 1 : 0.3,
+                transition: 'all 0.2s ease',
+              }}
+            >
+              ›
+            </button>
           </div>
 
           {/* Active Filter Info / Reset Bar */}
