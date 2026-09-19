@@ -113,8 +113,7 @@ export const ProfilePage: React.FC = () => {
       <div style={{ marginBottom: '32px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
           <div>
-            <span className="section-tag">Менің жинағым</span>
-            <h2 className="section-title" style={{ fontSize: '26px', margin: '6px 0 0' }}>
+            <h2 className="section-title" style={{ fontSize: '26px', margin: 0 }}>
               Сақталған кітаптар: {savedBooks.length}
             </h2>
           </div>
