@@ -438,9 +438,6 @@ export const AudioPlayerPage: React.FC = () => {
                     <div className="flex items-center gap-1 shrink-0">
                       <span>Ұзақтығы:</span> <strong className="text-slate-900">{activeBook.audioDuration || 'Толық аудио'}</strong>
                     </div>
-                    <div className="flex items-center gap-1 shrink-0">
-                      <span>Қолжетімділік:</span> <strong className="text-[#005494]">{activeBook.isFree ? 'Тегін' : 'Премиум'}</strong>
-                    </div>
                   </div>
                 </div>
               </div>
