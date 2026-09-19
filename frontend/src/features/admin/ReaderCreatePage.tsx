@@ -340,20 +340,6 @@ export const ReaderCreatePage: React.FC = () => {
                   {role === 'admin' ? 'Әкімші' : 'Оқырман'}
                 </span>
               </div>
-
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  marginTop: '6px',
-                  color: 'var(--text-mid)',
-                  fontSize: '13px',
-                  flexWrap: 'wrap',
-                }}
-              >
-                <span>Администратор арқылы оқырманның аккаунтын жылдам ашу</span>
-              </div>
             </div>
           </div>
 
