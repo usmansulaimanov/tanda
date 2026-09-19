@@ -20,6 +20,10 @@ export const BookDetailPage: React.FC = () => {
   const { markAsReading, markAsWantToRead, markAsCompleted, removeBookFromShelf, getBookStatus, currentShelf } = useMyBooksStore();
   const { showToast } = useToastStore();
 
+  React.useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
+  }, [id]);
+
   if (!book || (book.isArchived && role !== 'admin')) {
     return (
       <div style={{ maxWidth: '800px', margin: '80px auto', textAlign: 'center' }}>

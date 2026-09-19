@@ -17,6 +17,9 @@ export const AdminDashboard: React.FC = () => {
   const canDeleteBooks = hasAdminPermission(user, 'books_delete');
 
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'archived'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [pageSize, setPageSize] = useState<number>(10);
+  const [currentPage, setCurrentPage] = useState<number>(1);
   const [bookToDelete, setBookToDelete] = useState<Book | null>(null);
   const [selectedBookIds, setSelectedBookIds] = useState<string[]>([]);
   const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false);
@@ -32,18 +35,46 @@ export const AdminDashboard: React.FC = () => {
     return books.filter((b) => {
       if (filterStatus === 'active' && b.isArchived) return false;
       if (filterStatus === 'archived' && !b.isArchived) return false;
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        const matchTitle = b.title.toLowerCase().includes(q);
+        const matchAuthor = b.author?.toLowerCase().includes(q);
+        const matchCategory = b.category?.toLowerCase().includes(q);
+        if (!matchTitle && !matchAuthor && !matchCategory) return false;
+      }
       return true;
     });
-  }, [books, filterStatus]);
+  }, [books, filterStatus, searchQuery]);
 
-  const isAllSelected = filteredBooks.length > 0 && selectedBookIds.length === filteredBooks.length;
-  const isSomeSelected = selectedBookIds.length > 0 && selectedBookIds.length < filteredBooks.length;
+  const totalPages = Math.max(1, Math.ceil(filteredBooks.length / pageSize));
+
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [filterStatus, searchQuery, pageSize]);
+
+  React.useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
+  const paginatedBooks = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredBooks.slice(start, start + pageSize);
+  }, [filteredBooks, currentPage, pageSize]);
+
+  const isAllSelected =
+    paginatedBooks.length > 0 && paginatedBooks.every((b) => selectedBookIds.includes(b.id));
+  const isSomeSelected =
+    paginatedBooks.some((b) => selectedBookIds.includes(b.id)) && !isAllSelected;
 
   const handleSelectAll = () => {
     if (isAllSelected) {
-      setSelectedBookIds([]);
+      const pageIds = paginatedBooks.map((b) => b.id);
+      setSelectedBookIds((prev) => prev.filter((id) => !pageIds.includes(id)));
     } else {
-      setSelectedBookIds(filteredBooks.map((b) => b.id));
+      const pageIds = paginatedBooks.map((b) => b.id);
+      setSelectedBookIds((prev) => Array.from(new Set([...prev, ...pageIds])));
     }
   };
 
@@ -115,6 +146,39 @@ export const AdminDashboard: React.FC = () => {
             </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+                  {/* Search input */}
+                  <div style={{ position: 'relative', minWidth: '220px' }}>
+                    <input
+                      type="text"
+                      placeholder="Кітапты не авторды іздеу..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      style={{
+                        padding: '7px 12px 7px 32px',
+                        borderRadius: '8px',
+                        border: '1.5px solid #CBD5E1',
+                        fontSize: '13px',
+                        background: '#FFFFFF',
+                        color: 'var(--text-dark)',
+                        outline: 'none',
+                        width: '100%',
+                        boxSizing: 'border-box',
+                      }}
+                    />
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#94A3B8"
+                      strokeWidth="2.5"
+                      style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}
+                    >
+                      <circle cx="11" cy="11" r="8"></circle>
+                      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                  </div>
+
                   <div style={{ display: 'flex', gap: '8px' }}>
                     <button
                       type="button"
@@ -346,8 +410,9 @@ export const AdminDashboard: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredBooks.map((book, index) => {
+                {paginatedBooks.map((book, index) => {
                   const isSelected = selectedBookIds.includes(book.id);
+                  const itemIndex = (currentPage - 1) * pageSize + index + 1;
                   return (
                     <tr
                       key={book.id}
@@ -369,7 +434,7 @@ export const AdminDashboard: React.FC = () => {
 
                       {/* Sequential № */}
                       <td style={{ textAlign: 'center', fontWeight: 700, color: '#64748B', fontSize: '12px' }}>
-                        {index + 1}
+                        {itemIndex}
                       </td>
 
                     {/* Thumbnail */}
@@ -573,21 +638,160 @@ export const AdminDashboard: React.FC = () => {
             </div>
           )}
 
-          {/* Pagination summary */}
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginTop: '20px',
-              paddingTop: '16px',
-              borderTop: '1px solid #E2E8F0',
-            }}
-          >
-            <div style={{ fontSize: '13px', color: 'var(--text-mid)', fontWeight: 600 }}>
-              1-{filteredBooks.length} кітап көрсетілуде (Барлығы: {books.length})
+          {/* Pagination controls */}
+          {filteredBooks.length > 0 && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '16px',
+                marginTop: '20px',
+                paddingTop: '16px',
+                borderTop: '1.5px solid #F1F5F9',
+              }}
+            >
+              {/* Page size selector */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '13px', color: '#64748B', fontWeight: 600 }}>
+                  Беттегі кітап саны:
+                </span>
+                <select
+                  value={pageSize}
+                  onChange={(e) => setPageSize(Number(e.target.value))}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: '8px',
+                    border: '1.5px solid #CBD5E1',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    color: 'var(--text-dark)',
+                    background: '#FFFFFF',
+                    outline: 'none',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={30}>30</option>
+                  <option value={40}>40</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                </select>
+                <span style={{ fontSize: '13px', color: '#94A3B8', marginLeft: '6px' }}>
+                  ({Math.min((currentPage - 1) * pageSize + 1, filteredBooks.length)}-
+                  {Math.min(currentPage * pageSize, filteredBooks.length)} / Барлығы {filteredBooks.length})
+                </span>
+              </div>
+
+              {/* Page navigation */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    padding: '6px 12px',
+                    borderRadius: '8px',
+                    border: '1.5px solid #CBD5E1',
+                    background: currentPage === 1 ? '#F8FAFC' : '#FFFFFF',
+                    color: currentPage === 1 ? '#94A3B8' : 'var(--text-dark)',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                  </svg>
+                  Алдыңғы
+                </button>
+
+                {/* Number buttons */}
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => {
+                  if (
+                    totalPages > 7 &&
+                    pageNum !== 1 &&
+                    pageNum !== totalPages &&
+                    Math.abs(pageNum - currentPage) > 1
+                  ) {
+                    if (pageNum === 2 && currentPage > 3) {
+                      return (
+                        <span key="dots-start" style={{ padding: '0 4px', color: '#94A3B8', fontSize: '12px' }}>
+                          ...
+                        </span>
+                      );
+                    }
+                    if (pageNum === totalPages - 1 && currentPage < totalPages - 2) {
+                      return (
+                        <span key="dots-end" style={{ padding: '0 4px', color: '#94A3B8', fontSize: '12px' }}>
+                          ...
+                        </span>
+                      );
+                    }
+                    return null;
+                  }
+
+                  const isActive = currentPage === pageNum;
+                  return (
+                    <button
+                      key={pageNum}
+                      type="button"
+                      onClick={() => setCurrentPage(pageNum)}
+                      style={{
+                        minWidth: '34px',
+                        height: '34px',
+                        padding: '0 8px',
+                        borderRadius: '8px',
+                        border: isActive ? '1.5px solid var(--blue)' : '1.5px solid #CBD5E1',
+                        background: isActive ? 'var(--blue)' : '#FFFFFF',
+                        color: isActive ? '#FFFFFF' : 'var(--text-dark)',
+                        fontSize: '13px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    padding: '6px 12px',
+                    borderRadius: '8px',
+                    border: '1.5px solid #CBD5E1',
+                    background: currentPage === totalPages ? '#F8FAFC' : '#FFFFFF',
+                    color: currentPage === totalPages ? '#94A3B8' : 'var(--text-dark)',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  Кейінгі
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                  </svg>
+                </button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
 

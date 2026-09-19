@@ -56,7 +56,22 @@ export type AdminPermission =
   | 'promocodes_manage' // Промокодтарды жасау және басқару
   | 'quotes_manage'     // Цитаталарды енгізу, баптау және оқырмандарға тарату
   | 'analytics_view'    // Статистика мен көрсеткіштерді көру
+  | 'news_manage'       // Жаңалықтарды басқару және жариялау
   | 'managers_manage';  // Көмекшілерді тағайындау және рұқсат беру
+
+export interface NewsArticle {
+  id: string;
+  title: string;
+  content: string;
+  summary?: string;
+  imageUrl?: string;
+  linkUrl?: string;
+  linkText?: string;
+  authorName?: string;
+  publishedAt: string;
+  isPublished: boolean;
+  viewsCount?: number;
+}
 
 export interface UserPersonalMessage {
   text: string;

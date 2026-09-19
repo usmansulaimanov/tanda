@@ -321,6 +321,15 @@ export const Header: React.FC = () => {
                 </Link>
               </li>
               <li>
+                <Link
+                  to="/news"
+                  className={location.pathname.startsWith('/news') ? 'active' : ''}
+                  style={{ textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}
+                >
+                  Жаңалықтар
+                </Link>
+              </li>
+              <li>
                 <a
                   href="/#catalog"
                   onClick={(e) => {

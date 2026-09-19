@@ -7,6 +7,7 @@ import { useSavedBooksStore } from '../../store/useSavedBooksStore';
 import { useMyBooksStore } from '../../store/useMyBooksStore';
 import { useQuoteStore } from '../../store/useQuoteStore';
 import { useMessageStore } from '../../store/useMessageStore';
+import { useNewsStore } from '../../store/useNewsStore';
 import { hasAdminPermission } from '../../utils/permissions';
 import { api } from '../../lib/api';
 import tandaLogo from '../../assets/tanda-logo.png';
@@ -18,6 +19,7 @@ export const AppSidebarDrawer: React.FC = () => {
   const { savedBookIds } = useSavedBooksStore();
   const { currentShelf } = useMyBooksStore();
   const { quotes } = useQuoteStore();
+  const { articles } = useNewsStore();
   const { getUnreadCountForUser, messages } = useMessageStore();
   const location = useLocation();
   const navigate = useNavigate();
@@ -202,6 +204,17 @@ export const AppSidebarDrawer: React.FC = () => {
               <span>Басты бет</span>
             </Link>
 
+            <Link
+              to="/news"
+              className={`sidebar-nav-link ${location.pathname.startsWith('/news') ? 'active' : ''}`}
+              onClick={closeSidebar}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path>
+              </svg>
+              <span>Жаңалықтар</span>
+            </Link>
+
             <a
               href="/#catalog"
               className={`sidebar-nav-link ${location.pathname === '/' && location.hash === '#catalog' ? 'active' : ''}`}
@@ -327,6 +340,18 @@ export const AppSidebarDrawer: React.FC = () => {
                     <polyline points="22,6 12,13 2,6"></polyline>
                   </svg>
                   <span>Хабарламалар</span>
+                </Link>
+
+                <Link
+                  to="/admin/news"
+                  className={`sidebar-nav-link ${location.pathname.startsWith('/admin/news') ? 'active' : ''}`}
+                  onClick={closeSidebar}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path>
+                  </svg>
+                  <span>Жаңалықтар</span>
+                  {articles.length > 0 && <span className="sidebar-badge">{articles.length}</span>}
                 </Link>
 
                 {canManageManagers && (

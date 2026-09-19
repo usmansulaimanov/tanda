@@ -26,6 +26,10 @@ const ReaderMessagesPage = lazy(() => import('../features/messages/ReaderMessage
 const AdminManagersPage = lazy(() => import('../features/admin/AdminManagersPage').then((m) => ({ default: m.AdminManagersPage })));
 const AuthPage = lazy(() => import('../features/auth/AuthPage').then((m) => ({ default: m.AuthPage })));
 const AudioPlayerPage = lazy(() => import('../features/player/AudioPlayerPage').then((m) => ({ default: m.AudioPlayerPage })));
+const NewsPage = lazy(() => import('../features/news/NewsPage').then((m) => ({ default: m.NewsPage })));
+const NewsDetailPage = lazy(() => import('../features/news/NewsDetailPage').then((m) => ({ default: m.NewsDetailPage })));
+const AdminNewsPage = lazy(() => import('../features/admin/AdminNewsPage').then((m) => ({ default: m.AdminNewsPage })));
+const AdminNewsFormPage = lazy(() => import('../features/admin/AdminNewsFormPage').then((m) => ({ default: m.AdminNewsFormPage })));
 
 const PageLoader = () => (
   <div className="max-w-7xl mx-auto px-4 py-8 flex flex-col gap-6">
@@ -137,6 +141,22 @@ export const router = createBrowserRouter([
         ),
       },
       {
+        path: 'news',
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <NewsPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'news/:id',
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <NewsDetailPage />
+          </Suspense>
+        ),
+      },
+      {
         path: 'promocode',
         element: (
           <Suspense fallback={<PageLoader />}>
@@ -149,6 +169,30 @@ export const router = createBrowserRouter([
         element: (
           <Suspense fallback={<PageLoader />}>
             <AdminDashboard />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'admin/news',
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <AdminNewsPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'admin/news/new',
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <AdminNewsFormPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'admin/news/:id/edit',
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <AdminNewsFormPage />
           </Suspense>
         ),
       },
