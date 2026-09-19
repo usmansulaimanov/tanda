@@ -266,7 +266,6 @@ export const LandingPage: React.FC = () => {
             </p>
             <div className="hero-buttons">
               <a href="#catalog" onClick={scrollToCatalog} className="btn-primary">Кітаптарды көру</a>
-              <Link to="/catalog" className="btn-secondary">Аудиокітаптар</Link>
             </div>
             <div className="hero-stats">
               <div className="stat-item">
