@@ -595,33 +595,7 @@ export const ReaderCreatePage: React.FC = () => {
               </div>
             </div>
 
-            {/* Row 4: Role */}
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-                gap: '20px',
-                marginBottom: '28px',
-              }}
-            >
-              <div className="form-group" style={{ margin: 0 }}>
-                <label className="form-label">
-                  Мәртебесі (Рөлі)
-                </label>
-                <select
-                  value={role}
-                  onChange={(e) => setRole(e.target.value as 'client' | 'admin')}
-                  className="form-select"
-                  style={{ fontWeight: 600 }}
-                >
-                  <option value="client">Оқырман (Client)</option>
-                  <option value="admin">Әкімші (Admin)</option>
-                </select>
-                <span className="form-hint">Жүйедегі рұқсат деңгейі</span>
-              </div>
-            </div>
-
-            {/* Row 5: Personal Message to Reader (Басты беттегі жеке хабарлама) */}
+            {/* Personal Message to Reader (Басты беттегі жеке хабарлама) */}
             <div
               style={{
                 background: '#F8FAFC',
