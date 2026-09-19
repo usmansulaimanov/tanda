@@ -366,8 +366,8 @@ export const LandingPage: React.FC = () => {
             }}
           >
             <div>
-              <span className="section-tag">Кітап қоры</span>
-              <h2 className="section-title" style={{ marginTop: '6px', marginBottom: '6px' }}>Танымал кітаптар</h2>
+              <span className="section-tag">Каталог</span>
+              <h2 className="section-title" style={{ marginTop: '6px', marginBottom: '6px' }}>Кітаптар қоры</h2>
               <p className="section-sub" style={{ margin: 0 }}>Қазақ әдебиетінің інжу-маржандары мен әлемдік үздік аудармалар</p>
             </div>
 
