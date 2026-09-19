@@ -6,6 +6,7 @@ import { useAudioPlayerStore } from '../../store/useAudioPlayerStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useToastStore } from '../../store/useToastStore';
 import { useMyBooksStore } from '../../store/useMyBooksStore';
+import { TandaPremiumBadge } from '../../components/ui/TandaPremiumBadge';
 
 export const TopAudioSection: React.FC = () => {
   const navigate = useNavigate();
@@ -254,6 +255,9 @@ export const TopAudioSection: React.FC = () => {
                     </div>
                   )}
 
+                  {/* Premium badge */}
+                  {!book.isFree && <TandaPremiumBadge size="sm" style={{ top: '8px', right: '8px' }} />}
+
                   {/* Play Button Overlay */}
                   <button
                     onClick={(e) => handlePlayClick(e, book)}
@@ -298,23 +302,9 @@ export const TopAudioSection: React.FC = () => {
                   </button>
                 </div>
 
-                {/* Book Details */}
+                {/* Book Details: 1. Title, 2. Author, 3. Category */}
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                  {/* Category */}
-                  <div
-                    style={{
-                      fontSize: '11px',
-                      fontWeight: 700,
-                      color: 'var(--blue)',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.04em',
-                      marginBottom: '4px',
-                    }}
-                  >
-                    {book.category || 'Аудиокітап'}
-                  </div>
-
-                  {/* Title */}
+                  {/* 1. Title */}
                   <h3
                     style={{
                       fontSize: '15px',
@@ -333,12 +323,12 @@ export const TopAudioSection: React.FC = () => {
                     {book.title}
                   </h3>
 
-                  {/* Author */}
+                  {/* 2. Author */}
                   <div
                     style={{
                       fontSize: '13px',
                       color: '#64748B',
-                      marginBottom: '4px',
+                      marginBottom: '6px',
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
@@ -346,6 +336,19 @@ export const TopAudioSection: React.FC = () => {
                     title={book.author}
                   >
                     {book.author}
+                  </div>
+
+                  {/* 3. Category / Genre */}
+                  <div
+                    style={{
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      color: 'var(--blue)',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.04em',
+                    }}
+                  >
+                    {book.category || 'Аудиокітап'}
                   </div>
                 </div>
               </div>
