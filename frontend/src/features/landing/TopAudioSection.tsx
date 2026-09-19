@@ -184,33 +184,6 @@ export const TopAudioSection: React.FC = () => {
             const { book, rank, todayListens } = item;
             const isThisPlaying = isPlaying && currentBook?.id === book.id;
 
-            // Badges styling based on rank
-            let badgeBg = 'linear-gradient(135deg, #002D50, #005494)';
-            let badgeBorder = 'rgba(255, 255, 255, 0.2)';
-            let badgeColor = '#FFFFFF';
-            let rankText = `#${rank}`;
-            let cardBorder = '#E2E8F0';
-
-            if (rank === 1) {
-              badgeBg = 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)';
-              badgeBorder = '#FDE68A';
-              badgeColor = '#FFFFFF';
-              rankText = '🥇 #1';
-              cardBorder = '#FCD34D';
-            } else if (rank === 2) {
-              badgeBg = 'linear-gradient(135deg, #94A3B8 0%, #64748B 100%)';
-              badgeBorder = '#E2E8F0';
-              badgeColor = '#FFFFFF';
-              rankText = '🥈 #2';
-              cardBorder = '#CBD5E1';
-            } else if (rank === 3) {
-              badgeBg = 'linear-gradient(135deg, #EA580C 0%, #C2410C 100%)';
-              badgeBorder = '#FFEDD5';
-              badgeColor = '#FFFFFF';
-              rankText = '🥉 #3';
-              cardBorder = '#FDBA74';
-            }
-
             return (
               <div
                 key={book.id}
@@ -220,14 +193,14 @@ export const TopAudioSection: React.FC = () => {
                   scrollSnapAlign: 'start',
                   background: '#FFFFFF',
                   borderRadius: '18px',
-                  border: `1.5px solid ${cardBorder}`,
+                  border: '1.5px solid #E2E8F0',
                   padding: '14px',
                   display: 'flex',
                   flexDirection: 'column',
                   cursor: 'pointer',
                   position: 'relative',
                   transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-                  boxShadow: rank <= 3 ? '0 8px 20px -6px rgba(0, 84, 148, 0.08)' : '0 4px 12px rgba(0,0,0,0.03)',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.transform = 'translateY(-5px)';
@@ -236,34 +209,10 @@ export const TopAudioSection: React.FC = () => {
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = rank <= 3 ? '0 8px 20px -6px rgba(0, 84, 148, 0.08)' : '0 4px 12px rgba(0,0,0,0.03)';
-                  e.currentTarget.style.borderColor = cardBorder;
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.03)';
+                  e.currentTarget.style.borderColor = '#E2E8F0';
                 }}
               >
-                {/* Top Rank Badge */}
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: '10px',
-                    left: '10px',
-                    zIndex: 3,
-                    background: badgeBg,
-                    color: badgeColor,
-                    fontSize: '13px',
-                    fontWeight: 800,
-                    padding: '4px 10px',
-                    borderRadius: '12px',
-                    border: `1.5px solid ${badgeBorder}`,
-                    boxShadow: '0 4px 10px rgba(0,0,0,0.18)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    letterSpacing: '0.02em',
-                  }}
-                >
-                  {rankText}
-                </div>
-
                 {/* Cover Container */}
                 <div
                   style={{
