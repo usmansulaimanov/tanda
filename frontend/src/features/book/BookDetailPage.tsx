@@ -190,7 +190,7 @@ export const BookDetailPage: React.FC = () => {
               />
             )}
             {!book.isFree && (
-              <TandaPremiumBadge size="lg" style={{ top: '16px', right: '16px' }} />
+              <TandaPremiumBadge size="lg" position="left" style={{ top: '16px', left: '16px' }} />
             )}
             <div style={{ position: 'relative', zIndex: 2 }}>
               {!book.coverImage && (

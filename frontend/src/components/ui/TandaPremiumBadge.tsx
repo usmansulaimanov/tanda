@@ -3,22 +3,28 @@ import tandaPremiumWhite from '../../assets/tanda-premium-white.png';
 
 interface TandaPremiumBadgeProps {
   size?: 'sm' | 'md' | 'lg';
+  position?: 'left' | 'right';
   className?: string;
   style?: React.CSSProperties;
 }
 
 export const TandaPremiumBadge: React.FC<TandaPremiumBadgeProps> = ({
   size = 'md',
+  position = 'left',
   className = '',
   style = {},
 }) => {
   const sizeMap = {
-    sm: { width: '22px', top: '8px', right: '8px' },
-    md: { width: '28px', top: '10px', right: '10px' },
-    lg: { width: '38px', top: '14px', right: '14px' },
+    sm: { width: '22px', height: '28px', top: '8px', side: '8px' },
+    md: { width: '30px', height: '32px', top: '12px', side: '12px' },
+    lg: { width: '38px', height: '40px', top: '16px', side: '16px' },
   };
 
   const current = sizeMap[size] || sizeMap.md;
+
+  const posStyle: React.CSSProperties = position === 'left'
+    ? { top: current.top, left: current.side }
+    : { top: current.top, right: current.side };
 
   return (
     <div
@@ -26,10 +32,9 @@ export const TandaPremiumBadge: React.FC<TandaPremiumBadgeProps> = ({
       title="Премиум кітап"
       style={{
         position: 'absolute',
-        top: current.top,
-        right: current.right,
+        ...posStyle,
         width: current.width,
-        height: 'auto',
+        height: current.height,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',

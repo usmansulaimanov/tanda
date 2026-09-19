@@ -452,7 +452,7 @@ export const MyBooksPage: React.FC = () => {
                     style={{
                       position: 'absolute',
                       top: '12px',
-                      left: '12px',
+                      right: '12px',
                       width: '32px',
                       height: '32px',
                       borderRadius: '50%',
@@ -482,7 +482,7 @@ export const MyBooksPage: React.FC = () => {
                       style={{
                         position: 'absolute',
                         top: '48px',
-                        left: '12px',
+                        right: '12px',
                         background: '#FFFFFF',
                         borderRadius: '12px',
                         padding: '6px',

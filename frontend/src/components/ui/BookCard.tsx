@@ -122,18 +122,27 @@ export const BookCard: React.FC<BookCardProps> = ({ book }) => {
         )}
 
         {/* Premium badge */}
-        {!book.isFree && <TandaPremiumBadge />}
+        {!book.isFree && <TandaPremiumBadge position="left" />}
 
-        {/* Quick bookmark toggle on card - only for readers */}
+        {/* Quick actions top-right - only for readers */}
         {role !== 'admin' && (
-          <>
+          <div
+            style={{
+              position: 'absolute',
+              top: '12px',
+              right: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              zIndex: 3,
+            }}
+          >
+            {/* Quick bookmark toggle on card */}
             <button
               type="button"
               onClick={handleBookmarkClick}
+              title={isSaved ? "Сақталғандардан өшіру" : "Кейін оқимын"}
               style={{
-                position: 'absolute',
-                top: '12px',
-                left: '12px',
                 width: '32px',
                 height: '32px',
                 borderRadius: '50%',
@@ -146,7 +155,6 @@ export const BookCard: React.FC<BookCardProps> = ({ book }) => {
                 justifyContent: 'center',
                 cursor: 'pointer',
                 transition: 'all 0.2s',
-                zIndex: 3,
               }}
             >
               <svg
@@ -167,10 +175,8 @@ export const BookCard: React.FC<BookCardProps> = ({ book }) => {
             <button
               type="button"
               onClick={handleCompletedClick}
+              title={isCompleted ? "Оқылғаннан өшіру" : "Оқып болдым"}
               style={{
-                position: 'absolute',
-                top: '12px',
-                left: '48px',
                 width: '32px',
                 height: '32px',
                 borderRadius: '50%',
@@ -183,7 +189,6 @@ export const BookCard: React.FC<BookCardProps> = ({ book }) => {
                 justifyContent: 'center',
                 cursor: 'pointer',
                 transition: 'all 0.2s',
-                zIndex: 3,
               }}
             >
               <svg
@@ -199,7 +204,7 @@ export const BookCard: React.FC<BookCardProps> = ({ book }) => {
                 <polyline points="20 6 9 17 4 12"></polyline>
               </svg>
             </button>
-          </>
+          </div>
         )}
 
         <div style={{ position: 'relative', zIndex: 2 }}>
