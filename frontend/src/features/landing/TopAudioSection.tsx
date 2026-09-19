@@ -85,38 +85,9 @@ export const TopAudioSection: React.FC = () => {
                 fontWeight: 800,
                 color: '#0F172A',
                 margin: '0 0 6px 0',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                flexWrap: 'wrap',
               }}
             >
               Үздік кітаптар
-              <span
-                style={{
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  color: '#16A34A',
-                  background: '#F0FDF4',
-                  border: '1px solid #DCFCE7',
-                  padding: '3px 10px',
-                  borderRadius: '12px',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                }}
-              >
-                <span
-                  style={{
-                    width: '7px',
-                    height: '7px',
-                    borderRadius: '50%',
-                    backgroundColor: '#16A34A',
-                    boxShadow: '0 0 0 3px rgba(22, 163, 74, 0.2)',
-                  }}
-                />
-                Түнгі 00:00-де автоматты жаңарады
-              </span>
             </h2>
 
             <p className="section-sub" style={{ margin: 0, color: '#64748B', fontSize: '15px' }}>
