@@ -1,5 +1,5 @@
 import React from 'react';
-import tandaIcon from '../../assets/tanda-icon.png';
+import tandaPremiumWhite from '../../assets/tanda-premium-white.png';
 
 interface TandaPremiumBadgeProps {
   size?: 'sm' | 'md' | 'lg';
@@ -13,12 +13,12 @@ export const TandaPremiumBadge: React.FC<TandaPremiumBadgeProps> = ({
   style = {},
 }) => {
   const sizeMap = {
-    sm: { badge: '22px', icon: '13px', radius: '6px' },
-    md: { badge: '28px', icon: '16px', radius: '8px' },
-    lg: { badge: '36px', icon: '20px', radius: '10px' },
+    sm: { width: '22px', top: '8px', right: '8px' },
+    md: { width: '28px', top: '10px', right: '10px' },
+    lg: { width: '38px', top: '14px', right: '14px' },
   };
 
-  const currentSize = sizeMap[size] || sizeMap.md;
+  const current = sizeMap[size] || sizeMap.md;
 
   return (
     <div
@@ -26,26 +26,24 @@ export const TandaPremiumBadge: React.FC<TandaPremiumBadgeProps> = ({
       title="Премиум кітап"
       style={{
         position: 'absolute',
-        top: size === 'sm' ? '6px' : '10px',
-        right: size === 'sm' ? '6px' : '10px',
-        width: currentSize.badge,
-        height: currentSize.badge,
-        borderRadius: currentSize.radius,
-        background: '#FFFFFF',
-        boxShadow: '0 2px 8px rgba(0, 40, 80, 0.22)',
+        top: current.top,
+        right: current.right,
+        width: current.width,
+        height: 'auto',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         zIndex: 3,
         pointerEvents: 'none',
+        filter: 'drop-shadow(0 2px 5px rgba(0, 0, 0, 0.45))',
         ...style,
       }}
     >
       <img
-        src={tandaIcon}
+        src={tandaPremiumWhite}
         alt="Premium"
         style={{
-          width: currentSize.icon,
+          width: '100%',
           height: 'auto',
           display: 'block',
           objectFit: 'contain',
