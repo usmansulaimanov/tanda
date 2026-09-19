@@ -139,6 +139,43 @@ export const LandingPage: React.FC = () => {
     });
   }, [activeBooks, selectedCat, search]);
 
+  // Dynamic category book counts
+  const categoryCounts = useMemo(() => {
+    const counts: Record<string, number> = { 'Бәрі': activeBooks.length };
+    CATEGORIES.forEach((cat) => {
+      if (cat !== 'Бәрі') {
+        counts[cat] = activeBooks.filter((b) => b.category === cat).length;
+      }
+    });
+    return counts;
+  }, [activeBooks]);
+
+  const tabsContainerRef = React.useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+
+  const checkScroll = () => {
+    if (tabsContainerRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = tabsContainerRef.current;
+      setCanScrollLeft(scrollLeft > 10);
+      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
+    }
+  };
+
+  useEffect(() => {
+    checkScroll();
+    window.addEventListener('resize', checkScroll);
+    return () => window.removeEventListener('resize', checkScroll);
+  }, [activeBooks]);
+
+  const scrollTabs = (direction: 'left' | 'right') => {
+    if (tabsContainerRef.current) {
+      const offset = direction === 'left' ? -280 : 280;
+      tabsContainerRef.current.scrollBy({ left: offset, behavior: 'smooth' });
+      setTimeout(checkScroll, 250);
+    }
+  };
+
   return (
     <div>
       {/* HERO */}
@@ -159,90 +196,144 @@ export const LandingPage: React.FC = () => {
             {/* Personal Message placed directly above the "Оқы. Тыңда." headline */}
             {isAuthenticated && isMessageValid && personalMsg && (
               <div
+                className="hero-floating-message"
                 style={{
-                  display: 'inline-block',
-                  marginTop: '-42px',
-                  marginBottom: '24px',
+                  marginBottom: '20px',
+                  padding: '14px 18px',
+                  borderRadius: '16px',
+                  background: 'rgba(255, 255, 255, 0.96)',
+                  border: '1.5px solid rgba(239, 126, 0, 0.35)',
+                  boxShadow: '0 12px 32px rgba(0, 45, 80, 0.18)',
+                  backdropFilter: 'blur(10px)',
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '12px',
+                  maxWidth: '520px',
+                  width: '100%',
                 }}
               >
-                <span
+                <div
                   style={{
-                    fontSize: 'clamp(28px, 3.4vw, 46px)',
-                    fontWeight: 900,
-                    lineHeight: 1.2,
-                    color: 'var(--orange)',
-                    letterSpacing: '-0.02em',
-                    textShadow: '0 2px 14px rgba(0, 0, 0, 0.45)',
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '10px',
+                    background: 'linear-gradient(135deg, var(--orange) 0%, #D96B00 100%)',
+                    color: '#FFFFFF',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '18px',
+                    flexShrink: 0,
+                    boxShadow: '0 4px 10px rgba(239, 126, 0, 0.3)',
                   }}
                 >
-                  {personalMsg.text}
-                </span>
+                  ✉️
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '4px' }}>
+                    <span style={{ fontSize: '12px', fontWeight: 800, color: 'var(--orange)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                      Жеке хабарлама
+                    </span>
+                    {typeof remainingDays === 'number' && (
+                      <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748B', background: '#F1F5F9', padding: '2px 8px', borderRadius: '20px' }}>
+                        {remainingDays > 0 ? `${remainingDays} күн қалды` : 'Бүгін соңғы күн'}
+                      </span>
+                    )}
+                  </div>
+                  <p style={{ margin: 0, fontSize: '13.5px', lineHeight: 1.5, color: '#1E293B', fontWeight: 600 }}>
+                    {personalMsg.text}
+                  </p>
+                </div>
               </div>
             )}
 
-            <span className="hero-tag">Қазақша контент платформасы</span>
-            <h1>
-              Оқы. Тыңда.<br />
-              <span>Дамы.</span>
-            </h1>
+            <div className="hero-tag">Қазақша кітаптар қоры</div>
+            <h1>Оқы. Тыңда. <span>Дамы.</span></h1>
             <p className="hero-desc">
-              Мыңдаған қазақша аудиокітаптар мен электронды кітаптар — бір қолыңның астында. Кез келген уақытта, кез келген жерде.
+              Мыңдаған қазақша электронды және аудиокітаптар бір жерде. Кез келген құрылғыдан оқыңыз, тыңдаңыз және біліміңізді молайтыңыз.
             </p>
             <div className="hero-buttons">
-              <a href="#catalog" className="btn-primary">
-                Кітаптарды көру
-              </a>
+              <a href="#catalog" className="btn-primary">Кітаптарды көру</a>
+              <Link to="/catalog" className="btn-secondary">Аудиокітаптар</Link>
             </div>
             <div className="hero-stats">
-              <div>
-                <div className="stat-num">{displayedBooks}</div>
-                <div className="stat-label">Кітап</div>
+              <div className="stat-item">
+                <div className="stat-num">{displayedBooks}+</div>
+                <div className="stat-label">Кітаптар</div>
               </div>
-              <div>
-                <div className="stat-num">{displayedAuthors}</div>
+              <div className="stat-item">
+                <div className="stat-num">{displayedAuthors}+</div>
                 <div className="stat-label">Авторлар</div>
               </div>
-              <div>
-                <div className="stat-num">{displayedReaders}</div>
-                <div className="stat-label">Оқырман</div>
+              <div className="stat-item">
+                <div className="stat-num">{displayedReaders.toLocaleString()}+</div>
+                <div className="stat-label">Оқырмандар</div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* FEATURES (Exact original markup & styling) */}
+      {/* Admin quick panel (only shown to admin) */}
+      {role === 'admin' && <AdminDashboard />}
+
+      {/* HOW IT WORKS */}
+      <section className="how-section tanda-section" id="how">
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+          <div className="section-header">
+            <span className="section-tag">Қалай жұмыс істейді?</span>
+            <h2 className="section-title">3 қарапайым қадам</h2>
+            <p className="section-sub">Кітап оқуды қазірден бастаңыз</p>
+          </div>
+          <div className="how-grid">
+            <div className="how-card">
+              <div className="how-num">1</div>
+              <h3>Тіркеліңіз</h3>
+              <p>Email арқылы немесе Google аккаунтыңызбен 10 секундта тегін тіркеліңіз.</p>
+            </div>
+            <div className="how-card">
+              <div className="how-num">2</div>
+              <h3>Кітапты таңдаңыз</h3>
+              <p>Электронды нұсқасын оқыңыз немесе жолда жүріп аудиосын тыңдаңыз.</p>
+            </div>
+            <div className="how-card">
+              <div className="how-num">3</div>
+              <h3>«Менің сөреме» қосыңыз</h3>
+              <p>Ұнаған кітаптарыңызды жеке сөреңізге сақтап, тоқтаған жеріңізден жалғастырыңыз.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FEATURES */}
       <section className="features-section tanda-section" id="features">
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-            <span className="section-tag">Неге Tanda?</span>
-            <h2 className="section-title">Бәрі бір жерде</h2>
-            <p className="section-sub" style={{ margin: '0 auto' }}>
-              Аудиокітаптар, электронды кітаптар, подкасттар — барлығы қазақ тілінде, сапалы дыбыс пен оқу тәжірибесімен.
-            </p>
+          <div className="section-header">
+            <span className="section-tag">Мүмкіндіктер</span>
+            <h2 className="section-title">Неге Tanda?</h2>
+            <p className="section-sub">Сізге арналған ең ыңғайлы құралдар</p>
           </div>
-
           <div className="features-grid">
-            <div className="feature-card accent">
+            <div className="feature-card">
               <div className="feature-icon">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M3 18v-6a9 9 0 0 1 18 0v6"></path>
                   <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path>
                 </svg>
               </div>
-              <h3>Аудиокітаптар</h3>
-              <p>Кәсіби дикторлар орындаған мыңдаған аудиокітап. Жолда, спортта, демалыста — қашан болса да тыңда.</p>
+              <h3>Сапалы аудиокітаптар</h3>
+              <p>Кәсіби дикторлар дыбыстаған, фондық режимде тыңдау мүмкіндігі бар аудиокітаптар.</p>
             </div>
 
             <div className="feature-card">
               <div className="feature-icon">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
-                  <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
                 </svg>
               </div>
-              <h3>Электронды кітаптар</h3>
-              <p>Ыңғайлы оқу режимі: шрифт өлшемі, сепия немесе түнгі фон түсі — бәрін өзіңізге ыңғайлап баптайсыз.</p>
+              <h3>Бай кітап қоры</h3>
+              <p>Қазақ әдебиетінің классикасынан бастап, заманауи бестселлерлер мен аудармаларға дейін.</p>
             </div>
 
             <div className="feature-card">
@@ -259,38 +350,286 @@ export const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* CATALOG (Exact original markup & styling) */}
-      <section className="catalog-section tanda-section" id="catalog">
+      {/* CATALOG SECTION */}
+      <section className="catalog-section tanda-section" id="catalog" style={{ backgroundColor: '#F8FAFC' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <div className="catalog-header">
+          
+          {/* Section Header with Title & Search Bar */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'flex-end',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '20px',
+              marginBottom: '24px',
+            }}
+          >
             <div>
               <span className="section-tag">Кітап қоры</span>
-              <h2 className="section-title">Танымал кітаптар</h2>
-              <p className="section-sub">Қазақ әдебиетінің інжу-маржандары мен әлемдік үздік аудармалар</p>
+              <h2 className="section-title" style={{ marginTop: '6px', marginBottom: '6px' }}>Танымал кітаптар</h2>
+              <p className="section-sub" style={{ margin: 0 }}>Қазақ әдебиетінің інжу-маржандары мен әлемдік үздік аудармалар</p>
             </div>
-            <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
+
+            {/* Search Input Box */}
+            <div style={{ position: 'relative', width: '100%', maxWidth: '340px' }}>
               <input
                 type="text"
                 id="catalogSearch"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="search-input"
                 placeholder="Кітап немесе автор іздеу..."
+                style={{
+                  width: '100%',
+                  height: '46px',
+                  padding: '0 40px 0 42px',
+                  borderRadius: '14px',
+                  border: '1.5px solid #CBD5E1',
+                  background: '#FFFFFF',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  color: 'var(--text-dark)',
+                  outline: 'none',
+                  boxSizing: 'border-box',
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--blue)';
+                  e.currentTarget.style.boxShadow = '0 0 0 4px rgba(0, 84, 148, 0.1)';
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = '#CBD5E1';
+                  e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.02)';
+                }}
               />
-              <div className="catalog-tabs">
-                {CATEGORIES.map((cat) => (
+              {/* Search Icon */}
+              <div
+                style={{
+                  position: 'absolute',
+                  left: '14px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  color: '#64748B',
+                  pointerEvents: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+              </div>
+
+              {/* Clear Button */}
+              {search && (
+                <button
+                  type="button"
+                  onClick={() => setSearch('')}
+                  style={{
+                    position: 'absolute',
+                    right: '12px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: '#F1F5F9',
+                    border: 'none',
+                    borderRadius: '50%',
+                    width: '24px',
+                    height: '24px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#64748B',
+                    cursor: 'pointer',
+                    fontSize: '12px',
+                    fontWeight: 800,
+                  }}
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Clean Horizontal Scrollable Genres Ribbon */}
+          <div style={{ position: 'relative', marginBottom: '28px' }}>
+            
+            {/* Left arrow scroll */}
+            {canScrollLeft && (
+              <button
+                type="button"
+                onClick={() => scrollTabs('left')}
+                style={{
+                  position: 'absolute',
+                  left: '-14px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  zIndex: 10,
+                  width: '34px',
+                  height: '34px',
+                  borderRadius: '50%',
+                  background: '#FFFFFF',
+                  border: '1.5px solid #E2E8F0',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  color: 'var(--text-dark)',
+                  fontWeight: 800,
+                  fontSize: '16px',
+                }}
+              >
+                ‹
+              </button>
+            )}
+
+            {/* Right arrow scroll */}
+            {canScrollRight && (
+              <button
+                type="button"
+                onClick={() => scrollTabs('right')}
+                style={{
+                  position: 'absolute',
+                  right: '-14px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  zIndex: 10,
+                  width: '34px',
+                  height: '34px',
+                  borderRadius: '50%',
+                  background: '#FFFFFF',
+                  border: '1.5px solid #E2E8F0',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  color: 'var(--text-dark)',
+                  fontWeight: 800,
+                  fontSize: '16px',
+                }}
+              >
+                ›
+              </button>
+            )}
+
+            {/* Categories Scrollable Row */}
+            <div
+              ref={tabsContainerRef}
+              onScroll={checkScroll}
+              style={{
+                display: 'flex',
+                gap: '8px',
+                overflowX: 'auto',
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none',
+                padding: '4px 2px',
+              }}
+            >
+              {CATEGORIES.map((cat) => {
+                const isActive = selectedCat === cat;
+                const count = categoryCounts[cat] || 0;
+
+                return (
                   <button
                     key={cat}
                     type="button"
                     onClick={() => setSelectedCat(cat)}
-                    className={`tab ${selectedCat === cat ? 'active' : ''}`}
+                    style={{
+                      padding: '8px 18px',
+                      borderRadius: '50px',
+                      fontSize: '13px',
+                      fontWeight: isActive ? 800 : 600,
+                      cursor: 'pointer',
+                      whiteSpace: 'nowrap',
+                      border: isActive ? '1.5px solid var(--blue)' : '1.5px solid #E2E8F0',
+                      background: isActive
+                        ? 'linear-gradient(135deg, var(--blue) 0%, #002D50 100%)'
+                        : '#FFFFFF',
+                      color: isActive ? '#FFFFFF' : '#334155',
+                      boxShadow: isActive ? '0 4px 14px rgba(0, 84, 148, 0.25)' : 'none',
+                      transition: 'all 0.2s ease',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      flexShrink: 0,
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isActive) {
+                        e.currentTarget.style.borderColor = '#CBD5E1';
+                        e.currentTarget.style.background = '#F1F5F9';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isActive) {
+                        e.currentTarget.style.borderColor = '#E2E8F0';
+                        e.currentTarget.style.background = '#FFFFFF';
+                      }
+                    }}
                   >
-                    {cat}
+                    <span>{cat}</span>
+                    {count > 0 && (
+                      <span
+                        style={{
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          padding: '1px 6px',
+                          borderRadius: '20px',
+                          background: isActive ? 'rgba(255, 255, 255, 0.22)' : '#F1F5F9',
+                          color: isActive ? '#FFFFFF' : '#64748B',
+                        }}
+                      >
+                        {count}
+                      </span>
+                    )}
                   </button>
-                ))}
-              </div>
+                );
+              })}
             </div>
           </div>
+
+          {/* Active Filter Info / Reset Bar */}
+          {(selectedCat !== 'Бәрі' || search.trim()) && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: '24px',
+                padding: '10px 16px',
+                background: '#FFFFFF',
+                borderRadius: '12px',
+                border: '1px solid #E2E8F0',
+                fontSize: '13px',
+                color: 'var(--text-mid)',
+                flexWrap: 'wrap',
+                gap: '8px',
+              }}
+            >
+              <div>
+                Таңдалған: <strong>{selectedCat}</strong> {search.trim() && `• Іздеу: «${search}»`} • <strong>{filteredBooks.length}</strong> кітап табылды
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedCat('Бәрі');
+                  setSearch('');
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--orange)',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  fontSize: '12px',
+                }}
+              >
+                Барлығын қалпына келтіру ✕
+              </button>
+            </div>
+          )}
 
           <div className="books-grid" id="booksGrid">
             {filteredBooks.map((book) => (
