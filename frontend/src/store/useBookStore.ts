@@ -31,10 +31,42 @@ interface BookState {
   toggleArchive: (id: string) => Promise<void>;
 }
 
+const DELETED_BOOK_IDS_KEY = 'tanda_deleted_books_v3';
+const BOOKS_INITIALIZED_KEY = 'tanda_books_initialized_v3';
+
+function getDeletedBookIds(): Set<string> {
+  try {
+    const raw = localStorage.getItem(DELETED_BOOK_IDS_KEY);
+    if (raw) {
+      const list = JSON.parse(raw);
+      if (Array.isArray(list)) return new Set(list.map(String));
+    }
+  } catch {}
+  return new Set();
+}
+
+function addDeletedBookIds(ids: string[]) {
+  try {
+    const current = getDeletedBookIds();
+    ids.forEach((id) => current.add(String(id)));
+    localStorage.setItem(DELETED_BOOK_IDS_KEY, JSON.stringify(Array.from(current)));
+  } catch {}
+}
+
+function removeDeletedBookId(id: string) {
+  try {
+    const current = getDeletedBookIds();
+    if (current.has(String(id))) {
+      current.delete(String(id));
+      localStorage.setItem(DELETED_BOOK_IDS_KEY, JSON.stringify(Array.from(current)));
+    }
+  } catch {}
+}
+
 export const useBookStore = create<BookState>()(
   persist(
     (set, get) => ({
-      books: INITIAL_BOOKS,
+      books: INITIAL_BOOKS.filter((b) => !getDeletedBookIds().has(b.id)),
       isLoading: false,
       isSyncing: false,
       searchQuery: '',
@@ -49,16 +81,21 @@ export const useBookStore = create<BookState>()(
 
       fetchBooks: async (params = {}) => {
         set({ isSyncing: true });
+        const deletedIds = getDeletedBookIds();
         try {
           const { data } = await api.get('/api/books', { params });
-          if (Array.isArray(data) && data.length > 0) {
-            const currentBooks = get().books || [];
-            const serverMap = new Map(data.map((b: Book) => [b.id, b]));
-            const localOnly = currentBooks.filter((b) => !serverMap.has(b.id));
-            set({ books: [...data, ...localOnly] });
+          if (Array.isArray(data)) {
+            const cleanData = data.filter((b: Book) => b && b.id && !deletedIds.has(String(b.id)));
+            const currentBooks = (get().books || []).filter((b) => b && b.id && !deletedIds.has(String(b.id)));
+            const serverMap = new Map(cleanData.map((b: Book) => [b.id, b]));
+            const localOnly = currentBooks.filter((b) => !serverMap.has(b.id) && !deletedIds.has(String(b.id)));
+            set({ books: [...cleanData, ...localOnly] });
           }
         } catch {
-          // If backend is not available (e.g. GitHub Pages), preserve cached books
+          // If backend is not available (e.g. GitHub Pages or offline), preserve valid local books
+          set((state) => ({
+            books: (state.books || []).filter((b) => b && b.id && !deletedIds.has(String(b.id))),
+          }));
         } finally {
           set({ isLoading: false, isSyncing: false });
         }
@@ -69,16 +106,20 @@ export const useBookStore = create<BookState>()(
       },
 
       fetchBookById: async (id: string) => {
+        const deletedIds = getDeletedBookIds();
+        if (deletedIds.has(String(id))) return undefined;
         try {
           const { data } = await api.get(`/api/books/${id}`);
-          if (data && data.id) return data;
+          if (data && data.id && !deletedIds.has(String(data.id))) return data;
         } catch {}
-        return get().books.find((b) => b.id === id);
+        return get().books.find((b) => b.id === id && !deletedIds.has(String(b.id)));
       },
 
       addBook: async (newBook, customId) => {
         set({ isLoading: true });
         const localId = customId || `book-${Date.now()}`;
+        removeDeletedBookId(localId);
+
         const localBook: Book = {
           ...newBook,
           id: localId,
@@ -105,6 +146,7 @@ export const useBookStore = create<BookState>()(
         try {
           const { data } = await api.post('/api/books', localBook);
           if (data && data.id) {
+            removeDeletedBookId(data.id);
             set((state) => ({
               books: [data, ...state.books.filter((b) => b.id !== data.id && b.id !== localId)],
             }));
@@ -138,32 +180,41 @@ export const useBookStore = create<BookState>()(
       },
 
       deleteBook: async (id: string) => {
+        if (!id) return;
+        const strId = String(id);
+        addDeletedBookIds([strId]);
         set({ isLoading: true });
+
+        // Update local state immediately
+        set((state) => ({
+          books: state.books.filter((b) => String(b.id) !== strId),
+          isLoading: false,
+        }));
+
         try {
-          await api.delete(`/api/books/${id}`);
+          await api.delete(`/api/books/${strId}`);
         } catch {
-          // ignore error on static host
-        } finally {
-          set((state) => ({
-            books: state.books.filter((b) => b.id !== id),
-            isLoading: false,
-          }));
+          // ignore error on static/offline host
         }
       },
 
       deleteBooks: async (ids: string[]) => {
         if (!ids || ids.length === 0) return;
+        const stringIds = ids.map(String);
+        addDeletedBookIds(stringIds);
         set({ isLoading: true });
-        const idSet = new Set(ids);
+
+        const idSet = new Set(stringIds);
+        // Update local state immediately
+        set((state) => ({
+          books: state.books.filter((b) => !idSet.has(String(b.id))),
+          isLoading: false,
+        }));
+
         try {
-          await Promise.allSettled(ids.map((id) => api.delete(`/api/books/${id}`)));
+          await Promise.allSettled(stringIds.map((id) => api.delete(`/api/books/${id}`)));
         } catch {
           // ignore error on static host
-        } finally {
-          set((state) => ({
-            books: state.books.filter((b) => !idSet.has(b.id)),
-            isLoading: false,
-          }));
         }
       },
 
@@ -187,18 +238,22 @@ export const useBookStore = create<BookState>()(
       },
     }),
     {
-      name: 'tanda_books_storage_v2',
+      name: 'tanda_books_storage_v3',
       onRehydrateStorage: () => (state) => {
         if (!state) return;
-        const testTitles = new Set(['кімді кінәләйсің', 'michael jackson', 'аааа', 'ссс', 'фыфы', 'dddd']);
-        const testIds = new Set(['book-aaaa', 'book-ccc', 'book-fyfy']);
+        const deletedIds = getDeletedBookIds();
+        const testTitles = new Set(['кімді кінәләйсің', 'michael jackson', 'аааа', 'dddd']);
+        const testIds = new Set(['book-aaaa']);
 
-        let currentBooks = state.books && state.books.length > 0 ? state.books : [];
+        let currentBooks = state.books && Array.isArray(state.books) ? state.books : [];
 
-        // Check if books exist in old storage keys
-        if (currentBooks.length === 0) {
+        // Check if books exist in old storage keys on migration
+        if (currentBooks.length === 0 && !localStorage.getItem(BOOKS_INITIALIZED_KEY)) {
           try {
-            const oldStorage = localStorage.getItem('tanda_books_storage') || localStorage.getItem('tanda_books_storage_v1');
+            const oldStorage =
+              localStorage.getItem('tanda_books_storage_v2') ||
+              localStorage.getItem('tanda_books_storage_v1') ||
+              localStorage.getItem('tanda_books_storage');
             if (oldStorage) {
               const parsed = JSON.parse(oldStorage);
               if (parsed?.state?.books?.length > 0) {
@@ -208,33 +263,30 @@ export const useBookStore = create<BookState>()(
           } catch {}
         }
 
-        // Filter out test mock books
+        // Filter out deleted IDs and test mock books
         currentBooks = currentBooks.filter(
           (b) =>
+            b &&
+            b.id &&
+            !deletedIds.has(String(b.id)) &&
             !testTitles.has((b.title || '').trim().toLowerCase()) &&
             !testTitles.has((b.author || '').trim().toLowerCase()) &&
             !testIds.has(b.id)
         );
 
-        // Merge initial authentic books
-        const existingMap = new Map(currentBooks.map((b) => [b.id, b]));
-        INITIAL_BOOKS.forEach((initBook) => {
-          if (!existingMap.has(initBook.id)) {
-            currentBooks.push(initBook);
-          } else {
-            const existing = existingMap.get(initBook.id)!;
-            if (!existing.hasAudio && initBook.hasAudio) {
-              Object.assign(existing, {
-                hasAudio: initBook.hasAudio,
-                audioNarrator: initBook.audioNarrator,
-                audioDuration: initBook.audioDuration,
-                audioChapters: initBook.audioChapters,
-              });
+        // First initialization only: seed INITIAL_BOOKS if not already initialized
+        const isInitialized = localStorage.getItem(BOOKS_INITIALIZED_KEY);
+        if (!isInitialized) {
+          const existingMap = new Map(currentBooks.map((b) => [b.id, b]));
+          INITIAL_BOOKS.forEach((initBook) => {
+            if (!deletedIds.has(initBook.id) && !existingMap.has(initBook.id)) {
+              currentBooks.push(initBook);
             }
-          }
-        });
+          });
+          localStorage.setItem(BOOKS_INITIALIZED_KEY, 'true');
+        }
 
-        state.books = currentBooks.length > 0 ? currentBooks : INITIAL_BOOKS;
+        state.books = currentBooks;
       },
     }
   )
