@@ -409,13 +409,9 @@ export const ReaderEditPage: React.FC = () => {
 
           {/* Form Section Header */}
           <div style={{ marginBottom: '24px' }}>
-            <span className="section-tag" style={{ marginBottom: '8px' }}>Оқырман профилі</span>
             <h2 style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-dark)', margin: '4px 0' }}>
               Оқырман деректерін өзгерту
             </h2>
-            <p style={{ fontSize: '13px', color: 'var(--text-mid)', margin: 0 }}>
-              Енгізілген өзгерістер ортақ деректер қорында және осы оқырманның жеке аккаунтында автоматты түрде жаңартылады.
-            </p>
           </div>
 
           {/* Edit Form */}

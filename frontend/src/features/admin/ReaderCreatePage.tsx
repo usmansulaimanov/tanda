@@ -332,9 +332,6 @@ export const ReaderCreatePage: React.FC = () => {
             <h2 style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-dark)', margin: '4px 0' }}>
               Оқырман мәліметтері
             </h2>
-            <p style={{ fontSize: '13px', color: 'var(--text-mid)', margin: 0 }}>
-              Оқырман осы енгізілген электронды пошта (немесе телефон нөмірі) және құпиясөз арқылы өзінің телефонымен жүйеге кіре алады.
-            </p>
           </div>
 
           {/* Registration Form */}
