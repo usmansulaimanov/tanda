@@ -34,10 +34,23 @@ export const MyBooksPage: React.FC = () => {
     return () => window.removeEventListener('click', handleClick);
   }, []);
 
-  // Compute records for all three tabs
-  const readingRecords = useMemo(() => getBooksByStatus('reading'), [currentShelf, getBooksByStatus]);
-  const completedRecords = useMemo(() => getBooksByStatus('completed'), [currentShelf, getBooksByStatus]);
-  const wantToReadRecords = useMemo(() => getBooksByStatus('want_to_read'), [currentShelf, savedBookIds, getBooksByStatus]);
+  // Build a map of valid, non-archived books currently available in the system
+  const validBookMap = useMemo(() => {
+    return new Map(books.filter((b) => !b.isArchived).map((b) => [String(b.id), b]));
+  }, [books]);
+
+  // Compute records for all three tabs strictly for existing, non-deleted books
+  const readingRecords = useMemo(() => {
+    return getBooksByStatus('reading').filter((rec) => validBookMap.has(String(rec.bookId)));
+  }, [currentShelf, getBooksByStatus, validBookMap]);
+
+  const completedRecords = useMemo(() => {
+    return getBooksByStatus('completed').filter((rec) => validBookMap.has(String(rec.bookId)));
+  }, [currentShelf, getBooksByStatus, validBookMap]);
+
+  const wantToReadRecords = useMemo(() => {
+    return getBooksByStatus('want_to_read').filter((rec) => validBookMap.has(String(rec.bookId)));
+  }, [currentShelf, savedBookIds, getBooksByStatus, validBookMap]);
 
   const activeRecords = useMemo(() => {
     switch (activeTab) {
@@ -56,12 +69,12 @@ export const MyBooksPage: React.FC = () => {
   const shelfBooksWithRecords = useMemo(() => {
     return activeRecords
       .map((rec) => {
-        const book = books.find((b) => String(b.id) === String(rec.bookId));
-        if (!book || book.isArchived) return null;
+        const book = validBookMap.get(String(rec.bookId));
+        if (!book) return null;
         return { book, record: rec };
       })
       .filter((item): item is { book: Book; record: typeof activeRecords[0] } => item !== null);
-  }, [activeRecords, books]);
+  }, [activeRecords, validBookMap]);
 
   // Apply search query filter
   const filteredBooks = useMemo(() => {
