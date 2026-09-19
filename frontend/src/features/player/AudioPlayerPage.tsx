@@ -430,16 +430,16 @@ export const AudioPlayerPage: React.FC = () => {
 
                   <div className="flex flex-col gap-1.5 text-xs text-slate-600 bg-slate-50 px-3.5 py-2.5 rounded-2xl border border-slate-100">
                     <div className="flex items-center gap-1 shrink-0">
-                      <span>🎙️ Диктор:</span> <strong className="text-slate-900">{activeBook.audioNarrator || 'Танда Аудио'}</strong>
+                      <span>Диктор:</span> <strong className="text-slate-900">{activeBook.audioNarrator || 'Танда Аудио'}</strong>
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
-                      <span>📑 Бөлімдер:</span> <strong className="text-slate-900">{chapters.length} бөлім</strong>
+                      <span>Бөлімдер:</span> <strong className="text-slate-900">{chapters.length} бөлім</strong>
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
-                      <span>⏱️ Ұзақтығы:</span> <strong className="text-slate-900">{activeBook.audioDuration || 'Толық аудио'}</strong>
+                      <span>Ұзақтығы:</span> <strong className="text-slate-900">{activeBook.audioDuration || 'Толық аудио'}</strong>
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
-                      <span>⭐ Қолжетімділік:</span> <strong className="text-[#005494]">{activeBook.isFree ? 'Тегін' : 'Премиум'}</strong>
+                      <span>Қолжетімділік:</span> <strong className="text-[#005494]">{activeBook.isFree ? 'Тегін' : 'Премиум'}</strong>
                     </div>
                   </div>
                 </div>
