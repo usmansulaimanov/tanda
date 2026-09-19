@@ -6,6 +6,7 @@ import { useAudioPlayerStore } from '../../store/useAudioPlayerStore';
 import { useSavedBooksStore } from '../../store/useSavedBooksStore';
 import { useMyBooksStore } from '../../store/useMyBooksStore';
 import { useToastStore } from '../../store/useToastStore';
+import { TandaPremiumBadge } from '../../components/ui/TandaPremiumBadge';
 
 export const BookDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -188,12 +189,9 @@ export const BookDetailPage: React.FC = () => {
                 }}
               />
             )}
-            <span
-              className={`cover-badge ${book.isFree ? 'badge-free' : 'badge-premium'}`}
-              style={{ position: 'absolute', top: '16px', right: '16px', zIndex: 2 }}
-            >
-              {book.isFree ? 'Тегін' : 'Премиум'}
-            </span>
+            {!book.isFree && (
+              <TandaPremiumBadge size="lg" style={{ top: '16px', right: '16px' }} />
+            )}
             <div style={{ position: 'relative', zIndex: 2 }}>
               {!book.coverImage && (
                 <>

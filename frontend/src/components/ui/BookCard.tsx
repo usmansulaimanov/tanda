@@ -6,6 +6,7 @@ import { useAudioPlayerStore } from '../../store/useAudioPlayerStore';
 import { useSavedBooksStore } from '../../store/useSavedBooksStore';
 import { useMyBooksStore } from '../../store/useMyBooksStore';
 import { useToastStore } from '../../store/useToastStore';
+import { TandaPremiumBadge } from './TandaPremiumBadge';
 
 interface BookCardProps {
   book: Book;
@@ -120,9 +121,8 @@ export const BookCard: React.FC<BookCardProps> = ({ book }) => {
           />
         )}
 
-        <span className={`cover-badge ${book.isFree ? 'badge-free' : 'badge-premium'}`} style={{ zIndex: 3 }}>
-          {book.isFree ? 'Тегін' : 'Премиум'}
-        </span>
+        {/* Premium badge */}
+        {!book.isFree && <TandaPremiumBadge />}
 
         {/* Quick bookmark toggle on card - only for readers */}
         {role !== 'admin' && (

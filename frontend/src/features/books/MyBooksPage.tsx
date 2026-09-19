@@ -7,6 +7,7 @@ import { useSavedBooksStore } from '../../store/useSavedBooksStore';
 import { useAudioPlayerStore } from '../../store/useAudioPlayerStore';
 import { useToastStore } from '../../store/useToastStore';
 import { Book } from '../../types';
+import { TandaPremiumBadge } from '../../components/ui/TandaPremiumBadge';
 
 export const MyBooksPage: React.FC = () => {
   const navigate = useNavigate();
@@ -436,9 +437,8 @@ export const MyBooksPage: React.FC = () => {
                     />
                   )}
 
-                  <span className={`cover-badge ${book.isFree ? 'badge-free' : 'badge-premium'}`} style={{ zIndex: 3 }}>
-                    {book.isFree ? 'Тегін' : 'Премиум'}
-                  </span>
+                  {/* Premium badge */}
+                  {!book.isFree && <TandaPremiumBadge />}
 
                   {/* Status Options Menu Trigger Button */}
                   <button
