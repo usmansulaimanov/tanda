@@ -345,7 +345,6 @@ export const ReaderCreatePage: React.FC = () => {
 
           {/* Form Description */}
           <div style={{ marginBottom: '24px' }}>
-            <span className="section-tag" style={{ marginBottom: '8px' }}>Оқырман тіркеу формасы</span>
             <h2 style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-dark)', margin: '4px 0' }}>
               Оқырман мәліметтері
             </h2>
