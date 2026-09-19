@@ -287,34 +287,6 @@ export const LandingPage: React.FC = () => {
       {/* Admin quick panel (only shown to admin) */}
       {role === 'admin' && <AdminDashboard />}
 
-      {/* HOW IT WORKS */}
-      <section className="how-section tanda-section" id="how">
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <div className="section-header">
-            <span className="section-tag">Қалай жұмыс істейді?</span>
-            <h2 className="section-title">3 қарапайым қадам</h2>
-            <p className="section-sub">Кітап оқуды қазірден бастаңыз</p>
-          </div>
-          <div className="how-grid">
-            <div className="how-card">
-              <div className="how-num">1</div>
-              <h3>Тіркеліңіз</h3>
-              <p>Email арқылы немесе Google аккаунтыңызбен 10 секундта тегін тіркеліңіз.</p>
-            </div>
-            <div className="how-card">
-              <div className="how-num">2</div>
-              <h3>Кітапты таңдаңыз</h3>
-              <p>Электронды нұсқасын оқыңыз немесе жолда жүріп аудиосын тыңдаңыз.</p>
-            </div>
-            <div className="how-card">
-              <div className="how-num">3</div>
-              <h3>«Менің сөреме» қосыңыз</h3>
-              <p>Ұнаған кітаптарыңызды жеке сөреңізге сақтап, тоқтаған жеріңізден жалғастырыңыз.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* FEATURES */}
       <section className="features-section tanda-section" id="features">
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
