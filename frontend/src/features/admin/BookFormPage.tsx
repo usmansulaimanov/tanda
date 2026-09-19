@@ -378,9 +378,6 @@ export const BookFormPage: React.FC = () => {
                 <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
                   Мұқаба суреті
                 </h3>
-                <p style={{ fontSize: '12px', color: '#64748B', margin: '4px 0 0' }}>
-                  Кітаптың мұқаба суретін құрылғыңыздан жүктеңіз немесе интернеттегі тікелей сілтемесін (URL) көрсетіңіз
-                </p>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', alignItems: 'start' }}>
@@ -398,9 +395,6 @@ export const BookFormPage: React.FC = () => {
                       placeholder="https://мысал.kz/images/mukaaba.jpg"
                       className="form-input"
                     />
-                    <span className="form-hint">
-                      Интернеттен кез келген суреттің толық сілтемесін қоюға болады
-                    </span>
                   </div>
 
                   {/* Divider */}
@@ -452,7 +446,7 @@ export const BookFormPage: React.FC = () => {
                     </label>
 
                     <span className="form-hint" style={{ marginTop: '6px' }}>
-                      Қолдау көрсетілетін форматтар: JPG, PNG, WEBP
+                      JPG, PNG, WEBP
                     </span>
                   </div>
                 </div>
