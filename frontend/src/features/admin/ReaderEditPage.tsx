@@ -484,7 +484,7 @@ export const ReaderEditPage: React.FC = () => {
               {/* Username */}
               <div className="form-group" style={{ margin: 0 }}>
                 <label className="form-label">
-                  Юзернейм (Username)
+                  Username
                 </label>
                 <input
                   type="text"

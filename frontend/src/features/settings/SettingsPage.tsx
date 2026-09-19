@@ -782,7 +782,7 @@ export const SettingsPage: React.FC = () => {
                 {/* Username */}
                 <div className="form-group" style={{ margin: 0 }}>
                   <label className="form-label">
-                    Юзернейм (Username) <span className="req">*</span>
+                    Username <span className="req">*</span>
                   </label>
                   <div style={{ position: 'relative' }}>
                     <input
