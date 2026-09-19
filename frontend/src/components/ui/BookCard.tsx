@@ -58,7 +58,7 @@ export const BookCard: React.FC<BookCardProps> = ({ book }) => {
     }
     const nowSaved = await toggleSavedBook(book.id);
     if (nowSaved) {
-      if (!isCompleted) {
+      if (!isCompleted && bookStatus !== 'reading') {
         markAsWantToRead(book.id);
       }
     } else {

@@ -104,7 +104,10 @@ export const useSavedBooksStore = create<SavedBooksState>()(
 
           try {
             const myStore = useMyBooksStore.getState();
-            myStore.setBookStatus(strId, 'want_to_read', key);
+            const rec = myStore.getBookRecord(strId, key);
+            if (!rec || !rec.status) {
+              myStore.setBookStatus(strId, 'want_to_read', key);
+            }
           } catch {}
         }
 

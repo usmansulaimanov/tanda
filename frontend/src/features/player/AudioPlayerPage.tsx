@@ -283,7 +283,7 @@ export const AudioPlayerPage: React.FC = () => {
   const handleToggleBookmark = async () => {
     const nowSaved = await toggleSavedBook(activeBook.id);
     if (nowSaved) {
-      if (!isCompleted) {
+      if (!isCompleted && bookStatus !== 'reading') {
         markAsWantToRead(activeBook.id);
       }
     } else {

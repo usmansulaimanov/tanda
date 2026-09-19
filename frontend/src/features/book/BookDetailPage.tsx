@@ -89,7 +89,7 @@ export const BookDetailPage: React.FC = () => {
     }
     const nowSaved = await toggleSavedBook(book.id);
     if (nowSaved) {
-      if (!isCompleted) {
+      if (!isCompleted && bookStatus !== 'reading') {
         markAsWantToRead(book.id);
       }
     } else {
