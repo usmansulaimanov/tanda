@@ -464,23 +464,22 @@ export const BookFormPage: React.FC = () => {
                   </label>
 
                   <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-                    {/* 3D Realistic Book Cover Preview */}
+                    {/* Book Cover Preview */}
                     <div
                       style={{
                         width: '96px',
                         height: '130px',
-                        borderRadius: '6px',
-                        background: DEFAULT_COVER_GRADIENT,
-                        boxShadow: '0 8px 20px rgba(0, 40, 80, 0.2), 0 2px 6px rgba(0, 0, 0, 0.08)',
+                        borderRadius: '8px',
+                        background: coverImage && !coverImageError ? '#F1F5F9' : DEFAULT_COVER_GRADIENT,
+                        boxShadow: '0 8px 20px rgba(0, 40, 80, 0.15), 0 2px 6px rgba(0, 0, 0, 0.06)',
                         display: 'flex',
                         flexDirection: 'column',
                         justifyContent: 'space-between',
-                        padding: '10px',
+                        padding: coverImage && !coverImageError ? '0' : '10px',
                         color: '#FFFFFF',
                         flexShrink: 0,
                         position: 'relative',
                         overflow: 'hidden',
-                        borderLeft: '4px solid rgba(255, 255, 255, 0.25)',
                       }}
                     >
                       {coverImage && (
@@ -653,7 +652,7 @@ export const BookFormPage: React.FC = () => {
                   >
                     <div className="form-group" style={{ margin: 0 }}>
                       <label className="form-label" style={{ fontSize: '12px' }}>
-                        Диктор (Дауыстаған)
+                        Диктор
                       </label>
                       <input
                         type="text"
