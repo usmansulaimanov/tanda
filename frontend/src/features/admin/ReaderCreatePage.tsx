@@ -592,9 +592,6 @@ export const ReaderCreatePage: React.FC = () => {
                   className="form-input"
                   style={{ resize: 'vertical', minHeight: '64px', fontSize: '13px', lineHeight: 1.5 }}
                 />
-                <span className="form-hint">
-                  Оқырман жеке кабинетімен жүйеге кіргенде басты беттің жоғарғы бөлігінде көрінеді
-                </span>
               </div>
 
               {/* Message Duration (Days) */}
