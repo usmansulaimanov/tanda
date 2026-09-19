@@ -433,7 +433,7 @@ export const AudioPlayerPage: React.FC = () => {
                       <span>Диктор:</span> <strong className="text-slate-900">{activeBook.audioNarrator || 'Танда Аудио'}</strong>
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
-                      <span>Бөлімдер:</span> <strong className="text-slate-900">{chapters.length} бөлім</strong>
+                      <span>Бөлім:</span> <strong className="text-slate-900">{currentChapterTitle}</strong>
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
                       <span>Ұзақтығы:</span> <strong className="text-slate-900">{activeBook.audioDuration || 'Толық аудио'}</strong>
