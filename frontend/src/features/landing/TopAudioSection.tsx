@@ -78,28 +78,6 @@ export const TopAudioSection: React.FC = () => {
           }}
         >
           <div>
-            <div
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '5px 12px',
-                borderRadius: '999px',
-                background: 'linear-gradient(135deg, rgba(234, 88, 12, 0.1) 0%, rgba(249, 115, 22, 0.15) 100%)',
-                color: '#EA580C',
-                fontSize: '12px',
-                fontWeight: 700,
-                letterSpacing: '0.04em',
-                textTransform: 'uppercase',
-                marginBottom: '8px',
-                border: '1px solid rgba(234, 88, 12, 0.2)',
-              }}
-            >
-              <span>🔥 КҮННІҢ ТАҢДАУЫ</span>
-              <span style={{ opacity: 0.5 }}>•</span>
-              <span>ТОП 10</span>
-            </div>
-
             <h2
               className="section-title"
               style={{
