@@ -393,7 +393,6 @@ export const ReaderCreatePage: React.FC = () => {
                   placeholder="Мысалы: Азамат Серікұлы"
                   className="form-input"
                 />
-                <span className="form-hint">Оқырманның толық аты-жөні</span>
               </div>
 
               {/* ID Number */}
@@ -410,7 +409,6 @@ export const ReaderCreatePage: React.FC = () => {
                   className="form-input"
                   style={{ fontFamily: 'monospace', fontWeight: 700 }}
                 />
-                <span className="form-hint">Оқырманға берілетін бірегей ID нөмір</span>
               </div>
             </div>
 
@@ -436,7 +434,6 @@ export const ReaderCreatePage: React.FC = () => {
                   placeholder="example@gmail.com"
                   className="form-input"
                 />
-                <span className="form-hint">Жүйеге кіруге арналған негізгі пошта</span>
               </div>
 
               {/* Username */}
@@ -455,13 +452,9 @@ export const ReaderCreatePage: React.FC = () => {
                     fontWeight: 700,
                   }}
                 />
-                {usernameError ? (
+                {usernameError && (
                   <span style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#DC2626', marginTop: '6px' }}>
                     {usernameError}
-                  </span>
-                ) : (
-                  <span className="form-hint">
-                    Қосымша бірегей лақап ат (@ белгісімен)
                   </span>
                 )}
               </div>
@@ -473,7 +466,7 @@ export const ReaderCreatePage: React.FC = () => {
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
                 gap: '20px',
-                marginBottom: '20px',
+                marginBottom: '28px',
               }}
             >
               {/* Phone */}
@@ -524,13 +517,9 @@ export const ReaderCreatePage: React.FC = () => {
                     </button>
                   )}
                 </div>
-                {phoneError ? (
+                {phoneError && (
                   <span style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#DC2626', marginTop: '6px' }}>
                     {phoneError}
-                  </span>
-                ) : (
-                  <span className="form-hint">
-                    Оқырман осы телефон нөмірімен де жүйеге кіре алады
                   </span>
                 )}
               </div>
@@ -589,9 +578,6 @@ export const ReaderCreatePage: React.FC = () => {
                     {showPassword ? '👁️' : '🔒'}
                   </button>
                 </div>
-                <span className="form-hint">
-                  Оқырманға жүйеге кіру үшін берілетін бастапқы құпиясөз
-                </span>
               </div>
             </div>
 

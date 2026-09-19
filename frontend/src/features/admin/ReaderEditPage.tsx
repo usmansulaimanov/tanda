@@ -459,7 +459,6 @@ export const ReaderEditPage: React.FC = () => {
                   placeholder="Мысалы: Usman Sulaimanov"
                   className="form-input"
                 />
-                <span className="form-hint">Оқырманның толық аты-жөні</span>
               </div>
 
               {/* ID Number */}
@@ -475,7 +474,6 @@ export const ReaderEditPage: React.FC = () => {
                   className="form-input"
                   style={{ fontFamily: 'monospace', fontWeight: 700 }}
                 />
-                <span className="form-hint">Оқырманға берілген бірегей ID код</span>
               </div>
             </div>
 
@@ -501,7 +499,6 @@ export const ReaderEditPage: React.FC = () => {
                   placeholder="reader@tanda.kz"
                   className="form-input"
                 />
-                <span className="form-hint">Кіру және хабарламаларға арналған пошта</span>
               </div>
 
               {/* Username */}
@@ -520,13 +517,9 @@ export const ReaderEditPage: React.FC = () => {
                     fontWeight: 700,
                   }}
                 />
-                {usernameError ? (
+                {usernameError && (
                   <span style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#DC2626', marginTop: '6px' }}>
                     {usernameError}
-                  </span>
-                ) : (
-                  <span className="form-hint">
-                    Бірегей лақап аты (@ белгісімен)
                   </span>
                 )}
               </div>
@@ -586,13 +579,9 @@ export const ReaderEditPage: React.FC = () => {
                     </button>
                   )}
                 </div>
-                {phoneError ? (
+                {phoneError && (
                   <span style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#DC2626', marginTop: '6px' }}>
                     {phoneError}
-                  </span>
-                ) : (
-                  <span className="form-hint">
-                    +7 (777) 123-45-67 форматында
                   </span>
                 )}
               </div>
