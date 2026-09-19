@@ -298,32 +298,9 @@ export const ReaderCreatePage: React.FC = () => {
             </div>
 
             <div style={{ minWidth: 0, flex: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                <h1 style={{ fontSize: '22px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
-                  Жаңа оқырман тіркеу
-                </h1>
-                <span
-                  style={{
-                    fontSize: '13px',
-                    fontWeight: 700,
-                    fontFamily: 'monospace',
-                    color: 'var(--text-dark)',
-                    letterSpacing: '0.04em',
-                  }}
-                >
-                  ID: {idNumber || '001 001'}
-                </span>
-                <span style={{ color: '#94A3B8', fontSize: '13px' }}>•</span>
-                <span
-                  style={{
-                    fontSize: '13px',
-                    fontWeight: 700,
-                    color: 'var(--text-dark)',
-                  }}
-                >
-                  {role === 'admin' ? 'Әкімші' : 'Оқырман'}
-                </span>
-              </div>
+              <h1 style={{ fontSize: '22px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
+                Жаңа оқырман тіркеу
+              </h1>
             </div>
           </div>
 
