@@ -170,22 +170,54 @@ export const useBookStore = create<BookState>()(
       },
     }),
     {
-      name: 'tanda_books_storage',
+      name: 'tanda_books_storage_v2',
       onRehydrateStorage: () => (state) => {
-        if (state && (!state.books || state.books.length === 0)) {
-          // Check if books exist in old storage key
+        if (!state) return;
+        const testTitles = new Set(['кімді кінәләйсің', 'michael jackson', 'аааа', 'ссс', 'фыфы', 'dddd']);
+        const testIds = new Set(['book-aaaa', 'book-ccc', 'book-fyfy']);
+
+        let currentBooks = state.books && state.books.length > 0 ? state.books : [];
+
+        // Check if books exist in old storage keys
+        if (currentBooks.length === 0) {
           try {
-            const oldV1 = localStorage.getItem('tanda_books_storage_v1');
-            if (oldV1) {
-              const parsed = JSON.parse(oldV1);
+            const oldStorage = localStorage.getItem('tanda_books_storage') || localStorage.getItem('tanda_books_storage_v1');
+            if (oldStorage) {
+              const parsed = JSON.parse(oldStorage);
               if (parsed?.state?.books?.length > 0) {
-                state.books = parsed.state.books;
-                return;
+                currentBooks = parsed.state.books;
               }
             }
           } catch {}
-          state.books = INITIAL_BOOKS;
         }
+
+        // Filter out test mock books
+        currentBooks = currentBooks.filter(
+          (b) =>
+            !testTitles.has((b.title || '').trim().toLowerCase()) &&
+            !testTitles.has((b.author || '').trim().toLowerCase()) &&
+            !testIds.has(b.id)
+        );
+
+        // Merge initial authentic books
+        const existingMap = new Map(currentBooks.map((b) => [b.id, b]));
+        INITIAL_BOOKS.forEach((initBook) => {
+          if (!existingMap.has(initBook.id)) {
+            currentBooks.push(initBook);
+          } else {
+            const existing = existingMap.get(initBook.id)!;
+            if (!existing.hasAudio && initBook.hasAudio) {
+              Object.assign(existing, {
+                hasAudio: initBook.hasAudio,
+                audioNarrator: initBook.audioNarrator,
+                audioDuration: initBook.audioDuration,
+                audioChapters: initBook.audioChapters,
+              });
+            }
+          }
+        });
+
+        state.books = currentBooks.length > 0 ? currentBooks : INITIAL_BOOKS;
       },
     }
   )
