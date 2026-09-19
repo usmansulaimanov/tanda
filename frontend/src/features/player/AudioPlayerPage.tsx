@@ -428,22 +428,18 @@ export const AudioPlayerPage: React.FC = () => {
                     Авторы: <span className="text-slate-900 font-bold">{activeBook.author}</span>
                   </p>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-xs text-slate-600 bg-slate-50 px-3.5 py-2.5 rounded-2xl border border-slate-100">
-                    <div className="space-y-1.5">
-                      <div className="flex items-center gap-1 shrink-0">
-                        <span>🎙️ Диктор:</span> <strong className="text-slate-900">{activeBook.audioNarrator || 'Танда Аудио'}</strong>
-                      </div>
-                      <div className="flex items-center gap-1 shrink-0">
-                        <span>📑 Бөлімдер:</span> <strong className="text-slate-900">{chapters.length} бөлім</strong>
-                      </div>
-                      <div className="flex items-center gap-1 shrink-0">
-                        <span>⏱️ Ұзақтығы:</span> <strong className="text-slate-900">{activeBook.audioDuration || 'Толық аудио'}</strong>
-                      </div>
+                  <div className="flex flex-col gap-1.5 text-xs text-slate-600 bg-slate-50 px-3.5 py-2.5 rounded-2xl border border-slate-100">
+                    <div className="flex items-center gap-1 shrink-0">
+                      <span>🎙️ Диктор:</span> <strong className="text-slate-900">{activeBook.audioNarrator || 'Танда Аудио'}</strong>
                     </div>
-                    <div className="space-y-1.5 flex flex-col justify-start">
-                      <div className="flex items-center gap-1 shrink-0">
-                        <span>⭐ Қолжетімділік:</span> <strong className="text-[#005494]">{activeBook.isFree ? 'Тегін' : 'Премиум'}</strong>
-                      </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <span>📑 Бөлімдер:</span> <strong className="text-slate-900">{chapters.length} бөлім</strong>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <span>⏱️ Ұзақтығы:</span> <strong className="text-slate-900">{activeBook.audioDuration || 'Толық аудио'}</strong>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <span>⭐ Қолжетімділік:</span> <strong className="text-[#005494]">{activeBook.isFree ? 'Тегін' : 'Премиум'}</strong>
                     </div>
                   </div>
                 </div>
