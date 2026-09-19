@@ -9,7 +9,7 @@ import { hasAdminPermission } from '../../utils/permissions';
 export const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuthStore();
-  const { books, toggleArchive, deleteBook, fetchBooks } = useBookStore();
+  const { books, toggleArchive, deleteBook, deleteBooks, fetchBooks } = useBookStore();
   const { showToast } = useToastStore();
 
   const canCreateBooks = hasAdminPermission(user, 'books_create');
@@ -18,6 +18,8 @@ export const AdminDashboard: React.FC = () => {
 
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'archived'>('all');
   const [bookToDelete, setBookToDelete] = useState<Book | null>(null);
+  const [selectedBookIds, setSelectedBookIds] = useState<string[]>([]);
+  const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false);
 
   React.useEffect(() => {
     fetchBooks({ includeArchived: true });
@@ -33,6 +35,42 @@ export const AdminDashboard: React.FC = () => {
       return true;
     });
   }, [books, filterStatus]);
+
+  const isAllSelected = filteredBooks.length > 0 && selectedBookIds.length === filteredBooks.length;
+  const isSomeSelected = selectedBookIds.length > 0 && selectedBookIds.length < filteredBooks.length;
+
+  const handleSelectAll = () => {
+    if (isAllSelected) {
+      setSelectedBookIds([]);
+    } else {
+      setSelectedBookIds(filteredBooks.map((b) => b.id));
+    }
+  };
+
+  const handleSelectBook = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedBookIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const handleBulkArchive = () => {
+    selectedBookIds.forEach((id) => {
+      toggleArchive(id);
+    });
+    showToast(`Таңдалған ${selectedBookIds.length} кітаптың статусы жаңартылды`, 'success');
+    setSelectedBookIds([]);
+  };
+
+  const confirmBulkDelete = () => {
+    if (selectedBookIds.length > 0) {
+      const count = selectedBookIds.length;
+      deleteBooks(selectedBookIds);
+      showToast(`Таңдалған ${count} кітап сәтті өшірілді`, 'info');
+      setSelectedBookIds([]);
+      setIsBulkDeleteModalOpen(false);
+    }
+  };
 
   const handleToggleArchive = (book: Book) => {
     toggleArchive(book.id);
@@ -170,11 +208,133 @@ export const AdminDashboard: React.FC = () => {
             </div>
           </div>
 
+          {/* Bulk Selection Action Bar */}
+          {selectedBookIds.length > 0 && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '12px',
+                padding: '12px 18px',
+                background: 'linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%)',
+                border: '1.5px solid #93C5FD',
+                borderRadius: '12px',
+                marginBottom: '18px',
+                boxShadow: '0 4px 12px rgba(0, 84, 148, 0.08)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span
+                  style={{
+                    background: 'var(--blue)',
+                    color: '#FFFFFF',
+                    width: '24px',
+                    height: '24px',
+                    borderRadius: '50%',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '12px',
+                    fontWeight: 800,
+                  }}
+                >
+                  {selectedBookIds.length}
+                </span>
+                <span style={{ fontSize: '14px', fontWeight: 700, color: '#1E3A8A' }}>
+                  {selectedBookIds.length} кітап таңдалды
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setSelectedBookIds([])}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: '#2563EB',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    textDecoration: 'underline',
+                    cursor: 'pointer',
+                    padding: '0 4px',
+                  }}
+                >
+                  Таңдауды алып тастау
+                </button>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {canDeleteBooks && (
+                  <button
+                    type="button"
+                    onClick={handleBulkArchive}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      padding: '8px 16px',
+                      background: '#FFFFFF',
+                      color: '#475569',
+                      border: '1px solid #CBD5E1',
+                      borderRadius: '8px',
+                      fontSize: '13px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.04)',
+                    }}
+                  >
+                    Архивтеу / Шығару
+                  </button>
+                )}
+
+                {canDeleteBooks && (
+                  <button
+                    type="button"
+                    onClick={() => setIsBulkDeleteModalOpen(true)}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      padding: '8px 18px',
+                      background: '#DC2626',
+                      color: '#FFFFFF',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontSize: '13px',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      boxShadow: '0 4px 12px rgba(220, 38, 38, 0.25)',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <polyline points="3 6 5 6 21 6"></polyline>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                    Таңдалғандарды өшіру ({selectedBookIds.length})
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Table */}
           <div style={{ overflowX: 'auto' }}>
             <table className="admin-table">
               <thead>
                 <tr>
+                  <th style={{ width: '40px', textAlign: 'center' }}>
+                    <input
+                      type="checkbox"
+                      checked={isAllSelected}
+                      ref={(el) => {
+                        if (el) el.indeterminate = isSomeSelected;
+                      }}
+                      onChange={handleSelectAll}
+                      style={{ cursor: 'pointer', width: '16px', height: '16px', accentColor: 'var(--blue)' }}
+                      title={isAllSelected ? 'Барлығын таңдаудан алу' : 'Барлығын таңдау'}
+                    />
+                  </th>
                   <th style={{ width: '45px', textAlign: 'center' }}>№</th>
                   <th style={{ width: '60px' }}>Мұқаба</th>
                   <th>Атауы мен авторы</th>
@@ -186,12 +346,31 @@ export const AdminDashboard: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredBooks.map((book, index) => (
-                  <tr key={book.id}>
-                    {/* Sequential № */}
-                    <td style={{ textAlign: 'center', fontWeight: 700, color: '#64748B', fontSize: '12px' }}>
-                      {index + 1}
-                    </td>
+                {filteredBooks.map((book, index) => {
+                  const isSelected = selectedBookIds.includes(book.id);
+                  return (
+                    <tr
+                      key={book.id}
+                      style={{
+                        backgroundColor: isSelected ? 'rgba(0, 84, 148, 0.06)' : undefined,
+                        transition: 'background-color 0.15s ease',
+                      }}
+                    >
+                      {/* Checkbox selection cell */}
+                      <td style={{ textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => {}}
+                          onClick={(e) => handleSelectBook(book.id, e)}
+                          style={{ cursor: 'pointer', width: '16px', height: '16px', accentColor: 'var(--blue)' }}
+                        />
+                      </td>
+
+                      {/* Sequential № */}
+                      <td style={{ textAlign: 'center', fontWeight: 700, color: '#64748B', fontSize: '12px' }}>
+                        {index + 1}
+                      </td>
 
                     {/* Thumbnail */}
                     <td>
@@ -382,7 +561,8 @@ export const AdminDashboard: React.FC = () => {
                       </div>
                     </td>
                   </tr>
-                ))}
+                );
+              })}
               </tbody>
             </table>
           </div>
@@ -473,6 +653,93 @@ export const AdminDashboard: React.FC = () => {
                 }}
               >
                 Иә, өшіру
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Delete Confirmation Modal */}
+      {isBulkDeleteModalOpen && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(13,27,42,0.7)',
+            backdropFilter: 'blur(6px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '20px',
+          }}
+        >
+          <div
+            style={{
+              background: '#FFFFFF',
+              borderRadius: '16px',
+              maxWidth: '460px',
+              width: '100%',
+              padding: '32px',
+              boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
+            }}
+          >
+            <div
+              style={{
+                width: '48px',
+                height: '48px',
+                borderRadius: '50%',
+                background: '#FEE2E2',
+                color: '#DC2626',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '16px',
+              }}
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              </svg>
+            </div>
+            <h3 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-dark)', marginBottom: '12px' }}>
+              Кітаптарды топтап өшіру
+            </h3>
+            <p style={{ fontSize: '14px', color: 'var(--text-mid)', lineHeight: 1.6, marginBottom: '24px' }}>
+              Сіз шынымен таңдалған <strong style={{ color: '#DC2626' }}>{selectedBookIds.length} кітапты</strong> біржола өшіргіңіз келе ме? Бұл әрекетті қайтару мүмкін емес.
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+              <button
+                type="button"
+                onClick={() => setIsBulkDeleteModalOpen(false)}
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: '50px',
+                  border: '1px solid #CBD5E1',
+                  background: '#FFF',
+                  fontWeight: 600,
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                }}
+              >
+                Болдырмау
+              </button>
+              <button
+                type="button"
+                onClick={confirmBulkDelete}
+                style={{
+                  padding: '10px 24px',
+                  borderRadius: '50px',
+                  border: 'none',
+                  background: '#DC2626',
+                  color: '#FFF',
+                  fontWeight: 700,
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(220, 38, 38, 0.25)',
+                }}
+              >
+                Иә, барлығын өшіру ({selectedBookIds.length})
               </button>
             </div>
           </div>

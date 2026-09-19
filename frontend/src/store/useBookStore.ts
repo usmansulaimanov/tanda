@@ -27,6 +27,7 @@ interface BookState {
   addBook: (newBook: Omit<Book, 'id'>, customId?: string) => Promise<Book>;
   updateBook: (id: string, updates: Partial<Book>) => Promise<void>;
   deleteBook: (id: string) => Promise<void>;
+  deleteBooks: (ids: string[]) => Promise<void>;
   toggleArchive: (id: string) => Promise<void>;
 }
 
@@ -145,6 +146,22 @@ export const useBookStore = create<BookState>()(
         } finally {
           set((state) => ({
             books: state.books.filter((b) => b.id !== id),
+            isLoading: false,
+          }));
+        }
+      },
+
+      deleteBooks: async (ids: string[]) => {
+        if (!ids || ids.length === 0) return;
+        set({ isLoading: true });
+        const idSet = new Set(ids);
+        try {
+          await Promise.allSettled(ids.map((id) => api.delete(`/api/books/${id}`)));
+        } catch {
+          // ignore error on static host
+        } finally {
+          set((state) => ({
+            books: state.books.filter((b) => !idSet.has(b.id)),
             isLoading: false,
           }));
         }
