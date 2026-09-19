@@ -929,8 +929,8 @@ export const BookFormPage: React.FC = () => {
             {/* FREE / PAID ACCESS */}
             <div
               style={{
-                background: isFree ? '#F0FDF4' : '#FFFBEB',
-                border: isFree ? '1.5px solid #BBF7D0' : '1.5px solid #FDE68A',
+                background: isFree ? '#F0F7FF' : '#FFFBEB',
+                border: isFree ? '1.5px solid #BAE6FD' : '1.5px solid #FDE68A',
                 borderRadius: '12px',
                 padding: '16px 20px',
                 marginBottom: '32px',
@@ -951,7 +951,7 @@ export const BookFormPage: React.FC = () => {
                     letterSpacing: '0.05em',
                     padding: '2px 8px',
                     borderRadius: '4px',
-                    background: isFree ? '#22C55E' : '#D97706',
+                    background: isFree ? '#005494' : '#D97706',
                     color: '#FFFFFF',
                     marginBottom: '4px',
                   }}
