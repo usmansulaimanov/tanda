@@ -109,8 +109,18 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
       sleepTimerEndTime: null,
 
       playBook: (book, chapterIndex = 0) => {
-        const chapters = book.audioChapters || [];
-        const chapter = chapters[chapterIndex] || null;
+        let chapters = book.audioChapters || [];
+        if (chapters.length === 0 && (book.hasAudio || book.audioUrl)) {
+          chapters = [
+            {
+              id: `${book.id}-ch-1`,
+              title: '1-тарау',
+              duration: book.audioDuration || '05:00',
+              audioUrl: book.audioUrl || '',
+            },
+          ];
+        }
+        const chapter = chapters[chapterIndex] || chapters[0] || null;
         const hasOwnAudio = Boolean(chapter?.audioUrl && chapter.audioUrl.trim());
         const startProgress = !hasOwnAudio && chapters.length > 0 ? getChapterStartTime(chapters, chapterIndex) : 0;
         const chapterDur = chapter?.duration ? parseDurationToSeconds(chapter.duration) : 180;

@@ -147,39 +147,6 @@ export const BookFormPage: React.FC = () => {
     reader.readAsDataURL(file);
   };
 
-  const handleMainAudioFile = (file: File) => {
-    if (!file) return;
-    if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|ogg|m4a|aac)$/i)) {
-      showToast('Тек аудио файлдарын жүктей аласыз (.mp3, .wav, .m4a, .ogg)', 'error');
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const dataUrl = event.target?.result as string;
-      setAudioUrl(dataUrl);
-
-      try {
-        const audio = new Audio(dataUrl);
-        audio.onloadedmetadata = () => {
-          if (audio.duration && !isNaN(audio.duration) && isFinite(audio.duration)) {
-            const hours = Math.floor(audio.duration / 3600);
-            const mins = Math.floor((audio.duration % 3600) / 60);
-            const secs = Math.floor(audio.duration % 60);
-            if (hours > 0) {
-              setAudioDuration(`${hours} сағат ${mins} минут`);
-            } else {
-              setAudioDuration(`${mins}:${String(secs).padStart(2, '0')}`);
-            }
-          }
-        };
-      } catch {
-        // Fallback
-      }
-      showToast('Негізгі аудиофайл сәтті жүктелді', 'success');
-    };
-    reader.readAsDataURL(file);
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -195,6 +162,8 @@ export const BookFormPage: React.FC = () => {
     const pagesNum = parseInt(pages, 10);
     const validPages = isNaN(pagesNum) || pagesNum <= 0 ? (hasAudio ? null : 100) : pagesNum;
 
+    const firstAudioUrl = audioChapters.find((ch) => ch.audioUrl?.trim())?.audioUrl || audioChapters[0]?.audioUrl || '';
+
     const bookData = {
       title: title.trim(),
       author: author.trim(),
@@ -208,7 +177,7 @@ export const BookFormPage: React.FC = () => {
       hasAudio,
       audioNarrator: hasAudio ? audioNarrator.trim() : undefined,
       audioDuration: hasAudio ? audioDuration.trim() : undefined,
-      audioUrl: hasAudio ? audioUrl.trim() : undefined,
+      audioUrl: hasAudio && firstAudioUrl.trim() ? firstAudioUrl.trim() : undefined,
       audioChapters: hasAudio && audioChapters.length > 0 ? audioChapters : undefined,
     };
 
@@ -647,7 +616,20 @@ export const BookFormPage: React.FC = () => {
                   <input
                     type="checkbox"
                     checked={hasAudio}
-                    onChange={(e) => setHasAudio(e.target.checked)}
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      setHasAudio(checked);
+                      if (checked && audioChapters.length === 0) {
+                        setAudioChapters([
+                          {
+                            id: `ch-${Date.now()}`,
+                            title: '1-тарау',
+                            duration: '05:00',
+                            audioUrl: '',
+                          },
+                        ]);
+                      }
+                    }}
                     style={{
                       accentColor: '#005494',
                       width: '16px',
@@ -694,107 +676,6 @@ export const BookFormPage: React.FC = () => {
                         placeholder="Мысалы: 2 сағат 15 минут"
                       />
                     </div>
-                  </div>
-
-                  {/* Main Full Audio File (Optional if chapters are used) */}
-                  <div
-                    style={{
-                      background: '#FFFFFF',
-                      border: '1.5px solid #E2E8F0',
-                      borderRadius: '10px',
-                      padding: '16px',
-                      marginBottom: '18px',
-                    }}
-                  >
-                    <label className="form-label" style={{ fontSize: '13px', marginBottom: '8px' }}>
-                      Негізгі аудиофайл немесе YouTube сілтемесі (Сілтеме немесе файл)
-                    </label>
-
-                    <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
-                      <input
-                        type="text"
-                        value={audioUrl}
-                        onChange={(e) => setAudioUrl(e.target.value)}
-                        placeholder="Аудио немесе YouTube сілтемесі (https://youtu.be/... немесе .mp3)"
-                        className="form-input"
-                        style={{ flex: '1 1 240px', padding: '8px 12px', fontSize: '13px' }}
-                      />
-
-                      <label
-                        htmlFor="main-audio-upload"
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          padding: '8px 16px',
-                          background: '#E8F1FB',
-                          color: '#005494',
-                          borderRadius: '8px',
-                          fontSize: '12px',
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                          whiteSpace: 'nowrap',
-                          border: '1px solid #BFDBFE',
-                          transition: 'all 0.15s',
-                        }}
-                      >
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                          <polyline points="17 8 12 3 7 8"></polyline>
-                          <line x1="12" y1="3" x2="12" y2="15"></line>
-                        </svg>
-                        Аудио жүктеу
-                      </label>
-                      <input
-                        type="file"
-                        id="main-audio-upload"
-                        accept="audio/*,.mp3,.wav,.ogg,.m4a,.aac"
-                        onChange={(e) => {
-                          const f = e.target.files?.[0];
-                          if (f) handleMainAudioFile(f);
-                        }}
-                        style={{ display: 'none' }}
-                      />
-
-                      {audioUrl && (
-                        <button
-                          type="button"
-                          onClick={() => setAudioUrl('')}
-                          style={{
-                            padding: '8px 12px',
-                            background: '#FEE2E2',
-                            color: '#DC2626',
-                            border: 'none',
-                            borderRadius: '8px',
-                            fontSize: '12px',
-                            fontWeight: 700,
-                            cursor: 'pointer',
-                          }}
-                        >
-                          Өшіру
-                        </button>
-                      )}
-                    </div>
-
-                    {audioUrl && (
-                      <div style={{ marginTop: '10px' }}>
-                        {isYouTubeUrl(audioUrl) ? (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 14px', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '8px' }}>
-                            <span style={{ fontSize: '12px', fontWeight: 700, color: '#DC2626', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                              </svg>
-                              YouTube аудио сілтемесі танылды
-                            </span>
-                            <span style={{ fontSize: '11px', color: '#7F1D1D' }}>
-                              (Плеерде фондық режимде дыбысы ойнатылады)
-                            </span>
-                          </div>
-                        ) : (
-                          <audio controls src={audioUrl} style={{ width: '100%', height: '36px' }} />
-                        )}
-                      </div>
-                    )}
                   </div>
 
                   {/* Chapters block */}

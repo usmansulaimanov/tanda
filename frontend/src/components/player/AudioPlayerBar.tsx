@@ -615,8 +615,17 @@ export const AudioPlayerBar: React.FC = () => {
 
   if (!isAuthenticated || !currentBook) return null;
 
-  const chapters = currentBook.audioChapters || [];
-  const currentChapterTitle = currentChapter?.title || chapters[chapterIndex]?.title || 'Негізгі аудио';
+  const chapters = currentBook.audioChapters && currentBook.audioChapters.length > 0
+    ? currentBook.audioChapters
+    : [
+        {
+          id: `${currentBook.id}-ch-1`,
+          title: '1-тарау',
+          duration: currentBook.audioDuration || '05:00',
+          audioUrl: currentBook.audioUrl || '',
+        },
+      ];
+  const currentChapterTitle = currentChapter?.title || chapters[chapterIndex]?.title || '1-тарау';
 
   return (
     <>
