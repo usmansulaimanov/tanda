@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useBookStore } from '../../store/useBookStore';
 import { useSavedBooksStore } from '../../store/useSavedBooksStore';
+import { useMyBooksStore } from '../../store/useMyBooksStore';
 import { useAudioPlayerStore } from '../../store/useAudioPlayerStore';
 import { useToastStore } from '../../store/useToastStore';
 
@@ -10,7 +11,8 @@ export const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuthStore();
   const { books, fetchBooks } = useBookStore();
-  const { savedBookIds, fetchSavedBooks, removeSavedBook } = useSavedBooksStore();
+  const { savedBookIds, fetchSavedBooks, removeSavedBook, getSavedBookIds } = useSavedBooksStore();
+  const { currentShelf } = useMyBooksStore();
   const { playBook } = useAudioPlayerStore();
   const { showToast } = useToastStore();
 
@@ -29,9 +31,10 @@ export const ProfilePage: React.FC = () => {
 
   // Filter saved books that exist and are not archived
   const savedBooks = useMemo(() => {
-    const savedSet = new Set(savedBookIds.map(String));
+    const savedIds = getSavedBookIds();
+    const savedSet = new Set(savedIds.map(String));
     return books.filter((b) => savedSet.has(String(b.id)) && !b.isArchived);
-  }, [books, savedBookIds]);
+  }, [books, savedBookIds, currentShelf, getSavedBookIds]);
 
   const handleRemoveSaved = (bookId: string, bookTitle: string) => {
     removeSavedBook(bookId);

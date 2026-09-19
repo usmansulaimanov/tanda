@@ -73,7 +73,16 @@ export const useSavedBooksStore = create<SavedBooksState>()(
 
       getSavedBookIds: (userKey?: string) => {
         const key = resolveUserKey(userKey);
-        return (get().savedByUser[key] || []).map(String);
+        const list = new Set((get().savedByUser[key] || []).map(String));
+        try {
+          const shelf = useMyBooksStore.getState().shelfByUser[key] || {};
+          for (const [bId, rec] of Object.entries(shelf)) {
+            if (rec.status === 'want_to_read') {
+              list.add(String(bId));
+            }
+          }
+        } catch {}
+        return Array.from(list);
       },
 
       toggleSavedBook: (bookId: string, userKey?: string) => {
@@ -124,7 +133,12 @@ export const useSavedBooksStore = create<SavedBooksState>()(
         const key = resolveUserKey(userKey);
         const strId = String(bookId);
         const userSaved = (get().savedByUser[key] || []).map(String);
-        return userSaved.includes(strId);
+        if (userSaved.includes(strId)) return true;
+        try {
+          const shelf = useMyBooksStore.getState().shelfByUser[key] || {};
+          if (shelf[strId]?.status === 'want_to_read') return true;
+        } catch {}
+        return false;
       },
 
       addSavedBook: (bookId: string, userKey?: string) => {

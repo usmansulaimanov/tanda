@@ -113,6 +113,10 @@ export const useMyBooksStore = create<MyBooksState>()(
           shelfByUser: allShelves,
           currentShelf: userShelf,
         });
+
+        try {
+          useSavedBooksStore.getState().removeSavedBook(strId, key);
+        } catch {}
       },
 
       getBookRecord: (bookId: string, userKey?: string) => {
@@ -141,28 +145,37 @@ export const useMyBooksStore = create<MyBooksState>()(
       getBooksByStatus: (status: BookShelfStatus, userKey?: string) => {
         const key = resolveUserKey(userKey);
         const userShelf = get().shelfByUser[key] || {};
-        const list = Object.values(userShelf).filter((r) => r.status === status);
 
-        // If requesting 'want_to_read', also include any savedBookIds not yet explicitly in userShelf
+        // If requesting 'want_to_read', return all saved books + want_to_read books unified
         if (status === 'want_to_read') {
           try {
             const savedIds = useSavedBooksStore.getState().getSavedBookIds(key);
-            const shelfBookIds = new Set(Object.keys(userShelf));
-            
-            for (const sId of savedIds) {
-              const strSId = String(sId);
-              if (!shelfBookIds.has(strSId)) {
-                list.push({
-                  bookId: strSId,
-                  status: 'want_to_read',
-                  addedAt: new Date().toISOString(),
-                });
+            const savedIdSet = new Set(savedIds.map(String));
+
+            for (const [id, rec] of Object.entries(userShelf)) {
+              if (rec.status === 'want_to_read') {
+                savedIdSet.add(String(id));
               }
             }
+
+            const list: UserBookRecord[] = [];
+            for (const sId of savedIdSet) {
+              const existingRec = userShelf[sId];
+              list.push({
+                bookId: sId,
+                status: 'want_to_read',
+                addedAt: existingRec?.addedAt || new Date().toISOString(),
+                lastReadAt: existingRec?.lastReadAt,
+                currentPage: existingRec?.currentPage,
+                totalPages: existingRec?.totalPages,
+                progressPercent: existingRec?.progressPercent,
+              });
+            }
+            return list;
           } catch {}
         }
 
-        return list;
+        return Object.values(userShelf).filter((r) => r.status === status);
       },
 
       markAsReading: (bookId: string, currentPage = 1, totalPages?: number, userKey?: string) => {
