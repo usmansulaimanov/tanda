@@ -100,7 +100,7 @@ export const BookFormPage: React.FC = () => {
   const addChapter = () => {
     const newCh: AudioChapter = {
       id: `ch-${Date.now()}`,
-      title: `${audioChapters.length + 1}-тарау`,
+      title: `${audioChapters.length + 1}-аудио`,
       duration: '05:00',
       audioUrl: '',
     };
@@ -142,7 +142,7 @@ export const BookFormPage: React.FC = () => {
       } catch {
         // Fallback
       }
-      showToast(`${index + 1}-тарауға аудиофайл сәтті жүктелді`, 'success');
+      showToast(`${index + 1}-аудио файлы сәтті жүктелді`, 'success');
     };
     reader.readAsDataURL(file);
   };
@@ -623,7 +623,7 @@ export const BookFormPage: React.FC = () => {
                         setAudioChapters([
                           {
                             id: `ch-${Date.now()}`,
-                            title: '1-тарау',
+                            title: '1-аудио',
                             duration: '05:00',
                             audioUrl: '',
                           },
@@ -699,10 +699,10 @@ export const BookFormPage: React.FC = () => {
                     >
                       <div>
                         <span style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>
-                          Тараулар бойынша аудио ({audioChapters.length})
+                          Аудио бөлімдері ({audioChapters.length})
                         </span>
                         <p style={{ fontSize: '11px', color: '#64748B', margin: '2px 0 0' }}>
-                          Әр тарауға жеке аудиофайл жүктеуге немесе сілтемесін қоюға болады
+                          Әр бөлімге жеке аудио жүктеуге немесе сілтемесін қоюға болады
                         </p>
                       </div>
 
@@ -768,14 +768,14 @@ export const BookFormPage: React.FC = () => {
                                 borderRadius: '4px',
                               }}
                             >
-                              {idx + 1}-тарау
+                              {idx + 1}-аудио
                             </span>
 
                             <input
                               type="text"
                               value={ch.title}
                               onChange={(e) => updateChapter(idx, 'title', e.target.value)}
-                              placeholder="Тарау атауы (Мысалы: 1-сөз немесе 1-тарау)"
+                              placeholder={`Аудио атауы (Мысалы: ${idx + 1}-аудио)`}
                               className="form-input"
                               style={{ flex: '1 1 200px', padding: '8px 12px', fontSize: '13px' }}
                             />
@@ -787,7 +787,7 @@ export const BookFormPage: React.FC = () => {
                               placeholder="05:00"
                               className="form-input"
                               style={{ width: '90px', padding: '8px 12px', fontSize: '13px' }}
-                              title="Тарау ұзақтығы"
+                              title="Аудио ұзақтығы"
                             />
 
                             <button
@@ -807,7 +807,7 @@ export const BookFormPage: React.FC = () => {
                                 transition: 'background 0.2s',
                                 flexShrink: 0,
                               }}
-                              title="Тарауды өшіру"
+                              title="Аудионы өшіру"
                             >
                               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                 <line x1="18" y1="6" x2="6" y2="18"></line>

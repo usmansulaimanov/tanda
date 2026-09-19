@@ -620,12 +620,12 @@ export const AudioPlayerBar: React.FC = () => {
     : [
         {
           id: `${currentBook.id}-ch-1`,
-          title: '1-тарау',
+          title: '1-аудио',
           duration: currentBook.audioDuration || '05:00',
           audioUrl: currentBook.audioUrl || '',
         },
       ];
-  const currentChapterTitle = currentChapter?.title || chapters[chapterIndex]?.title || '1-тарау';
+  const currentChapterTitle = currentChapter?.title || chapters[chapterIndex]?.title || '1-аудио';
 
   return (
     <>

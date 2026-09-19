@@ -226,13 +226,13 @@ export const AudioPlayerPage: React.FC = () => {
     : [
         {
           id: `${activeBook.id}-ch-1`,
-          title: '1-тарау',
+          title: '1-аудио',
           duration: activeBook.audioDuration || '05:00',
           audioUrl: activeBook.audioUrl || '',
         },
       ];
 
-  const currentChapterTitle = currentChapter?.title || chapters[chapterIndex]?.title || '1-тарау';
+  const currentChapterTitle = currentChapter?.title || chapters[chapterIndex]?.title || '1-аудио';
 
   const formatTime = (secs: number) => {
     if (!secs || isNaN(secs)) return '0:00';
