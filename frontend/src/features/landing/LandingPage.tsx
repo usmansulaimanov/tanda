@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useBookStore } from '../../store/useBookStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { BookCard } from '../../components/ui/BookCard';
+import { TopAudioSection } from './TopAudioSection';
 import { AdminDashboard } from '../admin/AdminDashboard';
 import heroReadingImg from '../../assets/hero-reading.jpg';
 
@@ -349,6 +350,9 @@ export const LandingPage: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* TOP 10 AUDIO BOOKS SECTION */}
+      <TopAudioSection />
 
       {/* CATALOG SECTION */}
       <section className="catalog-section tanda-section" id="catalog" style={{ backgroundColor: '#F8FAFC' }}>

@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware';
 import { Book, AudioChapter } from '../types';
 import { api } from '../lib/api';
 import { useMyBooksStore } from './useMyBooksStore';
+import { useTopAudioStore } from './useTopAudioStore';
 
 interface AudioPlayerState {
   currentBook: Book | null;
@@ -123,6 +124,7 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
           duration: chapterDur,
         });
         useMyBooksStore.getState().markAsReading(book.id);
+        useTopAudioStore.getState().recordAudioListen(book.id);
         debouncedSyncProgress(book.id, chapter?.id, startProgress);
       },
 
