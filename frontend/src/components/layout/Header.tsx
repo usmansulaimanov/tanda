@@ -357,6 +357,7 @@ export const Header: React.FC = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0, whiteSpace: 'nowrap' }}>
             {isAuthenticated && user ? (
               <div className="nav-profile-wrap" ref={profileWrapRef}>
+                {/* Profile Icon / Avatar */}
                 <button
                   type="button"
                   onClick={() => setProfileOpen((prev) => !prev)}
@@ -365,11 +366,11 @@ export const Header: React.FC = () => {
                   aria-label="Жеке профиль"
                   aria-expanded={profileOpen}
                   aria-haspopup="true"
-                  style={{ padding: user.avatarUrl ? '2px' : undefined, overflow: 'hidden' }}
+                  style={{ padding: (user.avatarUrl || (user.role === 'client' ? '/default-reader-avatar.jpg' : undefined)) ? '2px' : undefined, overflow: 'hidden' }}
                 >
-                  {user.avatarUrl ? (
+                  {(user.avatarUrl || (user.role === 'client' ? '/default-reader-avatar.jpg' : undefined)) ? (
                     <img
-                      src={user.avatarUrl}
+                      src={user.avatarUrl || '/default-reader-avatar.jpg'}
                       alt={user.name || 'Avatar'}
                       style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover' }}
                       referrerPolicy="no-referrer"
@@ -396,9 +397,9 @@ export const Header: React.FC = () => {
                     {/* User Info Header: Name, Email & Role */}
                     <div className="profile-card-header">
                       <div className="profile-card-avatar" style={{ overflow: 'hidden' }}>
-                        {user.avatarUrl ? (
+                        {(user.avatarUrl || (user.role === 'client' ? '/default-reader-avatar.jpg' : undefined)) ? (
                           <img
-                            src={user.avatarUrl}
+                            src={user.avatarUrl || '/default-reader-avatar.jpg'}
                             alt={user.name || 'Avatar'}
                             style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }}
                             referrerPolicy="no-referrer"

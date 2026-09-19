@@ -58,6 +58,7 @@ interface AuthState {
 }
 
 const USERS_REGISTRY_KEY = 'tanda_users_registry_v1';
+export const DEFAULT_READER_AVATAR = '/default-reader-avatar.jpg';
 
 function formatPhoneNumber(val: string): string {
   if (!val) return '';
@@ -104,6 +105,10 @@ function getStoredUsers(): User[] {
             u.isSuperAdmin = true;
             modified = true;
           }
+          if (u.role === 'client' && !u.avatarUrl) {
+            u.avatarUrl = DEFAULT_READER_AVATAR;
+            modified = true;
+          }
         });
         if (modified) saveStoredUsers(list);
         return list;
@@ -129,6 +134,7 @@ function getStoredUsers(): User[] {
       username: 'reader',
       phone: '+7 (777) 123-45-67',
       role: 'client',
+      avatarUrl: DEFAULT_READER_AVATAR,
       createdAt: '2026-09-01T10:00:00.000Z',
     },
   ];
@@ -548,6 +554,7 @@ export const useAuthStore = create<AuthState>()(
           phone: cleanPhone || undefined,
           username: rawUsername || undefined,
           role: cleanRole,
+          avatarUrl: cleanRole === 'client' ? DEFAULT_READER_AVATAR : undefined,
           password: data.password || 'reader123',
           hasPassword: true,
           isActive: true,
@@ -763,6 +770,7 @@ export const useAuthStore = create<AuthState>()(
               username: isAdmin ? 'admin' : (trimmed.includes('@') ? trimmed.split('@')[0] : trimmed),
               phone: phoneNational ? formatPhoneNumber(trimmed) : undefined,
               role: isAdmin ? 'admin' : 'client',
+              avatarUrl: isAdmin ? undefined : DEFAULT_READER_AVATAR,
               createdAt: new Date().toISOString(),
             };
             allUsers.push(matched);
@@ -811,7 +819,7 @@ export const useAuthStore = create<AuthState>()(
 
           const email = (payload.email || 'google.user@gmail.com').toLowerCase();
           const name = payload.name || payload.given_name || 'Google Пайдаланушысы';
-          const picture = payload.picture || undefined;
+          const picture = payload.picture || DEFAULT_READER_AVATAR;
           const allUsers = getStoredUsers();
           let matched = allUsers.find((u) => u.email.toLowerCase() === email);
 
@@ -861,14 +869,18 @@ export const useAuthStore = create<AuthState>()(
             email: trimmedEmail,
             password,
           });
+          const regUser = {
+            ...data.user,
+            avatarUrl: data.user?.avatarUrl || DEFAULT_READER_AVATAR,
+          };
           localStorage.setItem('tanda_token', data.token);
           set({
-            user: data.user,
-            role: data.user.role as 'admin' | 'client',
+            user: regUser,
+            role: regUser.role as 'admin' | 'client',
             isAuthenticated: true,
             authModalOpen: false,
           });
-          sendWelcomeMessage(data.user);
+          sendWelcomeMessage(regUser);
         } catch {
           // Fallback mock registration
           const allUsers = getStoredUsers();
@@ -883,6 +895,7 @@ export const useAuthStore = create<AuthState>()(
             email: trimmedEmail,
             username: defaultUsername,
             role: 'client',
+            avatarUrl: DEFAULT_READER_AVATAR,
             createdAt: new Date().toISOString(),
           };
 

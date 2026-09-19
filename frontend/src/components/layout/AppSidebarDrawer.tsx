@@ -123,9 +123,9 @@ export const AppSidebarDrawer: React.FC = () => {
         {isAuthenticated && user && (
           <div className="sidebar-user-box">
             <div className="sidebar-user-avatar" style={{ overflow: 'hidden' }}>
-              {user.avatarUrl ? (
+              {(user.avatarUrl || (role === 'client' ? '/default-reader-avatar.jpg' : undefined)) ? (
                 <img
-                  src={user.avatarUrl}
+                  src={user.avatarUrl || '/default-reader-avatar.jpg'}
                   alt={user.name || 'Avatar'}
                   style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }}
                   referrerPolicy="no-referrer"

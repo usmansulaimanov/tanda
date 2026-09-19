@@ -366,17 +366,22 @@ export const ReadersPage: React.FC = () => {
                               width: '34px',
                               height: '34px',
                               borderRadius: '50%',
-                              background: 'linear-gradient(135deg, var(--blue), var(--orange))',
-                              color: '#FFFFFF',
+                              overflow: 'hidden',
+                              background: '#F1F5F9',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
                               fontWeight: 800,
                               fontSize: '13px',
                               flexShrink: 0,
+                              border: '1px solid #E2E8F0',
                             }}
                           >
-                            {initial}
+                            <img
+                              src={reader.avatarUrl || '/default-reader-avatar.jpg'}
+                              alt={reader.name || 'Оқырман'}
+                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            />
                           </div>
                           <div>
                             <div style={{ fontWeight: 800, color: 'var(--text-dark)', fontSize: '14px' }}>

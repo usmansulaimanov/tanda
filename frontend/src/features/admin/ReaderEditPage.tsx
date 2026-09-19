@@ -346,7 +346,7 @@ export const ReaderEditPage: React.FC = () => {
                 width: '64px',
                 height: '64px',
                 borderRadius: '50%',
-                background: 'linear-gradient(135deg, var(--blue) 0%, var(--orange) 100%)',
+                background: '#F1F5F9',
                 color: '#FFFFFF',
                 display: 'flex',
                 alignItems: 'center',
@@ -355,10 +355,15 @@ export const ReaderEditPage: React.FC = () => {
                 fontWeight: 900,
                 boxShadow: '0 6px 18px rgba(0, 84, 148, 0.25)',
                 flexShrink: 0,
-                textTransform: 'uppercase',
+                overflow: 'hidden',
+                border: '2px solid #E2E8F0',
               }}
             >
-              {initialLetter}
+              <img
+                src={reader.avatarUrl || '/default-reader-avatar.jpg'}
+                alt={reader.name || 'Оқырман'}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
             </div>
 
             <div style={{ minWidth: 0, flex: 1 }}>
