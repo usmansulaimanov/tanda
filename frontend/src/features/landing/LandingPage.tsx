@@ -103,13 +103,12 @@ export const LandingPage: React.FC = () => {
     }
   };
 
+  // Clean any legacy hash from URL so refreshes stay in current scroll position
   useEffect(() => {
-    if (location.hash === '#catalog') {
-      setTimeout(() => {
-        scrollToCatalog();
-      }, 80);
+    if (window.location.hash) {
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
     }
-  }, [location.hash]);
+  }, []);
 
   // Active, non-archived books for catalog
   const activeBooks = useMemo(() => {
@@ -265,7 +264,7 @@ export const LandingPage: React.FC = () => {
               Мыңдаған қазақша электронды және аудиокітаптар бір жерде. Кез келген құрылғыдан оқыңыз, тыңдаңыз және біліміңізді молайтыңыз.
             </p>
             <div className="hero-buttons">
-              <a href="#catalog" onClick={scrollToCatalog} className="btn-primary">Кітаптарды көру</a>
+              <button type="button" onClick={scrollToCatalog} className="btn-primary">Кітаптарды көру</button>
             </div>
             <div className="hero-stats">
               <div className="stat-item">
