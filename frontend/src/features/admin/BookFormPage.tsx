@@ -287,9 +287,10 @@ export const BookFormPage: React.FC = () => {
                 marginBottom: '20px',
               }}
             >
+              {/* Title */}
               <div className="form-group" style={{ margin: 0 }}>
                 <label className="form-label">
-                  Кітап атауы <span className="req">*</span>
+                  Кітап атауы: <span className="req">*</span>
                 </label>
                 <input
                   type="text"
@@ -301,9 +302,10 @@ export const BookFormPage: React.FC = () => {
                 />
               </div>
 
+              {/* Author */}
               <div className="form-group" style={{ margin: 0 }}>
                 <label className="form-label">
-                  Автордың аты-жөні <span className="req">*</span>
+                  Автордың аты-жөні: <span className="req">*</span>
                 </label>
                 <input
                   type="text"
@@ -326,7 +328,7 @@ export const BookFormPage: React.FC = () => {
               }}
             >
               <div className="form-group" style={{ margin: 0 }}>
-                <label className="form-label">Жанры / Санаты</label>
+                <label className="form-label">Жанры / Санаты:</label>
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
@@ -339,7 +341,7 @@ export const BookFormPage: React.FC = () => {
               </div>
 
               <div className="form-group" style={{ margin: 0 }}>
-                <label className="form-label">Бет саны</label>
+                <label className="form-label">Бет саны:</label>
                 <input
                   type="number"
                   min="1"
@@ -353,7 +355,7 @@ export const BookFormPage: React.FC = () => {
 
             {/* Description */}
             <div className="form-group">
-              <label className="form-label">Кітап сипаттамасы / Аннотация</label>
+              <label className="form-label">Кітап сипаттамасы / Аннотация:</label>
               <textarea
                 rows={4}
                 value={description}
@@ -643,7 +645,7 @@ export const BookFormPage: React.FC = () => {
                   >
                     <div className="form-group" style={{ margin: 0 }}>
                       <label className="form-label" style={{ fontSize: '12px' }}>
-                        Диктор
+                        Диктор:
                       </label>
                       <input
                         type="text"
@@ -656,7 +658,7 @@ export const BookFormPage: React.FC = () => {
 
                     <div className="form-group" style={{ margin: 0 }}>
                       <label className="form-label" style={{ fontSize: '12px' }}>
-                        Жалпы ұзақтығы
+                        Жалпы ұзақтығы:
                       </label>
                       <input
                         type="text"
