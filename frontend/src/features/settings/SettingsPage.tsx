@@ -57,15 +57,18 @@ const getPhoneNationalDigitsCount = (val: string): number => {
 export const SettingsPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { user, isAuthenticated, updateProfile, updateAvatar, changePassword, checkUsernameAvailable } = useAuthStore();
+  const { user, isAuthenticated, updateProfile, updateAvatar, changePassword, checkUsernameAvailable, getReservedUsernames, addReservedUsername, addReservedUsernames, removeReservedUsername } = useAuthStore();
   const { showToast } = useToastStore();
+
+  const isAdmin = user?.role === 'admin' || Boolean(user?.isSuperAdmin);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
 
-  // Navigation mode: 'menu' | 'profile' | 'password'
-  const initialMode = (searchParams.get('mode') as 'profile' | 'password' | null) || 'menu';
-  const [viewMode, setViewMode] = useState<'menu' | 'profile' | 'password'>(initialMode);
+  // Navigation mode: 'menu' | 'profile' | 'password' | 'usernames'
+  const rawMode = searchParams.get('mode') as 'profile' | 'password' | 'usernames' | null;
+  const initialMode = (rawMode === 'usernames' && !isAdmin) ? 'menu' : (rawMode || 'menu');
+  const [viewMode, setViewMode] = useState<'menu' | 'profile' | 'password' | 'usernames'>(initialMode);
 
   // Profile Form state
   const [name, setName] = useState('');
@@ -85,6 +88,16 @@ export const SettingsPage: React.FC = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordError, setPasswordError] = useState('');
   const [isSavingPassword, setIsSavingPassword] = useState(false);
+
+  // Usernames / Reserved usernames state
+  const [reservedList, setReservedList] = useState<string[]>([]);
+  const [newReservedInput, setNewReservedInput] = useState('');
+  const [newReservedError, setNewReservedError] = useState('');
+  const [reservedSearch, setReservedSearch] = useState('');
+  const [activeUsernamesTab, setActiveUsernamesTab] = useState<'reserved'>('reserved');
+  const [isBatchModalOpen, setIsBatchModalOpen] = useState(false);
+  const [batchInput, setBatchInput] = useState('');
+  const [batchError, setBatchError] = useState('');
 
   const handleAvatarFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -134,13 +147,87 @@ export const SettingsPage: React.FC = () => {
     setUsername(user.username ? (user.username.startsWith('@') ? user.username : `@${user.username}`) : '');
   }, [isAuthenticated, user]);
 
-  const switchMode = (mode: 'menu' | 'profile' | 'password') => {
+  useEffect(() => {
+    setReservedList(getReservedUsernames());
+  }, [getReservedUsernames]);
+
+  const switchMode = (mode: 'menu' | 'profile' | 'password' | 'usernames') => {
+    if (mode === 'usernames' && !isAdmin) {
+      setViewMode('menu');
+      setSearchParams({});
+      return;
+    }
     setViewMode(mode);
     if (mode === 'menu') {
       setSearchParams({});
     } else {
       setSearchParams({ mode });
     }
+  };
+
+  const handleAddSingleUsername = (e: React.FormEvent) => {
+    e.preventDefault();
+    setNewReservedError('');
+    const clean = newReservedInput.trim().toLowerCase().replace(/^@/, '');
+    if (!clean) {
+      setNewReservedError('Юзернеймді енгізіңіз');
+      return;
+    }
+    const res = addReservedUsername(clean);
+    if (!res.success) {
+      setNewReservedError(res.error || 'Қате орын алды');
+      return;
+    }
+    setReservedList(getReservedUsernames());
+    setNewReservedInput('');
+    showToast(`@${clean} бұғатталған юзернеймдер тізіміне қосылды!`, 'success');
+  };
+
+  const handleBatchAddSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setBatchError('');
+
+    const lines = batchInput
+      .split(/[\r\n,]+/)
+      .map((s) => s.trim().toLowerCase().replace(/^@/, ''))
+      .filter(Boolean);
+
+    if (lines.length === 0) {
+      setBatchError('Кем дегенде бір юзернейм жазыңыз');
+      return;
+    }
+
+    const { addedCount, skippedCount, invalidCount } = addReservedUsernames(lines);
+
+    if (addedCount === 0) {
+      if (invalidCount > 0 && skippedCount === 0) {
+        setBatchError('Енгізілген юзернеймдердің форматы қате (кемінде 3 таңба, тек ағылшын әріптері, сандар, _ немесе .)');
+      } else if (skippedCount > 0) {
+        setBatchError('Енгізілген барлық юзернеймдер тізімде бар (қайталанғандар өткізілді)');
+      } else {
+        setBatchError('Қосылатын жаңа юзернейм табылмады');
+      }
+      return;
+    }
+
+    setReservedList(getReservedUsernames());
+    setBatchInput('');
+    setIsBatchModalOpen(false);
+
+    let msg = `${addedCount} жаңа юзернейм сәтті қосылды!`;
+    if (skippedCount > 0) {
+      msg += ` (${skippedCount} қайталанған юзернейм өткізілді)`;
+    }
+    showToast(msg, 'success');
+  };
+
+  const handleRemoveReservedUsername = (u: string) => {
+    if (!window.confirm(`@${u} юзернеймін бұғатталғандар тізімінен өшіргіңіз келетініне сенімдісіз бе?`)) {
+      return;
+    }
+    removeReservedUsername(u);
+    setReservedList(getReservedUsernames());
+    showToast(`@${u} тізімнен өшірілді`, 'info');
   };
 
   if (!isAuthenticated || !user) {
@@ -609,6 +696,73 @@ export const SettingsPage: React.FC = () => {
                 </div>
               </button>
 
+              {/* Button 3: Ағылшынша юзернеймдер (Тек админдер үшін) */}
+              {isAdmin && (
+                <button
+                  type="button"
+                  onClick={() => switchMode('usernames')}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '22px 24px',
+                    borderRadius: '16px',
+                    background: '#FFFFFF',
+                    border: '1.5px solid #CBD5E1',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--blue)';
+                    e.currentTarget.style.background = '#F8FAFC';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 84, 148, 0.12)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = '#CBD5E1';
+                    e.currentTarget.style.background = '#FFFFFF';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.04)';
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <div
+                      style={{
+                        width: '48px',
+                        height: '48px',
+                        borderRadius: '12px',
+                        background: 'rgba(99, 102, 241, 0.12)',
+                        color: '#6366F1',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="4"></circle>
+                        <path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-3.92 7.94"></path>
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-dark)', margin: '0 0 4px 0' }}>
+                        Username
+                      </h3>
+                      <p style={{ fontSize: '13px', color: 'var(--text-mid)', margin: 0, lineHeight: 1.4 }}>
+                        Бұғатталған және арнайы юзернеймдерді басқару
+                      </p>
+                    </div>
+                  </div>
+                  <div style={{ color: 'var(--blue)', paddingLeft: '12px' }}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                  </div>
+                </button>
+              )}
+
             </div>
           </div>
         )}
@@ -1048,7 +1202,501 @@ export const SettingsPage: React.FC = () => {
           </div>
         )}
 
+        {/* 3. SUB-PAGE 3: Ағылшынша юзернеймдер (English Usernames) */}
+        {viewMode === 'usernames' && isAdmin && (
+          <div>
+            {/* Header */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
+              <div>
+                <h2 style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-dark)', margin: '4px 0' }}>
+                  Username
+                </h2>
+                <p style={{ fontSize: '13px', color: 'var(--text-mid)', margin: 0 }}>
+                  Жүйедегі бұғатталған және резервтелген юзернеймдерді басқару
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => switchMode('menu')}
+                style={{
+                  background: '#F1F5F9',
+                  border: '1.5px solid #CBD5E1',
+                  borderRadius: '50px',
+                  padding: '7px 16px',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  color: 'var(--text-mid)',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                ← Баптауларға қайту
+              </button>
+            </div>
+
+            {/* Tabs Navigation Bar */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                borderBottom: '2px solid #E2E8F0',
+                marginBottom: '24px',
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => setActiveUsernamesTab('reserved')}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '10px 18px',
+                  border: 'none',
+                  background: 'none',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: 800,
+                  color: activeUsernamesTab === 'reserved' ? 'var(--blue)' : 'var(--text-mid)',
+                  borderBottom: activeUsernamesTab === 'reserved' ? '3px solid var(--blue)' : '3px solid transparent',
+                  marginBottom: '-2px',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <span>Резервтелген юзернеймдер</span>
+                <span
+                  style={{
+                    padding: '2px 8px',
+                    borderRadius: '12px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    background: activeUsernamesTab === 'reserved' ? 'rgba(0, 84, 148, 0.1)' : '#F1F5F9',
+                    color: activeUsernamesTab === 'reserved' ? 'var(--blue)' : 'var(--text-mid)',
+                  }}
+                >
+                  {reservedList.length}
+                </span>
+              </button>
+            </div>
+
+            {/* Tab 1 Content: Резервтелген юзернеймдер */}
+            {activeUsernamesTab === 'reserved' && (
+              <div>
+                {/* Info Note Banner */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '12px',
+                    padding: '14px 18px',
+                    borderRadius: '12px',
+                    background: '#EFF6FF',
+                    border: '1px solid #BFDBFE',
+                    marginBottom: '24px',
+                  }}
+                >
+                  <div style={{ color: 'var(--blue)', marginTop: '2px', flexShrink: 0 }}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="12" y1="16" x2="12" y2="12"></line>
+                      <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                  </div>
+                  <div style={{ fontSize: '13px', color: '#1E40AF', lineHeight: 1.5 }}>
+                    <strong>Ақпарат:</strong> Осы тізімге жазылған юзернеймдерді қарапайым оқырмандар тіркелу кезінде немесе профилін өзгерткенде ала алмайды. Бұл юзернеймдер әкімшілік және ресми жүйе үшін қорғалған.
+                  </div>
+                </div>
+
+                {/* Add new username form (single add with Batch Add button) */}
+                <form
+                  onSubmit={handleAddSingleUsername}
+                  style={{
+                    background: '#F8FAFC',
+                    border: '1.5px solid #E2E8F0',
+                    borderRadius: '16px',
+                    padding: '18px 20px',
+                    marginBottom: '24px',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
+                    <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-dark)' }}>
+                      Жаңа юзернеймді бұғаттау тізіміне қосу
+                    </label>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setBatchError('');
+                        setBatchInput('');
+                        setIsBatchModalOpen(true);
+                      }}
+                      style={{
+                        background: '#EFF6FF',
+                        border: '1px solid #BFDBFE',
+                        borderRadius: '50px',
+                        padding: '6px 14px',
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        color: 'var(--blue)',
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        transition: 'all 0.15s ease',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = '#DBEAFE';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = '#EFF6FF';
+                      }}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="8" y1="6" x2="21" y2="6"></line>
+                        <line x1="8" y1="12" x2="21" y2="12"></line>
+                        <line x1="8" y1="18" x2="21" y2="18"></line>
+                        <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                        <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                        <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                      </svg>
+                      Топпен қосу
+                    </button>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                    <div style={{ position: 'relative', flex: 1, minWidth: '240px' }}>
+                      <span
+                        style={{
+                          position: 'absolute',
+                          left: '14px',
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          fontSize: '14px',
+                          fontWeight: 700,
+                          color: 'var(--text-mid)',
+                        }}
+                      >
+                        @
+                      </span>
+                      <input
+                        type="text"
+                        value={newReservedInput}
+                        onChange={(e) => {
+                          setNewReservedInput(e.target.value);
+                          if (newReservedError) setNewReservedError('');
+                        }}
+                        placeholder="жаңа_юзернейм (мысалы: official, support, help)"
+                        className="form-input"
+                        style={{
+                          paddingLeft: '32px',
+                          borderColor: newReservedError ? '#DC2626' : undefined,
+                        }}
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      className="btn-primary"
+                      style={{
+                        padding: '0 24px',
+                        height: '42px',
+                        borderRadius: '50px',
+                        fontSize: '13px',
+                        fontWeight: 700,
+                        background: 'var(--blue)',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        flexShrink: 0,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                      </svg>
+                      Қосу
+                    </button>
+                  </div>
+                  {newReservedError && (
+                    <div style={{ fontSize: '12px', fontWeight: 700, color: '#DC2626', marginTop: '6px' }}>
+                      {newReservedError}
+                    </div>
+                  )}
+                </form>
+
+                {/* Search header */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
+                  <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-dark)' }}>
+                    Бұғатталған юзернеймдер: {reservedList.filter((u) => u.toLowerCase().includes(reservedSearch.trim().toLowerCase().replace(/^@/, ''))).length}
+                  </div>
+                  <div style={{ position: 'relative', width: '220px' }}>
+                    <input
+                      type="text"
+                      value={reservedSearch}
+                      onChange={(e) => setReservedSearch(e.target.value)}
+                      placeholder="Іздеу..."
+                      className="form-input"
+                      style={{
+                        padding: '6px 12px',
+                        fontSize: '12px',
+                        borderRadius: '20px',
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* List of reserved usernames */}
+                {reservedList
+                  .filter((u) => u.toLowerCase().includes(reservedSearch.trim().toLowerCase().replace(/^@/, '')))
+                  .length === 0 ? (
+                  <div
+                    style={{
+                      textAlign: 'center',
+                      padding: '36px 20px',
+                      background: '#F8FAFC',
+                      borderRadius: '14px',
+                      border: '1px dashed #CBD5E1',
+                      color: 'var(--text-mid)',
+                      fontSize: '13px',
+                    }}
+                  >
+                    {reservedSearch ? 'Іздеу бойынша ешқандай юзернейм табылмады' : 'Резервтелген юзернеймдер тізімі бос'}
+                  </div>
+                ) : (
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+                      gap: '12px',
+                    }}
+                  >
+                    {[...reservedList]
+                      .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }))
+                      .filter((u) => u.toLowerCase().includes(reservedSearch.trim().toLowerCase().replace(/^@/, '')))
+                      .map((u) => (
+                        <div
+                          key={u}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '10px 14px',
+                            background: '#FFFFFF',
+                            border: '1px solid #E2E8F0',
+                            borderRadius: '12px',
+                            boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
+                            transition: 'all 0.15s ease',
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+                            <span
+                              style={{
+                                width: '28px',
+                                height: '28px',
+                                borderRadius: '8px',
+                                background: 'rgba(239, 68, 68, 0.1)',
+                                color: '#EF4444',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '13px',
+                                fontWeight: 800,
+                                flexShrink: 0,
+                              }}
+                            >
+                              @
+                            </span>
+                            <span
+                              style={{
+                                fontSize: '13px',
+                                fontWeight: 700,
+                                color: 'var(--text-dark)',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap',
+                              }}
+                              title={`@${u}`}
+                            >
+                              {u}
+                            </span>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveReservedUsername(u)}
+                            title="Тізімнен өшіру"
+                            style={{
+                              border: 'none',
+                              background: 'transparent',
+                              color: '#94A3B8',
+                              cursor: 'pointer',
+                              padding: '4px',
+                              borderRadius: '6px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              transition: 'color 0.15s ease, background 0.15s ease',
+                              flexShrink: 0,
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.color = '#EF4444';
+                              e.currentTarget.style.background = '#FEE2E2';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.color = '#94A3B8';
+                              e.currentTarget.style.background = 'transparent';
+                            }}
+                          >
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <line x1="18" y1="6" x2="6" y2="18"></line>
+                              <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                          </button>
+                        </div>
+                      ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
       </div>
+
+      {/* Batch Add Usernames Modal */}
+      {isBatchModalOpen && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(15, 23, 42, 0.6)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            padding: '16px',
+          }}
+          onClick={() => setIsBatchModalOpen(false)}
+        >
+          <div
+            style={{
+              background: '#FFFFFF',
+              borderRadius: '20px',
+              width: '100%',
+              maxWidth: '520px',
+              padding: '24px 28px',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.2)',
+              position: 'relative',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+              <h3 style={{ fontSize: '18px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
+                Юзернеймдерді топпен қосу
+              </h3>
+              <button
+                type="button"
+                onClick={() => setIsBatchModalOpen(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#94A3B8',
+                  cursor: 'pointer',
+                  padding: '4px',
+                  borderRadius: '6px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+
+            {/* Modal Description */}
+            <p style={{ fontSize: '13px', color: 'var(--text-mid)', margin: '0 0 16px 0', lineHeight: 1.5 }}>
+              Әр юзернеймді жаңа жолдан (абзацтан) жазыңыз немесе тізімді көшіріп қойыңыз. Бұрыннан бар юзернеймдер автоматты түрде өткізіліп, тек жаңалары қосылады.
+            </p>
+
+            {/* Form */}
+            <form onSubmit={handleBatchAddSubmit}>
+              <div style={{ marginBottom: '18px' }}>
+                <textarea
+                  rows={8}
+                  autoFocus
+                  value={batchInput}
+                  onChange={(e) => {
+                    setBatchInput(e.target.value);
+                    if (batchError) setBatchError('');
+                  }}
+                  placeholder={`support\nofficial\nhelp\ntanda_kz\nmanager`}
+                  className="form-input"
+                  style={{
+                    width: '100%',
+                    padding: '12px 14px',
+                    fontSize: '13px',
+                    lineHeight: '1.6',
+                    resize: 'vertical',
+                    fontFamily: 'inherit',
+                    borderColor: batchError ? '#DC2626' : undefined,
+                    borderRadius: '12px',
+                  }}
+                />
+                {batchError && (
+                  <div style={{ fontSize: '12px', fontWeight: 700, color: '#DC2626', marginTop: '6px' }}>
+                    {batchError}
+                  </div>
+                )}
+              </div>
+
+              {/* Modal Footer Actions */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => setIsBatchModalOpen(false)}
+                  style={{
+                    padding: '10px 20px',
+                    borderRadius: '50px',
+                    background: '#F1F5F9',
+                    color: 'var(--text-mid)',
+                    border: 'none',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Бас тарту
+                </button>
+                <button
+                  type="submit"
+                  className="btn-primary"
+                  style={{
+                    padding: '10px 24px',
+                    borderRadius: '50px',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    background: 'var(--blue)',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Тізімге қосу
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
     </div>
   );

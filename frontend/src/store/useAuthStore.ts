@@ -42,6 +42,12 @@ interface AuthState {
   getClientsCount: () => number;
   checkUsernameAvailable: (username: string, excludeUserId?: string) => { available: boolean; error?: string };
 
+  // Reserved usernames (Бұғатталған/резервтелген юзернеймдер)
+  getReservedUsernames: () => string[];
+  addReservedUsername: (username: string) => { success: boolean; error?: string };
+  addReservedUsernames: (usernames: string[]) => { addedCount: number; skippedCount: number; invalidCount: number; error?: string };
+  removeReservedUsername: (username: string) => { success: boolean; error?: string };
+
   // Manager (Көмекші / Басқару) operations
   getAllManagers: () => User[];
   createManagerByAdmin: (data: { name: string; email: string; password?: string; permissions: AdminPermission[] }) => Promise<{ success: boolean; user?: User; error?: string }>;
@@ -148,6 +154,47 @@ function saveStoredUsers(users: User[]) {
   } catch {}
 }
 
+const RESERVED_USERNAMES_KEY = 'tanda_reserved_usernames_v1';
+const DEFAULT_RESERVED_USERNAMES = [
+  'admin',
+  'administrator',
+  'tanda',
+  'tandakz',
+  'tanda_kz',
+  'tanda_official',
+  'support',
+  'moderator',
+  'help',
+  'official',
+  'root',
+  'system',
+  'owner',
+  'manager',
+  'books',
+  'audiobooks',
+  'kitap',
+];
+
+function getStoredReservedUsernames(): string[] {
+  try {
+    const raw = localStorage.getItem(RESERVED_USERNAMES_KEY);
+    if (raw) {
+      const list = JSON.parse(raw);
+      if (Array.isArray(list) && list.length > 0) {
+        return list;
+      }
+    }
+  } catch {}
+  saveStoredReservedUsernames(DEFAULT_RESERVED_USERNAMES);
+  return DEFAULT_RESERVED_USERNAMES;
+}
+
+function saveStoredReservedUsernames(list: string[]) {
+  try {
+    localStorage.setItem(RESERVED_USERNAMES_KEY, JSON.stringify(list));
+  } catch {}
+}
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
@@ -166,6 +213,71 @@ export const useAuthStore = create<AuthState>()(
         set({ authModalOpen: false });
       },
 
+      getReservedUsernames: (): string[] => {
+        return getStoredReservedUsernames();
+      },
+
+      addReservedUsername: (username: string) => {
+        const clean = username.trim().toLowerCase().replace(/^@/, '');
+        if (!clean) {
+          return { success: false, error: 'Юзернеймді енгізіңіз' };
+        }
+        if (clean.length < 3) {
+          return { success: false, error: 'Юзернейм кемінде 3 әріптен тұруы керек' };
+        }
+        if (!/^[a-zA-Z0-9_.]+$/.test(clean)) {
+          return { success: false, error: 'Юзернеймде тек ағылшын әріптері, сандар, _ және . рұқсат етілген' };
+        }
+        const currentList = getStoredReservedUsernames();
+        if (currentList.map((u) => u.toLowerCase()).includes(clean)) {
+          return { success: false, error: 'Бұл юзернейм тізімде бар' };
+        }
+        const updated = [clean, ...currentList];
+        saveStoredReservedUsernames(updated);
+        return { success: true };
+      },
+
+      addReservedUsernames: (rawUsernames: string[]) => {
+        const currentList = getStoredReservedUsernames();
+        const currentSet = new Set(currentList.map((u) => u.toLowerCase()));
+
+        let addedCount = 0;
+        let skippedCount = 0;
+        let invalidCount = 0;
+        const newToAdd: string[] = [];
+
+        rawUsernames.forEach((item) => {
+          const clean = item.trim().toLowerCase().replace(/^@/, '');
+          if (!clean) return;
+          if (clean.length < 3 || !/^[a-zA-Z0-9_.]+$/.test(clean)) {
+            invalidCount++;
+            return;
+          }
+          if (currentSet.has(clean)) {
+            skippedCount++;
+            return;
+          }
+          currentSet.add(clean);
+          newToAdd.push(clean);
+          addedCount++;
+        });
+
+        if (newToAdd.length > 0) {
+          const updated = [...newToAdd, ...currentList];
+          saveStoredReservedUsernames(updated);
+        }
+
+        return { addedCount, skippedCount, invalidCount };
+      },
+
+      removeReservedUsername: (username: string) => {
+        const clean = username.trim().toLowerCase().replace(/^@/, '');
+        const currentList = getStoredReservedUsernames();
+        const updated = currentList.filter((u) => u.toLowerCase() !== clean);
+        saveStoredReservedUsernames(updated);
+        return { success: true };
+      },
+
       checkUsernameAvailable: (username: string, excludeUserId?: string) => {
         const trimmed = username.trim().toLowerCase().replace(/^@/, '');
         if (!trimmed) {
@@ -176,6 +288,16 @@ export const useAuthStore = create<AuthState>()(
         }
         if (!/^[a-zA-Z0-9_.]+$/.test(trimmed)) {
           return { available: false, error: 'Юзернеймде тек латын әріптері, сандар, _ және . рұқсат етілген' };
+        }
+
+        // Check if reserved by admin
+        const reservedList = getStoredReservedUsernames();
+        if (reservedList.map((r) => r.toLowerCase()).includes(trimmed)) {
+          const currentUser = get().user;
+          const isSuperAdminHoldingIt = currentUser?.isSuperAdmin && currentUser?.username?.toLowerCase() === trimmed;
+          if (!isSuperAdminHoldingIt) {
+            return { available: false, error: 'Бұл юзернейм резервтелген және қолдануға рұқсат етілмейді' };
+          }
         }
 
         const effectiveExcludeId = excludeUserId !== undefined ? excludeUserId : get().user?.id;
