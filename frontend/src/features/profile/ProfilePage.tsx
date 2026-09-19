@@ -115,7 +115,7 @@ export const ProfilePage: React.FC = () => {
           <div>
             <span className="section-tag">Менің жинағым</span>
             <h2 className="section-title" style={{ fontSize: '26px', margin: '6px 0 0' }}>
-              Сақталған кітаптар: ({savedBooks.length})
+              Сақталған кітаптар: {savedBooks.length}
             </h2>
           </div>
 
