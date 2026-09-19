@@ -728,13 +728,13 @@ export const BookFormPage: React.FC = () => {
                           <line x1="12" y1="5" x2="12" y2="19"></line>
                           <line x1="5" y1="12" x2="19" y2="12"></line>
                         </svg>
-                        Тарау қосу
+                        Аудио қосу
                       </button>
                     </div>
 
                     {audioChapters.length === 0 ? (
                       <p style={{ fontSize: '12px', color: '#94A3B8', textAlign: 'center', margin: '12px 0' }}>
-                        Әзірге жеке тараулар қосылмаған. «Тарау қосу» түймесін басыңыз.
+                        Әзірге аудио қосылмаған. «Аудио қосу» түймесін басыңыз.
                       </p>
                     ) : (
                       audioChapters.map((ch, idx) => (
