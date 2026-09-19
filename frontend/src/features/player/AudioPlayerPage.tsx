@@ -719,27 +719,7 @@ export const AudioPlayerPage: React.FC = () => {
                           : 'hover:bg-slate-50/80'
                       }`}
                     >
-                      <div className="flex items-center gap-3 min-w-0">
-                        
-                        {/* Index / Playing Equalizer */}
-                        <div
-                          className={`w-7 h-7 rounded-lg shrink-0 flex items-center justify-center font-bold text-xs transition ${
-                            isActive
-                              ? 'bg-[#005494] text-white shadow-xs'
-                              : 'bg-slate-100 text-slate-600'
-                          }`}
-                        >
-                          {isActive && isPlaying ? (
-                            <div className="flex items-end gap-0.5 h-3">
-                              <span className="w-0.5 bg-white rounded-full animate-pulse h-1.5"></span>
-                              <span className="w-0.5 bg-white rounded-full animate-bounce h-3"></span>
-                              <span className="w-0.5 bg-white rounded-full animate-pulse h-2"></span>
-                            </div>
-                          ) : (
-                            <span>{idx + 1}</span>
-                          )}
-                        </div>
-
+                      <div className="flex items-center gap-2.5 min-w-0">
                         {/* Title */}
                         <div className="min-w-0">
                           <h4 className={`text-xs sm:text-sm truncate ${isActive ? 'font-black text-[#005494]' : 'font-semibold text-slate-800'}`}>
