@@ -704,7 +704,7 @@ export const AudioPlayerPage: React.FC = () => {
               </div>
 
               {/* Scrollable list of chapters - ONLY THIS SCROLLS */}
-              <div className="flex-1 overflow-y-auto min-h-0 pr-1 space-y-2">
+              <div className="flex-1 overflow-y-auto min-h-0 pr-1 divide-y divide-slate-100">
                 {chapters.map((ch, idx) => {
                   const isActive = chapterIndex === idx && currentBook?.id === activeBook.id;
 
@@ -713,20 +713,20 @@ export const AudioPlayerPage: React.FC = () => {
                       key={ch.id || idx}
                       type="button"
                       onClick={() => handleChapterSelect(idx)}
-                      className={`w-full text-left p-3 rounded-2xl border transition-all flex items-center justify-between gap-2.5 cursor-pointer ${
+                      className={`w-full text-left py-3 px-2.5 sm:px-3 rounded-xl transition-colors flex items-center justify-between gap-2.5 cursor-pointer ${
                         isActive
-                          ? 'bg-[#005494]/5 border-[#005494] shadow-sm ring-2 ring-[#005494]/20'
-                          : 'bg-slate-50/70 border-slate-200 hover:bg-slate-100/90 hover:border-slate-300'
+                          ? 'bg-[#005494]/6'
+                          : 'hover:bg-slate-50/80'
                       }`}
                     >
-                      <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="flex items-center gap-3 min-w-0">
                         
                         {/* Index / Playing Equalizer */}
                         <div
-                          className={`w-8 h-8 rounded-xl shrink-0 flex items-center justify-center font-extrabold text-xs transition ${
+                          className={`w-7 h-7 rounded-lg shrink-0 flex items-center justify-center font-bold text-xs transition ${
                             isActive
-                              ? 'bg-[#005494] text-white shadow-sm'
-                              : 'bg-white border border-slate-200 text-slate-700'
+                              ? 'bg-[#005494] text-white shadow-xs'
+                              : 'bg-slate-100 text-slate-600'
                           }`}
                         >
                           {isActive && isPlaying ? (
@@ -742,25 +742,25 @@ export const AudioPlayerPage: React.FC = () => {
 
                         {/* Title */}
                         <div className="min-w-0">
-                          <h4 className={`text-xs sm:text-sm font-bold truncate ${isActive ? 'text-[#005494]' : 'text-slate-800'}`}>
+                          <h4 className={`text-xs sm:text-sm truncate ${isActive ? 'font-black text-[#005494]' : 'font-semibold text-slate-800'}`}>
                             {ch.title}
                           </h4>
                         </div>
                       </div>
 
                       {/* Duration & Play icon */}
-                      <div className="flex items-center gap-2 shrink-0">
+                      <div className="flex items-center gap-2.5 shrink-0">
                         {ch.duration && (
-                          <span className="text-[11px] font-mono font-semibold text-slate-500">
+                          <span className="text-[11px] font-mono font-medium text-slate-400">
                             {ch.duration}
                           </span>
                         )}
 
                         <div
-                          className={`w-6 h-6 rounded-lg flex items-center justify-center ${
+                          className={`w-6 h-6 rounded-full flex items-center justify-center transition ${
                             isActive
-                              ? 'bg-[#EF7E00] text-white'
-                              : 'bg-slate-200/80 text-slate-600'
+                              ? 'bg-[#EF7E00] text-white shadow-xs'
+                              : 'bg-slate-100 text-slate-500'
                           }`}
                         >
                           {isActive && isPlaying ? (

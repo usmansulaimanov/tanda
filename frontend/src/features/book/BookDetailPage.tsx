@@ -371,7 +371,7 @@ export const BookDetailPage: React.FC = () => {
           <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-dark)', marginBottom: '16px' }}>
             Тараулар ({book.audioChapters.length})
           </h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
             {book.audioChapters.map((ch, idx) => (
               <div
                 key={ch.id || idx}
@@ -379,10 +379,8 @@ export const BookDetailPage: React.FC = () => {
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
-                  padding: '12px 16px',
-                  borderRadius: '8px',
-                  background: '#F8FAFC',
-                  border: '1px solid #E2E8F0',
+                  padding: '14px 8px',
+                  borderBottom: idx === book.audioChapters!.length - 1 ? 'none' : '1px solid #F1F5F9',
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -390,17 +388,18 @@ export const BookDetailPage: React.FC = () => {
                     type="button"
                     onClick={() => handleChapterClick(idx)}
                     style={{
-                      width: '32px',
-                      height: '32px',
+                      width: '28px',
+                      height: '28px',
                       borderRadius: '50%',
-                      background: 'var(--blue)',
-                      color: '#FFF',
+                      background: 'rgba(0, 84, 148, 0.1)',
+                      color: 'var(--blue)',
                       border: 'none',
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      fontSize: '12px',
+                      fontSize: '11px',
+                      paddingLeft: '2px',
                     }}
                   >
                     ▶
