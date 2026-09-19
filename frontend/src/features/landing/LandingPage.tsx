@@ -89,14 +89,25 @@ export const LandingPage: React.FC = () => {
     return Math.ceil(diffMs / (1000 * 60 * 60 * 24));
   }, [personalMsg]);
 
+  const scrollToCatalog = (e?: React.MouseEvent) => {
+    if (e) e.preventDefault();
+    const el = document.getElementById('catalog');
+    if (el) {
+      const headerOffset = 70;
+      const elementPosition = el.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth',
+      });
+    }
+  };
+
   useEffect(() => {
     if (location.hash === '#catalog') {
-      const el = document.getElementById('catalog');
-      if (el) {
-        setTimeout(() => {
-          el.scrollIntoView({ behavior: 'smooth' });
-        }, 80);
-      }
+      setTimeout(() => {
+        scrollToCatalog();
+      }, 80);
     }
   }, [location.hash]);
 
@@ -254,7 +265,7 @@ export const LandingPage: React.FC = () => {
               Мыңдаған қазақша электронды және аудиокітаптар бір жерде. Кез келген құрылғыдан оқыңыз, тыңдаңыз және біліміңізді молайтыңыз.
             </p>
             <div className="hero-buttons">
-              <a href="#catalog" className="btn-primary">Кітаптарды көру</a>
+              <a href="#catalog" onClick={scrollToCatalog} className="btn-primary">Кітаптарды көру</a>
               <Link to="/catalog" className="btn-secondary">Аудиокітаптар</Link>
             </div>
             <div className="hero-stats">
