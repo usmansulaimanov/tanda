@@ -585,9 +585,6 @@ export const BookFormPage: React.FC = () => {
                   <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
                     Аудиокітап мүмкіндігі
                   </h3>
-                  <p style={{ fontSize: '12px', color: '#64748B', margin: '4px 0 0' }}>
-                    Бұл басылымға аудиожазба немесе диктор дауысын бекіту
-                  </p>
                 </div>
 
                 <label
