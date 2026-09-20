@@ -1,13 +1,24 @@
-import React, { useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useNewsStore } from '../../store/useNewsStore';
 import { useToastStore } from '../../store/useToastStore';
+import { useAuthStore } from '../../store/useAuthStore';
+import { hasAdminPermission } from '../../utils/permissions';
 import { NewsArticle } from '../../types';
 import { Search, Plus, Eye, Edit, Trash2 } from 'lucide-react';
 
 export const AdminNewsPage: React.FC = () => {
+  const navigate = useNavigate();
+  const { user, role } = useAuthStore();
   const { articles, deleteArticle } = useNewsStore();
   const { showToast } = useToastStore();
+
+  useEffect(() => {
+    if (role !== 'admin' || !hasAdminPermission(user, 'news_manage')) {
+      showToast('Бұл бөлімге кіруге рұқсатыңыз жоқ', 'error');
+      navigate('/admin', { replace: true });
+    }
+  }, [role, user, navigate, showToast]);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'published' | 'scheduled' | 'draft'>('all');

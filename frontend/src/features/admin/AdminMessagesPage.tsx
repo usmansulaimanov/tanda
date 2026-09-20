@@ -13,14 +13,14 @@ export const AdminMessagesPage: React.FC = () => {
   const { messages, sendMessage, deleteMessage } = useMessageStore();
   const { showToast } = useToastStore();
 
-  const canManage = hasAdminPermission(user, 'quotes_manage') || user?.isSuperAdmin || role === 'admin';
+  const canManage = hasAdminPermission(user, 'messages_manage') || hasAdminPermission(user, 'quotes_manage');
 
   useEffect(() => {
-    if (role !== 'admin') {
+    if (role !== 'admin' || !canManage) {
       showToast('Бұл бөлімге кіруге рұқсатыңыз жоқ', 'error');
       navigate('/admin', { replace: true });
     }
-  }, [role, navigate, showToast]);
+  }, [role, canManage, navigate, showToast]);
 
   const allClients = useMemo(() => {
     return getAllClients().filter((c) => c.role !== 'admin');

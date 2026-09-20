@@ -4,7 +4,7 @@ export interface PermissionDefinition {
   key: AdminPermission;
   label: string;
   description: string;
-  category: 'books' | 'readers' | 'promocodes' | 'quotes' | 'system';
+  category: 'books' | 'readers' | 'promocodes' | 'quotes' | 'news' | 'system';
 }
 
 export const ALL_PERMISSIONS: PermissionDefinition[] = [
@@ -62,12 +62,26 @@ export const ALL_PERMISSIONS: PermissionDefinition[] = [
     category: 'promocodes',
   },
 
-  // Quotes
+  // Quotes & Messages
   {
     key: 'quotes_manage',
     label: 'Цитаталарды басқару',
     description: 'Күнделікті цитаталарды енгізу, уақытын баптау және оқырмандарға тарату',
     category: 'quotes',
+  },
+  {
+    key: 'messages_manage',
+    label: 'Хабарламаларды басқару',
+    description: 'Оқырмандарға жеке және жалпы хабарламалар жіберу, жауап беру',
+    category: 'quotes',
+  },
+
+  // News
+  {
+    key: 'news_manage',
+    label: 'Жаңалықтарды басқару',
+    description: 'Жаңалықтар мен мақалаларды жариялау, өңдеу және жоспарлау',
+    category: 'news',
   },
 
   // System & Analytics
@@ -90,6 +104,7 @@ export const PERMISSION_CATEGORIES = [
   { key: 'readers', title: 'Оқырмандар мен клиенттер' },
   { key: 'promocodes', title: 'Промокодтар жүйесі' },
   { key: 'quotes', title: 'Цитаталар мен хабарламалар' },
+  { key: 'news', title: 'Жаңалықтар жүйесі' },
   { key: 'system', title: 'Жүйе және басқару' },
 ] as const;
 

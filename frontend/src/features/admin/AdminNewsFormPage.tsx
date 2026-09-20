@@ -4,6 +4,7 @@ import { useNewsStore } from '../../store/useNewsStore';
 import { useMessageStore } from '../../store/useMessageStore';
 import { useToastStore } from '../../store/useToastStore';
 import { useAuthStore } from '../../store/useAuthStore';
+import { hasAdminPermission } from '../../utils/permissions';
 import { resizeAndCompressImage } from '../../utils/imageUtils';
 import {
   ArrowLeft,
@@ -645,7 +646,14 @@ export const AdminNewsFormPage: React.FC = () => {
   const navigate = useNavigate();
   const { articles, addArticle, updateArticle, getArticleById } = useNewsStore();
   const { showToast } = useToastStore();
-  const { user } = useAuthStore();
+  const { user, role } = useAuthStore();
+
+  useEffect(() => {
+    if (role !== 'admin' || !hasAdminPermission(user, 'news_manage')) {
+      showToast('Бұл бөлімге кіруге рұқсатыңыз жоқ', 'error');
+      navigate('/admin', { replace: true });
+    }
+  }, [role, user, navigate, showToast]);
 
   const isEditing = Boolean(id);
   const existingArticle = id ? getArticleById(id) || articles.find((a) => a.id === id) : null;
