@@ -152,7 +152,7 @@ export const AppSidebarDrawer: React.FC = () => {
 
         <div className="sidebar-drawer-body">
           {/* Admin Management Section */}
-          {role === 'admin' && (
+          {role === 'admin' ? (
             <div className="sidebar-nav-group">
               <div className="sidebar-nav-group-title">Басқару бөлімдері</div>
               
@@ -185,77 +185,42 @@ export const AppSidebarDrawer: React.FC = () => {
                   <span>Жаңа кітап қосу</span>
                 </Link>
               )}
-            </div>
-          )}
 
-          {/* Navigation Links */}
-          <div className="sidebar-nav-group">
-            <div className="sidebar-nav-group-title">Негізгі мәзір</div>
-
-            <Link
-              to="/"
-              className={`sidebar-nav-link ${location.pathname === '/' ? 'active' : ''}`}
-              onClick={closeSidebar}
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                <polyline points="9 22 9 12 15 12 15 22"></polyline>
-              </svg>
-              <span>Басты бет</span>
-            </Link>
-
-            <Link
-              to="/news"
-              className={`sidebar-nav-link ${location.pathname.startsWith('/news') ? 'active' : ''}`}
-              onClick={closeSidebar}
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path>
-              </svg>
-              <span>Жаңалықтар</span>
-            </Link>
-
-            <a
-              href="/#catalog"
-              className={`sidebar-nav-link ${location.pathname === '/' && location.hash === '#catalog' ? 'active' : ''}`}
-              onClick={(e) => {
-                closeSidebar();
-                if (location.pathname === '/') {
-                  e.preventDefault();
-                  const el = document.getElementById('catalog');
-                  if (el) {
-                    el.scrollIntoView({ behavior: 'smooth' });
-                    window.history.replaceState(null, '', '/#catalog');
-                  }
-                }
-              }}
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
-                <polyline points="2 17 12 22 22 17"></polyline>
-                <polyline points="2 12 12 17 22 12"></polyline>
-              </svg>
-              <span>Кітаптар қоры (Каталог)</span>
-            </a>
-
-            {isAuthenticated && role !== 'admin' && (
-              <>
+              {canViewReaders && (
                 <Link
-                  to="/my-books"
-                  className={`sidebar-nav-link ${location.pathname === '/my-books' ? 'active' : ''}`}
+                  to="/admin/readers"
+                  className={`sidebar-nav-link ${location.pathname === '/admin/readers' ? 'active' : ''}`}
                   onClick={closeSidebar}
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path>
-                    <path d="M6 6h10"></path>
-                    <path d="M6 10h10"></path>
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                   </svg>
-                  <span>Менің сөрем</span>
+                  <span>Оқырмандар</span>
+                  <span className="sidebar-badge">{readersCount}</span>
                 </Link>
+              )}
 
+              {canManagePromos && (
                 <Link
-                  to="/quotes"
-                  className={`sidebar-nav-link ${location.pathname === '/quotes' ? 'active' : ''}`}
+                  to="/admin/promocodes"
+                  className={`sidebar-nav-link ${location.pathname.startsWith('/admin/promocodes') ? 'active' : ''}`}
+                  onClick={closeSidebar}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                    <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                  </svg>
+                  <span>Промокодтар</span>
+                </Link>
+              )}
+
+              {canManageQuotes && (
+                <Link
+                  to="/admin/quotes"
+                  className={`sidebar-nav-link ${location.pathname.startsWith('/admin/quotes') ? 'active' : ''}`}
                   onClick={closeSidebar}
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -263,62 +228,128 @@ export const AppSidebarDrawer: React.FC = () => {
                     <path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z" />
                   </svg>
                   <span>Цитаталар</span>
+                  {quotes.length > 0 && <span className="sidebar-badge">{quotes.length}</span>}
                 </Link>
+              )}
 
+              <Link
+                to="/admin/messages"
+                className={`sidebar-nav-link ${location.pathname.startsWith('/admin/messages') ? 'active' : ''}`}
+                onClick={closeSidebar}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                  <polyline points="22,6 12,13 2,6"></polyline>
+                </svg>
+                <span>Хабарламалар</span>
+              </Link>
+
+              <Link
+                to="/admin/news"
+                className={`sidebar-nav-link ${location.pathname.startsWith('/admin/news') ? 'active' : ''}`}
+                onClick={closeSidebar}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path>
+                </svg>
+                <span>Жаңалықтар</span>
+                {articles.length > 0 && <span className="sidebar-badge">{articles.length}</span>}
+              </Link>
+
+              {canManageManagers && (
                 <Link
-                  to="/messages"
-                  className={`sidebar-nav-link ${location.pathname === '/messages' ? 'active' : ''}`}
+                  to="/admin/managers"
+                  className={`sidebar-nav-link ${location.pathname === '/admin/managers' ? 'active' : ''}`}
                   onClick={closeSidebar}
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                    <polyline points="22,6 12,13 2,6"></polyline>
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
                   </svg>
-                  <span>Хабарламалар</span>
-                  {unreadMessagesCount > 0 && (
-                    <span className="sidebar-badge">{unreadMessagesCount}</span>
-                  )}
+                  <span>Басқару (Управление)</span>
                 </Link>
-              </>
-            )}
+              )}
 
-            {role === 'admin' && (
-              <>
-                {canViewReaders && (
+              <Link
+                to="/settings"
+                className={`sidebar-nav-link ${location.pathname === '/settings' ? 'active' : ''}`}
+                onClick={closeSidebar}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+                <span>Баптаулар</span>
+              </Link>
+            </div>
+          ) : (
+            /* Reader Navigation Links */
+            <div className="sidebar-nav-group">
+              <div className="sidebar-nav-group-title">Негізгі мәзір</div>
+
+              <Link
+                to="/"
+                className={`sidebar-nav-link ${location.pathname === '/' ? 'active' : ''}`}
+                onClick={closeSidebar}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                  <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                </svg>
+                <span>Басты бет</span>
+              </Link>
+
+              <Link
+                to="/news"
+                className={`sidebar-nav-link ${location.pathname.startsWith('/news') ? 'active' : ''}`}
+                onClick={closeSidebar}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path>
+                </svg>
+                <span>Жаңалықтар</span>
+              </Link>
+
+              <a
+                href="/#catalog"
+                className={`sidebar-nav-link ${location.pathname === '/' && location.hash === '#catalog' ? 'active' : ''}`}
+                onClick={(e) => {
+                  closeSidebar();
+                  if (location.pathname === '/') {
+                    e.preventDefault();
+                    const el = document.getElementById('catalog');
+                    if (el) {
+                      el.scrollIntoView({ behavior: 'smooth' });
+                      window.history.replaceState(null, '', '/#catalog');
+                    }
+                  }
+                }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                  <polyline points="2 17 12 22 22 17"></polyline>
+                  <polyline points="2 12 12 17 22 12"></polyline>
+                </svg>
+                <span>Кітаптар қоры (Каталог)</span>
+              </a>
+
+              {isAuthenticated && (
+                <>
                   <Link
-                    to="/admin/readers"
-                    className={`sidebar-nav-link ${location.pathname === '/admin/readers' ? 'active' : ''}`}
+                    to="/my-books"
+                    className={`sidebar-nav-link ${location.pathname === '/my-books' ? 'active' : ''}`}
                     onClick={closeSidebar}
                   >
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                      <circle cx="9" cy="7" r="4"></circle>
-                      <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-                      <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                      <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path>
+                      <path d="M6 6h10"></path>
+                      <path d="M6 10h10"></path>
                     </svg>
-                    <span>Оқырмандар</span>
-                    <span className="sidebar-badge">{readersCount}</span>
+                    <span>Менің сөрем</span>
                   </Link>
-                )}
 
-                {canManagePromos && (
                   <Link
-                    to="/admin/promocodes"
-                    className={`sidebar-nav-link ${location.pathname.startsWith('/admin/promocodes') ? 'active' : ''}`}
-                    onClick={closeSidebar}
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
-                      <line x1="7" y1="7" x2="7.01" y2="7"></line>
-                    </svg>
-                    <span>Промокодтар</span>
-                  </Link>
-                )}
-
-                {canManageQuotes && (
-                  <Link
-                    to="/admin/quotes"
-                    className={`sidebar-nav-link ${location.pathname.startsWith('/admin/quotes') ? 'active' : ''}`}
+                    to="/quotes"
+                    className={`sidebar-nav-link ${location.pathname === '/quotes' ? 'active' : ''}`}
                     onClick={closeSidebar}
                   >
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -326,101 +357,62 @@ export const AppSidebarDrawer: React.FC = () => {
                       <path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z" />
                     </svg>
                     <span>Цитаталар</span>
-                    {quotes.length > 0 && <span className="sidebar-badge">{quotes.length}</span>}
                   </Link>
-                )}
 
-                <Link
-                  to="/admin/messages"
-                  className={`sidebar-nav-link ${location.pathname.startsWith('/admin/messages') ? 'active' : ''}`}
-                  onClick={closeSidebar}
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                    <polyline points="22,6 12,13 2,6"></polyline>
-                  </svg>
-                  <span>Хабарламалар</span>
-                </Link>
-
-                <Link
-                  to="/admin/news"
-                  className={`sidebar-nav-link ${location.pathname.startsWith('/admin/news') ? 'active' : ''}`}
-                  onClick={closeSidebar}
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path>
-                  </svg>
-                  <span>Жаңалықтар</span>
-                  {articles.length > 0 && <span className="sidebar-badge">{articles.length}</span>}
-                </Link>
-
-                {canManageManagers && (
                   <Link
-                    to="/admin/managers"
-                    className={`sidebar-nav-link ${location.pathname === '/admin/managers' ? 'active' : ''}`}
+                    to="/messages"
+                    className={`sidebar-nav-link ${location.pathname === '/messages' ? 'active' : ''}`}
                     onClick={closeSidebar}
                   >
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                      <polyline points="22,6 12,13 2,6"></polyline>
                     </svg>
-                    <span>Басқару (Управление)</span>
+                    <span>Хабарламалар</span>
+                    {unreadMessagesCount > 0 && (
+                      <span className="sidebar-badge">{unreadMessagesCount}</span>
+                    )}
                   </Link>
-                )}
 
-                <Link
-                  to="/settings"
-                  className={`sidebar-nav-link ${location.pathname === '/settings' ? 'active' : ''}`}
-                  onClick={closeSidebar}
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
-                    <circle cx="12" cy="12" r="3"></circle>
-                  </svg>
-                  <span>Баптаулар</span>
-                </Link>
-              </>
-            )}
+                  <Link
+                    to="/profile"
+                    className={`sidebar-nav-link ${location.pathname === '/profile' ? 'active' : ''}`}
+                    onClick={closeSidebar}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <span>Сақталған кітаптар</span>
+                  </Link>
 
-            {isAuthenticated && role !== 'admin' && (
-              <>
-                <Link
-                  to="/profile"
-                  className={`sidebar-nav-link ${location.pathname === '/profile' ? 'active' : ''}`}
-                  onClick={closeSidebar}
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="12" cy="7" r="4"></circle>
-                  </svg>
-                  <span>Сақталған кітаптар</span>
-                </Link>
+                  <Link
+                    to="/promocode"
+                    className={`sidebar-nav-link ${location.pathname === '/promocode' ? 'active' : ''}`}
+                    onClick={closeSidebar}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                      <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                    </svg>
+                    <span>Промокод</span>
+                  </Link>
 
-                <Link
-                  to="/promocode"
-                  className={`sidebar-nav-link ${location.pathname === '/promocode' ? 'active' : ''}`}
-                  onClick={closeSidebar}
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
-                    <line x1="7" y1="7" x2="7.01" y2="7"></line>
-                  </svg>
-                  <span>Промокод</span>
-                </Link>
-
-                <Link
-                  to="/settings"
-                  className={`sidebar-nav-link ${location.pathname === '/settings' ? 'active' : ''}`}
-                  onClick={closeSidebar}
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
-                    <circle cx="12" cy="12" r="3"></circle>
-                  </svg>
-                  <span>Баптаулар</span>
-                </Link>
-              </>
-            )}
-          </div>
+                  <Link
+                    to="/settings"
+                    className={`sidebar-nav-link ${location.pathname === '/settings' ? 'active' : ''}`}
+                    onClick={closeSidebar}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    <span>Баптаулар</span>
+                  </Link>
+                </>
+              )}
+            </div>
+          )}
 
           {/* Quick Stats for Admin */}
           {role === 'admin' && (
