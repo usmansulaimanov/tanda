@@ -403,7 +403,8 @@ export const AdminDashboard: React.FC = () => {
                   <th style={{ width: '60px' }}>Мұқаба</th>
                   <th>Атауы мен авторы</th>
                   <th>Жанры</th>
-                  <th>Бет / Файлдар</th>
+                  <th>Бет</th>
+                  <th>Аудио</th>
                   <th>Қолжетімділік</th>
                   <th>Көрінуі</th>
                   <th style={{ textAlign: 'right' }}>Әрекеттер</th>
@@ -494,16 +495,22 @@ export const AdminDashboard: React.FC = () => {
                       <span className="book-category">{book.category}</span>
                     </td>
 
-                    {/* Pages & Audio */}
+                    {/* Pages */}
                     <td>
-                      <div style={{ fontSize: '12px', color: 'var(--text-dark)' }}>
-                        {book.pages ? `${book.pages} бет` : (book.audioDuration || '—')}
-                        {book.hasAudio && (
-                          <span style={{ color: 'var(--orange)', fontWeight: 700, marginLeft: '6px' }}>
-                            [Аудио]
-                          </span>
-                        )}
+                      <div style={{ fontSize: '13px', color: 'var(--text-dark)', fontWeight: 600 }}>
+                        {book.pages ? `${book.pages} бет` : '—'}
                       </div>
+                    </td>
+
+                    {/* Audio */}
+                    <td>
+                      {book.hasAudio ? (
+                        <div style={{ fontSize: '12px', color: 'var(--orange)', fontWeight: 700 }}>
+                          {book.audioDuration ? book.audioDuration : '[Аудио]'}
+                        </div>
+                      ) : (
+                        <div style={{ fontSize: '13px', color: '#94A3B8' }}>—</div>
+                      )}
                     </td>
 
                     {/* Pricing */}
