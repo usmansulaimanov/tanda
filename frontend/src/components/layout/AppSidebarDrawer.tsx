@@ -167,7 +167,7 @@ export const AppSidebarDrawer: React.FC = () => {
                     <path d="M6 6h10"></path>
                     <path d="M6 10h10"></path>
                   </svg>
-                  <span>Кітаптар қоры (Панель)</span>
+                  <span>Кітаптар қоры</span>
                   <span className="sidebar-badge">{books.length}</span>
                 </Link>
               )}
