@@ -517,9 +517,6 @@ export const AuthorStatsPage: React.FC = () => {
                   Аудиокітап тыңдалымдары мен роялти табысы
                 </h2>
               </div>
-              <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.8)', margin: '4px 0 0' }}>
-                Кітаптардың әр тыңдалған минуты үшін ай сайын автоматты түрде роялти сыйақысы есептеледі.
-              </p>
             </div>
 
             {currentUser.id === targetAuthor.id && (
