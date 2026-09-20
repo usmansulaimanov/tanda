@@ -634,7 +634,7 @@ export const AdminStatsPage: React.FC = () => {
 
               <div className="admin-card" style={{ padding: '22px 24px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-                  <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-mid)' }}>Стандартты (Тегін)</span>
+                  <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-mid)' }}>Стандарт</span>
                   <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'rgba(100, 116, 139, 0.12)', color: '#475569', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
@@ -889,7 +889,7 @@ export const AdminStatsPage: React.FC = () => {
                               </span>
                             ) : (
                               <span style={{ background: '#F1F5F9', color: '#475569', padding: '4px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: 600 }}>
-                                Стандартты
+                                Стандарт
                               </span>
                             )}
                           </td>
