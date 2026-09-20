@@ -595,34 +595,9 @@ export const AuthorStatsPage: React.FC = () => {
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '22px', flexWrap: 'wrap', gap: '14px' }}>
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span
-                  style={{
-                    background: '#EFF6FF',
-                    color: '#2563EB',
-                    fontSize: '12px',
-                    fontWeight: 800,
-                    padding: '3px 10px',
-                    borderRadius: '8px',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                  }}
-                >
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <line x1="18" y1="20" x2="18" y2="10"></line>
-                    <line x1="12" y1="20" x2="12" y2="4"></line>
-                    <line x1="6" y1="20" x2="6" y2="14"></line>
-                  </svg>
-                  Күндік динамика
-                </span>
-                <h3 style={{ fontSize: '18px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
-                  Тыңдалым белсенділігі мен пик күндері
-                </h3>
-              </div>
-              <p style={{ fontSize: '13px', color: 'var(--text-mid)', margin: '4px 0 0' }}>
-                Автор кітаптарының қай күндері ең көп тыңдалғанын көрсететін күнделікті статистика
-              </p>
+              <h3 style={{ fontSize: '18px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
+                Тыңдалым белсенділігі мен пик күндері
+              </h3>
             </div>
 
             {dailyAnalytics.lastListenedAt && (
