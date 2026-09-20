@@ -176,14 +176,9 @@ export const AdminManagersPage: React.FC = () => {
           }}
         >
           <div style={{ position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }}>
-            <div>
-              <h1 style={{ fontSize: '30px', fontWeight: 900, margin: '0 0 8px', letterSpacing: '-0.02em' }}>
-                Басқару (Управление)
-              </h1>
-              <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.85)', margin: 0, maxWidth: '680px', lineHeight: 1.5 }}>
-                Өзіңізге сенімді көмекшілерді тағайындап, оларға админ панельдің нақты функцияларын (кітап қосу, өңдеу, оқырмандар, промокодтар) белгілеп беріңіз.
-              </p>
-            </div>
+            <h1 style={{ fontSize: '30px', fontWeight: 900, margin: 0, letterSpacing: '-0.02em' }}>
+              Басқару
+            </h1>
 
             <button
               type="button"
