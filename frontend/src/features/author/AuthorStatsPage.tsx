@@ -688,16 +688,16 @@ export const AuthorStatsPage: React.FC = () => {
                 gridTemplateColumns: 'repeat(14, 1fr)',
                 gap: '8px',
                 alignItems: 'flex-end',
-                height: '140px',
+                height: '145px',
                 background: '#F8FAFC',
-                padding: '16px 12px 10px',
+                padding: '24px 14px 10px',
                 borderRadius: '16px',
                 border: '1px solid #E2E8F0',
               }}
             >
               {dailyAnalytics.dailyList.map((day) => {
                 const heightPercent = dailyAnalytics.maxSecInPeriod > 0
-                  ? Math.max(6, Math.round((day.seconds / dailyAnalytics.maxSecInPeriod) * 100))
+                  ? Math.max(6, Math.round((day.seconds / dailyAnalytics.maxSecInPeriod) * 75))
                   : 6;
 
                 return (
@@ -735,7 +735,7 @@ export const AuthorStatsPage: React.FC = () => {
                         <span
                           style={{
                             position: 'absolute',
-                            top: '-20px',
+                            top: '-18px',
                             left: '50%',
                             transform: 'translateX(-50%)',
                             fontSize: '10px',
