@@ -534,61 +534,6 @@ export const ReaderCreatePage: React.FC = () => {
                 marginBottom: '28px',
               }}
             >
-              {/* Phone */}
-              <div className="form-group" style={{ margin: 0 }}>
-                <label className="form-label">
-                  Телефон нөмірі
-                </label>
-                <div style={{ position: 'relative' }}>
-                  <input
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => handlePhoneChange(e.target.value)}
-                    placeholder="+7 (777) 123-45-67"
-                    className="form-input"
-                    style={{
-                      borderColor: phoneError ? '#DC2626' : undefined,
-                      fontWeight: phone ? 700 : 500,
-                      letterSpacing: phone ? '0.03em' : 'normal',
-                      paddingRight: phone ? '36px' : undefined,
-                    }}
-                  />
-                  {phone && (
-                    <button
-                      type="button"
-                      onClick={() => handlePhoneChange('')}
-                      title="Нөмірді өшіру"
-                      style={{
-                        position: 'absolute',
-                        right: '10px',
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        background: '#E2E8F0',
-                        border: 'none',
-                        borderRadius: '50%',
-                        width: '22px',
-                        height: '22px',
-                        fontSize: '12px',
-                        fontWeight: 700,
-                        color: '#475569',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        lineHeight: 1,
-                      }}
-                    >
-                      ✕
-                    </button>
-                  )}
-                </div>
-                {phoneError && (
-                  <span style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#DC2626', marginTop: '6px' }}>
-                    {phoneError}
-                  </span>
-                )}
-              </div>
-
               {/* Password */}
               <div className="form-group" style={{ margin: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
