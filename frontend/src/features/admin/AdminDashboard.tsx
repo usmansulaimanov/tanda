@@ -140,8 +140,8 @@ export const AdminDashboard: React.FC = () => {
                 Басқару панелі
               </h2>
               <p style={{ fontSize: '13px', color: 'var(--text-mid)', marginTop: '4px' }}>
-                Барлығы: <span style={{ fontWeight: 700, color: 'var(--blue)' }}>{books.length}</span> кітап |
-                Архивтелген (жасырын): <span style={{ fontWeight: 700, color: '#64748B' }}>{archivedCount}</span> кітап
+                Барлығы: <span style={{ fontWeight: 700, color: 'var(--blue)' }}>{books.length}</span> кітап |{' '}
+                Архивте: <span style={{ fontWeight: 700, color: '#64748B' }}>{archivedCount}</span> кітап
               </p>
             </div>
 
