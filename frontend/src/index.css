@@ -1029,13 +1029,15 @@ body {
 }
 
 .badge-free {
-  background: #10B981;
-  color: var(--white);
+  background: #FFFFFF;
+  color: var(--blue);
+  border: 1.5px solid var(--blue);
 }
 
 .badge-premium {
-  background: var(--orange);
+  background: var(--blue);
   color: var(--white);
+  border: 1.5px solid var(--blue);
 }
 
 .cover-title {

@@ -951,10 +951,11 @@ export const BookFormPage: React.FC = () => {
                     fontWeight: 800,
                     textTransform: 'uppercase',
                     letterSpacing: '0.05em',
-                    padding: '2px 8px',
-                    borderRadius: '4px',
-                    background: isFree ? '#005494' : '#D97706',
-                    color: '#FFFFFF',
+                    padding: '3px 10px',
+                    borderRadius: '50px',
+                    background: isFree ? '#FFFFFF' : 'var(--blue)',
+                    color: isFree ? 'var(--blue)' : '#FFFFFF',
+                    border: '1.5px solid var(--blue)',
                     marginBottom: '4px',
                   }}
                 >
