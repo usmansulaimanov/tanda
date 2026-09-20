@@ -16,7 +16,7 @@ import {
   ChevronUp,
   Maximize2,
 } from 'lucide-react';
-import { useAudioPlayerStore, getChapterStartTime, parseDurationToSeconds } from '../../store/useAudioPlayerStore';
+import { useAudioPlayerStore, getChapterStartTime, parseDurationToSeconds, resetRoyaltyTracking } from '../../store/useAudioPlayerStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useToastStore } from '../../store/useToastStore';
 import { extractYouTubeVideoId, loadYouTubeIFrameApi } from '../../utils/youtube';
@@ -84,6 +84,7 @@ export const AudioPlayerBar: React.FC = () => {
   // Listen to custom seek & skip events triggered from full player page
   useEffect(() => {
     const handleSeekEvent = (e: any) => {
+      resetRoyaltyTracking();
       const val = Number(e.detail?.time || 0);
       setProgress(val);
       if (isYouTube && ytPlayerRef.current && typeof ytPlayerRef.current.seekTo === 'function') {
@@ -94,6 +95,7 @@ export const AudioPlayerBar: React.FC = () => {
     };
 
     const handleSkipEvent = (e: any) => {
+      resetRoyaltyTracking();
       const delta = Number(e.detail?.seconds || 0);
       const currentT = audioRef.current?.currentTime ?? useAudioPlayerStore.getState().progress;
       const dur = audioRef.current?.duration || useAudioPlayerStore.getState().duration || 999999;
@@ -583,6 +585,7 @@ export const AudioPlayerBar: React.FC = () => {
   };
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+    resetRoyaltyTracking();
     const val = Number(e.target.value);
     setProgress(val);
     if (isYouTube && ytPlayerRef.current && typeof ytPlayerRef.current.seekTo === 'function') {
@@ -593,6 +596,7 @@ export const AudioPlayerBar: React.FC = () => {
   };
 
   const skipTime = (seconds: number) => {
+    resetRoyaltyTracking();
     const maxDur = duration || 999999;
     const newTime = Math.max(0, Math.min(maxDur, progress + seconds));
     setProgress(newTime);

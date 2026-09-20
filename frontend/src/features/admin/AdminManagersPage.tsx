@@ -1,11 +1,12 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore, DEFAULT_MANAGER_AVATAR } from '../../store/useAuthStore';
 import { useBookStore } from '../../store/useBookStore';
 import { useToastStore } from '../../store/useToastStore';
 import { User, AdminPermission } from '../../types';
 import { ALL_PERMISSIONS, PERMISSION_CATEGORIES, hasAdminPermission } from '../../utils/permissions';
 import { resizeAndCompressImage } from '../../utils/imageUtils';
+import { AdminRoyaltyTab } from './AdminRoyaltyTab';
 
 const formatPhoneNumber = (val: string): string => {
   if (!val) return '';
@@ -61,8 +62,8 @@ export const AdminManagersPage: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const authorFileInputRef = useRef<HTMLInputElement>(null);
 
-  // Active Tab: 'managers' | 'authors'
-  const [activeTab, setActiveTab] = useState<'managers' | 'authors'>('managers');
+  // Active Tab: 'managers' | 'authors' | 'royalty'
+  const [activeTab, setActiveTab] = useState<'managers' | 'authors' | 'royalty'>('managers');
 
   // Managers state
   const [managers, setManagers] = useState<User[]>(() => getAllManagers());
@@ -103,6 +104,8 @@ export const AdminManagersPage: React.FC = () => {
   const [authorIdNumberError, setAuthorIdNumberError] = useState('');
   const [authorAvatarUrl, setAuthorAvatarUrl] = useState<string | null>(DEFAULT_MANAGER_AVATAR);
   const [isUploadingAuthorAvatar, setIsUploadingAuthorAvatar] = useState(false);
+  const [authorAssignedBookIds, setAuthorAssignedBookIds] = useState<string[]>([]);
+  const [bookSearchInModal, setBookSearchInModal] = useState('');
   const [authorIsActive, setAuthorIsActive] = useState(true);
   const [isAuthorSubmitting, setIsAuthorSubmitting] = useState(false);
 
@@ -367,6 +370,8 @@ export const AdminManagersPage: React.FC = () => {
     setAuthorIdNumber('');
     setAuthorIdNumberError('');
     setAuthorAvatarUrl(DEFAULT_MANAGER_AVATAR);
+    setAuthorAssignedBookIds([]);
+    setBookSearchInModal('');
     setAuthorIsActive(true);
     setIsAuthorModalOpen(true);
   };
@@ -382,6 +387,8 @@ export const AdminManagersPage: React.FC = () => {
     setAuthorIdNumber(aut.idNumber || '');
     setAuthorIdNumberError('');
     setAuthorAvatarUrl(aut.avatarUrl || DEFAULT_MANAGER_AVATAR);
+    setAuthorAssignedBookIds(aut.assignedBookIds || []);
+    setBookSearchInModal('');
     setAuthorIsActive(aut.isActive !== false);
     setIsAuthorModalOpen(true);
   };
@@ -470,6 +477,7 @@ export const AdminManagersPage: React.FC = () => {
           idNumber: authorIdNumber.trim() || undefined,
           avatarUrl: authorAvatarUrl,
           assignedAuthorName: authorAssignedName.trim() || authorName.trim(),
+          assignedBookIds: authorAssignedBookIds,
           isActive: authorIsActive,
         });
         if (res.success) {
@@ -488,6 +496,7 @@ export const AdminManagersPage: React.FC = () => {
           idNumber: authorIdNumber.trim() || undefined,
           avatarUrl: authorAvatarUrl,
           assignedAuthorName: authorAssignedName.trim() || authorName.trim(),
+          assignedBookIds: authorAssignedBookIds,
         });
         if (res.success) {
           showToast(`Жаңа автор «${authorName}» сәтті қосылды!`, 'success');
@@ -541,7 +550,7 @@ export const AdminManagersPage: React.FC = () => {
               </p>
             </div>
 
-            {activeTab === 'managers' ? (
+            {activeTab === 'managers' && (
               <button
                 type="button"
                 onClick={handleOpenCreateModal}
@@ -564,7 +573,9 @@ export const AdminManagersPage: React.FC = () => {
                 </svg>
                 Жаңа көмекші қосу
               </button>
-            ) : (
+            )}
+
+            {activeTab === 'authors' && (
               <button
                 type="button"
                 onClick={handleOpenAuthorCreateModal}
@@ -602,6 +613,7 @@ export const AdminManagersPage: React.FC = () => {
             padding: '6px',
             borderRadius: '16px',
             width: 'fit-content',
+            flexWrap: 'wrap',
           }}
         >
           <button
@@ -656,6 +668,32 @@ export const AdminManagersPage: React.FC = () => {
               <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
             </svg>
             Авторлар: {authors.length}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('royalty')}
+            style={{
+              padding: '10px 22px',
+              borderRadius: '12px',
+              fontSize: '14px',
+              fontWeight: 800,
+              border: 'none',
+              cursor: 'pointer',
+              background: activeTab === 'royalty' ? '#FFFFFF' : 'transparent',
+              color: activeTab === 'royalty' ? 'var(--blue)' : '#64748B',
+              boxShadow: activeTab === 'royalty' ? '0 4px 12px rgba(0, 84, 148, 0.12)' : 'none',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              transition: 'all 0.2s',
+            }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="1" x2="12" y2="23"></line>
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+            Роялти есептеу (50/50)
           </button>
         </div>
 
@@ -1150,6 +1188,22 @@ export const AdminManagersPage: React.FC = () => {
                               </span>
                             )}
 
+                            {author.assignedBookIds && author.assignedBookIds.length > 0 && (
+                              <span
+                                style={{
+                                  fontSize: '11.5px',
+                                  fontWeight: 700,
+                                  padding: '3px 10px',
+                                  borderRadius: '20px',
+                                  background: 'rgba(0, 84, 148, 0.08)',
+                                  color: 'var(--blue)',
+                                  border: '1px solid #BFDBFE',
+                                }}
+                              >
+                                Таңдалған кітаптары: {author.assignedBookIds.length} дана
+                              </span>
+                            )}
+
                             <span
                               style={{
                                 fontSize: '11.5px',
@@ -1169,6 +1223,33 @@ export const AdminManagersPage: React.FC = () => {
 
                       {/* Action buttons */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Link
+                          to={`/admin/authors/${author.id}`}
+                          style={{
+                            padding: '8px 14px',
+                            fontSize: '12px',
+                            fontWeight: 700,
+                            borderRadius: '8px',
+                            border: '1.5px solid #BFDBFE',
+                            background: '#EFF6FF',
+                            color: 'var(--blue)',
+                            textDecoration: 'none',
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            transition: 'all 0.15s',
+                          }}
+                          title="Автордың толық статистикасын ашу"
+                        >
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="18" y1="20" x2="18" y2="10"></line>
+                            <line x1="12" y1="20" x2="12" y2="4"></line>
+                            <line x1="6" y1="20" x2="6" y2="14"></line>
+                          </svg>
+                          Статистика
+                        </Link>
+
                         <button
                           type="button"
                           onClick={() => handleOpenAuthorEditModal(author)}
@@ -1270,6 +1351,11 @@ export const AdminManagersPage: React.FC = () => {
               </div>
             )}
           </div>
+        )}
+
+        {/* TAB 3: ROYALTY & EARNINGS (50/50) */}
+        {activeTab === 'royalty' && (
+          <AdminRoyaltyTab />
         )}
 
         {/* Modal: Create or Edit Manager */}
@@ -2205,6 +2291,137 @@ export const AdminManagersPage: React.FC = () => {
                         {authorIdNumberError}
                       </span>
                     )}
+                  </div>
+                </div>
+
+                {/* Assigned Books Multi-Select */}
+                <div style={{ marginBottom: '24px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <label style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-dark)' }}>
+                      Осы авторға тиесілі кітаптарды таңдау ({authorAssignedBookIds.length})
+                    </label>
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                      <button
+                        type="button"
+                        onClick={() => setAuthorAssignedBookIds(books.map((b) => b.id))}
+                        style={{ fontSize: '11.5px', color: 'var(--blue)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700 }}
+                      >
+                        Барлығын таңдау
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setAuthorAssignedBookIds([])}
+                        style={{ fontSize: '11.5px', color: '#DC2626', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700 }}
+                      >
+                        Тазалау
+                      </button>
+                    </div>
+                  </div>
+
+                  <input
+                    type="text"
+                    placeholder="Кітапты аты немесе авторы бойынша іздеу..."
+                    value={bookSearchInModal}
+                    onChange={(e) => setBookSearchInModal(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '8px 12px',
+                      borderRadius: '8px',
+                      border: '1.5px solid #CBD5E1',
+                      fontSize: '12.5px',
+                      marginBottom: '10px',
+                      outline: 'none',
+                      boxSizing: 'border-box',
+                    }}
+                  />
+
+                  <div
+                    style={{
+                      maxHeight: '180px',
+                      overflowY: 'auto',
+                      border: '1.5px solid #E2E8F0',
+                      borderRadius: '12px',
+                      padding: '8px',
+                      background: '#F8FAFC',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '6px',
+                    }}
+                  >
+                    {books
+                      .filter((b) => {
+                        if (!bookSearchInModal.trim()) return true;
+                        const q = bookSearchInModal.toLowerCase().trim();
+                        return (
+                          b.title.toLowerCase().includes(q) ||
+                          (b.author && b.author.toLowerCase().includes(q)) ||
+                          (b.category && b.category.toLowerCase().includes(q))
+                        );
+                      })
+                      .map((b) => {
+                        const isSelected = authorAssignedBookIds.includes(b.id);
+                        return (
+                          <label
+                            key={b.id}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '10px',
+                              padding: '8px 10px',
+                              borderRadius: '8px',
+                              background: isSelected ? '#EFF6FF' : '#FFFFFF',
+                              border: isSelected ? '1.5px solid #93C5FD' : '1px solid #E2E8F0',
+                              cursor: 'pointer',
+                              transition: 'all 0.15s',
+                            }}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setAuthorAssignedBookIds([...authorAssignedBookIds, b.id]);
+                                } else {
+                                  setAuthorAssignedBookIds(authorAssignedBookIds.filter((id) => id !== b.id));
+                                }
+                              }}
+                              style={{ width: '16px', height: '16px', accentColor: 'var(--blue)' }}
+                            />
+                            <div
+                              style={{
+                                width: '28px',
+                                height: '38px',
+                                borderRadius: '4px',
+                                background: b.gradient || '#005494',
+                                flexShrink: 0,
+                                overflow: 'hidden',
+                              }}
+                            >
+                              {b.coverImage && (
+                                <img src={b.coverImage} alt={b.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              )}
+                            </div>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div
+                                style={{
+                                  fontSize: '13px',
+                                  fontWeight: 800,
+                                  color: 'var(--text-dark)',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap',
+                                }}
+                              >
+                                {b.title}
+                              </div>
+                              <div style={{ fontSize: '11px', color: '#64748B', display: 'flex', gap: '8px' }}>
+                                <span>{b.author || 'Авторсыз'}</span>
+                                {b.hasAudio && <span style={{ color: '#2563EB', fontWeight: 700 }}>🎧 Аудио</span>}
+                              </div>
+                            </div>
+                          </label>
+                        );
+                      })}
                   </div>
                 </div>
 

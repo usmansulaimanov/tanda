@@ -4,6 +4,7 @@ import { Book, AudioChapter } from '../types';
 import { api } from '../lib/api';
 import { useMyBooksStore } from './useMyBooksStore';
 import { useTopAudioStore } from './useTopAudioStore';
+import { useRoyaltyStore } from './useRoyaltyStore';
 
 interface AudioPlayerState {
   currentBook: Book | null;
@@ -54,6 +55,39 @@ function debouncedSyncProgress(bookId: string, chapterId?: string, timeSec?: num
       currentAudioTime: Math.floor(timeSec || 0),
     }).catch(() => {});
   }, 3000);
+}
+
+let lastTrackedTime: number | null = null;
+let lastTrackedBookId: string | null = null;
+
+export function resetRoyaltyTracking() {
+  lastTrackedTime = null;
+  lastTrackedBookId = null;
+}
+
+function trackRoyaltyProgress(bookId: string, currentSec: number) {
+  if (!bookId || currentSec < 0) return;
+  if (lastTrackedBookId !== bookId || lastTrackedTime === null) {
+    lastTrackedBookId = bookId;
+    lastTrackedTime = currentSec;
+    return;
+  }
+
+  const diff = currentSec - lastTrackedTime;
+
+  // If user skipped forward/backward significantly (> 5s or < 0), reset anchor without counting skipped duration
+  if (diff < 0 || diff > 5) {
+    lastTrackedTime = currentSec;
+    return;
+  }
+
+  // When at least 0.5s of continuous listening has passed, record exact diff and advance anchor
+  if (diff >= 0.5) {
+    try {
+      useRoyaltyStore.getState().recordListeningTime(bookId, diff);
+    } catch {}
+    lastTrackedTime = currentSec;
+  }
 }
 
 export function parseDurationToSeconds(durStr?: string): number {
@@ -125,6 +159,7 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
         const startProgress = !hasOwnAudio && chapters.length > 0 ? getChapterStartTime(chapters, chapterIndex) : 0;
         const chapterDur = chapter?.duration ? parseDurationToSeconds(chapter.duration) : 180;
 
+        resetRoyaltyTracking();
         set({
           currentBook: book,
           currentChapter: chapter,
@@ -148,6 +183,7 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
           const startProgress = !hasOwnAudio ? getChapterStartTime(chapters, index) : 0;
           const chapterDur = chapter.duration ? parseDurationToSeconds(chapter.duration) : 180;
 
+          resetRoyaltyTracking();
           set({
             chapterIndex: index,
             currentChapter: chapter,
@@ -160,10 +196,23 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
         }
       },
 
-      setIsPlaying: (isPlaying) => set({ isPlaying }),
-      togglePlay: () => set((state) => ({ isPlaying: !state.isPlaying })),
-      pause: () => set({ isPlaying: false }),
-      resume: () => set({ isPlaying: true }),
+      setIsPlaying: (isPlaying) => {
+        if (!isPlaying) resetRoyaltyTracking();
+        set({ isPlaying });
+      },
+      togglePlay: () =>
+        set((state) => {
+          if (state.isPlaying) resetRoyaltyTracking();
+          return { isPlaying: !state.isPlaying };
+        }),
+      pause: () => {
+        resetRoyaltyTracking();
+        set({ isPlaying: false });
+      },
+      resume: () => {
+        resetRoyaltyTracking();
+        set({ isPlaying: true });
+      },
 
       nextChapter: () => {
         const { currentBook, chapterIndex, repeatMode } = get();
@@ -221,9 +270,12 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
 
       setProgress: (progress) => {
         set({ progress });
-        const { currentBook, currentChapter } = get();
+        const { currentBook, currentChapter, isPlaying } = get();
         if (currentBook) {
           debouncedSyncProgress(currentBook.id, currentChapter?.id, progress);
+          if (isPlaying) {
+            trackRoyaltyProgress(currentBook.id, progress);
+          }
         }
       },
 
@@ -252,7 +304,8 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
         set({ sleepTimerMinutes: null, sleepTimerEndTime: null });
       },
 
-      closePlayer: () =>
+      closePlayer: () => {
+        resetRoyaltyTracking();
         set({
           currentBook: null,
           currentChapter: null,
@@ -261,7 +314,8 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
           progress: 0,
           sleepTimerMinutes: null,
           sleepTimerEndTime: null,
-        }),
+        });
+      },
     }),
     {
       name: 'tanda_audio_player_state_v1',

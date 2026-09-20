@@ -255,6 +255,22 @@ export const router = createBrowserRouter([
         ),
       },
       {
+        path: 'author/stats/:authorId',
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <AuthorStatsPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'admin/authors/:authorId',
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <AuthorStatsPage />
+          </Suspense>
+        ),
+      },
+      {
         path: 'admin/readers',
         element: (
           <Suspense fallback={<PageLoader />}>
