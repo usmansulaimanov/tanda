@@ -682,15 +682,15 @@ export const BookFormPage: React.FC = () => {
                     {/* Book Cover Preview */}
                     <div
                       style={{
-                        width: '130px',
-                        height: '180px',
-                        borderRadius: '10px',
+                        width: '150px',
+                        height: '210px',
+                        borderRadius: '12px',
                         background: coverImage && !coverImageError ? '#F1F5F9' : DEFAULT_COVER_GRADIENT,
-                        boxShadow: '0 8px 20px rgba(0, 40, 80, 0.15), 0 2px 6px rgba(0, 0, 0, 0.06)',
+                        boxShadow: '0 8px 24px rgba(0, 40, 80, 0.18), 0 2px 8px rgba(0, 0, 0, 0.08)',
                         display: 'flex',
                         flexDirection: 'column',
                         justifyContent: 'space-between',
-                        padding: coverImage && !coverImageError ? '0' : '14px',
+                        padding: coverImage && !coverImageError ? '0' : '16px',
                         color: '#FFFFFF',
                         flexShrink: 0,
                         position: 'relative',
@@ -721,13 +721,13 @@ export const BookFormPage: React.FC = () => {
                       )}
                       {(!coverImage || coverImageError) && (
                         <>
-                          <div style={{ fontSize: '9px', fontWeight: 800, lineHeight: 1.2, textTransform: 'uppercase', letterSpacing: '0.04em', opacity: 0.9, position: 'relative', zIndex: 2 }}>
+                          <div style={{ fontSize: '10px', fontWeight: 800, lineHeight: 1.2, textTransform: 'uppercase', letterSpacing: '0.04em', opacity: 0.9, position: 'relative', zIndex: 2 }}>
                             {categories.join(', ') || 'Жанры'}
                           </div>
-                          <div style={{ fontSize: '13px', fontWeight: 900, lineHeight: 1.25, margin: 'auto 0', position: 'relative', zIndex: 2 }}>
+                          <div style={{ fontSize: '15px', fontWeight: 900, lineHeight: 1.25, margin: 'auto 0', position: 'relative', zIndex: 2 }}>
                             {title || 'Кітап атауы'}
                           </div>
-                          <div style={{ fontSize: '10px', opacity: 0.85, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', position: 'relative', zIndex: 2 }}>
+                          <div style={{ fontSize: '11px', opacity: 0.85, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', position: 'relative', zIndex: 2 }}>
                             {author || 'Автор'}
                           </div>
                         </>
