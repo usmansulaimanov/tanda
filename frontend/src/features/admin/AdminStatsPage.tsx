@@ -327,20 +327,9 @@ export const AdminStatsPage: React.FC = () => {
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
             <div>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(255, 255, 255, 0.1)', padding: '6px 14px', borderRadius: '30px', fontSize: '12px', fontWeight: 700, color: '#93C5FD', marginBottom: '10px' }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="18" y1="20" x2="18" y2="10"></line>
-                  <line x1="12" y1="20" x2="12" y2="4"></line>
-                  <line x1="6" y1="20" x2="6" y2="14"></line>
-                </svg>
-                Жүйелік аналитика
-              </div>
-              <h1 style={{ fontSize: '26px', fontWeight: 900, margin: '0 0 6px 0', color: '#FFFFFF' }}>
+              <h1 style={{ fontSize: '26px', fontWeight: 900, margin: 0, color: '#FFFFFF' }}>
                 Статистика және көрсеткіштер
               </h1>
-              <p style={{ fontSize: '14px', color: '#94A3B8', margin: 0, maxWidth: '600px', lineHeight: 1.5 }}>
-                Tanda платформасындағы оқырмандар, кітаптар қоры, авторлар және жазылымдар бойынша нақты статистикалық деректер.
-              </p>
             </div>
           </div>
 
