@@ -452,6 +452,27 @@ export const AdminRoyaltyTab: React.FC = () => {
             {totalPlatformMinutes > 0 ? `≈ ${(totalPlatformMinutes / 60).toFixed(1)} сағат тыңдалды` : 'Барлық авторлардың кітаптары бойынша'}
           </div>
         </div>
+
+        {/* Card 8: Product of 1 Min Rate & Total Minutes */}
+        <div
+          style={{
+            background: '#FFFFFF',
+            borderRadius: '18px',
+            padding: '20px',
+            border: '1.5px solid #CBD5E1',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.02)',
+          }}
+        >
+          <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#64748B', marginBottom: '8px' }}>
+            💰 Жалпы төлем сомасы
+          </div>
+          <div style={{ fontSize: '24px', fontWeight: 900, color: '#16A34A' }}>
+            {Math.round(previewRatePerMinute * totalPlatformMinutes).toLocaleString()} ₸
+          </div>
+          <div style={{ fontSize: '11.5px', color: '#64748B', marginTop: '4px' }}>
+            {previewRatePerMinute} ₸ × {totalPlatformMinutes.toLocaleString()} мин
+          </div>
+        </div>
       </div>
 
       {/* 4. Authors Royalty Breakdown Table */}
