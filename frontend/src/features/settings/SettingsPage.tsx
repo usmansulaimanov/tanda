@@ -497,7 +497,8 @@ export const SettingsPage: React.FC = () => {
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={isUploadingAvatar}
-              title="Фотоны ауыстыру"
+              title={user.avatarUrl ? 'Фотоны ауыстыру' : 'Сурет қою'}
+              aria-label={user.avatarUrl ? 'Фотоны ауыстыру' : 'Сурет қою'}
               style={{
                 position: 'absolute',
                 bottom: '-2px',
@@ -514,6 +515,13 @@ export const SettingsPage: React.FC = () => {
                 cursor: 'pointer',
                 boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
                 padding: 0,
+                transition: 'transform 0.15s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'scale(1.1)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'scale(1)';
               }}
             >
               {isUploadingAvatar ? (
@@ -525,6 +533,48 @@ export const SettingsPage: React.FC = () => {
                 </svg>
               )}
             </button>
+
+            {/* Small delete photo icon button (if avatar exists) */}
+            {user.avatarUrl && (
+              <button
+                type="button"
+                onClick={handleRemoveAvatar}
+                disabled={isUploadingAvatar}
+                title="Суретті өшіру"
+                aria-label="Суретті өшіру"
+                style={{
+                  position: 'absolute',
+                  top: '-2px',
+                  right: '-2px',
+                  width: '24px',
+                  height: '24px',
+                  borderRadius: '50%',
+                  background: '#DC2626',
+                  color: '#FFFFFF',
+                  border: '2px solid #FFFFFF',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 6px rgba(220, 38, 38, 0.3)',
+                  padding: 0,
+                  transition: 'transform 0.15s ease, background-color 0.15s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'scale(1.1)';
+                  e.currentTarget.style.background = '#B91C1C';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.background = '#DC2626';
+                }}
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+              </button>
+            )}
           </div>
 
           <div style={{ minWidth: 0, flex: 1 }}>
@@ -550,6 +600,75 @@ export const SettingsPage: React.FC = () => {
                 <span style={{ color: '#0F172A', fontWeight: 700 }}>
                   @{user.username.replace(/^@/, '')}
                 </span>
+              )}
+            </div>
+
+            {/* Photo Action Links */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '8px', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploadingAvatar}
+                style={{
+                  background: '#EFF6FF',
+                  border: '1px solid #BFDBFE',
+                  color: 'var(--blue)',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  padding: '4px 10px',
+                  borderRadius: '6px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  transition: 'all 0.15s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = '#DBEAFE';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = '#EFF6FF';
+                }}
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                  <circle cx="12" cy="13" r="4"></circle>
+                </svg>
+                {user.avatarUrl ? 'Фотоны өзгерту' : 'Сурет қою'}
+              </button>
+
+              {user.avatarUrl && (
+                <button
+                  type="button"
+                  onClick={handleRemoveAvatar}
+                  disabled={isUploadingAvatar}
+                  style={{
+                    background: '#FEF2F2',
+                    border: '1px solid #FECACA',
+                    color: '#DC2626',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    padding: '4px 10px',
+                    borderRadius: '6px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    transition: 'all 0.15s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = '#FEE2E2';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = '#FEF2F2';
+                  }}
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  </svg>
+                  Суретті өшіру
+                </button>
               )}
             </div>
           </div>
