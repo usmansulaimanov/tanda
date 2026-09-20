@@ -412,7 +412,7 @@ export const AdminRoyaltyTab: React.FC = () => {
           }}
         >
           <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#64748B', marginBottom: '8px' }}>
-            Авторлардың жалпы тыңдалымы
+            Айлық тыңдалым
           </div>
           <div style={{ fontSize: '24px', fontWeight: 900, color: 'var(--blue)' }}>
             {totalPlatformMinutes.toLocaleString()} мин
