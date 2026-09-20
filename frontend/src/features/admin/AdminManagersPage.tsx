@@ -65,7 +65,10 @@ export const AdminManagersPage: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const authorFileInputRef = useRef<HTMLInputElement>(null);
 
+  const editAuthorIdParam = searchParams.get('editAuthor');
+
   const getInitialTab = (): 'managers' | 'authors' | 'royalty' => {
+    if (editAuthorIdParam) return 'authors';
     if (tabParam === 'authors' || tabParam === 'royalty' || tabParam === 'managers') {
       return tabParam;
     }
@@ -427,6 +430,16 @@ export const AdminManagersPage: React.FC = () => {
     setAuthorIsActive(aut.isActive !== false);
     setIsAuthorModalOpen(true);
   };
+
+  useEffect(() => {
+    if (editAuthorIdParam && authors.length > 0) {
+      const target = authors.find((a) => a.id === editAuthorIdParam || a.idNumber === editAuthorIdParam);
+      if (target) {
+        handleOpenAuthorEditModal(target);
+        setSearchParams({ tab: 'authors' }, { replace: true });
+      }
+    }
+  }, [editAuthorIdParam, authors]);
 
   const handleAuthorIdNumberChange = (val: string) => {
     setAuthorIdNumber(val);

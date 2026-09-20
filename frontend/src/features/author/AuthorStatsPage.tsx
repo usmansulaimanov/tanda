@@ -465,7 +465,7 @@ export const AuthorStatsPage: React.FC = () => {
                 </Link>
               ) : (
                 <Link
-                  to="/admin/managers"
+                  to={`/admin/managers?tab=authors&editAuthor=${targetAuthor.id}`}
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
@@ -477,6 +477,7 @@ export const AuthorStatsPage: React.FC = () => {
                     padding: '10px 18px',
                     borderRadius: '10px',
                     textDecoration: 'none',
+                    transition: 'all 0.15s',
                   }}
                 >
                   Авторды өңдеу ↗
