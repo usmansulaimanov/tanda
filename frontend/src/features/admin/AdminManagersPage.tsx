@@ -672,9 +672,6 @@ export const AdminManagersPage: React.FC = () => {
                       <h4 style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-dark)', margin: 0 }}>
                         Құқылы функцияларды таңдаңыз:
                       </h4>
-                      <p style={{ fontSize: '12px', color: 'var(--text-mid)', margin: '2px 0 0' }}>
-                        Галочка қойылған әрекеттер ғана көмекшінің админ панелінде қолжетімді болады.
-                      </p>
                     </div>
 
                     <div style={{ display: 'flex', gap: '8px' }}>
