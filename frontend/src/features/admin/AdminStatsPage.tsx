@@ -195,18 +195,17 @@ export const AdminStatsPage: React.FC = () => {
     return { under18, age18to24, age25to34, age35to44, age45plus, unknownAge };
   }, [readers]);
 
-  // 2. BOOKS STATS
-  const totalBooksCount = books.length;
-  const activeBooksCount = useMemo(() => books.filter((b) => !b.isArchived).length, [books]);
-  const archivedBooksCount = useMemo(() => books.filter((b) => b.isArchived).length, [books]);
-  const freeBooksCount = useMemo(() => books.filter((b) => b.isFree).length, [books]);
-  const premiumBooksCount = useMemo(() => books.filter((b) => !b.isFree).length, [books]);
-  const audioBooksCount = useMemo(() => books.filter((b) => b.hasAudio).length, [books]);
+  // 2. BOOKS STATS (Active books)
+  const activeBooks = useMemo(() => books.filter((b) => !b.isArchived), [books]);
+  const totalBooksCount = activeBooks.length;
+  const freeBooksCount = useMemo(() => activeBooks.filter((b) => b.isFree).length, [activeBooks]);
+  const premiumBooksCount = useMemo(() => activeBooks.filter((b) => !b.isFree).length, [activeBooks]);
+  const audioBooksCount = useMemo(() => activeBooks.filter((b) => b.hasAudio).length, [activeBooks]);
 
   // Categories Breakdown
   const categoriesMap = useMemo(() => {
     const map: Record<string, number> = {};
-    books.forEach((b) => {
+    activeBooks.forEach((b) => {
       const cat = b.category || 'Санатсыз';
       map[cat] = (map[cat] || 0) + 1;
     });
@@ -217,12 +216,12 @@ export const AdminStatsPage: React.FC = () => {
         pct: totalBooksCount > 0 ? Math.round((count / totalBooksCount) * 100) : 0,
       }))
       .sort((a, b) => b.count - a.count);
-  }, [books, totalBooksCount]);
+  }, [activeBooks, totalBooksCount]);
 
   // All system genres/categories statistics
   const allGenreStats = useMemo(() => {
     const list = [...ALL_SYSTEM_CATEGORIES];
-    books.forEach((b) => {
+    activeBooks.forEach((b) => {
       if (b.category && !list.includes(b.category) && b.category !== 'Санатсыз') {
         list.push(b.category);
       }
@@ -234,7 +233,7 @@ export const AdminStatsPage: React.FC = () => {
     });
 
     return list.map((name) => {
-      const count = books.filter((b) => {
+      const count = activeBooks.filter((b) => {
         if (b.category === name) return true;
         if (Array.isArray(b.categories) && b.categories.includes(name)) return true;
         return false;
@@ -242,7 +241,7 @@ export const AdminStatsPage: React.FC = () => {
       const pct = totalBooksCount > 0 ? Math.round((count / totalBooksCount) * 100) : 0;
       return { name, count, pct };
     });
-  }, [books, totalBooksCount]);
+  }, [activeBooks, totalBooksCount]);
 
   // Filtered books list for table
   const filteredBooksList = useMemo(() => {
@@ -897,10 +896,9 @@ export const AdminStatsPage: React.FC = () => {
                   <table className="admin-table" style={{ width: '100%', margin: 0, borderCollapse: 'collapse' }}>
                     <thead>
                       <tr>
-                        <th style={{ width: '25%', padding: '12px 14px', color: '#0F172A', fontSize: '13px', fontWeight: 800, borderRight: '2.5px solid #94A3B8' }}>Барлығы</th>
-                        <th style={{ width: '25%', padding: '12px 14px', color: '#0F172A', fontSize: '13px', fontWeight: 800, borderRight: '1px solid #E2E8F0' }}>Премиум</th>
-                        <th style={{ width: '25%', padding: '12px 14px', color: '#0F172A', fontSize: '13px', fontWeight: 800, borderRight: '1px solid #E2E8F0' }}>Тегін</th>
-                        <th style={{ width: '25%', padding: '12px 14px', color: '#0F172A', fontSize: '13px', fontWeight: 800 }}>Архивте</th>
+                        <th style={{ width: '33.33%', padding: '12px 14px', color: '#0F172A', fontSize: '13px', fontWeight: 800, borderRight: '2.5px solid #94A3B8' }}>Барлығы</th>
+                        <th style={{ width: '33.33%', padding: '12px 14px', color: '#0F172A', fontSize: '13px', fontWeight: 800, borderRight: '1px solid #E2E8F0' }}>Премиум</th>
+                        <th style={{ width: '33.33%', padding: '12px 14px', color: '#0F172A', fontSize: '13px', fontWeight: 800 }}>Тегін</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -911,11 +909,8 @@ export const AdminStatsPage: React.FC = () => {
                         <td style={{ padding: '12px 14px', borderRight: '1px solid #E2E8F0' }}>
                           <span style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>{premiumBooksCount}</span>
                         </td>
-                        <td style={{ padding: '12px 14px', borderRight: '1px solid #E2E8F0' }}>
-                          <span style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>{freeBooksCount}</span>
-                        </td>
                         <td style={{ padding: '12px 14px' }}>
-                          <span style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>{archivedBooksCount}</span>
+                          <span style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>{freeBooksCount}</span>
                         </td>
                       </tr>
 
@@ -930,14 +925,9 @@ export const AdminStatsPage: React.FC = () => {
                             {totalBooksCount > 0 ? Math.round((premiumBooksCount / totalBooksCount) * 100) : 0}%
                           </span>
                         </td>
-                        <td style={{ padding: '10px 14px', borderRight: '1px solid #E2E8F0' }}>
-                          <span style={{ color: '#0F172A', fontSize: '13px', fontWeight: 800 }}>
-                            {totalBooksCount > 0 ? Math.round((freeBooksCount / totalBooksCount) * 100) : 0}%
-                          </span>
-                        </td>
                         <td style={{ padding: '10px 14px' }}>
                           <span style={{ color: '#0F172A', fontSize: '13px', fontWeight: 800 }}>
-                            {totalBooksCount > 0 ? Math.round((archivedBooksCount / totalBooksCount) * 100) : 0}%
+                            {totalBooksCount > 0 ? Math.round((freeBooksCount / totalBooksCount) * 100) : 0}%
                           </span>
                         </td>
                       </tr>
