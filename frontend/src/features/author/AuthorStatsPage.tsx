@@ -54,8 +54,11 @@ export const AuthorStatsPage: React.FC = () => {
   const [payoutMethod, setPayoutMethod] = useState('Kaspi Gold');
   const [payoutAccount, setPayoutAccount] = useState('');
 
-  // Chart sliding window: how many days back from today the window ends (0 = today is last day)
-  const [chartOffset, setChartOffset] = useState(0);
+  // Selected month for chart (YYYY-MM), defaults to current month
+  const [selectedMonthKey, setSelectedMonthKey] = useState<string>(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  });
 
   // All authors list for Admin dropdown
   const allAuthors = useMemo(() => getAllAuthors(), [getAllAuthors]);
@@ -155,7 +158,27 @@ export const AuthorStatsPage: React.FC = () => {
     return getAuthorStats(targetAuthor, books);
   }, [targetAuthor, books, getAuthorStats]);
 
-  // Daily Listening Analytics: 14-day sliding window driven by chartOffset
+  // Kazakh month names
+  const KZ_MONTHS: Record<number, string> = {
+    1: 'Қаңтар', 2: 'Ақпан', 3: 'Наурыз', 4: 'Сәуір',
+    5: 'Мамыр', 6: 'Маусым', 7: 'Шілде', 8: 'Тамыз',
+    9: 'Қыркүйек', 10: 'Қазан', 11: 'Қараша', 12: 'Желтоқсан',
+  };
+  const formatMonthLabel = (key: string) => {
+    const [y, m] = key.split('-');
+    return `${KZ_MONTHS[Number(m)]} ${y}`;
+  };
+  const currentMonthKey = useMemo(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  }, []);
+  const shiftMonth = (key: string, delta: number): string => {
+    const [y, m] = key.split('-').map(Number);
+    const d = new Date(y, m - 1 + delta, 1);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  };
+
+  // Monthly Analytics: compute stats for selectedMonthKey (all days of that month)
   const dailyAnalytics = useMemo(() => {
     if (!targetAuthor) {
       return {
@@ -168,12 +191,13 @@ export const AuthorStatsPage: React.FC = () => {
         totalSeconds: 0,
         lastListenedAt: null as string | null,
         maxSecInPeriod: 60,
-        windowLabel: '',
       };
     }
 
+    const [selYear, selMonth] = selectedMonthKey.split('-').map(Number);
+
     // Build full dateMap from all history
-    const dateMap: Record<string, number> = {};
+    const fullDateMap: Record<string, number> = {};
     let latestTimestamp: string | null = null;
 
     authorBooks.forEach((b) => {
@@ -186,17 +210,14 @@ export const AuthorStatsPage: React.FC = () => {
         }
         if (stat.dailySeconds) {
           Object.entries(stat.dailySeconds).forEach(([d, s]) => {
-            dateMap[d] = (dateMap[d] || 0) + s;
+            fullDateMap[d] = (fullDateMap[d] || 0) + s;
           });
         }
       }
     });
 
-    const today = new Date();
-    // The last day of the window = today - chartOffset
-    const windowEnd = new Date(today);
-    windowEnd.setDate(windowEnd.getDate() - chartOffset);
-    const todayIso = today.toISOString().split('T')[0];
+    const todayIso = new Date().toISOString().split('T')[0];
+    const daysInMonth = new Date(selYear, selMonth, 0).getDate();
 
     const days: {
       date: string;
@@ -209,18 +230,15 @@ export const AuthorStatsPage: React.FC = () => {
     }[] = [];
 
     let maxSecInPeriod = 0;
-    let windowTotalSec = 0;
+    let monthTotalSec = 0;
 
-    for (let i = 13; i >= 0; i--) {
-      const d = new Date(windowEnd);
-      d.setDate(d.getDate() - i);
-      const iso = d.toISOString().split('T')[0];
-      const sec = Math.round(dateMap[iso] || 0);
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dayNum = String(day).padStart(2, '0');
+      const monthNum = String(selMonth).padStart(2, '0');
+      const iso = `${selYear}-${monthNum}-${dayNum}`;
+      const sec = Math.round(fullDateMap[iso] || 0);
       if (sec > maxSecInPeriod) maxSecInPeriod = sec;
-      windowTotalSec += sec;
-
-      const dayNum = String(d.getDate()).padStart(2, '0');
-      const monthNum = String(d.getMonth() + 1).padStart(2, '0');
+      monthTotalSec += sec;
 
       days.push({
         date: iso,
@@ -233,11 +251,11 @@ export const AuthorStatsPage: React.FC = () => {
       });
     }
 
-    // Find peak day within ALL history (not just window) — for the card
+    // Find peak day within the selected month
     let peakDay: PeakDayInfo | null = null;
     let maxSec = 0;
-    Object.entries(dateMap).forEach(([dStr, sec]) => {
-      if (sec > maxSec && sec > 0) {
+    Object.entries(fullDateMap).forEach(([dStr, sec]) => {
+      if (dStr.startsWith(selectedMonthKey) && sec > maxSec && sec > 0) {
         maxSec = Math.round(sec);
         const dObj = new Date(dStr);
         const dayStr = String(dObj.getDate()).padStart(2, '0');
@@ -252,23 +270,16 @@ export const AuthorStatsPage: React.FC = () => {
       }
     });
 
-    // Mark peak day if it falls within the current 14-day window
+    // Mark peak day in chart
     if (peakDay) {
       const peakDate = (peakDay as PeakDayInfo).date;
       days.forEach((day) => {
-        if (day.date === peakDate && day.seconds > 0) {
-          day.isPeak = true;
-        }
+        if (day.date === peakDate && day.seconds > 0) day.isPeak = true;
       });
     }
 
     const activeDaysCount = days.filter((d) => d.seconds > 0).length;
-    const avgMin = activeDaysCount > 0 ? Number(((windowTotalSec / 60) / activeDaysCount).toFixed(1)) : 0;
-
-    // Window label: "DD.MM — DD.MM"
-    const firstDay = days[0];
-    const lastDay = days[days.length - 1];
-    const windowLabel = firstDay && lastDay ? `${firstDay.label} — ${lastDay.label}` : '';
+    const avgMin = activeDaysCount > 0 ? Number(((monthTotalSec / 60) / activeDaysCount).toFixed(1)) : 0;
 
     return {
       dailyList: days,
@@ -277,12 +288,11 @@ export const AuthorStatsPage: React.FC = () => {
       peakSeconds: peakDay ? (peakDay as PeakDayInfo).seconds : 0,
       totalListenedDays: activeDaysCount,
       averageMinutes: avgMin,
-      totalSeconds: windowTotalSec,
+      totalSeconds: monthTotalSec,
       maxSecInPeriod: Math.max(maxSecInPeriod, 60),
       lastListenedAt: latestTimestamp,
-      windowLabel,
     };
-  }, [targetAuthor, authorBooks, listeningStats, chartOffset]);
+  }, [targetAuthor, authorBooks, listeningStats, selectedMonthKey]);
 
   if (!currentUser) return null;
 
@@ -622,53 +632,40 @@ export const AuthorStatsPage: React.FC = () => {
               </h3>
             </div>
 
-            {/* 14-day sliding window navigator */}
+            {/* Month navigator */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <button
-                onClick={() => setChartOffset((prev) => prev + 14)}
+                onClick={() => setSelectedMonthKey((prev) => shiftMonth(prev, -1))}
                 style={{
                   width: '32px', height: '32px', borderRadius: '8px',
                   border: '1.5px solid #E2E8F0', background: '#F8FAFC',
                   cursor: 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   color: 'var(--text-dark)',
-                  fontSize: '16px', fontWeight: 700, transition: 'all 0.15s',
+                  fontSize: '16px', fontWeight: 700,
                 }}
-                title="Артқа"
               >‹</button>
 
               <span style={{
                 fontSize: '13px', fontWeight: 700, color: '#64748B',
                 background: '#F1F5F9', borderRadius: '8px', padding: '5px 14px',
-                minWidth: '140px', textAlign: 'center',
+                minWidth: '155px', textAlign: 'center',
               }}>
-                {dailyAnalytics.windowLabel}
+                {formatMonthLabel(selectedMonthKey)}
               </span>
 
               <button
-                onClick={() => setChartOffset((prev) => Math.max(0, prev - 14))}
-                disabled={chartOffset === 0}
+                onClick={() => setSelectedMonthKey((prev) => shiftMonth(prev, 1))}
+                disabled={selectedMonthKey >= currentMonthKey}
                 style={{
                   width: '32px', height: '32px', borderRadius: '8px',
                   border: '1.5px solid #E2E8F0', background: '#F8FAFC',
-                  cursor: chartOffset === 0 ? 'not-allowed' : 'pointer',
+                  cursor: selectedMonthKey >= currentMonthKey ? 'not-allowed' : 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: chartOffset === 0 ? '#CBD5E1' : 'var(--text-dark)',
-                  fontSize: '16px', fontWeight: 700, transition: 'all 0.15s',
+                  color: selectedMonthKey >= currentMonthKey ? '#CBD5E1' : 'var(--text-dark)',
+                  fontSize: '16px', fontWeight: 700,
                 }}
-                title="Алдыға"
               >›</button>
-
-              {chartOffset > 0 && (
-                <button
-                  onClick={() => setChartOffset(0)}
-                  style={{
-                    fontSize: '11.5px', fontWeight: 700, color: 'var(--blue)',
-                    background: 'rgba(0,84,148,0.07)', border: 'none',
-                    borderRadius: '7px', padding: '5px 12px', cursor: 'pointer',
-                  }}
-                >Бүгін</button>
-              )}
             </div>
           </div>
 
@@ -738,20 +735,19 @@ export const AuthorStatsPage: React.FC = () => {
             </div>
           </div>
 
-          {/* 14-Day Activity Bar Chart */}
+          {/* Monthly Activity Bar Chart */}
           <div style={{ marginTop: '10px' }}>
             <div style={{ marginBottom: '12px' }}>
               <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-dark)' }}>
-                Соңғы 14 күндегі тыңдалым динамикасы:
+                {formatMonthLabel(selectedMonthKey)} — күнделікті тыңдалым:
               </span>
             </div>
-
 
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(14, 1fr)',
-                gap: '8px',
+                gridTemplateColumns: `repeat(${dailyAnalytics.dailyList.length}, 1fr)`,
+                gap: '5px',
                 alignItems: 'flex-end',
                 height: '145px',
                 background: '#F8FAFC',
