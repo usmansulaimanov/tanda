@@ -2126,63 +2126,29 @@ export const AdminManagersPage: React.FC = () => {
                 </div>
 
                 {/* Author Name & Assigned Author Name */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px', marginBottom: '18px' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '6px' }}>
-                      Автордың аты-жөні <span style={{ color: '#EF4444' }}>*</span>
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="Мысалы: Мұхтар Әуезов"
-                      value={authorName}
-                      onChange={(e) => {
-                        setAuthorName(e.target.value);
-                        if (!editingAuthor && !authorAssignedName) {
-                          setAuthorAssignedName(e.target.value);
-                        }
-                      }}
-                      style={{
-                        width: '100%',
-                        padding: '11px 14px',
-                        borderRadius: '10px',
-                        border: '1.5px solid #CBD5E1',
-                        fontSize: '14px',
-                        outline: 'none',
-                        boxSizing: 'border-box',
-                      }}
-                    />
-                  </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '6px' }}>
-                      Каталогтағы автордың аты
-                    </label>
-                    <input
-                      type="text"
-                      list="catalog-authors-list"
-                      placeholder="Кітаптарда қалай жазылған"
-                      value={authorAssignedName}
-                      onChange={(e) => setAuthorAssignedName(e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: '11px 14px',
-                        borderRadius: '10px',
-                        border: '1.5px solid #CBD5E1',
-                        fontSize: '14px',
-                        outline: 'none',
-                        boxSizing: 'border-box',
-                      }}
-                    />
-                    <datalist id="catalog-authors-list">
-                      {catalogAuthorNames.map((name) => (
-                        <option key={name} value={name} />
-                      ))}
-                    </datalist>
-                    <span style={{ display: 'block', fontSize: '11px', color: '#64748B', marginTop: '4px' }}>
-                      Осы атпен шыққан кітаптар статистикасы автоматты байланады
-                    </span>
-                  </div>
+                <div style={{ marginBottom: '18px' }}>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '6px' }}>
+                    Автордың аты-жөні <span style={{ color: '#EF4444' }}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Мысалы: Мұхтар Әуезов"
+                    value={authorName}
+                    onChange={(e) => {
+                      setAuthorName(e.target.value);
+                      setAuthorAssignedName(e.target.value);
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '11px 14px',
+                      borderRadius: '10px',
+                      border: '1.5px solid #CBD5E1',
+                      fontSize: '14px',
+                      outline: 'none',
+                      boxSizing: 'border-box',
+                    }}
+                  />
                 </div>
 
                 {/* Email and Phone */}
