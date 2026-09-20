@@ -416,17 +416,6 @@ export const AdminStatsPage: React.FC = () => {
               <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
             </svg>
             <span>Оқырмандар</span>
-            <span
-              style={{
-                fontSize: '11px',
-                padding: '2px 8px',
-                borderRadius: '20px',
-                background: activeTab === 'readers' ? 'rgba(255,255,255,0.25)' : '#E2E8F0',
-                color: activeTab === 'readers' ? '#FFFFFF' : '#475569',
-              }}
-            >
-              {totalReaders}
-            </span>
           </button>
 
           <button
@@ -456,17 +445,6 @@ export const AdminStatsPage: React.FC = () => {
               <path d="M6 10h10"></path>
             </svg>
             <span>Кітаптар</span>
-            <span
-              style={{
-                fontSize: '11px',
-                padding: '2px 8px',
-                borderRadius: '20px',
-                background: activeTab === 'books' ? 'rgba(255,255,255,0.25)' : '#E2E8F0',
-                color: activeTab === 'books' ? '#FFFFFF' : '#475569',
-              }}
-            >
-              {totalBooksCount}
-            </span>
           </button>
 
           <button
@@ -495,17 +473,6 @@ export const AdminStatsPage: React.FC = () => {
               <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
             </svg>
             <span>Авторлар</span>
-            <span
-              style={{
-                fontSize: '11px',
-                padding: '2px 8px',
-                borderRadius: '20px',
-                background: activeTab === 'authors' ? 'rgba(255,255,255,0.25)' : '#E2E8F0',
-                color: activeTab === 'authors' ? '#FFFFFF' : '#475569',
-              }}
-            >
-              {uniqueAuthorsCount}
-            </span>
           </button>
 
           <button
@@ -534,17 +501,6 @@ export const AdminStatsPage: React.FC = () => {
               <line x1="7" y1="7" x2="7.01" y2="7"></line>
             </svg>
             <span>Подпискалар</span>
-            <span
-              style={{
-                fontSize: '11px',
-                padding: '2px 8px',
-                borderRadius: '20px',
-                background: activeTab === 'subscriptions' ? 'rgba(255,255,255,0.25)' : '#E2E8F0',
-                color: activeTab === 'subscriptions' ? '#FFFFFF' : '#475569',
-              }}
-            >
-              {totalPromocodesCount}
-            </span>
           </button>
         </div>
 
