@@ -61,7 +61,7 @@ export const ReaderCreatePage: React.FC = () => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('123456');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [idNumber, setIdNumber] = useState('');
   const [idNumberError, setIdNumberError] = useState('');
