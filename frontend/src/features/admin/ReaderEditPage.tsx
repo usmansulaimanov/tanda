@@ -799,14 +799,9 @@ export const ReaderEditPage: React.FC = () => {
             >
               {/* Birth Date */}
               <div className="form-group" style={{ margin: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                  <label className="form-label" style={{ margin: 0 }}>
-                    🎂 Туған күні
-                  </label>
-                  <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 500 }}>
-                    1 айлық сыйлық үшін
-                  </span>
-                </div>
+                <label className="form-label">
+                  Туған күні
+                </label>
                 <div style={{ position: 'relative' }}>
                   <input
                     type="text"
@@ -908,9 +903,6 @@ export const ReaderEditPage: React.FC = () => {
                     </button>
                   </div>
                 </div>
-                <span style={{ display: 'block', fontSize: '11px', color: 'var(--text-mid)', marginTop: '4px' }}>
-                  🎂 Туған күнінде автоматты түрде 1 айлық Премиум сыйланады (жылына 1 рет)
-                </span>
               </div>
 
               {/* Password */}

@@ -546,11 +546,8 @@ export const ReaderCreatePage: React.FC = () => {
             >
               {/* Birth Date */}
               <div className="form-group" style={{ margin: 0 }}>
-                <label className="form-label" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span>🎂 Туған күні</span>
-                  <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 500 }}>
-                    1 айлық сыйлық үшін
-                  </span>
+                <label className="form-label">
+                  Туған күні
                 </label>
                 <div style={{ position: 'relative' }}>
                   <input
