@@ -355,13 +355,10 @@ export const AdminRoyaltyTab: React.FC = () => {
           }}
         >
           <div style={{ fontSize: '12.5px', fontWeight: 700, color: 'rgba(255,255,255,0.8)', marginBottom: '8px' }}>
-            🏢 Компанияның таза үлесі (50%)
+            🏢 Компанияның пайдасы | 50%
           </div>
           <div style={{ fontSize: '24px', fontWeight: 900, color: '#FFFFFF' }}>
             {companyShare.toLocaleString()} ₸
-          </div>
-          <div style={{ fontSize: '11.5px', color: '#93C5FD', marginTop: '4px', fontWeight: 700 }}>
-            Сайттың таза кірісі
           </div>
         </div>
 
