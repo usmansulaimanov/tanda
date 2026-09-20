@@ -515,21 +515,17 @@ export const AdminStatsPage: React.FC = () => {
               </div>
 
               <div style={{ overflowX: 'auto' }}>
-                <table className="admin-table" style={{ width: '100%', margin: 0, minWidth: '720px', borderCollapse: 'collapse' }}>
+                <table className="admin-table" style={{ width: '100%', margin: 0, minWidth: '600px', borderCollapse: 'collapse' }}>
                   <thead>
                     <tr>
-                      <th style={{ padding: '16px 20px', width: '150px', background: '#F8FAFC', color: '#0F172A', fontSize: '14px', fontWeight: 800, borderRight: '1px solid #E2E8F0' }}>Көрсеткіш</th>
-                      <th style={{ padding: '16px 20px', color: '#0F172A', fontSize: '14px', fontWeight: 800, borderRight: '1px solid #E2E8F0' }}>Барлық оқырмандар</th>
-                      <th style={{ padding: '16px 20px', color: '#0F172A', fontSize: '14px', fontWeight: 800, borderRight: '1px solid #E2E8F0' }}>Премиум оқырмандар</th>
-                      <th style={{ padding: '16px 20px', color: '#0F172A', fontSize: '14px', fontWeight: 800, borderRight: '1px solid #E2E8F0' }}>Стандарт</th>
-                      <th style={{ padding: '16px 20px', color: '#0F172A', fontSize: '14px', fontWeight: 800 }}>Бұғатталған оқырмандар</th>
+                      <th style={{ width: '25%', padding: '16px 20px', color: '#0F172A', fontSize: '14px', fontWeight: 800, borderRight: '1px solid #E2E8F0' }}>Барлық оқырмандар</th>
+                      <th style={{ width: '25%', padding: '16px 20px', color: '#0F172A', fontSize: '14px', fontWeight: 800, borderRight: '1px solid #E2E8F0' }}>Премиум оқырмандар</th>
+                      <th style={{ width: '25%', padding: '16px 20px', color: '#0F172A', fontSize: '14px', fontWeight: 800, borderRight: '1px solid #E2E8F0' }}>Стандарт</th>
+                      <th style={{ width: '25%', padding: '16px 20px', color: '#0F172A', fontSize: '14px', fontWeight: 800 }}>Бұғатталған оқырмандар</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr>
-                      <td style={{ padding: '16px 20px', fontWeight: 800, color: '#0F172A', background: '#F8FAFC', fontSize: '13px', borderRight: '1px solid #E2E8F0' }}>
-                        Саны
-                      </td>
                       <td style={{ padding: '16px 20px', borderRight: '1px solid #E2E8F0' }}>
                         <span style={{ fontSize: '20px', fontWeight: 900, color: '#0F172A' }}>{totalReaders}</span>
                       </td>
@@ -545,9 +541,6 @@ export const AdminStatsPage: React.FC = () => {
                     </tr>
 
                     <tr>
-                      <td style={{ padding: '16px 20px', fontWeight: 800, color: '#0F172A', background: '#F8FAFC', fontSize: '13px', borderRight: '1px solid #E2E8F0' }}>
-                        Үлесі (%)
-                      </td>
                       <td style={{ padding: '16px 20px', borderRight: '1px solid #E2E8F0' }}>
                         <span style={{ color: '#0F172A', fontSize: '14px', fontWeight: 800 }}>
                           100%
