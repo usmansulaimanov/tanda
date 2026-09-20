@@ -203,13 +203,13 @@ export const AuthorStatsPage: React.FC = () => {
       const sec = Math.round(dateMap[iso] || 0);
       if (sec > maxSecInPeriod) maxSecInPeriod = sec;
 
-      const dayNum = d.getDate();
-      const monthShort = ['Қаң', 'Ақп', 'Нау', 'Сәу', 'Мам', 'Мау', 'Шіл', 'Там', 'Қыр', 'Қаз', 'Қар', 'Жел'][d.getMonth()];
+      const dayNum = String(d.getDate()).padStart(2, '0');
+      const monthNum = String(d.getMonth() + 1).padStart(2, '0');
 
       days.push({
         date: iso,
-        label: `${dayNum} ${monthShort}`,
-        shortLabel: `${dayNum}`,
+        label: `${dayNum}.${monthNum}`,
+        shortLabel: `${dayNum}.${monthNum}`,
         seconds: sec,
         minutes: Number((sec / 60).toFixed(1)),
         isToday: iso === today,
