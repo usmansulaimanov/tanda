@@ -136,26 +136,11 @@ export const AdminRoyaltyTab: React.FC = () => {
         }}
       >
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span
-              style={{
-                background: 'linear-gradient(135deg, #EF7E00 0%, #EA580C 100%)',
-                color: '#FFFFFF',
-                fontSize: '12px',
-                fontWeight: 800,
-                padding: '4px 10px',
-                borderRadius: '8px',
-              }}
-            >
-              50 / 50 Моделі
-            </span>
+          <div>
             <h2 style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
               Роялти және табысты бөлу калькуляторы
             </h2>
           </div>
-          <p style={{ fontSize: '13px', color: 'var(--text-mid)', margin: '6px 0 0' }}>
-            Айлық түсімнен нақты шығындар алынып, қалған пайданың 50%-ы авторларға тыңдалған минуты бойынша үлестіріледі.
-          </p>
         </div>
 
         {/* Month Selector & Reset */}

@@ -549,18 +549,6 @@ export const AuthorStatsPage: React.FC = () => {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '20px' }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span
-                  style={{
-                    background: 'rgba(239, 126, 0, 0.9)',
-                    color: '#FFFFFF',
-                    fontSize: '11.5px',
-                    fontWeight: 800,
-                    padding: '3px 10px',
-                    borderRadius: '20px',
-                  }}
-                >
-                  50 / 50 Роялти моделі
-                </span>
                 <h2 style={{ fontSize: '20px', fontWeight: 900, margin: 0 }}>
                   Аудиокітап тыңдалымдары мен роялти табысы
                 </h2>
