@@ -411,7 +411,28 @@ export const AdminRoyaltyTab: React.FC = () => {
           </div>
         </div>
 
-        {/* Card 6: 1 Minute Rate */}
+        {/* Card 6: Total Author Listening Minutes */}
+        <div
+          style={{
+            background: '#FFFFFF',
+            borderRadius: '18px',
+            padding: '20px',
+            border: '1.5px solid #CBD5E1',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.02)',
+          }}
+        >
+          <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#64748B', marginBottom: '8px' }}>
+            🎧 Авторлардың жалпы тыңдалымы
+          </div>
+          <div style={{ fontSize: '24px', fontWeight: 900, color: 'var(--blue)' }}>
+            {totalPlatformMinutes.toLocaleString()} мин
+          </div>
+          <div style={{ fontSize: '11.5px', color: '#64748B', marginTop: '4px' }}>
+            {totalPlatformMinutes > 0 ? `≈ ${(totalPlatformMinutes / 60).toFixed(1)} сағат тыңдалды` : 'Барлық авторлардың кітаптары бойынша'}
+          </div>
+        </div>
+
+        {/* Card 7: 1 Minute Rate */}
         <div
           style={{
             background: '#FFFFFF',
@@ -433,8 +454,6 @@ export const AdminRoyaltyTab: React.FC = () => {
         </div>
       </div>
 
-
-
       {/* 4. Authors Royalty Breakdown Table */}
       <div
         style={{
@@ -447,7 +466,7 @@ export const AdminRoyaltyTab: React.FC = () => {
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
           <div>
-            <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-dark)', margin: 0 }}>
+            <h3 style={{ fontSize: '18px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
               Авторлардың есептелген роялти үлестері ({authors.length})
             </h3>
             <p style={{ fontSize: '13px', color: 'var(--text-mid)', margin: '4px 0 0' }}>
@@ -455,8 +474,23 @@ export const AdminRoyaltyTab: React.FC = () => {
             </p>
           </div>
 
-          <div style={{ fontSize: '13px', fontWeight: 700, color: '#64748B' }}>
-            Жалпы тыңдау: <strong style={{ color: 'var(--blue)' }}>{totalPlatformMinutes.toLocaleString()} минут</strong>
+          <div
+            style={{
+              background: '#EFF6FF',
+              border: '1.5px solid #BFDBFE',
+              borderRadius: '12px',
+              padding: '8px 16px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+            }}
+          >
+            <span style={{ fontSize: '13px', fontWeight: 700, color: '#1E40AF' }}>
+              Барлық авторлардың жалпы тыңдалымы:
+            </span>
+            <strong style={{ fontSize: '15px', fontWeight: 900, color: 'var(--blue)' }}>
+              {totalPlatformMinutes.toLocaleString()} минут {totalPlatformMinutes > 0 ? `(≈ ${(totalPlatformMinutes / 60).toFixed(1)} сағат)` : ''}
+            </strong>
           </div>
         </div>
 
