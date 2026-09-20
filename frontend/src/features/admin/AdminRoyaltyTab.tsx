@@ -17,6 +17,19 @@ const parseFormattedNumber = (val: string): number => {
   return digits ? Number(digits) : 0;
 };
 
+const formatCurrencyWithDecimals = (num: number): string => {
+  if (num === null || num === undefined || isNaN(num)) return '0';
+  const rounded = Number(num.toFixed(2));
+  const parts = rounded.toFixed(2).split('.');
+  const integerPart = Number(parts[0]).toLocaleString('ru-RU');
+  const decimalPart = parts[1];
+  
+  if (decimalPart === '00') {
+    return integerPart;
+  }
+  return `${integerPart},${decimalPart}`;
+};
+
 export const AdminRoyaltyTab: React.FC = () => {
   const { periods, activeMonth, listeningStats, calculateRoyalty, finalizeRoyaltyPeriod, resetAllStatsToZero } = useRoyaltyStore();
   const { getAllAuthors } = useAuthStore();
@@ -467,7 +480,7 @@ export const AdminRoyaltyTab: React.FC = () => {
             💰 Жалпы төлем сомасы
           </div>
           <div style={{ fontSize: '24px', fontWeight: 900, color: '#16A34A' }}>
-            {Math.round(previewRatePerMinute * totalPlatformMinutes).toLocaleString()} ₸
+            {formatCurrencyWithDecimals(previewRatePerMinute * totalPlatformMinutes)} ₸
           </div>
           <div style={{ fontSize: '11.5px', color: '#64748B', marginTop: '4px' }}>
             {previewRatePerMinute} ₸ × {totalPlatformMinutes.toLocaleString()} мин
@@ -547,7 +560,7 @@ export const AdminRoyaltyTab: React.FC = () => {
                   });
 
                   const minutes = earningDetail?.totalMinutes ?? authorBooks.reduce((sum, b) => sum + (listeningStats[b.id]?.totalMinutes || 0), 0);
-                  const earned = earningDetail?.totalEarned ?? (previewRatePerMinute > 0 ? Math.round(minutes * previewRatePerMinute) : 0);
+                  const earned = earningDetail?.totalEarned ?? (previewRatePerMinute > 0 ? Number((minutes * previewRatePerMinute).toFixed(2)) : 0);
                   const isPaid = currentPeriod?.isFinalized || earningDetail?.status === 'paid';
 
                   return (
@@ -614,7 +627,7 @@ export const AdminRoyaltyTab: React.FC = () => {
 
                       <td style={{ padding: '14px' }}>
                         <div style={{ fontSize: '16px', fontWeight: 900, color: '#16A34A' }}>
-                          {earned.toLocaleString()} ₸
+                          {formatCurrencyWithDecimals(earned)} ₸
                         </div>
                       </td>
 

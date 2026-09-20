@@ -222,7 +222,7 @@ export const useRoyaltyStore = create<RoyaltyState>()(
           : 0;
 
         authorEarnings.forEach((ae) => {
-          ae.totalEarned = totalPlatformMinutes > 0 ? Math.round(ae.totalMinutes * ratePerMinute) : 0;
+          ae.totalEarned = totalPlatformMinutes > 0 ? Number((ae.totalMinutes * ratePerMinute).toFixed(2)) : 0;
         });
 
         const newPeriod: RoyaltyPeriod = {
@@ -312,7 +312,7 @@ export const useRoyaltyStore = create<RoyaltyState>()(
         });
 
         const ratePerMinute = period?.ratePerMinute || 0;
-        const estimatedEarned = Math.round(totalMinutes * ratePerMinute);
+        const estimatedEarned = Number((totalMinutes * ratePerMinute).toFixed(2));
         const currentBalance = state.authorBalances[author.id] || 0;
 
         return {
