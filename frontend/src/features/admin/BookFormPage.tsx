@@ -37,7 +37,7 @@ export const BookFormPage: React.FC = () => {
 
   const [title, setTitle] = useState('');
   const [author, setAuthor] = useState('');
-  const [categories, setCategories] = useState<string[]>(['Көркем әдебиет']);
+  const [categories, setCategories] = useState<string[]>([]);
   const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
   const categoryDropdownRef = useRef<HTMLDivElement>(null);
   const [pages, setPages] = useState<string>('');
@@ -71,9 +71,9 @@ export const BookFormPage: React.FC = () => {
         setCategories(existingBook.categories);
       } else if (existingBook.category) {
         const split = existingBook.category.split(',').map((c) => c.trim()).filter(Boolean);
-        setCategories(split.length > 0 ? split : ['Көркем әдебиет']);
+        setCategories(split);
       } else {
-        setCategories(['Көркем әдебиет']);
+        setCategories([]);
       }
       setPages(existingBook.pages ? String(existingBook.pages) : '');
       setDescription(existingBook.description);
@@ -168,10 +168,6 @@ export const BookFormPage: React.FC = () => {
 
   const toggleCategory = (cat: string) => {
     if (categories.includes(cat)) {
-      if (categories.length === 1) {
-        showToast('Кем дегенде бір жанр таңдалуы керек', 'info');
-        return;
-      }
       setCategories(categories.filter((c) => c !== cat));
     } else {
       setCategories([...categories, cat]);
@@ -190,7 +186,7 @@ export const BookFormPage: React.FC = () => {
       return;
     }
     if (categories.length === 0) {
-      showToast('Кем дегенде бір жанрды таңдаңыз', 'error');
+      showToast('Кітаптың кем дегенде бір жанрын / санатын таңдаңыз', 'error');
       return;
     }
 
@@ -715,7 +711,7 @@ export const BookFormPage: React.FC = () => {
                       {(!coverImage || coverImageError) && (
                         <>
                           <div style={{ fontSize: '8px', fontWeight: 800, lineHeight: 1.1, textTransform: 'uppercase', letterSpacing: '0.04em', opacity: 0.9, position: 'relative', zIndex: 2 }}>
-                            {categories.join(', ') || 'Көркем әдебиет'}
+                            {categories.join(', ') || 'Жанры'}
                           </div>
                           <div style={{ fontSize: '11px', fontWeight: 900, lineHeight: 1.2, margin: 'auto 0', position: 'relative', zIndex: 2 }}>
                             {title || 'Кітап атауы'}
