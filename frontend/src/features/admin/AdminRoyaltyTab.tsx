@@ -220,9 +220,9 @@ export const AdminRoyaltyTab: React.FC = () => {
           }}
         >
           <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#64748B', marginBottom: '6px' }}>
-            Жалпы айлық түсім (₸)
+            Табыс
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', margin: '2px 0 4px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', margin: '2px 0' }}>
             <input
               type="text"
               inputMode="numeric"
@@ -243,9 +243,6 @@ export const AdminRoyaltyTab: React.FC = () => {
               }}
             />
             <span style={{ fontSize: '20px', fontWeight: 900, color: '#0F172A' }}>₸</span>
-          </div>
-          <div style={{ fontSize: '11.5px', color: '#16A34A', fontWeight: 700 }}>
-            Жазылымдар мен төлемдер
           </div>
         </div>
 
@@ -388,13 +385,13 @@ export const AdminRoyaltyTab: React.FC = () => {
         }}
       >
         <h3 style={{ fontSize: '17px', fontWeight: 800, color: 'var(--text-dark)', margin: '0 0 16px' }}>
-          Шығындар мен түсімді қолмен енгізу
+          Шығындар мен табысты қолмен енгізу
         </h3>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '18px', marginBottom: '20px' }}>
           <div>
             <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '6px' }}>
-              Жалпы айлық түсім (₸)
+              Табыс (₸)
             </label>
             <input
               type="text"
