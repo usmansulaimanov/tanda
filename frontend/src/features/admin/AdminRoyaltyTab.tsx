@@ -30,6 +30,14 @@ const formatCurrencyWithDecimals = (num: number): string => {
   return `${integerPart},${decimalPart}`;
 };
 
+const getStoredRoyaltyDraft = (month: string) => {
+  try {
+    const raw = localStorage.getItem(`tanda_royalty_draft_${month}`);
+    if (raw) return JSON.parse(raw);
+  } catch {}
+  return null;
+};
+
 export const AdminRoyaltyTab: React.FC = () => {
   const { periods, activeMonth, listeningStats, calculateRoyalty, finalizeRoyaltyPeriod, resetAllStatsToZero } = useRoyaltyStore();
   const { getAllAuthors } = useAuthStore();
@@ -41,23 +49,88 @@ export const AdminRoyaltyTab: React.FC = () => {
 
   const authors = useMemo(() => getAllAuthors(), [getAllAuthors]);
 
-  // Form states for manual expense and revenue input (defaults strictly to 0)
-  const [revenueInput, setRevenueInput] = useState<number>(currentPeriod?.totalRevenue || 0);
-  const [expenseInput, setExpenseInput] = useState<number>(currentPeriod?.adminExpense || 0);
-  const [noteInput, setNoteInput] = useState<string>(currentPeriod?.adminNote || '');
+  // Form states initialized from stored draft or current period
+  const [revenueInput, setRevenueInput] = useState<number>(() => {
+    const draft = getStoredRoyaltyDraft(selectedMonth);
+    if (draft && draft.revenue !== undefined) return draft.revenue;
+    return currentPeriod?.totalRevenue || 0;
+  });
+  const [expenseInput, setExpenseInput] = useState<number>(() => {
+    const draft = getStoredRoyaltyDraft(selectedMonth);
+    if (draft && draft.expense !== undefined) return draft.expense;
+    return currentPeriod?.adminExpense || 0;
+  });
+  const [noteInput, setNoteInput] = useState<string>(() => {
+    const draft = getStoredRoyaltyDraft(selectedMonth);
+    if (draft && draft.note !== undefined) return draft.note;
+    return currentPeriod?.adminNote || '';
+  });
 
-  // Synchronize inputs when selected month changes
+  // Synchronize inputs when selected month changes and calculate initial state if needed
   useEffect(() => {
-    if (currentPeriod) {
-      setRevenueInput(currentPeriod.totalRevenue);
-      setExpenseInput(currentPeriod.adminExpense);
-      setNoteInput(currentPeriod.adminNote || '');
-    } else {
-      setRevenueInput(0);
-      setExpenseInput(0);
-      setNoteInput('');
+    const draft = getStoredRoyaltyDraft(selectedMonth);
+    const p = periods[selectedMonth];
+    const rev = draft?.revenue !== undefined ? draft.revenue : (p?.totalRevenue || 0);
+    const exp = draft?.expense !== undefined ? draft.expense : (p?.adminExpense || 0);
+    const n = draft?.note !== undefined ? draft.note : (p?.adminNote || '');
+
+    setRevenueInput(rev);
+    setExpenseInput(exp);
+    setNoteInput(n);
+
+    if (rev > 0 || exp > 0) {
+      calculateRoyalty(
+        selectedMonth,
+        {
+          totalRevenue: rev,
+          adminExpense: exp,
+          adminNote: n,
+        },
+        authors,
+        books
+      );
     }
-  }, [selectedMonth, currentPeriod]);
+  }, [selectedMonth]);
+
+  const handleRevenueChange = (newVal: number) => {
+    setRevenueInput(newVal);
+    try {
+      localStorage.setItem(
+        `tanda_royalty_draft_${selectedMonth}`,
+        JSON.stringify({ revenue: newVal, expense: expenseInput, note: noteInput })
+      );
+    } catch {}
+    calculateRoyalty(
+      selectedMonth,
+      {
+        totalRevenue: newVal,
+        adminExpense: expenseInput,
+        adminNote: noteInput,
+      },
+      authors,
+      books
+    );
+  };
+
+  const handleExpenseChange = (newVal: number) => {
+    setExpenseInput(newVal);
+    try {
+      localStorage.setItem(
+        `tanda_royalty_draft_${selectedMonth}`,
+        JSON.stringify({ revenue: revenueInput, expense: newVal, note: noteInput })
+      );
+    } catch {}
+    calculateRoyalty(
+      selectedMonth,
+      {
+        totalRevenue: revenueInput,
+        adminExpense: newVal,
+        adminNote: noteInput,
+      },
+      authors,
+      books
+    );
+  };
 
   // Calculate live platform listening minutes and preview metrics strictly from real data
   const totalPlatformMinutes = useMemo(() => {
@@ -123,6 +196,9 @@ export const AdminRoyaltyTab: React.FC = () => {
   const handleResetAll = () => {
     if (window.confirm('Барлық роялти мен тыңдалым статистикасын 0-ге түсіруге сенімдісіз бе?')) {
       resetAllStatsToZero();
+      try {
+        localStorage.removeItem(`tanda_royalty_draft_${selectedMonth}`);
+      } catch {}
       setRevenueInput(0);
       setExpenseInput(0);
       setNoteInput('');
@@ -268,7 +344,7 @@ export const AdminRoyaltyTab: React.FC = () => {
               inputMode="numeric"
               placeholder="0"
               value={formatNumberWithSpaces(revenueInput)}
-              onChange={(e) => setRevenueInput(parseFormattedNumber(e.target.value))}
+              onChange={(e) => handleRevenueChange(parseFormattedNumber(e.target.value))}
               style={{
                 width: '100%',
                 fontSize: '22px',
@@ -308,7 +384,7 @@ export const AdminRoyaltyTab: React.FC = () => {
               inputMode="numeric"
               placeholder="0"
               value={formatNumberWithSpaces(expenseInput)}
-              onChange={(e) => setExpenseInput(parseFormattedNumber(e.target.value))}
+              onChange={(e) => handleExpenseChange(parseFormattedNumber(e.target.value))}
               style={{
                 width: '100%',
                 fontSize: '22px',

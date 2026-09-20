@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuthStore, DEFAULT_MANAGER_AVATAR } from '../../store/useAuthStore';
 import { useBookStore } from '../../store/useBookStore';
 import { useToastStore } from '../../store/useToastStore';
@@ -43,6 +43,9 @@ const formatPhoneNumber = (val: string): string => {
 
 export const AdminManagersPage: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabParam = searchParams.get('tab');
+
   const {
     user: currentUser,
     role,
@@ -62,8 +65,40 @@ export const AdminManagersPage: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const authorFileInputRef = useRef<HTMLInputElement>(null);
 
+  const getInitialTab = (): 'managers' | 'authors' | 'royalty' => {
+    if (tabParam === 'authors' || tabParam === 'royalty' || tabParam === 'managers') {
+      return tabParam;
+    }
+    try {
+      const saved = localStorage.getItem('tanda_admin_managers_active_tab');
+      if (saved === 'authors' || saved === 'royalty' || saved === 'managers') {
+        return saved;
+      }
+    } catch {}
+    return 'managers';
+  };
+
   // Active Tab: 'managers' | 'authors' | 'royalty'
-  const [activeTab, setActiveTab] = useState<'managers' | 'authors' | 'royalty'>('managers');
+  const [activeTab, setActiveTabState] = useState<'managers' | 'authors' | 'royalty'>(getInitialTab);
+
+  const handleTabChange = (tab: 'managers' | 'authors' | 'royalty') => {
+    setActiveTabState(tab);
+    setSearchParams({ tab }, { replace: true });
+    try {
+      localStorage.setItem('tanda_admin_managers_active_tab', tab);
+    } catch {}
+  };
+
+  useEffect(() => {
+    if (tabParam === 'authors' || tabParam === 'royalty' || tabParam === 'managers') {
+      if (tabParam !== activeTab) {
+        setActiveTabState(tabParam);
+      }
+      try {
+        localStorage.setItem('tanda_admin_managers_active_tab', tabParam);
+      } catch {}
+    }
+  }, [tabParam]);
 
   // Managers state
   const [managers, setManagers] = useState<User[]>(() => getAllManagers());
@@ -618,7 +653,7 @@ export const AdminManagersPage: React.FC = () => {
         >
           <button
             type="button"
-            onClick={() => setActiveTab('managers')}
+            onClick={() => handleTabChange('managers')}
             style={{
               padding: '10px 22px',
               borderRadius: '12px',
@@ -646,7 +681,7 @@ export const AdminManagersPage: React.FC = () => {
 
           <button
             type="button"
-            onClick={() => setActiveTab('authors')}
+            onClick={() => handleTabChange('authors')}
             style={{
               padding: '10px 22px',
               borderRadius: '12px',
@@ -672,7 +707,7 @@ export const AdminManagersPage: React.FC = () => {
 
           <button
             type="button"
-            onClick={() => setActiveTab('royalty')}
+            onClick={() => handleTabChange('royalty')}
             style={{
               padding: '10px 22px',
               borderRadius: '12px',

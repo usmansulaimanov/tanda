@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useBookStore } from '../../store/useBookStore';
 import { usePromoStore, getPromoAccessDurationDays } from '../../store/usePromoStore';
@@ -29,20 +29,20 @@ const ALL_SYSTEM_CATEGORIES = [
   'Романтика',
   'Фэнтези',
   'Фантастика',
-  'Мистика және хоррор',
-  'Психология',
-  'Өзін-өзі дамыту',
-  'Бизнес және қаржы',
-  'Тарих',
-  'Руханият және философия',
-  'Білім және ғылым',
+  'Тарих және тұлғалар',
+  'Ғылым және таным',
   'Балалар әдебиеті',
+  'Дін және руханият',
+  'IT және технология',
   'Жасөспірімдер әдебиеті',
   'Өмірбаян және мемуар',
 ];
 
 export const AdminStatsPage: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabParam = searchParams.get('tab') as StatTab | null;
+
   const { user, role } = useAuthStore();
   const { books, fetchBooks } = useBookStore();
   const { batches, promocodes } = usePromoStore();
@@ -50,7 +50,40 @@ export const AdminStatsPage: React.FC = () => {
 
   const canViewStats = hasAdminPermission(user, 'analytics_view');
 
-  const [activeTab, setActiveTab] = useState<StatTab>('readers');
+  const getInitialTab = (): StatTab => {
+    if (tabParam && ['readers', 'books', 'authors', 'subscriptions'].includes(tabParam)) {
+      return tabParam;
+    }
+    try {
+      const saved = localStorage.getItem('tanda_admin_stats_tab') as StatTab | null;
+      if (saved && ['readers', 'books', 'authors', 'subscriptions'].includes(saved)) {
+        return saved;
+      }
+    } catch {}
+    return 'readers';
+  };
+
+  const [activeTab, setActiveTabState] = useState<StatTab>(getInitialTab);
+
+  const handleTabChange = (tab: StatTab) => {
+    setActiveTabState(tab);
+    setSearchParams({ tab }, { replace: true });
+    try {
+      localStorage.setItem('tanda_admin_stats_tab', tab);
+    } catch {}
+  };
+
+  useEffect(() => {
+    if (tabParam && ['readers', 'books', 'authors', 'subscriptions'].includes(tabParam)) {
+      if (tabParam !== activeTab) {
+        setActiveTabState(tabParam);
+      }
+      try {
+        localStorage.setItem('tanda_admin_stats_tab', tabParam);
+      } catch {}
+    }
+  }, [tabParam]);
+
   const [readers, setReaders] = useState<User[]>([]);
   const [isLoadingReaders, setIsLoadingReaders] = useState(false);
   const [authorSearchQuery, setAuthorSearchQuery] = useState('');
@@ -452,7 +485,7 @@ export const AdminStatsPage: React.FC = () => {
         >
           <button
             type="button"
-            onClick={() => setActiveTab('readers')}
+            onClick={() => handleTabChange('readers')}
             style={{
               flex: 1,
               minWidth: '150px',
@@ -482,7 +515,7 @@ export const AdminStatsPage: React.FC = () => {
 
           <button
             type="button"
-            onClick={() => setActiveTab('books')}
+            onClick={() => handleTabChange('books')}
             style={{
               flex: 1,
               minWidth: '150px',
@@ -511,7 +544,7 @@ export const AdminStatsPage: React.FC = () => {
 
           <button
             type="button"
-            onClick={() => setActiveTab('authors')}
+            onClick={() => handleTabChange('authors')}
             style={{
               flex: 1,
               minWidth: '150px',
@@ -539,7 +572,7 @@ export const AdminStatsPage: React.FC = () => {
 
           <button
             type="button"
-            onClick={() => setActiveTab('subscriptions')}
+            onClick={() => handleTabChange('subscriptions')}
             style={{
               flex: 1,
               minWidth: '150px',

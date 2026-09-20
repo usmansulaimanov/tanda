@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useBookStore } from '../../store/useBookStore';
 import { useMyBooksStore, BookShelfStatus } from '../../store/useMyBooksStore';
@@ -11,6 +11,9 @@ import { TandaPremiumBadge } from '../../components/ui/TandaPremiumBadge';
 
 export const MyBooksPage: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabParam = searchParams.get('tab') as BookShelfStatus | null;
+
   const { user, isAuthenticated } = useAuthStore();
   const { books, fetchBooks } = useBookStore();
   const { activeTab, setActiveTab, setBookStatus, removeBookFromShelf, currentShelf, getBooksByStatus } = useMyBooksStore();
@@ -21,12 +24,18 @@ export const MyBooksPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeMenuBookId, setActiveMenuBookId] = useState<string | null>(null);
 
-  // Always default to 'reading' tab on page mount, fetch books & saved books
   useEffect(() => {
-    setActiveTab('reading');
+    if (tabParam && ['reading', 'completed', 'want_to_read'].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
     fetchBooks();
     fetchSavedBooks();
-  }, [fetchBooks, fetchSavedBooks, setActiveTab]);
+  }, [fetchBooks, fetchSavedBooks, setActiveTab, tabParam]);
+
+  const handleTabChange = (tab: BookShelfStatus) => {
+    setActiveTab(tab);
+    setSearchParams({ tab }, { replace: true });
+  };
 
   // Close status dropdown menu when clicked outside
   useEffect(() => {
@@ -247,7 +256,7 @@ export const MyBooksPage: React.FC = () => {
           {/* Tab 1: Қазір оқып жатқан кітаптарым */}
           <button
             type="button"
-            onClick={() => setActiveTab('reading')}
+            onClick={() => handleTabChange('reading')}
             style={{
               padding: '10px 20px',
               borderRadius: '50px',
@@ -286,7 +295,7 @@ export const MyBooksPage: React.FC = () => {
           {/* Tab 2: Оқып болған кітаптарым */}
           <button
             type="button"
-            onClick={() => setActiveTab('completed')}
+            onClick={() => handleTabChange('completed')}
             style={{
               padding: '10px 20px',
               borderRadius: '50px',
@@ -325,7 +334,7 @@ export const MyBooksPage: React.FC = () => {
           {/* Tab 3: Енді оқимын деген кітаптарым */}
           <button
             type="button"
-            onClick={() => setActiveTab('want_to_read')}
+            onClick={() => handleTabChange('want_to_read')}
             style={{
               padding: '10px 20px',
               borderRadius: '50px',
