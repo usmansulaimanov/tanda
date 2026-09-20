@@ -338,19 +338,6 @@ export const AuthorStatsPage: React.FC = () => {
                 </svg>
                 Басқару панеліне оралу
               </Link>
-
-              <span
-                style={{
-                  background: '#FEF3C7',
-                  color: '#92400E',
-                  fontSize: '11.5px',
-                  fontWeight: 800,
-                  padding: '3px 10px',
-                  borderRadius: '6px',
-                }}
-              >
-                Администратор көрінісі
-              </span>
             </div>
 
             {/* Fast Author Switcher Dropdown */}
