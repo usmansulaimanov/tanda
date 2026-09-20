@@ -793,7 +793,7 @@ export const BookFormPage: React.FC = () => {
               >
                 <div>
                   <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
-                    Аудиокітап мүмкіндігі
+                    Аудиокітап
                   </h3>
                 </div>
 
