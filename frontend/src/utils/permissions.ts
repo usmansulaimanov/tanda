@@ -86,11 +86,11 @@ export const ALL_PERMISSIONS: PermissionDefinition[] = [
 ];
 
 export const PERMISSION_CATEGORIES = [
-  { key: 'books', title: '📚 Кітаптар қоры' },
-  { key: 'readers', title: '👥 Оқырмандар мен клиенттер' },
-  { key: 'promocodes', title: '🎟️ Промокодтар жүйесі' },
+  { key: 'books', title: 'Кітаптар қоры' },
+  { key: 'readers', title: 'Оқырмандар мен клиенттер' },
+  { key: 'promocodes', title: 'Промокодтар жүйесі' },
   { key: 'quotes', title: 'Цитаталар мен хабарламалар' },
-  { key: 'system', title: '⚙️ Жүйе және басқару' },
+  { key: 'system', title: 'Жүйе және басқару' },
 ] as const;
 
 /**
