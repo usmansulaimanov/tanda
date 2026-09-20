@@ -1168,16 +1168,10 @@ export const BookFormPage: React.FC = () => {
                     background: !isFree ? 'var(--blue)' : '#FFFFFF',
                     color: !isFree ? '#FFFFFF' : 'var(--blue)',
                     border: '1.5px solid var(--blue)',
-                    marginBottom: '4px',
                   }}
                 >
                   {!isFree ? 'Премиум жазылым' : 'Тегін кітап'}
                 </span>
-                <p style={{ fontSize: '13px', color: '#1E293B', margin: 0, fontWeight: 600 }}>
-                  {!isFree
-                    ? 'Бұл кітапты тек премиум жазылымы бар пайдаланушылар оқи алады'
-                    : 'Бұл кітап барлық оқырмандар үшін тегін қолжетімді болады'}
-                </p>
               </div>
 
               <label
