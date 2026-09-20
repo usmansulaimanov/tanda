@@ -456,11 +456,8 @@ export const AdminRoyaltyTab: React.FC = () => {
       >
         <div style={{ marginBottom: '20px' }}>
           <h3 style={{ fontSize: '18px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
-            Авторлардың есептелген роялти үлестері ({authors.length})
+            Авторлардың есептелген роялти үлестері: {authors.length}
           </h3>
-          <p style={{ fontSize: '13px', color: 'var(--text-mid)', margin: '4px 0 0' }}>
-            Әр авторға тиесілі кітаптардың нақты тыңдалған минуты бойынша есептелген төлем сомасы
-          </p>
         </div>
 
         {authors.length === 0 ? (
