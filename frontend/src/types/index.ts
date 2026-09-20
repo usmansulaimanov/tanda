@@ -90,6 +90,8 @@ export interface User {
   id: string;
   idNumber?: string; // e.g. "0000 0001" for admin, "0000 1001" for readers
   name: string;
+  firstName?: string;
+  lastName?: string;
   email: string;
   username?: string; // Unique username (e.g. "usman", "reader01")
   phone?: string; // Phone number (e.g. "+7 (777) 123-45-67")

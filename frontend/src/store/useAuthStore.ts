@@ -35,9 +35,9 @@ interface AuthState {
   updateProfile: (data: { name: string; email: string; phone?: string; username?: string; birthDate?: string; gender?: 'male' | 'female' | 'other'; avatarUrl?: string }) => Promise<{ success: boolean; error?: string }>;
   updateAvatar: (avatarUrl: string | null) => Promise<{ success: boolean; error?: string }>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
-  updateUserByAdmin: (userId: string, data: { name: string; email: string; phone?: string; username?: string; idNumber?: string; role?: 'admin' | 'client'; isActive?: boolean; personalMessage?: { text: string; days?: number; isActive?: boolean } | null }) => Promise<{ success: boolean; error?: string }>;
+  updateUserByAdmin: (userId: string, data: { name: string; firstName?: string; lastName?: string; email: string; phone?: string; username?: string; idNumber?: string; role?: 'admin' | 'client'; isActive?: boolean; personalMessage?: { text: string; days?: number; isActive?: boolean } | null }) => Promise<{ success: boolean; error?: string }>;
   toggleBlockUser: (userId: string) => Promise<{ success: boolean; isBlocked?: boolean; error?: string }>;
-  createReaderByAdmin: (data: { name: string; email: string; phone?: string; password?: string; username?: string; idNumber?: string; role?: 'admin' | 'client'; personalMessage?: { text: string; days?: number; isActive?: boolean } }) => Promise<{ success: boolean; user?: User; error?: string }>;
+  createReaderByAdmin: (data: { name: string; firstName?: string; lastName?: string; email: string; phone?: string; password?: string; username?: string; idNumber?: string; role?: 'admin' | 'client'; personalMessage?: { text: string; days?: number; isActive?: boolean } }) => Promise<{ success: boolean; user?: User; error?: string }>;
   getUserById: (userId: string) => User | undefined;
   getAllClients: () => User[];
   getClientsCount: () => number;
@@ -689,6 +689,8 @@ export const useAuthStore = create<AuthState>()(
         userId: string,
         data: {
           name: string;
+          firstName?: string;
+          lastName?: string;
           email: string;
           phone?: string;
           username?: string;
@@ -706,6 +708,8 @@ export const useAuthStore = create<AuthState>()(
 
         const targetUser = allUsers[existingIdx];
         const cleanName = data.name.trim();
+        const cleanFirstName = data.firstName !== undefined ? data.firstName.trim() : targetUser.firstName;
+        const cleanLastName = data.lastName !== undefined ? data.lastName.trim() : targetUser.lastName;
         const cleanEmail = data.email.trim().toLowerCase();
         const cleanPhone = data.phone?.trim() || '';
         const rawUsername = data.username?.trim().toLowerCase().replace(/^@/, '') || '';
@@ -782,6 +786,8 @@ export const useAuthStore = create<AuthState>()(
         const updatedUser: User = {
           ...targetUser,
           name: cleanName,
+          firstName: cleanFirstName || undefined,
+          lastName: cleanLastName || undefined,
           email: cleanEmail,
           phone: cleanPhone,
           username: rawUsername || undefined,
@@ -861,6 +867,8 @@ export const useAuthStore = create<AuthState>()(
 
       createReaderByAdmin: async (data: {
         name: string;
+        firstName?: string;
+        lastName?: string;
         email: string;
         phone?: string;
         password?: string;
@@ -871,6 +879,8 @@ export const useAuthStore = create<AuthState>()(
       }) => {
         const allUsers = getStoredUsers();
         const cleanName = data.name.trim();
+        const cleanFirstName = data.firstName?.trim() || undefined;
+        const cleanLastName = data.lastName?.trim() || undefined;
         const cleanEmail = data.email.trim().toLowerCase();
         const cleanPhone = data.phone?.trim() || '';
         const rawUsername = data.username?.trim().toLowerCase().replace(/^@/, '') || '';
@@ -961,6 +971,8 @@ export const useAuthStore = create<AuthState>()(
           id: newUserId,
           idNumber,
           name: cleanName,
+          firstName: cleanFirstName,
+          lastName: cleanLastName,
           email: cleanEmail,
           phone: cleanPhone || undefined,
           username: rawUsername || undefined,

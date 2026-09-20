@@ -61,7 +61,8 @@ export const ReaderEditPage: React.FC = () => {
   const { showToast } = useToastStore();
 
   const [reader, setReader] = useState<User | null>(null);
-  const [name, setName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [idNumber, setIdNumber] = useState('');
   const [idNumberError, setIdNumberError] = useState('');
@@ -88,7 +89,22 @@ export const ReaderEditPage: React.FC = () => {
     const found = getUserById(id);
     if (found) {
       setReader(found);
-      setName(found.name || '');
+      if (found.firstName || found.lastName) {
+        setFirstName(found.firstName || '');
+        setLastName(found.lastName || '');
+      } else if (found.name) {
+        const parts = found.name.trim().split(/\s+/);
+        if (parts.length > 1) {
+          setFirstName(parts[0]);
+          setLastName(parts.slice(1).join(' '));
+        } else {
+          setFirstName(found.name);
+          setLastName('');
+        }
+      } else {
+        setFirstName('');
+        setLastName('');
+      }
       setEmail(found.email || '');
       setIdNumber(found.idNumber || '');
       setPhone(found.phone ? formatPhoneNumber(found.phone) : '');
@@ -146,7 +162,7 @@ export const ReaderEditPage: React.FC = () => {
     setUsername(clean);
 
     const raw = clean.replace(/^@/, '');
-    if (raw && id) {
+    if (raw) {
       const res = checkUsernameAvailable(raw, id);
       if (!res.available) {
         setUsernameError(res.error || 'Бұл пайдаланушы аты (username) тіркеліп қойған');
@@ -162,10 +178,12 @@ export const ReaderEditPage: React.FC = () => {
     e.preventDefault();
     if (!id || !reader) return;
 
-    if (!name.trim()) {
-      showToast('Аты-жөнін енгізіңіз', 'error');
+    if (!firstName.trim()) {
+      showToast('Оқырманның атын енгізіңіз', 'error');
       return;
     }
+    const fullName = [firstName.trim(), lastName.trim()].filter(Boolean).join(' ');
+
     if (!email.trim()) {
       showToast('Электронды поштасын енгізіңіз', 'error');
       return;
@@ -203,7 +221,9 @@ export const ReaderEditPage: React.FC = () => {
     setIsSaving(true);
     try {
       const res = await updateUserByAdmin(id, {
-        name: name.trim(),
+        name: fullName,
+        firstName: firstName.trim(),
+        lastName: lastName.trim() || undefined,
         email: email.trim(),
         phone: phone.trim(),
         username: rawUser,
@@ -289,7 +309,7 @@ export const ReaderEditPage: React.FC = () => {
     );
   }
 
-  const initialLetter = name ? name.trim().charAt(0).toUpperCase() : (email ? email.charAt(0).toUpperCase() : 'О');
+  const initialLetter = firstName ? firstName.trim().charAt(0).toUpperCase() : (email ? email.charAt(0).toUpperCase() : 'О');
   const dateStr = reader.createdAt ? new Date(reader.createdAt).toLocaleDateString('kk-KZ') : '2026-09-01';
 
   return (
@@ -464,7 +484,7 @@ export const ReaderEditPage: React.FC = () => {
           {/* Edit Form */}
           <form onSubmit={handleSubmit}>
             
-            {/* Row 1: Full Name and ID Number */}
+            {/* Row 1: First Name and Last Name */}
             <div
               style={{
                 display: 'grid',
@@ -473,21 +493,45 @@ export const ReaderEditPage: React.FC = () => {
                 marginBottom: '20px',
               }}
             >
-              {/* Name */}
+              {/* First Name */}
               <div className="form-group" style={{ margin: 0 }}>
                 <label className="form-label">
-                  Аты-жөні <span className="req">*</span>
+                  Аты <span className="req">*</span>
                 </label>
                 <input
                   type="text"
                   required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Мысалы: Usman Sulaimanov"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  placeholder="Мысалы: Usman"
                   className="form-input"
                 />
               </div>
 
+              {/* Last Name */}
+              <div className="form-group" style={{ margin: 0 }}>
+                <label className="form-label">
+                  Фамилиясы
+                </label>
+                <input
+                  type="text"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  placeholder="Мысалы: Sulaimanov"
+                  className="form-input"
+                />
+              </div>
+            </div>
+
+            {/* Row 2: ID Number and Email */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                gap: '20px',
+                marginBottom: '20px',
+              }}
+            >
               {/* ID Number */}
               <div className="form-group" style={{ margin: 0 }}>
                 <label className="form-label">
@@ -512,17 +556,7 @@ export const ReaderEditPage: React.FC = () => {
                   </span>
                 )}
               </div>
-            </div>
 
-            {/* Row 2: Email and Username */}
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-                gap: '20px',
-                marginBottom: '20px',
-              }}
-            >
               {/* Email */}
               <div className="form-group" style={{ margin: 0 }}>
                 <label className="form-label">
@@ -537,7 +571,17 @@ export const ReaderEditPage: React.FC = () => {
                   className="form-input"
                 />
               </div>
+            </div>
 
+            {/* Row 3: Username and Phone */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                gap: '20px',
+                marginBottom: '28px',
+              }}
+            >
               {/* Username */}
               <div className="form-group" style={{ margin: 0 }}>
                 <label className="form-label">
@@ -560,14 +604,7 @@ export const ReaderEditPage: React.FC = () => {
                   </span>
                 )}
               </div>
-            </div>
 
-            {/* Row 3: Phone */}
-            <div
-              style={{
-                marginBottom: '28px',
-              }}
-            >
               {/* Phone */}
               <div className="form-group" style={{ margin: 0 }}>
                 <label className="form-label">

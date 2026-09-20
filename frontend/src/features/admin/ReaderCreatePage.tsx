@@ -58,7 +58,8 @@ export const ReaderCreatePage: React.FC = () => {
   const { createReaderByAdmin, checkUsernameAvailable, checkIdNumberAvailable, getNextAvailableIdNumber } = useAuthStore();
   const { showToast } = useToastStore();
 
-  const [name, setName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('123456');
   const [showPassword, setShowPassword] = useState(false);
@@ -150,10 +151,12 @@ export const ReaderCreatePage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!name.trim()) {
-      showToast('Аты-жөнін енгізіңіз', 'error');
+    if (!firstName.trim()) {
+      showToast('Оқырманның атын енгізіңіз', 'error');
       return;
     }
+    const fullName = [firstName.trim(), lastName.trim()].filter(Boolean).join(' ');
+
     if (!email.trim()) {
       showToast('Электронды поштасын енгізіңіз', 'error');
       return;
@@ -199,7 +202,9 @@ export const ReaderCreatePage: React.FC = () => {
     setIsSubmitting(true);
     try {
       const res = await createReaderByAdmin({
-        name: name.trim(),
+        name: fullName,
+        firstName: firstName.trim(),
+        lastName: lastName.trim() || undefined,
         email: email.trim(),
         phone: phone.trim() || undefined,
         password: password.trim(),
@@ -216,7 +221,7 @@ export const ReaderCreatePage: React.FC = () => {
       });
 
       if (res.success) {
-        showToast(`Жаңа оқырман «${name.trim()}» сәтті тіркелді! Оқырман өз деректерімен жүйеге кіре алады.`, 'success');
+        showToast(`Жаңа оқырман «${fullName}» сәтті тіркелді! Оқырман өз деректерімен жүйеге кіре алады.`, 'success');
         navigate('/admin/readers');
       } else {
         showToast(res.error || 'Оқырманды тіркеу кезінде қате орын алды', 'error');
@@ -228,7 +233,7 @@ export const ReaderCreatePage: React.FC = () => {
     }
   };
 
-  const initialLetter = name ? name.trim().charAt(0).toUpperCase() : (email ? email.charAt(0).toUpperCase() : '+');
+  const initialLetter = firstName ? firstName.trim().charAt(0).toUpperCase() : (email ? email.charAt(0).toUpperCase() : '+');
 
   return (
     <section className="admin-page-section" style={{ padding: '32px 16px 80px', backgroundColor: '#F8FAFC', minHeight: 'calc(100vh - 80px)' }}>
@@ -342,7 +347,7 @@ export const ReaderCreatePage: React.FC = () => {
           {/* Registration Form */}
           <form onSubmit={handleSubmit}>
             
-            {/* Row 1: Full Name and ID Number */}
+            {/* Row 1: First Name and Last Name */}
             <div
               style={{
                 display: 'grid',
@@ -351,21 +356,45 @@ export const ReaderCreatePage: React.FC = () => {
                 marginBottom: '20px',
               }}
             >
-              {/* Name */}
+              {/* First Name */}
               <div className="form-group" style={{ margin: 0 }}>
                 <label className="form-label">
-                  Аты-жөні <span className="req">*</span>
+                  Аты <span className="req">*</span>
                 </label>
                 <input
                   type="text"
                   required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Мысалы: Азамат Серікұлы"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  placeholder="Мысалы: Азамат"
                   className="form-input"
                 />
               </div>
 
+              {/* Last Name */}
+              <div className="form-group" style={{ margin: 0 }}>
+                <label className="form-label">
+                  Фамилиясы
+                </label>
+                <input
+                  type="text"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  placeholder="Мысалы: Серікұлы"
+                  className="form-input"
+                />
+              </div>
+            </div>
+
+            {/* Row 2: ID Number and Email */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                gap: '20px',
+                marginBottom: '20px',
+              }}
+            >
               {/* ID Number */}
               <div className="form-group" style={{ margin: 0 }}>
                 <label className="form-label">
@@ -391,17 +420,7 @@ export const ReaderCreatePage: React.FC = () => {
                   </span>
                 )}
               </div>
-            </div>
 
-            {/* Row 2: Email and Username */}
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-                gap: '20px',
-                marginBottom: '20px',
-              }}
-            >
               {/* Email */}
               <div className="form-group" style={{ margin: 0 }}>
                 <label className="form-label">
@@ -416,7 +435,17 @@ export const ReaderCreatePage: React.FC = () => {
                   className="form-input"
                 />
               </div>
+            </div>
 
+            {/* Row 3: Username and Phone */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                gap: '20px',
+                marginBottom: '20px',
+              }}
+            >
               {/* Username */}
               <div className="form-group" style={{ margin: 0 }}>
                 <label className="form-label">
@@ -439,9 +468,64 @@ export const ReaderCreatePage: React.FC = () => {
                   </span>
                 )}
               </div>
+
+              {/* Phone */}
+              <div className="form-group" style={{ margin: 0 }}>
+                <label className="form-label">
+                  Телефон нөмірі
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => handlePhoneChange(e.target.value)}
+                    placeholder="+7 (777) 123-45-67"
+                    className="form-input"
+                    style={{
+                      borderColor: phoneError ? '#DC2626' : undefined,
+                      fontWeight: phone ? 700 : 500,
+                      letterSpacing: phone ? '0.03em' : 'normal',
+                      paddingRight: phone ? '36px' : undefined,
+                    }}
+                  />
+                  {phone && (
+                    <button
+                      type="button"
+                      onClick={() => handlePhoneChange('')}
+                      title="Нөмірді өшіру"
+                      style={{
+                        position: 'absolute',
+                        right: '10px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: '#E2E8F0',
+                        border: 'none',
+                        borderRadius: '50%',
+                        width: '22px',
+                        height: '22px',
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        color: '#475569',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        lineHeight: 1,
+                      }}
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+                {phoneError && (
+                  <span style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#DC2626', marginTop: '6px' }}>
+                    {phoneError}
+                  </span>
+                )}
+              </div>
             </div>
 
-            {/* Row 3: Phone and Password */}
+            {/* Row 4: Password */}
             <div
               style={{
                 display: 'grid',
