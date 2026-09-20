@@ -663,7 +663,7 @@ export const BookFormPage: React.FC = () => {
                         <polyline points="17 8 12 3 7 8"></polyline>
                         <line x1="12" y1="3" x2="12" y2="15"></line>
                       </svg>
-                      Сурет файлын таңдау...
+                      Файлды таңдау
                     </label>
 
                     <span className="form-hint" style={{ marginTop: '6px' }}>
@@ -738,7 +738,7 @@ export const BookFormPage: React.FC = () => {
                       <div>
                         {coverImageError ? (
                           <span style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#DC2626', marginBottom: '8px', maxWidth: '240px', lineHeight: 1.4 }}>
-                            Бұл сілтемеден сурет ашылмады. Төмендегі «Сурет файлын таңдау» арқылы суретті жүктеңіз немесе тікелей JPG/PNG сілтемесін қойыңыз.
+                            Бұл сілтемеден сурет ашылмады. Төмендегі «Файлды таңдау» арқылы суретті жүктеңіз немесе тікелей JPG/PNG сілтемесін қойыңыз.
                           </span>
                         ) : (
                           <span style={{ display: 'inline-block', fontSize: '12px', fontWeight: 700, color: '#047857', marginBottom: '6px' }}>
