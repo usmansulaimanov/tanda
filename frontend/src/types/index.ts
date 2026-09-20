@@ -98,6 +98,7 @@ export interface User {
   lastBirthdayGreetingYear?: number;
   role: 'admin' | 'client';
   isSuperAdmin?: boolean; // true for primary Super Admin (full control)
+  duty?: string; // e.g. "Кітап модераторы", "Контент менеджері"
   permissions?: AdminPermission[]; // For assistants/managers
   isActive?: boolean;
   isPremium?: boolean;

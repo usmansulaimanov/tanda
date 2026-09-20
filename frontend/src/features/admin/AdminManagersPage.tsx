@@ -22,6 +22,7 @@ export const AdminManagersPage: React.FC = () => {
   const [formName, setFormName] = useState('');
   const [formEmail, setFormEmail] = useState('');
   const [formPassword, setFormPassword] = useState('');
+  const [formDuty, setFormDuty] = useState('');
   const [formPermissions, setFormPermissions] = useState<AdminPermission[]>([]);
   const [formIsActive, setFormIsActive] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -54,6 +55,7 @@ export const AdminManagersPage: React.FC = () => {
       (a) =>
         a.name.toLowerCase().includes(q) ||
         a.email.toLowerCase().includes(q) ||
+        (a.duty && a.duty.toLowerCase().includes(q)) ||
         (a.idNumber && a.idNumber.toLowerCase().includes(q))
     );
   }, [assistants, searchQuery]);
@@ -63,6 +65,7 @@ export const AdminManagersPage: React.FC = () => {
     setFormName('');
     setFormEmail('');
     setFormPassword('');
+    setFormDuty('');
     setFormPermissions(['books_view', 'books_create', 'books_edit']);
     setFormIsActive(true);
     setIsModalOpen(true);
@@ -73,6 +76,7 @@ export const AdminManagersPage: React.FC = () => {
     setFormName(mgr.name);
     setFormEmail(mgr.email);
     setFormPassword(mgr.password || '');
+    setFormDuty(mgr.duty || '');
     setFormPermissions(mgr.permissions || []);
     setFormIsActive(mgr.isActive !== false);
     setIsModalOpen(true);
@@ -116,6 +120,7 @@ export const AdminManagersPage: React.FC = () => {
           name: formName.trim(),
           email: formEmail.trim().toLowerCase(),
           password: formPassword.trim() || undefined,
+          duty: formDuty.trim() || undefined,
           permissions: formPermissions,
           isActive: formIsActive,
         });
@@ -131,6 +136,7 @@ export const AdminManagersPage: React.FC = () => {
           name: formName.trim(),
           email: formEmail.trim().toLowerCase(),
           password: formPassword.trim() || undefined,
+          duty: formDuty.trim() || undefined,
           permissions: formPermissions,
         });
         if (res.success) {
@@ -384,6 +390,21 @@ export const AdminManagersPage: React.FC = () => {
                           <span style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-dark)' }}>
                             {assistant.name}
                           </span>
+                          {assistant.duty && (
+                            <span
+                              style={{
+                                fontSize: '11px',
+                                fontWeight: 700,
+                                padding: '2px 8px',
+                                borderRadius: '6px',
+                                background: 'rgba(0, 84, 148, 0.08)',
+                                color: 'var(--blue)',
+                                border: '1px solid rgba(0, 84, 148, 0.15)',
+                              }}
+                            >
+                              {assistant.duty}
+                            </span>
+                          )}
                           <span
                             style={{
                               fontSize: '11px',
@@ -650,25 +671,48 @@ export const AdminManagersPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div style={{ marginBottom: '24px' }}>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '6px' }}>
-                    Құпия сөз
-                  </label>
-                  <input
-                    type="password"
-                    value={formPassword}
-                    onChange={(e) => setFormPassword(e.target.value)}
-                    placeholder="8 таңбалы құпия сөз"
-                    style={{
-                      width: '100%',
-                      padding: '11px 14px',
-                      borderRadius: '10px',
-                      border: '1.5px solid #CBD5E1',
-                      fontSize: '14px',
-                      outline: 'none',
-                      boxSizing: 'border-box',
-                    }}
-                  />
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '6px' }}>
+                      Құпия сөз
+                    </label>
+                    <input
+                      type="password"
+                      value={formPassword}
+                      onChange={(e) => setFormPassword(e.target.value)}
+                      placeholder="8 таңбалы құпия сөз"
+                      style={{
+                        width: '100%',
+                        padding: '11px 14px',
+                        borderRadius: '10px',
+                        border: '1.5px solid #CBD5E1',
+                        fontSize: '14px',
+                        outline: 'none',
+                        boxSizing: 'border-box',
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '6px' }}>
+                      Міндеті
+                    </label>
+                    <input
+                      type="text"
+                      value={formDuty}
+                      onChange={(e) => setFormDuty(e.target.value)}
+                      placeholder="Мысалы: Кітап менеджері, Модератор"
+                      style={{
+                        width: '100%',
+                        padding: '11px 14px',
+                        borderRadius: '10px',
+                        border: '1.5px solid #CBD5E1',
+                        fontSize: '14px',
+                        outline: 'none',
+                        boxSizing: 'border-box',
+                      }}
+                    />
+                  </div>
                 </div>
 
                 {/* Permissions Section */}

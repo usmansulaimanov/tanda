@@ -53,8 +53,8 @@ interface AuthState {
 
   // Manager (Көмекші / Басқару) operations
   getAllManagers: () => User[];
-  createManagerByAdmin: (data: { name: string; email: string; password?: string; permissions: AdminPermission[] }) => Promise<{ success: boolean; user?: User; error?: string }>;
-  updateManagerPermissions: (userId: string, data: { name: string; email: string; password?: string; permissions: AdminPermission[]; isActive?: boolean }) => Promise<{ success: boolean; error?: string }>;
+  createManagerByAdmin: (data: { name: string; email: string; password?: string; duty?: string; permissions: AdminPermission[] }) => Promise<{ success: boolean; user?: User; error?: string }>;
+  updateManagerPermissions: (userId: string, data: { name: string; email: string; password?: string; duty?: string; permissions: AdminPermission[]; isActive?: boolean }) => Promise<{ success: boolean; error?: string }>;
   deleteManager: (userId: string) => Promise<{ success: boolean; error?: string }>;
 
   // Modal helpers
@@ -484,12 +484,14 @@ export const useAuthStore = create<AuthState>()(
         name: string;
         email: string;
         password?: string;
+        duty?: string;
         permissions: AdminPermission[];
       }) => {
         const allUsers = getStoredUsers();
         const cleanName = data.name.trim();
         const cleanEmail = data.email.trim().toLowerCase();
         const cleanPassword = data.password?.trim() || '';
+        const cleanDuty = data.duty?.trim() || undefined;
 
         if (!cleanName) {
           return { success: false, error: 'Көмекшінің аты-жөнін енгізіңіз' };
@@ -516,6 +518,7 @@ export const useAuthStore = create<AuthState>()(
           idNumber: idNum,
           name: cleanName,
           email: cleanEmail,
+          duty: cleanDuty,
           username: cleanEmail.split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '') || `admin${adminCount}`,
           role: 'admin',
           isSuperAdmin: false,
@@ -539,6 +542,7 @@ export const useAuthStore = create<AuthState>()(
           name: string;
           email: string;
           password?: string;
+          duty?: string;
           permissions: AdminPermission[];
           isActive?: boolean;
         }
@@ -552,6 +556,7 @@ export const useAuthStore = create<AuthState>()(
         const target = allUsers[existingIdx];
         const cleanName = data.name.trim();
         const cleanEmail = data.email.trim().toLowerCase();
+        const cleanDuty = data.duty !== undefined ? (data.duty.trim() || undefined) : target.duty;
 
         if (!cleanName) {
           return { success: false, error: 'Аты-жөнін енгізіңіз' };
@@ -574,6 +579,7 @@ export const useAuthStore = create<AuthState>()(
           ...target,
           name: cleanName,
           email: cleanEmail,
+          duty: cleanDuty,
           permissions: data.permissions,
           isActive: data.isActive !== undefined ? data.isActive : target.isActive,
           password: data.password ? data.password.trim() : target.password,
