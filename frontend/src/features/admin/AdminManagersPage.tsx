@@ -347,7 +347,7 @@ export const AdminManagersPage: React.FC = () => {
                   </h3>
                 </div>
                 <div style={{ fontSize: '13px', color: 'var(--text-mid)', marginTop: '4px' }}>
-                  {superAdmin.email} &bull; ID: {superAdmin.idNumber || '000 001'}
+                  {superAdmin.email} &bull; ID: {superAdmin.idNumber || '0000 0001'}
                 </div>
               </div>
             </div>
@@ -476,7 +476,7 @@ export const AdminManagersPage: React.FC = () => {
                           </span>
                         </div>
                         <div style={{ fontSize: '13px', color: '#64748B', marginTop: '4px' }}>
-                          {assistant.email} &bull; ID: {assistant.idNumber || '000 002'}
+                          {assistant.email} &bull; ID: {assistant.idNumber || '0000 0002'}
                         </div>
 
                         {/* Permissions badges */}

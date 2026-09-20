@@ -111,7 +111,7 @@ function getStoredUsers(): User[] {
       if (Array.isArray(list) && list.length > 0) {
         let modified = false;
         list.forEach((u: User) => {
-          if ((u.id === '001007' || u.email === 'admin@tanda.kz' || u.idNumber === '000 001') && !u.isSuperAdmin) {
+          if ((u.id === '001007' || u.email === 'admin@tanda.kz' || u.idNumber === '000 001' || u.idNumber === '0000 0001') && !u.isSuperAdmin) {
             u.isSuperAdmin = true;
             modified = true;
           }
@@ -123,6 +123,21 @@ function getStoredUsers(): User[] {
             u.avatarUrl = DEFAULT_MANAGER_AVATAR;
             modified = true;
           }
+          // Migrate old 3-digit IDs like "000 001" -> "0000 0001", "001 002" -> "0001 0002"
+          if (u.idNumber) {
+            const match3_3 = u.idNumber.match(/^(\d{3})\s+(\d{3})$/);
+            if (match3_3) {
+              u.idNumber = `0${match3_3[1]} 0${match3_3[2]}`;
+              modified = true;
+            } else if (/^\d{6}$/.test(u.idNumber)) {
+              u.idNumber = `0${u.idNumber.substring(0, 3)} 0${u.idNumber.substring(3)}`;
+              modified = true;
+            }
+          }
+          if (u.isSuperAdmin && u.idNumber !== '0000 0001') {
+            u.idNumber = '0000 0001';
+            modified = true;
+          }
         });
 
         // Auto-fix duplicate idNumbers so each reader has a strictly unique ID
@@ -132,7 +147,7 @@ function getStoredUsers(): User[] {
         // Find max client number among existing IDs
         list.forEach((u: User) => {
           if (u.idNumber) {
-            const match = u.idNumber.match(/001\s*(\d+)/i) || u.idNumber.match(/(\d+)/);
+            const match = u.idNumber.match(/0001\s*(\d+)/i) || u.idNumber.match(/001\s*(\d+)/i) || u.idNumber.match(/(\d+)/);
             if (match) {
               const num = parseInt(match[1], 10);
               if (!isNaN(num) && num > maxClientNum) {
@@ -148,7 +163,7 @@ function getStoredUsers(): User[] {
           const norm = rawId.replace(/\s+/g, '').toLowerCase();
           if (norm && usedIds.has(norm)) {
             maxClientNum += 1;
-            const newId = `001 ${String(maxClientNum).padStart(3, '0')}`;
+            const newId = `0001 ${String(maxClientNum).padStart(4, '0')}`;
             u.idNumber = newId;
             usedIds.add(newId.replace(/\s+/g, '').toLowerCase());
             modified = true;
@@ -165,7 +180,7 @@ function getStoredUsers(): User[] {
   const defaults: User[] = [
     {
       id: '001007',
-      idNumber: '000 001',
+      idNumber: '0000 0001',
       name: 'Әкімші',
       email: 'admin@tanda.kz',
       username: 'admin',
@@ -175,7 +190,7 @@ function getStoredUsers(): User[] {
     },
     {
       id: 'user-001001',
-      idNumber: '001 001',
+      idNumber: '0001 0001',
       name: 'Оқырман',
       email: 'reader@tanda.kz',
       username: 'reader',
@@ -446,7 +461,7 @@ export const useAuthStore = create<AuthState>()(
 
         allUsers.forEach((u) => {
           if (u.idNumber) {
-            const match = u.idNumber.match(/001\s*(\d+)/i) || u.idNumber.match(/(\d+)/);
+            const match = u.idNumber.match(/0001\s*(\d+)/i) || u.idNumber.match(/001\s*(\d+)/i) || u.idNumber.match(/(\d+)/);
             if (match) {
               const n = parseInt(match[1], 10);
               if (!isNaN(n) && n > 0) {
@@ -462,7 +477,7 @@ export const useAuthStore = create<AuthState>()(
           next++;
         }
         const candidate = Math.max(next, maxNum + 1);
-        return `001 ${String(candidate).padStart(3, '0')}`;
+        return `0001 ${String(candidate).padStart(4, '0')}`;
       },
 
       getUserById: (userId: string): User | undefined => {
@@ -526,7 +541,7 @@ export const useAuthStore = create<AuthState>()(
           }
         } else {
           const adminCount = allUsers.filter((u) => u.role === 'admin').length + 1;
-          idNum = `000 ${String(adminCount).padStart(3, '0')}`;
+          idNum = `0000 ${String(adminCount).padStart(4, '0')}`;
         }
 
         const newManager: User = {
@@ -1165,7 +1180,7 @@ export const useAuthStore = create<AuthState>()(
             const isAdmin = trimmed.includes('admin') || trimmed === 'admin@tanda.kz';
             matched = {
               id: isAdmin ? '001007' : `user-${Date.now()}`,
-              idNumber: isAdmin ? '000 001' : '001 001',
+              idNumber: isAdmin ? '0000 0001' : '0001 0001',
               name: isAdmin ? 'Әкімші' : 'Оқырман',
               email: trimmed.includes('@') ? trimmed : `${trimmed}@tanda.kz`,
               username: isAdmin ? 'admin' : (trimmed.includes('@') ? trimmed.split('@')[0] : trimmed),
@@ -1239,7 +1254,7 @@ export const useAuthStore = create<AuthState>()(
 
           if (!matched) {
             const count = allUsers.filter((u) => u.role === 'client').length + 1;
-            const idNum = `001 ${String(count).padStart(3, '0')}`;
+            const idNum = `0001 ${String(count).padStart(4, '0')}`;
             matched = {
               id: `google-${Date.now()}`,
               idNumber: idNum,
@@ -1315,7 +1330,7 @@ export const useAuthStore = create<AuthState>()(
 
           // Fallback mock registration
           const count = allUsers.filter((u) => u.role === 'client').length + 1;
-          const idNum = `001 ${String(count).padStart(3, '0')}`;
+          const idNum = `0001 ${String(count).padStart(4, '0')}`;
           const defaultUsername = trimmedEmail.split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '') || `user${count}`;
 
           const mockUser: User = {

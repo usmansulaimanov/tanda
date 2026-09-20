@@ -80,7 +80,7 @@ export const ReaderCreatePage: React.FC = () => {
       const nextId = getNextAvailableIdNumber();
       setIdNumber(nextId);
     } catch {
-      setIdNumber('001 001');
+      setIdNumber('0001 0001');
     }
   }, [getNextAvailableIdNumber]);
 
@@ -376,7 +376,7 @@ export const ReaderCreatePage: React.FC = () => {
                   required
                   value={idNumber}
                   onChange={(e) => handleIdNumberChange(e.target.value)}
-                  placeholder="001 003"
+                  placeholder="0001 0003"
                   className="form-input"
                   style={{
                     fontFamily: 'monospace',

@@ -615,7 +615,7 @@ export const SettingsPage: React.FC = () => {
                   color: '#0F172A',
                 }}
               >
-                ID: {user.idNumber || (user.role === 'admin' ? '000 001' : '001 001')}
+                ID: {user.idNumber || (user.role === 'admin' ? '0000 0001' : '0001 0001')}
               </span>
             </div>
 
