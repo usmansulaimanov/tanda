@@ -518,7 +518,7 @@ export const AdminStatsPage: React.FC = () => {
                 <table className="admin-table" style={{ width: '100%', margin: 0, minWidth: '600px', borderCollapse: 'collapse' }}>
                   <thead>
                     <tr>
-                      <th style={{ width: '25%', padding: '16px 20px', color: '#0F172A', fontSize: '14px', fontWeight: 800, borderRight: '1px solid #E2E8F0' }}>Барлығы</th>
+                      <th style={{ width: '25%', padding: '16px 20px', color: '#0F172A', fontSize: '14px', fontWeight: 800, borderRight: '2.5px solid #94A3B8' }}>Барлығы</th>
                       <th style={{ width: '25%', padding: '16px 20px', color: '#0F172A', fontSize: '14px', fontWeight: 800, borderRight: '1px solid #E2E8F0' }}>Премиум</th>
                       <th style={{ width: '25%', padding: '16px 20px', color: '#0F172A', fontSize: '14px', fontWeight: 800, borderRight: '1px solid #E2E8F0' }}>Стандарт</th>
                       <th style={{ width: '25%', padding: '16px 20px', color: '#0F172A', fontSize: '14px', fontWeight: 800 }}>Бұғатталған</th>
@@ -526,7 +526,7 @@ export const AdminStatsPage: React.FC = () => {
                   </thead>
                   <tbody>
                     <tr>
-                      <td style={{ padding: '16px 20px', borderRight: '1px solid #E2E8F0' }}>
+                      <td style={{ padding: '16px 20px', borderRight: '2.5px solid #94A3B8' }}>
                         <span style={{ fontSize: '20px', fontWeight: 900, color: '#0F172A' }}>{totalReaders}</span>
                       </td>
                       <td style={{ padding: '16px 20px', borderRight: '1px solid #E2E8F0' }}>
@@ -541,7 +541,7 @@ export const AdminStatsPage: React.FC = () => {
                     </tr>
 
                     <tr>
-                      <td style={{ padding: '16px 20px', borderRight: '1px solid #E2E8F0' }}>
+                      <td style={{ padding: '16px 20px', borderRight: '2.5px solid #94A3B8' }}>
                         <span style={{ color: '#0F172A', fontSize: '14px', fontWeight: 800 }}>
                           100%
                         </span>
