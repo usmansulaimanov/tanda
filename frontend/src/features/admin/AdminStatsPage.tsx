@@ -631,33 +631,27 @@ export const AdminStatsPage: React.FC = () => {
             {/* Age and Birthday Breakdown */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
               <div className="admin-card" style={{ padding: '24px' }}>
-                <h3 style={{ fontSize: '16px', fontWeight: 900, color: 'var(--text-dark)', marginBottom: '16px' }}>
-                  🎂 Туған күнін көрсеткендер
+                <h3 style={{ fontSize: '16px', fontWeight: 900, color: '#0F172A', marginBottom: '16px' }}>
+                  Туған күн көрсеткіші
                 </h3>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', background: '#F8FAFC', borderRadius: '12px', marginBottom: '10px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#10B981' }} />
-                    <span style={{ fontSize: '14px', fontWeight: 700, color: '#1E293B' }}>Туған күні бар:</span>
-                  </div>
-                  <span style={{ fontSize: '16px', fontWeight: 900, color: '#10B981' }}>
+                  <span style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>Белгілеген:</span>
+                  <span style={{ fontSize: '16px', fontWeight: 900, color: '#0F172A' }}>
                     {withBirthdayCount} ({totalReaders > 0 ? Math.round((withBirthdayCount / totalReaders) * 100) : 0}%)
                   </span>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', background: '#F8FAFC', borderRadius: '12px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#94A3B8' }} />
-                    <span style={{ fontSize: '14px', fontWeight: 700, color: '#1E293B' }}>Көрсетпегендер:</span>
-                  </div>
-                  <span style={{ fontSize: '16px', fontWeight: 900, color: '#64748B' }}>
+                  <span style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>Белгілемеген:</span>
+                  <span style={{ fontSize: '16px', fontWeight: 900, color: '#0F172A' }}>
                     {withoutBirthdayCount} ({totalReaders > 0 ? Math.round((withoutBirthdayCount / totalReaders) * 100) : 0}%)
                   </span>
                 </div>
               </div>
 
               <div className="admin-card" style={{ padding: '24px' }}>
-                <h3 style={{ fontSize: '16px', fontWeight: 900, color: 'var(--text-dark)', marginBottom: '16px' }}>
-                  📊 Оқырмандардың жас шамасы
+                <h3 style={{ fontSize: '16px', fontWeight: 900, color: '#0F172A', marginBottom: '16px' }}>
+                  Оқырмандардың жас шамасы
                 </h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '13px' }}>
