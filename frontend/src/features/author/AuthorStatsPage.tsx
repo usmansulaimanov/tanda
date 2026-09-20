@@ -803,9 +803,6 @@ export const AuthorStatsPage: React.FC = () => {
                     <th style={{ padding: '12px 14px' }}>Санаты</th>
                     <th style={{ padding: '12px 14px' }}>Тыңдалған уақыт</th>
                     <th style={{ padding: '12px 14px' }}>Үлесі (%)</th>
-                    <th style={{ padding: '12px 14px' }}>Оқылым</th>
-                    <th style={{ padding: '12px 14px' }}>Сөреде</th>
-                    <th style={{ padding: '12px 14px', textAlign: 'right' }}>Әрекеттер</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -813,8 +810,6 @@ export const AuthorStatsPage: React.FC = () => {
                     const trackedSec = Math.floor(listeningStats[book.id]?.totalSeconds || 0);
                     const trackedMin = listeningStats[book.id]?.totalMinutes || 0;
                     const displayTime = trackedMin > 0 ? `${trackedMin} мин` : trackedSec > 0 ? `${trackedSec} сек` : '0 мин';
-                    const reads = book.readsCount || 0;
-                    const saves = book.savedCount || 0;
                     const share = royalty.totalSeconds > 0 ? Math.round((trackedSec / royalty.totalSeconds) * 100) : 0;
 
                     return (
@@ -861,49 +856,6 @@ export const AuthorStatsPage: React.FC = () => {
                             <span style={{ fontSize: '12px', fontWeight: 800, color: 'var(--text-dark)', minWidth: '32px' }}>
                               {share}%
                             </span>
-                          </div>
-                        </td>
-
-                        <td style={{ padding: '14px', fontWeight: 700, color: 'var(--text-dark)' }}>
-                          {reads.toLocaleString()}
-                        </td>
-
-                        <td style={{ padding: '14px', fontWeight: 700, color: '#EA580C' }}>
-                          {saves.toLocaleString()}
-                        </td>
-
-                        <td style={{ padding: '14px', textAlign: 'right' }}>
-                          <div style={{ display: 'inline-flex', gap: '8px' }}>
-                            <Link
-                              to={`/book/${book.id}`}
-                              style={{
-                                fontSize: '12px',
-                                fontWeight: 700,
-                                color: 'var(--blue)',
-                                textDecoration: 'none',
-                                background: '#F1F5F9',
-                                padding: '6px 12px',
-                                borderRadius: '8px',
-                              }}
-                            >
-                              Көру
-                            </Link>
-                            {book.hasAudio && (
-                              <Link
-                                to={`/listen/${book.id}`}
-                                style={{
-                                  fontSize: '12px',
-                                  fontWeight: 700,
-                                  color: '#FFFFFF',
-                                  background: '#2563EB',
-                                  textDecoration: 'none',
-                                  padding: '6px 12px',
-                                  borderRadius: '8px',
-                                }}
-                              >
-                                Тыңдау
-                              </Link>
-                            )}
                           </div>
                         </td>
                       </tr>
