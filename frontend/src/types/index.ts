@@ -99,6 +99,8 @@ export interface User {
   isSuperAdmin?: boolean; // true for primary Super Admin (full control)
   permissions?: AdminPermission[]; // For assistants/managers
   isActive?: boolean;
+  isPremium?: boolean;
+  premiumExpiresAt?: string;
   createdAt?: string;
   savedBooksCount?: number;
   avatarUrl?: string;
