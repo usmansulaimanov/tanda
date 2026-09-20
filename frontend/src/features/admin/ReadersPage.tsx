@@ -520,7 +520,7 @@ export const ReadersPage: React.FC = () => {
                                 fontSize: '12px',
                                 fontWeight: 700,
                                 background: '#F1F5F9',
-                                color: 'var(--text-dark)',
+                                color: '#0F172A',
                                 borderRadius: '6px',
                                 border: '1px solid #CBD5E1',
                                 textDecoration: 'none',
@@ -531,7 +531,7 @@ export const ReadersPage: React.FC = () => {
                                 cursor: 'pointer',
                               }}
                             >
-                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#0F172A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                               </svg>
@@ -574,10 +574,10 @@ export const ReadersPage: React.FC = () => {
                                   padding: '6px 10px',
                                   fontSize: '12px',
                                   fontWeight: 700,
-                                  background: '#FFF7ED',
-                                  color: '#C2410C',
+                                  background: '#F1F5F9',
+                                  color: '#0F172A',
                                   borderRadius: '6px',
-                                  border: '1px solid #FED7AA',
+                                  border: '1px solid #CBD5E1',
                                   cursor: 'pointer',
                                   transition: 'all 0.15s',
                                   display: 'inline-flex',
@@ -585,7 +585,7 @@ export const ReadersPage: React.FC = () => {
                                   gap: '4px',
                                 }}
                               >
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0F172A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                   <circle cx="12" cy="12" r="10"></circle>
                                   <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
                                 </svg>
