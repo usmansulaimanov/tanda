@@ -25,6 +25,17 @@ const CATEGORIES = [
 
 const DEFAULT_COVER_GRADIENT = 'linear-gradient(135deg, #005494, #002D50)';
 
+const formatDurationInput = (value: string): string => {
+  const digits = value.replace(/\D/g, '').slice(0, 6);
+  if (digits.length <= 2) {
+    return digits;
+  }
+  if (digits.length <= 4) {
+    return `${digits.slice(0, 2)}:${digits.slice(2)}`;
+  }
+  return `${digits.slice(0, 2)}:${digits.slice(2, 4)}:${digits.slice(4)}`;
+};
+
 export const BookFormPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -871,9 +882,9 @@ export const BookFormPage: React.FC = () => {
                       <input
                         type="text"
                         value={audioDuration}
-                        onChange={(e) => setAudioDuration(e.target.value)}
+                        onChange={(e) => setAudioDuration(formatDurationInput(e.target.value))}
                         className="form-input"
-                        placeholder="Мысалы: 2 сағат 15 минут"
+                        placeholder="02:34:27 немесе 23:15"
                       />
                     </div>
                   </div>
@@ -980,7 +991,7 @@ export const BookFormPage: React.FC = () => {
                             <input
                               type="text"
                               value={ch.duration}
-                              onChange={(e) => updateChapter(idx, 'duration', e.target.value)}
+                              onChange={(e) => updateChapter(idx, 'duration', formatDurationInput(e.target.value))}
                               placeholder="05:00"
                               className="form-input"
                               style={{ width: '90px', padding: '8px 12px', fontSize: '13px' }}
