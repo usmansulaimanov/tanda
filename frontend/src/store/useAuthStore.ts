@@ -35,9 +35,11 @@ interface AuthState {
   updateProfile: (data: { name: string; email: string; phone?: string; username?: string; birthDate?: string; gender?: 'male' | 'female' | 'other'; avatarUrl?: string }) => Promise<{ success: boolean; error?: string }>;
   updateAvatar: (avatarUrl: string | null) => Promise<{ success: boolean; error?: string }>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
-  updateUserByAdmin: (userId: string, data: { name: string; firstName?: string; lastName?: string; email: string; phone?: string; password?: string; username?: string; idNumber?: string; role?: 'admin' | 'client'; isActive?: boolean; personalMessage?: { text: string; days?: number; isActive?: boolean } | null }) => Promise<{ success: boolean; error?: string }>;
+  updateUserByAdmin: (userId: string, data: { name: string; firstName?: string; lastName?: string; email: string; phone?: string; password?: string; username?: string; idNumber?: string; birthDate?: string; role?: 'admin' | 'client'; isActive?: boolean; personalMessage?: { text: string; days?: number; isActive?: boolean } | null }) => Promise<{ success: boolean; error?: string }>;
   toggleBlockUser: (userId: string) => Promise<{ success: boolean; isBlocked?: boolean; error?: string }>;
-  createReaderByAdmin: (data: { name: string; firstName?: string; lastName?: string; email: string; phone?: string; password?: string; username?: string; idNumber?: string; role?: 'admin' | 'client'; personalMessage?: { text: string; days?: number; isActive?: boolean } }) => Promise<{ success: boolean; user?: User; error?: string }>;
+  createReaderByAdmin: (data: { name: string; firstName?: string; lastName?: string; email: string; phone?: string; password?: string; username?: string; idNumber?: string; birthDate?: string; role?: 'admin' | 'client'; personalMessage?: { text: string; days?: number; isActive?: boolean } }) => Promise<{ success: boolean; user?: User; error?: string }>;
+  grantBirthdayGiftManually: (userId: string) => Promise<{ success: boolean; error?: string }>;
+  resetBirthdayGiftHistory: (userId: string) => Promise<{ success: boolean; error?: string }>;
   getUserById: (userId: string) => User | undefined;
   getAllClients: () => User[];
   getClientsCount: () => number;
@@ -238,6 +240,7 @@ export function checkAndSendBirthdayGreeting(user?: User | null): boolean {
     const currentYear = today.getFullYear();
     const currentMonth = String(today.getMonth() + 1).padStart(2, '0');
     const currentDay = String(today.getDate()).padStart(2, '0');
+    const todayStr = `${currentYear}-${currentMonth}-${currentDay}`;
 
     // Parse user birthDate (supports "DD.MM.YYYY", "YYYY-MM-DD", "DD/MM/YYYY")
     const parts = user.birthDate.split(/[-./]/);
@@ -263,11 +266,18 @@ export function checkAndSendBirthdayGreeting(user?: User | null): boolean {
 
     // Check if today is the user's birthday (same month and day)
     if (birthMonth === currentMonth && birthDay === currentDay) {
-      // Deliver birthday greeting only once per calendar year
-      if (user.lastBirthdayGreetingYear !== currentYear) {
+      // Deliver birthday greeting & 1-month free premium gift only once per calendar year
+      if (user.lastBirthdayGiftYear !== currentYear && user.lastBirthdayGreetingYear !== currentYear) {
+        // Calculate new 1-month (30-day) premium expiry date
+        const baseTime = (user.isPremium && user.premiumExpiresAt && new Date(user.premiumExpiresAt).getTime() > Date.now())
+          ? new Date(user.premiumExpiresAt).getTime()
+          : Date.now();
+        const newExpiresAt = new Date(baseTime + 30 * 24 * 60 * 60 * 1000).toISOString();
+
+        // Send celebratory message to reader
         useMessageStore.getState().sendMessage({
           title: `🎉 Туған күніңіз құтты болсын, ${user.name || 'құрметті оқырман'}!`,
-          content: `Құрметті ${user.name || 'оқырман'}! Сізді бүгінгі жеке мерекеңіз — туған күніңізбен Tanda онлайн кітапханасының ұжымы шын жүректен құттықтайды! 🎂✨ Жаңа жасыңыз бақытқа, шаттыққа, мықты денсаулық пен жаңа білімге толы болсын! Бізбен бірге әдебиет әлемінің жауһарларын оқып, рухани байлығыңызды еселей беріңіз! Әрқашан биік белестерді бағындыруыңызға тілектеспіз!`,
+          content: `Құрметті ${user.name || 'оқырман'}! Сізді бүгінгі жеке мерекеңіз — туған күніңізбен Tanda онлайн кітапханасының ұжымы шын жүректен құттықтайды! 🎂✨\n\nСізге арнайы 1 айлық (30 күндік) Tanda Premium сыйлыққа берілді! Барлық кітаптар мен аудиокітаптарды шектеусіз оқып, тыңдауыңызға тілектеспіз! 🎁📚`,
           targetType: 'single',
           targetUserIds: [user.id],
           targetUserNames: [user.name || 'Оқырман'],
@@ -276,8 +286,16 @@ export function checkAndSendBirthdayGreeting(user?: User | null): boolean {
           canReaderDelete: true,
         });
 
-        // Update lastBirthdayGreetingYear in stored registry to prevent duplicate sends
-        const updatedUser: User = { ...user, lastBirthdayGreetingYear: currentYear };
+        // Update user state with premium and gift flags
+        const updatedUser: User = {
+          ...user,
+          isPremium: true,
+          premiumExpiresAt: newExpiresAt,
+          lastBirthdayGreetingYear: currentYear,
+          lastBirthdayGiftYear: currentYear,
+          lastBirthdayGiftDate: todayStr,
+        };
+
         const allUsers = getStoredUsers();
         const idx = allUsers.findIndex((u) => u.id === user.id);
         if (idx >= 0) {
@@ -696,6 +714,7 @@ export const useAuthStore = create<AuthState>()(
           password?: string;
           username?: string;
           idNumber?: string;
+          birthDate?: string;
           role?: 'admin' | 'client';
           isActive?: boolean;
           personalMessage?: { text: string; days?: number; isActive?: boolean } | null;
@@ -717,6 +736,7 @@ export const useAuthStore = create<AuthState>()(
         const cleanIdNumber = data.idNumber?.trim() || targetUser.idNumber;
         const cleanRole = data.role || targetUser.role;
         const cleanPassword = data.password ? data.password.trim() : undefined;
+        const cleanBirthDate = data.birthDate !== undefined ? (data.birthDate.trim() || undefined) : targetUser.birthDate;
 
         if (!cleanName) {
           return { success: false, error: 'Аты-жөнін енгізіңіз' };
@@ -792,6 +812,7 @@ export const useAuthStore = create<AuthState>()(
           lastName: cleanLastName || undefined,
           email: cleanEmail,
           phone: cleanPhone,
+          birthDate: cleanBirthDate,
           username: rawUsername || undefined,
           idNumber: cleanIdNumber,
           role: cleanRole,
@@ -831,6 +852,83 @@ export const useAuthStore = create<AuthState>()(
             isActive: updatedUser.isActive,
           });
         } catch {}
+
+        return { success: true };
+      },
+
+      grantBirthdayGiftManually: async (userId: string) => {
+        const allUsers = getStoredUsers();
+        const idx = allUsers.findIndex((u) => u.id === userId);
+        if (idx === -1) {
+          return { success: false, error: 'Оқырман табылмады' };
+        }
+
+        const targetUser = allUsers[idx];
+        const today = new Date();
+        const currentYear = today.getFullYear();
+        const currentMonth = String(today.getMonth() + 1).padStart(2, '0');
+        const currentDay = String(today.getDate()).padStart(2, '0');
+        const todayStr = `${currentYear}-${currentMonth}-${currentDay}`;
+
+        const baseTime = (targetUser.isPremium && targetUser.premiumExpiresAt && new Date(targetUser.premiumExpiresAt).getTime() > Date.now())
+          ? new Date(targetUser.premiumExpiresAt).getTime()
+          : Date.now();
+        const newExpiresAt = new Date(baseTime + 30 * 24 * 60 * 60 * 1000).toISOString();
+
+        // Send celebratory message
+        useMessageStore.getState().sendMessage({
+          title: `🎉 Туған күніңіз құтты болсын, ${targetUser.name || 'құрметті оқырман'}!`,
+          content: `Құрметті ${targetUser.name || 'оқырман'}! Сізді бүгінгі жеке мерекеңіз — туған күніңізбен Tanda онлайн кітапханасының ұжымы шын жүректен құттықтайды! 🎂✨\n\nСізге арнайы 1 айлық (30 күндік) Tanda Premium сыйлыққа берілді! Барлық кітаптар мен аудиокітаптарды шектеусіз оқып, тыңдауыңызға тілектеспіз! 🎁📚`,
+          targetType: 'single',
+          targetUserIds: [targetUser.id],
+          targetUserNames: [targetUser.name || 'Оқырман'],
+          priority: 'important',
+          senderName: 'Tanda',
+          canReaderDelete: true,
+        });
+
+        const updatedUser: User = {
+          ...targetUser,
+          isPremium: true,
+          premiumExpiresAt: newExpiresAt,
+          lastBirthdayGreetingYear: currentYear,
+          lastBirthdayGiftYear: currentYear,
+          lastBirthdayGiftDate: todayStr,
+        };
+
+        allUsers[idx] = updatedUser;
+        saveStoredUsers(allUsers);
+
+        const currentUser = get().user;
+        if (currentUser && currentUser.id === userId) {
+          set({ user: updatedUser });
+        }
+
+        return { success: true };
+      },
+
+      resetBirthdayGiftHistory: async (userId: string) => {
+        const allUsers = getStoredUsers();
+        const idx = allUsers.findIndex((u) => u.id === userId);
+        if (idx === -1) {
+          return { success: false, error: 'Оқырман табылмады' };
+        }
+
+        const targetUser = allUsers[idx];
+        const updatedUser: User = {
+          ...targetUser,
+          lastBirthdayGreetingYear: undefined,
+          lastBirthdayGiftYear: undefined,
+          lastBirthdayGiftDate: undefined,
+        };
+
+        allUsers[idx] = updatedUser;
+        saveStoredUsers(allUsers);
+
+        const currentUser = get().user;
+        if (currentUser && currentUser.id === userId) {
+          set({ user: updatedUser });
+        }
 
         return { success: true };
       },
@@ -878,6 +976,7 @@ export const useAuthStore = create<AuthState>()(
         password?: string;
         username?: string;
         idNumber?: string;
+        birthDate?: string;
         role?: 'admin' | 'client';
         personalMessage?: { text: string; days?: number; isActive?: boolean };
       }) => {
@@ -889,6 +988,7 @@ export const useAuthStore = create<AuthState>()(
         const cleanPhone = data.phone?.trim() || '';
         const rawUsername = data.username?.trim().toLowerCase().replace(/^@/, '') || '';
         const cleanRole = data.role || 'client';
+        const cleanBirthDate = data.birthDate?.trim() || undefined;
 
         if (!cleanName) {
           return { success: false, error: 'Аты-жөнін енгізіңіз' };
@@ -979,6 +1079,7 @@ export const useAuthStore = create<AuthState>()(
           lastName: cleanLastName,
           email: cleanEmail,
           phone: cleanPhone || undefined,
+          birthDate: cleanBirthDate,
           username: rawUsername || undefined,
           role: cleanRole,
           avatarUrl: cleanRole === 'client' ? DEFAULT_READER_AVATAR : undefined,

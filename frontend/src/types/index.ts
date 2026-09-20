@@ -95,9 +95,11 @@ export interface User {
   email: string;
   username?: string; // Unique username (e.g. "usman", "reader01")
   phone?: string; // Phone number (e.g. "+7 (777) 123-45-67")
-  birthDate?: string; // "YYYY-MM-DD"
+  birthDate?: string; // "YYYY-MM-DD" or "DD.MM.YYYY"
   gender?: 'male' | 'female' | 'other';
   lastBirthdayGreetingYear?: number;
+  lastBirthdayGiftYear?: number;
+  lastBirthdayGiftDate?: string;
   role: 'admin' | 'client';
   isSuperAdmin?: boolean; // true for primary Super Admin (full control)
   duty?: string; // e.g. "Кітап модераторы", "Контент менеджері"

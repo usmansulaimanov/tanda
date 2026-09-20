@@ -1,8 +1,37 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useToastStore } from '../../store/useToastStore';
 import { User } from '../../types';
+
+const kazakhMonths = [
+  'қаңтар', 'ақпан', 'наурыз', 'сәуір', 'мамыр', 'маусым',
+  'шілде', 'тамыз', 'қыркүйек', 'қазан', 'қараша', 'желтоқсан'
+];
+
+const formatKazakhDate = (isoStr: string) => {
+  if (!isoStr) return '';
+  const parts = isoStr.split('-');
+  if (parts.length !== 3) return isoStr;
+  const year = parts[0];
+  const monthIdx = parseInt(parts[1], 10) - 1;
+  const day = parseInt(parts[2], 10);
+  if (monthIdx < 0 || monthIdx > 11 || isNaN(day)) return isoStr;
+  return `${day} ${kazakhMonths[monthIdx]} ${year} жыл`;
+};
+
+const formatDisplayDate = (d?: string | null) => {
+  if (!d) return '—';
+  try {
+    return new Date(d).toLocaleDateString('kk-KZ', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+  } catch {
+    return d;
+  }
+};
 
 const formatPhoneNumber = (val: string): string => {
   if (!val) return '';
@@ -57,13 +86,23 @@ const getPhoneNationalDigitsCount = (val: string): number => {
 export const ReaderEditPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { getUserById, updateUserByAdmin, checkUsernameAvailable, checkIdNumberAvailable } = useAuthStore();
+  const {
+    getUserById,
+    updateUserByAdmin,
+    checkUsernameAvailable,
+    checkIdNumberAvailable,
+    grantBirthdayGiftManually,
+    resetBirthdayGiftHistory,
+  } = useAuthStore();
   const { showToast } = useToastStore();
+
+  const birthDateInputRef = useRef<HTMLInputElement>(null);
 
   const [reader, setReader] = useState<User | null>(null);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
+  const [birthDate, setBirthDate] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [idNumber, setIdNumber] = useState('');
@@ -108,6 +147,7 @@ export const ReaderEditPage: React.FC = () => {
         setLastName('');
       }
       setEmail(found.email || '');
+      setBirthDate(found.birthDate || '');
       setPassword(found.password || '123456');
       setIdNumber(found.idNumber || '');
       setPhone(found.phone ? formatPhoneNumber(found.phone) : '');
@@ -188,6 +228,30 @@ export const ReaderEditPage: React.FC = () => {
     showToast('Кездейсоқ құпиясөз құрастырылды!', 'info');
   };
 
+  const handleGrantBirthdayGift = async () => {
+    if (!id || !reader) return;
+    const res = await grantBirthdayGiftManually(id);
+    if (res.success) {
+      const updated = getUserById(id);
+      if (updated) setReader(updated);
+      showToast('Оқырманға 1 айлық Премиум сыйлығы сәтті қосылды және хабарландыру жіберілді!', 'success');
+    } else {
+      showToast(res.error || 'Сыйлық қосу кезінде қате орын алды', 'error');
+    }
+  };
+
+  const handleResetBirthdayGift = async () => {
+    if (!id || !reader) return;
+    const res = await resetBirthdayGiftHistory(id);
+    if (res.success) {
+      const updated = getUserById(id);
+      if (updated) setReader(updated);
+      showToast('Туған күн сыйлық тарихы тазартылды. Енді оқырман осы жылы сыйлықты қайта ала алады.', 'info');
+    } else {
+      showToast(res.error || 'Тазарту кезінде қате орын алды', 'error');
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!id || !reader) return;
@@ -244,6 +308,7 @@ export const ReaderEditPage: React.FC = () => {
         firstName: firstName.trim(),
         lastName: lastName.trim() || undefined,
         email: email.trim(),
+        birthDate: birthDate || undefined,
         phone: phone.trim(),
         password: password.trim() || undefined,
         username: rawUser,
@@ -681,7 +746,7 @@ export const ReaderEditPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Row 4: Password */}
+            {/* Row 4: Birth Date and Password */}
             <div
               style={{
                 display: 'grid',
@@ -690,6 +755,103 @@ export const ReaderEditPage: React.FC = () => {
                 marginBottom: '28px',
               }}
             >
+              {/* Birth Date */}
+              <div className="form-group" style={{ margin: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                  <label className="form-label" style={{ margin: 0 }}>
+                    Туған күні
+                  </label>
+                  {birthDate && (
+                    <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--blue)' }}>
+                      {formatKazakhDate(birthDate)}
+                    </span>
+                  )}
+                </div>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    ref={birthDateInputRef}
+                    type="date"
+                    value={birthDate}
+                    onChange={(e) => setBirthDate(e.target.value)}
+                    className="form-input"
+                    style={{
+                      paddingRight: birthDate ? '72px' : '40px',
+                      cursor: 'pointer',
+                      fontWeight: 600,
+                    }}
+                  />
+                  <div
+                    style={{
+                      position: 'absolute',
+                      right: '10px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                    }}
+                  >
+                    {birthDate && (
+                      <button
+                        type="button"
+                        onClick={() => setBirthDate('')}
+                        title="Күнді өшіру"
+                        style={{
+                          background: '#E2E8F0',
+                          border: 'none',
+                          borderRadius: '50%',
+                          width: '20px',
+                          height: '20px',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          color: '#475569',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          lineHeight: 1,
+                        }}
+                      >
+                        ✕
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (birthDateInputRef.current) {
+                          if (typeof birthDateInputRef.current.showPicker === 'function') {
+                            birthDateInputRef.current.showPicker();
+                          } else {
+                            birthDateInputRef.current.focus();
+                          }
+                        }
+                      }}
+                      title="Күнтізбені ашу"
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: 'var(--blue)',
+                        cursor: 'pointer',
+                        padding: '4px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+                <span style={{ display: 'block', fontSize: '11px', color: 'var(--text-mid)', marginTop: '4px' }}>
+                  🎂 Туған күнінде автоматты түрде 1 айлық Премиум сыйланады (жылына 1 рет)
+                </span>
+              </div>
+
               {/* Password */}
               <div className="form-group" style={{ margin: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
@@ -929,6 +1091,159 @@ export const ReaderEditPage: React.FC = () => {
                   </strong>
                 </div>
               )}
+            </div>
+
+            {/* Birthday Gift & 1-Month Premium Management (🎂 Туған күн сыйлығы) */}
+            <div
+              style={{
+                background: 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)',
+                border: '1.5px solid #FCD34D',
+                borderRadius: '16px',
+                padding: '22px 24px',
+                marginBottom: '28px',
+                boxShadow: '0 4px 14px rgba(245, 158, 11, 0.08)',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: '12px',
+                  flexWrap: 'wrap',
+                  gap: '10px',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '20px' }}>🎂</span>
+                  <h3 style={{ fontSize: '16px', fontWeight: 900, color: '#92400E', margin: 0 }}>
+                    Туған күн сыйлығы (1 айлық Премиум)
+                  </h3>
+                </div>
+
+                <span
+                  style={{
+                    fontSize: '11px',
+                    fontWeight: 800,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    padding: '4px 10px',
+                    borderRadius: '20px',
+                    background: '#FEF3C7',
+                    border: '1px solid #F59E0B',
+                    color: '#B45309',
+                  }}
+                >
+                  Жылына 1 рет
+                </span>
+              </div>
+
+              <p style={{ margin: '0 0 16px', fontSize: '13px', color: '#78350F', lineHeight: 1.6 }}>
+                Оқырман туған күнінде жүйеге кіргенде немесе осы панель арқылы жылына 1 рет автоматты түрде <strong>30 күндік тегін Премиум подписка</strong> мен арнайы құттықтау хабарламасы беріледі. Оқырман жеке кабинетінде туған күнін ауыстырса да, жүйе бір күнтізбелік жылда екінші рет сыйлық бермейді. <em>(Бұл басқару панелі тек әкімшіге көрінеді)</em>.
+              </p>
+
+              {/* Status details grid */}
+              <div
+                style={{
+                  background: 'rgba(255, 255, 255, 0.85)',
+                  borderRadius: '12px',
+                  padding: '14px 18px',
+                  border: '1px solid #FDE68A',
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                  gap: '14px',
+                  marginBottom: '16px',
+                }}
+              >
+                <div>
+                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#92400E', marginBottom: '2px' }}>
+                    Оқырманның туған күні:
+                  </div>
+                  <div style={{ fontSize: '13px', fontWeight: 800, color: '#1E293B' }}>
+                    {birthDate ? formatKazakhDate(birthDate) : 'Белгіленбеген'}
+                  </div>
+                </div>
+
+                <div>
+                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#92400E', marginBottom: '2px' }}>
+                    {new Date().getFullYear()} жылғы сыйлық мәртебесі:
+                  </div>
+                  <div style={{ fontSize: '13px', fontWeight: 800, color: reader.lastBirthdayGiftYear === new Date().getFullYear() ? '#15803D' : '#D97706' }}>
+                    {reader.lastBirthdayGiftYear === new Date().getFullYear()
+                      ? `✅ Берілді (${formatDisplayDate(reader.lastBirthdayGiftDate)})`
+                      : '⏳ Әлі берілмеген'}
+                  </div>
+                </div>
+
+                <div>
+                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#92400E', marginBottom: '2px' }}>
+                    Премиум мерзімі:
+                  </div>
+                  <div style={{ fontSize: '13px', fontWeight: 800, color: reader.isPremium ? '#15803D' : '#64748B' }}>
+                    {reader.isPremium
+                      ? `🌟 Белсенді (${formatDisplayDate(reader.premiumExpiresAt)})`
+                      : 'Премиум жоқ'}
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons for Admin */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  onClick={handleGrantBirthdayGift}
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: '8px',
+                    border: '1px solid #D97706',
+                    background: '#D97706',
+                    color: '#FFFFFF',
+                    fontSize: '12px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    transition: 'all 0.15s',
+                    boxShadow: '0 2px 6px rgba(217, 119, 6, 0.25)',
+                  }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                  </svg>
+                  Сыйлықты қазір қосу (+30 күн Премиум)
+                </button>
+
+                {reader.lastBirthdayGiftYear && (
+                  <button
+                    type="button"
+                    onClick={handleResetBirthdayGift}
+                    style={{
+                      padding: '8px 16px',
+                      borderRadius: '8px',
+                      border: '1px solid #CBD5E1',
+                      background: '#FFFFFF',
+                      color: '#64748B',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      transition: 'all 0.15s',
+                    }}
+                    title="Осы жылғы сыйлық тарихын тазартып, оқырманға қайта сыйлық алуға рұқсат беру"
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
+                      <path d="M21 3v5h-5"></path>
+                      <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
+                      <path d="M8 16H3v5"></path>
+                    </svg>
+                    Тарихты тазарту
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Action Buttons */}

@@ -1,7 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useToastStore } from '../../store/useToastStore';
+
+const formatKazakhDate = (val: string): string => {
+  const digits = val.replace(/\D/g, '').slice(0, 8);
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 4) return `${digits.slice(0, 2)}.${digits.slice(2)}`;
+  return `${digits.slice(0, 2)}.${digits.slice(2, 4)}.${digits.slice(4, 8)}`;
+};
 
 const formatPhoneNumber = (val: string): string => {
   if (!val) return '';
@@ -61,6 +68,8 @@ export const ReaderCreatePage: React.FC = () => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
+  const [birthDate, setBirthDate] = useState('');
+  const datePickerInputRef = useRef<HTMLInputElement>(null);
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [idNumber, setIdNumber] = useState('');
@@ -207,6 +216,7 @@ export const ReaderCreatePage: React.FC = () => {
         lastName: lastName.trim() || undefined,
         email: email.trim(),
         phone: phone.trim() || undefined,
+        birthDate: birthDate.trim() || undefined,
         password: password.trim(),
         username: rawUser || undefined,
         idNumber: idNumber.trim() || undefined,
@@ -525,7 +535,7 @@ export const ReaderCreatePage: React.FC = () => {
               </div>
             </div>
 
-            {/* Row 4: Password */}
+            {/* Row 4: Birth Date and Password */}
             <div
               style={{
                 display: 'grid',
@@ -534,6 +544,85 @@ export const ReaderCreatePage: React.FC = () => {
                 marginBottom: '28px',
               }}
             >
+              {/* Birth Date */}
+              <div className="form-group" style={{ margin: 0 }}>
+                <label className="form-label" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span>🎂 Туған күні</span>
+                  <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 500 }}>
+                    1 айлық сыйлық үшін
+                  </span>
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type="text"
+                    value={birthDate}
+                    onChange={(e) => setBirthDate(formatKazakhDate(e.target.value))}
+                    placeholder="кк.аа.жжжж (мысалы: 15.10.1998)"
+                    maxLength={10}
+                    className="form-input"
+                    style={{
+                      paddingRight: '40px',
+                      fontWeight: birthDate ? 700 : 500,
+                      letterSpacing: birthDate ? '0.04em' : 'normal',
+                    }}
+                  />
+                  <input
+                    ref={datePickerInputRef}
+                    type="date"
+                    max={new Date().toISOString().split('T')[0]}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val) {
+                        const p = val.split('-');
+                        if (p.length === 3) setBirthDate(`${p[2]}.${p[1]}.${p[0]}`);
+                      }
+                    }}
+                    tabIndex={-1}
+                    style={{
+                      position: 'absolute',
+                      opacity: 0,
+                      pointerEvents: 'none',
+                      width: '1px',
+                      height: '1px',
+                      bottom: 0,
+                      right: 0,
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      try {
+                        datePickerInputRef.current?.showPicker();
+                      } catch {
+                        datePickerInputRef.current?.focus();
+                      }
+                    }}
+                    title="Күнтізбені ашу"
+                    style={{
+                      position: 'absolute',
+                      right: '10px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'none',
+                      border: 'none',
+                      color: '#64748B',
+                      cursor: 'pointer',
+                      padding: '4px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                      <line x1="16" y1="2" x2="16" y2="6"></line>
+                      <line x1="8" y1="2" x2="8" y2="6"></line>
+                      <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
               {/* Password */}
               <div className="form-group" style={{ margin: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
