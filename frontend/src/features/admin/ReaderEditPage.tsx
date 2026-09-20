@@ -9,20 +9,62 @@ const kazakhMonths = [
   'шілде', 'тамыз', 'қыркүйек', 'қазан', 'қараша', 'желтоқсан'
 ];
 
-const formatKazakhDate = (isoStr: string) => {
-  if (!isoStr) return '';
-  const parts = isoStr.split('-');
-  if (parts.length !== 3) return isoStr;
-  const year = parts[0];
-  const monthIdx = parseInt(parts[1], 10) - 1;
-  const day = parseInt(parts[2], 10);
-  if (monthIdx < 0 || monthIdx > 11 || isNaN(day)) return isoStr;
-  return `${day} ${kazakhMonths[monthIdx]} ${year} жыл`;
+const toDotFormat = (val?: string): string => {
+  if (!val) return '';
+  if (val.includes('-')) {
+    const p = val.split('-');
+    if (p.length === 3) return `${p[2]}.${p[1]}.${p[0]}`;
+  }
+  return val;
+};
+
+const formatDateInput = (val: string): string => {
+  const digits = val.replace(/\D/g, '').slice(0, 8);
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 4) return `${digits.slice(0, 2)}.${digits.slice(2)}`;
+  return `${digits.slice(0, 2)}.${digits.slice(2, 4)}.${digits.slice(4, 8)}`;
+};
+
+const formatKazakhDate = (val: string) => {
+  if (!val) return '';
+  let day = 0, monthIdx = -1, year = '';
+  if (val.includes('.')) {
+    const p = val.split('.');
+    if (p.length === 3) {
+      day = parseInt(p[0], 10);
+      monthIdx = parseInt(p[1], 10) - 1;
+      year = p[2];
+    }
+  } else if (val.includes('-')) {
+    const p = val.split('-');
+    if (p.length === 3) {
+      year = p[0];
+      monthIdx = parseInt(p[1], 10) - 1;
+      day = parseInt(p[2], 10);
+    }
+  }
+  if (monthIdx >= 0 && monthIdx <= 11 && day > 0 && year.length === 4) {
+    return `${day} ${kazakhMonths[monthIdx]} ${year} жыл`;
+  }
+  return val;
 };
 
 const formatDisplayDate = (d?: string | null) => {
   if (!d) return '—';
   try {
+    if (d.includes('.')) {
+      const p = d.split('.');
+      if (p.length === 3) {
+        const dt = new Date(parseInt(p[2], 10), parseInt(p[1], 10) - 1, parseInt(p[0], 10));
+        if (!isNaN(dt.getTime())) {
+          return dt.toLocaleDateString('kk-KZ', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+          });
+        }
+      }
+    }
     return new Date(d).toLocaleDateString('kk-KZ', {
       day: 'numeric',
       month: 'long',
@@ -147,7 +189,7 @@ export const ReaderEditPage: React.FC = () => {
         setLastName('');
       }
       setEmail(found.email || '');
-      setBirthDate(found.birthDate || '');
+      setBirthDate(toDotFormat(found.birthDate) || '');
       setPassword(found.password || '123456');
       setIdNumber(found.idNumber || '');
       setPhone(found.phone ? formatPhoneNumber(found.phone) : '');
@@ -759,25 +801,46 @@ export const ReaderEditPage: React.FC = () => {
               <div className="form-group" style={{ margin: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
                   <label className="form-label" style={{ margin: 0 }}>
-                    Туған күні
+                    🎂 Туған күні
                   </label>
-                  {birthDate && (
-                    <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--blue)' }}>
-                      {formatKazakhDate(birthDate)}
-                    </span>
-                  )}
+                  <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 500 }}>
+                    1 айлық сыйлық үшін
+                  </span>
                 </div>
                 <div style={{ position: 'relative' }}>
                   <input
-                    ref={birthDateInputRef}
-                    type="date"
+                    type="text"
                     value={birthDate}
-                    onChange={(e) => setBirthDate(e.target.value)}
+                    onChange={(e) => setBirthDate(formatDateInput(e.target.value))}
+                    placeholder="кк.аа.жжжж (мысалы: 15.10.1998)"
+                    maxLength={10}
                     className="form-input"
                     style={{
-                      paddingRight: birthDate ? '72px' : '40px',
-                      cursor: 'pointer',
-                      fontWeight: 600,
+                      paddingRight: birthDate ? '68px' : '40px',
+                      fontWeight: birthDate ? 700 : 500,
+                      letterSpacing: birthDate ? '0.04em' : 'normal',
+                    }}
+                  />
+                  <input
+                    ref={birthDateInputRef}
+                    type="date"
+                    max={new Date().toISOString().split('T')[0]}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val) {
+                        const p = val.split('-');
+                        if (p.length === 3) setBirthDate(`${p[2]}.${p[1]}.${p[0]}`);
+                      }
+                    }}
+                    tabIndex={-1}
+                    style={{
+                      position: 'absolute',
+                      opacity: 0,
+                      pointerEvents: 'none',
+                      width: '1px',
+                      height: '1px',
+                      bottom: 0,
+                      right: 0,
                     }}
                   />
                   <div
@@ -818,19 +881,17 @@ export const ReaderEditPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => {
-                        if (birthDateInputRef.current) {
-                          if (typeof birthDateInputRef.current.showPicker === 'function') {
-                            birthDateInputRef.current.showPicker();
-                          } else {
-                            birthDateInputRef.current.focus();
-                          }
+                        try {
+                          birthDateInputRef.current?.showPicker();
+                        } catch {
+                          birthDateInputRef.current?.focus();
                         }
                       }}
                       title="Күнтізбені ашу"
                       style={{
                         background: 'none',
                         border: 'none',
-                        color: 'var(--blue)',
+                        color: '#64748B',
                         cursor: 'pointer',
                         padding: '4px',
                         display: 'flex',
