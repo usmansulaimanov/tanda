@@ -646,13 +646,13 @@ export const AdminManagersPage: React.FC = () => {
 
                 <div style={{ marginBottom: '24px' }}>
                   <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '6px' }}>
-                    Құпия сөз (Пароль) {editingManager ? '(өзгерту қажет болса ғана жазыңыз)' : '(немесе Google арқылы кіреді)'}
+                    Құпия сөз
                   </label>
                   <input
                     type="password"
                     value={formPassword}
                     onChange={(e) => setFormPassword(e.target.value)}
-                    placeholder="Кемінде 4 таңбалы құпия сөз"
+                    placeholder="8 таңбалы құпия сөз"
                     style={{
                       width: '100%',
                       padding: '11px 14px',
@@ -663,9 +663,6 @@ export const AdminManagersPage: React.FC = () => {
                       boxSizing: 'border-box',
                     }}
                   />
-                  <span style={{ fontSize: '12px', color: '#64748B', marginTop: '4px', display: 'block' }}>
-                    💡 Егер көмекші @gmail.com арқылы кіретін болса, құпия сөзсіз «Google арқылы кіру» батырмасымен де жүйеге ене алады.
-                  </span>
                 </div>
 
                 {/* Permissions Section */}
