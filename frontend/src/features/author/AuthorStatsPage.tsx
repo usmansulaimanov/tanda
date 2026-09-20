@@ -545,7 +545,7 @@ export const AuthorStatsPage: React.FC = () => {
             <div style={{ background: 'rgba(255,255,255,0.12)', borderRadius: '16px', padding: '16px 20px' }}>
               <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)', fontWeight: 600 }}>Кітаптар саны</div>
               <div style={{ fontSize: '24px', fontWeight: 900, marginTop: '4px' }}>
-                {authorBooks.length} кітап
+                {authorBooks.length}
               </div>
             </div>
 
