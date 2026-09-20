@@ -225,11 +225,12 @@ export const AuthorStatsPage: React.FC = () => {
       if (sec > maxSec && sec > 0) {
         maxSec = Math.round(sec);
         const dObj = new Date(dStr);
-        const dayNum = dObj.getDate();
-        const monthName = ['Қаңтар', 'Ақпан', 'Наурыз', 'Сәуір', 'Мамыр', 'Маусым', 'Шілде', 'Тамыз', 'Қыркүйек', 'Қазан', 'Қараша', 'Желтоқсан'][dObj.getMonth()];
+        const dayStr = String(dObj.getDate()).padStart(2, '0');
+        const monthStr = String(dObj.getMonth() + 1).padStart(2, '0');
+        const yearStr = dObj.getFullYear();
         peakDay = {
           date: dStr,
-          label: `${dayNum} ${monthName} ${dObj.getFullYear()}`,
+          label: `${dayStr}.${monthStr}.${yearStr}`,
           seconds: maxSec,
           minutes: Number((maxSec / 60).toFixed(1)),
         };
@@ -626,14 +627,14 @@ export const AuthorStatsPage: React.FC = () => {
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                <span style={{ fontSize: '13px', fontWeight: 700, color: '#64748B' }}>Ең көп тыңдалған күн (Пик)</span>
+                <span style={{ fontSize: '13px', fontWeight: 700, color: '#64748B' }}>Ең көп тыңдалған күн</span>
               </div>
               <div style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-dark)' }}>
                 {dailyAnalytics.peakDay ? (dailyAnalytics.peakDay as PeakDayInfo).label : 'Әлі тыңдалмады'}
               </div>
               <div style={{ fontSize: '12px', fontWeight: 500, color: '#64748B', marginTop: '4px' }}>
                 {dailyAnalytics.peakDay
-                  ? `${dailyAnalytics.peakMinutes > 0 ? `${dailyAnalytics.peakMinutes} мин` : `${dailyAnalytics.peakSeconds} сек`} тыңдалды`
+                  ? `${dailyAnalytics.peakMinutes > 0 ? `${dailyAnalytics.peakMinutes} минут` : `${dailyAnalytics.peakSeconds} секунд`}`
                   : '0 минут'}
               </div>
             </div>
