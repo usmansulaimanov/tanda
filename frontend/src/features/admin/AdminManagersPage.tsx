@@ -66,7 +66,7 @@ export const AdminManagersPage: React.FC = () => {
     setFormEmail('');
     setFormPassword('');
     setFormDuty('');
-    setFormPermissions(['books_view', 'books_create', 'books_edit']);
+    setFormPermissions([]);
     setFormIsActive(true);
     setIsModalOpen(true);
   };
