@@ -342,27 +342,6 @@ export const AdminStatsPage: React.FC = () => {
                 Tanda платформасындағы оқырмандар, кітаптар қоры, авторлар және жазылымдар бойынша нақты статистикалық деректер.
               </p>
             </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-              <Link
-                to="/admin"
-                style={{
-                  background: 'rgba(255, 255, 255, 0.12)',
-                  color: '#FFFFFF',
-                  padding: '10px 20px',
-                  borderRadius: '12px',
-                  fontSize: '13px',
-                  fontWeight: 700,
-                  textDecoration: 'none',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  transition: 'background 0.2s ease',
-                }}
-              >
-                ← Басқару панелі
-              </Link>
-            </div>
           </div>
 
           {/* Quick Metrics Bar in Header */}
