@@ -676,12 +676,9 @@ export const AuthorStatsPage: React.FC = () => {
 
           {/* 14-Day Activity Bar Chart */}
           <div style={{ marginTop: '10px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+            <div style={{ marginBottom: '12px' }}>
               <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-dark)' }}>
                 Соңғы 14 күндегі тыңдалым динамикасы:
-              </span>
-              <span style={{ fontSize: '12px', color: '#64748B' }}>
-                Бағанға меңзерді апарып нақты уақытты көріңіз
               </span>
             </div>
 
