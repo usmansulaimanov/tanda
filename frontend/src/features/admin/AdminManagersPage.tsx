@@ -638,7 +638,6 @@ export const AdminManagersPage: React.FC = () => {
                       required
                       value={formName}
                       onChange={(e) => setFormName(e.target.value)}
-                      placeholder="Айгүл Серікова"
                       style={{
                         width: '100%',
                         padding: '11px 14px',
@@ -660,7 +659,6 @@ export const AdminManagersPage: React.FC = () => {
                       required
                       value={formEmail}
                       onChange={(e) => setFormEmail(e.target.value)}
-                      placeholder="mysal@gmail.com"
                       style={{
                         width: '100%',
                         padding: '11px 14px',
@@ -684,7 +682,6 @@ export const AdminManagersPage: React.FC = () => {
                         type={showFormPassword ? 'text' : 'password'}
                         value={formPassword}
                         onChange={(e) => setFormPassword(e.target.value)}
-                        placeholder="8 таңбалы құпия сөз"
                         style={{
                           width: '100%',
                           padding: '11px 40px 11px 14px',
@@ -737,7 +734,6 @@ export const AdminManagersPage: React.FC = () => {
                       type="text"
                       value={formDuty}
                       onChange={(e) => setFormDuty(e.target.value)}
-                      placeholder="Мысалы: Кітап менеджері, Модератор"
                       style={{
                         width: '100%',
                         padding: '11px 14px',
