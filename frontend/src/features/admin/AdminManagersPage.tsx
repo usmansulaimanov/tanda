@@ -223,23 +223,49 @@ export const AdminManagersPage: React.FC = () => {
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-              <div
-                style={{
-                  width: '56px',
-                  height: '56px',
-                  borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #005494, #003366)',
-                  color: '#FFFFFF',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '22px',
-                  fontWeight: 900,
-                  boxShadow: '0 6px 16px rgba(0, 84, 148, 0.25)',
-                }}
-              >
-                ★
-              </div>
+              {(() => {
+                const superAvatar = superAdmin.avatarUrl || (currentUser?.id === superAdmin.id ? currentUser?.avatarUrl : '') || (currentUser?.email === superAdmin.email ? currentUser?.avatarUrl : '');
+                return (
+                  <div
+                    style={{
+                      width: '56px',
+                      height: '56px',
+                      borderRadius: '50%',
+                      background: superAvatar ? '#F1F5F9' : 'linear-gradient(135deg, #005494, #003366)',
+                      color: '#FFFFFF',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 6px 16px rgba(0, 84, 148, 0.25)',
+                      overflow: 'hidden',
+                      flexShrink: 0,
+                    }}
+                  >
+                    {superAvatar ? (
+                      <img
+                        src={superAvatar}
+                        alt={superAdmin.name}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      <svg
+                        width="26"
+                        height="26"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                      </svg>
+                    )}
+                  </div>
+                );
+              })()}
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                   <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-dark)', margin: 0 }}>
@@ -343,7 +369,7 @@ export const AdminManagersPage: React.FC = () => {
                           width: '46px',
                           height: '46px',
                           borderRadius: '12px',
-                          background: 'rgba(0, 84, 148, 0.08)',
+                          background: assistant.avatarUrl ? '#F1F5F9' : 'rgba(0, 84, 148, 0.08)',
                           color: 'var(--blue)',
                           display: 'flex',
                           alignItems: 'center',
@@ -351,9 +377,19 @@ export const AdminManagersPage: React.FC = () => {
                           fontSize: '18px',
                           fontWeight: 800,
                           flexShrink: 0,
+                          overflow: 'hidden',
                         }}
                       >
-                        {assistant.name.charAt(0).toUpperCase()}
+                        {assistant.avatarUrl ? (
+                          <img
+                            src={assistant.avatarUrl}
+                            alt={assistant.name}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                            referrerPolicy="no-referrer"
+                          />
+                        ) : (
+                          assistant.name.charAt(0).toUpperCase()
+                        )}
                       </div>
                       <div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
