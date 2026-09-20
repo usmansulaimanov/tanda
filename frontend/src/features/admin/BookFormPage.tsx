@@ -668,7 +668,7 @@ export const BookFormPage: React.FC = () => {
                 {/* Preview Card */}
                 <div>
                   <label className="form-label" style={{ fontSize: '12px', color: '#475569' }}>
-                    Алдын ала көрініс (Preview):
+                    Алдын ала көрініс:
                   </label>
 
                   <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
