@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../../store/useAuthStore';
+import { useAuthStore, DEFAULT_MANAGER_AVATAR } from '../../store/useAuthStore';
 import { useToastStore } from '../../store/useToastStore';
 import { User, AdminPermission } from '../../types';
 import { ALL_PERMISSIONS, PERMISSION_CATEGORIES, hasAdminPermission } from '../../utils/permissions';
@@ -26,7 +26,7 @@ export const AdminManagersPage: React.FC = () => {
   const [formPassword, setFormPassword] = useState('');
   const [showFormPassword, setShowFormPassword] = useState(false);
   const [formDuty, setFormDuty] = useState('');
-  const [formAvatarUrl, setFormAvatarUrl] = useState<string | null>(null);
+  const [formAvatarUrl, setFormAvatarUrl] = useState<string | null>(DEFAULT_MANAGER_AVATAR);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [formPermissions, setFormPermissions] = useState<AdminPermission[]>([]);
   const [formIsActive, setFormIsActive] = useState(true);
@@ -72,7 +72,7 @@ export const AdminManagersPage: React.FC = () => {
     setFormPassword('');
     setShowFormPassword(false);
     setFormDuty('');
-    setFormAvatarUrl(null);
+    setFormAvatarUrl(DEFAULT_MANAGER_AVATAR);
     setFormPermissions([]);
     setFormIsActive(true);
     setIsModalOpen(true);
@@ -85,7 +85,7 @@ export const AdminManagersPage: React.FC = () => {
     setFormPassword(mgr.password || '');
     setShowFormPassword(false);
     setFormDuty(mgr.duty || '');
-    setFormAvatarUrl(mgr.avatarUrl || null);
+    setFormAvatarUrl(mgr.avatarUrl || DEFAULT_MANAGER_AVATAR);
     setFormPermissions(mgr.permissions || []);
     setFormIsActive(mgr.isActive !== false);
     setIsModalOpen(true);
@@ -111,7 +111,7 @@ export const AdminManagersPage: React.FC = () => {
   };
 
   const handleRemoveAvatar = () => {
-    setFormAvatarUrl(null);
+    setFormAvatarUrl(DEFAULT_MANAGER_AVATAR);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -400,7 +400,7 @@ export const AdminManagersPage: React.FC = () => {
                           width: '46px',
                           height: '46px',
                           borderRadius: '50%',
-                          background: assistant.avatarUrl ? '#F1F5F9' : 'rgba(0, 84, 148, 0.08)',
+                          background: '#F1F5F9',
                           color: 'var(--blue)',
                           display: 'flex',
                           alignItems: 'center',
@@ -411,16 +411,12 @@ export const AdminManagersPage: React.FC = () => {
                           overflow: 'hidden',
                         }}
                       >
-                        {assistant.avatarUrl ? (
-                          <img
-                            src={assistant.avatarUrl}
-                            alt={assistant.name}
-                            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                            referrerPolicy="no-referrer"
-                          />
-                        ) : (
-                          assistant.name.charAt(0).toUpperCase()
-                        )}
+                        <img
+                          src={assistant.avatarUrl || DEFAULT_MANAGER_AVATAR}
+                          alt={assistant.name}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                          referrerPolicy="no-referrer"
+                        />
                       </div>
                       <div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
@@ -686,21 +682,12 @@ export const AdminManagersPage: React.FC = () => {
                       border: '1.5px solid #E2E8F0',
                     }}
                   >
-                    {formAvatarUrl ? (
-                      <img
-                        src={formAvatarUrl}
-                        alt="Avatar"
-                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                        referrerPolicy="no-referrer"
-                      />
-                    ) : formName.trim() ? (
-                      formName.trim().charAt(0).toUpperCase()
-                    ) : (
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="12" cy="7" r="4"></circle>
-                      </svg>
-                    )}
+                    <img
+                      src={formAvatarUrl || DEFAULT_MANAGER_AVATAR}
+                      alt="Avatar"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                      referrerPolicy="no-referrer"
+                    />
                   </div>
 
                   <div style={{ flex: 1 }}>
@@ -738,10 +725,10 @@ export const AdminManagersPage: React.FC = () => {
                           <polyline points="17 8 12 3 7 8"></polyline>
                           <line x1="12" y1="3" x2="12" y2="15"></line>
                         </svg>
-                        {isUploadingAvatar ? 'Жүктелуде...' : formAvatarUrl ? 'Суретті ауыстыру' : 'Сурет жүктеу'}
+                        {isUploadingAvatar ? 'Жүктелуде...' : formAvatarUrl && formAvatarUrl !== DEFAULT_MANAGER_AVATAR ? 'Суретті ауыстыру' : 'Сурет жүктеу'}
                       </button>
 
-                      {formAvatarUrl && (
+                      {formAvatarUrl && formAvatarUrl !== DEFAULT_MANAGER_AVATAR && (
                         <button
                           type="button"
                           onClick={handleRemoveAvatar}
@@ -756,7 +743,7 @@ export const AdminManagersPage: React.FC = () => {
                             cursor: 'pointer',
                           }}
                         >
-                          Өшіру
+                          Әдепкіге қайтару
                         </button>
                       )}
                     </div>

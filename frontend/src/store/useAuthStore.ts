@@ -68,6 +68,7 @@ interface AuthState {
 
 const USERS_REGISTRY_KEY = 'tanda_users_registry_v1';
 export const DEFAULT_READER_AVATAR = '/default-reader-avatar.jpg';
+export const DEFAULT_MANAGER_AVATAR = '/default-manager-avatar.jpg';
 
 function formatPhoneNumber(val: string): string {
   if (!val) return '';
@@ -116,6 +117,10 @@ function getStoredUsers(): User[] {
           }
           if (u.role === 'client' && !u.avatarUrl) {
             u.avatarUrl = DEFAULT_READER_AVATAR;
+            modified = true;
+          }
+          if (u.role === 'admin' && !u.isSuperAdmin && !u.avatarUrl && u.id !== '001007' && u.email !== 'admin@tanda.kz') {
+            u.avatarUrl = DEFAULT_MANAGER_AVATAR;
             modified = true;
           }
         });
@@ -520,7 +525,7 @@ export const useAuthStore = create<AuthState>()(
           name: cleanName,
           email: cleanEmail,
           duty: cleanDuty,
-          avatarUrl: data.avatarUrl || undefined,
+          avatarUrl: data.avatarUrl !== undefined ? (data.avatarUrl || DEFAULT_MANAGER_AVATAR) : DEFAULT_MANAGER_AVATAR,
           username: cleanEmail.split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '') || `admin${adminCount}`,
           role: 'admin',
           isSuperAdmin: false,
@@ -560,7 +565,7 @@ export const useAuthStore = create<AuthState>()(
         const cleanName = data.name.trim();
         const cleanEmail = data.email.trim().toLowerCase();
         const cleanDuty = data.duty !== undefined ? (data.duty.trim() || undefined) : target.duty;
-        const newAvatarUrl = data.avatarUrl !== undefined ? (data.avatarUrl || undefined) : target.avatarUrl;
+        const newAvatarUrl = data.avatarUrl !== undefined ? (data.avatarUrl || DEFAULT_MANAGER_AVATAR) : (target.avatarUrl || DEFAULT_MANAGER_AVATAR);
 
         if (!cleanName) {
           return { success: false, error: 'Аты-жөнін енгізіңіз' };
