@@ -23,6 +23,24 @@ function getStoredUsers(): User[] {
 
 type StatTab = 'readers' | 'books' | 'authors' | 'subscriptions';
 
+const ALL_SYSTEM_CATEGORIES = [
+  'Көркем әдебиет',
+  'Детектив',
+  'Романтика',
+  'Фэнтези',
+  'Фантастика',
+  'Мистика және хоррор',
+  'Психология',
+  'Өзін-өзі дамыту',
+  'Бизнес және қаржы',
+  'Тарих',
+  'Руханият және философия',
+  'Білім және ғылым',
+  'Балалар әдебиеті',
+  'Жасөспірімдер әдебиеті',
+  'Өмірбаян және мемуар',
+];
+
 export const AdminStatsPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, role } = useAuthStore();
@@ -201,23 +219,30 @@ export const AdminStatsPage: React.FC = () => {
       .sort((a, b) => b.count - a.count);
   }, [books, totalBooksCount]);
 
-  // Top categories for 2x2 grid card
-  const topCategoriesForGrid = useMemo(() => {
-    if (categoriesMap.length === 0) {
-      return [{ name: 'Барлығы', count: totalBooksCount, pct: 100 }];
-    }
-    if (categoriesMap.length <= 4) {
-      return categoriesMap;
-    }
-    const top3 = categoriesMap.slice(0, 3);
-    const top3Count = top3.reduce((acc, c) => acc + c.count, 0);
-    const otherCount = Math.max(0, totalBooksCount - top3Count);
-    const otherPct = totalBooksCount > 0 ? Math.round((otherCount / totalBooksCount) * 100) : 0;
-    return [
-      ...top3,
-      { name: 'Басқалар', count: otherCount, pct: otherPct },
-    ];
-  }, [categoriesMap, totalBooksCount]);
+  // All system genres/categories statistics
+  const allGenreStats = useMemo(() => {
+    const list = [...ALL_SYSTEM_CATEGORIES];
+    books.forEach((b) => {
+      if (b.category && !list.includes(b.category) && b.category !== 'Санатсыз') {
+        list.push(b.category);
+      }
+      if (Array.isArray(b.categories)) {
+        b.categories.forEach((c) => {
+          if (c && !list.includes(c) && c !== 'Санатсыз') list.push(c);
+        });
+      }
+    });
+
+    return list.map((name) => {
+      const count = books.filter((b) => {
+        if (b.category === name) return true;
+        if (Array.isArray(b.categories) && b.categories.includes(name)) return true;
+        return false;
+      }).length;
+      const pct = totalBooksCount > 0 ? Math.round((count / totalBooksCount) * 100) : 0;
+      return { name, count, pct };
+    });
+  }, [books, totalBooksCount]);
 
   // Filtered books list for table
   const filteredBooksList = useMemo(() => {
@@ -851,7 +876,7 @@ export const AdminStatsPage: React.FC = () => {
         {activeTab === 'books' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             
-            {/* 2x2 Uniform Grid for 4 Analytics Cards */}
+            {/* Top Grid: General Book Metrics & Audio indicator */}
             <div
               style={{
                 display: 'grid',
@@ -972,121 +997,83 @@ export const AdminStatsPage: React.FC = () => {
                   </table>
                 </div>
               </div>
+            </div>
 
-              {/* 3. Book Availability Status Table */}
-              <div className="admin-card" style={{ padding: '0', overflow: 'hidden', borderRadius: '14px', border: '1.5px solid #E2E8F0', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)', display: 'flex', flexDirection: 'column' }}>
-                <div style={{ padding: '12px 18px', background: '#F8FAFC', borderBottom: '1.5px solid #E2E8F0' }}>
-                  <h3 style={{ fontSize: '15px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
-                    Кітаптардың қолжетімділік күйі
-                  </h3>
-                </div>
-
-                <div style={{ overflowX: 'auto', flex: 1, display: 'flex', alignItems: 'center' }}>
-                  <table className="admin-table" style={{ width: '100%', margin: 0, borderCollapse: 'collapse' }}>
-                    <thead>
-                      <tr>
-                        <th style={{ width: '33.33%', padding: '12px 14px', color: '#0F172A', fontSize: '13px', fontWeight: 800, borderRight: '2.5px solid #94A3B8' }}>Барлығы</th>
-                        <th style={{ width: '33.33%', padding: '12px 14px', color: '#0F172A', fontSize: '13px', fontWeight: 800, borderRight: '1px solid #E2E8F0' }}>Белсенді</th>
-                        <th style={{ width: '33.33%', padding: '12px 14px', color: '#0F172A', fontSize: '13px', fontWeight: 800 }}>Архивтелген</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td style={{ padding: '12px 14px', borderRight: '2.5px solid #94A3B8' }}>
-                          <span style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>{totalBooksCount}</span>
-                        </td>
-                        <td style={{ padding: '12px 14px', borderRight: '1px solid #E2E8F0' }}>
-                          <span style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>{activeBooksCount}</span>
-                        </td>
-                        <td style={{ padding: '12px 14px' }}>
-                          <span style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>{archivedBooksCount}</span>
-                        </td>
-                      </tr>
-
-                      <tr>
-                        <td style={{ padding: '10px 14px', borderRight: '2.5px solid #94A3B8' }}>
-                          <span style={{ color: '#0F172A', fontSize: '13px', fontWeight: 800 }}>
-                            100%
-                          </span>
-                        </td>
-                        <td style={{ padding: '10px 14px', borderRight: '1px solid #E2E8F0' }}>
-                          <span style={{ color: '#0F172A', fontSize: '13px', fontWeight: 800 }}>
-                            {totalBooksCount > 0 ? Math.round((activeBooksCount / totalBooksCount) * 100) : 0}%
-                          </span>
-                        </td>
-                        <td style={{ padding: '10px 14px' }}>
-                          <span style={{ color: '#0F172A', fontSize: '13px', fontWeight: 800 }}>
-                            {totalBooksCount > 0 ? Math.round((archivedBooksCount / totalBooksCount) * 100) : 0}%
-                          </span>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
+            {/* 3. Full Genres & Categories Breakdown Table Card */}
+            <div
+              className="admin-card"
+              style={{
+                padding: '0',
+                overflow: 'hidden',
+                borderRadius: '14px',
+                border: '1.5px solid #E2E8F0',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+                display: 'flex',
+                flexDirection: 'column',
+              }}
+            >
+              <div style={{ padding: '12px 18px', background: '#F8FAFC', borderBottom: '1.5px solid #E2E8F0' }}>
+                <h3 style={{ fontSize: '15px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
+                  Жанрлар мен санаттар бөлінісі
+                </h3>
               </div>
 
-              {/* 4. Categories & Genres Breakdown Table */}
-              <div className="admin-card" style={{ padding: '0', overflow: 'hidden', borderRadius: '14px', border: '1.5px solid #E2E8F0', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)', display: 'flex', flexDirection: 'column' }}>
-                <div style={{ padding: '12px 18px', background: '#F8FAFC', borderBottom: '1.5px solid #E2E8F0' }}>
-                  <h3 style={{ fontSize: '15px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
-                    Жанрлар мен санаттар бөлінісі
-                  </h3>
-                </div>
+              <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+                <table className="admin-table" style={{ width: '100%', minWidth: '1200px', margin: 0, borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr>
+                      {allGenreStats.map((cat, idx) => (
+                        <th
+                          key={cat.name}
+                          style={{
+                            padding: '12px 14px',
+                            color: '#0F172A',
+                            fontSize: '13px',
+                            fontWeight: 800,
+                            textAlign: 'center',
+                            whiteSpace: 'nowrap',
+                            borderRight: idx < allGenreStats.length - 1 ? '1px solid #E2E8F0' : 'none',
+                          }}
+                        >
+                          {cat.name}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      {allGenreStats.map((cat, idx) => (
+                        <td
+                          key={cat.name}
+                          style={{
+                            padding: '12px 14px',
+                            textAlign: 'center',
+                            borderRight: idx < allGenreStats.length - 1 ? '1px solid #E2E8F0' : 'none',
+                          }}
+                        >
+                          <span style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>{cat.count}</span>
+                        </td>
+                      ))}
+                    </tr>
 
-                <div style={{ overflowX: 'auto', flex: 1, display: 'flex', alignItems: 'center' }}>
-                  <table className="admin-table" style={{ width: '100%', margin: 0, borderCollapse: 'collapse' }}>
-                    <thead>
-                      <tr>
-                        {topCategoriesForGrid.map((cat, idx) => (
-                          <th
-                            key={cat.name}
-                            style={{
-                              width: `${100 / topCategoriesForGrid.length}%`,
-                              padding: '12px 10px',
-                              color: '#0F172A',
-                              fontSize: '13px',
-                              fontWeight: 800,
-                              borderRight: idx < topCategoriesForGrid.length - 1 ? '1px solid #E2E8F0' : 'none',
-                            }}
-                          >
-                            {cat.name}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        {topCategoriesForGrid.map((cat, idx) => (
-                          <td
-                            key={cat.name}
-                            style={{
-                              padding: '12px 10px',
-                              borderRight: idx < topCategoriesForGrid.length - 1 ? '1px solid #E2E8F0' : 'none',
-                            }}
-                          >
-                            <span style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>{cat.count}</span>
-                          </td>
-                        ))}
-                      </tr>
-
-                      <tr>
-                        {topCategoriesForGrid.map((cat, idx) => (
-                          <td
-                            key={cat.name}
-                            style={{
-                              padding: '10px 10px',
-                              borderRight: idx < topCategoriesForGrid.length - 1 ? '1px solid #E2E8F0' : 'none',
-                            }}
-                          >
-                            <span style={{ color: '#0F172A', fontSize: '13px', fontWeight: 800 }}>
-                              {cat.pct}%
-                            </span>
-                          </td>
-                        ))}
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
+                    <tr>
+                      {allGenreStats.map((cat, idx) => (
+                        <td
+                          key={cat.name}
+                          style={{
+                            padding: '10px 14px',
+                            textAlign: 'center',
+                            borderRight: idx < allGenreStats.length - 1 ? '1px solid #E2E8F0' : 'none',
+                          }}
+                        >
+                          <span style={{ color: '#0F172A', fontSize: '13px', fontWeight: 800 }}>
+                            {cat.pct}%
+                          </span>
+                        </td>
+                      ))}
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
 
