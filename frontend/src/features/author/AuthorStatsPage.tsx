@@ -485,19 +485,6 @@ export const AuthorStatsPage: React.FC = () => {
               )}
             </div>
           </div>
-
-          <div
-            style={{
-              marginTop: '20px',
-              paddingTop: '16px',
-              borderTop: '1px solid #F1F5F9',
-              fontSize: '13px',
-              color: '#475569',
-              lineHeight: 1.6,
-            }}
-          >
-            Авторға тиесілі кітаптар саны: <strong>{authorBooks.length} кітап</strong>. Мұнда тек осы авторға бекітілген шығармалардың оқылымы, аудио тыңдалымы және күндік динамикасы көрсетіледі.
-          </div>
         </div>
 
         {/* 3. Royalty Earnings & Balance Card (50/50 Model) */}
