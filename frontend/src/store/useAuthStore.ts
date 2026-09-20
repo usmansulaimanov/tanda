@@ -396,7 +396,7 @@ export const useAuthStore = create<AuthState>()(
           const currentUser = get().user;
           const isSuperAdminHoldingIt = currentUser?.isSuperAdmin && currentUser?.username?.toLowerCase() === trimmed;
           if (!isSuperAdminHoldingIt) {
-            return { available: false, error: 'Бұл юзернейм резервтелген және қолдануға рұқсат етілмейді' };
+            return { available: false, error: 'Бұл юзернейм бос емес' };
           }
         }
 
@@ -407,7 +407,7 @@ export const useAuthStore = create<AuthState>()(
         );
 
         if (existing) {
-          return { available: false, error: 'Бұл юзернейм бос емес. Басқа юзернейм таңдаңыз' };
+          return { available: false, error: 'Бұл юзернейм бос емес' };
         }
 
         return { available: true };

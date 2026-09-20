@@ -358,8 +358,8 @@ export const SettingsPage: React.FC = () => {
     if (rawUser) {
       const check = checkUsernameAvailable(rawUser);
       if (!check.available) {
-        setUsernameError(check.error || 'Бұл юзернейм бос емес. Басқа юзернейм таңдаңыз');
-        showToast(check.error || 'Бұл юзернейм бос емес. Басқа юзернейм таңдаңыз', 'error');
+        setUsernameError(check.error || 'Бұл юзернейм бос емес');
+        showToast(check.error || 'Бұл юзернейм бос емес', 'error');
         return;
       }
     }
