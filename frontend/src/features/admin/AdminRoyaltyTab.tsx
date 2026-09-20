@@ -159,7 +159,7 @@ export const AdminRoyaltyTab: React.FC = () => {
                 background: '#FFFFFF',
                 fontSize: '13.5px',
                 fontWeight: 800,
-                color: 'var(--blue)',
+                color: '#0F172A',
                 outline: 'none',
                 cursor: 'pointer',
               }}
