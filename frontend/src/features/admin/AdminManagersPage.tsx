@@ -394,19 +394,12 @@ export const AdminManagersPage: React.FC = () => {
                             {assistant.name}
                           </span>
                           {assistant.duty && (
-                            <span
-                              style={{
-                                fontSize: '11px',
-                                fontWeight: 700,
-                                padding: '2px 8px',
-                                borderRadius: '6px',
-                                background: 'rgba(0, 84, 148, 0.08)',
-                                color: 'var(--blue)',
-                                border: '1px solid rgba(0, 84, 148, 0.15)',
-                              }}
-                            >
-                              {assistant.duty}
-                            </span>
+                            <>
+                              <span style={{ color: '#94A3B8', fontWeight: 400 }}>|</span>
+                              <span style={{ fontSize: '15px', fontWeight: 600, color: '#475569' }}>
+                                {assistant.duty}
+                              </span>
+                            </>
                           )}
                           <span
                             style={{
