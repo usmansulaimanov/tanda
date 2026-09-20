@@ -876,7 +876,7 @@ export const BookFormPage: React.FC = () => {
                         value={audioDuration}
                         onChange={(e) => setAudioDuration(formatDurationInput(e.target.value))}
                         className="form-input"
-                        placeholder="02:34:27 немесе 23:15"
+                        placeholder="02:34:27"
                       />
                     </div>
                   </div>
