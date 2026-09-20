@@ -343,7 +343,7 @@ export const BookFormPage: React.FC = () => {
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   className="form-input"
-                  placeholder="Мысалы: Абай жолы"
+                  placeholder="Абай жолы"
                 />
               </div>
 
@@ -358,7 +358,7 @@ export const BookFormPage: React.FC = () => {
                   value={author}
                   onChange={(e) => setAuthor(e.target.value)}
                   className="form-input"
-                  placeholder="Мысалы: Мұхтар Әуезов"
+                  placeholder="Мұхтар Әуезов"
                 />
               </div>
             </div>
@@ -567,7 +567,7 @@ export const BookFormPage: React.FC = () => {
                   value={pages}
                   onChange={(e) => setPages(e.target.value)}
                   className="form-input"
-                  placeholder="Мысалы: 350"
+                  placeholder="350"
                 />
               </div>
             </div>
@@ -871,7 +871,7 @@ export const BookFormPage: React.FC = () => {
                         value={audioNarrator}
                         onChange={(e) => setAudioNarrator(e.target.value)}
                         className="form-input"
-                        placeholder="Мысалы: Берік Айтжанов"
+                        placeholder="Берік Айтжанов"
                       />
                     </div>
 
@@ -983,7 +983,7 @@ export const BookFormPage: React.FC = () => {
                               type="text"
                               value={ch.title}
                               onChange={(e) => updateChapter(idx, 'title', e.target.value)}
-                              placeholder={`Аудио атауы (Мысалы: ${idx + 1}-аудио)`}
+                              placeholder={`Аудио атауы (${idx + 1}-аудио)`}
                               className="form-input"
                               style={{ flex: '1 1 200px', padding: '8px 12px', fontSize: '13px' }}
                             />
