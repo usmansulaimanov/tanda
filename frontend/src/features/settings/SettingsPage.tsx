@@ -549,24 +549,24 @@ export const SettingsPage: React.FC = () => {
                   width: '24px',
                   height: '24px',
                   borderRadius: '50%',
-                  background: '#DC2626',
+                  background: '#0F172A',
                   color: '#FFFFFF',
                   border: '2px solid #FFFFFF',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   cursor: 'pointer',
-                  boxShadow: '0 2px 6px rgba(220, 38, 38, 0.3)',
+                  boxShadow: '0 2px 6px rgba(0, 0, 0, 0.25)',
                   padding: 0,
                   transition: 'transform 0.15s ease, background-color 0.15s ease',
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.transform = 'scale(1.1)';
-                  e.currentTarget.style.background = '#B91C1C';
+                  e.currentTarget.style.background = '#1E293B';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.transform = 'scale(1)';
-                  e.currentTarget.style.background = '#DC2626';
+                  e.currentTarget.style.background = '#0F172A';
                 }}
               >
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
