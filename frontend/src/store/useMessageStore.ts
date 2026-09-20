@@ -13,6 +13,8 @@ export interface AdminMessage {
   targetUserNames?: string[];
   bookId?: string;
   bookTitle?: string;
+  newsId?: string;
+  newsTitle?: string;
   priority: MessagePriority;
   senderName: string;
   senderRole: string;
@@ -37,6 +39,8 @@ interface MessageState {
     targetUserNames?: string[];
     bookId?: string;
     bookTitle?: string;
+    newsId?: string;
+    newsTitle?: string;
     priority?: MessagePriority;
     senderName?: string;
     canReaderDelete?: boolean;
@@ -93,6 +97,8 @@ export const useMessageStore = create<MessageState>()(
           targetUserNames: data.targetUserNames || [],
           bookId: data.bookId || undefined,
           bookTitle: data.bookTitle?.trim() || undefined,
+          newsId: data.newsId || undefined,
+          newsTitle: data.newsTitle?.trim() || undefined,
           priority: data.priority || 'normal',
           senderName: data.senderName || 'Tanda',
           senderRole: 'admin',

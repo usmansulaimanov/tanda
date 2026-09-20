@@ -220,7 +220,7 @@ export const AdminDashboard: React.FC = () => {
                   }}
                 >
                   <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10B981' }}></span>
-                  Белсенді ({activeCount})
+                  Белсенді: {activeCount}
                 </button>
 
                 <button
@@ -242,7 +242,7 @@ export const AdminDashboard: React.FC = () => {
                   }}
                 >
                   <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#94A3B8' }}></span>
-                  Архивте (Жасырын) ({archivedCount})
+                  Архивте (Жасырын): {archivedCount}
                 </button>
               </div>
 
@@ -375,7 +375,7 @@ export const AdminDashboard: React.FC = () => {
                       <polyline points="3 6 5 6 21 6"></polyline>
                       <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                     </svg>
-                    Таңдалғандарды өшіру ({selectedBookIds.length})
+                    Таңдалғандарды өшіру: {selectedBookIds.length}
                   </button>
                 )}
               </div>
@@ -566,10 +566,10 @@ export const AdminDashboard: React.FC = () => {
                               padding: '6px 12px',
                               fontSize: '12px',
                               fontWeight: 700,
-                              background: '#EFF6FF',
-                              color: '#1D4ED8',
+                              background: '#F1F5F9',
+                              color: 'var(--text-dark)',
                               borderRadius: '6px',
-                              border: '1px solid #BFDBFE',
+                              border: '1px solid #CBD5E1',
                               textDecoration: 'none',
                               cursor: 'pointer',
                             }}
@@ -943,7 +943,7 @@ export const AdminDashboard: React.FC = () => {
                   boxShadow: '0 4px 12px rgba(220, 38, 38, 0.25)',
                 }}
               >
-                Иә, барлығын өшіру ({selectedBookIds.length})
+                Иә, барлығын өшіру: {selectedBookIds.length}
               </button>
             </div>
           </div>

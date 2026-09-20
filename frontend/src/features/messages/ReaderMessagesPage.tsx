@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, X, BookOpen, Clock } from 'lucide-react';
+import { Mail, X, BookOpen, Clock, Newspaper } from 'lucide-react';
 import { useMessageStore, AdminMessage } from '../../store/useMessageStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useBookStore } from '../../store/useBookStore';
@@ -152,7 +152,7 @@ export const ReaderMessagesPage: React.FC = () => {
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
-            Барлығын оқылды деп белгілеу ({unreadCount})
+            Барлығын оқылды деп белгілеу: {unreadCount}
           </button>
         )}
       </div>
@@ -407,6 +407,87 @@ export const ReaderMessagesPage: React.FC = () => {
                         </svg>
                       </button>
                     )}
+                  </div>
+                )}
+
+                {/* Attached News Link (if any) */}
+                {msg.newsId && (
+                  <div
+                    style={{
+                      marginTop: '16px',
+                      padding: '12px 16px',
+                      borderRadius: '12px',
+                      background: 'rgba(234, 179, 8, 0.08)',
+                      border: '1px solid rgba(234, 179, 8, 0.25)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '12px',
+                      flexWrap: 'wrap',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
+                      <div
+                        style={{
+                          width: '36px',
+                          height: '36px',
+                          borderRadius: '10px',
+                          background: '#FEF08A',
+                          color: '#854D0E',
+                          flexShrink: 0,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <Newspaper size={18} color="#854D0E" />
+                      </div>
+                      <div style={{ minWidth: 0 }}>
+                        <div
+                          style={{
+                            fontSize: '13px',
+                            fontWeight: 800,
+                            color: 'var(--text-dark)',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                          }}
+                        >
+                          {msg.newsTitle || msg.title}
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#854D0E', fontWeight: 600 }}>
+                          Жарияланған жаңалық
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/news/${msg.newsId}`);
+                      }}
+                      style={{
+                        padding: '7px 14px',
+                        borderRadius: '8px',
+                        background: 'linear-gradient(135deg, #0A192F 0%, #002D50 100%)',
+                        color: '#FFFFFF',
+                        border: 'none',
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        flexShrink: 0,
+                        boxShadow: '0 2px 8px rgba(0, 45, 80, 0.25)',
+                      }}
+                    >
+                      Жаңалықты оқу
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                      </svg>
+                    </button>
                   </div>
                 )}
               </div>

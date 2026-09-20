@@ -1,23 +1,35 @@
 import React, { useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useNewsStore } from '../../store/useNewsStore';
+import { useAuthStore } from '../../store/useAuthStore';
+import { NewsImageCarousel } from '../../components/news/NewsImageCarousel';
 
 export const NewsDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { getArticleById, incrementViews, getPublishedArticles } = useNewsStore();
-
+  const { user } = useAuthStore();
+  const isAdmin = user?.role === 'admin';
   const article = id ? getArticleById(id) : undefined;
+  const isScheduled = article
+    ? article.isPublished &&
+      Boolean(
+        (article.scheduledAt && new Date(article.scheduledAt).getTime() > Date.now()) ||
+        new Date(article.publishedAt).getTime() > Date.now()
+      )
+    : false;
+  const isAccessible = article && ((article.isPublished && !isScheduled) || isAdmin);
+
   const recentArticles = getPublishedArticles().filter((a) => a.id !== id).slice(0, 3);
 
   useEffect(() => {
-    if (id) {
+    if (id && isAccessible && !isScheduled) {
       incrementViews(id);
       window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     }
-  }, [id, incrementViews]);
+  }, [id, incrementViews, isAccessible, isScheduled]);
 
-  if (!article) {
+  if (!article || !isAccessible) {
     return (
       <div style={{ maxWidth: '700px', margin: '80px auto', padding: '0 24px', textAlign: 'center' }}>
         <div
@@ -117,6 +129,44 @@ export const NewsDetailPage: React.FC = () => {
           </button>
         </div>
 
+        {/* Admin Preview Banner */}
+        {isAdmin && (!article.isPublished || isScheduled) && (
+          <div
+            style={{
+              padding: '12px 18px',
+              borderRadius: '12px',
+              background: isScheduled ? '#EFF6FF' : '#FFFBEB',
+              border: `1.5px solid ${isScheduled ? '#BFDBFE' : '#FDE68A'}`,
+              color: isScheduled ? 'var(--blue)' : '#B45309',
+              fontSize: '13px',
+              fontWeight: 700,
+              marginBottom: '20px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '10px',
+            }}
+          >
+            <span>
+              {isScheduled
+                ? `⏰ Әкімші режимі: Бұл мақала жоспарланған (сайтта ${formatDate(article.publishedAt)} күні автоматты түрде жарияланады).`
+                : '📝 Әкімші режимі: Бұл мақала черновикте сақталған (оқырмандарға көрінбейді).'}
+            </span>
+            <Link
+              to={`/admin/news/${article.id}/edit`}
+              style={{
+                color: 'inherit',
+                textDecoration: 'underline',
+                fontSize: '12px',
+                fontWeight: 800,
+                flexShrink: 0,
+              }}
+            >
+              Өңдеуге өту
+            </Link>
+          </div>
+        )}
+
         {/* Article Container Card */}
         <article
           style={{
@@ -185,34 +235,30 @@ export const NewsDetailPage: React.FC = () => {
             {article.title}
           </h1>
 
-          {/* Featured Image */}
-          {article.imageUrl && (
-            <div
-              style={{
-                borderRadius: '16px',
-                overflow: 'hidden',
-                marginBottom: '32px',
-                boxShadow: '0 4px 16px rgba(0, 0, 0, 0.06)',
-                maxHeight: '440px',
-                background: '#F1F5F9',
-              }}
-            >
-              <img
-                src={article.imageUrl}
-                alt={article.title}
-                referrerPolicy="no-referrer"
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  display: 'block',
-                }}
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                }}
-              />
-            </div>
-          )}
+          {/* Main Image Carousel (Auto-rotating multiple images with dots, arrows & thumbnails) */}
+          {(() => {
+            const articleImages = article.images && article.images.length > 0
+              ? article.images
+              : (article.imageUrl ? [article.imageUrl] : []);
+            if (articleImages.length === 0) return null;
+
+            return (
+              <div style={{ marginBottom: '32px' }}>
+                <NewsImageCarousel
+                  images={articleImages}
+                  alt={article.title}
+                  height="460px"
+                  maxHeight="520px"
+                  borderRadius="16px"
+                  autoPlayInterval={3500}
+                  showArrows={true}
+                  showDots={true}
+                  showCounter={true}
+                  showThumbnails={articleImages.length > 1}
+                />
+              </div>
+            );
+          })()}
 
           {/* Article Body Content */}
           <div

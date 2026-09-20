@@ -10,14 +10,19 @@ export const AdminNewsPage: React.FC = () => {
   const { showToast } = useToastStore();
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterStatus, setFilterStatus] = useState<'all' | 'published' | 'draft'>('all');
+  const [filterStatus, setFilterStatus] = useState<'all' | 'published' | 'scheduled' | 'draft'>('all');
   const [pageSize, setPageSize] = useState<number>(10);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [articleToDelete, setArticleToDelete] = useState<NewsArticle | null>(null);
 
   const filteredArticles = useMemo(() => {
+    const now = Date.now();
     return articles.filter((a) => {
-      if (filterStatus === 'published' && !a.isPublished) return false;
+      const isScheduled = a.isPublished && Boolean(a.scheduledAt && new Date(a.scheduledAt).getTime() > now);
+      const isActuallyPublished = a.isPublished && !isScheduled;
+
+      if (filterStatus === 'published' && !isActuallyPublished) return false;
+      if (filterStatus === 'scheduled' && !isScheduled) return false;
       if (filterStatus === 'draft' && a.isPublished) return false;
       if (!searchQuery.trim()) return true;
       const q = searchQuery.toLowerCase();
@@ -54,6 +59,20 @@ export const AdminNewsPage: React.FC = () => {
     }
   };
 
+  const formatDateTime = (isoString: string) => {
+    try {
+      const d = new Date(isoString);
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const year = d.getFullYear();
+      const hours = String(d.getHours()).padStart(2, '0');
+      const minutes = String(d.getMinutes()).padStart(2, '0');
+      return `${day}.${month}.${year} ${hours}:${minutes}`;
+    } catch {
+      return isoString;
+    }
+  };
+
   const confirmDelete = async () => {
     if (!articleToDelete) return;
     const res = await deleteArticle(articleToDelete.id);
@@ -65,7 +84,9 @@ export const AdminNewsPage: React.FC = () => {
     }
   };
 
-  const publishedCount = articles.filter((a) => a.isPublished).length;
+  const now = Date.now();
+  const scheduledCount = articles.filter((a) => a.isPublished && Boolean(a.scheduledAt && new Date(a.scheduledAt).getTime() > now)).length;
+  const publishedCount = articles.filter((a) => a.isPublished && (!a.scheduledAt || new Date(a.scheduledAt).getTime() <= now)).length;
   const draftCount = articles.filter((a) => !a.isPublished).length;
 
   return (
@@ -85,10 +106,14 @@ export const AdminNewsPage: React.FC = () => {
           >
             <div>
               <h1 style={{ fontSize: '24px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
-                Жаңалықтар мен мақалалар ({articles.length})
+                Жаңалықтар мен мақалалар: {articles.length}
               </h1>
               <p style={{ fontSize: '13px', color: 'var(--text-mid)', marginTop: '4px', margin: 0 }}>
-                Жарияланған: <span style={{ fontWeight: 700, color: '#16A34A' }}>{publishedCount}</span> | Қаралама: <span style={{ fontWeight: 700, color: '#64748B' }}>{draftCount}</span>
+                Жарияланған: <span style={{ fontWeight: 700, color: '#16A34A' }}>{publishedCount}</span>
+                {scheduledCount > 0 && (
+                  <> | Жоспарланған: <span style={{ fontWeight: 700, color: 'var(--blue)' }}>{scheduledCount}</span></>
+                )}
+                {' '}| Черновик: <span style={{ fontWeight: 700, color: '#64748B' }}>{draftCount}</span>
               </p>
             </div>
 
@@ -120,7 +145,7 @@ export const AdminNewsPage: React.FC = () => {
               </div>
 
               {/* Status Filters */}
-              <div style={{ display: 'flex', gap: '8px' }}>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 <button
                   type="button"
                   onClick={() => setFilterStatus('all')}
@@ -139,7 +164,7 @@ export const AdminNewsPage: React.FC = () => {
                     transition: 'all 0.15s',
                   }}
                 >
-                  Барлығы ({articles.length})
+                  Барлығы: {articles.length}
                 </button>
 
                 <button
@@ -161,8 +186,32 @@ export const AdminNewsPage: React.FC = () => {
                   }}
                 >
                   <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10B981' }}></span>
-                  Жарияланған ({publishedCount})
+                  Жарияланған: {publishedCount}
                 </button>
+
+                {scheduledCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setFilterStatus('scheduled')}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      color: 'var(--blue)',
+                      background: filterStatus === 'scheduled' ? 'rgba(0, 87, 168, 0.15)' : 'rgba(0, 87, 168, 0.06)',
+                      padding: '7px 14px',
+                      borderRadius: '6px',
+                      border: '1.5px solid rgba(0, 87, 168, 0.25)',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--blue)' }}></span>
+                    Жоспарланған: {scheduledCount}
+                  </button>
+                )}
 
                 <button
                   type="button"
@@ -183,7 +232,7 @@ export const AdminNewsPage: React.FC = () => {
                   }}
                 >
                   <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#94A3B8' }}></span>
-                  Қаралама ({draftCount})
+                  Черновик: {draftCount}
                 </button>
               </div>
 
@@ -275,9 +324,9 @@ export const AdminNewsPage: React.FC = () => {
                             justifyContent: 'center',
                           }}
                         >
-                          {article.imageUrl ? (
+                          {(article.images?.[0] || article.imageUrl) ? (
                             <img
-                              src={article.imageUrl}
+                              src={article.images?.[0] || article.imageUrl}
                               alt={article.title}
                               referrerPolicy="no-referrer"
                               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
@@ -289,21 +338,44 @@ export const AdminNewsPage: React.FC = () => {
 
                         <div style={{ minWidth: 0, flex: 1 }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
-                            <span
-                              style={{
-                                fontSize: '11px',
-                                fontWeight: 700,
-                                padding: '2px 8px',
-                                borderRadius: '12px',
-                                background: article.isPublished ? 'rgba(34, 197, 94, 0.1)' : '#F1F5F9',
-                                color: article.isPublished ? '#16A34A' : '#64748B',
-                              }}
-                            >
-                              {article.isPublished ? 'Жарияланған' : 'Қаралама'}
-                            </span>
-                            <span style={{ fontSize: '12px', color: 'var(--text-mid)' }}>
-                              {formatDate(article.publishedAt)}
-                            </span>
+                            {(() => {
+                              const isScheduled = article.isPublished && Boolean(article.scheduledAt && new Date(article.scheduledAt).getTime() > now);
+                              return (
+                                <>
+                                  <span
+                                    style={{
+                                      fontSize: '11px',
+                                      fontWeight: 700,
+                                      padding: '2px 8px',
+                                      borderRadius: '12px',
+                                      background: !article.isPublished
+                                        ? '#F1F5F9'
+                                        : isScheduled
+                                        ? 'rgba(0, 87, 168, 0.1)'
+                                        : 'rgba(34, 197, 94, 0.1)',
+                                      color: !article.isPublished
+                                        ? '#64748B'
+                                        : isScheduled
+                                        ? 'var(--blue)'
+                                        : '#16A34A',
+                                    }}
+                                  >
+                                    {!article.isPublished ? 'Черновик' : isScheduled ? 'Жоспарланған' : 'Жарияланған'}
+                                  </span>
+                                  <span
+                                    style={{
+                                      fontSize: '12px',
+                                      color: isScheduled ? 'var(--blue)' : 'var(--text-mid)',
+                                      fontWeight: isScheduled ? 700 : 400,
+                                    }}
+                                  >
+                                    {isScheduled
+                                      ? `⏰ Шығу уақыты: ${formatDateTime(article.scheduledAt!)}`
+                                      : formatDate(article.publishedAt)}
+                                  </span>
+                                </>
+                              );
+                            })()}
                             {article.authorName && (
                               <span style={{ fontSize: '12px', color: '#64748B' }}>
                                 &bull; {article.authorName}
@@ -346,11 +418,13 @@ export const AdminNewsPage: React.FC = () => {
                         <Link
                           to={`/news/${article.id}`}
                           target="_blank"
+                          rel="noopener noreferrer"
                           style={{
                             padding: '7px 12px',
                             borderRadius: '8px',
                             background: '#F1F5F9',
-                            color: 'var(--text-dark)',
+                            border: '1px solid #E2E8F0',
+                            color: '#0F172A',
                             fontSize: '12px',
                             fontWeight: 700,
                             textDecoration: 'none',
@@ -369,9 +443,9 @@ export const AdminNewsPage: React.FC = () => {
                           style={{
                             padding: '7px 12px',
                             borderRadius: '8px',
-                            background: '#EFF6FF',
-                            border: '1px solid #BFDBFE',
-                            color: 'var(--blue)',
+                            background: '#F1F5F9',
+                            border: '1px solid #E2E8F0',
+                            color: '#0F172A',
                             fontSize: '12px',
                             fontWeight: 700,
                             textDecoration: 'none',

@@ -299,7 +299,7 @@ export const AdminManagersPage: React.FC = () => {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
             <div>
               <h2 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-dark)', margin: 0 }}>
-                Тағайындалған көмекшілер ({assistants.length})
+                Тағайындалған көмекшілер: {assistants.length}
               </h2>
               <p style={{ fontSize: '13px', color: 'var(--text-mid)', margin: '4px 0 0' }}>
                 Әрбір көмекшінің тек өзіне берілген рұқсаттары ғана белсенді болады.

@@ -707,7 +707,7 @@ export const AdminPromoCodesPage: React.FC = () => {
                           </span>
                         ) : anyActive ? (
                           <span style={{ fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '20px', background: '#D1FAE5', color: '#047857' }}>
-                            Белсенді ({activeInBatch})
+                            Белсенді: {activeInBatch}
                           </span>
                         ) : (
                           <span style={{ fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '20px', background: '#FEE2E2', color: '#B91C1C' }}>

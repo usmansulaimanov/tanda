@@ -65,12 +65,15 @@ export interface NewsArticle {
   content: string;
   summary?: string;
   imageUrl?: string;
+  images?: string[];
   linkUrl?: string;
   linkText?: string;
   authorName?: string;
   publishedAt: string;
+  scheduledAt?: string;
   isPublished: boolean;
   viewsCount?: number;
+  notifiedAt?: string;
 }
 
 export interface UserPersonalMessage {

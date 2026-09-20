@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { Newspaper, Mail, BookOpen } from 'lucide-react';
 import { useMessageStore } from '../../store/useMessageStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useBookStore } from '../../store/useBookStore';
@@ -12,11 +13,13 @@ export const MessageNotificationPopup: React.FC = () => {
   const { books } = useBookStore();
   const [isVisible, setIsVisible] = useState(false);
 
-  // Check if active popup message is meant for this user
+  // Check if active popup message is meant for this user (logged in accounts)
   const isTargeted = useMemo(() => {
     if (!activePopupMessage) return false;
+    // Only logged in users receive notification popup
+    if (!user) return false;
     if (activePopupMessage.targetType === 'all') return true;
-    if (user && activePopupMessage.targetUserIds?.includes(user.id)) return true;
+    if (activePopupMessage.targetUserIds?.includes(user.id)) return true;
     return false;
   }, [activePopupMessage, user]);
 
@@ -24,6 +27,17 @@ export const MessageNotificationPopup: React.FC = () => {
     if (!activePopupMessage?.bookId) return null;
     return books.find((b) => b.id === activePopupMessage.bookId) || null;
   }, [activePopupMessage, books]);
+
+  const isNews = useMemo(() => {
+    if (!activePopupMessage) return false;
+    return Boolean(
+      activePopupMessage.newsId ||
+      activePopupMessage.newsTitle ||
+      activePopupMessage.priority === 'news' ||
+      (activePopupMessage.senderName && activePopupMessage.senderName.toLowerCase().includes('news')) ||
+      (activePopupMessage.title && activePopupMessage.title.toLowerCase().includes('жаңалық'))
+    );
+  }, [activePopupMessage]);
 
   useEffect(() => {
     if (activePopupMessage && isTargeted && location.pathname !== '/messages') {
@@ -73,13 +87,22 @@ export const MessageNotificationPopup: React.FC = () => {
     setTimeout(dismissPopup, 300);
   };
 
-  const handleOpenMessages = () => {
+  const handleActionClick = () => {
     if (user && activePopupMessage) {
       markAsRead(activePopupMessage.id, user.id);
     }
     setIsVisible(false);
     setTimeout(dismissPopup, 150);
-    navigate('/messages');
+
+    if (activePopupMessage?.newsId) {
+      navigate(`/news/${activePopupMessage.newsId}`);
+    } else if (isNews) {
+      navigate('/news');
+    } else if (activePopupMessage?.bookId) {
+      navigate(`/book/${activePopupMessage.bookId}`);
+    } else {
+      navigate('/messages');
+    }
   };
 
   return (
@@ -124,15 +147,14 @@ export const MessageNotificationPopup: React.FC = () => {
                 width: '28px',
                 height: '28px',
                 borderRadius: '8px',
-                background: 'rgba(59, 130, 246, 0.25)',
-                border: '1px solid rgba(147, 197, 253, 0.4)',
+                background: isNews ? 'rgba(234, 179, 8, 0.25)' : 'rgba(59, 130, 246, 0.25)',
+                border: isNews ? '1px solid rgba(253, 224, 71, 0.4)' : '1px solid rgba(147, 197, 253, 0.4)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: '#93C5FD',
               }}
             >
-              ✉️
+              {isNews ? <Newspaper size={15} color="#FDE047" /> : <Mail size={15} color="#93C5FD" />}
             </span>
             <div>
               <span
@@ -141,14 +163,14 @@ export const MessageNotificationPopup: React.FC = () => {
                   fontWeight: 800,
                   letterSpacing: '0.05em',
                   textTransform: 'uppercase',
-                  color: '#93C5FD',
+                  color: isNews ? '#FDE047' : '#93C5FD',
                   display: 'block',
                 }}
               >
-                Жаңа хабарлама
+                {isNews ? 'ЖАҢАЛЫҚ' : 'ЖАҢА ХАБАРЛАМА'}
               </span>
               <span style={{ fontSize: '11px', color: '#94A3B8' }}>
-                {activePopupMessage.senderName && !activePopupMessage.senderName.includes('кімші') ? activePopupMessage.senderName : 'Tanda'}
+                {activePopupMessage.senderName && !activePopupMessage.senderName.includes('кімші') ? activePopupMessage.senderName : (isNews ? 'Tanda News' : 'Tanda')}
               </span>
             </div>
           </div>
@@ -221,8 +243,28 @@ export const MessageNotificationPopup: React.FC = () => {
               marginBottom: '12px',
             }}
           >
-            <span>📖</span>
+            <BookOpen size={14} color="#93C5FD" />
             <span style={{ fontWeight: 700 }}>«{matchedBook ? matchedBook.title : activePopupMessage.bookTitle}» кітабы бекітілген</span>
+          </div>
+        )}
+
+        {/* Attached news notice */}
+        {activePopupMessage.newsId && (
+          <div
+            style={{
+              background: 'rgba(255, 255, 255, 0.08)',
+              padding: '6px 10px',
+              borderRadius: '8px',
+              fontSize: '11px',
+              color: '#FDE047',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              marginBottom: '12px',
+            }}
+          >
+            <Newspaper size={14} color="#FDE047" />
+            <span style={{ fontWeight: 700 }}>«{activePopupMessage.newsTitle || activePopupMessage.title}» жаңалығы</span>
           </div>
         )}
 
@@ -246,7 +288,7 @@ export const MessageNotificationPopup: React.FC = () => {
           </button>
           <button
             type="button"
-            onClick={handleOpenMessages}
+            onClick={handleActionClick}
             style={{
               background: 'linear-gradient(135deg, var(--blue) 0%, #004070 100%)',
               color: '#FFFFFF',
@@ -262,7 +304,7 @@ export const MessageNotificationPopup: React.FC = () => {
               boxShadow: '0 2px 8px rgba(0, 84, 148, 0.4)',
             }}
           >
-            Хабарламаны ашу
+            {isNews ? 'Жаңалықты оқу' : activePopupMessage.bookId ? 'Кітапты көру' : 'Хабарламаны ашу'}
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <polyline points="9 18 15 12 9 6"></polyline>
             </svg>

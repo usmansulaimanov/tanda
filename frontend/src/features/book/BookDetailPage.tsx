@@ -371,7 +371,7 @@ export const BookDetailPage: React.FC = () => {
           }}
         >
           <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-dark)', marginBottom: '16px' }}>
-            Тараулар ({book.audioChapters.length})
+            Тараулар: {book.audioChapters.length}
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             {book.audioChapters.map((ch, idx) => (
