@@ -654,9 +654,6 @@ export const AuthorStatsPage: React.FC = () => {
               <div style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-dark)' }}>
                 {dailyAnalytics.totalListenedDays} күн
               </div>
-              <div style={{ fontSize: '12px', fontWeight: 500, color: '#64748B', marginTop: '4px' }}>
-                Платформада аудиосы ойнатылған күндер
-              </div>
             </div>
 
             {/* Average Daily Card */}
