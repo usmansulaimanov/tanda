@@ -682,15 +682,15 @@ export const BookFormPage: React.FC = () => {
                     {/* Book Cover Preview */}
                     <div
                       style={{
-                        width: '96px',
-                        height: '130px',
-                        borderRadius: '8px',
+                        width: '130px',
+                        height: '180px',
+                        borderRadius: '10px',
                         background: coverImage && !coverImageError ? '#F1F5F9' : DEFAULT_COVER_GRADIENT,
                         boxShadow: '0 8px 20px rgba(0, 40, 80, 0.15), 0 2px 6px rgba(0, 0, 0, 0.06)',
                         display: 'flex',
                         flexDirection: 'column',
                         justifyContent: 'space-between',
-                        padding: coverImage && !coverImageError ? '0' : '10px',
+                        padding: coverImage && !coverImageError ? '0' : '14px',
                         color: '#FFFFFF',
                         flexShrink: 0,
                         position: 'relative',
@@ -721,31 +721,31 @@ export const BookFormPage: React.FC = () => {
                       )}
                       {(!coverImage || coverImageError) && (
                         <>
-                          <div style={{ fontSize: '8px', fontWeight: 800, lineHeight: 1.1, textTransform: 'uppercase', letterSpacing: '0.04em', opacity: 0.9, position: 'relative', zIndex: 2 }}>
+                          <div style={{ fontSize: '9px', fontWeight: 800, lineHeight: 1.2, textTransform: 'uppercase', letterSpacing: '0.04em', opacity: 0.9, position: 'relative', zIndex: 2 }}>
                             {categories.join(', ') || 'Жанры'}
                           </div>
-                          <div style={{ fontSize: '11px', fontWeight: 900, lineHeight: 1.2, margin: 'auto 0', position: 'relative', zIndex: 2 }}>
+                          <div style={{ fontSize: '13px', fontWeight: 900, lineHeight: 1.25, margin: 'auto 0', position: 'relative', zIndex: 2 }}>
                             {title || 'Кітап атауы'}
                           </div>
-                          <div style={{ fontSize: '9px', opacity: 0.85, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', position: 'relative', zIndex: 2 }}>
+                          <div style={{ fontSize: '10px', opacity: 0.85, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', position: 'relative', zIndex: 2 }}>
                             {author || 'Автор'}
                           </div>
                         </>
                       )}
                     </div>
 
-                    <div>
-                      {coverImage ? (
+                    {coverImage && (
+                      <div>
+                        {coverImageError ? (
+                          <span style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#DC2626', marginBottom: '8px', maxWidth: '240px', lineHeight: 1.4 }}>
+                            Бұл сілтемеден сурет ашылмады. Төмендегі «Сурет файлын таңдау» арқылы суретті жүктеңіз немесе тікелей JPG/PNG сілтемесін қойыңыз.
+                          </span>
+                        ) : (
+                          <span style={{ display: 'inline-block', fontSize: '12px', fontWeight: 700, color: '#047857', marginBottom: '6px' }}>
+                            Сурет сәтті орнатылды
+                          </span>
+                        )}
                         <div>
-                          {coverImageError ? (
-                            <span style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#DC2626', marginBottom: '8px', maxWidth: '240px', lineHeight: 1.4 }}>
-                              Бұл сілтемеден сурет ашылмады. Төмендегі «Сурет файлын таңдау» арқылы суретті жүктеңіз немесе тікелей JPG/PNG сілтемесін қойыңыз.
-                            </span>
-                          ) : (
-                            <span style={{ display: 'inline-block', fontSize: '12px', fontWeight: 700, color: '#047857', marginBottom: '6px' }}>
-                              Сурет сәтті орнатылды
-                            </span>
-                          )}
                           <button
                             type="button"
                             onClick={removeCoverImage}
@@ -771,12 +771,8 @@ export const BookFormPage: React.FC = () => {
                             Суретті өшіру / тазарту
                           </button>
                         </div>
-                      ) : (
-                        <p style={{ fontSize: '12px', color: '#64748B', margin: 0, lineHeight: 1.5 }}>
-                          Сурет жүктелмесе, сайтта негізгі қарапайым фирменный фон көрсетіледі.
-                        </p>
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
