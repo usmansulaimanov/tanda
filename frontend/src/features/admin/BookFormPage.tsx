@@ -63,6 +63,7 @@ export const BookFormPage: React.FC = () => {
   const [audioDuration, setAudioDuration] = useState('');
   const [audioUrl, setAudioUrl] = useState('');
   const [audioChapters, setAudioChapters] = useState<AudioChapter[]>([]);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -135,17 +136,36 @@ export const BookFormPage: React.FC = () => {
       audioUrl: '',
     };
     setAudioChapters([...audioChapters, newCh]);
+    if (errors.audioChapters) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next.audioChapters;
+        return next;
+      });
+    }
   };
 
   const updateChapter = (index: number, field: keyof AudioChapter, val: string) => {
     const updated = [...audioChapters];
     updated[index] = { ...updated[index], [field]: val };
     setAudioChapters(updated);
+    if (field === 'audioUrl' && errors[`audioUrl_${index}`]) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next[`audioUrl_${index}`];
+        return next;
+      });
+    }
   };
 
   const removeChapter = (index: number) => {
     if (index === 0) return;
     setAudioChapters(audioChapters.filter((_, i) => i !== index));
+    setErrors((prev) => {
+      const next = { ...prev };
+      delete next[`audioUrl_${index}`];
+      return next;
+    });
   };
 
   const handleChapterAudioFile = (index: number, file: File) => {
@@ -158,6 +178,13 @@ export const BookFormPage: React.FC = () => {
     reader.onload = (event) => {
       const dataUrl = event.target?.result as string;
       updateChapter(index, 'audioUrl', dataUrl);
+      if (errors[`audioUrl_${index}`]) {
+        setErrors((prev) => {
+          const next = { ...prev };
+          delete next[`audioUrl_${index}`];
+          return next;
+        });
+      }
 
       // Auto-detect audio duration
       try {
@@ -183,30 +210,84 @@ export const BookFormPage: React.FC = () => {
       setCategories(categories.filter((c) => c !== cat));
     } else {
       setCategories([...categories, cat]);
+      if (errors.categories) {
+        setErrors((prev) => {
+          const next = { ...prev };
+          delete next.categories;
+          return next;
+        });
+      }
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    const newErrors: Record<string, string> = {};
+
     if (!title.trim()) {
-      showToast('Кітап атауын енгізіңіз', 'error');
-      return;
+      newErrors.title = 'Кітап атауын енгізіңіз';
     }
     if (!author.trim()) {
-      showToast('Автордың атын енгізіңіз', 'error');
-      return;
+      newErrors.author = 'Автордың аты-жөнін енгізіңіз';
     }
     if (categories.length === 0) {
-      showToast('Кітаптың кем дегенде бір жанрын / санатын таңдаңыз', 'error');
+      newErrors.categories = 'Кем дегенде бір жанрды таңдаңыз';
+    }
+    if (!pages.trim()) {
+      newErrors.pages = 'Бет санын енгізіңіз';
+    } else {
+      const pagesNum = parseInt(pages, 10);
+      if (isNaN(pagesNum) || pagesNum <= 0) {
+        newErrors.pages = 'Бет санын дұрыс санмен енгізіңіз';
+      }
+    }
+
+    if (hasAudio) {
+      if (!audioNarrator.trim()) {
+        newErrors.audioNarrator = 'Диктордың аты-жөнін енгізіңіз';
+      }
+      if (!audioDuration.trim()) {
+        newErrors.audioDuration = 'Аудионың жалпы ұзақтығын енгізіңіз';
+      }
+      if (audioChapters.length === 0) {
+        newErrors.audioChapters = 'Кем дегенде 1 аудио бөлім қосыңыз';
+      } else {
+        audioChapters.forEach((ch, idx) => {
+          if (!ch.audioUrl || !ch.audioUrl.trim()) {
+            newErrors[`audioUrl_${idx}`] = `${idx + 1}-аудионың YouTube сілтемесін немесе файлын жүктеңіз`;
+          }
+        });
+      }
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      const firstKey = Object.keys(newErrors)[0];
+      const firstMessage = newErrors[firstKey];
+      showToast(firstMessage, 'error');
+
+      setTimeout(() => {
+        const targetId = firstKey.startsWith('audioUrl_')
+          ? `field-audioUrl-${firstKey.split('_')[1]}`
+          : `field-${firstKey}`;
+        const el = document.getElementById(targetId);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+            (el as HTMLInputElement).focus();
+          }
+        }
+      }, 50);
       return;
     }
 
+    setErrors({});
+
     const pagesNum = parseInt(pages, 10);
-    const validPages = isNaN(pagesNum) || pagesNum <= 0 ? (hasAudio ? null : 100) : pagesNum;
+    const validPages = isNaN(pagesNum) || pagesNum <= 0 ? 1 : pagesNum;
 
     const firstAudioUrl = audioChapters.find((ch) => ch.audioUrl?.trim())?.audioUrl || audioChapters[0]?.audioUrl || '';
-
     const categoryString = categories.join(', ');
 
     const bookData = {
@@ -334,13 +415,29 @@ export const BookFormPage: React.FC = () => {
                   Кітап атауы: <span className="req">*</span>
                 </label>
                 <input
+                  id="field-title"
                   type="text"
-                  required
                   value={title}
-                  onChange={(e) => setTitle(e.target.value)}
+                  onChange={(e) => {
+                    setTitle(e.target.value);
+                    if (errors.title) {
+                      setErrors((prev) => {
+                        const next = { ...prev };
+                        delete next.title;
+                        return next;
+                      });
+                    }
+                  }}
                   className="form-input"
                   placeholder="Абай жолы"
+                  style={errors.title ? { borderColor: '#EF4444', boxShadow: '0 0 0 3px rgba(239, 68, 68, 0.12)' } : {}}
                 />
+                {errors.title && (
+                  <p style={{ color: '#EF4444', fontSize: '12px', marginTop: '5px', marginBottom: 0, fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                    {errors.title}
+                  </p>
+                )}
               </div>
 
               {/* Author */}
@@ -349,13 +446,29 @@ export const BookFormPage: React.FC = () => {
                   Автордың аты-жөні: <span className="req">*</span>
                 </label>
                 <input
+                  id="field-author"
                   type="text"
-                  required
                   value={author}
-                  onChange={(e) => setAuthor(e.target.value)}
+                  onChange={(e) => {
+                    setAuthor(e.target.value);
+                    if (errors.author) {
+                      setErrors((prev) => {
+                        const next = { ...prev };
+                        delete next.author;
+                        return next;
+                      });
+                    }
+                  }}
                   className="form-input"
                   placeholder="Мұхтар Әуезов"
+                  style={errors.author ? { borderColor: '#EF4444', boxShadow: '0 0 0 3px rgba(239, 68, 68, 0.12)' } : {}}
                 />
+                {errors.author && (
+                  <p style={{ color: '#EF4444', fontSize: '12px', marginTop: '5px', marginBottom: 0, fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                    {errors.author}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -380,25 +493,34 @@ export const BookFormPage: React.FC = () => {
 
                 {/* Multi-select trigger */}
                 <div
+                  id="field-categories"
                   onClick={() => setCategoryDropdownOpen(!categoryDropdownOpen)}
                   style={{
                     minHeight: '42px',
                     padding: '6px 12px',
                     background: '#FFFFFF',
-                    border: categoryDropdownOpen ? '1.5px solid #005494' : '1.5px solid #CBD5E1',
+                    border: errors.categories
+                      ? '1.5px solid #EF4444'
+                      : categoryDropdownOpen
+                      ? '1.5px solid #005494'
+                      : '1.5px solid #CBD5E1',
                     borderRadius: '8px',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     gap: '8px',
-                    boxShadow: categoryDropdownOpen ? '0 0 0 3px rgba(0, 84, 148, 0.12)' : 'none',
+                    boxShadow: errors.categories
+                      ? '0 0 0 3px rgba(239, 68, 68, 0.12)'
+                      : categoryDropdownOpen
+                      ? '0 0 0 3px rgba(0, 84, 148, 0.12)'
+                      : 'none',
                     transition: 'all 0.15s ease',
                   }}
                 >
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center', flex: 1 }}>
                     {categories.length === 0 ? (
-                      <span style={{ color: '#94A3B8', fontSize: '13px' }}>Жанрларды таңдаңыз...</span>
+                      <span style={{ color: errors.categories ? '#EF4444' : '#94A3B8', fontSize: '13px' }}>Жанрларды таңдаңыз...</span>
                     ) : (
                       categories.map((c) => (
                         <span
@@ -458,6 +580,13 @@ export const BookFormPage: React.FC = () => {
                     <polyline points="6 9 12 15 18 9"></polyline>
                   </svg>
                 </div>
+
+                {errors.categories && (
+                  <p style={{ color: '#EF4444', fontSize: '12px', marginTop: '5px', marginBottom: 0, fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                    {errors.categories}
+                  </p>
+                )}
 
                 {/* Dropdown Menu */}
                 {categoryDropdownOpen && (
@@ -556,15 +685,34 @@ export const BookFormPage: React.FC = () => {
               </div>
 
               <div className="form-group" style={{ margin: 0 }}>
-                <label className="form-label">Бет саны:</label>
+                <label className="form-label">
+                  Бет саны: <span className="req">*</span>
+                </label>
                 <input
+                  id="field-pages"
                   type="number"
                   min="1"
                   value={pages}
-                  onChange={(e) => setPages(e.target.value)}
+                  onChange={(e) => {
+                    setPages(e.target.value);
+                    if (errors.pages) {
+                      setErrors((prev) => {
+                        const next = { ...prev };
+                        delete next.pages;
+                        return next;
+                      });
+                    }
+                  }}
                   className="form-input"
                   placeholder="350"
+                  style={errors.pages ? { borderColor: '#EF4444', boxShadow: '0 0 0 3px rgba(239, 68, 68, 0.12)' } : {}}
                 />
+                {errors.pages && (
+                  <p style={{ color: '#EF4444', fontSize: '12px', marginTop: '5px', marginBottom: 0, fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                    {errors.pages}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -856,36 +1004,71 @@ export const BookFormPage: React.FC = () => {
                   >
                     <div className="form-group" style={{ margin: 0 }}>
                       <label className="form-label" style={{ fontSize: '12px' }}>
-                        Диктор:
+                        Диктор: <span className="req">*</span>
                       </label>
                       <input
+                        id="field-audioNarrator"
                         type="text"
                         value={audioNarrator}
-                        onChange={(e) => setAudioNarrator(e.target.value)}
+                        onChange={(e) => {
+                          setAudioNarrator(e.target.value);
+                          if (errors.audioNarrator) {
+                            setErrors((prev) => {
+                              const next = { ...prev };
+                              delete next.audioNarrator;
+                              return next;
+                            });
+                          }
+                        }}
                         className="form-input"
                         placeholder="Берік Айтжанов"
+                        style={errors.audioNarrator ? { borderColor: '#EF4444', boxShadow: '0 0 0 3px rgba(239, 68, 68, 0.12)' } : {}}
                       />
+                      {errors.audioNarrator && (
+                        <p style={{ color: '#EF4444', fontSize: '12px', marginTop: '5px', marginBottom: 0, fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                          {errors.audioNarrator}
+                        </p>
+                      )}
                     </div>
 
                     <div className="form-group" style={{ margin: 0 }}>
                       <label className="form-label" style={{ fontSize: '12px' }}>
-                        Жалпы ұзақтығы:
+                        Жалпы ұзақтығы: <span className="req">*</span>
                       </label>
                       <input
+                        id="field-audioDuration"
                         type="text"
                         value={audioDuration}
-                        onChange={(e) => setAudioDuration(formatDurationInput(e.target.value))}
+                        onChange={(e) => {
+                          setAudioDuration(formatDurationInput(e.target.value));
+                          if (errors.audioDuration) {
+                            setErrors((prev) => {
+                              const next = { ...prev };
+                              delete next.audioDuration;
+                              return next;
+                            });
+                          }
+                        }}
                         className="form-input"
                         placeholder="02:34:27"
+                        style={errors.audioDuration ? { borderColor: '#EF4444', boxShadow: '0 0 0 3px rgba(239, 68, 68, 0.12)' } : {}}
                       />
+                      {errors.audioDuration && (
+                        <p style={{ color: '#EF4444', fontSize: '12px', marginTop: '5px', marginBottom: 0, fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                          {errors.audioDuration}
+                        </p>
+                      )}
                     </div>
                   </div>
 
                   {/* Chapters block */}
                   <div
+                    id="field-audioChapters"
                     style={{
                       background: '#FFFFFF',
-                      border: '1.5px solid #E2E8F0',
+                      border: errors.audioChapters ? '1.5px solid #EF4444' : '1.5px solid #E2E8F0',
                       borderRadius: '10px',
                       padding: '16px',
                     }}
@@ -931,6 +1114,13 @@ export const BookFormPage: React.FC = () => {
                         Аудио қосу
                       </button>
                     </div>
+
+                    {errors.audioChapters && (
+                      <p style={{ color: '#EF4444', fontSize: '12px', marginTop: '0', marginBottom: '12px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                        {errors.audioChapters}
+                      </p>
+                    )}
 
                     {audioChapters.length === 0 ? (
                       <p style={{ fontSize: '12px', color: '#94A3B8', textAlign: 'center', margin: '12px 0' }}>
@@ -1027,90 +1217,112 @@ export const BookFormPage: React.FC = () => {
                           </div>
 
                           {/* Chapter Audio Source Row (URL + Upload) */}
-                          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                            <div style={{ position: 'relative', flex: '1 1 220px' }}>
-                              <input
-                                type="text"
-                                value={ch.audioUrl || ''}
-                                onChange={(e) => updateChapter(idx, 'audioUrl', e.target.value)}
-                                placeholder="Ютубтан сілтеме"
-                                className="form-input"
-                                style={{
-                                  width: '100%',
-                                  padding: '7px 10px 7px 30px',
-                                  fontSize: '12px',
-                                  boxSizing: 'border-box',
-                                  background: '#FFFFFF',
-                                }}
-                              />
-                              <svg
-                                style={{ position: 'absolute', left: '9px', top: '50%', transform: 'translateY(-50%)', color: '#64748B', pointerEvents: 'none' }}
-                                width="14"
-                                height="14"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                              >
-                                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-                                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-                              </svg>
-                            </div>
-
-                            {/* Upload Chapter Audio File Button */}
-                            <label
-                              htmlFor={`ch-audio-upload-${idx}`}
+                          <div>
+                            <div
+                              id={`field-audioUrl-${idx}`}
                               style={{
-                                display: 'inline-flex',
+                                display: 'flex',
+                                gap: '8px',
                                 alignItems: 'center',
-                                gap: '6px',
-                                padding: '7px 14px',
-                                background: '#FFFFFF',
-                                color: '#005494',
-                                border: '1.5px solid #005494',
-                                borderRadius: '6px',
-                                fontSize: '12px',
-                                fontWeight: 700,
-                                cursor: 'pointer',
-                                whiteSpace: 'nowrap',
-                                transition: 'all 0.15s',
+                                flexWrap: 'wrap',
+                                padding: errors[`audioUrl_${idx}`] ? '6px' : '0',
+                                borderRadius: '8px',
+                                background: errors[`audioUrl_${idx}`] ? '#FEF2F2' : 'transparent',
+                                border: errors[`audioUrl_${idx}`] ? '1.5px solid #EF4444' : 'none',
                               }}
                             >
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                <polyline points="17 8 12 3 7 8"></polyline>
-                                <line x1="12" y1="3" x2="12" y2="15"></line>
-                              </svg>
-                              Файл жүктеу
-                            </label>
-                            <input
-                              type="file"
-                              id={`ch-audio-upload-${idx}`}
-                              accept="audio/*,.mp3,.wav,.ogg,.m4a,.aac"
-                              onChange={(e) => {
-                                const f = e.target.files?.[0];
-                                if (f) handleChapterAudioFile(idx, f);
-                              }}
-                              style={{ display: 'none' }}
-                            />
+                              <div style={{ position: 'relative', flex: '1 1 220px' }}>
+                                <input
+                                  type="text"
+                                  value={ch.audioUrl || ''}
+                                  onChange={(e) => updateChapter(idx, 'audioUrl', e.target.value)}
+                                  placeholder="Ютубтан сілтеме"
+                                  className="form-input"
+                                  style={{
+                                    width: '100%',
+                                    padding: '7px 10px 7px 30px',
+                                    fontSize: '12px',
+                                    boxSizing: 'border-box',
+                                    background: '#FFFFFF',
+                                    borderColor: errors[`audioUrl_${idx}`] ? '#EF4444' : '#CBD5E1',
+                                  }}
+                                />
+                                <svg
+                                  style={{ position: 'absolute', left: '9px', top: '50%', transform: 'translateY(-50%)', color: '#64748B', pointerEvents: 'none' }}
+                                  width="14"
+                                  height="14"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                >
+                                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                                </svg>
+                              </div>
 
-                            {ch.audioUrl && (
-                              <button
-                                type="button"
-                                onClick={() => updateChapter(idx, 'audioUrl', '')}
+                              {/* Upload Chapter Audio File Button */}
+                              <label
+                                htmlFor={`ch-audio-upload-${idx}`}
                                 style={{
-                                  padding: '6px 10px',
-                                  background: '#F1F5F9',
-                                  color: '#64748B',
-                                  border: '1px solid #CBD5E1',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '6px',
+                                  padding: '7px 14px',
+                                  background: '#FFFFFF',
+                                  color: errors[`audioUrl_${idx}`] ? '#DC2626' : '#005494',
+                                  border: errors[`audioUrl_${idx}`] ? '1.5px solid #DC2626' : '1.5px solid #005494',
                                   borderRadius: '6px',
-                                  fontSize: '11px',
+                                  fontSize: '12px',
                                   fontWeight: 700,
                                   cursor: 'pointer',
+                                  whiteSpace: 'nowrap',
+                                  transition: 'all 0.15s',
                                 }}
                               >
-                                Тазарту
-                              </button>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                  <polyline points="17 8 12 3 7 8"></polyline>
+                                  <line x1="12" y1="3" x2="12" y2="15"></line>
+                                </svg>
+                                Файл жүктеу
+                              </label>
+                              <input
+                                type="file"
+                                id={`ch-audio-upload-${idx}`}
+                                accept="audio/*,.mp3,.wav,.ogg,.m4a,.aac"
+                                onChange={(e) => {
+                                  const f = e.target.files?.[0];
+                                  if (f) handleChapterAudioFile(idx, f);
+                                }}
+                                style={{ display: 'none' }}
+                              />
+
+                              {ch.audioUrl && (
+                                <button
+                                  type="button"
+                                  onClick={() => updateChapter(idx, 'audioUrl', '')}
+                                  style={{
+                                    padding: '6px 10px',
+                                    background: '#F1F5F9',
+                                    color: '#64748B',
+                                    border: '1px solid #CBD5E1',
+                                    borderRadius: '6px',
+                                    fontSize: '11px',
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                  }}
+                                >
+                                  Тазарту
+                                </button>
+                              )}
+                            </div>
+
+                            {errors[`audioUrl_${idx}`] && (
+                              <p style={{ color: '#EF4444', fontSize: '12px', marginTop: '5px', marginBottom: 0, fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                                {errors[`audioUrl_${idx}`]}
+                              </p>
                             )}
                           </div>
 
