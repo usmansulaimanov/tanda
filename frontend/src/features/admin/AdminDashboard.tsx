@@ -137,7 +137,7 @@ export const AdminDashboard: React.FC = () => {
           >
             <div>
               <h2 style={{ fontSize: '24px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
-                Басқару панелі
+                Кітаптарды басқару панелі
               </h2>
               <p style={{ fontSize: '13px', color: 'var(--text-mid)', marginTop: '4px' }}>
                 Барлығы: <span style={{ fontWeight: 700, color: 'var(--blue)' }}>{books.length}</span> кітап |{' '}
