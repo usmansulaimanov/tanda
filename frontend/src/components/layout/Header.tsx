@@ -431,7 +431,7 @@ export const Header: React.FC = () => {
                               letterSpacing: '0.02em',
                             }}
                           >
-                            ID: {user.idNumber || (user.role === 'admin' ? '0000 0001' : '0001 0001')}
+                            ID: {user.idNumber || (user.role === 'admin' ? '0000 0001' : '0000 1001')}
                           </span>
                           {user.username && (
                             <span

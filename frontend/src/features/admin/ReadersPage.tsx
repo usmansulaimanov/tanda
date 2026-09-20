@@ -177,7 +177,7 @@ export const ReadersPage: React.FC = () => {
       // Format all data rows
       const rows = clients.map((reader, idx) => ({
         '№': idx + 1,
-        'ID нөмірі': reader.idNumber || `0001 ${String(idx + 1).padStart(4, '0')}`,
+        'ID нөмірі': reader.idNumber || `0000 ${String(1000 + idx + 1).padStart(4, '0')}`,
         'Аты-жөні': reader.name || 'Оқырман',
         'Телефон нөмірі': reader.phone || 'Көрсетілмеген',
         'Электронды поштасы (Email)': reader.email || '',
@@ -414,7 +414,7 @@ export const ReadersPage: React.FC = () => {
                             whiteSpace: 'nowrap',
                           }}
                         >
-                          ID: {reader.idNumber || `0001 ${String(itemIndex).padStart(4, '0')}`}
+                          ID: {reader.idNumber || `0000 ${String(1000 + itemIndex).padStart(4, '0')}`}
                         </span>
                       </td>
 

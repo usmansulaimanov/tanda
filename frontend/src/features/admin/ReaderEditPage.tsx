@@ -497,7 +497,7 @@ export const ReaderEditPage: React.FC = () => {
                   type="text"
                   value={idNumber}
                   onChange={(e) => handleIdNumberChange(e.target.value)}
-                  placeholder="0001 0002"
+                  placeholder="0000 1002"
                   className="form-input"
                   style={{
                     fontFamily: 'monospace',

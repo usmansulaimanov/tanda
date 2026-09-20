@@ -88,7 +88,7 @@ export interface UserPersonalMessage {
 
 export interface User {
   id: string;
-  idNumber?: string; // e.g. "0000 0001" for admin, "0001 0001" for readers
+  idNumber?: string; // e.g. "0000 0001" for admin, "0000 1001" for readers
   name: string;
   email: string;
   username?: string; // Unique username (e.g. "usman", "reader01")
