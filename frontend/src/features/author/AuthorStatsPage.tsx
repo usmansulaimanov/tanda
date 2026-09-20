@@ -584,16 +584,16 @@ export const AuthorStatsPage: React.FC = () => {
             <div style={{ background: 'rgba(255,255,255,0.12)', borderRadius: '16px', padding: '16px 20px' }}>
               <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)', fontWeight: 600 }}>Тыңдалған уақыт</div>
               <div style={{ fontSize: '24px', fontWeight: 900, marginTop: '4px' }}>
-                {dailyAnalytics.totalSeconds >= 60
-                  ? `${Math.floor(dailyAnalytics.totalSeconds / 60)} мин`
-                  : dailyAnalytics.totalSeconds > 0
-                  ? `${dailyAnalytics.totalSeconds} сек`
+                {royalty.totalSeconds >= 60
+                  ? `${Math.floor(royalty.totalSeconds / 60)} мин`
+                  : royalty.totalSeconds > 0
+                  ? `${royalty.totalSeconds} сек`
                   : '0 мин'}
               </div>
               <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.7)', marginTop: '2px' }}>
-                {dailyAnalytics.totalSeconds >= 3600
-                  ? `≈ ${(dailyAnalytics.totalSeconds / 3600).toFixed(1)} сағат`
-                  : `${dailyAnalytics.totalSeconds} секунд`}
+                {royalty.totalSeconds >= 3600
+                  ? `≈ ${(royalty.totalSeconds / 3600).toFixed(1)} сағат`
+                  : `${royalty.totalSeconds} секунд`}
               </div>
             </div>
 
@@ -732,7 +732,12 @@ export const AuthorStatsPage: React.FC = () => {
                 <span style={{ fontSize: '13px', fontWeight: 700, color: '#64748B' }}>Орташа күнделікті уақыт</span>
               </div>
               <div style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-dark)' }}>
-                {dailyAnalytics.averageMinutes > 0 ? `${dailyAnalytics.averageMinutes} мин` : '0 мин'}
+                {(() => {
+                  const activeDays = dailyAnalytics.totalListenedDays;
+                  if (activeDays === 0 || royalty.totalSeconds === 0) return '0 мин';
+                  const avg = Number((Math.floor(royalty.totalSeconds / 60) / activeDays).toFixed(1));
+                  return `${avg} мин`;
+                })()}
               </div>
             </div>
           </div>
