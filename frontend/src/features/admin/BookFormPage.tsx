@@ -901,9 +901,6 @@ export const BookFormPage: React.FC = () => {
                         <span style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>
                           Аудио бөлімдері: {audioChapters.length}
                         </span>
-                        <p style={{ fontSize: '11px', color: '#64748B', margin: '2px 0 0' }}>
-                          Әр бөлімге жеке аудио жүктеуге немесе сілтемесін қоюға болады
-                        </p>
                       </div>
 
                       <button
