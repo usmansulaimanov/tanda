@@ -508,69 +508,133 @@ export const AdminStatsPage: React.FC = () => {
         {activeTab === 'readers' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             
-            {/* KPI Cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
-              <div className="admin-card" style={{ padding: '22px 24px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-                  <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-mid)' }}>Барлық оқырмандар</span>
-                  <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'rgba(0, 84, 148, 0.1)', color: 'var(--blue)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                      <circle cx="9" cy="7" r="4"></circle>
-                    </svg>
-                  </div>
+            {/* Structured Table for Reader Metrics */}
+            <div className="admin-card" style={{ padding: '0', overflow: 'hidden', borderRadius: '16px', border: '1.5px solid #E2E8F0', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)' }}>
+              <div style={{ padding: '18px 24px', background: '#F8FAFC', borderBottom: '1.5px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+                <div>
+                  <h3 style={{ fontSize: '16px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
+                    Оқырмандардың жалпы көрсеткіштері
+                  </h3>
+                  <p style={{ fontSize: '13px', color: 'var(--text-mid)', margin: '2px 0 0 0' }}>
+                    Платформадағы тіркелген қолданушылардың статусы мен үлесі
+                  </p>
                 </div>
-                <div style={{ fontSize: '30px', fontWeight: 900, color: 'var(--text-dark)' }}>{totalReaders}</div>
-                <div style={{ fontSize: '12px', color: '#16A34A', marginTop: '6px', fontWeight: 600 }}>
-                  100% тіркелген база
+                <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--blue)', background: 'rgba(0, 84, 148, 0.08)', padding: '6px 14px', borderRadius: '20px' }}>
+                  Барлығы: {totalReaders} оқырман
                 </div>
               </div>
 
-              <div className="admin-card" style={{ padding: '22px 24px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-                  <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-mid)' }}>Премиум оқырмандар</span>
-                  <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'rgba(239, 126, 0, 0.12)', color: 'var(--orange)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                    </svg>
-                  </div>
-                </div>
-                <div style={{ fontSize: '30px', fontWeight: 900, color: 'var(--text-dark)' }}>{premiumReadersCount}</div>
-                <div style={{ fontSize: '12px', color: 'var(--orange)', marginTop: '6px', fontWeight: 700 }}>
-                  {totalReaders > 0 ? Math.round((premiumReadersCount / totalReaders) * 100) : 0}% жалпы оқырманнан
-                </div>
-              </div>
+              <div style={{ overflowX: 'auto' }}>
+                <table className="admin-table" style={{ width: '100%', margin: 0 }}>
+                  <thead>
+                    <tr>
+                      <th style={{ padding: '14px 20px' }}>Көрсеткіш атауы</th>
+                      <th style={{ padding: '14px 20px', textAlign: 'center' }}>Саны</th>
+                      <th style={{ padding: '14px 20px', textAlign: 'center' }}>Үлесі (%)</th>
+                      <th style={{ padding: '14px 20px' }}>Сипаттамасы</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td style={{ padding: '16px 20px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(0, 84, 148, 0.1)', color: 'var(--blue)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                              <circle cx="9" cy="7" r="4"></circle>
+                            </svg>
+                          </div>
+                          <span style={{ fontWeight: 800, color: 'var(--text-dark)', fontSize: '14px' }}>Барлық оқырмандар</span>
+                        </div>
+                      </td>
+                      <td style={{ padding: '16px 20px', textAlign: 'center' }}>
+                        <span style={{ fontSize: '18px', fontWeight: 900, color: 'var(--blue)' }}>{totalReaders}</span>
+                      </td>
+                      <td style={{ padding: '16px 20px', textAlign: 'center' }}>
+                        <span style={{ background: '#E0F2FE', color: '#0369A1', padding: '4px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: 800 }}>
+                          100%
+                        </span>
+                      </td>
+                      <td style={{ padding: '16px 20px', color: '#64748B', fontSize: '13px' }}>
+                        Жүйедегі жалпы тіркелген қолданушылар базасы
+                      </td>
+                    </tr>
 
-              <div className="admin-card" style={{ padding: '22px 24px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-                  <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-mid)' }}>Стандарт</span>
-                  <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'rgba(100, 116, 139, 0.12)', color: '#475569', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                      <circle cx="12" cy="7" r="4"></circle>
-                    </svg>
-                  </div>
-                </div>
-                <div style={{ fontSize: '30px', fontWeight: 900, color: 'var(--text-dark)' }}>{freeReadersCount}</div>
-                <div style={{ fontSize: '12px', color: '#64748B', marginTop: '6px', fontWeight: 600 }}>
-                  {totalReaders > 0 ? Math.round((freeReadersCount / totalReaders) * 100) : 0}% тегін режимде
-                </div>
-              </div>
+                    <tr>
+                      <td style={{ padding: '16px 20px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(239, 126, 0, 0.12)', color: 'var(--orange)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                            </svg>
+                          </div>
+                          <span style={{ fontWeight: 800, color: 'var(--text-dark)', fontSize: '14px' }}>Премиум оқырмандар</span>
+                        </div>
+                      </td>
+                      <td style={{ padding: '16px 20px', textAlign: 'center' }}>
+                        <span style={{ fontSize: '18px', fontWeight: 900, color: 'var(--orange)' }}>{premiumReadersCount}</span>
+                      </td>
+                      <td style={{ padding: '16px 20px', textAlign: 'center' }}>
+                        <span style={{ background: '#FEF3C7', color: '#B45309', padding: '4px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: 800 }}>
+                          {totalReaders > 0 ? Math.round((premiumReadersCount / totalReaders) * 100) : 0}%
+                        </span>
+                      </td>
+                      <td style={{ padding: '16px 20px', color: '#64748B', fontSize: '13px' }}>
+                        Белсенді ақылы немесе промокодтық жазылымы барлар
+                      </td>
+                    </tr>
 
-              <div className="admin-card" style={{ padding: '22px 24px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-                  <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-mid)' }}>Бұғатталған оқырмандар</span>
-                  <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'rgba(239, 68, 68, 0.12)', color: '#EF4444', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
-                    </svg>
-                  </div>
-                </div>
-                <div style={{ fontSize: '30px', fontWeight: 900, color: 'var(--text-dark)' }}>{blockedReadersCount}</div>
-                <div style={{ fontSize: '12px', color: '#EF4444', marginTop: '6px', fontWeight: 600 }}>
-                  Шектелген аккаунттар
-                </div>
+                    <tr>
+                      <td style={{ padding: '16px 20px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(100, 116, 139, 0.12)', color: '#475569', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                              <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                          </div>
+                          <span style={{ fontWeight: 800, color: 'var(--text-dark)', fontSize: '14px' }}>Стандарт</span>
+                        </div>
+                      </td>
+                      <td style={{ padding: '16px 20px', textAlign: 'center' }}>
+                        <span style={{ fontSize: '18px', fontWeight: 900, color: '#334155' }}>{freeReadersCount}</span>
+                      </td>
+                      <td style={{ padding: '16px 20px', textAlign: 'center' }}>
+                        <span style={{ background: '#F1F5F9', color: '#475569', padding: '4px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: 800 }}>
+                          {totalReaders > 0 ? Math.round((freeReadersCount / totalReaders) * 100) : 0}%
+                        </span>
+                      </td>
+                      <td style={{ padding: '16px 20px', color: '#64748B', fontSize: '13px' }}>
+                        Тегін кітаптарды оқитын стандартты қолданушылар
+                      </td>
+                    </tr>
+
+                    <tr>
+                      <td style={{ padding: '16px 20px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(239, 68, 68, 0.12)', color: '#EF4444', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                              <circle cx="12" cy="12" r="10"></circle>
+                              <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
+                            </svg>
+                          </div>
+                          <span style={{ fontWeight: 800, color: 'var(--text-dark)', fontSize: '14px' }}>Бұғатталған оқырмандар</span>
+                        </div>
+                      </td>
+                      <td style={{ padding: '16px 20px', textAlign: 'center' }}>
+                        <span style={{ fontSize: '18px', fontWeight: 900, color: '#EF4444' }}>{blockedReadersCount}</span>
+                      </td>
+                      <td style={{ padding: '16px 20px', textAlign: 'center' }}>
+                        <span style={{ background: '#FEE2E2', color: '#DC2626', padding: '4px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: 800 }}>
+                          {totalReaders > 0 ? Math.round((blockedReadersCount / totalReaders) * 100) : 0}%
+                        </span>
+                      </td>
+                      <td style={{ padding: '16px 20px', color: '#64748B', fontSize: '13px' }}>
+                        Әкімшілік тарапынан шектелген аккаунттар
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
 
