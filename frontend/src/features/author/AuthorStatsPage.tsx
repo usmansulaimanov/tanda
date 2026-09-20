@@ -582,16 +582,18 @@ export const AuthorStatsPage: React.FC = () => {
             </div>
 
             <div style={{ background: 'rgba(255,255,255,0.12)', borderRadius: '16px', padding: '16px 20px' }}>
-              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)', fontWeight: 600 }}>Жалпы тыңдалған уақыт</div>
+              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)', fontWeight: 600 }}>Тыңдалған уақыт</div>
               <div style={{ fontSize: '24px', fontWeight: 900, marginTop: '4px' }}>
-                {royalty.totalMinutes > 0
-                  ? `${royalty.totalMinutes.toLocaleString()} мин`
-                  : royalty.totalSeconds > 0
-                  ? `${royalty.totalSeconds} сек`
+                {dailyAnalytics.totalSeconds >= 60
+                  ? `${Math.floor(dailyAnalytics.totalSeconds / 60)} мин`
+                  : dailyAnalytics.totalSeconds > 0
+                  ? `${dailyAnalytics.totalSeconds} сек`
                   : '0 мин'}
               </div>
               <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.7)', marginTop: '2px' }}>
-                {royalty.totalMinutes > 0 ? `≈ ${(royalty.totalMinutes / 60).toFixed(1)} сағат` : 'Нақты уақыт бойынша'}
+                {dailyAnalytics.totalSeconds >= 3600
+                  ? `≈ ${(dailyAnalytics.totalSeconds / 3600).toFixed(1)} сағат`
+                  : `${dailyAnalytics.totalSeconds} секунд`}
               </div>
             </div>
 
@@ -606,9 +608,9 @@ export const AuthorStatsPage: React.FC = () => {
             </div>
 
             <div style={{ background: 'rgba(255,255,255,0.12)', borderRadius: '16px', padding: '16px 20px' }}>
-              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)', fontWeight: 600 }}>Осы айдағы роялти табысы</div>
+              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)', fontWeight: 600 }}>{formatMonthLabel(selectedMonthKey)} роялти табысы</div>
               <div style={{ fontSize: '24px', fontWeight: 900, marginTop: '4px', color: '#86EFAC' }}>
-                {royalty.estimatedEarned.toLocaleString()} ₸
+                {Number((Math.floor(dailyAnalytics.totalSeconds / 60) * royalty.ratePerMinute).toFixed(2)).toLocaleString()} ₸
               </div>
             </div>
           </div>
