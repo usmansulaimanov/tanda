@@ -345,30 +345,30 @@ export const AdminStatsPage: React.FC = () => {
             }}
           >
             <div style={{ background: 'rgba(255, 255, 255, 0.05)', padding: '16px', borderRadius: '14px' }}>
-              <div style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 600 }}>Барлық оқырмандар</div>
+              <div style={{ fontSize: '13px', color: '#94A3B8', fontWeight: 700 }}>Оқырмандар</div>
               <div style={{ fontSize: '24px', fontWeight: 900, color: '#38BDF8', marginTop: '4px' }}>
                 {isLoadingReaders ? '...' : totalReaders}
               </div>
             </div>
 
             <div style={{ background: 'rgba(255, 255, 255, 0.05)', padding: '16px', borderRadius: '14px' }}>
-              <div style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 600 }}>Премиум оқырмандар</div>
-              <div style={{ fontSize: '24px', fontWeight: 900, color: '#FBBF24', marginTop: '4px' }}>
-                {premiumReadersCount}
-              </div>
-            </div>
-
-            <div style={{ background: 'rgba(255, 255, 255, 0.05)', padding: '16px', borderRadius: '14px' }}>
-              <div style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 600 }}>Барлық кітаптар</div>
+              <div style={{ fontSize: '13px', color: '#94A3B8', fontWeight: 700 }}>Кітаптар</div>
               <div style={{ fontSize: '24px', fontWeight: 900, color: '#4ADE80', marginTop: '4px' }}>
                 {totalBooksCount}
               </div>
             </div>
 
             <div style={{ background: 'rgba(255, 255, 255, 0.05)', padding: '16px', borderRadius: '14px' }}>
-              <div style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 600 }}>Барлық авторлар</div>
+              <div style={{ fontSize: '13px', color: '#94A3B8', fontWeight: 700 }}>Авторлар</div>
               <div style={{ fontSize: '24px', fontWeight: 900, color: '#C084FC', marginTop: '4px' }}>
                 {uniqueAuthorsCount}
+              </div>
+            </div>
+
+            <div style={{ background: 'rgba(255, 255, 255, 0.05)', padding: '16px', borderRadius: '14px' }}>
+              <div style={{ fontSize: '13px', color: '#94A3B8', fontWeight: 700 }}>Подпискалар</div>
+              <div style={{ fontSize: '24px', fontWeight: 900, color: '#FBBF24', marginTop: '4px' }}>
+                {premiumReadersCount}
               </div>
             </div>
           </div>
