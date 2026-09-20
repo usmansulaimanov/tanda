@@ -618,24 +618,6 @@ export const AdminStatsPage: React.FC = () => {
                         </span>
                       </td>
                     </tr>
-
-                    <tr>
-                      <td style={{ padding: '16px 20px', fontWeight: 800, color: '#475569', background: '#F8FAFC', fontSize: '13px' }}>
-                        Сипаттамасы
-                      </td>
-                      <td style={{ padding: '16px 20px', color: '#64748B', fontSize: '13px', lineHeight: 1.4 }}>
-                        Жүйедегі жалпы тіркелген қолданушылар базасы
-                      </td>
-                      <td style={{ padding: '16px 20px', color: '#64748B', fontSize: '13px', lineHeight: 1.4 }}>
-                        Белсенді ақылы немесе промокодтық жазылымы барлар
-                      </td>
-                      <td style={{ padding: '16px 20px', color: '#64748B', fontSize: '13px', lineHeight: 1.4 }}>
-                        Тегін кітаптарды оқитын стандартты қолданушылар
-                      </td>
-                      <td style={{ padding: '16px 20px', color: '#64748B', fontSize: '13px', lineHeight: 1.4 }}>
-                        Әкімшілік тарапынан шектелген аккаунттар
-                      </td>
-                    </tr>
                   </tbody>
                 </table>
               </div>
