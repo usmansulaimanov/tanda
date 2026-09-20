@@ -37,7 +37,9 @@ export const BookFormPage: React.FC = () => {
 
   const [title, setTitle] = useState('');
   const [author, setAuthor] = useState('');
-  const [category, setCategory] = useState('Көркем әдебиет');
+  const [categories, setCategories] = useState<string[]>(['Көркем әдебиет']);
+  const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
+  const categoryDropdownRef = useRef<HTMLDivElement>(null);
   const [pages, setPages] = useState<string>('');
   const [description, setDescription] = useState('');
   const [isFree, setIsFree] = useState(true);
@@ -52,10 +54,27 @@ export const BookFormPage: React.FC = () => {
   const [audioChapters, setAudioChapters] = useState<AudioChapter[]>([]);
 
   useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (categoryDropdownRef.current && !categoryDropdownRef.current.contains(event.target as Node)) {
+        setCategoryDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
     if (existingBook) {
       setTitle(existingBook.title);
       setAuthor(existingBook.author);
-      setCategory(existingBook.category);
+      if (existingBook.categories && Array.isArray(existingBook.categories) && existingBook.categories.length > 0) {
+        setCategories(existingBook.categories);
+      } else if (existingBook.category) {
+        const split = existingBook.category.split(',').map((c) => c.trim()).filter(Boolean);
+        setCategories(split.length > 0 ? split : ['Көркем әдебиет']);
+      } else {
+        setCategories(['Көркем әдебиет']);
+      }
       setPages(existingBook.pages ? String(existingBook.pages) : '');
       setDescription(existingBook.description);
       setIsFree(existingBook.isFree);
@@ -147,6 +166,18 @@ export const BookFormPage: React.FC = () => {
     reader.readAsDataURL(file);
   };
 
+  const toggleCategory = (cat: string) => {
+    if (categories.includes(cat)) {
+      if (categories.length === 1) {
+        showToast('Кем дегенде бір жанр таңдалуы керек', 'info');
+        return;
+      }
+      setCategories(categories.filter((c) => c !== cat));
+    } else {
+      setCategories([...categories, cat]);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -158,16 +189,23 @@ export const BookFormPage: React.FC = () => {
       showToast('Автордың атын енгізіңіз', 'error');
       return;
     }
+    if (categories.length === 0) {
+      showToast('Кем дегенде бір жанрды таңдаңыз', 'error');
+      return;
+    }
 
     const pagesNum = parseInt(pages, 10);
     const validPages = isNaN(pagesNum) || pagesNum <= 0 ? (hasAudio ? null : 100) : pagesNum;
 
     const firstAudioUrl = audioChapters.find((ch) => ch.audioUrl?.trim())?.audioUrl || audioChapters[0]?.audioUrl || '';
 
+    const categoryString = categories.join(', ');
+
     const bookData = {
       title: title.trim(),
       author: author.trim(),
-      category,
+      category: categoryString,
+      categories: categories,
       pages: validPages,
       description: description.trim(),
       isFree,
@@ -327,17 +365,191 @@ export const BookFormPage: React.FC = () => {
                 marginBottom: '20px',
               }}
             >
-              <div className="form-group" style={{ margin: 0 }}>
-                <label className="form-label">Жанры / Санаты:</label>
-                <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="form-select"
+              <div className="form-group" style={{ margin: 0, position: 'relative' }} ref={categoryDropdownRef}>
+                <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>Жанры / Санаты: <span className="req">*</span></span>
+                  {categories.length > 0 && (
+                    <span style={{ fontSize: '11px', color: '#005494', fontWeight: 700 }}>
+                      Таңдалды: {categories.length}
+                    </span>
+                  )}
+                </label>
+
+                {/* Multi-select trigger */}
+                <div
+                  onClick={() => setCategoryDropdownOpen(!categoryDropdownOpen)}
+                  style={{
+                    minHeight: '42px',
+                    padding: '6px 12px',
+                    background: '#FFFFFF',
+                    border: categoryDropdownOpen ? '1.5px solid #005494' : '1.5px solid #CBD5E1',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '8px',
+                    boxShadow: categoryDropdownOpen ? '0 0 0 3px rgba(0, 84, 148, 0.12)' : 'none',
+                    transition: 'all 0.15s ease',
+                  }}
                 >
-                  {CATEGORIES.map((c) => (
-                    <option key={c} value={c}>{c}</option>
-                  ))}
-                </select>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center', flex: 1 }}>
+                    {categories.length === 0 ? (
+                      <span style={{ color: '#94A3B8', fontSize: '13px' }}>Жанрларды таңдаңыз...</span>
+                    ) : (
+                      categories.map((c) => (
+                        <span
+                          key={c}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            background: '#EFF6FF',
+                            color: '#005494',
+                            border: '1px solid #BFDBFE',
+                            borderRadius: '6px',
+                            padding: '2px 8px',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleCategory(c);
+                          }}
+                        >
+                          {c}
+                          <span
+                            title="Өшіру"
+                            style={{
+                              fontSize: '14px',
+                              lineHeight: '1',
+                              cursor: 'pointer',
+                              color: '#005494',
+                              marginLeft: '2px',
+                              fontWeight: 700,
+                            }}
+                          >
+                            &times;
+                          </span>
+                        </span>
+                      ))
+                    )}
+                  </div>
+
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    style={{
+                      color: '#64748B',
+                      flexShrink: 0,
+                      transform: categoryDropdownOpen ? 'rotate(180deg)' : 'none',
+                      transition: 'transform 0.2s ease',
+                    }}
+                  >
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </div>
+
+                {/* Dropdown Menu */}
+                {categoryDropdownOpen && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: 'calc(100% + 4px)',
+                      left: 0,
+                      right: 0,
+                      background: '#FFFFFF',
+                      border: '1.5px solid #CBD5E1',
+                      borderRadius: '10px',
+                      boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.05)',
+                      zIndex: 60,
+                      maxHeight: '260px',
+                      overflowY: 'auto',
+                      padding: '6px',
+                    }}
+                  >
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))', gap: '4px' }}>
+                      {CATEGORIES.map((c) => {
+                        const isSelected = categories.includes(c);
+                        return (
+                          <div
+                            key={c}
+                            onClick={() => toggleCategory(c)}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px',
+                              padding: '8px 10px',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                              background: isSelected ? '#EFF6FF' : 'transparent',
+                              transition: 'background 0.15s ease',
+                              fontSize: '13px',
+                              color: isSelected ? '#005494' : '#1E293B',
+                              fontWeight: isSelected ? 700 : 500,
+                            }}
+                            onMouseEnter={(e) => {
+                              if (!isSelected) e.currentTarget.style.background = '#F8FAFC';
+                            }}
+                            onMouseLeave={(e) => {
+                              if (!isSelected) e.currentTarget.style.background = 'transparent';
+                            }}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() => {}} // handled by parent onClick
+                              style={{
+                                cursor: 'pointer',
+                                accentColor: '#005494',
+                                width: '15px',
+                                height: '15px',
+                              }}
+                            />
+                            <span>{c}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '8px 8px 4px',
+                        borderTop: '1px solid #E2E8F0',
+                        marginTop: '6px',
+                      }}
+                    >
+                      <span style={{ fontSize: '12px', color: '#64748B' }}>
+                        Таңдалды: <strong>{categories.length}</strong>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setCategoryDropdownOpen(false)}
+                        style={{
+                          background: '#005494',
+                          color: '#FFFFFF',
+                          border: 'none',
+                          borderRadius: '6px',
+                          padding: '4px 12px',
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        Дайын
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="form-group" style={{ margin: 0 }}>
@@ -503,7 +715,7 @@ export const BookFormPage: React.FC = () => {
                       {(!coverImage || coverImageError) && (
                         <>
                           <div style={{ fontSize: '8px', fontWeight: 800, lineHeight: 1.1, textTransform: 'uppercase', letterSpacing: '0.04em', opacity: 0.9, position: 'relative', zIndex: 2 }}>
-                            {category}
+                            {categories.join(', ') || 'Көркем әдебиет'}
                           </div>
                           <div style={{ fontSize: '11px', fontWeight: 900, lineHeight: 1.2, margin: 'auto 0', position: 'relative', zIndex: 2 }}>
                             {title || 'Кітап атауы'}

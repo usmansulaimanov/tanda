@@ -126,6 +126,7 @@ export const useBookStore = create<BookState>()(
           title: newBook.title?.trim() || 'Атаусыз кітап',
           author: newBook.author?.trim() || 'Белгісіз автор',
           category: newBook.category || 'Көркем әдебиет',
+          categories: newBook.categories || (newBook.category ? newBook.category.split(',').map((s) => s.trim()).filter(Boolean) : ['Көркем әдебиет']),
           pages: newBook.pages ? Number(newBook.pages) : null,
           hasAudio: Boolean(newBook.hasAudio),
           audioNarrator: newBook.audioNarrator?.trim() || '',

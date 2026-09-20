@@ -10,6 +10,7 @@ export interface Book {
   title: string;
   author: string;
   category: string;
+  categories?: string[];
   pages: number | null;
   hasAudio: boolean;
   audioNarrator?: string;

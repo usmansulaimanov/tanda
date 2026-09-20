@@ -39,8 +39,13 @@ export const CatalogPage: React.FC = () => {
   const filteredBooks = useMemo<Book[]>(() => {
     return activeBooks.filter((book: Book) => {
       // Category filter
-      if (selectedCat !== 'Бәрі' && book.category !== selectedCat) {
-        return false;
+      if (selectedCat !== 'Бәрі') {
+        const bookCats = book.categories && book.categories.length > 0
+          ? book.categories
+          : (book.category ? book.category.split(',').map((c) => c.trim()) : []);
+        if (!bookCats.includes(selectedCat)) {
+          return false;
+        }
       }
       // Format filter
       if (format === 'audio' && !book.audioUrl && (!book.audioChapters || book.audioChapters.length === 0)) {

@@ -135,8 +135,13 @@ export const LandingPage: React.FC = () => {
   // Filtered books for catalog grid
   const filteredBooks = useMemo(() => {
     return activeBooks.filter((book) => {
-      if (selectedCat !== 'Бәрі' && book.category !== selectedCat) {
-        return false;
+      if (selectedCat !== 'Бәрі') {
+        const bookCats = book.categories && book.categories.length > 0
+          ? book.categories
+          : (book.category ? book.category.split(',').map((c) => c.trim()) : []);
+        if (!bookCats.includes(selectedCat)) {
+          return false;
+        }
       }
       if (search.trim()) {
         const q = search.toLowerCase();
@@ -155,7 +160,12 @@ export const LandingPage: React.FC = () => {
     const counts: Record<string, number> = { 'Бәрі': activeBooks.length };
     CATEGORIES.forEach((cat) => {
       if (cat !== 'Бәрі') {
-        counts[cat] = activeBooks.filter((b) => b.category === cat).length;
+        counts[cat] = activeBooks.filter((b) => {
+          const bookCats = b.categories && b.categories.length > 0
+            ? b.categories
+            : (b.category ? b.category.split(',').map((c) => c.trim()) : []);
+          return bookCats.includes(cat);
+        }).length;
       }
     });
     return counts;
