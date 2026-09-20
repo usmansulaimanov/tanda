@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useToastStore } from '../../store/useToastStore';
-import { resizeAndCompressImage } from '../../utils/imageUtils';
+import { processAvatarImage } from '../../utils/imageUtils';
 
 const formatPhoneNumber = (val: string): string => {
   if (!val) return '';
@@ -106,7 +106,7 @@ export const SettingsPage: React.FC = () => {
 
     setIsUploadingAvatar(true);
     try {
-      const dataUrl = await resizeAndCompressImage(file, 400, 0.85);
+      const dataUrl = await processAvatarImage(file, 400, 0.9);
       const res = await updateAvatar(dataUrl);
       if (res.success) {
         showToast('Профиль фотосы сәтті жаңартылды!', 'success');
@@ -466,7 +466,7 @@ export const SettingsPage: React.FC = () => {
                 width: '70px',
                 height: '70px',
                 borderRadius: '50%',
-                background: user.avatarUrl ? '#F1F5F9' : 'linear-gradient(135deg, var(--blue) 0%, var(--orange) 100%)',
+                background: user.avatarUrl ? '#FFFFFF' : 'linear-gradient(135deg, var(--blue) 0%, var(--orange) 100%)',
                 color: '#FFFFFF',
                 display: 'flex',
                 alignItems: 'center',
@@ -484,7 +484,7 @@ export const SettingsPage: React.FC = () => {
                 <img
                   src={user.avatarUrl}
                   alt={user.name || 'Avatar'}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover', display: 'block' }}
                   referrerPolicy="no-referrer"
                 />
               ) : (
