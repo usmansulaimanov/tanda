@@ -1031,7 +1031,7 @@ export const BookFormPage: React.FC = () => {
                                 type="text"
                                 value={ch.audioUrl || ''}
                                 onChange={(e) => updateChapter(idx, 'audioUrl', e.target.value)}
-                                placeholder="Аудио немесе YouTube сілтемесі (https://youtu.be/...)"
+                                placeholder="Ютубтан сілтеме"
                                 className="form-input"
                                 style={{
                                   width: '100%',
