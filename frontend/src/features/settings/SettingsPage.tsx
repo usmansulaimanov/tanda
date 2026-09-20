@@ -998,9 +998,8 @@ export const SettingsPage: React.FC = () => {
               >
                 {/* Birth Date */}
                 <div className="form-group" style={{ margin: 0 }}>
-                  <label className="form-label" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span>Туған күні</span>
-                    <span style={{ fontSize: '11px', color: 'var(--blue)', fontWeight: 700 }}>🎂 Құттықтау хат</span>
+                  <label className="form-label">
+                    Туған күні
                   </label>
                   <input
                     type="date"
@@ -1012,9 +1011,6 @@ export const SettingsPage: React.FC = () => {
                       cursor: 'pointer',
                     }}
                   />
-                  <span style={{ display: 'block', fontSize: '12px', color: '#64748B', marginTop: '6px' }}>
-                    Туған күніңізде Tanda-дан арнайы құттықтау хат келеді
-                  </span>
                 </div>
 
                 {/* Gender */}
