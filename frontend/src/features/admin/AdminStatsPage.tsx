@@ -568,86 +568,63 @@ export const AdminStatsPage: React.FC = () => {
             </div>
 
             {/* Gender Distribution Card */}
-            <div className="admin-card" style={{ padding: '28px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
-                <div>
-                  <h3 style={{ fontSize: '18px', fontWeight: 900, color: 'var(--text-dark)', margin: '0 0 4px 0' }}>
-                    👥 Жынысы бойынша оқырмандар бөлінісі
-                  </h3>
-                  <p style={{ fontSize: '13px', color: 'var(--text-mid)', margin: 0 }}>
-                    Профильдерде көрсетілген жыныс көрсеткіштері мен статистикасы
-                  </p>
-                </div>
-                <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--blue)', background: 'rgba(0, 84, 148, 0.08)', padding: '6px 14px', borderRadius: '20px' }}>
-                  Барлығы: {totalReaders} оқырман
-                </div>
+            <div className="admin-card" style={{ padding: '0', overflow: 'hidden', borderRadius: '16px', border: '1.5px solid #E2E8F0', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)' }}>
+              <div style={{ padding: '18px 24px', background: '#F8FAFC', borderBottom: '1.5px solid #E2E8F0' }}>
+                <h3 style={{ fontSize: '16px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
+                  Жынысы бойынша оқырмандар бөлінісі
+                </h3>
               </div>
 
-              {/* Progress visual bar */}
-              <div style={{ height: '18px', borderRadius: '10px', background: '#F1F5F9', overflow: 'hidden', display: 'flex', marginBottom: '24px', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.1)' }}>
-                <div style={{ width: `${femalePct}%`, background: '#EC4899', transition: 'width 0.4s ease' }} title={`Әйелдер: ${femaleCount} (${femalePct}%)`} />
-                <div style={{ width: `${malePct}%`, background: '#0284C7', transition: 'width 0.4s ease' }} title={`Ерлер: ${maleCount} (${malePct}%)`} />
-                <div style={{ width: `${unspecifiedGenderPct}%`, background: '#94A3B8', transition: 'width 0.4s ease' }} title={`Көрсетілмеген: ${unspecifiedGenderCount} (${unspecifiedGenderPct}%)`} />
-              </div>
+              <div style={{ overflowX: 'auto' }}>
+                <table className="admin-table" style={{ width: '100%', margin: 0, minWidth: '600px', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr>
+                      <th style={{ width: '25%', padding: '16px 20px', color: '#0F172A', fontSize: '14px', fontWeight: 800, borderRight: '2.5px solid #94A3B8' }}>Барлығы</th>
+                      <th style={{ width: '25%', padding: '16px 20px', color: '#0F172A', fontSize: '14px', fontWeight: 800, borderRight: '1px solid #E2E8F0' }}>Әйелдер</th>
+                      <th style={{ width: '25%', padding: '16px 20px', color: '#0F172A', fontSize: '14px', fontWeight: 800, borderRight: '1px solid #E2E8F0' }}>Ерлер</th>
+                      <th style={{ width: '25%', padding: '16px 20px', color: '#0F172A', fontSize: '14px', fontWeight: 800 }}>Көрсетілмеген</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td style={{ padding: '16px 20px', borderRight: '2.5px solid #94A3B8' }}>
+                        <span style={{ fontSize: '20px', fontWeight: 900, color: '#0F172A' }}>{totalReaders}</span>
+                      </td>
+                      <td style={{ padding: '16px 20px', borderRight: '1px solid #E2E8F0' }}>
+                        <span style={{ fontSize: '20px', fontWeight: 900, color: '#0F172A' }}>{femaleCount}</span>
+                      </td>
+                      <td style={{ padding: '16px 20px', borderRight: '1px solid #E2E8F0' }}>
+                        <span style={{ fontSize: '20px', fontWeight: 900, color: '#0F172A' }}>{maleCount}</span>
+                      </td>
+                      <td style={{ padding: '16px 20px' }}>
+                        <span style={{ fontSize: '20px', fontWeight: 900, color: '#0F172A' }}>{unspecifiedGenderCount}</span>
+                      </td>
+                    </tr>
 
-              {/* Breakdown 3 columns */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
-                {/* Women */}
-                <div style={{ border: '1.5px solid #FBCFE8', background: '#FDF2F8', borderRadius: '16px', padding: '20px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-                    <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#EC4899', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800 }}>
-                      ♀
-                    </div>
-                    <div>
-                      <div style={{ fontSize: '15px', fontWeight: 800, color: '#9D174D' }}>Әйелдер</div>
-                      <div style={{ fontSize: '12px', color: '#BE185D' }}>Қыз-келіншектер</div>
-                    </div>
-                  </div>
-                  <div style={{ fontSize: '28px', fontWeight: 900, color: '#9D174D' }}>
-                    {femaleCount} <span style={{ fontSize: '16px', fontWeight: 700, color: '#BE185D' }}>({femalePct}%)</span>
-                  </div>
-                  <div style={{ fontSize: '12px', color: '#BE185D', marginTop: '6px' }}>
-                    Әйел оқырмандар үлесі
-                  </div>
-                </div>
-
-                {/* Men */}
-                <div style={{ border: '1.5px solid #BAE6FD', background: '#F0F9FF', borderRadius: '16px', padding: '20px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-                    <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#0284C7', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800 }}>
-                      ♂
-                    </div>
-                    <div>
-                      <div style={{ fontSize: '15px', fontWeight: 800, color: '#0369A1' }}>Ерлер (Еркектер)</div>
-                      <div style={{ fontSize: '12px', color: '#0284C7' }}>Ер азаматтар</div>
-                    </div>
-                  </div>
-                  <div style={{ fontSize: '28px', fontWeight: 900, color: '#0369A1' }}>
-                    {maleCount} <span style={{ fontSize: '16px', fontWeight: 700, color: '#0284C7' }}>({malePct}%)</span>
-                  </div>
-                  <div style={{ fontSize: '12px', color: '#0284C7', marginTop: '6px' }}>
-                    Ер оқырмандар үлесі
-                  </div>
-                </div>
-
-                {/* Unspecified */}
-                <div style={{ border: '1.5px solid #E2E8F0', background: '#F8FAFC', borderRadius: '16px', padding: '20px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-                    <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#64748B', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800 }}>
-                      ?
-                    </div>
-                    <div>
-                      <div style={{ fontSize: '15px', fontWeight: 800, color: '#334155' }}>Көрсетілмеген</div>
-                      <div style={{ fontSize: '12px', color: '#64748B' }}>Жынысын белгілемегендер</div>
-                    </div>
-                  </div>
-                  <div style={{ fontSize: '28px', fontWeight: 900, color: '#334155' }}>
-                    {unspecifiedGenderCount} <span style={{ fontSize: '16px', fontWeight: 700, color: '#64748B' }}>({unspecifiedGenderPct}%)</span>
-                  </div>
-                  <div style={{ fontSize: '12px', color: '#64748B', marginTop: '6px' }}>
-                    Баптауларда белгіленбеген
-                  </div>
-                </div>
+                    <tr>
+                      <td style={{ padding: '16px 20px', borderRight: '2.5px solid #94A3B8' }}>
+                        <span style={{ color: '#0F172A', fontSize: '14px', fontWeight: 800 }}>
+                          100%
+                        </span>
+                      </td>
+                      <td style={{ padding: '16px 20px', borderRight: '1px solid #E2E8F0' }}>
+                        <span style={{ color: '#0F172A', fontSize: '14px', fontWeight: 800 }}>
+                          {femalePct}%
+                        </span>
+                      </td>
+                      <td style={{ padding: '16px 20px', borderRight: '1px solid #E2E8F0' }}>
+                        <span style={{ color: '#0F172A', fontSize: '14px', fontWeight: 800 }}>
+                          {malePct}%
+                        </span>
+                      </td>
+                      <td style={{ padding: '16px 20px' }}>
+                        <span style={{ color: '#0F172A', fontSize: '14px', fontWeight: 800 }}>
+                          {unspecifiedGenderPct}%
+                        </span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
 
