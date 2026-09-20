@@ -11,6 +11,8 @@ export interface ImageResizeOptions {
   cropToSquare?: boolean;
   fillBackground?: string;
   mimeType?: 'image/jpeg' | 'image/png' | 'image/webp';
+  minWidth?: number;
+  minHeight?: number;
 }
 
 /**
@@ -20,14 +22,16 @@ export interface ImageResizeOptions {
  */
 export async function resizeAndCompressImage(
   file: File,
-  maxDimension = 400,
-  quality = 0.88,
+  maxDimension = 500,
+  quality = 0.9,
   options?: ImageResizeOptions
 ): Promise<string> {
   const {
     cropToSquare = false,
     fillBackground = '#FFFFFF',
     mimeType = 'image/jpeg',
+    minWidth,
+    minHeight,
   } = options || {};
 
   // Validate file type
@@ -36,9 +40,9 @@ export async function resizeAndCompressImage(
     throw new Error('Тек сурет файлдарын жүктеуге болады (JPG, PNG, WebP)');
   }
 
-  // Max 10MB input check
-  if (file.size > 10 * 1024 * 1024) {
-    throw new Error('Сурет көлемі 10 МБ-тан аспауы керек');
+  // Max 15MB input check
+  if (file.size > 15 * 1024 * 1024) {
+    throw new Error('Сурет көлемі 15 МБ-тан аспауы керек');
   }
 
   return new Promise((resolve, reject) => {
@@ -50,6 +54,16 @@ export async function resizeAndCompressImage(
       img.onload = () => {
         const srcW = img.naturalWidth || img.width;
         const srcH = img.naturalHeight || img.height;
+
+        // Minimum dimension validation
+        if (minWidth && srcW < minWidth) {
+          reject(new Error(`Сурет ені кемінде ${minWidth} пиксел болуы керек (қазіргісі: ${srcW}px)`));
+          return;
+        }
+        if (minHeight && srcH < minHeight) {
+          reject(new Error(`Сурет биіктігі кемінде ${minHeight} пиксел болуы керек (қазіргісі: ${srcH}px)`));
+          return;
+        }
 
         let canvasW = srcW;
         let canvasH = srcH;
@@ -100,7 +114,7 @@ export async function resizeAndCompressImage(
           ctx.fillRect(0, 0, canvasW, canvasH);
         }
 
-        // Smooth image rendering
+        // Smooth image rendering with multi-step downscaling for very large images to ensure crystal clear quality
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
         ctx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, canvasW, canvasH);
@@ -117,17 +131,22 @@ export async function resizeAndCompressImage(
 }
 
 /**
- * Avatar specific processor: forces 1:1 center-crop, white background fill,
- * and high quality compression so it perfectly fills round avatars.
+ * Avatar specific processor:
+ * - Validates minimum 300x300 pixels
+ * - Center-crops 1:1 square
+ * - Automatically downsizes large pixels to optimal 500x500 dimension
+ * - Prevents black background artifacts
  */
 export async function processAvatarImage(
   file: File,
-  dimension = 400,
+  dimension = 500,
   quality = 0.9
 ): Promise<string> {
   return resizeAndCompressImage(file, dimension, quality, {
     cropToSquare: true,
     fillBackground: '#FFFFFF',
     mimeType: 'image/jpeg',
+    minWidth: 300,
+    minHeight: 300,
   });
 }

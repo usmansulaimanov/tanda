@@ -552,6 +552,12 @@ export const SettingsPage: React.FC = () => {
                 </span>
               )}
             </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
+              <span style={{ fontSize: '11px', fontWeight: 700, color: '#475569', background: '#F1F5F9', padding: '2px 8px', borderRadius: '6px' }}>
+                Фото өлшемі: 300×300 px және одан жоғары
+              </span>
+            </div>
           </div>
         </div>
 
