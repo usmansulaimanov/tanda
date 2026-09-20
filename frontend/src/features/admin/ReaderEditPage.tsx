@@ -75,6 +75,7 @@ export const ReaderEditPage: React.FC = () => {
   const [messageDays, setMessageDays] = useState(7);
   const [isMessageActive, setIsMessageActive] = useState(true);
   const [existingExpiresAt, setExistingExpiresAt] = useState<string | null>(null);
+  const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -368,28 +369,66 @@ export const ReaderEditPage: React.FC = () => {
             }}
           >
             <div
+              onClick={() => setIsAvatarModalOpen(true)}
+              title="Суретті ашып көру үшін басыңыз"
               style={{
-                width: '64px',
-                height: '64px',
+                position: 'relative',
+                width: '68px',
+                height: '68px',
                 borderRadius: '50%',
                 background: '#F1F5F9',
-                color: '#FFFFFF',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: '26px',
-                fontWeight: 900,
-                boxShadow: '0 6px 18px rgba(0, 84, 148, 0.25)',
+                boxShadow: '0 6px 18px rgba(0, 84, 148, 0.2)',
                 flexShrink: 0,
-                overflow: 'hidden',
-                border: '2px solid #E2E8F0',
+                cursor: 'pointer',
+                border: '2.5px solid #FFFFFF',
+                outline: '2px solid var(--blue)',
+                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
               }}
             >
-              <img
-                src={reader.avatarUrl || '/default-reader-avatar.jpg'}
-                alt={reader.name || 'Оқырман'}
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              />
+              <div
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  borderRadius: '50%',
+                  overflow: 'hidden',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <img
+                  src={reader.avatarUrl || '/default-reader-avatar.jpg'}
+                  alt={reader.name || 'Оқырман'}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              </div>
+
+              {/* Magnifying glass badge */}
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: '-2px',
+                  right: '-2px',
+                  width: '24px',
+                  height: '24px',
+                  borderRadius: '50%',
+                  background: 'var(--blue)',
+                  color: '#FFFFFF',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+                  border: '2px solid #FFFFFF',
+                }}
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+              </div>
             </div>
 
             <div style={{ minWidth: 0, flex: 1 }}>
@@ -746,6 +785,176 @@ export const ReaderEditPage: React.FC = () => {
         </div>
 
       </div>
+
+      {/* Avatar Preview Modal */}
+      {isAvatarModalOpen && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(13, 27, 42, 0.85)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1400,
+            padding: '24px',
+          }}
+          onClick={() => setIsAvatarModalOpen(false)}
+        >
+          <div
+            style={{
+              position: 'relative',
+              background: '#FFFFFF',
+              borderRadius: '24px',
+              maxWidth: '460px',
+              width: '100%',
+              overflow: 'hidden',
+              boxShadow: '0 24px 60px rgba(0, 0, 0, 0.35)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div
+              style={{
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '16px 22px',
+                borderBottom: '1px solid #F1F5F9',
+                boxSizing: 'border-box',
+              }}
+            >
+              <div>
+                <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: 'var(--text-dark)' }}>
+                  {reader.name || 'Оқырман'}
+                </h3>
+                <p style={{ margin: '2px 0 0', fontSize: '12px', color: 'var(--text-mid)' }}>
+                  Оқырманның профиль суреті
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsAvatarModalOpen(false)}
+                title="Жабу"
+                style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '50%',
+                  border: 'none',
+                  background: '#F1F5F9',
+                  color: '#64748B',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s',
+                }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+
+            {/* Modal Image Body */}
+            <div
+              style={{
+                width: '100%',
+                padding: '24px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: '#F8FAFC',
+                boxSizing: 'border-box',
+              }}
+            >
+              <div
+                style={{
+                  width: '320px',
+                  maxWidth: '100%',
+                  aspectRatio: '1 / 1',
+                  borderRadius: '20px',
+                  overflow: 'hidden',
+                  boxShadow: '0 12px 32px rgba(0, 84, 148, 0.15)',
+                  border: '3px solid #FFFFFF',
+                  background: '#E2E8F0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <img
+                  src={reader.avatarUrl || '/default-reader-avatar.jpg'}
+                  alt={reader.name || 'Оқырман суреті'}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              </div>
+            </div>
+
+            {/* Modal Footer / Info */}
+            <div
+              style={{
+                width: '100%',
+                padding: '14px 22px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                borderTop: '1px solid #F1F5F9',
+                boxSizing: 'border-box',
+                background: '#FFFFFF',
+              }}
+            >
+              <span
+                style={{
+                  fontSize: '12px',
+                  fontWeight: 800,
+                  fontFamily: 'monospace',
+                  background: 'rgba(0, 84, 148, 0.08)',
+                  color: 'var(--blue)',
+                  padding: '3px 10px',
+                  borderRadius: '4px',
+                }}
+              >
+                ID: {reader.idNumber || reader.id}
+              </span>
+
+              {reader.avatarUrl && (
+                <a
+                  href={reader.avatarUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    color: 'var(--blue)',
+                    textDecoration: 'none',
+                    padding: '6px 14px',
+                    borderRadius: '8px',
+                    background: '#F0F9FF',
+                    border: '1px solid #BAE6FD',
+                  }}
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                    <polyline points="15 3 21 3 21 9"></polyline>
+                    <line x1="10" y1="14" x2="21" y2="3"></line>
+                  </svg>
+                  Түпнұсқасын ашу
+                </a>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 };
