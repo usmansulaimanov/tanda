@@ -777,12 +777,9 @@ export const AdminStatsPage: React.FC = () => {
               }}
             >
               <div>
-                <h3 style={{ fontSize: '17px', fontWeight: 900, color: 'var(--text-dark)', margin: '0 0 4px 0' }}>
+                <h3 style={{ fontSize: '17px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
                   Оқырмандарды басқару панелі
                 </h3>
-                <p style={{ fontSize: '13px', color: 'var(--text-mid)', margin: 0 }}>
-                  Оқырмандардың толық тізімін көру, жаңа оқырман қосу, өңдеу және басқару
-                </p>
               </div>
 
               <Link
