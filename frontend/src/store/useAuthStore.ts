@@ -36,6 +36,7 @@ interface AuthState {
   updateAvatar: (avatarUrl: string | null) => Promise<{ success: boolean; error?: string }>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
   updateUserByAdmin: (userId: string, data: { name: string; email: string; phone?: string; username?: string; idNumber?: string; role?: 'admin' | 'client'; isActive?: boolean; personalMessage?: { text: string; days?: number; isActive?: boolean } | null }) => Promise<{ success: boolean; error?: string }>;
+  toggleBlockUser: (userId: string) => Promise<{ success: boolean; isBlocked?: boolean; error?: string }>;
   createReaderByAdmin: (data: { name: string; email: string; phone?: string; password?: string; username?: string; idNumber?: string; role?: 'admin' | 'client'; personalMessage?: { text: string; days?: number; isActive?: boolean } }) => Promise<{ success: boolean; user?: User; error?: string }>;
   getUserById: (userId: string) => User | undefined;
   getAllClients: () => User[];
@@ -652,10 +653,22 @@ export const useAuthStore = create<AuthState>()(
         allUsers[existingIdx] = updatedUser;
         saveStoredUsers(allUsers);
 
-        // If the current logged-in user in session is this user, update active auth user immediately!
+        // If the current logged-in user in session is this user
         const currentUser = get().user;
         if (currentUser && currentUser.id === userId) {
-          set({ user: updatedUser, role: updatedUser.role });
+          if (updatedUser.isActive === false) {
+            get().logout();
+          } else {
+            set({ user: updatedUser, role: updatedUser.role });
+          }
+        }
+
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(
+            new CustomEvent('tanda:user-status-changed', {
+              detail: { userId, isActive: updatedUser.isActive !== false },
+            })
+          );
         }
 
         // Optional sync with backend
@@ -668,6 +681,40 @@ export const useAuthStore = create<AuthState>()(
         } catch {}
 
         return { success: true };
+      },
+
+      toggleBlockUser: async (userId: string) => {
+        const allUsers = getStoredUsers();
+        const idx = allUsers.findIndex((u) => u.id === userId);
+        if (idx === -1) {
+          return { success: false, error: 'Оқырман табылмады' };
+        }
+
+        const current = allUsers[idx];
+        const newIsActive = current.isActive === false ? true : false;
+        const updated: User = {
+          ...current,
+          isActive: newIsActive,
+        };
+
+        allUsers[idx] = updated;
+        saveStoredUsers(allUsers);
+
+        // If the current user was blocked, immediately logout!
+        const currentUser = get().user;
+        if (currentUser && currentUser.id === userId && !newIsActive) {
+          get().logout();
+        }
+
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(
+            new CustomEvent('tanda:user-status-changed', {
+              detail: { userId, isActive: newIsActive },
+            })
+          );
+        }
+
+        return { success: true, isBlocked: !newIsActive };
       },
 
       createReaderByAdmin: async (data: {
@@ -694,11 +741,14 @@ export const useAuthStore = create<AuthState>()(
           return { success: false, error: 'Электронды поштасын енгізіңіз' };
         }
 
-        // Validate email uniqueness
+        // Validate email uniqueness against all users (including blocked)
         const emailConflict = allUsers.find(
           (u) => u.email.toLowerCase() === cleanEmail
         );
         if (emailConflict) {
+          if (emailConflict.isActive === false) {
+            return { success: false, error: 'Бұл электронды пошта жүйеде бұғатталған оқырманға тиесілі' };
+          }
           return { success: false, error: 'Бұл электронды поштамен оқырман тіркелген' };
         }
 
@@ -724,6 +774,9 @@ export const useAuthStore = create<AuthState>()(
             return uNat === national;
           });
           if (phoneConflict) {
+            if (phoneConflict.isActive === false) {
+              return { success: false, error: 'Бұл телефон нөмірі жүйеде бұғатталған оқырманға тиесілі' };
+            }
             return { success: false, error: 'Бұл телефон нөмірімен басқа оқырман тіркелген' };
           }
         }
@@ -952,6 +1005,11 @@ export const useAuthStore = create<AuthState>()(
             email: trimmed,
             password,
           });
+
+          if (data.user?.isActive === false) {
+            throw new Error('Сіздің аккаунтыңыз әкімші тарапынан бұғатталған. Жүйеге кіре алмайсыз.');
+          }
+
           localStorage.setItem('tanda_token', data.token);
           set({
             user: data.user,
@@ -959,7 +1017,11 @@ export const useAuthStore = create<AuthState>()(
             isAuthenticated: true,
             authModalOpen: false,
           });
-        } catch {
+        } catch (err: any) {
+          if (err.message && err.message.includes('бұғатталған')) {
+            throw err;
+          }
+
           // Fallback mock authentication if backend is offline
           const allUsers = getStoredUsers();
           let matched = allUsers.find((u) => {
@@ -976,6 +1038,10 @@ export const useAuthStore = create<AuthState>()(
             return false;
           });
 
+          if (matched && matched.isActive === false) {
+            throw new Error('Сіздің аккаунтыңыз әкімші тарапынан бұғатталған. Жүйеге кіре алмайсыз.');
+          }
+
           if (!matched) {
             const isAdmin = trimmed.includes('admin') || trimmed === 'admin@tanda.kz';
             matched = {
@@ -987,6 +1053,7 @@ export const useAuthStore = create<AuthState>()(
               phone: phoneNational ? formatPhoneNumber(trimmed) : undefined,
               role: isAdmin ? 'admin' : 'client',
               avatarUrl: isAdmin ? undefined : DEFAULT_READER_AVATAR,
+              isActive: true,
               createdAt: new Date().toISOString(),
             };
             allUsers.push(matched);
@@ -1009,6 +1076,10 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true });
         try {
           const { data } = await api.post('/api/auth/google', { credential });
+          if (data.user?.isActive === false) {
+            throw new Error('Сіздің аккаунтыңыз әкімші тарапынан бұғатталған. Жүйеге кіре алмайсыз.');
+          }
+
           localStorage.setItem('tanda_token', data.token);
           set({
             user: data.user,
@@ -1016,7 +1087,11 @@ export const useAuthStore = create<AuthState>()(
             isAuthenticated: true,
             authModalOpen: false,
           });
-        } catch {
+        } catch (err: any) {
+          if (err.message && err.message.includes('бұғатталған')) {
+            throw err;
+          }
+
           const payload = (() => {
             try {
               const base64Url = credential.split('.')[1];
@@ -1039,6 +1114,10 @@ export const useAuthStore = create<AuthState>()(
           const allUsers = getStoredUsers();
           let matched = allUsers.find((u) => u.email.toLowerCase() === email);
 
+          if (matched && matched.isActive === false) {
+            throw new Error('Сіздің аккаунтыңыз әкімші тарапынан бұғатталған. Жүйеге кіре алмайсыз.');
+          }
+
           if (!matched) {
             const count = allUsers.filter((u) => u.role === 'client').length + 1;
             const idNum = `001 ${String(count).padStart(3, '0')}`;
@@ -1052,6 +1131,7 @@ export const useAuthStore = create<AuthState>()(
               authProvider: 'GOOGLE',
               avatarUrl: picture,
               hasPassword: false,
+              isActive: true,
               createdAt: new Date().toISOString(),
             };
             allUsers.push(matched);
@@ -1079,6 +1159,18 @@ export const useAuthStore = create<AuthState>()(
       register: async (name: string, email: string, password: string) => {
         set({ isLoading: true });
         const trimmedEmail = email.trim().toLowerCase();
+
+        // Check if email belongs to any registered or blocked user
+        const allUsers = getStoredUsers();
+        const existingUser = allUsers.find((u) => u.email.toLowerCase() === trimmedEmail);
+        if (existingUser) {
+          set({ isLoading: false });
+          if (existingUser.isActive === false) {
+            throw new Error('Бұл электрондық пошта жүйеде бұғатталған. Жаңа аккаунт ашуға рұқсат етілмейді.');
+          }
+          throw new Error('Бұл электрондық поштамен аккаунт тіркелген. Жүйеге кіру бөлімін пайдаланыңыз.');
+        }
+
         try {
           const { data } = await api.post('/api/auth/register', {
             name: name.trim(),
@@ -1097,9 +1189,12 @@ export const useAuthStore = create<AuthState>()(
             authModalOpen: false,
           });
           sendWelcomeMessage(regUser);
-        } catch {
+        } catch (err: any) {
+          if (err.message && (err.message.includes('бұғатталған') || err.message.includes('тіркелген'))) {
+            throw err;
+          }
+
           // Fallback mock registration
-          const allUsers = getStoredUsers();
           const count = allUsers.filter((u) => u.role === 'client').length + 1;
           const idNum = `001 ${String(count).padStart(3, '0')}`;
           const defaultUsername = trimmedEmail.split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '') || `user${count}`;
@@ -1112,6 +1207,7 @@ export const useAuthStore = create<AuthState>()(
             username: defaultUsername,
             role: 'client',
             avatarUrl: DEFAULT_READER_AVATAR,
+            isActive: true,
             createdAt: new Date().toISOString(),
           };
 

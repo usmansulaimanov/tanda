@@ -27,7 +27,7 @@ function saveStoredUsers(users: User[]) {
 
 export const ReadersPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, role } = useAuthStore();
+  const { user, role, toggleBlockUser } = useAuthStore();
   const { showToast } = useToastStore();
 
   const canViewReaders = hasAdminPermission(user, 'readers_view');
@@ -45,6 +45,7 @@ export const ReadersPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const [userToBlock, setUserToBlock] = useState<User | null>(null);
   const [previewAvatarUser, setPreviewAvatarUser] = useState<User | null>(null);
 
   // Pagination state
@@ -128,6 +129,38 @@ export const ReadersPage: React.FC = () => {
       } finally {
         setUserToDelete(null);
       }
+    }
+  };
+
+  const confirmBlock = async () => {
+    if (userToBlock) {
+      try {
+        const res = await toggleBlockUser(userToBlock.id);
+        if (res.success) {
+          fetchReaders();
+          showToast(`«${userToBlock.name || userToBlock.email}» оқырманы бұғатталды. Енді ол жүйеге кіре алмайды`, 'error');
+        } else {
+          showToast(res.error || 'Блоктау сәтсіз аяқталды', 'error');
+        }
+      } catch {
+        showToast('Блоктау кезінде қате орын алды', 'error');
+      } finally {
+        setUserToBlock(null);
+      }
+    }
+  };
+
+  const handleUnblock = async (targetReader: User) => {
+    try {
+      const res = await toggleBlockUser(targetReader.id);
+      if (res.success) {
+        fetchReaders();
+        showToast(`«${targetReader.name || targetReader.email}» оқырманы блоктан сәтті шығарылды!`, 'success');
+      } else {
+        showToast(res.error || 'Блоктан шығару сәтсіз аяқталды', 'error');
+      }
+    } catch {
+      showToast('Блоктан шығару кезінде қате орын алды', 'error');
     }
   };
 
@@ -348,8 +381,8 @@ export const ReadersPage: React.FC = () => {
                   <th>Аты-жөні</th>
                   <th>Электрондық поштасы</th>
                   <th style={{ width: '130px', whiteSpace: 'nowrap' }}>Тіркелген күні</th>
-                  <th style={{ width: '110px', whiteSpace: 'nowrap' }}>Мәртебесі</th>
-                  <th style={{ width: '160px', textAlign: 'right', whiteSpace: 'nowrap' }}>Әрекеттер</th>
+                  <th style={{ width: '120px', whiteSpace: 'nowrap' }}>Мәртебесі</th>
+                  <th style={{ width: '240px', textAlign: 'right', whiteSpace: 'nowrap' }}>Әрекеттер</th>
                 </tr>
               </thead>
               <tbody>
@@ -357,6 +390,7 @@ export const ReadersPage: React.FC = () => {
                   const itemIndex = (currentPage - 1) * pageSize + index + 1;
                   const initial = reader.name ? reader.name.trim().charAt(0).toUpperCase() : 'О';
                   const dateStr = reader.createdAt ? new Date(reader.createdAt).toLocaleDateString('kk-KZ') : '2026-09-01';
+                  const isBlocked = reader.isActive === false;
                   return (
                     <tr key={reader.id}>
                       {/* Sequential Number */}
@@ -371,8 +405,8 @@ export const ReadersPage: React.FC = () => {
                             fontSize: '12px',
                             fontWeight: 800,
                             fontFamily: 'monospace',
-                            background: 'rgba(0, 84, 148, 0.1)',
-                            color: 'var(--blue)',
+                            background: isBlocked ? 'rgba(220, 38, 38, 0.08)' : 'rgba(0, 84, 148, 0.1)',
+                            color: isBlocked ? '#DC2626' : 'var(--blue)',
                             padding: '3px 10px',
                             borderRadius: '4px',
                             letterSpacing: '0.04em',
@@ -405,6 +439,7 @@ export const ReadersPage: React.FC = () => {
                               border: '1.5px solid #CBD5E1',
                               cursor: 'pointer',
                               transition: 'transform 0.15s ease',
+                              opacity: isBlocked ? 0.75 : 1,
                             }}
                           >
                             <img
@@ -414,7 +449,7 @@ export const ReadersPage: React.FC = () => {
                             />
                           </div>
                           <div>
-                            <div style={{ fontWeight: 800, color: 'var(--text-dark)', fontSize: '14px' }}>
+                            <div style={{ fontWeight: 800, color: isBlocked ? '#64748B' : 'var(--text-dark)', fontSize: '14px', textDecoration: isBlocked ? 'line-through' : 'none' }}>
                               {reader.name || 'Оқырман'}
                             </div>
                           </div>
@@ -437,22 +472,41 @@ export const ReadersPage: React.FC = () => {
 
                       {/* Status */}
                       <td>
-                        <span
-                          style={{
-                            fontSize: '11px',
-                            fontWeight: 700,
-                            padding: '2px 8px',
-                            borderRadius: '20px',
-                            background: '#D1FAE5',
-                            color: '#047857',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                          }}
-                        >
-                          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10B981' }}></span>
-                          Оқырман
-                        </span>
+                        {isBlocked ? (
+                          <span
+                            style={{
+                              fontSize: '11px',
+                              fontWeight: 700,
+                              padding: '2px 8px',
+                              borderRadius: '20px',
+                              background: '#FEE2E2',
+                              color: '#991B1B',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                            }}
+                          >
+                            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#EF4444' }}></span>
+                            Блокталған
+                          </span>
+                        ) : (
+                          <span
+                            style={{
+                              fontSize: '11px',
+                              fontWeight: 700,
+                              padding: '2px 8px',
+                              borderRadius: '20px',
+                              background: '#D1FAE5',
+                              color: '#047857',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                            }}
+                          >
+                            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10B981' }}></span>
+                            Оқырман
+                          </span>
+                        )}
                       </td>
 
                       {/* Actions */}
@@ -462,7 +516,7 @@ export const ReadersPage: React.FC = () => {
                             <Link
                               to={`/admin/readers/${reader.id}/edit`}
                               style={{
-                                padding: '6px 12px',
+                                padding: '6px 11px',
                                 fontSize: '12px',
                                 fontWeight: 700,
                                 background: '#F1F5F9',
@@ -485,12 +539,67 @@ export const ReadersPage: React.FC = () => {
                             </Link>
                           )}
 
+                          {canManageReaders && (
+                            isBlocked ? (
+                              <button
+                                type="button"
+                                onClick={() => handleUnblock(reader)}
+                                title="Оқырманды блоктан шығару"
+                                style={{
+                                  padding: '6px 10px',
+                                  fontSize: '12px',
+                                  fontWeight: 700,
+                                  background: '#F0FDF4',
+                                  color: '#15803D',
+                                  borderRadius: '6px',
+                                  border: '1px solid #BBF7D0',
+                                  cursor: 'pointer',
+                                  transition: 'all 0.15s',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                }}
+                              >
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                </svg>
+                                Блоктан шығару
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => setUserToBlock(reader)}
+                                title="Оқырманды блоктау"
+                                style={{
+                                  padding: '6px 10px',
+                                  fontSize: '12px',
+                                  fontWeight: 700,
+                                  background: '#FFF7ED',
+                                  color: '#C2410C',
+                                  borderRadius: '6px',
+                                  border: '1px solid #FED7AA',
+                                  cursor: 'pointer',
+                                  transition: 'all 0.15s',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                }}
+                              >
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                  <circle cx="12" cy="12" r="10"></circle>
+                                  <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
+                                </svg>
+                                Блоктау
+                              </button>
+                            )
+                          )}
+
                           {canDeleteReaders && (
                             <button
                               type="button"
                               onClick={() => setUserToDelete(reader)}
                               style={{
-                                padding: '6px 12px',
+                                padding: '6px 11px',
                                 fontSize: '12px',
                                 fontWeight: 700,
                                 background: '#FEF2F2',
@@ -747,6 +856,116 @@ export const ReadersPage: React.FC = () => {
                 }}
               >
                 Иә, өшіру
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Block User Confirmation Modal */}
+      {userToBlock && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(13,27,42,0.7)',
+            backdropFilter: 'blur(6px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1300,
+            padding: '20px',
+          }}
+        >
+          <div
+            style={{
+              background: '#FFFFFF',
+              borderRadius: '16px',
+              maxWidth: '460px',
+              width: '100%',
+              padding: '30px',
+              boxShadow: '0 20px 60px rgba(0,0,0,0.25)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+              <div
+                style={{
+                  width: '42px',
+                  height: '42px',
+                  borderRadius: '50%',
+                  background: '#FEF2F2',
+                  color: '#DC2626',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
+                </svg>
+              </div>
+              <h3 style={{ fontSize: '19px', fontWeight: 800, color: 'var(--text-dark)', margin: 0 }}>
+                Оқырманды блоктау
+              </h3>
+            </div>
+
+            <p style={{ fontSize: '14px', color: 'var(--text-mid)', lineHeight: 1.6, marginBottom: '16px' }}>
+              Сіз шынымен <strong style={{ color: 'var(--text-dark)' }}>{userToBlock.name || userToBlock.email}</strong> (ID: {userToBlock.idNumber || userToBlock.id}) оқырманын бұғаттағыңыз келе ме?
+            </p>
+
+            <div
+              style={{
+                background: '#FFFBEB',
+                border: '1px solid #FDE68A',
+                borderRadius: '10px',
+                padding: '12px 14px',
+                fontSize: '12px',
+                color: '#92400E',
+                lineHeight: 1.5,
+                marginBottom: '24px',
+              }}
+            >
+              <div style={{ fontWeight: 700, marginBottom: '4px' }}>Блокталған кезде:</div>
+              <ul style={{ margin: 0, paddingLeft: '18px' }}>
+                <li>Оқырман жүйеге кіре алмайды;</li>
+                <li>Егер аккаунтқа кіріп тұрса, жүйеден бірден шығарылады;</li>
+                <li>Бұл оқырманның телефон нөмірі мен поштасына қайта аккаунт ашылмайды.</li>
+              </ul>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+              <button
+                type="button"
+                onClick={() => setUserToBlock(null)}
+                style={{
+                  padding: '9px 18px',
+                  borderRadius: '50px',
+                  border: '1px solid #CBD5E1',
+                  background: '#FFF',
+                  fontWeight: 600,
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                }}
+              >
+                Болдырмау
+              </button>
+              <button
+                type="button"
+                onClick={confirmBlock}
+                style={{
+                  padding: '9px 22px',
+                  borderRadius: '50px',
+                  border: 'none',
+                  background: '#DC2626',
+                  color: '#FFF',
+                  fontWeight: 700,
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                }}
+              >
+                Иә, блоктау
               </button>
             </div>
           </div>

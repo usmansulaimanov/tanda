@@ -103,8 +103,9 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialMode }) => {
         navigate(redirectUrl);
       }
     } catch (err: any) {
-      const msg = err.response?.data?.message || 'Кіру қатесі. Деректерді қайта тексеріңіз';
+      const msg = err.response?.data?.message || err.message || 'Кіру қатесі. Деректерді қайта тексеріңіз';
       setErrorMessage(msg);
+      showToast(msg, 'error');
     }
   };
 
@@ -120,8 +121,10 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialMode }) => {
         showToast('Оқырман (Reader) аккаунтымен кірдіңіз', 'success');
         navigate(redirectUrl);
       }
-    } catch {
-      showToast('Жүйеге кіру мүмкін болмады', 'error');
+    } catch (err: any) {
+      const msg = err.message || 'Жүйеге кіру мүмкін болмады';
+      setErrorMessage(msg);
+      showToast(msg, 'error');
     }
   };
 
@@ -131,8 +134,10 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialMode }) => {
         await loginWithGoogle(response.credential);
         showToast('Google арқылы сәтті кірдіңіз!', 'success');
         navigate(redirectUrl);
-      } catch {
-        showToast('Google арқылы кіру мүмкін болмады', 'error');
+      } catch (err: any) {
+        const msg = err.response?.data?.message || err.message || 'Google арқылы кіру мүмкін болмады';
+        setErrorMessage(msg);
+        showToast(msg, 'error');
       }
     }
   };

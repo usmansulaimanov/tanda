@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ToastContainer } from '../components/ui/Toast';
 import { useAuthStore } from '../store/useAuthStore';
+import { useToastStore } from '../store/useToastStore';
 import { authApi } from '../shared/api/auth.api';
 
 export const queryClient = new QueryClient({
@@ -48,6 +49,36 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
 
     initAuth();
   }, [restoreSession]);
+
+  useEffect(() => {
+    // Realtime check if currently authenticated user has been blocked
+    const checkBlocked = () => {
+      const authUser = useAuthStore.getState().user;
+      if (authUser) {
+        const raw = localStorage.getItem('tanda_users_registry_v1');
+        if (raw) {
+          try {
+            const list = JSON.parse(raw);
+            const found = list.find((u: any) => u.id === authUser.id);
+            if (found && found.isActive === false) {
+              useAuthStore.getState().logout();
+              useToastStore.getState().showToast('Сіздің аккаунтыңыз бұғатталды. Жүйеден шығарылдыңыз.', 'error');
+            }
+          } catch {}
+        }
+      }
+    };
+
+    window.addEventListener('storage', checkBlocked);
+    window.addEventListener('tanda:user-status-changed', checkBlocked);
+    const timer = setInterval(checkBlocked, 1000);
+
+    return () => {
+      window.removeEventListener('storage', checkBlocked);
+      window.removeEventListener('tanda:user-status-changed', checkBlocked);
+      clearInterval(timer);
+    };
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

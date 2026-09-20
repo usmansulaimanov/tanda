@@ -624,6 +624,80 @@ export const ReaderEditPage: React.FC = () => {
               </div>
             </div>
 
+            {/* Row: Reader Status (Белсенді / Блокталған) */}
+            <div
+              style={{
+                background: isActive ? '#F0FDF4' : '#FEF2F2',
+                border: `1.5px solid ${isActive ? '#BBF7D0' : '#FECACA'}`,
+                borderRadius: '16px',
+                padding: '18px 22px',
+                marginBottom: '28px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '12px',
+                transition: 'all 0.2s',
+              }}
+            >
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span
+                    style={{
+                      width: '10px',
+                      height: '10px',
+                      borderRadius: '50%',
+                      background: isActive ? '#10B981' : '#DC2626',
+                    }}
+                  />
+                  <h3 style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-dark)', margin: 0 }}>
+                    Оқырман мәртебесі: <span style={{ color: isActive ? '#15803D' : '#B91C1C' }}>{isActive ? 'Белсенді' : 'Блокталған'}</span>
+                  </h3>
+                </div>
+                <p style={{ margin: '4px 0 0', fontSize: '12px', color: 'var(--text-mid)' }}>
+                  {isActive
+                    ? 'Оқырман жүйеге еркін кіріп, кітаптарды оқи алады.'
+                    : 'Оқырман бұғатталған: жүйеге кіре алмайды және бұл деректерге жаңа аккаунт ашылмайды.'}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsActive(!isActive)}
+                style={{
+                  padding: '8px 18px',
+                  borderRadius: '8px',
+                  border: `1.5px solid ${isActive ? '#FCA5A5' : '#86EFAC'}`,
+                  background: isActive ? '#FEF2F2' : '#F0FDF4',
+                  color: isActive ? '#DC2626' : '#15803D',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                {isActive ? (
+                  <>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
+                    </svg>
+                    Оқырманды блоктау
+                  </>
+                ) : (
+                  <>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                    </svg>
+                    Блоктан шығару
+                  </>
+                )}
+              </button>
+            </div>
+
             {/* Row 4: Personal Message to Reader (Басты беттегі жеке хабарлама) */}
             <div
               style={{
