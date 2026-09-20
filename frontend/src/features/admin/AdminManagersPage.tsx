@@ -1,14 +1,16 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useToastStore } from '../../store/useToastStore';
 import { User, AdminPermission } from '../../types';
 import { ALL_PERMISSIONS, PERMISSION_CATEGORIES, hasAdminPermission } from '../../utils/permissions';
+import { resizeAndCompressImage } from '../../utils/imageUtils';
 
 export const AdminManagersPage: React.FC = () => {
   const navigate = useNavigate();
   const { user: currentUser, role, getAllManagers, createManagerByAdmin, updateManagerPermissions, deleteManager } = useAuthStore();
   const { showToast } = useToastStore();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [managers, setManagers] = useState<User[]>(() => getAllManagers());
   const [searchQuery, setSearchQuery] = useState('');
@@ -24,6 +26,8 @@ export const AdminManagersPage: React.FC = () => {
   const [formPassword, setFormPassword] = useState('');
   const [showFormPassword, setShowFormPassword] = useState(false);
   const [formDuty, setFormDuty] = useState('');
+  const [formAvatarUrl, setFormAvatarUrl] = useState<string | null>(null);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [formPermissions, setFormPermissions] = useState<AdminPermission[]>([]);
   const [formIsActive, setFormIsActive] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -68,6 +72,7 @@ export const AdminManagersPage: React.FC = () => {
     setFormPassword('');
     setShowFormPassword(false);
     setFormDuty('');
+    setFormAvatarUrl(null);
     setFormPermissions([]);
     setFormIsActive(true);
     setIsModalOpen(true);
@@ -80,9 +85,36 @@ export const AdminManagersPage: React.FC = () => {
     setFormPassword(mgr.password || '');
     setShowFormPassword(false);
     setFormDuty(mgr.duty || '');
+    setFormAvatarUrl(mgr.avatarUrl || null);
     setFormPermissions(mgr.permissions || []);
     setFormIsActive(mgr.isActive !== false);
     setIsModalOpen(true);
+  };
+
+  const handleAvatarFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsUploadingAvatar(true);
+      const compressed = await resizeAndCompressImage(file, 400, 0.85);
+      setFormAvatarUrl(compressed);
+      showToast('Сурет сәтті таңдалды', 'success');
+    } catch (err: any) {
+      showToast(err.message || 'Суретті жүктеу сәтсіз аяқталды', 'error');
+    } finally {
+      setIsUploadingAvatar(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleRemoveAvatar = () => {
+    setFormAvatarUrl(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const handleTogglePermission = (perm: AdminPermission) => {
@@ -124,6 +156,7 @@ export const AdminManagersPage: React.FC = () => {
           email: formEmail.trim().toLowerCase(),
           password: formPassword.trim() || undefined,
           duty: formDuty.trim() || undefined,
+          avatarUrl: formAvatarUrl,
           permissions: formPermissions,
           isActive: formIsActive,
         });
@@ -140,6 +173,7 @@ export const AdminManagersPage: React.FC = () => {
           email: formEmail.trim().toLowerCase(),
           password: formPassword.trim() || undefined,
           duty: formDuty.trim() || undefined,
+          avatarUrl: formAvatarUrl,
           permissions: formPermissions,
         });
         if (res.success) {
@@ -622,6 +656,113 @@ export const AdminManagersPage: React.FC = () => {
               </div>
 
               <form onSubmit={handleSubmit}>
+                {/* Avatar Upload Section */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '16px',
+                    marginBottom: '22px',
+                    padding: '14px 18px',
+                    background: '#F8FAFC',
+                    borderRadius: '14px',
+                    border: '1.5px dashed #CBD5E1',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: '58px',
+                      height: '58px',
+                      borderRadius: '14px',
+                      background: formAvatarUrl ? '#F1F5F9' : 'rgba(0, 84, 148, 0.08)',
+                      color: 'var(--blue)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '22px',
+                      fontWeight: 800,
+                      flexShrink: 0,
+                      overflow: 'hidden',
+                      border: '1.5px solid #E2E8F0',
+                    }}
+                  >
+                    {formAvatarUrl ? (
+                      <img
+                        src={formAvatarUrl}
+                        alt="Avatar"
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : formName.trim() ? (
+                      formName.trim().charAt(0).toUpperCase()
+                    ) : (
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                      </svg>
+                    )}
+                  </div>
+
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '4px' }}>
+                      Профиль суреті
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp,image/jpg"
+                        style={{ display: 'none' }}
+                        onChange={handleAvatarFileChange}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isUploadingAvatar}
+                        style={{
+                          padding: '7px 14px',
+                          borderRadius: '8px',
+                          border: '1.5px solid #CBD5E1',
+                          background: '#FFFFFF',
+                          fontSize: '12.5px',
+                          fontWeight: 700,
+                          color: 'var(--text-dark)',
+                          cursor: isUploadingAvatar ? 'not-allowed' : 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                        }}
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                          <polyline points="17 8 12 3 7 8"></polyline>
+                          <line x1="12" y1="3" x2="12" y2="15"></line>
+                        </svg>
+                        {isUploadingAvatar ? 'Жүктелуде...' : formAvatarUrl ? 'Суретті ауыстыру' : 'Сурет жүктеу'}
+                      </button>
+
+                      {formAvatarUrl && (
+                        <button
+                          type="button"
+                          onClick={handleRemoveAvatar}
+                          style={{
+                            padding: '7px 12px',
+                            borderRadius: '8px',
+                            border: 'none',
+                            background: '#FEE2E2',
+                            fontSize: '12.5px',
+                            fontWeight: 700,
+                            color: '#DC2626',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          Өшіру
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
                 {/* Basic inputs */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px', marginBottom: '20px' }}>
                   <div>
