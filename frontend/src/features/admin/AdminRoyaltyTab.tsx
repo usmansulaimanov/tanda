@@ -411,28 +411,7 @@ export const AdminRoyaltyTab: React.FC = () => {
           </div>
         </div>
 
-        {/* Card 6: Total Author Listening Minutes */}
-        <div
-          style={{
-            background: '#FFFFFF',
-            borderRadius: '18px',
-            padding: '20px',
-            border: '1.5px solid #CBD5E1',
-            boxShadow: '0 4px 16px rgba(0,0,0,0.02)',
-          }}
-        >
-          <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#64748B', marginBottom: '8px' }}>
-            🎧 Авторлардың жалпы тыңдалымы
-          </div>
-          <div style={{ fontSize: '24px', fontWeight: 900, color: 'var(--blue)' }}>
-            {totalPlatformMinutes.toLocaleString()} мин
-          </div>
-          <div style={{ fontSize: '11.5px', color: '#64748B', marginTop: '4px' }}>
-            {totalPlatformMinutes > 0 ? `≈ ${(totalPlatformMinutes / 60).toFixed(1)} сағат тыңдалды` : 'Барлық авторлардың кітаптары бойынша'}
-          </div>
-        </div>
-
-        {/* Card 7: 1 Minute Rate */}
+        {/* Card 6: 1 Minute Rate */}
         <div
           style={{
             background: '#FFFFFF',
@@ -450,6 +429,27 @@ export const AdminRoyaltyTab: React.FC = () => {
           </div>
           <div style={{ fontSize: '11.5px', color: '#64748B', marginTop: '4px' }}>
             1 сағатқа ≈ {(previewRatePerMinute * 60).toFixed(1)} ₸
+          </div>
+        </div>
+
+        {/* Card 7: Total Author Listening Minutes */}
+        <div
+          style={{
+            background: '#FFFFFF',
+            borderRadius: '18px',
+            padding: '20px',
+            border: '1.5px solid #CBD5E1',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.02)',
+          }}
+        >
+          <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#64748B', marginBottom: '8px' }}>
+            🎧 Авторлардың жалпы тыңдалымы
+          </div>
+          <div style={{ fontSize: '24px', fontWeight: 900, color: 'var(--blue)' }}>
+            {totalPlatformMinutes.toLocaleString()} мин
+          </div>
+          <div style={{ fontSize: '11.5px', color: '#64748B', marginTop: '4px' }}>
+            {totalPlatformMinutes > 0 ? `≈ ${(totalPlatformMinutes / 60).toFixed(1)} сағат тыңдалды` : 'Барлық авторлардың кітаптары бойынша'}
           </div>
         </div>
       </div>
