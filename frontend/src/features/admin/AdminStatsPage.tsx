@@ -549,22 +549,22 @@ export const AdminStatsPage: React.FC = () => {
                         Үлесі (%)
                       </td>
                       <td style={{ padding: '16px 20px' }}>
-                        <span style={{ background: '#F1F5F9', color: '#0F172A', padding: '4px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: 800 }}>
+                        <span style={{ color: '#0F172A', fontSize: '14px', fontWeight: 800 }}>
                           100%
                         </span>
                       </td>
                       <td style={{ padding: '16px 20px' }}>
-                        <span style={{ background: '#F1F5F9', color: '#0F172A', padding: '4px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: 800 }}>
+                        <span style={{ color: '#0F172A', fontSize: '14px', fontWeight: 800 }}>
                           {totalReaders > 0 ? Math.round((premiumReadersCount / totalReaders) * 100) : 0}%
                         </span>
                       </td>
                       <td style={{ padding: '16px 20px' }}>
-                        <span style={{ background: '#F1F5F9', color: '#0F172A', padding: '4px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: 800 }}>
+                        <span style={{ color: '#0F172A', fontSize: '14px', fontWeight: 800 }}>
                           {totalReaders > 0 ? Math.round((freeReadersCount / totalReaders) * 100) : 0}%
                         </span>
                       </td>
                       <td style={{ padding: '16px 20px' }}>
-                        <span style={{ background: '#F1F5F9', color: '#0F172A', padding: '4px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: 800 }}>
+                        <span style={{ color: '#0F172A', fontSize: '14px', fontWeight: 800 }}>
                           {totalReaders > 0 ? Math.round((blockedReadersCount / totalReaders) * 100) : 0}%
                         </span>
                       </td>
