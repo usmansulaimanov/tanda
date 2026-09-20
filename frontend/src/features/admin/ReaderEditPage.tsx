@@ -1137,7 +1137,7 @@ export const ReaderEditPage: React.FC = () => {
               {/* Status Note */}
               {existingExpiresAt && messageText.trim() && (
                 <div style={{ marginTop: '14px', paddingTop: '12px', borderTop: '1px dashed #CBD5E1', fontSize: '12px', color: '#64748B' }}>
-                  ⏳ Қазіргі жағдайы: <strong style={{ color: new Date(existingExpiresAt).getTime() < Date.now() ? '#DC2626' : '#059669' }}>
+                  Қазіргі жағдайы: <strong style={{ color: new Date(existingExpiresAt).getTime() < Date.now() ? '#DC2626' : '#059669' }}>
                     {new Date(existingExpiresAt).getTime() < Date.now()
                       ? 'Мерзімі аяқталған'
                       : `Белсенді (${new Date(existingExpiresAt).toLocaleDateString('kk-KZ')} дейін)`}
@@ -1146,7 +1146,7 @@ export const ReaderEditPage: React.FC = () => {
               )}
             </div>
 
-            {/* Birthday Gift & 1-Month Premium Management (🎂 Туған күн сыйлығы) */}
+            {/* Birthday Gift & 1-Month Premium Management */}
             <div
               style={{
                 background: 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)',
@@ -1168,7 +1168,13 @@ export const ReaderEditPage: React.FC = () => {
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '20px' }}>🎂</span>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#92400E" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 12 20 22 4 22 4 12"></polyline>
+                    <rect x="2" y="7" width="20" height="5"></rect>
+                    <line x1="12" y1="22" x2="12" y2="7"></line>
+                    <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"></path>
+                    <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"></path>
+                  </svg>
                   <h3 style={{ fontSize: '16px', fontWeight: 900, color: '#92400E', margin: 0 }}>
                     Туған күн сыйлығы (1 айлық Премиум)
                   </h3>
@@ -1223,8 +1229,8 @@ export const ReaderEditPage: React.FC = () => {
                   </div>
                   <div style={{ fontSize: '13px', fontWeight: 800, color: reader.lastBirthdayGiftYear === new Date().getFullYear() ? '#15803D' : '#D97706' }}>
                     {reader.lastBirthdayGiftYear === new Date().getFullYear()
-                      ? `✅ Берілді (${formatDisplayDate(reader.lastBirthdayGiftDate)})`
-                      : '⏳ Әлі берілмеген'}
+                      ? `Берілді (${formatDisplayDate(reader.lastBirthdayGiftDate)})`
+                      : 'Әлі берілмеген'}
                   </div>
                 </div>
 
@@ -1234,7 +1240,7 @@ export const ReaderEditPage: React.FC = () => {
                   </div>
                   <div style={{ fontSize: '13px', fontWeight: 800, color: reader.isPremium ? '#15803D' : '#64748B' }}>
                     {reader.isPremium
-                      ? `🌟 Белсенді (${formatDisplayDate(reader.premiumExpiresAt)})`
+                      ? `Белсенді (${formatDisplayDate(reader.premiumExpiresAt)})`
                       : 'Премиум жоқ'}
                   </div>
                 </div>
