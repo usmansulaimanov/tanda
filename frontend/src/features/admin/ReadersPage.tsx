@@ -46,6 +46,10 @@ export const ReadersPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
 
+  // Pagination state
+  const [pageSize, setPageSize] = useState<number>(10);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+
   const fetchReaders = () => {
     setIsLoading(true);
     try {
@@ -89,6 +93,26 @@ export const ReadersPage: React.FC = () => {
       return false;
     });
   }, [readers, searchQuery]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredReaders.length / pageSize));
+
+  // Reset to page 1 on search change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
+  // Ensure current page is within total pages bounds
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
+  // Paginated slice
+  const paginatedReaders = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredReaders.slice(start, start + pageSize);
+  }, [filteredReaders, currentPage, pageSize]);
 
   const confirmDelete = () => {
     if (userToDelete) {
@@ -328,14 +352,15 @@ export const ReadersPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredReaders.map((reader, index) => {
+                {paginatedReaders.map((reader, index) => {
+                  const itemIndex = (currentPage - 1) * pageSize + index + 1;
                   const initial = reader.name ? reader.name.trim().charAt(0).toUpperCase() : 'О';
                   const dateStr = reader.createdAt ? new Date(reader.createdAt).toLocaleDateString('kk-KZ') : '2026-09-01';
                   return (
                     <tr key={reader.id}>
                       {/* Sequential Number */}
                       <td style={{ textAlign: 'center', fontWeight: 700, color: '#64748B', fontSize: '12px' }}>
-                        {index + 1}
+                        {itemIndex}
                       </td>
 
                       {/* ID Number */}
@@ -354,7 +379,7 @@ export const ReadersPage: React.FC = () => {
                             whiteSpace: 'nowrap',
                           }}
                         >
-                          ID: {reader.idNumber || `001 ${String(index + 1).padStart(3, '0')}`}
+                          ID: {reader.idNumber || `001 ${String(itemIndex).padStart(3, '0')}`}
                         </span>
                       </td>
 
@@ -495,21 +520,163 @@ export const ReadersPage: React.FC = () => {
             </div>
           )}
 
-          {/* Pagination summary */}
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginTop: '20px',
-              paddingTop: '16px',
-              borderTop: '1px solid #E2E8F0',
-            }}
-          >
-            <div style={{ fontSize: '13px', color: 'var(--text-mid)', fontWeight: 600 }}>
-              1-{filteredReaders.length} оқырман көрсетілуде (Барлығы: {readers.length})
+          {/* Pagination controls */}
+          {filteredReaders.length > 0 && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '16px',
+                marginTop: '20px',
+                paddingTop: '16px',
+                borderTop: '1.5px solid #F1F5F9',
+              }}
+            >
+              {/* Page size selector */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '13px', color: '#64748B', fontWeight: 600 }}>
+                  Беттегі оқырман саны:
+                </span>
+                <select
+                  value={pageSize}
+                  onChange={(e) => {
+                    setPageSize(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: '8px',
+                    border: '1.5px solid #CBD5E1',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    color: 'var(--text-dark)',
+                    background: '#FFFFFF',
+                    outline: 'none',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={30}>30</option>
+                  <option value={40}>40</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                </select>
+                <span style={{ fontSize: '13px', color: '#94A3B8', marginLeft: '6px' }}>
+                  ({Math.min((currentPage - 1) * pageSize + 1, filteredReaders.length)}-
+                  {Math.min(currentPage * pageSize, filteredReaders.length)} / Барлығы {filteredReaders.length})
+                </span>
+              </div>
+
+              {/* Page navigation */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    padding: '6px 12px',
+                    borderRadius: '8px',
+                    border: '1.5px solid #CBD5E1',
+                    background: currentPage === 1 ? '#F8FAFC' : '#FFFFFF',
+                    color: currentPage === 1 ? '#94A3B8' : 'var(--text-dark)',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                  </svg>
+                  Алдыңғы
+                </button>
+
+                {/* Number buttons */}
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => {
+                  if (
+                    totalPages > 7 &&
+                    pageNum !== 1 &&
+                    pageNum !== totalPages &&
+                    Math.abs(pageNum - currentPage) > 1
+                  ) {
+                    if (pageNum === 2 && currentPage > 3) {
+                      return (
+                        <span key="dots-start" style={{ padding: '0 4px', color: '#94A3B8', fontSize: '12px' }}>
+                          ...
+                        </span>
+                      );
+                    }
+                    if (pageNum === totalPages - 1 && currentPage < totalPages - 2) {
+                      return (
+                        <span key="dots-end" style={{ padding: '0 4px', color: '#94A3B8', fontSize: '12px' }}>
+                          ...
+                        </span>
+                      );
+                    }
+                    return null;
+                  }
+
+                  const isActive = currentPage === pageNum;
+                  return (
+                    <button
+                      key={pageNum}
+                      type="button"
+                      onClick={() => setCurrentPage(pageNum)}
+                      style={{
+                        minWidth: '34px',
+                        height: '34px',
+                        padding: '0 8px',
+                        borderRadius: '8px',
+                        border: isActive ? '1.5px solid var(--blue)' : '1.5px solid #CBD5E1',
+                        background: isActive ? 'var(--blue)' : '#FFFFFF',
+                        color: isActive ? '#FFFFFF' : 'var(--text-dark)',
+                        fontSize: '13px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    padding: '6px 12px',
+                    borderRadius: '8px',
+                    border: '1.5px solid #CBD5E1',
+                    background: currentPage === totalPages ? '#F8FAFC' : '#FFFFFF',
+                    color: currentPage === totalPages ? '#94A3B8' : 'var(--text-dark)',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  Кейінгі
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                  </svg>
+                </button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
 
