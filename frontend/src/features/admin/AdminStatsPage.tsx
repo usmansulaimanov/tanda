@@ -49,7 +49,7 @@ export const AdminStatsPage: React.FC = () => {
     fetchBooks({ includeArchived: true });
   }, [fetchBooks]);
 
-  useEffect(() => {
+  const refreshReaders = React.useCallback(() => {
     setIsLoadingReaders(true);
     try {
       const localUsers = getStoredUsers().filter((u) => u.role === 'client');
@@ -68,6 +68,28 @@ export const AdminStatsPage: React.FC = () => {
         setIsLoadingReaders(false);
       });
   }, []);
+
+  useEffect(() => {
+    refreshReaders();
+
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === USERS_REGISTRY_KEY || !e.key) {
+        refreshReaders();
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+    window.addEventListener('focus', refreshReaders);
+    return () => {
+      window.removeEventListener('storage', handleStorage);
+      window.removeEventListener('focus', refreshReaders);
+    };
+  }, [refreshReaders]);
+
+  useEffect(() => {
+    if (activeTab === 'readers') {
+      refreshReaders();
+    }
+  }, [activeTab, refreshReaders]);
 
   // 1. READERS STATS
   const totalReaders = readers.length;
