@@ -36,7 +36,6 @@ export const AdminStatsPage: React.FC = () => {
   const [readers, setReaders] = useState<User[]>([]);
   const [isLoadingReaders, setIsLoadingReaders] = useState(false);
   const [authorSearchQuery, setAuthorSearchQuery] = useState('');
-  const [readerSearchQuery, setReaderSearchQuery] = useState('');
   const [bookSearchQuery, setBookSearchQuery] = useState('');
 
   useEffect(() => {
@@ -155,20 +154,6 @@ export const AdminStatsPage: React.FC = () => {
 
     return { under18, age18to24, age25to34, age35to44, age45plus, unknownAge };
   }, [readers]);
-
-  // Filtered readers list for preview table
-  const filteredReadersList = useMemo(() => {
-    if (!readerSearchQuery.trim()) return readers.slice(0, 15);
-    const q = readerSearchQuery.toLowerCase().trim();
-    return readers.filter((r) => {
-      return (
-        (r.name || '').toLowerCase().includes(q) ||
-        (r.email || '').toLowerCase().includes(q) ||
-        (r.username || '').toLowerCase().includes(q) ||
-        (r.idNumber || '').toLowerCase().includes(q)
-      );
-    });
-  }, [readers, readerSearchQuery]);
 
   // 2. BOOKS STATS
   const totalBooksCount = books.length;
@@ -805,100 +790,51 @@ export const AdminStatsPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Readers Table View */}
-            <div className="admin-card" style={{ padding: '24px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px', flexWrap: 'wrap', gap: '12px' }}>
-                <div>
-                  <h3 style={{ fontSize: '16px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
-                    Оқырмандар тізімі
-                  </h3>
-                  <span style={{ fontSize: '13px', color: 'var(--text-mid)' }}>
-                    Жүйедегі оқырмандардың жеке деректері мен статусы
-                  </span>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <input
-                    type="text"
-                    value={readerSearchQuery}
-                    onChange={(e) => setReaderSearchQuery(e.target.value)}
-                    placeholder="Оқырманды іздеу..."
-                    className="form-input"
-                    style={{ padding: '8px 14px', fontSize: '13px', width: '220px' }}
-                  />
-                  <Link
-                    to="/admin/readers"
-                    style={{
-                      background: 'var(--blue)',
-                      color: '#fff',
-                      padding: '8px 16px',
-                      borderRadius: '8px',
-                      fontSize: '13px',
-                      fontWeight: 700,
-                      textDecoration: 'none',
-                    }}
-                  >
-                    Толық тізім →
-                  </Link>
-                </div>
+            {/* Button to full Readers Management Panel */}
+            <div
+              className="admin-card"
+              style={{
+                padding: '28px 32px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '16px',
+                background: '#FFFFFF',
+                borderRadius: '16px',
+                border: '1.5px solid #E2E8F0',
+                boxShadow: '0 4px 14px rgba(0, 0, 0, 0.03)',
+              }}
+            >
+              <div>
+                <h3 style={{ fontSize: '17px', fontWeight: 900, color: 'var(--text-dark)', margin: '0 0 4px 0' }}>
+                  Оқырмандарды басқару панелі
+                </h3>
+                <p style={{ fontSize: '13px', color: 'var(--text-mid)', margin: 0 }}>
+                  Оқырмандардың толық тізімін көру, жаңа оқырман қосу, өңдеу және басқару
+                </p>
               </div>
 
-              <div style={{ overflowX: 'auto' }}>
-                <table className="admin-table" style={{ width: '100%' }}>
-                  <thead>
-                    <tr>
-                      <th>Оқырман</th>
-                      <th>ID нөмірі</th>
-                      <th>Жынысы</th>
-                      <th>Туған күні</th>
-                      <th>Тарифі</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredReadersList.map((r) => {
-                      const isPrem = r.isPremium || premiumUserIds.has(r.id);
-                      return (
-                        <tr key={r.id}>
-                          <td>
-                            <div style={{ fontWeight: 700, color: '#0F172A' }}>{r.name || 'Оқырман'}</div>
-                            <div style={{ fontSize: '12px', color: '#64748B' }}>{r.email}</div>
-                          </td>
-                          <td>
-                            <span style={{ fontFamily: 'monospace', fontWeight: 700 }}>
-                              {r.idNumber || '—'}
-                            </span>
-                          </td>
-                          <td>
-                            {r.gender === 'female' ? (
-                              <span style={{ color: '#EC4899', fontWeight: 700 }}>Әйел</span>
-                            ) : r.gender === 'male' ? (
-                              <span style={{ color: '#0284C7', fontWeight: 700 }}>Ер</span>
-                            ) : (
-                              <span style={{ color: '#94A3B8' }}>Белгісіз</span>
-                            )}
-                          </td>
-                          <td>
-                            <span style={{ fontSize: '13px', color: '#334155' }}>
-                              {r.birthDate || '—'}
-                            </span>
-                          </td>
-                          <td>
-                            {isPrem ? (
-                              <span style={{ background: '#FEF3C7', color: '#B45309', padding: '4px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: 800 }}>
-                                ★ Премиум
-                              </span>
-                            ) : (
-                              <span style={{ background: '#F1F5F9', color: '#475569', padding: '4px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: 600 }}>
-                                Стандарт
-                              </span>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+              <Link
+                to="/admin/readers"
+                className="btn-primary"
+                style={{
+                  padding: '12px 28px',
+                  borderRadius: '12px',
+                  fontSize: '14px',
+                  fontWeight: 800,
+                  textDecoration: 'none',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  boxShadow: '0 4px 12px rgba(0, 84, 148, 0.2)',
+                }}
+              >
+                <span>Оқырмандар панеліне өту</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+              </Link>
             </div>
 
           </div>
