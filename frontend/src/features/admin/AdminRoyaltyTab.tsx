@@ -206,44 +206,88 @@ export const AdminRoyaltyTab: React.FC = () => {
           gap: '16px',
         }}
       >
-        {/* Card 1: Total Revenue */}
+        {/* Card 1: Total Revenue (Manual Input) */}
         <div
           style={{
             background: '#FFFFFF',
             borderRadius: '18px',
-            padding: '20px',
-            border: '1.5px solid #E2E8F0',
+            padding: '18px 20px',
+            border: '1.5px solid #CBD5E1',
             boxShadow: '0 4px 16px rgba(0,0,0,0.02)',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
           }}
         >
-          <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#64748B', marginBottom: '8px' }}>
-            Жалпы айлық түсім
+          <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#64748B', marginBottom: '6px' }}>
+            Жалпы айлық түсім (₸)
           </div>
-          <div style={{ fontSize: '24px', fontWeight: 900, color: '#0F172A' }}>
-            {revenueInput.toLocaleString()} ₸
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', margin: '2px 0 4px' }}>
+            <input
+              type="text"
+              inputMode="numeric"
+              placeholder="0"
+              value={formatNumberWithSpaces(revenueInput)}
+              onChange={(e) => setRevenueInput(parseFormattedNumber(e.target.value))}
+              style={{
+                width: '100%',
+                fontSize: '22px',
+                fontWeight: 900,
+                color: '#0F172A',
+                border: '1.5px solid #E2E8F0',
+                borderRadius: '10px',
+                padding: '6px 12px',
+                outline: 'none',
+                background: '#F8FAFC',
+                boxSizing: 'border-box',
+              }}
+            />
+            <span style={{ fontSize: '20px', fontWeight: 900, color: '#0F172A' }}>₸</span>
           </div>
-          <div style={{ fontSize: '11.5px', color: '#16A34A', marginTop: '4px', fontWeight: 700 }}>
+          <div style={{ fontSize: '11.5px', color: '#16A34A', fontWeight: 700 }}>
             Жазылымдар мен төлемдер
           </div>
         </div>
 
-        {/* Card 2: Manual Expense */}
+        {/* Card 2: Manual Expense (Manual Input) */}
         <div
           style={{
             background: '#FFFFFF',
             borderRadius: '18px',
-            padding: '20px',
-            border: '1.5px solid #E2E8F0',
+            padding: '18px 20px',
+            border: '1.5px solid #CBD5E1',
             boxShadow: '0 4px 16px rgba(0,0,0,0.02)',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
           }}
         >
-          <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#64748B', marginBottom: '8px' }}>
-            Айлық нақты шығын
+          <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#64748B', marginBottom: '6px' }}>
+            Айлық нақты шығын (₸)
           </div>
-          <div style={{ fontSize: '24px', fontWeight: 900, color: '#DC2626' }}>
-            {expenseInput.toLocaleString()} ₸
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', margin: '2px 0 4px' }}>
+            <input
+              type="text"
+              inputMode="numeric"
+              placeholder="0"
+              value={formatNumberWithSpaces(expenseInput)}
+              onChange={(e) => setExpenseInput(parseFormattedNumber(e.target.value))}
+              style={{
+                width: '100%',
+                fontSize: '22px',
+                fontWeight: 900,
+                color: '#DC2626',
+                border: '1.5px solid #E2E8F0',
+                borderRadius: '10px',
+                padding: '6px 12px',
+                outline: 'none',
+                background: '#FEF2F2',
+                boxSizing: 'border-box',
+              }}
+            />
+            <span style={{ fontSize: '20px', fontWeight: 900, color: '#DC2626' }}>₸</span>
           </div>
-          <div style={{ fontSize: '11.5px', color: '#64748B', marginTop: '4px' }}>
+          <div style={{ fontSize: '11.5px', color: '#64748B' }}>
             Админ енгізген шығындар
           </div>
         </div>
