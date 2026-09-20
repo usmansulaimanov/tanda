@@ -515,28 +515,28 @@ export const AdminStatsPage: React.FC = () => {
               </div>
 
               <div style={{ overflowX: 'auto' }}>
-                <table className="admin-table" style={{ width: '100%', margin: 0, minWidth: '720px' }}>
+                <table className="admin-table" style={{ width: '100%', margin: 0, minWidth: '720px', borderCollapse: 'collapse' }}>
                   <thead>
                     <tr>
-                      <th style={{ padding: '16px 20px', width: '150px', background: '#F8FAFC', color: '#0F172A', fontSize: '14px', fontWeight: 800 }}>Көрсеткіш</th>
-                      <th style={{ padding: '16px 20px', color: '#0F172A', fontSize: '14px', fontWeight: 800 }}>Барлық оқырмандар</th>
-                      <th style={{ padding: '16px 20px', color: '#0F172A', fontSize: '14px', fontWeight: 800 }}>Премиум оқырмандар</th>
-                      <th style={{ padding: '16px 20px', color: '#0F172A', fontSize: '14px', fontWeight: 800 }}>Стандарт</th>
+                      <th style={{ padding: '16px 20px', width: '150px', background: '#F8FAFC', color: '#0F172A', fontSize: '14px', fontWeight: 800, borderRight: '1px solid #E2E8F0' }}>Көрсеткіш</th>
+                      <th style={{ padding: '16px 20px', color: '#0F172A', fontSize: '14px', fontWeight: 800, borderRight: '1px solid #E2E8F0' }}>Барлық оқырмандар</th>
+                      <th style={{ padding: '16px 20px', color: '#0F172A', fontSize: '14px', fontWeight: 800, borderRight: '1px solid #E2E8F0' }}>Премиум оқырмандар</th>
+                      <th style={{ padding: '16px 20px', color: '#0F172A', fontSize: '14px', fontWeight: 800, borderRight: '1px solid #E2E8F0' }}>Стандарт</th>
                       <th style={{ padding: '16px 20px', color: '#0F172A', fontSize: '14px', fontWeight: 800 }}>Бұғатталған оқырмандар</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr>
-                      <td style={{ padding: '16px 20px', fontWeight: 800, color: '#0F172A', background: '#F8FAFC', fontSize: '13px' }}>
+                      <td style={{ padding: '16px 20px', fontWeight: 800, color: '#0F172A', background: '#F8FAFC', fontSize: '13px', borderRight: '1px solid #E2E8F0' }}>
                         Саны
                       </td>
-                      <td style={{ padding: '16px 20px' }}>
+                      <td style={{ padding: '16px 20px', borderRight: '1px solid #E2E8F0' }}>
                         <span style={{ fontSize: '20px', fontWeight: 900, color: '#0F172A' }}>{totalReaders}</span>
                       </td>
-                      <td style={{ padding: '16px 20px' }}>
+                      <td style={{ padding: '16px 20px', borderRight: '1px solid #E2E8F0' }}>
                         <span style={{ fontSize: '20px', fontWeight: 900, color: '#0F172A' }}>{premiumReadersCount}</span>
                       </td>
-                      <td style={{ padding: '16px 20px' }}>
+                      <td style={{ padding: '16px 20px', borderRight: '1px solid #E2E8F0' }}>
                         <span style={{ fontSize: '20px', fontWeight: 900, color: '#0F172A' }}>{freeReadersCount}</span>
                       </td>
                       <td style={{ padding: '16px 20px' }}>
@@ -545,20 +545,20 @@ export const AdminStatsPage: React.FC = () => {
                     </tr>
 
                     <tr>
-                      <td style={{ padding: '16px 20px', fontWeight: 800, color: '#0F172A', background: '#F8FAFC', fontSize: '13px' }}>
+                      <td style={{ padding: '16px 20px', fontWeight: 800, color: '#0F172A', background: '#F8FAFC', fontSize: '13px', borderRight: '1px solid #E2E8F0' }}>
                         Үлесі (%)
                       </td>
-                      <td style={{ padding: '16px 20px' }}>
+                      <td style={{ padding: '16px 20px', borderRight: '1px solid #E2E8F0' }}>
                         <span style={{ color: '#0F172A', fontSize: '14px', fontWeight: 800 }}>
                           100%
                         </span>
                       </td>
-                      <td style={{ padding: '16px 20px' }}>
+                      <td style={{ padding: '16px 20px', borderRight: '1px solid #E2E8F0' }}>
                         <span style={{ color: '#0F172A', fontSize: '14px', fontWeight: 800 }}>
                           {totalReaders > 0 ? Math.round((premiumReadersCount / totalReaders) * 100) : 0}%
                         </span>
                       </td>
-                      <td style={{ padding: '16px 20px' }}>
+                      <td style={{ padding: '16px 20px', borderRight: '1px solid #E2E8F0' }}>
                         <span style={{ color: '#0F172A', fontSize: '14px', fontWeight: 800 }}>
                           {totalReaders > 0 ? Math.round((freeReadersCount / totalReaders) * 100) : 0}%
                         </span>
