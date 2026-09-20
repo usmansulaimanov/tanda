@@ -153,7 +153,7 @@ export const ReaderEditPage: React.FC = () => {
   const [phoneError, setPhoneError] = useState('');
   const [username, setUsername] = useState('');
   const [usernameError, setUsernameError] = useState('');
-  const [role, setRole] = useState<'client' | 'admin'>('client');
+  const [role, setRole] = useState<'client' | 'admin' | 'author'>('client');
   const [isActive, setIsActive] = useState<boolean>(true);
   const [messageText, setMessageText] = useState('');
   const [messageDays, setMessageDays] = useState(7);

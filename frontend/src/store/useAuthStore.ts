@@ -21,7 +21,7 @@ function sendWelcomeMessage(user: { id: string; name?: string; email: string }) 
 
 interface AuthState {
   user: User | null;
-  role: 'admin' | 'client';
+  role: 'admin' | 'client' | 'author';
   isAuthenticated: boolean;
   isLoading: boolean;
   authModalOpen: boolean;
@@ -35,9 +35,9 @@ interface AuthState {
   updateProfile: (data: { name: string; email: string; phone?: string; username?: string; birthDate?: string; gender?: 'male' | 'female' | 'other'; avatarUrl?: string }) => Promise<{ success: boolean; error?: string }>;
   updateAvatar: (avatarUrl: string | null) => Promise<{ success: boolean; error?: string }>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
-  updateUserByAdmin: (userId: string, data: { name: string; firstName?: string; lastName?: string; email: string; phone?: string; password?: string; username?: string; idNumber?: string; birthDate?: string; role?: 'admin' | 'client'; isActive?: boolean; personalMessage?: { text: string; days?: number; isActive?: boolean } | null }) => Promise<{ success: boolean; error?: string }>;
+  updateUserByAdmin: (userId: string, data: { name: string; firstName?: string; lastName?: string; email: string; phone?: string; password?: string; username?: string; idNumber?: string; birthDate?: string; role?: 'admin' | 'client' | 'author'; isActive?: boolean; personalMessage?: { text: string; days?: number; isActive?: boolean } | null }) => Promise<{ success: boolean; error?: string }>;
   toggleBlockUser: (userId: string) => Promise<{ success: boolean; isBlocked?: boolean; error?: string }>;
-  createReaderByAdmin: (data: { name: string; firstName?: string; lastName?: string; email: string; phone?: string; password?: string; username?: string; idNumber?: string; birthDate?: string; role?: 'admin' | 'client'; personalMessage?: { text: string; days?: number; isActive?: boolean } }) => Promise<{ success: boolean; user?: User; error?: string }>;
+  createReaderByAdmin: (data: { name: string; firstName?: string; lastName?: string; email: string; phone?: string; password?: string; username?: string; idNumber?: string; birthDate?: string; role?: 'admin' | 'client' | 'author'; personalMessage?: { text: string; days?: number; isActive?: boolean } }) => Promise<{ success: boolean; user?: User; error?: string }>;
   grantBirthdayGiftManually: (userId: string) => Promise<{ success: boolean; error?: string }>;
   resetBirthdayGiftHistory: (userId: string) => Promise<{ success: boolean; error?: string }>;
   getUserById: (userId: string) => User | undefined;
@@ -58,6 +58,12 @@ interface AuthState {
   createManagerByAdmin: (data: { name: string; email: string; password?: string; duty?: string; avatarUrl?: string | null; idNumber?: string; permissions: AdminPermission[] }) => Promise<{ success: boolean; user?: User; error?: string }>;
   updateManagerPermissions: (userId: string, data: { name: string; email: string; password?: string; duty?: string; avatarUrl?: string | null; idNumber?: string; permissions: AdminPermission[]; isActive?: boolean }) => Promise<{ success: boolean; error?: string }>;
   deleteManager: (userId: string) => Promise<{ success: boolean; error?: string }>;
+
+  // Author (Авторлар) operations
+  getAllAuthors: () => User[];
+  createAuthorByAdmin: (data: { name: string; email: string; password?: string; phone?: string; idNumber?: string; avatarUrl?: string | null; assignedAuthorName?: string; assignedBookIds?: string[] }) => Promise<{ success: boolean; user?: User; error?: string }>;
+  updateAuthorByAdmin: (userId: string, data: { name: string; email: string; password?: string; phone?: string; idNumber?: string; avatarUrl?: string | null; assignedAuthorName?: string; assignedBookIds?: string[]; isActive?: boolean }) => Promise<{ success: boolean; error?: string }>;
+  deleteAuthor: (userId: string) => Promise<{ success: boolean; error?: string }>;
 
   // Modal helpers
   openAuthModal: (mode?: 'login' | 'signup') => void;
@@ -703,6 +709,173 @@ export const useAuthStore = create<AuthState>()(
         return { success: true };
       },
 
+      getAllAuthors: (): User[] => {
+        const allUsers = getStoredUsers();
+        return allUsers.filter((u) => u.role === 'author' || u.isAuthor === true);
+      },
+
+      createAuthorByAdmin: async (data: {
+        name: string;
+        email: string;
+        password?: string;
+        phone?: string;
+        idNumber?: string;
+        avatarUrl?: string | null;
+        assignedAuthorName?: string;
+        assignedBookIds?: string[];
+      }) => {
+        const allUsers = getStoredUsers();
+        const cleanName = data.name.trim();
+        const cleanEmail = data.email.trim().toLowerCase();
+        const cleanPassword = data.password?.trim() || '';
+        const cleanPhone = data.phone?.trim() || undefined;
+        const cleanAssignedAuthorName = data.assignedAuthorName?.trim() || cleanName;
+
+        if (!cleanName) {
+          return { success: false, error: 'Автордың аты-жөнін енгізіңіз' };
+        }
+        if (!cleanEmail) {
+          return { success: false, error: 'Электронды поштасын енгізіңіз' };
+        }
+
+        // Check if email already exists
+        const emailConflict = allUsers.find(
+          (u) => u.email.toLowerCase() === cleanEmail
+        );
+        if (emailConflict) {
+          return { success: false, error: 'Бұл электронды поштамен пайдаланушы тіркеліп қойған' };
+        }
+
+        let idNum = data.idNumber?.trim();
+        if (idNum) {
+          const idCheck = get().checkIdNumberAvailable(idNum);
+          if (!idCheck.available) {
+            return { success: false, error: idCheck.error || 'Бұл ID нөмірі бос емес' };
+          }
+        } else {
+          const authorCount = allUsers.filter((u) => u.role === 'author' || u.isAuthor === true).length + 1;
+          idNum = `0000 ${String(authorCount).padStart(4, '0')}`;
+        }
+
+        const newAuthor: User = {
+          id: `author-${Date.now()}`,
+          idNumber: idNum,
+          name: cleanName,
+          email: cleanEmail,
+          phone: cleanPhone,
+          duty: 'Автор',
+          avatarUrl: data.avatarUrl !== undefined ? (data.avatarUrl || DEFAULT_MANAGER_AVATAR) : DEFAULT_MANAGER_AVATAR,
+          username: cleanEmail.split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '') || `author${Date.now()}`,
+          role: 'author',
+          isAuthor: true,
+          assignedAuthorName: cleanAssignedAuthorName,
+          assignedBookIds: data.assignedBookIds || [],
+          isActive: true,
+          hasPassword: !!cleanPassword,
+          password: cleanPassword || undefined,
+          authProvider: cleanEmail.includes('@gmail.com') ? 'GOOGLE' : 'LOCAL',
+          createdAt: new Date().toISOString(),
+        };
+
+        allUsers.push(newAuthor);
+        saveStoredUsers(allUsers);
+
+        return { success: true, user: newAuthor };
+      },
+
+      updateAuthorByAdmin: async (
+        userId: string,
+        data: {
+          name: string;
+          email: string;
+          password?: string;
+          phone?: string;
+          idNumber?: string;
+          avatarUrl?: string | null;
+          assignedAuthorName?: string;
+          assignedBookIds?: string[];
+          isActive?: boolean;
+        }
+      ) => {
+        const allUsers = getStoredUsers();
+        const existingIdx = allUsers.findIndex((u) => u.id === userId);
+        if (existingIdx === -1) {
+          return { success: false, error: 'Автор табылмады' };
+        }
+
+        const target = allUsers[existingIdx];
+        const cleanName = data.name.trim();
+        const cleanEmail = data.email.trim().toLowerCase();
+        const cleanPhone = data.phone !== undefined ? (data.phone.trim() || undefined) : target.phone;
+        const cleanAssignedAuthorName = data.assignedAuthorName !== undefined ? (data.assignedAuthorName.trim() || cleanName) : (target.assignedAuthorName || cleanName);
+        const newAvatarUrl = data.avatarUrl !== undefined ? (data.avatarUrl || DEFAULT_MANAGER_AVATAR) : (target.avatarUrl || DEFAULT_MANAGER_AVATAR);
+        let cleanIdNumber = data.idNumber !== undefined ? data.idNumber.trim() : target.idNumber;
+
+        if (!cleanName) {
+          return { success: false, error: 'Автордың аты-жөнін енгізіңіз' };
+        }
+        if (!cleanEmail) {
+          return { success: false, error: 'Электронды поштасын енгізіңіз' };
+        }
+
+        if (cleanIdNumber && cleanIdNumber !== target.idNumber) {
+          const idCheck = get().checkIdNumberAvailable(cleanIdNumber, userId);
+          if (!idCheck.available) {
+            return { success: false, error: idCheck.error || 'Бұл ID нөмірі бос емес' };
+          }
+        }
+
+        if (cleanEmail !== target.email.toLowerCase()) {
+          const conflict = allUsers.find(
+            (u) => u.id !== userId && u.email.toLowerCase() === cleanEmail
+          );
+          if (conflict) {
+            return { success: false, error: 'Бұл электронды поштамен басқа пайдаланушы тіркелген' };
+          }
+        }
+
+        const updatedAuthor: User = {
+          ...target,
+          name: cleanName,
+          email: cleanEmail,
+          phone: cleanPhone,
+          duty: 'Автор',
+          avatarUrl: newAvatarUrl,
+          idNumber: cleanIdNumber || target.idNumber,
+          assignedAuthorName: cleanAssignedAuthorName,
+          assignedBookIds: data.assignedBookIds !== undefined ? data.assignedBookIds : target.assignedBookIds,
+          isActive: data.isActive !== undefined ? data.isActive : target.isActive,
+          role: 'author',
+          isAuthor: true,
+        };
+
+        if (data.password !== undefined && data.password.trim()) {
+          updatedAuthor.password = data.password.trim();
+          updatedAuthor.hasPassword = true;
+        }
+
+        allUsers[existingIdx] = updatedAuthor;
+        saveStoredUsers(allUsers);
+
+        if (get().user?.id === userId) {
+          set({ user: updatedAuthor, role: 'author' });
+        }
+
+        return { success: true };
+      },
+
+      deleteAuthor: async (userId: string) => {
+        const allUsers = getStoredUsers();
+        const existingIdx = allUsers.findIndex((u) => u.id === userId);
+        if (existingIdx === -1) {
+          return { success: false, error: 'Автор табылмады' };
+        }
+
+        allUsers.splice(existingIdx, 1);
+        saveStoredUsers(allUsers);
+        return { success: true };
+      },
+
       updateUserByAdmin: async (
         userId: string,
         data: {
@@ -715,7 +888,7 @@ export const useAuthStore = create<AuthState>()(
           username?: string;
           idNumber?: string;
           birthDate?: string;
-          role?: 'admin' | 'client';
+          role?: 'admin' | 'client' | 'author';
           isActive?: boolean;
           personalMessage?: { text: string; days?: number; isActive?: boolean } | null;
         }
@@ -977,7 +1150,7 @@ export const useAuthStore = create<AuthState>()(
         username?: string;
         idNumber?: string;
         birthDate?: string;
-        role?: 'admin' | 'client';
+        role?: 'admin' | 'client' | 'author';
         personalMessage?: { text: string; days?: number; isActive?: boolean };
       }) => {
         const allUsers = getStoredUsers();

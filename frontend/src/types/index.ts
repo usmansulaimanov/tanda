@@ -26,6 +26,11 @@ export interface Book {
   epubUrl?: string;
   content?: string;
   createdAt?: string;
+  readsCount?: number;
+  viewsCount?: number;
+  listensCount?: number;
+  audioListensCount?: number;
+  savedCount?: number;
 }
 
 export type Category = 
@@ -100,9 +105,12 @@ export interface User {
   lastBirthdayGreetingYear?: number;
   lastBirthdayGiftYear?: number;
   lastBirthdayGiftDate?: string;
-  role: 'admin' | 'client';
+  role: 'admin' | 'client' | 'author';
+  isAuthor?: boolean;
+  assignedAuthorName?: string; // e.g. "Мұхтар Әуезов" matching books.author
+  assignedBookIds?: string[]; // Specific book IDs linked to this author
   isSuperAdmin?: boolean; // true for primary Super Admin (full control)
-  duty?: string; // e.g. "Кітап модераторы", "Контент менеджері"
+  duty?: string; // e.g. "Кітап модераторы", "Контент менеджері", "Автор"
   permissions?: AdminPermission[]; // For assistants/managers
   isActive?: boolean;
   isPremium?: boolean;

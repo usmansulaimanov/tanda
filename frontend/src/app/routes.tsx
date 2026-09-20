@@ -31,6 +31,7 @@ const NewsDetailPage = lazy(() => import('../features/news/NewsDetailPage').then
 const AdminNewsPage = lazy(() => import('../features/admin/AdminNewsPage').then((m) => ({ default: m.AdminNewsPage })));
 const AdminNewsFormPage = lazy(() => import('../features/admin/AdminNewsFormPage').then((m) => ({ default: m.AdminNewsFormPage })));
 const AdminStatsPage = lazy(() => import('../features/admin/AdminStatsPage').then((m) => ({ default: m.AdminStatsPage })));
+const AuthorStatsPage = lazy(() => import('../features/author/AuthorStatsPage').then((m) => ({ default: m.AuthorStatsPage })));
 
 const PageLoader = () => (
   <div className="max-w-7xl mx-auto px-4 py-8 flex flex-col gap-6">
@@ -242,6 +243,14 @@ export const router = createBrowserRouter([
         element: (
           <Suspense fallback={<PageLoader />}>
             <AdminStatsPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'author/stats',
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <AuthorStatsPage />
           </Suspense>
         ),
       },
