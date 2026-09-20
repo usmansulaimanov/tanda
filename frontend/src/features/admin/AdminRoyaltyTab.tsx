@@ -92,7 +92,7 @@ export const AdminRoyaltyTab: React.FC = () => {
       books
     );
 
-    showToast(`«${getMonthLabel(selectedMonth)}» айы үшін 50/50 роялти есебі жаңартылды!`, 'success');
+    showToast(`«${getMonthLabel(selectedMonth)}» айы үшін роялти есебі жаңартылды!`, 'success');
   };
 
   const handleFinalize = () => {
@@ -457,7 +457,7 @@ export const AdminRoyaltyTab: React.FC = () => {
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
             </svg>
-            50/50 Қайта есептеу
+            Қайта есептеу
           </button>
 
           <button
