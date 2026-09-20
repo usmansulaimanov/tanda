@@ -399,7 +399,7 @@ export const AdminManagersPage: React.FC = () => {
                         style={{
                           width: '46px',
                           height: '46px',
-                          borderRadius: '12px',
+                          borderRadius: '50%',
                           background: assistant.avatarUrl ? '#F1F5F9' : 'rgba(0, 84, 148, 0.08)',
                           color: 'var(--blue)',
                           display: 'flex',
@@ -673,7 +673,7 @@ export const AdminManagersPage: React.FC = () => {
                     style={{
                       width: '58px',
                       height: '58px',
-                      borderRadius: '14px',
+                      borderRadius: '50%',
                       background: formAvatarUrl ? '#F1F5F9' : 'rgba(0, 84, 148, 0.08)',
                       color: 'var(--blue)',
                       display: 'flex',
