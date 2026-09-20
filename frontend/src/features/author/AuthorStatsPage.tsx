@@ -785,11 +785,8 @@ export const AuthorStatsPage: React.FC = () => {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap', gap: '12px' }}>
             <div>
               <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-dark)', margin: 0 }}>
-                Автор кітаптарының нақты тыңдалым кестесі ({authorBooks.length})
+                Автор кітаптарының нақты тыңдалым кестесі: {authorBooks.length}
               </h3>
-              <p style={{ fontSize: '13px', color: 'var(--text-mid)', margin: '4px 0 0' }}>
-                Әрбір кітаптың жеке тыңдалған уақыты, оқылымы және жалпы үлесі
-              </p>
             </div>
           </div>
 
