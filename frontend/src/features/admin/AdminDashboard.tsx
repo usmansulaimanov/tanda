@@ -587,10 +587,10 @@ export const AdminDashboard: React.FC = () => {
                               padding: '6px 12px',
                               fontSize: '12px',
                               fontWeight: 700,
-                              background: book.isArchived ? '#ECFDF5' : '#FFFBEB',
-                              color: book.isArchived ? '#047857' : '#B45309',
+                              background: '#F1F5F9',
+                              color: 'var(--text-dark)',
                               borderRadius: '6px',
-                              border: `1px solid ${book.isArchived ? '#A7F3D0' : '#FDE68A'}`,
+                              border: '1px solid #CBD5E1',
                               cursor: 'pointer',
                             }}
                           >
