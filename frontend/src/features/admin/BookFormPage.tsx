@@ -1143,8 +1143,8 @@ export const BookFormPage: React.FC = () => {
             {/* FREE / PAID ACCESS */}
             <div
               style={{
-                background: isFree ? '#F0F7FF' : '#FFFBEB',
-                border: isFree ? '1.5px solid #BAE6FD' : '1.5px solid #FDE68A',
+                background: !isFree ? '#F0F7FF' : '#F8FAFC',
+                border: !isFree ? '1.5px solid #BAE6FD' : '1.5px solid #E2E8F0',
                 borderRadius: '12px',
                 padding: '16px 20px',
                 marginBottom: '32px',
@@ -1165,18 +1165,18 @@ export const BookFormPage: React.FC = () => {
                     letterSpacing: '0.05em',
                     padding: '3px 10px',
                     borderRadius: '50px',
-                    background: isFree ? '#FFFFFF' : 'var(--blue)',
-                    color: isFree ? 'var(--blue)' : '#FFFFFF',
+                    background: !isFree ? 'var(--blue)' : '#FFFFFF',
+                    color: !isFree ? '#FFFFFF' : 'var(--blue)',
                     border: '1.5px solid var(--blue)',
                     marginBottom: '4px',
                   }}
                 >
-                  {isFree ? 'Тегін кітап' : 'Премиум жазылым'}
+                  {!isFree ? 'Премиум жазылым' : 'Тегін кітап'}
                 </span>
                 <p style={{ fontSize: '13px', color: '#1E293B', margin: 0, fontWeight: 600 }}>
-                  {isFree
-                    ? 'Бұл кітап барлық оқырмандар үшін тегін қолжетімді болады'
-                    : 'Бұл кітапты тек премиум жазылымы бар пайдаланушылар оқи алады'}
+                  {!isFree
+                    ? 'Бұл кітапты тек премиум жазылымы бар пайдаланушылар оқи алады'
+                    : 'Бұл кітап барлық оқырмандар үшін тегін қолжетімді болады'}
                 </p>
               </div>
 
@@ -1193,8 +1193,8 @@ export const BookFormPage: React.FC = () => {
               >
                 <input
                   type="checkbox"
-                  checked={isFree}
-                  onChange={(e) => setIsFree(e.target.checked)}
+                  checked={!isFree}
+                  onChange={(e) => setIsFree(!e.target.checked)}
                   style={{
                     accentColor: '#005494',
                     width: '18px',
@@ -1202,7 +1202,7 @@ export const BookFormPage: React.FC = () => {
                     cursor: 'pointer',
                   }}
                 />
-                Тегін кітап ретінде белгілеу
+                Премиум кітап ретінде белгілеу
               </label>
             </div>
 
