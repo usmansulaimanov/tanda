@@ -514,9 +514,6 @@ export const AdminStatsPage: React.FC = () => {
                 <h3 style={{ fontSize: '16px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
                   Оқырмандардың жалпы көрсеткіштері
                 </h3>
-                <p style={{ fontSize: '13px', color: 'var(--text-mid)', margin: '2px 0 0 0' }}>
-                  Платформадағы тіркелген қолданушылардың статусы мен үлесі
-                </p>
               </div>
 
               <div style={{ overflowX: 'auto' }}>
