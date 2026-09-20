@@ -302,7 +302,7 @@ export const BookFormPage: React.FC = () => {
         >
           {/* Form Header */}
           <div style={{ borderBottom: '1.5px solid #F1F5F9', paddingBottom: '20px', marginBottom: '28px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <span
                 style={{
                   display: 'inline-block',
@@ -316,11 +316,6 @@ export const BookFormPage: React.FC = () => {
                 {isEditing ? 'Кітап мәліметтерін өңдеу' : 'Жаңа кітап тіркеу'}
               </h1>
             </div>
-            <p style={{ fontSize: '14px', color: '#64748B', margin: 0, paddingLeft: '18px' }}>
-              {isEditing
-                ? 'Кітап параметрлерін өзгертіп, төмендегі сақтау түймесін басыңыз'
-                : 'Кітапхана қорына жаңа әдебиет немесе аудиокітап қосу'}
-            </p>
           </div>
 
           <form onSubmit={handleSubmit}>
