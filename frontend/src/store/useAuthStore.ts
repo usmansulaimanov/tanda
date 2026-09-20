@@ -32,7 +32,7 @@ interface AuthState {
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
   restoreSession: () => Promise<void>;
-  updateProfile: (data: { name: string; email: string; phone?: string; username?: string; avatarUrl?: string }) => Promise<{ success: boolean; error?: string }>;
+  updateProfile: (data: { name: string; email: string; phone?: string; username?: string; birthDate?: string; gender?: 'male' | 'female' | 'other'; avatarUrl?: string }) => Promise<{ success: boolean; error?: string }>;
   updateAvatar: (avatarUrl: string | null) => Promise<{ success: boolean; error?: string }>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
   updateUserByAdmin: (userId: string, data: { name: string; email: string; phone?: string; username?: string; idNumber?: string; role?: 'admin' | 'client'; isActive?: boolean; personalMessage?: { text: string; days?: number; isActive?: boolean } | null }) => Promise<{ success: boolean; error?: string }>;
@@ -188,6 +188,63 @@ function saveStoredUsers(users: User[]) {
   try {
     localStorage.setItem(USERS_REGISTRY_KEY, JSON.stringify(users));
   } catch {}
+}
+
+export function checkAndSendBirthdayGreeting(user?: User | null): boolean {
+  if (!user || !user.birthDate) return false;
+
+  try {
+    const today = new Date();
+    const currentYear = today.getFullYear();
+    const currentMonth = String(today.getMonth() + 1).padStart(2, '0');
+    const currentDay = String(today.getDate()).padStart(2, '0');
+
+    // Parse user birthDate (format: "YYYY-MM-DD" or "YYYY/MM/DD")
+    const parts = user.birthDate.split(/[-/]/);
+    let birthMonth = '';
+    let birthDay = '';
+
+    if (parts.length === 3) {
+      birthMonth = parts[1].padStart(2, '0');
+      birthDay = parts[2].padStart(2, '0');
+    } else if (parts.length === 2) {
+      birthMonth = parts[0].padStart(2, '0');
+      birthDay = parts[1].padStart(2, '0');
+    }
+
+    if (!birthMonth || !birthDay) return false;
+
+    // Check if today is the user's birthday (same month and day)
+    if (birthMonth === currentMonth && birthDay === currentDay) {
+      // Deliver birthday greeting only once per calendar year
+      if (user.lastBirthdayGreetingYear !== currentYear) {
+        useMessageStore.getState().sendMessage({
+          title: `🎉 Туған күніңіз құтты болсын, ${user.name || 'құрметті оқырман'}!`,
+          content: `Құрметті ${user.name || 'оқырман'}! Сізді бүгінгі жеке мерекеңіз — туған күніңізбен Tanda онлайн кітапханасының ұжымы шын жүректен құттықтайды! 🎂✨ Жаңа жасыңыз бақытқа, шаттыққа, мықты денсаулық пен жаңа білімге толы болсын! Бізбен бірге әдебиет әлемінің жауһарларын оқып, рухани байлығыңызды еселей беріңіз! Әрқашан биік белестерді бағындыруыңызға тілектеспіз!`,
+          targetType: 'single',
+          targetUserIds: [user.id],
+          targetUserNames: [user.name || 'Оқырман'],
+          priority: 'important',
+          senderName: 'Tanda',
+          canReaderDelete: true,
+        });
+
+        // Update lastBirthdayGreetingYear in stored registry to prevent duplicate sends
+        const updatedUser: User = { ...user, lastBirthdayGreetingYear: currentYear };
+        const allUsers = getStoredUsers();
+        const idx = allUsers.findIndex((u) => u.id === user.id);
+        if (idx >= 0) {
+          allUsers[idx] = updatedUser;
+          saveStoredUsers(allUsers);
+        }
+        useAuthStore.setState({ user: updatedUser });
+        return true;
+      }
+    }
+  } catch (err) {
+    console.error('Birthday greeting check error:', err);
+  }
+  return false;
 }
 
 const RESERVED_USERNAMES_KEY = 'tanda_reserved_usernames_v1';
@@ -849,7 +906,15 @@ export const useAuthStore = create<AuthState>()(
         return { success: true, user: newUser };
       },
 
-      updateProfile: async (data: { name: string; email: string; phone?: string; username?: string; avatarUrl?: string }) => {
+      updateProfile: async (data: {
+        name: string;
+        email: string;
+        phone?: string;
+        username?: string;
+        birthDate?: string;
+        gender?: 'male' | 'female' | 'other';
+        avatarUrl?: string;
+      }) => {
         const currentUser = get().user;
         if (!currentUser) {
           return { success: false, error: 'Жүйеге кірмегенсіз' };
@@ -859,6 +924,8 @@ export const useAuthStore = create<AuthState>()(
         const cleanEmail = data.email.trim().toLowerCase();
         const cleanPhone = data.phone?.trim() || '';
         const rawUsername = data.username?.trim().toLowerCase().replace(/^@/, '') || '';
+        const cleanBirthDate = data.birthDate !== undefined ? (data.birthDate.trim() || undefined) : currentUser.birthDate;
+        const cleanGender = data.gender !== undefined ? (data.gender || undefined) : currentUser.gender;
         const newAvatarUrl = data.avatarUrl !== undefined ? (data.avatarUrl || undefined) : currentUser.avatarUrl;
 
         if (!cleanName) {
@@ -898,6 +965,8 @@ export const useAuthStore = create<AuthState>()(
           email: cleanEmail,
           phone: cleanPhone,
           username: rawUsername || undefined,
+          birthDate: cleanBirthDate,
+          gender: cleanGender,
           avatarUrl: newAvatarUrl,
         };
 
@@ -914,6 +983,9 @@ export const useAuthStore = create<AuthState>()(
         // Update state
         set({ user: updatedUser });
 
+        // Trigger birthday greeting check if birthDate was set
+        checkAndSendBirthdayGreeting(updatedUser);
+
         // Optional sync with backend
         try {
           await api.put('/api/auth/profile', {
@@ -921,6 +993,8 @@ export const useAuthStore = create<AuthState>()(
             email: cleanEmail,
             phone: cleanPhone,
             username: rawUsername,
+            birthDate: cleanBirthDate || null,
+            gender: cleanGender || null,
             avatarUrl: newAvatarUrl || null,
           });
         } catch {}

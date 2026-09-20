@@ -77,6 +77,8 @@ export const SettingsPage: React.FC = () => {
   const [phoneError, setPhoneError] = useState('');
   const [username, setUsername] = useState('');
   const [usernameError, setUsernameError] = useState('');
+  const [birthDate, setBirthDate] = useState('');
+  const [gender, setGender] = useState<'male' | 'female' | 'other' | ''>('');
   const [isSavingProfile, setIsSavingProfile] = useState(false);
 
   // Password Form state
@@ -145,6 +147,8 @@ export const SettingsPage: React.FC = () => {
     setEmail(user.email || '');
     setPhone(user.phone ? formatPhoneNumber(user.phone) : '');
     setUsername(user.username ? (user.username.startsWith('@') ? user.username : `@${user.username}`) : '');
+    setBirthDate(user.birthDate || '');
+    setGender(user.gender || '');
   }, [isAuthenticated, user]);
 
   useEffect(() => {
@@ -348,6 +352,8 @@ export const SettingsPage: React.FC = () => {
         email: email.trim(),
         phone: phone.trim(),
         username: rawUser,
+        birthDate: birthDate.trim(),
+        gender: (gender as 'male' | 'female' | 'other') || undefined,
       });
 
       if (res.success) {
@@ -977,6 +983,110 @@ export const SettingsPage: React.FC = () => {
                     <span style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#DC2626', marginTop: '6px' }}>
                       {phoneError}
                     </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Row 3: Birth Date and Gender */}
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                  gap: '20px',
+                  marginBottom: '28px',
+                }}
+              >
+                {/* Birth Date */}
+                <div className="form-group" style={{ margin: 0 }}>
+                  <label className="form-label" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span>Туған күні</span>
+                    <span style={{ fontSize: '11px', color: 'var(--blue)', fontWeight: 700 }}>🎂 Құттықтау хат</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={birthDate}
+                    max={new Date().toISOString().split('T')[0]}
+                    onChange={(e) => setBirthDate(e.target.value)}
+                    className="form-input"
+                    style={{
+                      cursor: 'pointer',
+                    }}
+                  />
+                  <span style={{ display: 'block', fontSize: '12px', color: '#64748B', marginTop: '6px' }}>
+                    Туған күніңізде Tanda-дан арнайы құттықтау хат келеді
+                  </span>
+                </div>
+
+                {/* Gender */}
+                <div className="form-group" style={{ margin: 0 }}>
+                  <label className="form-label">
+                    Жынысы
+                  </label>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                    <button
+                      type="button"
+                      onClick={() => setGender('male')}
+                      style={{
+                        padding: '11px 16px',
+                        borderRadius: '10px',
+                        border: gender === 'male' ? '2px solid var(--blue)' : '1.5px solid #CBD5E1',
+                        background: gender === 'male' ? '#EFF6FF' : '#FFFFFF',
+                        color: gender === 'male' ? 'var(--blue)' : 'var(--text-dark)',
+                        fontWeight: gender === 'male' ? 800 : 600,
+                        fontSize: '14px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      <span>👨 Ер</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setGender('female')}
+                      style={{
+                        padding: '11px 16px',
+                        borderRadius: '10px',
+                        border: gender === 'female' ? '2px solid var(--orange)' : '1.5px solid #CBD5E1',
+                        background: gender === 'female' ? '#FFF7ED' : '#FFFFFF',
+                        color: gender === 'female' ? 'var(--orange)' : 'var(--text-dark)',
+                        fontWeight: gender === 'female' ? 800 : 600,
+                        fontSize: '14px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      <span>👩 Әйел</span>
+                    </button>
+                  </div>
+                  {gender && (
+                    <button
+                      type="button"
+                      onClick={() => setGender('')}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#94A3B8',
+                        fontSize: '11px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        marginTop: '6px',
+                        padding: 0,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                      }}
+                    >
+                      ✕ Таңдауды өшіру
+                    </button>
                   )}
                 </div>
               </div>

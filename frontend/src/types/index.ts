@@ -92,6 +92,9 @@ export interface User {
   email: string;
   username?: string; // Unique username (e.g. "usman", "reader01")
   phone?: string; // Phone number (e.g. "+7 (777) 123-45-67")
+  birthDate?: string; // "YYYY-MM-DD"
+  gender?: 'male' | 'female' | 'other';
+  lastBirthdayGreetingYear?: number;
   role: 'admin' | 'client';
   isSuperAdmin?: boolean; // true for primary Super Admin (full control)
   permissions?: AdminPermission[]; // For assistants/managers
