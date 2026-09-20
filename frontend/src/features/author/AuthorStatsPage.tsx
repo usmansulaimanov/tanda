@@ -644,20 +644,19 @@ export const AuthorStatsPage: React.FC = () => {
             {/* Peak Day Card */}
             <div
               style={{
-                background: 'linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%)',
+                background: '#F8FAFC',
                 borderRadius: '16px',
                 padding: '18px 20px',
-                border: '1.5px solid #FDBA74',
+                border: '1px solid #E2E8F0',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                <span style={{ fontSize: '18px' }}>🔥</span>
-                <span style={{ fontSize: '12.5px', fontWeight: 800, color: '#9A3412' }}>Ең көп тыңдалған күн (Пик)</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                <span style={{ fontSize: '13px', fontWeight: 700, color: '#64748B' }}>Ең көп тыңдалған күн (Пик)</span>
               </div>
-              <div style={{ fontSize: '18px', fontWeight: 900, color: '#C2410C' }}>
+              <div style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-dark)' }}>
                 {dailyAnalytics.peakDay ? (dailyAnalytics.peakDay as PeakDayInfo).label : 'Әлі тыңдалмады'}
               </div>
-              <div style={{ fontSize: '12px', fontWeight: 700, color: '#EA580C', marginTop: '4px' }}>
+              <div style={{ fontSize: '12px', fontWeight: 500, color: '#64748B', marginTop: '4px' }}>
                 {dailyAnalytics.peakDay
                   ? `${dailyAnalytics.peakMinutes > 0 ? `${dailyAnalytics.peakMinutes} мин` : `${dailyAnalytics.peakSeconds} сек`} тыңдалды`
                   : '0 минут'}
@@ -667,20 +666,19 @@ export const AuthorStatsPage: React.FC = () => {
             {/* Active Days Card */}
             <div
               style={{
-                background: '#F0FDF4',
+                background: '#F8FAFC',
                 borderRadius: '16px',
                 padding: '18px 20px',
-                border: '1.5px solid #BBF7D0',
+                border: '1px solid #E2E8F0',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                <span style={{ fontSize: '18px' }}>📅</span>
-                <span style={{ fontSize: '12.5px', fontWeight: 800, color: '#166534' }}>Белсенді күндер саны</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                <span style={{ fontSize: '13px', fontWeight: 700, color: '#64748B' }}>Белсенді күндер саны</span>
               </div>
-              <div style={{ fontSize: '20px', fontWeight: 900, color: '#15803D' }}>
+              <div style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-dark)' }}>
                 {dailyAnalytics.totalListenedDays} күн
               </div>
-              <div style={{ fontSize: '12px', color: '#16A34A', marginTop: '4px' }}>
+              <div style={{ fontSize: '12px', fontWeight: 500, color: '#64748B', marginTop: '4px' }}>
                 Платформада аудиосы ойнатылған күндер
               </div>
             </div>
@@ -688,20 +686,19 @@ export const AuthorStatsPage: React.FC = () => {
             {/* Average Daily Card */}
             <div
               style={{
-                background: '#EFF6FF',
+                background: '#F8FAFC',
                 borderRadius: '16px',
                 padding: '18px 20px',
-                border: '1.5px solid #BFDBFE',
+                border: '1px solid #E2E8F0',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                <span style={{ fontSize: '18px' }}>⏱</span>
-                <span style={{ fontSize: '12.5px', fontWeight: 800, color: '#1E40AF' }}>Орташа күнделікті уақыт</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                <span style={{ fontSize: '13px', fontWeight: 700, color: '#64748B' }}>Орташа күнделікті уақыт</span>
               </div>
-              <div style={{ fontSize: '20px', fontWeight: 900, color: '#1D4ED8' }}>
+              <div style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-dark)' }}>
                 {dailyAnalytics.averageMinutes > 0 ? `${dailyAnalytics.averageMinutes} мин` : '0 мин'}
               </div>
-              <div style={{ fontSize: '12px', color: '#2563EB', marginTop: '4px' }}>
+              <div style={{ fontSize: '12px', fontWeight: 500, color: '#64748B', marginTop: '4px' }}>
                 Белсенді күндер бойынша орташа
               </div>
             </div>
