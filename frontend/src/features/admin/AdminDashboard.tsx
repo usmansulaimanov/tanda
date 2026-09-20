@@ -506,7 +506,7 @@ export const AdminDashboard: React.FC = () => {
                     <td>
                       {book.hasAudio ? (
                         <div style={{ fontSize: '12px', color: 'var(--orange)', fontWeight: 700 }}>
-                          {book.audioDuration ? book.audioDuration : '[Аудио]'}
+                          {book.audioDuration ? book.audioDuration : 'Аудио'}
                         </div>
                       ) : (
                         <div style={{ fontSize: '13px', color: '#94A3B8' }}>—</div>
