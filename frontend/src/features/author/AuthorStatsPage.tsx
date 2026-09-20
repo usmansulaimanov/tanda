@@ -25,6 +25,19 @@ const parseFormattedNumber = (val: string): number => {
   return digits ? Number(digits) : 0;
 };
 
+const formatDisplayId = (raw?: string): string => {
+  if (!raw) return '';
+  const clean = raw.trim().replace(/\s+/g, '');
+  if (/^\d{8}$/.test(clean)) {
+    return `${clean.slice(0, 4)} ${clean.slice(4)}`;
+  }
+  if (/^\d+$/.test(clean) && clean.length < 8) {
+    const padded = clean.padStart(8, '0');
+    return `${padded.slice(0, 4)} ${padded.slice(4)}`;
+  }
+  return raw.trim();
+};
+
 export const AuthorStatsPage: React.FC = () => {
   const navigate = useNavigate();
   const { authorId: routeAuthorId } = useParams<{ authorId?: string }>();
@@ -427,7 +440,7 @@ export const AuthorStatsPage: React.FC = () => {
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginTop: '8px', fontSize: '13px', color: '#64748B', flexWrap: 'wrap' }}>
-                  <span>ID: <strong style={{ fontFamily: 'monospace', color: 'var(--text-dark)' }}>{targetAuthor.idNumber || targetAuthor.id}</strong></span>
+                  <span>ID: <strong style={{ fontFamily: 'monospace', color: 'var(--text-dark)' }}>{formatDisplayId(targetAuthor.idNumber || targetAuthor.id)}</strong></span>
                   <span>•</span>
                   <span>{targetAuthor.email}</span>
                   {targetAuthor.phone && (

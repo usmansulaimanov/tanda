@@ -164,6 +164,18 @@ function getStoredUsers(): User[] {
             u.idNumber = '0000 0001';
             modified = true;
           }
+          // Normalize any 8-digit ID format to "0000 0000"
+          if (u.idNumber) {
+            const rawDigits = u.idNumber.replace(/\s+/g, '');
+            if (/^\d{8}$/.test(rawDigits) && !u.idNumber.includes(' ')) {
+              u.idNumber = `${rawDigits.slice(0, 4)} ${rawDigits.slice(4)}`;
+              modified = true;
+            } else if (/^\d+$/.test(rawDigits) && rawDigits.length < 8) {
+              const padded = rawDigits.padStart(8, '0');
+              u.idNumber = `${padded.slice(0, 4)} ${padded.slice(4)}`;
+              modified = true;
+            }
+          }
         });
 
         // Auto-fix duplicate idNumbers so each reader has a strictly unique ID
@@ -748,6 +760,13 @@ export const useAuthStore = create<AuthState>()(
 
         let idNum = data.idNumber?.trim();
         if (idNum) {
+          const rawDigits = idNum.replace(/\s+/g, '');
+          if (/^\d{8}$/.test(rawDigits)) {
+            idNum = `${rawDigits.slice(0, 4)} ${rawDigits.slice(4)}`;
+          } else if (/^\d+$/.test(rawDigits) && rawDigits.length < 8) {
+            const padded = rawDigits.padStart(8, '0');
+            idNum = `${padded.slice(0, 4)} ${padded.slice(4)}`;
+          }
           const idCheck = get().checkIdNumberAvailable(idNum);
           if (!idCheck.available) {
             return { success: false, error: idCheck.error || 'Бұл ID нөмірі бос емес' };
@@ -810,6 +829,15 @@ export const useAuthStore = create<AuthState>()(
         const cleanAssignedAuthorName = data.assignedAuthorName !== undefined ? (data.assignedAuthorName.trim() || cleanName) : (target.assignedAuthorName || cleanName);
         const newAvatarUrl = data.avatarUrl !== undefined ? (data.avatarUrl || DEFAULT_MANAGER_AVATAR) : (target.avatarUrl || DEFAULT_MANAGER_AVATAR);
         let cleanIdNumber = data.idNumber !== undefined ? data.idNumber.trim() : target.idNumber;
+        if (cleanIdNumber) {
+          const rawDigits = cleanIdNumber.replace(/\s+/g, '');
+          if (/^\d{8}$/.test(rawDigits)) {
+            cleanIdNumber = `${rawDigits.slice(0, 4)} ${rawDigits.slice(4)}`;
+          } else if (/^\d+$/.test(rawDigits) && rawDigits.length < 8) {
+            const padded = rawDigits.padStart(8, '0');
+            cleanIdNumber = `${padded.slice(0, 4)} ${padded.slice(4)}`;
+          }
+        }
 
         if (!cleanName) {
           return { success: false, error: 'Автордың аты-жөнін енгізіңіз' };
