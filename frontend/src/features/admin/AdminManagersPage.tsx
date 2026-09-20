@@ -8,7 +8,7 @@ import { resizeAndCompressImage } from '../../utils/imageUtils';
 
 export const AdminManagersPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user: currentUser, role, getAllManagers, createManagerByAdmin, updateManagerPermissions, deleteManager } = useAuthStore();
+  const { user: currentUser, role, getAllManagers, checkIdNumberAvailable, createManagerByAdmin, updateManagerPermissions, deleteManager } = useAuthStore();
   const { showToast } = useToastStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -27,6 +27,7 @@ export const AdminManagersPage: React.FC = () => {
   const [showFormPassword, setShowFormPassword] = useState(false);
   const [formDuty, setFormDuty] = useState('');
   const [formIdNumber, setFormIdNumber] = useState('');
+  const [formIdNumberError, setFormIdNumberError] = useState('');
   const [formAvatarUrl, setFormAvatarUrl] = useState<string | null>(DEFAULT_MANAGER_AVATAR);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [formPermissions, setFormPermissions] = useState<AdminPermission[]>([]);
@@ -74,6 +75,7 @@ export const AdminManagersPage: React.FC = () => {
     setShowFormPassword(false);
     setFormDuty('');
     setFormIdNumber('');
+    setFormIdNumberError('');
     setFormAvatarUrl(DEFAULT_MANAGER_AVATAR);
     setFormPermissions([]);
     setFormIsActive(true);
@@ -88,10 +90,26 @@ export const AdminManagersPage: React.FC = () => {
     setShowFormPassword(false);
     setFormDuty(mgr.duty || '');
     setFormIdNumber(mgr.idNumber || '');
+    setFormIdNumberError('');
     setFormAvatarUrl(mgr.avatarUrl || DEFAULT_MANAGER_AVATAR);
     setFormPermissions(mgr.permissions || []);
     setFormIsActive(mgr.isActive !== false);
     setIsModalOpen(true);
+  };
+
+  const handleIdNumberChange = (val: string) => {
+    setFormIdNumber(val);
+    const trimmed = val.trim();
+    if (!trimmed) {
+      setFormIdNumberError('');
+      return;
+    }
+    const res = checkIdNumberAvailable(trimmed, editingManager?.id);
+    if (!res.available) {
+      setFormIdNumberError(res.error || 'Бұл ID нөмірі бос емес, басқасын таңдаңыз');
+    } else {
+      setFormIdNumberError('');
+    }
   };
 
   const handleAvatarFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -149,6 +167,14 @@ export const AdminManagersPage: React.FC = () => {
     if (formPermissions.length === 0) {
       showToast('Кем дегенде бір функцияға рұқсат белгілеңіз', 'error');
       return;
+    }
+    if (formIdNumber.trim()) {
+      const idCheck = checkIdNumberAvailable(formIdNumber.trim(), editingManager?.id);
+      if (!idCheck.available) {
+        setFormIdNumberError(idCheck.error || 'Бұл ID нөмірі бос емес, басқасын таңдаңыз');
+        showToast(idCheck.error || 'Бұл ID нөмірі бос емес, басқасын таңдаңыз', 'error');
+        return;
+      }
     }
 
     setIsSubmitting(true);
@@ -881,12 +907,13 @@ export const AdminManagersPage: React.FC = () => {
                     <input
                       type="text"
                       value={formIdNumber}
-                      onChange={(e) => setFormIdNumber(e.target.value)}
+                      onChange={(e) => handleIdNumberChange(e.target.value)}
                       style={{
                         width: '100%',
                         padding: '11px 14px',
                         borderRadius: '10px',
-                        border: '1.5px solid #CBD5E1',
+                        border: formIdNumberError ? '1.5px solid #EF4444' : '1.5px solid #CBD5E1',
+                        boxShadow: formIdNumberError ? '0 0 0 3px rgba(239, 68, 68, 0.12)' : 'none',
                         fontSize: '14px',
                         outline: 'none',
                         boxSizing: 'border-box',
@@ -894,6 +921,11 @@ export const AdminManagersPage: React.FC = () => {
                         fontWeight: 600,
                       }}
                     />
+                    {formIdNumberError && (
+                      <span style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#DC2626', marginTop: '6px' }}>
+                        {formIdNumberError}
+                      </span>
+                    )}
                   </div>
                 </div>
 
