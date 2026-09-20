@@ -143,8 +143,8 @@ export const AdminRoyaltyTab: React.FC = () => {
           </div>
         </div>
 
-        {/* Month Selector & Reset */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+        {/* Month Selector & Action Buttons */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <label style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-dark)' }}>
               Есептік ай:
@@ -170,6 +170,68 @@ export const AdminRoyaltyTab: React.FC = () => {
               <option value="2026-06">Маусым 2026</option>
             </select>
           </div>
+
+          <button
+            type="button"
+            onClick={handleRecalculate}
+            title="Есептеулерді жаңарту"
+            style={{
+              padding: '9px 18px',
+              borderRadius: '12px',
+              border: '1.5px solid var(--blue)',
+              background: '#FFFFFF',
+              color: 'var(--blue)',
+              fontSize: '13px',
+              fontWeight: 800,
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              transition: 'all 0.15s',
+            }}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
+            </svg>
+            Қайта есептеу
+          </button>
+
+          <button
+            type="button"
+            onClick={handleFinalize}
+            disabled={currentPeriod?.isFinalized}
+            style={{
+              padding: '9px 20px',
+              borderRadius: '12px',
+              border: 'none',
+              background: currentPeriod?.isFinalized ? '#10B981' : 'var(--orange)',
+              color: '#FFFFFF',
+              fontSize: '13px',
+              fontWeight: 800,
+              cursor: currentPeriod?.isFinalized ? 'default' : 'pointer',
+              boxShadow: currentPeriod?.isFinalized ? 'none' : '0 4px 14px rgba(239, 126, 0, 0.3)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              transition: 'all 0.15s',
+            }}
+          >
+            {currentPeriod?.isFinalized ? (
+              <>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                Бекітілген
+              </>
+            ) : (
+              <>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                </svg>
+                Есепті бекіту & Балансқа аудару
+              </>
+            )}
+          </button>
 
           <button
             type="button"
@@ -371,156 +433,7 @@ export const AdminRoyaltyTab: React.FC = () => {
         </div>
       </div>
 
-      {/* 3. Manual Input & Calculation Form */}
-      <div
-        style={{
-          background: '#FFFFFF',
-          borderRadius: '20px',
-          padding: '26px 30px',
-          border: '1.5px solid #E2E8F0',
-          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
-        }}
-      >
-        <h3 style={{ fontSize: '17px', fontWeight: 800, color: 'var(--text-dark)', margin: '0 0 16px' }}>
-          Шығындар мен табысты қолмен енгізу
-        </h3>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '18px', marginBottom: '20px' }}>
-          <div>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '6px' }}>
-              Табыс (₸)
-            </label>
-            <input
-              type="text"
-              inputMode="numeric"
-              placeholder="Мысалы: 2 500 000"
-              value={formatNumberWithSpaces(revenueInput)}
-              onChange={(e) => setRevenueInput(parseFormattedNumber(e.target.value))}
-              style={{
-                width: '100%',
-                padding: '11px 14px',
-                borderRadius: '10px',
-                border: '1.5px solid #CBD5E1',
-                fontSize: '15px',
-                fontWeight: 700,
-                outline: 'none',
-                boxSizing: 'border-box',
-              }}
-            />
-          </div>
-
-          <div>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '6px' }}>
-              Шығын (₸) <span style={{ color: '#EF4444' }}>*</span>
-            </label>
-            <input
-              type="text"
-              inputMode="numeric"
-              placeholder="Мысалы: 1 100 000"
-              value={formatNumberWithSpaces(expenseInput)}
-              onChange={(e) => setExpenseInput(parseFormattedNumber(e.target.value))}
-              style={{
-                width: '100%',
-                padding: '11px 14px',
-                borderRadius: '10px',
-                border: '1.5px solid #CBD5E1',
-                fontSize: '15px',
-                fontWeight: 700,
-                color: '#DC2626',
-                outline: 'none',
-                boxSizing: 'border-box',
-              }}
-            />
-            <span style={{ fontSize: '11px', color: '#64748B', display: 'block', marginTop: '4px' }}>
-              Сервер, жарнама, эквайринг және команда шығындары
-            </span>
-          </div>
-
-          <div>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '6px' }}>
-              Шығындар сипаттамасы (Ескертпе)
-            </label>
-            <input
-              type="text"
-              placeholder="Мысалы: Серверлік шығын 300к, Жарнама 800к"
-              value={noteInput}
-              onChange={(e) => setNoteInput(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '11px 14px',
-                borderRadius: '10px',
-                border: '1.5px solid #CBD5E1',
-                fontSize: '13.5px',
-                outline: 'none',
-                boxSizing: 'border-box',
-              }}
-            />
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '12px', flexWrap: 'wrap' }}>
-          <button
-            type="button"
-            onClick={handleRecalculate}
-            style={{
-              padding: '11px 24px',
-              borderRadius: '50px',
-              border: '1.5px solid var(--blue)',
-              background: '#FFFFFF',
-              color: 'var(--blue)',
-              fontSize: '13.5px',
-              fontWeight: 800,
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '8px',
-              transition: 'all 0.2s',
-            }}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
-            </svg>
-            Қайта есептеу
-          </button>
-
-          <button
-            type="button"
-            onClick={handleFinalize}
-            disabled={currentPeriod?.isFinalized}
-            style={{
-              padding: '11px 26px',
-              borderRadius: '50px',
-              border: 'none',
-              background: currentPeriod?.isFinalized ? '#10B981' : 'var(--orange)',
-              color: '#FFFFFF',
-              fontSize: '13.5px',
-              fontWeight: 800,
-              cursor: currentPeriod?.isFinalized ? 'default' : 'pointer',
-              boxShadow: currentPeriod?.isFinalized ? 'none' : '0 6px 20px rgba(239, 126, 0, 0.35)',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '8px',
-              transition: 'all 0.2s',
-            }}
-          >
-            {currentPeriod?.isFinalized ? (
-              <>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                  <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
-                Есеп бекітілген (Төленді)
-              </>
-            ) : (
-              <>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-                </svg>
-                Есепті бекіту & Балансқа аудару
-              </>
-            )}
-          </button>
-        </div>
-      </div>
 
       {/* 4. Authors Royalty Breakdown Table */}
       <div
