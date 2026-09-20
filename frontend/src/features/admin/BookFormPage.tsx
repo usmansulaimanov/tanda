@@ -628,7 +628,7 @@ export const BookFormPage: React.FC = () => {
                   {/* File Upload Button */}
                   <div>
                     <label className="form-label" style={{ fontSize: '12px', color: '#475569' }}>
-                      Құрылғыдан сурет файлын жүктеу:
+                      Сурет жүктеу:
                     </label>
 
                     <input
