@@ -475,12 +475,8 @@ export const AdminManagersPage: React.FC = () => {
                             {isActive ? 'Белсенді' : 'Бұғатталған'}
                           </span>
                         </div>
-                        <div style={{ fontSize: '13px', color: '#64748B', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                          <span>{assistant.email}</span>
-                          <span style={{ color: '#CBD5E1' }}>•</span>
-                          <span style={{ fontSize: '11.5px', fontWeight: 600, color: '#475569', background: '#F1F5F9', padding: '1px 8px', borderRadius: '4px', fontFamily: 'monospace' }}>
-                            ID: {assistant.idNumber || '000 002'}
-                          </span>
+                        <div style={{ fontSize: '13px', color: '#64748B', marginTop: '4px' }}>
+                          {assistant.email} &bull; ID: {assistant.idNumber || '000 002'}
                         </div>
 
                         {/* Permissions badges */}
