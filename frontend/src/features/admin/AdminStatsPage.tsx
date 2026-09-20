@@ -518,8 +518,8 @@ export const AdminStatsPage: React.FC = () => {
                 <table className="admin-table" style={{ width: '100%', margin: 0, minWidth: '600px', borderCollapse: 'collapse' }}>
                   <thead>
                     <tr>
-                      <th style={{ width: '25%', padding: '16px 20px', color: '#0F172A', fontSize: '14px', fontWeight: 800, borderRight: '1px solid #E2E8F0' }}>Барлық оқырмандар</th>
-                      <th style={{ width: '25%', padding: '16px 20px', color: '#0F172A', fontSize: '14px', fontWeight: 800, borderRight: '1px solid #E2E8F0' }}>Премиум оқырмандар</th>
+                      <th style={{ width: '25%', padding: '16px 20px', color: '#0F172A', fontSize: '14px', fontWeight: 800, borderRight: '1px solid #E2E8F0' }}>Барлығы</th>
+                      <th style={{ width: '25%', padding: '16px 20px', color: '#0F172A', fontSize: '14px', fontWeight: 800, borderRight: '1px solid #E2E8F0' }}>Премиум</th>
                       <th style={{ width: '25%', padding: '16px 20px', color: '#0F172A', fontSize: '14px', fontWeight: 800, borderRight: '1px solid #E2E8F0' }}>Стандарт</th>
                       <th style={{ width: '25%', padding: '16px 20px', color: '#0F172A', fontSize: '14px', fontWeight: 800 }}>Бұғатталған оқырмандар</th>
                     </tr>
