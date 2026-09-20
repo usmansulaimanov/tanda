@@ -218,7 +218,7 @@ export const useRoyaltyStore = create<RoyaltyState>()(
         });
 
         const ratePerMinute = totalPlatformMinutes > 0
-          ? Number((authorRoyaltyPool / totalPlatformMinutes).toFixed(4))
+          ? Number((authorRoyaltyPool / totalPlatformMinutes).toFixed(2))
           : 0;
 
         authorEarnings.forEach((ae) => {

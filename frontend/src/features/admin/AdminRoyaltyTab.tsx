@@ -82,7 +82,7 @@ export const AdminRoyaltyTab: React.FC = () => {
   const netPool = Math.max(0, revenueInput - expenseInput);
   const companyShare = Math.round(netPool * 0.5);
   const authorRoyaltyPool = netPool - companyShare;
-  const previewRatePerMinute = totalPlatformMinutes > 0 ? Number((authorRoyaltyPool / totalPlatformMinutes).toFixed(4)) : 0;
+  const previewRatePerMinute = totalPlatformMinutes > 0 ? Number((authorRoyaltyPool / totalPlatformMinutes).toFixed(2)) : 0;
 
   const handleRecalculate = () => {
     if (expenseInput < 0) {
