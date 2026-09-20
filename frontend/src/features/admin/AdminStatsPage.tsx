@@ -510,18 +510,13 @@ export const AdminStatsPage: React.FC = () => {
             
             {/* Structured Table for Reader Metrics */}
             <div className="admin-card" style={{ padding: '0', overflow: 'hidden', borderRadius: '16px', border: '1.5px solid #E2E8F0', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)' }}>
-              <div style={{ padding: '18px 24px', background: '#F8FAFC', borderBottom: '1.5px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
-                <div>
-                  <h3 style={{ fontSize: '16px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
-                    Оқырмандардың жалпы көрсеткіштері
-                  </h3>
-                  <p style={{ fontSize: '13px', color: 'var(--text-mid)', margin: '2px 0 0 0' }}>
-                    Платформадағы тіркелген қолданушылардың статусы мен үлесі
-                  </p>
-                </div>
-                <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--blue)', background: 'rgba(0, 84, 148, 0.08)', padding: '6px 14px', borderRadius: '20px' }}>
-                  Барлығы: {totalReaders} оқырман
-                </div>
+              <div style={{ padding: '18px 24px', background: '#F8FAFC', borderBottom: '1.5px solid #E2E8F0' }}>
+                <h3 style={{ fontSize: '16px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
+                  Оқырмандардың жалпы көрсеткіштері
+                </h3>
+                <p style={{ fontSize: '13px', color: 'var(--text-mid)', margin: '2px 0 0 0' }}>
+                  Платформадағы тіркелген қолданушылардың статусы мен үлесі
+                </p>
               </div>
 
               <div style={{ overflowX: 'auto' }}>
