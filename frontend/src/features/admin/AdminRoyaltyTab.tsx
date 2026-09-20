@@ -454,34 +454,13 @@ export const AdminRoyaltyTab: React.FC = () => {
           boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
         }}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
-          <div>
-            <h3 style={{ fontSize: '18px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
-              Авторлардың есептелген роялти үлестері ({authors.length})
-            </h3>
-            <p style={{ fontSize: '13px', color: 'var(--text-mid)', margin: '4px 0 0' }}>
-              Әр авторға тиесілі кітаптардың нақты тыңдалған минуты бойынша есептелген төлем сомасы
-            </p>
-          </div>
-
-          <div
-            style={{
-              background: '#EFF6FF',
-              border: '1.5px solid #BFDBFE',
-              borderRadius: '12px',
-              padding: '8px 16px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-            }}
-          >
-            <span style={{ fontSize: '13px', fontWeight: 700, color: '#1E40AF' }}>
-              Барлық авторлардың жалпы тыңдалымы:
-            </span>
-            <strong style={{ fontSize: '15px', fontWeight: 900, color: 'var(--blue)' }}>
-              {totalPlatformMinutes.toLocaleString()} минут {totalPlatformMinutes > 0 ? `(≈ ${(totalPlatformMinutes / 60).toFixed(1)} сағат)` : ''}
-            </strong>
-          </div>
+        <div style={{ marginBottom: '20px' }}>
+          <h3 style={{ fontSize: '18px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
+            Авторлардың есептелген роялти үлестері ({authors.length})
+          </h3>
+          <p style={{ fontSize: '13px', color: 'var(--text-mid)', margin: '4px 0 0' }}>
+            Әр авторға тиесілі кітаптардың нақты тыңдалған минуты бойынша есептелген төлем сомасы
+          </p>
         </div>
 
         {authors.length === 0 ? (
