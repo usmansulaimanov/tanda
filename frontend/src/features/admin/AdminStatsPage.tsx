@@ -507,57 +507,57 @@ export const AdminStatsPage: React.FC = () => {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             
             {/* Structured Table for Reader Metrics */}
-            <div className="admin-card" style={{ padding: '0', overflow: 'hidden', borderRadius: '16px', border: '1.5px solid #E2E8F0', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)' }}>
-              <div style={{ padding: '18px 24px', background: '#F8FAFC', borderBottom: '1.5px solid #E2E8F0' }}>
-                <h3 style={{ fontSize: '16px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
+            <div className="admin-card" style={{ maxWidth: '680px', padding: '0', overflow: 'hidden', borderRadius: '14px', border: '1.5px solid #E2E8F0', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)' }}>
+              <div style={{ padding: '12px 18px', background: '#F8FAFC', borderBottom: '1.5px solid #E2E8F0' }}>
+                <h3 style={{ fontSize: '15px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
                   Оқырмандардың жалпы көрсеткіштері
                 </h3>
               </div>
 
               <div style={{ overflowX: 'auto' }}>
-                <table className="admin-table" style={{ width: '100%', margin: 0, minWidth: '600px', borderCollapse: 'collapse' }}>
+                <table className="admin-table" style={{ width: '100%', margin: 0, borderCollapse: 'collapse' }}>
                   <thead>
                     <tr>
-                      <th style={{ width: '25%', padding: '16px 20px', color: '#0F172A', fontSize: '14px', fontWeight: 800, borderRight: '2.5px solid #94A3B8' }}>Барлығы</th>
-                      <th style={{ width: '25%', padding: '16px 20px', color: '#0F172A', fontSize: '14px', fontWeight: 800, borderRight: '1px solid #E2E8F0' }}>Премиум</th>
-                      <th style={{ width: '25%', padding: '16px 20px', color: '#0F172A', fontSize: '14px', fontWeight: 800, borderRight: '1px solid #E2E8F0' }}>Стандарт</th>
-                      <th style={{ width: '25%', padding: '16px 20px', color: '#0F172A', fontSize: '14px', fontWeight: 800 }}>Бұғатталған</th>
+                      <th style={{ width: '25%', padding: '10px 14px', color: '#0F172A', fontSize: '13px', fontWeight: 800, borderRight: '2.5px solid #94A3B8' }}>Барлығы</th>
+                      <th style={{ width: '25%', padding: '10px 14px', color: '#0F172A', fontSize: '13px', fontWeight: 800, borderRight: '1px solid #E2E8F0' }}>Премиум</th>
+                      <th style={{ width: '25%', padding: '10px 14px', color: '#0F172A', fontSize: '13px', fontWeight: 800, borderRight: '1px solid #E2E8F0' }}>Стандарт</th>
+                      <th style={{ width: '25%', padding: '10px 14px', color: '#0F172A', fontSize: '13px', fontWeight: 800 }}>Бұғатталған</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr>
-                      <td style={{ padding: '16px 20px', borderRight: '2.5px solid #94A3B8' }}>
-                        <span style={{ fontSize: '20px', fontWeight: 900, color: '#0F172A' }}>{totalReaders}</span>
+                      <td style={{ padding: '10px 14px', borderRight: '2.5px solid #94A3B8' }}>
+                        <span style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>{totalReaders}</span>
                       </td>
-                      <td style={{ padding: '16px 20px', borderRight: '1px solid #E2E8F0' }}>
-                        <span style={{ fontSize: '20px', fontWeight: 900, color: '#0F172A' }}>{premiumReadersCount}</span>
+                      <td style={{ padding: '10px 14px', borderRight: '1px solid #E2E8F0' }}>
+                        <span style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>{premiumReadersCount}</span>
                       </td>
-                      <td style={{ padding: '16px 20px', borderRight: '1px solid #E2E8F0' }}>
-                        <span style={{ fontSize: '20px', fontWeight: 900, color: '#0F172A' }}>{freeReadersCount}</span>
+                      <td style={{ padding: '10px 14px', borderRight: '1px solid #E2E8F0' }}>
+                        <span style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>{freeReadersCount}</span>
                       </td>
-                      <td style={{ padding: '16px 20px' }}>
-                        <span style={{ fontSize: '20px', fontWeight: 900, color: '#0F172A' }}>{blockedReadersCount}</span>
+                      <td style={{ padding: '10px 14px' }}>
+                        <span style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>{blockedReadersCount}</span>
                       </td>
                     </tr>
 
                     <tr>
-                      <td style={{ padding: '16px 20px', borderRight: '2.5px solid #94A3B8' }}>
-                        <span style={{ color: '#0F172A', fontSize: '14px', fontWeight: 800 }}>
+                      <td style={{ padding: '10px 14px', borderRight: '2.5px solid #94A3B8' }}>
+                        <span style={{ color: '#0F172A', fontSize: '13px', fontWeight: 800 }}>
                           100%
                         </span>
                       </td>
-                      <td style={{ padding: '16px 20px', borderRight: '1px solid #E2E8F0' }}>
-                        <span style={{ color: '#0F172A', fontSize: '14px', fontWeight: 800 }}>
+                      <td style={{ padding: '10px 14px', borderRight: '1px solid #E2E8F0' }}>
+                        <span style={{ color: '#0F172A', fontSize: '13px', fontWeight: 800 }}>
                           {totalReaders > 0 ? Math.round((premiumReadersCount / totalReaders) * 100) : 0}%
                         </span>
                       </td>
-                      <td style={{ padding: '16px 20px', borderRight: '1px solid #E2E8F0' }}>
-                        <span style={{ color: '#0F172A', fontSize: '14px', fontWeight: 800 }}>
+                      <td style={{ padding: '10px 14px', borderRight: '1px solid #E2E8F0' }}>
+                        <span style={{ color: '#0F172A', fontSize: '13px', fontWeight: 800 }}>
                           {totalReaders > 0 ? Math.round((freeReadersCount / totalReaders) * 100) : 0}%
                         </span>
                       </td>
-                      <td style={{ padding: '16px 20px' }}>
-                        <span style={{ color: '#0F172A', fontSize: '14px', fontWeight: 800 }}>
+                      <td style={{ padding: '10px 14px' }}>
+                        <span style={{ color: '#0F172A', fontSize: '13px', fontWeight: 800 }}>
                           {totalReaders > 0 ? Math.round((blockedReadersCount / totalReaders) * 100) : 0}%
                         </span>
                       </td>
@@ -568,57 +568,57 @@ export const AdminStatsPage: React.FC = () => {
             </div>
 
             {/* Gender Distribution Card */}
-            <div className="admin-card" style={{ padding: '0', overflow: 'hidden', borderRadius: '16px', border: '1.5px solid #E2E8F0', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)' }}>
-              <div style={{ padding: '18px 24px', background: '#F8FAFC', borderBottom: '1.5px solid #E2E8F0' }}>
-                <h3 style={{ fontSize: '16px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
+            <div className="admin-card" style={{ maxWidth: '680px', padding: '0', overflow: 'hidden', borderRadius: '14px', border: '1.5px solid #E2E8F0', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)' }}>
+              <div style={{ padding: '12px 18px', background: '#F8FAFC', borderBottom: '1.5px solid #E2E8F0' }}>
+                <h3 style={{ fontSize: '15px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
                   Жынысы бойынша оқырмандар бөлінісі
                 </h3>
               </div>
 
               <div style={{ overflowX: 'auto' }}>
-                <table className="admin-table" style={{ width: '100%', margin: 0, minWidth: '600px', borderCollapse: 'collapse' }}>
+                <table className="admin-table" style={{ width: '100%', margin: 0, borderCollapse: 'collapse' }}>
                   <thead>
                     <tr>
-                      <th style={{ width: '25%', padding: '16px 20px', color: '#0F172A', fontSize: '14px', fontWeight: 800, borderRight: '2.5px solid #94A3B8' }}>Барлығы</th>
-                      <th style={{ width: '25%', padding: '16px 20px', color: '#0F172A', fontSize: '14px', fontWeight: 800, borderRight: '1px solid #E2E8F0' }}>Әйелдер</th>
-                      <th style={{ width: '25%', padding: '16px 20px', color: '#0F172A', fontSize: '14px', fontWeight: 800, borderRight: '1px solid #E2E8F0' }}>Ерлер</th>
-                      <th style={{ width: '25%', padding: '16px 20px', color: '#0F172A', fontSize: '14px', fontWeight: 800 }}>Көрсетілмеген</th>
+                      <th style={{ width: '25%', padding: '10px 14px', color: '#0F172A', fontSize: '13px', fontWeight: 800, borderRight: '2.5px solid #94A3B8' }}>Барлығы</th>
+                      <th style={{ width: '25%', padding: '10px 14px', color: '#0F172A', fontSize: '13px', fontWeight: 800, borderRight: '1px solid #E2E8F0' }}>Әйелдер</th>
+                      <th style={{ width: '25%', padding: '10px 14px', color: '#0F172A', fontSize: '13px', fontWeight: 800, borderRight: '1px solid #E2E8F0' }}>Ерлер</th>
+                      <th style={{ width: '25%', padding: '10px 14px', color: '#0F172A', fontSize: '13px', fontWeight: 800 }}>Көрсетілмеген</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr>
-                      <td style={{ padding: '16px 20px', borderRight: '2.5px solid #94A3B8' }}>
-                        <span style={{ fontSize: '20px', fontWeight: 900, color: '#0F172A' }}>{totalReaders}</span>
+                      <td style={{ padding: '10px 14px', borderRight: '2.5px solid #94A3B8' }}>
+                        <span style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>{totalReaders}</span>
                       </td>
-                      <td style={{ padding: '16px 20px', borderRight: '1px solid #E2E8F0' }}>
-                        <span style={{ fontSize: '20px', fontWeight: 900, color: '#0F172A' }}>{femaleCount}</span>
+                      <td style={{ padding: '10px 14px', borderRight: '1px solid #E2E8F0' }}>
+                        <span style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>{femaleCount}</span>
                       </td>
-                      <td style={{ padding: '16px 20px', borderRight: '1px solid #E2E8F0' }}>
-                        <span style={{ fontSize: '20px', fontWeight: 900, color: '#0F172A' }}>{maleCount}</span>
+                      <td style={{ padding: '10px 14px', borderRight: '1px solid #E2E8F0' }}>
+                        <span style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>{maleCount}</span>
                       </td>
-                      <td style={{ padding: '16px 20px' }}>
-                        <span style={{ fontSize: '20px', fontWeight: 900, color: '#0F172A' }}>{unspecifiedGenderCount}</span>
+                      <td style={{ padding: '10px 14px' }}>
+                        <span style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>{unspecifiedGenderCount}</span>
                       </td>
                     </tr>
 
                     <tr>
-                      <td style={{ padding: '16px 20px', borderRight: '2.5px solid #94A3B8' }}>
-                        <span style={{ color: '#0F172A', fontSize: '14px', fontWeight: 800 }}>
+                      <td style={{ padding: '10px 14px', borderRight: '2.5px solid #94A3B8' }}>
+                        <span style={{ color: '#0F172A', fontSize: '13px', fontWeight: 800 }}>
                           100%
                         </span>
                       </td>
-                      <td style={{ padding: '16px 20px', borderRight: '1px solid #E2E8F0' }}>
-                        <span style={{ color: '#0F172A', fontSize: '14px', fontWeight: 800 }}>
+                      <td style={{ padding: '10px 14px', borderRight: '1px solid #E2E8F0' }}>
+                        <span style={{ color: '#0F172A', fontSize: '13px', fontWeight: 800 }}>
                           {femalePct}%
                         </span>
                       </td>
-                      <td style={{ padding: '16px 20px', borderRight: '1px solid #E2E8F0' }}>
-                        <span style={{ color: '#0F172A', fontSize: '14px', fontWeight: 800 }}>
+                      <td style={{ padding: '10px 14px', borderRight: '1px solid #E2E8F0' }}>
+                        <span style={{ color: '#0F172A', fontSize: '13px', fontWeight: 800 }}>
                           {malePct}%
                         </span>
                       </td>
-                      <td style={{ padding: '16px 20px' }}>
-                        <span style={{ color: '#0F172A', fontSize: '14px', fontWeight: 800 }}>
+                      <td style={{ padding: '10px 14px' }}>
+                        <span style={{ color: '#0F172A', fontSize: '13px', fontWeight: 800 }}>
                           {unspecifiedGenderPct}%
                         </span>
                       </td>
