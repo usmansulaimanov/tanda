@@ -54,6 +54,16 @@ export const AuthorStatsPage: React.FC = () => {
   const [payoutMethod, setPayoutMethod] = useState('Kaspi Gold');
   const [payoutAccount, setPayoutAccount] = useState('');
 
+  // Selected month for stats (YYYY-MM format, default = current month)
+  const currentMonthKey = useMemo(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  }, []);
+  const [selectedMonthKey, setSelectedMonthKey] = useState<string>(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  });
+
   // All authors list for Admin dropdown
   const allAuthors = useMemo(() => getAllAuthors(), [getAllAuthors]);
 
@@ -152,7 +162,48 @@ export const AuthorStatsPage: React.FC = () => {
     return getAuthorStats(targetAuthor, books);
   }, [targetAuthor, books, getAuthorStats]);
 
-  // Daily Listening Analytics: "Қай күні көп тыңдалды", 14-day history, peak day
+  // All history dateMap (full, unfiltered) — used for available months list
+  const allDateMap = useMemo(() => {
+    const dateMap: Record<string, number> = {};
+    authorBooks.forEach((b) => {
+      const stat = listeningStats[b.id];
+      if (stat?.dailySeconds) {
+        Object.entries(stat.dailySeconds).forEach(([d, s]) => {
+          dateMap[d] = (dateMap[d] || 0) + s;
+        });
+      }
+    });
+    return dateMap;
+  }, [authorBooks, listeningStats]);
+
+  // Build list of available months from history (YYYY-MM, sorted desc)
+  const availableMonths = useMemo(() => {
+    const monthSet = new Set<string>();
+    // Always include the current month
+    const now = new Date();
+    const cur = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    monthSet.add(cur);
+    Object.keys(allDateMap).forEach((d) => {
+      if (allDateMap[d] > 0) {
+        monthSet.add(d.slice(0, 7)); // YYYY-MM
+      }
+    });
+    return Array.from(monthSet).sort((a, b) => b.localeCompare(a)); // newest first
+  }, [allDateMap]);
+
+  // Kazakh month names
+  const KZ_MONTHS: Record<number, string> = {
+    1: 'Қаңтар', 2: 'Ақпан', 3: 'Наурыз', 4: 'Сәуір',
+    5: 'Мамыр', 6: 'Маусым', 7: 'Шілде', 8: 'Тамыз',
+    9: 'Қыркүйек', 10: 'Қазан', 11: 'Қараша', 12: 'Желтоқсан',
+  };
+
+  const formatMonthLabel = (key: string) => {
+    const [y, m] = key.split('-');
+    return `${KZ_MONTHS[Number(m)]} ${y}`;
+  };
+
+  // Monthly Analytics: compute stats for selectedMonthKey
   const dailyAnalytics = useMemo(() => {
     if (!targetAuthor) {
       return {
@@ -168,14 +219,16 @@ export const AuthorStatsPage: React.FC = () => {
       };
     }
 
-    const dateMap: Record<string, number> = {};
-    let totalSec = 0;
+    const [selYear, selMonth] = selectedMonthKey.split('-').map(Number);
+
+    // Filter dateMap to only the selected month
+    const monthDateMap: Record<string, number> = {};
+    let monthTotalSec = 0;
     let latestTimestamp: string | null = null;
 
     authorBooks.forEach((b) => {
       const stat = listeningStats[b.id];
       if (stat) {
-        totalSec += stat.totalSeconds || 0;
         if (stat.lastListenedAt) {
           if (!latestTimestamp || new Date(stat.lastListenedAt) > new Date(latestTimestamp)) {
             latestTimestamp = stat.lastListenedAt;
@@ -183,19 +236,19 @@ export const AuthorStatsPage: React.FC = () => {
         }
         if (stat.dailySeconds) {
           Object.entries(stat.dailySeconds).forEach(([d, s]) => {
-            dateMap[d] = (dateMap[d] || 0) + s;
+            if (d.startsWith(selectedMonthKey)) {
+              monthDateMap[d] = (monthDateMap[d] || 0) + s;
+              monthTotalSec += s;
+            }
           });
         }
       }
     });
 
-    // If dateMap has no entries but totalSec > 0, attribute to today
+    // Build full list of days in the selected month
+    const daysInMonth = new Date(selYear, selMonth, 0).getDate();
     const today = new Date().toISOString().split('T')[0];
-    if (Object.keys(dateMap).length === 0 && totalSec > 0) {
-      dateMap[today] = totalSec;
-    }
 
-    // Build last 14 days list for chart
     const days: {
       date: string;
       label: string;
@@ -206,18 +259,14 @@ export const AuthorStatsPage: React.FC = () => {
       isPeak: boolean;
     }[] = [];
 
-    const now = new Date();
     let maxSecInPeriod = 0;
 
-    for (let i = 13; i >= 0; i--) {
-      const d = new Date(now);
-      d.setDate(d.getDate() - i);
-      const iso = d.toISOString().split('T')[0];
-      const sec = Math.round(dateMap[iso] || 0);
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dayNum = String(day).padStart(2, '0');
+      const monthNum = String(selMonth).padStart(2, '0');
+      const iso = `${selYear}-${monthNum}-${dayNum}`;
+      const sec = Math.round(monthDateMap[iso] || 0);
       if (sec > maxSecInPeriod) maxSecInPeriod = sec;
-
-      const dayNum = String(d.getDate()).padStart(2, '0');
-      const monthNum = String(d.getMonth() + 1).padStart(2, '0');
 
       days.push({
         date: iso,
@@ -230,11 +279,11 @@ export const AuthorStatsPage: React.FC = () => {
       });
     }
 
-    // Find peak day across all history
+    // Find peak day within the selected month
     let peakDay: PeakDayInfo | null = null;
     let maxSec = 0;
 
-    Object.entries(dateMap).forEach(([dStr, sec]) => {
+    Object.entries(monthDateMap).forEach(([dStr, sec]) => {
       if (sec > maxSec && sec > 0) {
         maxSec = Math.round(sec);
         const dObj = new Date(dStr);
@@ -250,7 +299,7 @@ export const AuthorStatsPage: React.FC = () => {
       }
     });
 
-    // Mark peak day in 14-day list
+    // Mark peak day in the chart list
     if (peakDay) {
       const peakDate = (peakDay as PeakDayInfo).date;
       days.forEach((day) => {
@@ -260,8 +309,8 @@ export const AuthorStatsPage: React.FC = () => {
       });
     }
 
-    const activeDaysCount = Object.keys(dateMap).filter((k) => dateMap[k] > 0).length;
-    const avgMin = activeDaysCount > 0 ? Number(((totalSec / 60) / activeDaysCount).toFixed(1)) : 0;
+    const activeDaysCount = Object.keys(monthDateMap).filter((k) => monthDateMap[k] > 0).length;
+    const avgMin = activeDaysCount > 0 ? Number(((monthTotalSec / 60) / activeDaysCount).toFixed(1)) : 0;
 
     return {
       dailyList: days,
@@ -270,11 +319,11 @@ export const AuthorStatsPage: React.FC = () => {
       peakSeconds: peakDay ? (peakDay as PeakDayInfo).seconds : 0,
       totalListenedDays: activeDaysCount,
       averageMinutes: avgMin,
-      totalSeconds: totalSec,
+      totalSeconds: monthTotalSec,
       maxSecInPeriod: Math.max(maxSecInPeriod, 60),
       lastListenedAt: latestTimestamp,
     };
-  }, [targetAuthor, authorBooks, listeningStats]);
+  }, [targetAuthor, authorBooks, listeningStats, selectedMonthKey]);
 
   if (!currentUser) return null;
 
@@ -614,11 +663,64 @@ export const AuthorStatsPage: React.FC = () => {
               </h3>
             </div>
 
-            {dailyAnalytics.lastListenedAt && (
-              <div style={{ fontSize: '12px', color: '#64748B', fontWeight: 600 }}>
-                Соңғы белсенділік: <strong style={{ color: 'var(--text-dark)' }}>{new Date(dailyAnalytics.lastListenedAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}, {new Date(dailyAnalytics.lastListenedAt).toLocaleDateString('ru-RU')}</strong>
-              </div>
-            )}
+            {/* Month Navigator */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <button
+                onClick={() => {
+                  const idx = availableMonths.indexOf(selectedMonthKey);
+                  if (idx < availableMonths.length - 1) setSelectedMonthKey(availableMonths[idx + 1]);
+                }}
+                disabled={availableMonths.indexOf(selectedMonthKey) >= availableMonths.length - 1}
+                style={{
+                  width: '32px', height: '32px', borderRadius: '8px',
+                  border: '1.5px solid #E2E8F0', background: '#F8FAFC',
+                  cursor: availableMonths.indexOf(selectedMonthKey) >= availableMonths.length - 1 ? 'not-allowed' : 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: availableMonths.indexOf(selectedMonthKey) >= availableMonths.length - 1 ? '#CBD5E1' : 'var(--text-dark)',
+                  fontSize: '16px', fontWeight: 700, transition: 'all 0.15s',
+                }}
+              >‹</button>
+
+              <select
+                value={selectedMonthKey}
+                onChange={(e) => setSelectedMonthKey(e.target.value)}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: '8px',
+                  border: '1.5px solid #E2E8F0',
+                  background: '#F8FAFC',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  color: 'var(--text-dark)',
+                  outline: 'none',
+                  cursor: 'pointer',
+                  minWidth: '160px',
+                  textAlign: 'center',
+                }}
+              >
+                {availableMonths.map((mk) => (
+                  <option key={mk} value={mk}>
+                    {formatMonthLabel(mk)}{mk === currentMonthKey ? ' (ағымдағы)' : ''}
+                  </option>
+                ))}
+              </select>
+
+              <button
+                onClick={() => {
+                  const idx = availableMonths.indexOf(selectedMonthKey);
+                  if (idx > 0) setSelectedMonthKey(availableMonths[idx - 1]);
+                }}
+                disabled={availableMonths.indexOf(selectedMonthKey) <= 0}
+                style={{
+                  width: '32px', height: '32px', borderRadius: '8px',
+                  border: '1.5px solid #E2E8F0', background: '#F8FAFC',
+                  cursor: availableMonths.indexOf(selectedMonthKey) <= 0 ? 'not-allowed' : 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: availableMonths.indexOf(selectedMonthKey) <= 0 ? '#CBD5E1' : 'var(--text-dark)',
+                  fontSize: '16px', fontWeight: 700, transition: 'all 0.15s',
+                }}
+              >›</button>
+            </div>
           </div>
 
           {/* 3 Metric Badges */}
@@ -687,25 +789,27 @@ export const AuthorStatsPage: React.FC = () => {
             </div>
           </div>
 
-          {/* 14-Day Activity Bar Chart */}
+          {/* Monthly Activity Bar Chart */}
           <div style={{ marginTop: '10px' }}>
             <div style={{ marginBottom: '12px' }}>
               <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-dark)' }}>
-                Соңғы 14 күндегі тыңдалым динамикасы:
+                {formatMonthLabel(selectedMonthKey)} — күнделікті тыңдалым:
               </span>
             </div>
+
 
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(14, 1fr)',
-                gap: '8px',
+                gridTemplateColumns: `repeat(${dailyAnalytics.dailyList.length}, 1fr)`,
+                gap: dailyAnalytics.dailyList.length > 20 ? '4px' : '8px',
                 alignItems: 'flex-end',
                 height: '145px',
                 background: '#F8FAFC',
                 padding: '24px 14px 10px',
                 borderRadius: '16px',
                 border: '1px solid #E2E8F0',
+                overflowX: 'auto',
               }}
             >
               {dailyAnalytics.dailyList.map((day) => {
