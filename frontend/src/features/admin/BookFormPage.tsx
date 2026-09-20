@@ -131,7 +131,7 @@ export const BookFormPage: React.FC = () => {
     const newCh: AudioChapter = {
       id: `ch-${Date.now()}`,
       title: `${audioChapters.length + 1}-аудио`,
-      duration: '05:00',
+      duration: '',
       audioUrl: '',
     };
     setAudioChapters([...audioChapters, newCh]);
@@ -827,7 +827,7 @@ export const BookFormPage: React.FC = () => {
                           {
                             id: `ch-${Date.now()}`,
                             title: '1-аудио',
-                            duration: '05:00',
+                            duration: '',
                             audioUrl: '',
                           },
                         ]);
@@ -984,7 +984,7 @@ export const BookFormPage: React.FC = () => {
                               type="text"
                               value={ch.duration}
                               onChange={(e) => updateChapter(idx, 'duration', formatDurationInput(e.target.value))}
-                              placeholder="05:00"
+                              placeholder=""
                               className="form-input"
                               style={{ width: '90px', padding: '8px 12px', fontSize: '13px' }}
                               title="Аудио ұзақтығы"
