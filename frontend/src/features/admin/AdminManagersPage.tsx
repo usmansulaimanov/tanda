@@ -575,9 +575,6 @@ export const AdminManagersPage: React.FC = () => {
                   <h3 style={{ fontSize: '22px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
                     {editingManager ? 'Көмекшіні өңдеу' : 'Жаңа көмекші тағайындау'}
                   </h3>
-                  <p style={{ fontSize: '13px', color: 'var(--text-mid)', marginTop: '4px' }}>
-                    Google аккаунтын, құпия сөзін және құқылы функцияларын белгілеңіз
-                  </p>
                 </div>
                 <button
                   type="button"
