@@ -26,6 +26,7 @@ export const AdminManagersPage: React.FC = () => {
   const [formPassword, setFormPassword] = useState('');
   const [showFormPassword, setShowFormPassword] = useState(false);
   const [formDuty, setFormDuty] = useState('');
+  const [formIdNumber, setFormIdNumber] = useState('');
   const [formAvatarUrl, setFormAvatarUrl] = useState<string | null>(DEFAULT_MANAGER_AVATAR);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [formPermissions, setFormPermissions] = useState<AdminPermission[]>([]);
@@ -72,6 +73,7 @@ export const AdminManagersPage: React.FC = () => {
     setFormPassword('');
     setShowFormPassword(false);
     setFormDuty('');
+    setFormIdNumber('');
     setFormAvatarUrl(DEFAULT_MANAGER_AVATAR);
     setFormPermissions([]);
     setFormIsActive(true);
@@ -85,6 +87,7 @@ export const AdminManagersPage: React.FC = () => {
     setFormPassword(mgr.password || '');
     setShowFormPassword(false);
     setFormDuty(mgr.duty || '');
+    setFormIdNumber(mgr.idNumber || '');
     setFormAvatarUrl(mgr.avatarUrl || DEFAULT_MANAGER_AVATAR);
     setFormPermissions(mgr.permissions || []);
     setFormIsActive(mgr.isActive !== false);
@@ -156,6 +159,7 @@ export const AdminManagersPage: React.FC = () => {
           email: formEmail.trim().toLowerCase(),
           password: formPassword.trim() || undefined,
           duty: formDuty.trim() || undefined,
+          idNumber: formIdNumber.trim() || undefined,
           avatarUrl: formAvatarUrl,
           permissions: formPermissions,
           isActive: formIsActive,
@@ -173,6 +177,7 @@ export const AdminManagersPage: React.FC = () => {
           email: formEmail.trim().toLowerCase(),
           password: formPassword.trim() || undefined,
           duty: formDuty.trim() || undefined,
+          idNumber: formIdNumber.trim() || undefined,
           avatarUrl: formAvatarUrl,
           permissions: formPermissions,
         });
@@ -795,7 +800,7 @@ export const AdminManagersPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '24px' }}>
                   <div>
                     <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '6px' }}>
                       Құпия сөз
@@ -865,6 +870,28 @@ export const AdminManagersPage: React.FC = () => {
                         fontSize: '14px',
                         outline: 'none',
                         boxSizing: 'border-box',
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '6px' }}>
+                      ID нөмірі
+                    </label>
+                    <input
+                      type="text"
+                      value={formIdNumber}
+                      onChange={(e) => setFormIdNumber(e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '11px 14px',
+                        borderRadius: '10px',
+                        border: '1.5px solid #CBD5E1',
+                        fontSize: '14px',
+                        outline: 'none',
+                        boxSizing: 'border-box',
+                        fontFamily: 'monospace',
+                        fontWeight: 600,
                       }}
                     />
                   </div>

@@ -53,8 +53,8 @@ interface AuthState {
 
   // Manager (Көмекші / Басқару) operations
   getAllManagers: () => User[];
-  createManagerByAdmin: (data: { name: string; email: string; password?: string; duty?: string; avatarUrl?: string | null; permissions: AdminPermission[] }) => Promise<{ success: boolean; user?: User; error?: string }>;
-  updateManagerPermissions: (userId: string, data: { name: string; email: string; password?: string; duty?: string; avatarUrl?: string | null; permissions: AdminPermission[]; isActive?: boolean }) => Promise<{ success: boolean; error?: string }>;
+  createManagerByAdmin: (data: { name: string; email: string; password?: string; duty?: string; avatarUrl?: string | null; idNumber?: string; permissions: AdminPermission[] }) => Promise<{ success: boolean; user?: User; error?: string }>;
+  updateManagerPermissions: (userId: string, data: { name: string; email: string; password?: string; duty?: string; avatarUrl?: string | null; idNumber?: string; permissions: AdminPermission[]; isActive?: boolean }) => Promise<{ success: boolean; error?: string }>;
   deleteManager: (userId: string) => Promise<{ success: boolean; error?: string }>;
 
   // Modal helpers
@@ -491,6 +491,7 @@ export const useAuthStore = create<AuthState>()(
         password?: string;
         duty?: string;
         avatarUrl?: string | null;
+        idNumber?: string;
         permissions: AdminPermission[];
       }) => {
         const allUsers = getStoredUsers();
@@ -517,8 +518,17 @@ export const useAuthStore = create<AuthState>()(
           return { success: false, error: 'Бұл электронды поштамен пайдаланушы тіркелген' };
         }
 
-        const adminCount = allUsers.filter((u) => u.role === 'admin').length + 1;
-        const idNum = `000 ${String(adminCount).padStart(3, '0')}`;
+        let idNum = data.idNumber?.trim();
+        if (idNum) {
+          const idCheck = get().checkIdNumberAvailable(idNum);
+          if (!idCheck.available) {
+            return { success: false, error: idCheck.error || 'Бұл ID нөмірі бос емес' };
+          }
+        } else {
+          const adminCount = allUsers.filter((u) => u.role === 'admin').length + 1;
+          idNum = `000 ${String(adminCount).padStart(3, '0')}`;
+        }
+
         const newManager: User = {
           id: `manager-${Date.now()}`,
           idNumber: idNum,
@@ -526,7 +536,7 @@ export const useAuthStore = create<AuthState>()(
           email: cleanEmail,
           duty: cleanDuty,
           avatarUrl: data.avatarUrl !== undefined ? (data.avatarUrl || DEFAULT_MANAGER_AVATAR) : DEFAULT_MANAGER_AVATAR,
-          username: cleanEmail.split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '') || `admin${adminCount}`,
+          username: cleanEmail.split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '') || `admin${Date.now()}`,
           role: 'admin',
           isSuperAdmin: false,
           permissions: data.permissions,
@@ -551,6 +561,7 @@ export const useAuthStore = create<AuthState>()(
           password?: string;
           duty?: string;
           avatarUrl?: string | null;
+          idNumber?: string;
           permissions: AdminPermission[];
           isActive?: boolean;
         }
@@ -566,6 +577,7 @@ export const useAuthStore = create<AuthState>()(
         const cleanEmail = data.email.trim().toLowerCase();
         const cleanDuty = data.duty !== undefined ? (data.duty.trim() || undefined) : target.duty;
         const newAvatarUrl = data.avatarUrl !== undefined ? (data.avatarUrl || DEFAULT_MANAGER_AVATAR) : (target.avatarUrl || DEFAULT_MANAGER_AVATAR);
+        let cleanIdNumber = data.idNumber !== undefined ? data.idNumber.trim() : target.idNumber;
 
         if (!cleanName) {
           return { success: false, error: 'Аты-жөнін енгізіңіз' };
@@ -575,6 +587,15 @@ export const useAuthStore = create<AuthState>()(
         }
         if (!data.permissions || data.permissions.length === 0) {
           return { success: false, error: 'Кем дегенде бір рұқсатты таңдаңыз' };
+        }
+
+        if (cleanIdNumber && cleanIdNumber !== target.idNumber) {
+          const idCheck = get().checkIdNumberAvailable(cleanIdNumber, userId);
+          if (!idCheck.available) {
+            return { success: false, error: idCheck.error || 'Бұл ID нөмірі бос емес' };
+          }
+        } else if (!cleanIdNumber) {
+          cleanIdNumber = target.idNumber;
         }
 
         const emailConflict = allUsers.find(
@@ -590,6 +611,7 @@ export const useAuthStore = create<AuthState>()(
           email: cleanEmail,
           duty: cleanDuty,
           avatarUrl: newAvatarUrl,
+          idNumber: cleanIdNumber || target.idNumber,
           permissions: data.permissions,
           isActive: data.isActive !== undefined ? data.isActive : target.isActive,
           password: data.password ? data.password.trim() : target.password,
