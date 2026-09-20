@@ -608,7 +608,7 @@ export const AdminManagersPage: React.FC = () => {
                       required
                       value={formName}
                       onChange={(e) => setFormName(e.target.value)}
-                      placeholder="Мысалы: Айгүл Серікова"
+                      placeholder="Айгүл Серікова"
                       style={{
                         width: '100%',
                         padding: '11px 14px',
@@ -623,7 +623,7 @@ export const AdminManagersPage: React.FC = () => {
 
                   <div>
                     <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '6px' }}>
-                      Google аккаунт / Пошта <span style={{ color: '#EF4444' }}>*</span>
+                      Пошта <span style={{ color: '#EF4444' }}>*</span>
                     </label>
                     <input
                       type="email"
