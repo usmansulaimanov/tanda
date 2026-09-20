@@ -177,24 +177,6 @@ export const AdminManagersPage: React.FC = () => {
         >
           <div style={{ position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }}>
             <div>
-              <div
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  background: 'rgba(255,255,255,0.15)',
-                  padding: '4px 14px',
-                  borderRadius: '50px',
-                  fontSize: '13px',
-                  fontWeight: 700,
-                  marginBottom: '12px',
-                }}
-              >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                </svg>
-                Қолжетімділік пен рұқсаттарды басқару
-              </div>
               <h1 style={{ fontSize: '30px', fontWeight: 900, margin: '0 0 8px', letterSpacing: '-0.02em' }}>
                 Басқару (Управление)
               </h1>
