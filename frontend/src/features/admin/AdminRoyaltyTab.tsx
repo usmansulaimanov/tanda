@@ -470,7 +470,7 @@ export const AdminRoyaltyTab: React.FC = () => {
               <thead>
                 <tr style={{ borderBottom: '2px solid #E2E8F0', color: '#64748B', fontWeight: 800 }}>
                   <th style={{ padding: '12px 14px' }}>Автор</th>
-                  <th style={{ padding: '12px 14px' }}>Бекітілген кітаптары</th>
+                  <th style={{ padding: '12px 14px' }}>Кітаптары</th>
                   <th style={{ padding: '12px 14px' }}>Тыңдалған уақыт</th>
                   <th style={{ padding: '12px 14px' }}>1 мин бағасы</th>
                   <th style={{ padding: '12px 14px' }}>Роялти сомасы (₸)</th>
@@ -521,29 +521,8 @@ export const AdminRoyaltyTab: React.FC = () => {
                         <div style={{ fontSize: '12px', color: 'var(--text-mid)' }}>{author.email}</div>
                       </td>
 
-                      <td style={{ padding: '14px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                          <span
-                            style={{
-                              background: '#F1F5F9',
-                              color: 'var(--text-dark)',
-                              fontWeight: 800,
-                              fontSize: '11.5px',
-                              padding: '2px 8px',
-                              borderRadius: '6px',
-                            }}
-                          >
-                            {authorBooks.length} кітап
-                          </span>
-                          {authorBooks.slice(0, 2).map((b) => (
-                            <span key={b.id} style={{ fontSize: '12px', color: 'var(--text-dark)' }}>
-                              «{b.title.length > 20 ? b.title.slice(0, 20) + '...' : b.title}»
-                            </span>
-                          ))}
-                          {authorBooks.length > 2 && (
-                            <span style={{ fontSize: '11px', color: 'var(--text-mid)' }}>+{authorBooks.length - 2}</span>
-                          )}
-                        </div>
+                      <td style={{ padding: '14px', fontWeight: 800, color: 'var(--text-dark)' }}>
+                        {authorBooks.length} кітап
                       </td>
 
                       <td style={{ padding: '14px', fontWeight: 800, color: 'var(--text-dark)' }}>
