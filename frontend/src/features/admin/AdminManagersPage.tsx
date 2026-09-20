@@ -414,18 +414,16 @@ export const AdminManagersPage: React.FC = () => {
                             {isActive ? 'Белсенді' : 'Бұғатталған'}
                           </span>
                         </div>
-                        <div style={{ fontSize: '13px', color: 'var(--text-mid)', marginTop: '3px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ fontSize: '13px', color: '#64748B', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                           <span>{assistant.email}</span>
-                          {assistant.email.includes('@gmail.com') && (
-                            <span style={{ fontSize: '10px', background: '#F1F5F9', color: '#475569', padding: '1px 6px', borderRadius: '4px', fontWeight: 700 }}>
-                              Google
-                            </span>
-                          )}
-                          <span>&bull; ID: {assistant.idNumber || '000 002'}</span>
+                          <span style={{ color: '#CBD5E1' }}>•</span>
+                          <span style={{ fontSize: '11.5px', fontWeight: 600, color: '#475569', background: '#F1F5F9', padding: '1px 8px', borderRadius: '4px', fontFamily: 'monospace' }}>
+                            ID: {assistant.idNumber || '000 002'}
+                          </span>
                         </div>
 
                         {/* Permissions badges */}
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '10px' }}>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '12px' }}>
                           {perms.length > 0 ? (
                             perms.map((pKey) => {
                               const pDef = ALL_PERMISSIONS.find((p) => p.key === pKey);
@@ -433,21 +431,25 @@ export const AdminManagersPage: React.FC = () => {
                                 <span
                                   key={pKey}
                                   style={{
-                                    fontSize: '11px',
-                                    fontWeight: 700,
-                                    padding: '3px 9px',
-                                    borderRadius: '6px',
-                                    background: 'rgba(0, 84, 148, 0.08)',
-                                    color: 'var(--blue)',
-                                    border: '1px solid rgba(0, 84, 148, 0.15)',
+                                    fontSize: '11.5px',
+                                    fontWeight: 600,
+                                    padding: '3px 10px',
+                                    borderRadius: '20px',
+                                    background: '#F8FAFC',
+                                    color: '#334155',
+                                    border: '1px solid #E2E8F0',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '6px',
                                   }}
                                 >
-                                  ✓ {pDef?.label || pKey}
+                                  <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: 'var(--blue)', flexShrink: 0 }}></span>
+                                  {pDef?.label || pKey}
                                 </span>
                               );
                             })
                           ) : (
-                            <span style={{ fontSize: '11px', color: '#94A3B8', fontStyle: 'italic' }}>
+                            <span style={{ fontSize: '12px', color: '#94A3B8', fontStyle: 'italic' }}>
                               Рұқсат берілмеген
                             </span>
                           )}
