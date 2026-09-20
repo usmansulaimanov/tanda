@@ -629,7 +629,7 @@ export const AdminManagersPage: React.FC = () => {
               <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
               <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
             </svg>
-            Көмекшілер ({assistants.length})
+            Көмекшілер: {assistants.length}
           </button>
 
           <button
@@ -655,7 +655,7 @@ export const AdminManagersPage: React.FC = () => {
               <path d="M12 20h9"></path>
               <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
             </svg>
-            Авторлар ({authors.length})
+            Авторлар: {authors.length}
           </button>
         </div>
 
