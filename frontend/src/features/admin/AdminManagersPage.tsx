@@ -271,18 +271,6 @@ export const AdminManagersPage: React.FC = () => {
                   <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-dark)', margin: 0 }}>
                     {superAdmin.name}
                   </h3>
-                  <span
-                    style={{
-                      background: 'rgba(0, 84, 148, 0.1)',
-                      color: 'var(--blue)',
-                      fontSize: '11px',
-                      fontWeight: 800,
-                      padding: '2px 8px',
-                      borderRadius: '50px',
-                    }}
-                  >
-                    Бас әкімші (Super Admin)
-                  </span>
                 </div>
                 <div style={{ fontSize: '13px', color: 'var(--text-mid)', marginTop: '4px' }}>
                   {superAdmin.email} &bull; ID: {superAdmin.idNumber || '000 001'}
