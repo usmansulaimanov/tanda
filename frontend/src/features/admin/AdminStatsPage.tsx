@@ -504,178 +504,194 @@ export const AdminStatsPage: React.FC = () => {
 
         {/* TAB 1: ОҚЫРМАНДАР (READERS STATS) */}
         {activeTab === 'readers' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             
-            {/* Structured Table for Reader Metrics */}
-            <div className="admin-card" style={{ maxWidth: '680px', padding: '0', overflow: 'hidden', borderRadius: '14px', border: '1.5px solid #E2E8F0', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)' }}>
-              <div style={{ padding: '12px 18px', background: '#F8FAFC', borderBottom: '1.5px solid #E2E8F0' }}>
-                <h3 style={{ fontSize: '15px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
-                  Оқырмандардың жалпы көрсеткіштері
-                </h3>
-              </div>
+            {/* 2-Column Grid: Left (Tables) & Right (Birthday & Age Breakdown) */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))',
+                gap: '20px',
+                alignItems: 'start',
+              }}
+            >
+              {/* Left Column: 2 Tables */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                {/* 1. General Reader Metrics Table */}
+                <div className="admin-card" style={{ padding: '0', overflow: 'hidden', borderRadius: '14px', border: '1.5px solid #E2E8F0', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)' }}>
+                  <div style={{ padding: '12px 18px', background: '#F8FAFC', borderBottom: '1.5px solid #E2E8F0' }}>
+                    <h3 style={{ fontSize: '15px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
+                      Оқырмандардың жалпы көрсеткіштері
+                    </h3>
+                  </div>
 
-              <div style={{ overflowX: 'auto' }}>
-                <table className="admin-table" style={{ width: '100%', margin: 0, borderCollapse: 'collapse' }}>
-                  <thead>
-                    <tr>
-                      <th style={{ width: '25%', padding: '10px 14px', color: '#0F172A', fontSize: '13px', fontWeight: 800, borderRight: '2.5px solid #94A3B8' }}>Барлығы</th>
-                      <th style={{ width: '25%', padding: '10px 14px', color: '#0F172A', fontSize: '13px', fontWeight: 800, borderRight: '1px solid #E2E8F0' }}>Премиум</th>
-                      <th style={{ width: '25%', padding: '10px 14px', color: '#0F172A', fontSize: '13px', fontWeight: 800, borderRight: '1px solid #E2E8F0' }}>Стандарт</th>
-                      <th style={{ width: '25%', padding: '10px 14px', color: '#0F172A', fontSize: '13px', fontWeight: 800 }}>Бұғатталған</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td style={{ padding: '10px 14px', borderRight: '2.5px solid #94A3B8' }}>
-                        <span style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>{totalReaders}</span>
-                      </td>
-                      <td style={{ padding: '10px 14px', borderRight: '1px solid #E2E8F0' }}>
-                        <span style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>{premiumReadersCount}</span>
-                      </td>
-                      <td style={{ padding: '10px 14px', borderRight: '1px solid #E2E8F0' }}>
-                        <span style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>{freeReadersCount}</span>
-                      </td>
-                      <td style={{ padding: '10px 14px' }}>
-                        <span style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>{blockedReadersCount}</span>
-                      </td>
-                    </tr>
+                  <div style={{ overflowX: 'auto' }}>
+                    <table className="admin-table" style={{ width: '100%', margin: 0, borderCollapse: 'collapse' }}>
+                      <thead>
+                        <tr>
+                          <th style={{ width: '25%', padding: '10px 14px', color: '#0F172A', fontSize: '13px', fontWeight: 800, borderRight: '2.5px solid #94A3B8' }}>Барлығы</th>
+                          <th style={{ width: '25%', padding: '10px 14px', color: '#0F172A', fontSize: '13px', fontWeight: 800, borderRight: '1px solid #E2E8F0' }}>Премиум</th>
+                          <th style={{ width: '25%', padding: '10px 14px', color: '#0F172A', fontSize: '13px', fontWeight: 800, borderRight: '1px solid #E2E8F0' }}>Стандарт</th>
+                          <th style={{ width: '25%', padding: '10px 14px', color: '#0F172A', fontSize: '13px', fontWeight: 800 }}>Бұғатталған</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td style={{ padding: '10px 14px', borderRight: '2.5px solid #94A3B8' }}>
+                            <span style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>{totalReaders}</span>
+                          </td>
+                          <td style={{ padding: '10px 14px', borderRight: '1px solid #E2E8F0' }}>
+                            <span style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>{premiumReadersCount}</span>
+                          </td>
+                          <td style={{ padding: '10px 14px', borderRight: '1px solid #E2E8F0' }}>
+                            <span style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>{freeReadersCount}</span>
+                          </td>
+                          <td style={{ padding: '10px 14px' }}>
+                            <span style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>{blockedReadersCount}</span>
+                          </td>
+                        </tr>
 
-                    <tr>
-                      <td style={{ padding: '10px 14px', borderRight: '2.5px solid #94A3B8' }}>
-                        <span style={{ color: '#0F172A', fontSize: '13px', fontWeight: 800 }}>
-                          100%
-                        </span>
-                      </td>
-                      <td style={{ padding: '10px 14px', borderRight: '1px solid #E2E8F0' }}>
-                        <span style={{ color: '#0F172A', fontSize: '13px', fontWeight: 800 }}>
-                          {totalReaders > 0 ? Math.round((premiumReadersCount / totalReaders) * 100) : 0}%
-                        </span>
-                      </td>
-                      <td style={{ padding: '10px 14px', borderRight: '1px solid #E2E8F0' }}>
-                        <span style={{ color: '#0F172A', fontSize: '13px', fontWeight: 800 }}>
-                          {totalReaders > 0 ? Math.round((freeReadersCount / totalReaders) * 100) : 0}%
-                        </span>
-                      </td>
-                      <td style={{ padding: '10px 14px' }}>
-                        <span style={{ color: '#0F172A', fontSize: '13px', fontWeight: 800 }}>
-                          {totalReaders > 0 ? Math.round((blockedReadersCount / totalReaders) * 100) : 0}%
-                        </span>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* Gender Distribution Card */}
-            <div className="admin-card" style={{ maxWidth: '680px', padding: '0', overflow: 'hidden', borderRadius: '14px', border: '1.5px solid #E2E8F0', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)' }}>
-              <div style={{ padding: '12px 18px', background: '#F8FAFC', borderBottom: '1.5px solid #E2E8F0' }}>
-                <h3 style={{ fontSize: '15px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
-                  Жынысы бойынша оқырмандар бөлінісі
-                </h3>
-              </div>
-
-              <div style={{ overflowX: 'auto' }}>
-                <table className="admin-table" style={{ width: '100%', margin: 0, borderCollapse: 'collapse' }}>
-                  <thead>
-                    <tr>
-                      <th style={{ width: '25%', padding: '10px 14px', color: '#0F172A', fontSize: '13px', fontWeight: 800, borderRight: '2.5px solid #94A3B8' }}>Барлығы</th>
-                      <th style={{ width: '25%', padding: '10px 14px', color: '#0F172A', fontSize: '13px', fontWeight: 800, borderRight: '1px solid #E2E8F0' }}>Әйелдер</th>
-                      <th style={{ width: '25%', padding: '10px 14px', color: '#0F172A', fontSize: '13px', fontWeight: 800, borderRight: '1px solid #E2E8F0' }}>Ерлер</th>
-                      <th style={{ width: '25%', padding: '10px 14px', color: '#0F172A', fontSize: '13px', fontWeight: 800 }}>Көрсетілмеген</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td style={{ padding: '10px 14px', borderRight: '2.5px solid #94A3B8' }}>
-                        <span style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>{totalReaders}</span>
-                      </td>
-                      <td style={{ padding: '10px 14px', borderRight: '1px solid #E2E8F0' }}>
-                        <span style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>{femaleCount}</span>
-                      </td>
-                      <td style={{ padding: '10px 14px', borderRight: '1px solid #E2E8F0' }}>
-                        <span style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>{maleCount}</span>
-                      </td>
-                      <td style={{ padding: '10px 14px' }}>
-                        <span style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>{unspecifiedGenderCount}</span>
-                      </td>
-                    </tr>
-
-                    <tr>
-                      <td style={{ padding: '10px 14px', borderRight: '2.5px solid #94A3B8' }}>
-                        <span style={{ color: '#0F172A', fontSize: '13px', fontWeight: 800 }}>
-                          100%
-                        </span>
-                      </td>
-                      <td style={{ padding: '10px 14px', borderRight: '1px solid #E2E8F0' }}>
-                        <span style={{ color: '#0F172A', fontSize: '13px', fontWeight: 800 }}>
-                          {femalePct}%
-                        </span>
-                      </td>
-                      <td style={{ padding: '10px 14px', borderRight: '1px solid #E2E8F0' }}>
-                        <span style={{ color: '#0F172A', fontSize: '13px', fontWeight: 800 }}>
-                          {malePct}%
-                        </span>
-                      </td>
-                      <td style={{ padding: '10px 14px' }}>
-                        <span style={{ color: '#0F172A', fontSize: '13px', fontWeight: 800 }}>
-                          {unspecifiedGenderPct}%
-                        </span>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* Age and Birthday Breakdown */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
-              <div className="admin-card" style={{ padding: '24px' }}>
-                <h3 style={{ fontSize: '16px', fontWeight: 900, color: '#0F172A', marginBottom: '16px' }}>
-                  Туған күн көрсеткіші
-                </h3>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', background: '#F8FAFC', borderRadius: '12px', marginBottom: '10px' }}>
-                  <span style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>Белгілеген:</span>
-                  <span style={{ fontSize: '16px', fontWeight: 900, color: '#0F172A' }}>
-                    {withBirthdayCount} ({totalReaders > 0 ? Math.round((withBirthdayCount / totalReaders) * 100) : 0}%)
-                  </span>
+                        <tr>
+                          <td style={{ padding: '10px 14px', borderRight: '2.5px solid #94A3B8' }}>
+                            <span style={{ color: '#0F172A', fontSize: '13px', fontWeight: 800 }}>
+                              100%
+                            </span>
+                          </td>
+                          <td style={{ padding: '10px 14px', borderRight: '1px solid #E2E8F0' }}>
+                            <span style={{ color: '#0F172A', fontSize: '13px', fontWeight: 800 }}>
+                              {totalReaders > 0 ? Math.round((premiumReadersCount / totalReaders) * 100) : 0}%
+                            </span>
+                          </td>
+                          <td style={{ padding: '10px 14px', borderRight: '1px solid #E2E8F0' }}>
+                            <span style={{ color: '#0F172A', fontSize: '13px', fontWeight: 800 }}>
+                              {totalReaders > 0 ? Math.round((freeReadersCount / totalReaders) * 100) : 0}%
+                            </span>
+                          </td>
+                          <td style={{ padding: '10px 14px' }}>
+                            <span style={{ color: '#0F172A', fontSize: '13px', fontWeight: 800 }}>
+                              {totalReaders > 0 ? Math.round((blockedReadersCount / totalReaders) * 100) : 0}%
+                            </span>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', background: '#F8FAFC', borderRadius: '12px' }}>
-                  <span style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>Белгілемеген:</span>
-                  <span style={{ fontSize: '16px', fontWeight: 900, color: '#0F172A' }}>
-                    {withoutBirthdayCount} ({totalReaders > 0 ? Math.round((withoutBirthdayCount / totalReaders) * 100) : 0}%)
-                  </span>
+                {/* 2. Gender Distribution Table */}
+                <div className="admin-card" style={{ padding: '0', overflow: 'hidden', borderRadius: '14px', border: '1.5px solid #E2E8F0', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)' }}>
+                  <div style={{ padding: '12px 18px', background: '#F8FAFC', borderBottom: '1.5px solid #E2E8F0' }}>
+                    <h3 style={{ fontSize: '15px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
+                      Жынысы бойынша оқырмандар бөлінісі
+                    </h3>
+                  </div>
+
+                  <div style={{ overflowX: 'auto' }}>
+                    <table className="admin-table" style={{ width: '100%', margin: 0, borderCollapse: 'collapse' }}>
+                      <thead>
+                        <tr>
+                          <th style={{ width: '25%', padding: '10px 14px', color: '#0F172A', fontSize: '13px', fontWeight: 800, borderRight: '2.5px solid #94A3B8' }}>Барлығы</th>
+                          <th style={{ width: '25%', padding: '10px 14px', color: '#0F172A', fontSize: '13px', fontWeight: 800, borderRight: '1px solid #E2E8F0' }}>Әйелдер</th>
+                          <th style={{ width: '25%', padding: '10px 14px', color: '#0F172A', fontSize: '13px', fontWeight: 800, borderRight: '1px solid #E2E8F0' }}>Ерлер</th>
+                          <th style={{ width: '25%', padding: '10px 14px', color: '#0F172A', fontSize: '13px', fontWeight: 800 }}>Көрсетілмеген</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td style={{ padding: '10px 14px', borderRight: '2.5px solid #94A3B8' }}>
+                            <span style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>{totalReaders}</span>
+                          </td>
+                          <td style={{ padding: '10px 14px', borderRight: '1px solid #E2E8F0' }}>
+                            <span style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>{femaleCount}</span>
+                          </td>
+                          <td style={{ padding: '10px 14px', borderRight: '1px solid #E2E8F0' }}>
+                            <span style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>{maleCount}</span>
+                          </td>
+                          <td style={{ padding: '10px 14px' }}>
+                            <span style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>{unspecifiedGenderCount}</span>
+                          </td>
+                        </tr>
+
+                        <tr>
+                          <td style={{ padding: '10px 14px', borderRight: '2.5px solid #94A3B8' }}>
+                            <span style={{ color: '#0F172A', fontSize: '13px', fontWeight: 800 }}>
+                              100%
+                            </span>
+                          </td>
+                          <td style={{ padding: '10px 14px', borderRight: '1px solid #E2E8F0' }}>
+                            <span style={{ color: '#0F172A', fontSize: '13px', fontWeight: 800 }}>
+                              {femalePct}%
+                            </span>
+                          </td>
+                          <td style={{ padding: '10px 14px', borderRight: '1px solid #E2E8F0' }}>
+                            <span style={{ color: '#0F172A', fontSize: '13px', fontWeight: 800 }}>
+                              {malePct}%
+                            </span>
+                          </td>
+                          <td style={{ padding: '10px 14px' }}>
+                            <span style={{ color: '#0F172A', fontSize: '13px', fontWeight: 800 }}>
+                              {unspecifiedGenderPct}%
+                            </span>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
 
-              <div className="admin-card" style={{ padding: '24px' }}>
-                <h3 style={{ fontSize: '16px', fontWeight: 900, color: '#0F172A', marginBottom: '16px' }}>
-                  Оқырмандардың жас шамасы
-                </h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '13px' }}>
-                    <span style={{ color: '#475569', fontWeight: 600 }}>18 жасқа дейін:</span>
-                    <span style={{ fontWeight: 800, color: '#0F172A' }}>{ageStats.under18} адам</span>
+              {/* Right Column: Birthday & Age Breakdown */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                {/* 3. Birthday Stats Card */}
+                <div className="admin-card" style={{ padding: '20px 24px', borderRadius: '14px', border: '1.5px solid #E2E8F0', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)' }}>
+                  <h3 style={{ fontSize: '15px', fontWeight: 900, color: '#0F172A', marginBottom: '14px' }}>
+                    Туған күн көрсеткіші
+                  </h3>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: '#F8FAFC', borderRadius: '10px', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>Белгілеген:</span>
+                    <span style={{ fontSize: '15px', fontWeight: 900, color: '#0F172A' }}>
+                      {withBirthdayCount} ({totalReaders > 0 ? Math.round((withBirthdayCount / totalReaders) * 100) : 0}%)
+                    </span>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '13px' }}>
-                    <span style={{ color: '#475569', fontWeight: 600 }}>18 – 24 жас (Жастар):</span>
-                    <span style={{ fontWeight: 800, color: '#0F172A' }}>{ageStats.age18to24} адам</span>
+
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: '#F8FAFC', borderRadius: '10px' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>Белгілемеген:</span>
+                    <span style={{ fontSize: '15px', fontWeight: 900, color: '#0F172A' }}>
+                      {withoutBirthdayCount} ({totalReaders > 0 ? Math.round((withoutBirthdayCount / totalReaders) * 100) : 0}%)
+                    </span>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '13px' }}>
-                    <span style={{ color: '#475569', fontWeight: 600 }}>25 – 34 жас:</span>
-                    <span style={{ fontWeight: 800, color: '#0F172A' }}>{ageStats.age25to34} адам</span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '13px' }}>
-                    <span style={{ color: '#475569', fontWeight: 600 }}>35 – 44 жас:</span>
-                    <span style={{ fontWeight: 800, color: '#0F172A' }}>{ageStats.age35to44} адам</span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '13px' }}>
-                    <span style={{ color: '#475569', fontWeight: 600 }}>45+ жас:</span>
-                    <span style={{ fontWeight: 800, color: '#0F172A' }}>{ageStats.age45plus} адам</span>
+                </div>
+
+                {/* 4. Age Stats Card */}
+                <div className="admin-card" style={{ padding: '20px 24px', borderRadius: '14px', border: '1.5px solid #E2E8F0', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)' }}>
+                  <h3 style={{ fontSize: '15px', fontWeight: 900, color: '#0F172A', marginBottom: '14px' }}>
+                    Оқырмандардың жас шамасы
+                  </h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '13px' }}>
+                      <span style={{ color: '#475569', fontWeight: 600 }}>18 жасқа дейін:</span>
+                      <span style={{ fontWeight: 800, color: '#0F172A' }}>{ageStats.under18} адам</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '13px' }}>
+                      <span style={{ color: '#475569', fontWeight: 600 }}>18 – 24 жас (Жастар):</span>
+                      <span style={{ fontWeight: 800, color: '#0F172A' }}>{ageStats.age18to24} адам</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '13px' }}>
+                      <span style={{ color: '#475569', fontWeight: 600 }}>25 – 34 жас:</span>
+                      <span style={{ fontWeight: 800, color: '#0F172A' }}>{ageStats.age25to34} адам</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '13px' }}>
+                      <span style={{ color: '#475569', fontWeight: 600 }}>35 – 44 жас:</span>
+                      <span style={{ fontWeight: 800, color: '#0F172A' }}>{ageStats.age35to44} адам</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '13px' }}>
+                      <span style={{ color: '#475569', fontWeight: 600 }}>45+ жас:</span>
+                      <span style={{ fontWeight: 800, color: '#0F172A' }}>{ageStats.age45plus} адам</span>
+                    </div>
                   </div>
                 </div>
               </div>
+
             </div>
 
             {/* Button to full Readers Management Panel */}
