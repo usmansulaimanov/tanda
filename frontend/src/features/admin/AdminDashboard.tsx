@@ -242,7 +242,7 @@ export const AdminDashboard: React.FC = () => {
                   }}
                 >
                   <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#94A3B8' }}></span>
-                  Архивте (Жасырын): {archivedCount}
+                  Архивте: {archivedCount}
                 </button>
               </div>
 
