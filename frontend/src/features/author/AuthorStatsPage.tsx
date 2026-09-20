@@ -423,27 +423,6 @@ export const AuthorStatsPage: React.FC = () => {
                   <h1 style={{ fontSize: '24px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
                     {targetAuthor.name}
                   </h1>
-                  <span
-                    style={{
-                      background: 'rgba(0, 84, 148, 0.1)',
-                      color: 'var(--blue)',
-                      fontSize: '12px',
-                      fontWeight: 800,
-                      padding: '4px 12px',
-                      borderRadius: '20px',
-                    }}
-                  >
-                    Автор
-                  </span>
-                  {targetAuthor.isActive !== false ? (
-                    <span style={{ fontSize: '11.5px', fontWeight: 800, color: '#16A34A', background: '#DCFCE7', padding: '3px 10px', borderRadius: '20px' }}>
-                      ● Белсенді
-                    </span>
-                  ) : (
-                    <span style={{ fontSize: '11.5px', fontWeight: 800, color: '#DC2626', background: '#FEE2E2', padding: '3px 10px', borderRadius: '20px' }}>
-                      ● Бұғатталған
-                    </span>
-                  )}
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginTop: '8px', fontSize: '13px', color: '#64748B', flexWrap: 'wrap' }}>
