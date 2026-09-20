@@ -408,28 +408,28 @@ export const AdminStatsPage: React.FC = () => {
           >
             <div style={{ background: 'rgba(255, 255, 255, 0.05)', padding: '10px 14px', borderRadius: '10px' }}>
               <div style={{ fontSize: '12px', color: '#FFFFFF', fontWeight: 700 }}>Оқырмандар</div>
-              <div style={{ fontSize: '20px', fontWeight: 900, color: '#38BDF8', marginTop: '2px' }}>
+              <div style={{ fontSize: '20px', fontWeight: 900, color: '#FFFFFF', marginTop: '2px' }}>
                 {isLoadingReaders ? '...' : totalReaders}
               </div>
             </div>
 
             <div style={{ background: 'rgba(255, 255, 255, 0.05)', padding: '10px 14px', borderRadius: '10px' }}>
               <div style={{ fontSize: '12px', color: '#FFFFFF', fontWeight: 700 }}>Кітаптар</div>
-              <div style={{ fontSize: '20px', fontWeight: 900, color: '#4ADE80', marginTop: '2px' }}>
+              <div style={{ fontSize: '20px', fontWeight: 900, color: '#FFFFFF', marginTop: '2px' }}>
                 {totalBooksCount}
               </div>
             </div>
 
             <div style={{ background: 'rgba(255, 255, 255, 0.05)', padding: '10px 14px', borderRadius: '10px' }}>
               <div style={{ fontSize: '12px', color: '#FFFFFF', fontWeight: 700 }}>Авторлар</div>
-              <div style={{ fontSize: '20px', fontWeight: 900, color: '#C084FC', marginTop: '2px' }}>
+              <div style={{ fontSize: '20px', fontWeight: 900, color: '#FFFFFF', marginTop: '2px' }}>
                 {uniqueAuthorsCount}
               </div>
             </div>
 
             <div style={{ background: 'rgba(255, 255, 255, 0.05)', padding: '10px 14px', borderRadius: '10px' }}>
               <div style={{ fontSize: '12px', color: '#FFFFFF', fontWeight: 700 }}>Подпискалар</div>
-              <div style={{ fontSize: '20px', fontWeight: 900, color: '#FBBF24', marginTop: '2px' }}>
+              <div style={{ fontSize: '20px', fontWeight: 900, color: '#FFFFFF', marginTop: '2px' }}>
                 {premiumReadersCount}
               </div>
             </div>
