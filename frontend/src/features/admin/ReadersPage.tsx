@@ -240,7 +240,7 @@ export const ReadersPage: React.FC = () => {
                 Оқырмандар тізімі
               </h2>
               <p style={{ fontSize: '13px', color: 'var(--text-mid)', marginTop: '4px' }}>
-                Барлық тіркелген оқырмандар саны: <span style={{ fontWeight: 700, color: 'var(--blue)' }}>{readers.length}</span>
+                Тіркелген оқырмандар саны: <span style={{ fontWeight: 700, color: 'var(--blue)' }}>{readers.length}</span>
               </p>
             </div>
 
