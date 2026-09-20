@@ -375,13 +375,13 @@ export const Header: React.FC = () => {
                   aria-label="Жеке профиль"
                   aria-expanded={profileOpen}
                   aria-haspopup="true"
-                  style={{ padding: (user.avatarUrl || (user.role === 'client' ? '/default-reader-avatar.jpg' : undefined)) ? '2px' : undefined, overflow: 'hidden' }}
+                  style={{ padding: 0, overflow: 'hidden' }}
                 >
                   {(user.avatarUrl || (user.role === 'client' ? '/default-reader-avatar.jpg' : undefined)) ? (
                     <img
                       src={user.avatarUrl || '/default-reader-avatar.jpg'}
                       alt={user.name || 'Avatar'}
-                      style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover' }}
+                      style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover', display: 'block' }}
                       referrerPolicy="no-referrer"
                     />
                   ) : (

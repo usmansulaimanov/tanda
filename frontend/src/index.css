@@ -172,6 +172,15 @@ body {
   transition: all 0.2s ease;
   box-shadow: 0 2px 8px rgba(0, 84, 148, 0.08);
   padding: 0;
+  overflow: hidden;
+}
+
+.nav-profile-icon-btn img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
 }
 
 .nav-profile-icon-btn:hover,
@@ -230,6 +239,15 @@ body {
   font-size: 18px;
   flex-shrink: 0;
   text-transform: uppercase;
+  overflow: hidden;
+}
+
+.profile-card-avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
 }
 
 .profile-card-info {
@@ -465,6 +483,15 @@ body {
   font-weight: 800;
   font-size: 13px;
   flex-shrink: 0;
+  overflow: hidden;
+}
+
+.sidebar-user-avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
 }
 
 .sidebar-user-info {
