@@ -505,7 +505,7 @@ export const AdminRoyaltyTab: React.FC = () => {
                           to={`/admin/authors/${author.id}`}
                           style={{
                             fontWeight: 800,
-                            color: 'var(--blue)',
+                            color: 'var(--text-dark)',
                             textDecoration: 'none',
                             display: 'inline-flex',
                             alignItems: 'center',
@@ -521,15 +521,15 @@ export const AdminRoyaltyTab: React.FC = () => {
                             <line x1="10" y1="14" x2="21" y2="3"></line>
                           </svg>
                         </Link>
-                        <div style={{ fontSize: '12px', color: '#64748B' }}>{author.email}</div>
+                        <div style={{ fontSize: '12px', color: 'var(--text-mid)' }}>{author.email}</div>
                       </td>
 
                       <td style={{ padding: '14px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                           <span
                             style={{
-                              background: 'rgba(0, 84, 148, 0.08)',
-                              color: 'var(--blue)',
+                              background: '#F1F5F9',
+                              color: 'var(--text-dark)',
                               fontWeight: 800,
                               fontSize: '11.5px',
                               padding: '2px 8px',
@@ -539,29 +539,29 @@ export const AdminRoyaltyTab: React.FC = () => {
                             {authorBooks.length} кітап
                           </span>
                           {authorBooks.slice(0, 2).map((b) => (
-                            <span key={b.id} style={{ fontSize: '12px', color: '#475569' }}>
+                            <span key={b.id} style={{ fontSize: '12px', color: 'var(--text-dark)' }}>
                               «{b.title.length > 20 ? b.title.slice(0, 20) + '...' : b.title}»
                             </span>
                           ))}
                           {authorBooks.length > 2 && (
-                            <span style={{ fontSize: '11px', color: '#94A3B8' }}>+{authorBooks.length - 2}</span>
+                            <span style={{ fontSize: '11px', color: 'var(--text-mid)' }}>+{authorBooks.length - 2}</span>
                           )}
                         </div>
                       </td>
 
-                      <td style={{ padding: '14px', fontWeight: 800, color: '#2563EB' }}>
+                      <td style={{ padding: '14px', fontWeight: 800, color: 'var(--text-dark)' }}>
                         {minutes.toLocaleString()} мин
-                        <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 500 }}>
+                        <div style={{ fontSize: '11px', color: 'var(--text-mid)', fontWeight: 500 }}>
                           ≈ {(minutes / 60).toFixed(1)} сағат
                         </div>
                       </td>
 
-                      <td style={{ padding: '14px', fontWeight: 700, color: '#64748B' }}>
+                      <td style={{ padding: '14px', fontWeight: 800, color: 'var(--text-dark)' }}>
                         {previewRatePerMinute} ₸
                       </td>
 
                       <td style={{ padding: '14px' }}>
-                        <div style={{ fontSize: '16px', fontWeight: 900, color: '#16A34A' }}>
+                        <div style={{ fontSize: '16px', fontWeight: 900, color: 'var(--text-dark)' }}>
                           {formatCurrencyWithDecimals(earned)} ₸
                         </div>
                       </td>
@@ -570,8 +570,8 @@ export const AdminRoyaltyTab: React.FC = () => {
                         {isPaid ? (
                           <span
                             style={{
-                              background: '#DCFCE7',
-                              color: '#16A34A',
+                              background: '#F1F5F9',
+                              color: 'var(--text-dark)',
                               fontSize: '11.5px',
                               fontWeight: 800,
                               padding: '4px 10px',
@@ -586,8 +586,8 @@ export const AdminRoyaltyTab: React.FC = () => {
                         ) : (
                           <span
                             style={{
-                              background: '#FEF3C7',
-                              color: '#D97706',
+                              background: '#F1F5F9',
+                              color: 'var(--text-dark)',
                               fontSize: '11.5px',
                               fontWeight: 800,
                               padding: '4px 10px',
@@ -608,9 +608,9 @@ export const AdminRoyaltyTab: React.FC = () => {
                             gap: '5px',
                             padding: '7px 14px',
                             borderRadius: '8px',
-                            border: '1.5px solid #BFDBFE',
-                            background: '#EFF6FF',
-                            color: 'var(--blue)',
+                            border: '1.5px solid #E2E8F0',
+                            background: '#F8FAFC',
+                            color: 'var(--text-dark)',
                             fontSize: '12px',
                             fontWeight: 800,
                             textDecoration: 'none',
