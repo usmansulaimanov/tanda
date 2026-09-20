@@ -355,7 +355,7 @@ export const AdminRoyaltyTab: React.FC = () => {
           }}
         >
           <div style={{ fontSize: '12.5px', fontWeight: 700, color: 'rgba(255,255,255,0.8)', marginBottom: '8px' }}>
-            🏢 Компанияның пайдасы | 50%
+            Компанияның пайдасы | 50%
           </div>
           <div style={{ fontSize: '24px', fontWeight: 900, color: '#FFFFFF' }}>
             {companyShare.toLocaleString()} ₸
@@ -373,13 +373,10 @@ export const AdminRoyaltyTab: React.FC = () => {
           }}
         >
           <div style={{ fontSize: '12.5px', fontWeight: 700, color: 'rgba(255,255,255,0.9)', marginBottom: '8px' }}>
-            ✍️ Авторлардың роялти қоры (50%)
+            Авторлардың пайдасы | 50%
           </div>
           <div style={{ fontSize: '24px', fontWeight: 900, color: '#FFFFFF' }}>
             {authorRoyaltyPool.toLocaleString()} ₸
-          </div>
-          <div style={{ fontSize: '11.5px', color: '#FEF08A', marginTop: '4px', fontWeight: 800 }}>
-            Минут бойынша бөлінеді
           </div>
         </div>
 
@@ -394,7 +391,7 @@ export const AdminRoyaltyTab: React.FC = () => {
           }}
         >
           <div style={{ fontSize: '12.5px', fontWeight: 700, color: 'var(--blue)', marginBottom: '8px' }}>
-            🎯 1 минуттың бағасы
+            1 минуттың бағасы
           </div>
           <div style={{ fontSize: '24px', fontWeight: 900, color: 'var(--blue)' }}>
             {previewRatePerMinute} ₸ <span style={{ fontSize: '13px', fontWeight: 700, color: '#64748B' }}>/ мин</span>
@@ -415,7 +412,7 @@ export const AdminRoyaltyTab: React.FC = () => {
           }}
         >
           <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#64748B', marginBottom: '8px' }}>
-            🎧 Авторлардың жалпы тыңдалымы
+            Авторлардың жалпы тыңдалымы
           </div>
           <div style={{ fontSize: '24px', fontWeight: 900, color: 'var(--blue)' }}>
             {totalPlatformMinutes.toLocaleString()} мин
@@ -436,7 +433,7 @@ export const AdminRoyaltyTab: React.FC = () => {
           }}
         >
           <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#64748B', marginBottom: '8px' }}>
-            💰 Жалпы төлем сомасы
+            Жалпы төлем сомасы
           </div>
           <div style={{ fontSize: '24px', fontWeight: 900, color: '#16A34A' }}>
             {formatCurrencyWithDecimals(previewRatePerMinute * totalPlatformMinutes)} ₸
