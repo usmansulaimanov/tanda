@@ -64,6 +64,8 @@ export const ReaderEditPage: React.FC = () => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [idNumber, setIdNumber] = useState('');
   const [idNumberError, setIdNumberError] = useState('');
   const [phone, setPhone] = useState('');
@@ -106,6 +108,7 @@ export const ReaderEditPage: React.FC = () => {
         setLastName('');
       }
       setEmail(found.email || '');
+      setPassword(found.password || '123456');
       setIdNumber(found.idNumber || '');
       setPhone(found.phone ? formatPhoneNumber(found.phone) : '');
       setUsername(found.username ? (found.username.startsWith('@') ? found.username : `@${found.username}`) : '');
@@ -174,6 +177,17 @@ export const ReaderEditPage: React.FC = () => {
     }
   };
 
+  const generateRandomPassword = () => {
+    const chars = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let res = '';
+    for (let i = 0; i < 8; i++) {
+      res += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setPassword(res);
+    setShowPassword(true);
+    showToast('Кездейсоқ құпиясөз құрастырылды!', 'info');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!id || !reader) return;
@@ -186,6 +200,11 @@ export const ReaderEditPage: React.FC = () => {
 
     if (!email.trim()) {
       showToast('Электронды поштасын енгізіңіз', 'error');
+      return;
+    }
+
+    if (password.trim() && password.length < 6) {
+      showToast('Құпиясөз кемінде 6 таңбадан тұруы керек', 'error');
       return;
     }
 
@@ -226,6 +245,7 @@ export const ReaderEditPage: React.FC = () => {
         lastName: lastName.trim() || undefined,
         email: email.trim(),
         phone: phone.trim(),
+        password: password.trim() || undefined,
         username: rawUser,
         idNumber: idNumber.trim() || undefined,
         role,
@@ -579,7 +599,7 @@ export const ReaderEditPage: React.FC = () => {
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
                 gap: '20px',
-                marginBottom: '28px',
+                marginBottom: '20px',
               }}
             >
               {/* Username */}
@@ -658,6 +678,81 @@ export const ReaderEditPage: React.FC = () => {
                     {phoneError}
                   </span>
                 )}
+              </div>
+            </div>
+
+            {/* Row 4: Password */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                gap: '20px',
+                marginBottom: '28px',
+              }}
+            >
+              {/* Password */}
+              <div className="form-group" style={{ margin: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                  <label className="form-label" style={{ margin: 0 }}>
+                    Құпиясөз
+                  </label>
+                  <button
+                    type="button"
+                    onClick={generateRandomPassword}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: 'var(--blue)',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      padding: 0,
+                    }}
+                  >
+                    Авто-құрастыру
+                  </button>
+                </div>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Кемінде 6 таңба"
+                    className="form-input"
+                    style={{ paddingRight: '42px', fontWeight: 600 }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    style={{
+                      position: 'absolute',
+                      right: '12px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'none',
+                      border: 'none',
+                      color: '#64748B',
+                      cursor: 'pointer',
+                      padding: '4px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                    title={showPassword ? 'Жасыру' : 'Көрсету'}
+                  >
+                    {showPassword ? (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                        <line x1="1" y1="1" x2="23" y2="23"></line>
+                      </svg>
+                    ) : (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                      </svg>
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
 

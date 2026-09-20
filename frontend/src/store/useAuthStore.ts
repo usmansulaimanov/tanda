@@ -35,7 +35,7 @@ interface AuthState {
   updateProfile: (data: { name: string; email: string; phone?: string; username?: string; birthDate?: string; gender?: 'male' | 'female' | 'other'; avatarUrl?: string }) => Promise<{ success: boolean; error?: string }>;
   updateAvatar: (avatarUrl: string | null) => Promise<{ success: boolean; error?: string }>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
-  updateUserByAdmin: (userId: string, data: { name: string; firstName?: string; lastName?: string; email: string; phone?: string; username?: string; idNumber?: string; role?: 'admin' | 'client'; isActive?: boolean; personalMessage?: { text: string; days?: number; isActive?: boolean } | null }) => Promise<{ success: boolean; error?: string }>;
+  updateUserByAdmin: (userId: string, data: { name: string; firstName?: string; lastName?: string; email: string; phone?: string; password?: string; username?: string; idNumber?: string; role?: 'admin' | 'client'; isActive?: boolean; personalMessage?: { text: string; days?: number; isActive?: boolean } | null }) => Promise<{ success: boolean; error?: string }>;
   toggleBlockUser: (userId: string) => Promise<{ success: boolean; isBlocked?: boolean; error?: string }>;
   createReaderByAdmin: (data: { name: string; firstName?: string; lastName?: string; email: string; phone?: string; password?: string; username?: string; idNumber?: string; role?: 'admin' | 'client'; personalMessage?: { text: string; days?: number; isActive?: boolean } }) => Promise<{ success: boolean; user?: User; error?: string }>;
   getUserById: (userId: string) => User | undefined;
@@ -693,6 +693,7 @@ export const useAuthStore = create<AuthState>()(
           lastName?: string;
           email: string;
           phone?: string;
+          password?: string;
           username?: string;
           idNumber?: string;
           role?: 'admin' | 'client';
@@ -715,6 +716,7 @@ export const useAuthStore = create<AuthState>()(
         const rawUsername = data.username?.trim().toLowerCase().replace(/^@/, '') || '';
         const cleanIdNumber = data.idNumber?.trim() || targetUser.idNumber;
         const cleanRole = data.role || targetUser.role;
+        const cleanPassword = data.password ? data.password.trim() : undefined;
 
         if (!cleanName) {
           return { success: false, error: 'Аты-жөнін енгізіңіз' };
@@ -794,6 +796,8 @@ export const useAuthStore = create<AuthState>()(
           idNumber: cleanIdNumber,
           role: cleanRole,
           isActive: data.isActive !== undefined ? data.isActive : targetUser.isActive,
+          password: cleanPassword !== undefined ? (cleanPassword || targetUser.password) : targetUser.password,
+          hasPassword: cleanPassword ? true : targetUser.hasPassword,
           personalMessage: updatedPersonalMessage,
         };
 
