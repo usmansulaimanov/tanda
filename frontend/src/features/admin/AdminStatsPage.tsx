@@ -316,58 +316,56 @@ export const AdminStatsPage: React.FC = () => {
         <div
           className="admin-card"
           style={{
-            marginBottom: '24px',
+            marginBottom: '20px',
             background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
             color: '#FFFFFF',
             border: 'none',
-            borderRadius: '20px',
-            padding: '32px 28px',
-            boxShadow: '0 12px 30px rgba(15, 23, 42, 0.25)',
+            borderRadius: '16px',
+            padding: '16px 20px',
+            boxShadow: '0 8px 24px rgba(15, 23, 42, 0.2)',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
-            <div>
-              <h1 style={{ fontSize: '26px', fontWeight: 900, margin: 0, color: '#FFFFFF' }}>
-                Статистика және көрсеткіштер
-              </h1>
-            </div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+            <h1 style={{ fontSize: '18px', fontWeight: 900, margin: 0, color: '#FFFFFF' }}>
+              Статистика және көрсеткіштер
+            </h1>
           </div>
 
           {/* Quick Metrics Bar in Header */}
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-              gap: '16px',
-              marginTop: '28px',
-              paddingTop: '24px',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+              gap: '12px',
+              marginTop: '14px',
+              paddingTop: '12px',
               borderTop: '1px solid rgba(255, 255, 255, 0.1)',
             }}
           >
-            <div style={{ background: 'rgba(255, 255, 255, 0.05)', padding: '16px', borderRadius: '14px' }}>
-              <div style={{ fontSize: '13px', color: '#FFFFFF', fontWeight: 700 }}>Оқырмандар</div>
-              <div style={{ fontSize: '24px', fontWeight: 900, color: '#38BDF8', marginTop: '4px' }}>
+            <div style={{ background: 'rgba(255, 255, 255, 0.05)', padding: '10px 14px', borderRadius: '10px' }}>
+              <div style={{ fontSize: '12px', color: '#FFFFFF', fontWeight: 700 }}>Оқырмандар</div>
+              <div style={{ fontSize: '20px', fontWeight: 900, color: '#38BDF8', marginTop: '2px' }}>
                 {isLoadingReaders ? '...' : totalReaders}
               </div>
             </div>
 
-            <div style={{ background: 'rgba(255, 255, 255, 0.05)', padding: '16px', borderRadius: '14px' }}>
-              <div style={{ fontSize: '13px', color: '#FFFFFF', fontWeight: 700 }}>Кітаптар</div>
-              <div style={{ fontSize: '24px', fontWeight: 900, color: '#4ADE80', marginTop: '4px' }}>
+            <div style={{ background: 'rgba(255, 255, 255, 0.05)', padding: '10px 14px', borderRadius: '10px' }}>
+              <div style={{ fontSize: '12px', color: '#FFFFFF', fontWeight: 700 }}>Кітаптар</div>
+              <div style={{ fontSize: '20px', fontWeight: 900, color: '#4ADE80', marginTop: '2px' }}>
                 {totalBooksCount}
               </div>
             </div>
 
-            <div style={{ background: 'rgba(255, 255, 255, 0.05)', padding: '16px', borderRadius: '14px' }}>
-              <div style={{ fontSize: '13px', color: '#FFFFFF', fontWeight: 700 }}>Авторлар</div>
-              <div style={{ fontSize: '24px', fontWeight: 900, color: '#C084FC', marginTop: '4px' }}>
+            <div style={{ background: 'rgba(255, 255, 255, 0.05)', padding: '10px 14px', borderRadius: '10px' }}>
+              <div style={{ fontSize: '12px', color: '#FFFFFF', fontWeight: 700 }}>Авторлар</div>
+              <div style={{ fontSize: '20px', fontWeight: 900, color: '#C084FC', marginTop: '2px' }}>
                 {uniqueAuthorsCount}
               </div>
             </div>
 
-            <div style={{ background: 'rgba(255, 255, 255, 0.05)', padding: '16px', borderRadius: '14px' }}>
-              <div style={{ fontSize: '13px', color: '#FFFFFF', fontWeight: 700 }}>Подпискалар</div>
-              <div style={{ fontSize: '24px', fontWeight: 900, color: '#FBBF24', marginTop: '4px' }}>
+            <div style={{ background: 'rgba(255, 255, 255, 0.05)', padding: '10px 14px', borderRadius: '10px' }}>
+              <div style={{ fontSize: '12px', color: '#FFFFFF', fontWeight: 700 }}>Подпискалар</div>
+              <div style={{ fontSize: '20px', fontWeight: 900, color: '#FBBF24', marginTop: '2px' }}>
                 {premiumReadersCount}
               </div>
             </div>
