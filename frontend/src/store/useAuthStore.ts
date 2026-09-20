@@ -41,6 +41,8 @@ interface AuthState {
   getAllClients: () => User[];
   getClientsCount: () => number;
   checkUsernameAvailable: (username: string, excludeUserId?: string) => { available: boolean; error?: string };
+  checkIdNumberAvailable: (idNumber: string, excludeUserId?: string) => { available: boolean; error?: string };
+  getNextAvailableIdNumber: () => string;
 
   // Reserved usernames (Бұғатталған/резервтелген юзернеймдер)
   getReservedUsernames: () => string[];
@@ -116,6 +118,39 @@ function getStoredUsers(): User[] {
             modified = true;
           }
         });
+
+        // Auto-fix duplicate idNumbers so each reader has a strictly unique ID
+        const usedIds = new Set<string>();
+        let maxClientNum = 0;
+
+        // Find max client number among existing IDs
+        list.forEach((u: User) => {
+          if (u.idNumber) {
+            const match = u.idNumber.match(/001\s*(\d+)/i) || u.idNumber.match(/(\d+)/);
+            if (match) {
+              const num = parseInt(match[1], 10);
+              if (!isNaN(num) && num > maxClientNum) {
+                maxClientNum = num;
+              }
+            }
+          }
+        });
+
+        // Resolve duplicates by giving the later entry a new unique ID
+        list.forEach((u: User) => {
+          const rawId = (u.idNumber || '').trim();
+          const norm = rawId.replace(/\s+/g, '').toLowerCase();
+          if (norm && usedIds.has(norm)) {
+            maxClientNum += 1;
+            const newId = `001 ${String(maxClientNum).padStart(3, '0')}`;
+            u.idNumber = newId;
+            usedIds.add(newId.replace(/\s+/g, '').toLowerCase());
+            modified = true;
+          } else if (norm) {
+            usedIds.add(norm);
+          }
+        });
+
         if (modified) saveStoredUsers(list);
         return list;
       }
@@ -311,6 +346,53 @@ export const useAuthStore = create<AuthState>()(
         }
 
         return { available: true };
+      },
+
+      checkIdNumberAvailable: (idNumber: string, excludeUserId?: string) => {
+        const trimmed = idNumber.trim();
+        if (!trimmed) {
+          return { available: false, error: 'ID нөмірін енгізіңіз' };
+        }
+        const norm = trimmed.replace(/\s+/g, '').toLowerCase();
+        const allUsers = getStoredUsers();
+        const conflict = allUsers.find(
+          (u) => u.id !== excludeUserId && u.idNumber && u.idNumber.replace(/\s+/g, '').toLowerCase() === norm
+        );
+
+        if (conflict) {
+          return {
+            available: false,
+            error: `Бұл ID нөмірі (${trimmed}) тіркеліп қойған (${conflict.name || conflict.email})`,
+          };
+        }
+
+        return { available: true };
+      },
+
+      getNextAvailableIdNumber: (): string => {
+        const allUsers = getStoredUsers();
+        const usedNums = new Set<number>();
+        let maxNum = 0;
+
+        allUsers.forEach((u) => {
+          if (u.idNumber) {
+            const match = u.idNumber.match(/001\s*(\d+)/i) || u.idNumber.match(/(\d+)/);
+            if (match) {
+              const n = parseInt(match[1], 10);
+              if (!isNaN(n) && n > 0) {
+                usedNums.add(n);
+                if (n > maxNum) maxNum = n;
+              }
+            }
+          }
+        });
+
+        let next = 1;
+        while (usedNums.has(next)) {
+          next++;
+        }
+        const candidate = Math.max(next, maxNum + 1);
+        return `001 ${String(candidate).padStart(3, '0')}`;
       },
 
       getUserById: (userId: string): User | undefined => {
@@ -518,6 +600,14 @@ export const useAuthStore = create<AuthState>()(
           }
         }
 
+        // Validate ID number uniqueness
+        if (cleanIdNumber) {
+          const idCheck = get().checkIdNumberAvailable(cleanIdNumber, userId);
+          if (!idCheck.available) {
+            return { success: false, error: idCheck.error || 'Бұл ID нөмірі басқа оқырманға тіркелген' };
+          }
+        }
+
         // Validate username uniqueness
         if (rawUsername) {
           const check = get().checkUsernameAvailable(rawUsername, userId);
@@ -642,15 +732,19 @@ export const useAuthStore = create<AuthState>()(
         if (rawUsername) {
           const check = get().checkUsernameAvailable(rawUsername);
           if (!check.available) {
-            return { success: false, error: check.error || 'Бұл юзернейм бос емес' };
+            return { success: false, error: check.error || 'Бұл пайдаланушы аты (username) тіркеліп қойған' };
           }
         }
 
-        // Generate ID Number if not provided
+        // Validate or Generate unique ID Number
         let idNumber = data.idNumber?.trim();
         if (!idNumber) {
-          const clientCount = allUsers.filter((u) => u.role === 'client').length + 1;
-          idNumber = `001 ${String(clientCount).padStart(3, '0')}`;
+          idNumber = get().getNextAvailableIdNumber();
+        } else {
+          const idCheck = get().checkIdNumberAvailable(idNumber);
+          if (!idCheck.available) {
+            return { success: false, error: idCheck.error || 'Бұл ID нөмірі басқа оқырманға тіркелген' };
+          }
         }
 
         let personalMessage = undefined;

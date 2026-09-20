@@ -354,7 +354,7 @@ export const ReadersPage: React.FC = () => {
                             whiteSpace: 'nowrap',
                           }}
                         >
-                          ID: {reader.idNumber || `001 00${index + 1}`}
+                          ID: {reader.idNumber || `001 ${String(index + 1).padStart(3, '0')}`}
                         </span>
                       </td>
 

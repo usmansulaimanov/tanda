@@ -55,7 +55,7 @@ const getPhoneNationalDigitsCount = (val: string): number => {
 
 export const ReaderCreatePage: React.FC = () => {
   const navigate = useNavigate();
-  const { createReaderByAdmin, checkUsernameAvailable, getAllClients } = useAuthStore();
+  const { createReaderByAdmin, checkUsernameAvailable, checkIdNumberAvailable, getNextAvailableIdNumber } = useAuthStore();
   const { showToast } = useToastStore();
 
   const [name, setName] = useState('');
@@ -63,6 +63,7 @@ export const ReaderCreatePage: React.FC = () => {
   const [password, setPassword] = useState('123456');
   const [showPassword, setShowPassword] = useState(false);
   const [idNumber, setIdNumber] = useState('');
+  const [idNumberError, setIdNumberError] = useState('');
   const [phone, setPhone] = useState('');
   const [phoneError, setPhoneError] = useState('');
   const [username, setUsername] = useState('');
@@ -73,16 +74,30 @@ export const ReaderCreatePage: React.FC = () => {
   const [isMessageActive, setIsMessageActive] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Auto-generate default next ID Number
+  // Auto-generate default next available unique ID Number
   useEffect(() => {
     try {
-      const clients = getAllClients();
-      const nextNum = clients.length + 1;
-      setIdNumber(`001 ${String(nextNum).padStart(3, '0')}`);
+      const nextId = getNextAvailableIdNumber();
+      setIdNumber(nextId);
     } catch {
       setIdNumber('001 001');
     }
-  }, [getAllClients]);
+  }, [getNextAvailableIdNumber]);
+
+  const handleIdNumberChange = (val: string) => {
+    setIdNumber(val);
+    const trimmed = val.trim();
+    if (!trimmed) {
+      setIdNumberError('ID нөмірін енгізіңіз');
+      return;
+    }
+    const res = checkIdNumberAvailable(trimmed);
+    if (!res.available) {
+      setIdNumberError(res.error || 'Бұл ID нөмірі тіркеліп қойған');
+    } else {
+      setIdNumberError('');
+    }
+  };
 
   const handlePhoneChange = (val: string) => {
     const formatted = formatPhoneNumber(val);
@@ -112,7 +127,7 @@ export const ReaderCreatePage: React.FC = () => {
     if (raw) {
       const res = checkUsernameAvailable(raw);
       if (!res.available) {
-        setUsernameError(res.error || 'Бұл юзернейм бос емес');
+        setUsernameError(res.error || 'Бұл пайдаланушы аты (username) тіркеліп қойған');
       } else {
         setUsernameError('');
       }
@@ -148,6 +163,19 @@ export const ReaderCreatePage: React.FC = () => {
       return;
     }
 
+    // ID Number validation
+    if (!idNumber.trim()) {
+      setIdNumberError('ID нөмірін енгізіңіз');
+      showToast('ID нөмірін енгізіңіз', 'error');
+      return;
+    }
+    const idCheck = checkIdNumberAvailable(idNumber.trim());
+    if (!idCheck.available) {
+      setIdNumberError(idCheck.error || 'Бұл ID нөмірі басқа оқырманға тіркелген');
+      showToast(idCheck.error || 'Бұл ID нөмірі басқа оқырманға тіркелген', 'error');
+      return;
+    }
+
     // Phone validation
     const phoneCount = getPhoneNationalDigitsCount(phone);
     if (phone.trim() && phoneCount < 10) {
@@ -157,12 +185,13 @@ export const ReaderCreatePage: React.FC = () => {
       return;
     }
 
+    // Username validation
     const rawUser = username.trim().replace(/^@/, '');
     if (rawUser) {
       const check = checkUsernameAvailable(rawUser);
       if (!check.available) {
-        setUsernameError(check.error || 'Бұл юзернейм бос емес. Басқа юзернейм таңдаңыз');
-        showToast(check.error || 'Бұл юзернейм бос емес. Басқа юзернейм таңдаңыз', 'error');
+        setUsernameError(check.error || 'Бұл пайдаланушы аты (username) тіркеліп қойған');
+        showToast(check.error || 'Бұл пайдаланушы аты (username) тіркеліп қойған', 'error');
         return;
       }
     }
@@ -346,11 +375,21 @@ export const ReaderCreatePage: React.FC = () => {
                   type="text"
                   required
                   value={idNumber}
-                  onChange={(e) => setIdNumber(e.target.value)}
+                  onChange={(e) => handleIdNumberChange(e.target.value)}
                   placeholder="001 003"
                   className="form-input"
-                  style={{ fontFamily: 'monospace', fontWeight: 700 }}
+                  style={{
+                    fontFamily: 'monospace',
+                    fontWeight: 700,
+                    borderColor: idNumberError ? '#DC2626' : undefined,
+                    boxShadow: idNumberError ? '0 0 0 3px rgba(220, 38, 38, 0.12)' : undefined,
+                  }}
                 />
+                {idNumberError && (
+                  <span style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#DC2626', marginTop: '6px' }}>
+                    {idNumberError}
+                  </span>
+                )}
               </div>
             </div>
 
