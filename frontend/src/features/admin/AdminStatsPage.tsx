@@ -201,6 +201,24 @@ export const AdminStatsPage: React.FC = () => {
       .sort((a, b) => b.count - a.count);
   }, [books, totalBooksCount]);
 
+  // Top categories for 2x2 grid card
+  const topCategoriesForGrid = useMemo(() => {
+    if (categoriesMap.length === 0) {
+      return [{ name: 'Барлығы', count: totalBooksCount, pct: 100 }];
+    }
+    if (categoriesMap.length <= 4) {
+      return categoriesMap;
+    }
+    const top3 = categoriesMap.slice(0, 3);
+    const top3Count = top3.reduce((acc, c) => acc + c.count, 0);
+    const otherCount = Math.max(0, totalBooksCount - top3Count);
+    const otherPct = totalBooksCount > 0 ? Math.round((otherCount / totalBooksCount) * 100) : 0;
+    return [
+      ...top3,
+      { name: 'Басқалар', count: otherCount, pct: otherPct },
+    ];
+  }, [categoriesMap, totalBooksCount]);
+
   // Filtered books list for table
   const filteredBooksList = useMemo(() => {
     if (!bookSearchQuery.trim()) return books.slice(0, 15);
@@ -831,189 +849,289 @@ export const AdminStatsPage: React.FC = () => {
 
         {/* TAB 2: КІТАПТАР (BOOKS STATS) */}
         {activeTab === 'books' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             
-            {/* KPI Cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
-              <div className="admin-card" style={{ padding: '22px 24px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-                  <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-mid)' }}>Жалпы кітаптар</span>
-                  <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'rgba(0, 84, 148, 0.1)', color: 'var(--blue)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path>
-                    </svg>
-                  </div>
-                </div>
-                <div style={{ fontSize: '30px', fontWeight: 900, color: 'var(--text-dark)' }}>{totalBooksCount}</div>
-                <div style={{ fontSize: '12px', color: '#16A34A', marginTop: '6px', fontWeight: 600 }}>
-                  {activeBooksCount} белсенді, {archivedBooksCount} архивте
-                </div>
-              </div>
-
-              <div className="admin-card" style={{ padding: '22px 24px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-                  <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-mid)' }}>Премиум кітаптар</span>
-                  <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'rgba(239, 126, 0, 0.12)', color: 'var(--orange)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                    </svg>
-                  </div>
-                </div>
-                <div style={{ fontSize: '30px', fontWeight: 900, color: 'var(--text-dark)' }}>{premiumBooksCount}</div>
-                <div style={{ fontSize: '12px', color: 'var(--orange)', marginTop: '6px', fontWeight: 700 }}>
-                  {totalBooksCount > 0 ? Math.round((premiumBooksCount / totalBooksCount) * 100) : 0}% жазылым арқылы
-                </div>
-              </div>
-
-              <div className="admin-card" style={{ padding: '22px 24px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-                  <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-mid)' }}>Тегін кітаптар</span>
-                  <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'rgba(16, 185, 129, 0.12)', color: '#10B981', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <path d="m9 12 2 2 4-4"></path>
-                    </svg>
-                  </div>
-                </div>
-                <div style={{ fontSize: '30px', fontWeight: 900, color: 'var(--text-dark)' }}>{freeBooksCount}</div>
-                <div style={{ fontSize: '12px', color: '#10B981', marginTop: '6px', fontWeight: 600 }}>
-                  Барлығына қолжетімді
-                </div>
-              </div>
-
-              <div className="admin-card" style={{ padding: '22px 24px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-                  <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-mid)' }}>Аудиокітаптар</span>
-                  <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'rgba(99, 102, 241, 0.12)', color: '#6366F1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M3 18v-6a9 9 0 0 1 18 0v6"></path>
-                      <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path>
-                    </svg>
-                  </div>
-                </div>
-                <div style={{ fontSize: '30px', fontWeight: 900, color: 'var(--text-dark)' }}>{audioBooksCount}</div>
-                <div style={{ fontSize: '12px', color: '#6366F1', marginTop: '6px', fontWeight: 600 }}>
-                  Дауыстық нұсқасы бар
-                </div>
-              </div>
-            </div>
-
-            {/* Categories Distribution */}
-            <div className="admin-card" style={{ padding: '28px' }}>
-              <h3 style={{ fontSize: '18px', fontWeight: 900, color: 'var(--text-dark)', marginBottom: '6px' }}>
-                📂 Жанрлар мен санаттар бойынша статистика
-              </h3>
-              <p style={{ fontSize: '13px', color: 'var(--text-mid)', marginBottom: '20px' }}>
-                Кітаптардың санаттар бойынша бөлінісі және үлесі
-              </p>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                {categoriesMap.map((c) => (
-                  <div key={c.name}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px', fontSize: '14px' }}>
-                      <span style={{ fontWeight: 700, color: '#1E293B' }}>{c.name}</span>
-                      <span style={{ fontWeight: 800, color: 'var(--blue)' }}>
-                        {c.count} кітап ({c.pct}%)
-                      </span>
-                    </div>
-                    <div style={{ height: '8px', background: '#F1F5F9', borderRadius: '4px', overflow: 'hidden' }}>
-                      <div style={{ width: `${c.pct}%`, height: '100%', background: 'var(--blue)', borderRadius: '4px' }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Books Table View */}
-            <div className="admin-card" style={{ padding: '24px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px', flexWrap: 'wrap', gap: '12px' }}>
-                <div>
-                  <h3 style={{ fontSize: '16px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
-                    Кітаптар қоры
+            {/* 2x2 Uniform Grid for 4 Analytics Cards */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(440px, 1fr))',
+                gap: '20px',
+                alignItems: 'stretch',
+              }}
+            >
+              {/* 1. General Book Metrics Table */}
+              <div className="admin-card" style={{ padding: '0', overflow: 'hidden', borderRadius: '14px', border: '1.5px solid #E2E8F0', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ padding: '12px 18px', background: '#F8FAFC', borderBottom: '1.5px solid #E2E8F0' }}>
+                  <h3 style={{ fontSize: '15px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
+                    Кітаптардың жалпы көрсеткіштері
                   </h3>
-                  <span style={{ fontSize: '13px', color: 'var(--text-mid)' }}>
-                    Жүйедегі кітаптардың тізімі мен күйі
-                  </span>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <input
-                    type="text"
-                    value={bookSearchQuery}
-                    onChange={(e) => setBookSearchQuery(e.target.value)}
-                    placeholder="Кітапты немесе авторды іздеу..."
-                    className="form-input"
-                    style={{ padding: '8px 14px', fontSize: '13px', width: '240px' }}
-                  />
-                  <Link
-                    to="/admin"
-                    style={{
-                      background: 'var(--blue)',
-                      color: '#fff',
-                      padding: '8px 16px',
-                      borderRadius: '8px',
-                      fontSize: '13px',
-                      fontWeight: 700,
-                      textDecoration: 'none',
-                    }}
-                  >
-                    Басқару →
-                  </Link>
-                </div>
-              </div>
-
-              <div style={{ overflowX: 'auto' }}>
-                <table className="admin-table" style={{ width: '100%' }}>
-                  <thead>
-                    <tr>
-                      <th>Кітап атауы</th>
-                      <th>Авторы</th>
-                      <th>Санаты</th>
-                      <th>Түрі</th>
-                      <th>Аудио</th>
-                      <th>Статусы</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredBooksList.map((b) => (
-                      <tr key={b.id}>
-                        <td>
-                          <div style={{ fontWeight: 700, color: '#0F172A' }}>{b.title}</div>
+                <div style={{ overflowX: 'auto', flex: 1, display: 'flex', alignItems: 'center' }}>
+                  <table className="admin-table" style={{ width: '100%', margin: 0, borderCollapse: 'collapse' }}>
+                    <thead>
+                      <tr>
+                        <th style={{ width: '25%', padding: '12px 14px', color: '#0F172A', fontSize: '13px', fontWeight: 800, borderRight: '2.5px solid #94A3B8' }}>Барлығы</th>
+                        <th style={{ width: '25%', padding: '12px 14px', color: '#0F172A', fontSize: '13px', fontWeight: 800, borderRight: '1px solid #E2E8F0' }}>Премиум</th>
+                        <th style={{ width: '25%', padding: '12px 14px', color: '#0F172A', fontSize: '13px', fontWeight: 800, borderRight: '1px solid #E2E8F0' }}>Тегін</th>
+                        <th style={{ width: '25%', padding: '12px 14px', color: '#0F172A', fontSize: '13px', fontWeight: 800 }}>Архивте</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td style={{ padding: '12px 14px', borderRight: '2.5px solid #94A3B8' }}>
+                          <span style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>{totalBooksCount}</span>
                         </td>
-                        <td>
-                          <span style={{ color: '#475569', fontWeight: 600 }}>{b.author || 'Белгісіз'}</span>
+                        <td style={{ padding: '12px 14px', borderRight: '1px solid #E2E8F0' }}>
+                          <span style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>{premiumBooksCount}</span>
                         </td>
-                        <td>
-                          <span style={{ background: '#F1F5F9', color: '#334155', padding: '3px 8px', borderRadius: '6px', fontSize: '12px', fontWeight: 600 }}>
-                            {b.category || 'Санатсыз'}
-                          </span>
+                        <td style={{ padding: '12px 14px', borderRight: '1px solid #E2E8F0' }}>
+                          <span style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>{freeBooksCount}</span>
                         </td>
-                        <td>
-                          {b.isFree ? (
-                            <span style={{ color: '#16A34A', fontWeight: 700, fontSize: '13px' }}>Тегін</span>
-                          ) : (
-                            <span style={{ color: 'var(--orange)', fontWeight: 800, fontSize: '13px' }}>Премиум</span>
-                          )}
-                        </td>
-                        <td>
-                          {b.hasAudio ? (
-                            <span style={{ color: '#6366F1', fontWeight: 700, fontSize: '13px' }}>🎧 Бар</span>
-                          ) : (
-                            <span style={{ color: '#94A3B8', fontSize: '13px' }}>Жоқ</span>
-                          )}
-                        </td>
-                        <td>
-                          {b.isArchived ? (
-                            <span style={{ background: '#F1F5F9', color: '#64748B', padding: '3px 8px', borderRadius: '6px', fontSize: '12px' }}>Архивте</span>
-                          ) : (
-                            <span style={{ background: '#DCFCE7', color: '#15803D', padding: '3px 8px', borderRadius: '6px', fontSize: '12px', fontWeight: 700 }}>Белсенді</span>
-                          )}
+                        <td style={{ padding: '12px 14px' }}>
+                          <span style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>{archivedBooksCount}</span>
                         </td>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+
+                      <tr>
+                        <td style={{ padding: '10px 14px', borderRight: '2.5px solid #94A3B8' }}>
+                          <span style={{ color: '#0F172A', fontSize: '13px', fontWeight: 800 }}>
+                            100%
+                          </span>
+                        </td>
+                        <td style={{ padding: '10px 14px', borderRight: '1px solid #E2E8F0' }}>
+                          <span style={{ color: '#0F172A', fontSize: '13px', fontWeight: 800 }}>
+                            {totalBooksCount > 0 ? Math.round((premiumBooksCount / totalBooksCount) * 100) : 0}%
+                          </span>
+                        </td>
+                        <td style={{ padding: '10px 14px', borderRight: '1px solid #E2E8F0' }}>
+                          <span style={{ color: '#0F172A', fontSize: '13px', fontWeight: 800 }}>
+                            {totalBooksCount > 0 ? Math.round((freeBooksCount / totalBooksCount) * 100) : 0}%
+                          </span>
+                        </td>
+                        <td style={{ padding: '10px 14px' }}>
+                          <span style={{ color: '#0F172A', fontSize: '13px', fontWeight: 800 }}>
+                            {totalBooksCount > 0 ? Math.round((archivedBooksCount / totalBooksCount) * 100) : 0}%
+                          </span>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
+
+              {/* 2. Audio indicator Table */}
+              <div className="admin-card" style={{ padding: '0', overflow: 'hidden', borderRadius: '14px', border: '1.5px solid #E2E8F0', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ padding: '12px 18px', background: '#F8FAFC', borderBottom: '1.5px solid #E2E8F0' }}>
+                  <h3 style={{ fontSize: '15px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
+                    Аудио нұсқа көрсеткіші
+                  </h3>
+                </div>
+
+                <div style={{ overflowX: 'auto', flex: 1, display: 'flex', alignItems: 'center' }}>
+                  <table className="admin-table" style={{ width: '100%', margin: 0, borderCollapse: 'collapse' }}>
+                    <thead>
+                      <tr>
+                        <th style={{ width: '33.33%', padding: '12px 14px', color: '#0F172A', fontSize: '13px', fontWeight: 800, borderRight: '2.5px solid #94A3B8' }}>Барлығы</th>
+                        <th style={{ width: '33.33%', padding: '12px 14px', color: '#0F172A', fontSize: '13px', fontWeight: 800, borderRight: '1px solid #E2E8F0' }}>Аудио бар</th>
+                        <th style={{ width: '33.33%', padding: '12px 14px', color: '#0F172A', fontSize: '13px', fontWeight: 800 }}>Аудио жоқ</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td style={{ padding: '12px 14px', borderRight: '2.5px solid #94A3B8' }}>
+                          <span style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>{totalBooksCount}</span>
+                        </td>
+                        <td style={{ padding: '12px 14px', borderRight: '1px solid #E2E8F0' }}>
+                          <span style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>{audioBooksCount}</span>
+                        </td>
+                        <td style={{ padding: '12px 14px' }}>
+                          <span style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>{Math.max(0, totalBooksCount - audioBooksCount)}</span>
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td style={{ padding: '10px 14px', borderRight: '2.5px solid #94A3B8' }}>
+                          <span style={{ color: '#0F172A', fontSize: '13px', fontWeight: 800 }}>
+                            100%
+                          </span>
+                        </td>
+                        <td style={{ padding: '10px 14px', borderRight: '1px solid #E2E8F0' }}>
+                          <span style={{ color: '#0F172A', fontSize: '13px', fontWeight: 800 }}>
+                            {totalBooksCount > 0 ? Math.round((audioBooksCount / totalBooksCount) * 100) : 0}%
+                          </span>
+                        </td>
+                        <td style={{ padding: '10px 14px' }}>
+                          <span style={{ color: '#0F172A', fontSize: '13px', fontWeight: 800 }}>
+                            {totalBooksCount > 0 ? Math.round(((totalBooksCount - audioBooksCount) / totalBooksCount) * 100) : 0}%
+                          </span>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* 3. Book Availability Status Table */}
+              <div className="admin-card" style={{ padding: '0', overflow: 'hidden', borderRadius: '14px', border: '1.5px solid #E2E8F0', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ padding: '12px 18px', background: '#F8FAFC', borderBottom: '1.5px solid #E2E8F0' }}>
+                  <h3 style={{ fontSize: '15px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
+                    Кітаптардың қолжетімділік күйі
+                  </h3>
+                </div>
+
+                <div style={{ overflowX: 'auto', flex: 1, display: 'flex', alignItems: 'center' }}>
+                  <table className="admin-table" style={{ width: '100%', margin: 0, borderCollapse: 'collapse' }}>
+                    <thead>
+                      <tr>
+                        <th style={{ width: '33.33%', padding: '12px 14px', color: '#0F172A', fontSize: '13px', fontWeight: 800, borderRight: '2.5px solid #94A3B8' }}>Барлығы</th>
+                        <th style={{ width: '33.33%', padding: '12px 14px', color: '#0F172A', fontSize: '13px', fontWeight: 800, borderRight: '1px solid #E2E8F0' }}>Белсенді</th>
+                        <th style={{ width: '33.33%', padding: '12px 14px', color: '#0F172A', fontSize: '13px', fontWeight: 800 }}>Архивтелген</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td style={{ padding: '12px 14px', borderRight: '2.5px solid #94A3B8' }}>
+                          <span style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>{totalBooksCount}</span>
+                        </td>
+                        <td style={{ padding: '12px 14px', borderRight: '1px solid #E2E8F0' }}>
+                          <span style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>{activeBooksCount}</span>
+                        </td>
+                        <td style={{ padding: '12px 14px' }}>
+                          <span style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>{archivedBooksCount}</span>
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td style={{ padding: '10px 14px', borderRight: '2.5px solid #94A3B8' }}>
+                          <span style={{ color: '#0F172A', fontSize: '13px', fontWeight: 800 }}>
+                            100%
+                          </span>
+                        </td>
+                        <td style={{ padding: '10px 14px', borderRight: '1px solid #E2E8F0' }}>
+                          <span style={{ color: '#0F172A', fontSize: '13px', fontWeight: 800 }}>
+                            {totalBooksCount > 0 ? Math.round((activeBooksCount / totalBooksCount) * 100) : 0}%
+                          </span>
+                        </td>
+                        <td style={{ padding: '10px 14px' }}>
+                          <span style={{ color: '#0F172A', fontSize: '13px', fontWeight: 800 }}>
+                            {totalBooksCount > 0 ? Math.round((archivedBooksCount / totalBooksCount) * 100) : 0}%
+                          </span>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* 4. Categories & Genres Breakdown Table */}
+              <div className="admin-card" style={{ padding: '0', overflow: 'hidden', borderRadius: '14px', border: '1.5px solid #E2E8F0', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ padding: '12px 18px', background: '#F8FAFC', borderBottom: '1.5px solid #E2E8F0' }}>
+                  <h3 style={{ fontSize: '15px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
+                    Жанрлар мен санаттар бөлінісі
+                  </h3>
+                </div>
+
+                <div style={{ overflowX: 'auto', flex: 1, display: 'flex', alignItems: 'center' }}>
+                  <table className="admin-table" style={{ width: '100%', margin: 0, borderCollapse: 'collapse' }}>
+                    <thead>
+                      <tr>
+                        {topCategoriesForGrid.map((cat, idx) => (
+                          <th
+                            key={cat.name}
+                            style={{
+                              width: `${100 / topCategoriesForGrid.length}%`,
+                              padding: '12px 10px',
+                              color: '#0F172A',
+                              fontSize: '13px',
+                              fontWeight: 800,
+                              borderRight: idx < topCategoriesForGrid.length - 1 ? '1px solid #E2E8F0' : 'none',
+                            }}
+                          >
+                            {cat.name}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        {topCategoriesForGrid.map((cat, idx) => (
+                          <td
+                            key={cat.name}
+                            style={{
+                              padding: '12px 10px',
+                              borderRight: idx < topCategoriesForGrid.length - 1 ? '1px solid #E2E8F0' : 'none',
+                            }}
+                          >
+                            <span style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A' }}>{cat.count}</span>
+                          </td>
+                        ))}
+                      </tr>
+
+                      <tr>
+                        {topCategoriesForGrid.map((cat, idx) => (
+                          <td
+                            key={cat.name}
+                            style={{
+                              padding: '10px 10px',
+                              borderRight: idx < topCategoriesForGrid.length - 1 ? '1px solid #E2E8F0' : 'none',
+                            }}
+                          >
+                            <span style={{ color: '#0F172A', fontSize: '13px', fontWeight: 800 }}>
+                              {cat.pct}%
+                            </span>
+                          </td>
+                        ))}
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            {/* Button to full Books Management Panel */}
+            <div
+              className="admin-card"
+              style={{
+                padding: '28px 32px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '16px',
+                background: '#FFFFFF',
+                borderRadius: '16px',
+                border: '1.5px solid #E2E8F0',
+                boxShadow: '0 4px 14px rgba(0, 0, 0, 0.03)',
+              }}
+            >
+              <div>
+                <h3 style={{ fontSize: '17px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
+                  Кітаптарды басқару панелі
+                </h3>
+              </div>
+
+              <Link
+                to="/admin"
+                className="btn-primary"
+                style={{
+                  padding: '12px 28px',
+                  borderRadius: '12px',
+                  fontSize: '14px',
+                  fontWeight: 800,
+                  textDecoration: 'none',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  boxShadow: '0 4px 12px rgba(0, 84, 148, 0.2)',
+                }}
+              >
+                <span>Кітаптар панеліне өту</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+              </Link>
             </div>
 
           </div>
