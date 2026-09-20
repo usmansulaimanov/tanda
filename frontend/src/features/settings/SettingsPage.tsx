@@ -1022,72 +1022,15 @@ export const SettingsPage: React.FC = () => {
                   <label className="form-label">
                     Жынысы
                   </label>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                    <button
-                      type="button"
-                      onClick={() => setGender('male')}
-                      style={{
-                        padding: '11px 16px',
-                        borderRadius: '10px',
-                        border: gender === 'male' ? '2px solid var(--blue)' : '1.5px solid #CBD5E1',
-                        background: gender === 'male' ? '#EFF6FF' : '#FFFFFF',
-                        color: gender === 'male' ? 'var(--blue)' : 'var(--text-dark)',
-                        fontWeight: gender === 'male' ? 800 : 600,
-                        fontSize: '14px',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '8px',
-                        transition: 'all 0.15s ease',
-                      }}
-                    >
-                      <span>👨 Ер</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setGender('female')}
-                      style={{
-                        padding: '11px 16px',
-                        borderRadius: '10px',
-                        border: gender === 'female' ? '2px solid var(--orange)' : '1.5px solid #CBD5E1',
-                        background: gender === 'female' ? '#FFF7ED' : '#FFFFFF',
-                        color: gender === 'female' ? 'var(--orange)' : 'var(--text-dark)',
-                        fontWeight: gender === 'female' ? 800 : 600,
-                        fontSize: '14px',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '8px',
-                        transition: 'all 0.15s ease',
-                      }}
-                    >
-                      <span>👩 Әйел</span>
-                    </button>
-                  </div>
-                  {gender && (
-                    <button
-                      type="button"
-                      onClick={() => setGender('')}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: '#94A3B8',
-                        fontSize: '11px',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        marginTop: '6px',
-                        padding: 0,
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                      }}
-                    >
-                      ✕ Таңдауды өшіру
-                    </button>
-                  )}
+                  <select
+                    value={gender}
+                    onChange={(e) => setGender(e.target.value as 'male' | 'female' | 'other' | '')}
+                    className="form-select"
+                  >
+                    <option value="">Таңдалмаған</option>
+                    <option value="male">Ер</option>
+                    <option value="female">Әйел</option>
+                  </select>
                 </div>
               </div>
 
