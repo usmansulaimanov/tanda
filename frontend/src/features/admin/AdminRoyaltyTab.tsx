@@ -260,9 +260,9 @@ export const AdminRoyaltyTab: React.FC = () => {
           }}
         >
           <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#64748B', marginBottom: '6px' }}>
-            Айлық нақты шығын (₸)
+            Шығын
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', margin: '2px 0 4px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', margin: '2px 0' }}>
             <input
               type="text"
               inputMode="numeric"
@@ -283,9 +283,6 @@ export const AdminRoyaltyTab: React.FC = () => {
               }}
             />
             <span style={{ fontSize: '20px', fontWeight: 900, color: '#DC2626' }}>₸</span>
-          </div>
-          <div style={{ fontSize: '11.5px', color: '#64748B' }}>
-            Админ енгізген шығындар
           </div>
         </div>
 
@@ -414,7 +411,7 @@ export const AdminRoyaltyTab: React.FC = () => {
 
           <div>
             <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '6px' }}>
-              Осы айдың нақты шығыны (₸) <span style={{ color: '#EF4444' }}>*</span>
+              Шығын (₸) <span style={{ color: '#EF4444' }}>*</span>
             </label>
             <input
               type="text"
