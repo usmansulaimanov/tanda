@@ -54,6 +54,24 @@ const getPhoneNationalDigitsCount = (val: string): number => {
   return Math.min(digits.length, 10);
 };
 
+const formatKazakhDate = (val: string): string => {
+  const digits = val.replace(/\D/g, '').slice(0, 8);
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 4) return `${digits.slice(0, 2)}.${digits.slice(2)}`;
+  return `${digits.slice(0, 2)}.${digits.slice(2, 4)}.${digits.slice(4, 8)}`;
+};
+
+const formatDisplayDate = (raw?: string): string => {
+  if (!raw) return '';
+  if (raw.includes('-')) {
+    const parts = raw.split('-');
+    if (parts.length === 3 && parts[0].length === 4) {
+      return `${parts[2]}.${parts[1]}.${parts[0]}`;
+    }
+  }
+  return raw;
+};
+
 export const SettingsPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -63,6 +81,7 @@ export const SettingsPage: React.FC = () => {
   const isAdmin = user?.role === 'admin' || Boolean(user?.isSuperAdmin);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const datePickerInputRef = useRef<HTMLInputElement>(null);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
 
   // Navigation mode: 'menu' | 'profile' | 'password' | 'usernames'
@@ -147,7 +166,7 @@ export const SettingsPage: React.FC = () => {
     setEmail(user.email || '');
     setPhone(user.phone ? formatPhoneNumber(user.phone) : '');
     setUsername(user.username ? (user.username.startsWith('@') ? user.username : `@${user.username}`) : '');
-    setBirthDate(user.birthDate || '');
+    setBirthDate(formatDisplayDate(user.birthDate));
     setGender(user.gender || '');
   }, [isAuthenticated, user]);
 
@@ -1001,16 +1020,77 @@ export const SettingsPage: React.FC = () => {
                   <label className="form-label">
                     Туған күні
                   </label>
-                  <input
-                    type="date"
-                    value={birthDate}
-                    max={new Date().toISOString().split('T')[0]}
-                    onChange={(e) => setBirthDate(e.target.value)}
-                    className="form-input"
-                    style={{
-                      cursor: 'pointer',
-                    }}
-                  />
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type="text"
+                      value={birthDate}
+                      onChange={(e) => setBirthDate(formatKazakhDate(e.target.value))}
+                      placeholder="кк.аа.жжжж"
+                      maxLength={10}
+                      className="form-input"
+                      style={{
+                        paddingRight: '40px',
+                        fontWeight: birthDate ? 700 : 400,
+                        letterSpacing: birthDate ? '0.04em' : 'normal',
+                      }}
+                    />
+                    <input
+                      ref={datePickerInputRef}
+                      type="date"
+                      max={new Date().toISOString().split('T')[0]}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val) {
+                          const p = val.split('-');
+                          if (p.length === 3) setBirthDate(`${p[2]}.${p[1]}.${p[0]}`);
+                        }
+                      }}
+                      tabIndex={-1}
+                      style={{
+                        position: 'absolute',
+                        opacity: 0,
+                        pointerEvents: 'none',
+                        width: '1px',
+                        height: '1px',
+                        bottom: 0,
+                        right: 0,
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        try {
+                          datePickerInputRef.current?.showPicker();
+                        } catch {
+                          datePickerInputRef.current?.focus();
+                        }
+                      }}
+                      title="Күнтізбеден таңдау"
+                      aria-label="Күнтізбеден таңдау"
+                      style={{
+                        position: 'absolute',
+                        right: '10px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'none',
+                        border: 'none',
+                        color: 'var(--blue)',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '4px',
+                        borderRadius: '6px',
+                      }}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                      </svg>
+                    </button>
+                  </div>
                 </div>
 
                 {/* Gender */}

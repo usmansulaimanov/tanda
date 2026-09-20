@@ -199,17 +199,24 @@ export function checkAndSendBirthdayGreeting(user?: User | null): boolean {
     const currentMonth = String(today.getMonth() + 1).padStart(2, '0');
     const currentDay = String(today.getDate()).padStart(2, '0');
 
-    // Parse user birthDate (format: "YYYY-MM-DD" or "YYYY/MM/DD")
-    const parts = user.birthDate.split(/[-/]/);
+    // Parse user birthDate (supports "DD.MM.YYYY", "YYYY-MM-DD", "DD/MM/YYYY")
+    const parts = user.birthDate.split(/[-./]/);
     let birthMonth = '';
     let birthDay = '';
 
     if (parts.length === 3) {
-      birthMonth = parts[1].padStart(2, '0');
-      birthDay = parts[2].padStart(2, '0');
+      if (parts[0].length === 4) {
+        // YYYY-MM-DD
+        birthMonth = parts[1].padStart(2, '0');
+        birthDay = parts[2].padStart(2, '0');
+      } else {
+        // DD.MM.YYYY
+        birthDay = parts[0].padStart(2, '0');
+        birthMonth = parts[1].padStart(2, '0');
+      }
     } else if (parts.length === 2) {
-      birthMonth = parts[0].padStart(2, '0');
-      birthDay = parts[1].padStart(2, '0');
+      birthDay = parts[0].padStart(2, '0');
+      birthMonth = parts[1].padStart(2, '0');
     }
 
     if (!birthMonth || !birthDay) return false;
