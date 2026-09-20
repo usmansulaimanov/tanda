@@ -337,13 +337,10 @@ export const AdminRoyaltyTab: React.FC = () => {
           }}
         >
           <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#64748B', marginBottom: '8px' }}>
-            Таза пайда қоры
+            Таза пайда
           </div>
           <div style={{ fontSize: '24px', fontWeight: 900, color: 'var(--blue)' }}>
             {netPool.toLocaleString()} ₸
-          </div>
-          <div style={{ fontSize: '11.5px', color: '#64748B', marginTop: '4px' }}>
-            Түсім − Шығын
           </div>
         </div>
 
