@@ -5,7 +5,7 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { BookCard } from '../../components/ui/BookCard';
 import { TopAudioSection } from './TopAudioSection';
 import heroReadingImg from '../../assets/hero-reading.jpg';
-import tandaLogo from '../../assets/tanda-logo.png';
+import tandaLogoWhite from '../../assets/tanda-logo-white.png';
 
 const CATEGORIES = [
   'Бәрі',
@@ -283,14 +283,13 @@ export const LandingPage: React.FC = () => {
               }}
             >
               <img
-                src={tandaLogo}
+                src={tandaLogoWhite}
                 alt="Tanda"
                 style={{
-                  height: '42px',
+                  height: '46px',
                   width: 'auto',
                   display: 'block',
                   objectFit: 'contain',
-                  filter: 'brightness(0) invert(1) drop-shadow(0 4px 14px rgba(0, 0, 0, 0.25))',
                 }}
               />
             </div>
