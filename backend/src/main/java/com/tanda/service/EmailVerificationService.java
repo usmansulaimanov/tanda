@@ -38,6 +38,15 @@ public class EmailVerificationService {
     @Value("${resend.from-email:onboarding@resend.dev}")
     private String resendFromEmail;
 
+    @Value("${brevo.api-key:}")
+    private String brevoApiKey;
+
+    @Value("${brevo.from-email:tandamenapp@gmail.com}")
+    private String brevoFromEmail;
+
+    @Value("${brevo.from-name:Tanda}")
+    private String brevoFromName;
+
     private static final int CODE_EXPIRATION_SECONDS = 600; // 10 minutes
     private static final int COOLDOWN_SECONDS = 60; // 1 minute between sends
 
@@ -70,6 +79,7 @@ public class EmailVerificationService {
         Instant expiresAt = now.plusSeconds(CODE_EXPIRATION_SECONDS);
         codeStore.put(normalizedEmail, new VerificationEntry(code, expiresAt, now));
 
+        log.info("Растау коды жасалды: [{}] -> {}", code, normalizedEmail);
         sendEmailHtml(normalizedEmail, code);
         log.info("Растау коды сәтті жіберілді: {} (түрі: {})", normalizedEmail, type);
     }
@@ -132,18 +142,38 @@ public class EmailVerificationService {
                 + "</body>"
                 + "</html>";
 
-        // 1. Try Resend HTTPS REST API first (recommended for Render & cloud environments)
+        // 1. Try Resend HTTPS REST API first
         if (resendApiKey != null && !resendApiKey.isBlank()) {
             try {
                 sendViaResend(toEmail, subject, htmlContent);
                 return;
             } catch (Exception e) {
-                log.error("Resend API арқылы жіберу қатесі: {}", e.getMessage(), e);
-                throw new RuntimeException("Email жіберу кезінде қате орын алды: " + e.getMessage());
+                log.warn("Resend API арқылы жіберілмеді: {}", e.getMessage());
+                // If Brevo is available, fallback to Brevo
+                if (brevoApiKey != null && !brevoApiKey.isBlank()) {
+                    try {
+                        sendViaBrevo(toEmail, subject, htmlContent);
+                        return;
+                    } catch (Exception be) {
+                        log.error("Brevo API арқылы да жіберілмеді: {}", be.getMessage());
+                    }
+                }
+                throw new RuntimeException("Хат жіберу қатесі: " + e.getMessage());
             }
         }
 
-        // 2. Fallback to standard JavaMailSender
+        // 2. Try Brevo HTTPS REST API
+        if (brevoApiKey != null && !brevoApiKey.isBlank()) {
+            try {
+                sendViaBrevo(toEmail, subject, htmlContent);
+                return;
+            } catch (Exception e) {
+                log.error("Brevo API қатесі: {}", e.getMessage());
+                throw new RuntimeException("Хат жіберу қатесі: " + e.getMessage());
+            }
+        }
+
+        // 3. Fallback to standard JavaMailSender
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -187,6 +217,37 @@ public class EmailVerificationService {
         } else {
             log.error("Resend API қате жауап берді (код {}): {}", response.statusCode(), response.body());
             throw new RuntimeException("Resend API қатесі: " + response.body());
+        }
+    }
+
+    private void sendViaBrevo(String toEmail, String subject, String htmlContent) throws Exception {
+        HttpClient client = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(10))
+                .build();
+
+        Map<String, Object> payload = Map.of(
+                "sender", Map.of("name", brevoFromName, "email", brevoFromEmail),
+                "to", List.of(Map.of("email", toEmail)),
+                "subject", subject,
+                "htmlContent", htmlContent
+        );
+
+        String json = objectMapper.writeValueAsString(payload);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("https://api.brevo.com/v3/smtp/email"))
+                .header("api-key", brevoApiKey.trim())
+                .header("Content-Type", "application/json")
+                .timeout(Duration.ofSeconds(15))
+                .POST(HttpRequest.BodyPublishers.ofString(json, StandardCharsets.UTF_8))
+                .build();
+
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        if (response.statusCode() >= 200 && response.statusCode() < 300) {
+            log.info("Brevo HTTPS API арқылы хат сәтті жіберілді: {}", toEmail);
+        } else {
+            log.error("Brevo API қате жауап берді (код {}): {}", response.statusCode(), response.body());
+            throw new RuntimeException("Brevo API қатесі: " + response.body());
         }
     }
 }

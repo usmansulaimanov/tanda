@@ -51,6 +51,11 @@ resend:
   api-key: ${RESEND_API_KEY:}
   from-email: ${RESEND_FROM_EMAIL:onboarding@resend.dev}
 
+brevo:
+  api-key: ${BREVO_API_KEY:}
+  from-email: ${BREVO_FROM_EMAIL:tandamenapp@gmail.com}
+  from-name: ${BREVO_FROM_NAME:Tanda}
+
 management:
   endpoints:
     web:
