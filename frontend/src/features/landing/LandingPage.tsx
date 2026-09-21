@@ -278,15 +278,15 @@ export const LandingPage: React.FC = () => {
             </div>
             <div className="hero-stats">
               <div className="stat-item">
-                <div className="stat-num">{displayedBooks}+</div>
+                <div className="stat-num">{displayedBooks}</div>
                 <div className="stat-label">Кітаптар</div>
               </div>
               <div className="stat-item">
-                <div className="stat-num">{displayedAuthors}+</div>
+                <div className="stat-num">{displayedAuthors}</div>
                 <div className="stat-label">Авторлар</div>
               </div>
               <div className="stat-item">
-                <div className="stat-num">{displayedReaders.toLocaleString()}+</div>
+                <div className="stat-num">{displayedReaders.toLocaleString()}</div>
                 <div className="stat-label">Оқырмандар</div>
               </div>
             </div>
