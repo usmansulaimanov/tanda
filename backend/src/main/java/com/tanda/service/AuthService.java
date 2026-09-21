@@ -148,10 +148,6 @@ public class AuthService {
             throw new IllegalArgumentException("Бұл email жүйеде тіркелген");
         }
 
-        if (dto.getCode() == null || !emailVerificationService.verifyCode(email, dto.getCode())) {
-            throw new IllegalArgumentException("Растау коды қате немесе мерзімі өтіп кеткен");
-        }
-
         long clientCount = userRepository.countByRole("client");
         String idNumber = formatIdNumber(1001 + clientCount);
 
