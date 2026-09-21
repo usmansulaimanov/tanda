@@ -306,11 +306,11 @@ export const AudioPlayerPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-[100dvh] lg:h-full w-full flex flex-col overflow-y-auto lg:overflow-hidden bg-gradient-to-b from-[#F0F5FA] to-[#FFFFFF] p-2.5 sm:p-4 md:p-6 text-slate-800 pb-16 lg:pb-6">
+    <div className="w-full flex-1 flex flex-col bg-gradient-to-b from-[#F0F5FA] to-[#FFFFFF] p-3 sm:p-5 md:p-6 text-slate-800">
       
       {/* Top Header Navigation */}
       <div className="w-full max-w-7xl mx-auto shrink-0 mb-3 sm:mb-4">
-        <div className="flex flex-wrap items-center justify-between gap-2.5 bg-white/90 backdrop-blur-md px-3.5 sm:px-5 py-2 sm:py-3 rounded-2xl border border-slate-200/80 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-2.5 bg-white/90 backdrop-blur-md px-3.5 sm:px-5 py-2.5 sm:py-3 rounded-2xl border border-slate-200/80 shadow-xs">
           
           <button
             type="button"
@@ -369,13 +369,13 @@ export const AudioPlayerPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Container: Left (Fixed Compact Console) + Right (Only chapters scroll) */}
-      <div className="w-full max-w-7xl mx-auto flex-1 min-h-0">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 h-full min-h-0">
+      {/* Main Container: Left (Player Console) + Right (Chapters list) */}
+      <div className="w-full max-w-7xl mx-auto flex-1">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-start">
           
           {/* LEFT COLUMN: Unified Compact Book & Player Console */}
-          <div className="lg:col-span-7 h-auto lg:h-full flex flex-col min-h-0">
-            <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-200/90 shadow-lg flex flex-col justify-between h-full relative">
+          <div className="lg:col-span-7 flex flex-col">
+            <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-200/90 shadow-md flex flex-col gap-3.5 sm:gap-4 relative overflow-hidden">
               
               {/* Subtle background glow */}
               <div
@@ -384,10 +384,10 @@ export const AudioPlayerPage: React.FC = () => {
               />
 
               {/* 1. Book Meta Row */}
-              <div className="flex flex-row items-start gap-3.5 sm:gap-6 min-h-0 relative z-10">
-                {/* Book Cover Image - Enlarged & High Shadow */}
+              <div className="flex flex-row items-start gap-3.5 sm:gap-5 relative z-10">
+                {/* Book Cover Image */}
                 <div
-                  className="w-24 sm:w-40 md:w-52 aspect-[3/4] rounded-xl sm:rounded-3xl shrink-0 shadow-xl relative overflow-hidden flex flex-col justify-end p-2 sm:p-3 border-2 border-white/90 group"
+                  className="w-24 sm:w-32 md:w-36 lg:w-40 aspect-[3/4] max-h-52 rounded-xl sm:rounded-2xl shrink-0 shadow-md relative overflow-hidden flex flex-col justify-end p-2 sm:p-3 border-2 border-white/90 group"
                   style={{
                     background: activeBook.gradient || 'linear-gradient(135deg, #0057A8, #003d7a)',
                   }}
@@ -416,19 +416,19 @@ export const AudioPlayerPage: React.FC = () => {
 
                 {/* Metadata details */}
                 <div className="flex-1 min-w-0">
-                  <div className="inline-block px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-lg bg-slate-100 text-[#005494] text-[11px] sm:text-xs font-bold mb-1 sm:mb-2">
+                  <div className="inline-block px-2.5 py-0.5 rounded-lg bg-slate-100 text-[#005494] text-[11px] sm:text-xs font-bold mb-1 sm:mb-1.5">
                     {activeBook.category}
                   </div>
 
-                  <h1 className="text-lg sm:text-2xl md:text-3xl font-black text-slate-900 leading-tight mb-1 truncate tracking-tight">
+                  <h1 className="text-base sm:text-xl md:text-2xl font-black text-slate-900 leading-tight mb-1 truncate tracking-tight">
                     {activeBook.title}
                   </h1>
 
-                  <p className="text-xs sm:text-base font-semibold text-slate-600 mb-2 sm:mb-3 truncate">
+                  <p className="text-xs sm:text-sm font-semibold text-slate-600 mb-2 sm:mb-2.5 truncate">
                     Авторы: <span className="text-slate-900 font-bold">{activeBook.author}</span>
                   </p>
 
-                  <div className="flex flex-col gap-1 text-[11px] sm:text-xs text-slate-600 bg-slate-50 px-2.5 py-2 sm:px-3.5 sm:py-2.5 rounded-xl sm:rounded-2xl border border-slate-100">
+                  <div className="flex flex-col gap-1 text-[11px] sm:text-xs text-slate-600 bg-slate-50 px-2.5 py-2 sm:px-3 sm:py-2 rounded-xl sm:rounded-2xl border border-slate-100">
                     <div className="flex items-center gap-1 shrink-0 truncate">
                       <span>Диктор:</span> <strong className="text-slate-900">{activeBook.audioNarrator || 'Танда Аудио'}</strong>
                     </div>
@@ -443,7 +443,7 @@ export const AudioPlayerPage: React.FC = () => {
               </div>
 
               {/* 2. Active Chapter Indicator Banner */}
-              <div className="my-3 sm:my-4 flex items-center justify-between gap-3 bg-[#005494]/5 border border-[#005494]/15 px-3.5 py-2 rounded-xl">
+              <div className="flex items-center justify-between gap-3 bg-[#005494]/5 border border-[#005494]/15 px-3 sm:px-3.5 py-2 rounded-xl">
                 <div className="flex items-center gap-2.5 min-w-0">
                   <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${isPlaying ? 'bg-[#EF7E00] text-white shadow-sm' : 'bg-slate-200 text-slate-700'}`}>
                     {isPlaying ? <Music className="w-3.5 h-3.5 animate-pulse" /> : <Headphones className="w-3.5 h-3.5" />}
@@ -460,7 +460,7 @@ export const AudioPlayerPage: React.FC = () => {
               </div>
 
               {/* 3. Progress Slider & Controls Console */}
-              <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-2.5 pt-1">
                 
                 {/* Progress bar */}
                 <div className="flex flex-col gap-1">
@@ -480,7 +480,7 @@ export const AudioPlayerPage: React.FC = () => {
                 </div>
 
                 {/* Main Controls Row */}
-                <div className="flex items-center justify-center gap-1.5 sm:gap-3 flex-wrap">
+                <div className="flex items-center justify-center gap-1.5 sm:gap-2.5 flex-wrap pt-1">
                   
                   {/* Repeat Button */}
                   <button
@@ -507,7 +507,7 @@ export const AudioPlayerPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={prevChapter}
-                    className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#F8FAFC] border border-slate-200 text-slate-700 hover:bg-[#E8F1FB] hover:text-[#005494] transition cursor-pointer flex items-center justify-center shadow-sm"
+                    className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#F8FAFC] border border-slate-200 text-slate-700 hover:bg-[#E8F1FB] hover:text-[#005494] transition cursor-pointer flex items-center justify-center shadow-xs"
                     title="Алдыңғы тарау"
                   >
                     <SkipBack className="w-4 h-4" />
@@ -517,7 +517,7 @@ export const AudioPlayerPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => handleSkip(-10)}
-                    className="px-2.5 h-9 sm:h-10 rounded-xl bg-[#F8FAFC] border border-slate-200 text-slate-700 hover:bg-[#E8F1FB] hover:text-[#005494] transition cursor-pointer flex items-center gap-1 shadow-sm font-bold text-[11px]"
+                    className="px-2 sm:px-2.5 h-9 sm:h-10 rounded-xl bg-[#F8FAFC] border border-slate-200 text-slate-700 hover:bg-[#E8F1FB] hover:text-[#005494] transition cursor-pointer flex items-center gap-1 shadow-xs font-bold text-[11px]"
                     title="10 секунд артқа"
                   >
                     <RotateCcw className="w-3.5 h-3.5 text-[#005494]" />
@@ -528,13 +528,13 @@ export const AudioPlayerPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={togglePlay}
-                    className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-r from-[#EF7E00] to-[#FF9800] text-white flex items-center justify-center shadow-xl transition-transform active:scale-95 cursor-pointer hover:shadow-orange-500/30 border-2 sm:border-4 border-white mx-1"
+                    className="w-12 h-12 sm:w-13 sm:h-13 rounded-full bg-gradient-to-r from-[#EF7E00] to-[#FF9800] text-white flex items-center justify-center shadow-lg transition-transform active:scale-95 cursor-pointer hover:shadow-orange-500/30 border-2 border-white mx-1"
                     title={isPlaying ? 'Тоқтату (Пауза)' : 'Ойнату'}
                   >
                     {isPlaying ? (
-                      <Pause className="w-6 h-6 fill-current" />
+                      <Pause className="w-5 h-5 fill-current" />
                     ) : (
-                      <Play className="w-6 h-6 fill-current ml-0.5" />
+                      <Play className="w-5 h-5 fill-current ml-0.5" />
                     )}
                   </button>
 
@@ -542,7 +542,7 @@ export const AudioPlayerPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => handleSkip(10)}
-                    className="px-2.5 h-9 sm:h-10 rounded-xl bg-[#F8FAFC] border border-slate-200 text-slate-700 hover:bg-[#E8F1FB] hover:text-[#005494] transition cursor-pointer flex items-center gap-1 shadow-sm font-bold text-[11px]"
+                    className="px-2 sm:px-2.5 h-9 sm:h-10 rounded-xl bg-[#F8FAFC] border border-slate-200 text-slate-700 hover:bg-[#E8F1FB] hover:text-[#005494] transition cursor-pointer flex items-center gap-1 shadow-xs font-bold text-[11px]"
                     title="10 секунд алға"
                   >
                     <span>+10с</span>
@@ -553,7 +553,7 @@ export const AudioPlayerPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={nextChapter}
-                    className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#F8FAFC] border border-slate-200 text-slate-700 hover:bg-[#E8F1FB] hover:text-[#005494] transition cursor-pointer flex items-center justify-center shadow-sm"
+                    className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#F8FAFC] border border-slate-200 text-slate-700 hover:bg-[#E8F1FB] hover:text-[#005494] transition cursor-pointer flex items-center justify-center shadow-xs"
                     title="Келесі тарау"
                   >
                     <SkipForward className="w-4 h-4" />
@@ -567,7 +567,7 @@ export const AudioPlayerPage: React.FC = () => {
                         setShowTimerMenu((prev) => !prev);
                         setShowSpeedMenu(false);
                       }}
-                      className={`h-9 sm:h-10 px-2.5 rounded-xl border text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shadow-sm ${
+                      className={`h-9 sm:h-10 px-2 sm:px-2.5 rounded-xl border text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shadow-xs ${
                         sleepTimerMinutes
                           ? 'bg-[#EF7E00] text-white border-[#EF7E00]'
                           : 'bg-[#F8FAFC] border-slate-200 text-slate-700 hover:bg-slate-100'
@@ -645,7 +645,7 @@ export const AudioPlayerPage: React.FC = () => {
                         setShowSpeedMenu((prev) => !prev);
                         setShowTimerMenu(false);
                       }}
-                      className={`h-9 sm:h-10 px-2.5 rounded-xl border text-xs font-bold transition cursor-pointer flex items-center justify-center min-w-[38px] shadow-sm ${
+                      className={`h-9 sm:h-10 px-2 sm:px-2.5 rounded-xl border text-xs font-bold transition cursor-pointer flex items-center justify-center min-w-[38px] shadow-xs ${
                         playbackRate !== 1
                           ? 'bg-[#005494] text-white border-[#005494]'
                           : 'bg-[#F8FAFC] border-slate-200 text-slate-700 hover:bg-slate-100'
@@ -692,10 +692,10 @@ export const AudioPlayerPage: React.FC = () => {
           </div>
 
           {/* RIGHT COLUMN: Chapters List */}
-          <div className="lg:col-span-5 h-[360px] sm:h-[420px] lg:h-full flex flex-col min-h-0">
-            <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-slate-200/90 shadow-lg flex flex-col h-full min-h-0 overflow-hidden">
+          <div className="lg:col-span-5 flex flex-col">
+            <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-slate-200/90 shadow-md flex flex-col">
               
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100 shrink-0 mb-3">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100 shrink-0 mb-2.5">
                 <h3 className="text-sm sm:text-base font-black text-slate-900 leading-tight">Кітап бөлімдері</h3>
 
                 <span className="text-[11px] font-extrabold px-2.5 py-0.5 bg-slate-100 text-slate-700 rounded-full border border-slate-200">
@@ -703,8 +703,8 @@ export const AudioPlayerPage: React.FC = () => {
                 </span>
               </div>
 
-              {/* Scrollable list of chapters - ONLY THIS SCROLLS */}
-              <div className="flex-1 overflow-y-auto min-h-0 pr-1 divide-y divide-slate-100">
+              {/* Scrollable list of chapters */}
+              <div className="max-h-[380px] sm:max-h-[460px] lg:max-h-[500px] overflow-y-auto divide-y divide-slate-100 pr-1">
                 {chapters.map((ch, idx) => {
                   const isActive = chapterIndex === idx && currentBook?.id === activeBook.id;
 
@@ -713,7 +713,7 @@ export const AudioPlayerPage: React.FC = () => {
                       key={ch.id || idx}
                       type="button"
                       onClick={() => handleChapterSelect(idx)}
-                      className={`w-full text-left py-3 px-2.5 sm:px-3 rounded-xl transition-colors flex items-center justify-between gap-2.5 cursor-pointer ${
+                      className={`w-full text-left py-2.5 sm:py-3 px-2.5 sm:px-3 rounded-xl transition-colors flex items-center justify-between gap-2.5 cursor-pointer ${
                         isActive
                           ? 'bg-[#005494]/6'
                           : 'hover:bg-slate-50/80'

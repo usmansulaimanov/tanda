@@ -23,12 +23,12 @@ export const Layout: React.FC = () => {
   }, [location.pathname]);
 
   return (
-    <div className={`flex flex-col ${isListenPage ? 'h-screen overflow-hidden' : 'min-h-screen'}`}>
+    <div className="flex flex-col min-h-screen">
       <QuoteNotificationRunner />
       <NewsNotificationRunner />
       <Header />
       <AppSidebarDrawer />
-      <main className={`flex-1 ${isListenPage ? 'h-[calc(100vh-65px)] overflow-hidden flex flex-col' : isAuthenticated && currentBook ? 'pb-24' : ''}`}>
+      <main className={`flex-1 flex flex-col ${isListenPage ? 'pb-10' : isAuthenticated && currentBook ? 'pb-24' : ''}`}>
         <Outlet />
       </main>
       {!isListenPage && <Footer />}
