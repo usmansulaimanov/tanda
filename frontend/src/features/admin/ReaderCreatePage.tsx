@@ -301,13 +301,7 @@ export const ReaderCreatePage: React.FC = () => {
 
         {/* Main Card */}
         <div
-          style={{
-            background: '#FFFFFF',
-            borderRadius: '20px',
-            padding: '36px 32px',
-            border: '1.5px solid #E2E8F0',
-            boxShadow: '0 10px 30px rgba(0, 45, 80, 0.05)',
-          }}
+          className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-7 md:p-9 border border-slate-200 shadow-sm"
         >
           {/* Header Summary Banner */}
           <div

@@ -149,15 +149,7 @@ export const ReaderPage: React.FC = () => {
     <div className={themeClasses[theme]} style={{ minHeight: '100vh', transition: 'background 0.2s, color 0.2s' }}>
       {/* Top Bar */}
       <div
-        style={{
-          borderBottom: '1px solid rgba(0,0,0,0.1)',
-          padding: '16px 24px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          maxWidth: '900px',
-          margin: '0 auto',
-        }}
+        className="border-b border-black/10 px-3 sm:px-6 py-2.5 sm:py-4 max-w-4xl mx-auto flex flex-wrap items-center justify-between gap-2.5"
       >
         <button
           onClick={() => navigate(-1)}
@@ -173,20 +165,20 @@ export const ReaderPage: React.FC = () => {
           ← Артқа
         </button>
 
-        <div style={{ textAlign: 'center' }}>
+        <div className="text-center order-first sm:order-none w-full sm:w-auto">
           <h3 style={{ fontSize: '15px', fontWeight: 800, margin: 0 }}>{book.title}</h3>
           <span style={{ fontSize: '12px', opacity: 0.75 }}>{book.author} (Бет: {currentPage})</span>
         </div>
 
         {/* Controls */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-center">
           <button
             className="reader-theme-btn"
             onClick={() => setFontSize((f) => Math.max(13, f - 2))}
           >
             A -
           </button>
-          <span style={{ fontSize: '12px', fontWeight: 700, width: '36px', textAlign: 'center' }}>
+          <span style={{ fontSize: '12px', fontWeight: 700, width: '32px', textAlign: 'center' }}>
             {fontSize}px
           </span>
           <button
@@ -219,7 +211,7 @@ export const ReaderPage: React.FC = () => {
       </div>
 
       {/* Reader Body */}
-      <main style={{ maxWidth: '780px', margin: '40px auto 80px', padding: '0 24px' }}>
+      <main className="max-w-3xl mx-auto my-6 sm:my-10 px-4 sm:px-6 mb-20">
         <article className="reader-content" style={{ fontSize: `${fontSize}px` }}>
           <div style={{ textAlign: 'center', marginBottom: '40px', borderBottom: '1px solid rgba(0,0,0,0.1)', paddingBottom: '24px' }}>
             <span className="book-category">{book.category}</span>

@@ -55,9 +55,9 @@ export const ReaderMessagesPage: React.FC = () => {
   };
 
   return (
-    <div style={{ maxWidth: '960px', margin: '0 auto', padding: '32px 20px 80px 20px' }}>
+    <div className="max-w-4xl mx-auto px-3 sm:px-6 my-4 sm:my-8 mb-20">
       {/* Breadcrumbs */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#64748B', marginBottom: '20px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#64748B', marginBottom: '16px' }}>
         <Link to="/" style={{ color: '#64748B', textDecoration: 'none', fontWeight: 600 }}>
           Басты бет
         </Link>
@@ -67,22 +67,16 @@ export const ReaderMessagesPage: React.FC = () => {
 
       {/* Header Banner */}
       <div
+        className="relative overflow-hidden rounded-2xl sm:rounded-3xl p-5 sm:p-8 text-white mb-6 shadow-lg"
         style={{
           background: 'linear-gradient(135deg, #0A192F 0%, #002D50 100%)',
-          borderRadius: '24px',
-          padding: '36px 32px',
-          color: '#FFFFFF',
-          position: 'relative',
-          overflow: 'hidden',
-          boxShadow: '0 12px 36px rgba(0, 45, 80, 0.15)',
-          marginBottom: '28px',
         }}
       >
         <div style={{ position: 'relative', zIndex: 1, maxWidth: '640px' }}>
-          <h1 style={{ fontSize: '28px', fontWeight: 900, margin: '0 0 10px 0', lineHeight: 1.25 }}>
+          <h1 className="text-2xl sm:text-3xl font-black m-0 mb-2 leading-tight">
             Келген хабарламалар
           </h1>
-          <p style={{ fontSize: '15px', color: '#CBD5E1', margin: 0, lineHeight: 1.6 }}>
+          <p className="text-xs sm:text-sm text-slate-200 m-0 leading-relaxed">
             Платформа әкімшілігінен келген жеке хаттар, маңызды ескертулер мен жаңалықтар.
           </p>
         </div>

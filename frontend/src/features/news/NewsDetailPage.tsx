@@ -91,10 +91,10 @@ export const NewsDetailPage: React.FC = () => {
   };
 
   return (
-    <div style={{ background: '#F8FAFC', minHeight: '85vh', padding: '36px 20px 80px' }}>
-      <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+    <div className="bg-slate-50 min-h-[85vh] py-4 sm:py-8 px-3 sm:px-6 pb-20">
+      <div className="max-w-3xl mx-auto">
         {/* Top Back Navigation */}
-        <div style={{ marginBottom: '20px' }}>
+        <div style={{ marginBottom: '16px' }}>
           <button
             type="button"
             onClick={() => navigate('/news')}
@@ -102,7 +102,7 @@ export const NewsDetailPage: React.FC = () => {
               background: '#FFFFFF',
               border: '1.5px solid #CBD5E1',
               borderRadius: '50px',
-              padding: '8px 18px',
+              padding: '7px 16px',
               fontSize: '13px',
               fontWeight: 700,
               color: 'var(--text-mid)',
@@ -121,7 +121,7 @@ export const NewsDetailPage: React.FC = () => {
               e.currentTarget.style.color = 'var(--text-mid)';
             }}
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <line x1="19" y1="12" x2="5" y2="12"></line>
               <polyline points="12 19 5 12 12 5"></polyline>
             </svg>
@@ -133,14 +133,14 @@ export const NewsDetailPage: React.FC = () => {
         {isAdmin && (!article.isPublished || isScheduled) && (
           <div
             style={{
-              padding: '12px 18px',
+              padding: '12px 16px',
               borderRadius: '12px',
               background: isScheduled ? '#EFF6FF' : '#FFFBEB',
               border: `1.5px solid ${isScheduled ? '#BFDBFE' : '#FDE68A'}`,
               color: isScheduled ? 'var(--blue)' : '#B45309',
               fontSize: '13px',
               fontWeight: 700,
-              marginBottom: '20px',
+              marginBottom: '16px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
@@ -149,13 +149,13 @@ export const NewsDetailPage: React.FC = () => {
           >
             <span>
               {isScheduled
-                ? `⏰ Әкімші режимі: Бұл мақала жоспарланған (сайтта ${formatDate(article.publishedAt)} күні автоматты түрде жарияланады).`
-                : '📝 Әкімші режимі: Бұл мақала черновикте сақталған (оқырмандарға көрінбейді).'}
+                ? `⏳ Жоспарланған жарияланым: ${new Date(article.scheduledAt || article.publishedAt).toLocaleString('kk-KZ')}`
+                : '⚠️ Бұл жаңалық жарияланбаған (тек админге көрінеді)'}
             </span>
             <Link
               to={`/admin/news/${article.id}/edit`}
               style={{
-                color: 'inherit',
+                color: isScheduled ? 'var(--blue)' : '#B45309',
                 textDecoration: 'underline',
                 fontSize: '12px',
                 fontWeight: 800,
@@ -169,31 +169,24 @@ export const NewsDetailPage: React.FC = () => {
 
         {/* Article Container Card */}
         <article
-          style={{
-            background: '#FFFFFF',
-            borderRadius: '24px',
-            overflow: 'hidden',
-            border: '1px solid #E2E8F0',
-            boxShadow: '0 8px 30px rgba(0, 0, 0, 0.04)',
-            padding: '40px',
-          }}
+          className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-sm p-4 sm:p-7 md:p-10 mb-8"
         >
           {/* Metadata badges */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginBottom: '18px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '16px' }}>
             <span
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
-                padding: '5px 12px',
+                padding: '4px 10px',
                 borderRadius: '20px',
                 background: 'rgba(0, 87, 168, 0.08)',
                 color: 'var(--blue)',
-                fontSize: '12px',
+                fontSize: '11px',
                 fontWeight: 700,
               }}
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                 <line x1="16" y1="2" x2="16" y2="6"></line>
                 <line x1="8" y1="2" x2="8" y2="6"></line>
@@ -208,11 +201,11 @@ export const NewsDetailPage: React.FC = () => {
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
-                  padding: '5px 12px',
+                  padding: '4px 10px',
                   borderRadius: '20px',
                   background: '#F1F5F9',
                   color: 'var(--text-mid)',
-                  fontSize: '12px',
+                  fontSize: '11px',
                   fontWeight: 600,
                 }}
               >
@@ -223,14 +216,7 @@ export const NewsDetailPage: React.FC = () => {
 
           {/* Title */}
           <h1
-            style={{
-              fontSize: '28px',
-              fontWeight: 900,
-              color: 'var(--text-dark)',
-              margin: '0 0 24px 0',
-              lineHeight: 1.3,
-              letterSpacing: '-0.3px',
-            }}
+            className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 mb-5 leading-tight"
           >
             {article.title}
           </h1>
@@ -243,13 +229,13 @@ export const NewsDetailPage: React.FC = () => {
             if (articleImages.length === 0) return null;
 
             return (
-              <div style={{ marginBottom: '32px' }}>
+              <div style={{ marginBottom: '28px' }}>
                 <NewsImageCarousel
                   images={articleImages}
                   alt={article.title}
-                  height="460px"
-                  maxHeight="520px"
-                  borderRadius="16px"
+                  height="min(440px, 45vh)"
+                  maxHeight="480px"
+                  borderRadius="14px"
                   autoPlayInterval={3500}
                   showArrows={true}
                   showDots={true}

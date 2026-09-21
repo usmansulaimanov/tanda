@@ -87,7 +87,7 @@ export const ProfilePage: React.FC = () => {
   }
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '40px auto 80px', padding: '0 24px' }}>
+    <div className="max-w-7xl mx-auto my-4 sm:my-8 px-3 sm:px-6">
       
       {/* Top back button */}
       <button
@@ -100,7 +100,7 @@ export const ProfilePage: React.FC = () => {
           fontSize: '14px',
           fontWeight: 600,
           cursor: 'pointer',
-          marginBottom: '24px',
+          marginBottom: '16px',
           display: 'inline-flex',
           alignItems: 'center',
           gap: '6px',

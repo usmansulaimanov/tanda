@@ -751,89 +751,92 @@ export const AuthorStatsPage: React.FC = () => {
               </span>
             </div>
 
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: `repeat(${dailyAnalytics.dailyList.length}, 1fr)`,
-                gap: '5px',
-                alignItems: 'flex-end',
-                height: '145px',
-                background: '#F8FAFC',
-                padding: '24px 14px 10px',
-                borderRadius: '16px',
-                border: '1px solid #E2E8F0',
-              }}
-            >
-              {dailyAnalytics.dailyList.map((day) => {
-                const heightPercent = dailyAnalytics.maxSecInPeriod > 0
-                  ? Math.max(6, Math.round((day.seconds / dailyAnalytics.maxSecInPeriod) * 75))
-                  : 6;
+            <div style={{ overflowX: 'auto', paddingBottom: '8px' }} className="custom-scrollbar">
+              <div
+                style={{
+                  minWidth: '650px',
+                  display: 'grid',
+                  gridTemplateColumns: `repeat(${dailyAnalytics.dailyList.length}, 1fr)`,
+                  gap: '5px',
+                  alignItems: 'flex-end',
+                  height: '145px',
+                  background: '#F8FAFC',
+                  padding: '24px 14px 10px',
+                  borderRadius: '16px',
+                  border: '1px solid #E2E8F0',
+                }}
+              >
+                {dailyAnalytics.dailyList.map((day) => {
+                  const heightPercent = dailyAnalytics.maxSecInPeriod > 0
+                    ? Math.max(6, Math.round((day.seconds / dailyAnalytics.maxSecInPeriod) * 75))
+                    : 6;
 
-                return (
-                  <div
-                    key={day.date}
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      height: '100%',
-                      justifyContent: 'flex-end',
-                      position: 'relative',
-                    }}
-                    title={`${day.label}: ${day.minutes > 0 ? `${day.minutes} мин` : `${day.seconds} сек`}`}
-                  >
-                    {/* Bar */}
+                  return (
                     <div
+                      key={day.date}
                       style={{
-                        width: '100%',
-                        maxWidth: '28px',
-                        height: `${heightPercent}%`,
-                        borderRadius: '6px 6px 3px 3px',
-                        background: day.isPeak
-                          ? 'linear-gradient(180deg, #EF4444 0%, #EA580C 100%)'
-                          : day.seconds > 0
-                          ? 'linear-gradient(180deg, #3B82F6 0%, #005494 100%)'
-                          : '#E2E8F0',
-                        boxShadow: day.isPeak ? '0 4px 12px rgba(239, 68, 68, 0.4)' : 'none',
-                        transition: 'all 0.2s',
-                        cursor: 'pointer',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        height: '100%',
+                        justifyContent: 'flex-end',
                         position: 'relative',
                       }}
+                      title={`${day.label}: ${day.minutes > 0 ? `${day.minutes} мин` : `${day.seconds} сек`}`}
                     >
-                      {day.isPeak && (
-                        <span
-                          style={{
-                            position: 'absolute',
-                            top: '-18px',
-                            left: '50%',
-                            transform: 'translateX(-50%)',
-                            fontSize: '10px',
-                            fontWeight: 900,
-                            color: '#EA580C',
-                            whiteSpace: 'nowrap',
-                          }}
-                        >
-                          🔥 Пик
-                        </span>
-                      )}
-                    </div>
+                      {/* Bar */}
+                      <div
+                        style={{
+                          width: '100%',
+                          maxWidth: '28px',
+                          height: `${heightPercent}%`,
+                          borderRadius: '6px 6px 3px 3px',
+                          background: day.isPeak
+                            ? 'linear-gradient(180deg, #EF4444 0%, #EA580C 100%)'
+                            : day.seconds > 0
+                            ? 'linear-gradient(180deg, #3B82F6 0%, #005494 100%)'
+                            : '#E2E8F0',
+                          boxShadow: day.isPeak ? '0 4px 12px rgba(239, 68, 68, 0.4)' : 'none',
+                          transition: 'all 0.2s',
+                          cursor: 'pointer',
+                          position: 'relative',
+                        }}
+                      >
+                        {day.isPeak && (
+                          <span
+                            style={{
+                              position: 'absolute',
+                              top: '-18px',
+                              left: '50%',
+                              transform: 'translateX(-50%)',
+                              fontSize: '10px',
+                              fontWeight: 900,
+                              color: '#EA580C',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            🔥 Пик
+                          </span>
+                        )}
+                      </div>
 
-                    {/* Date label */}
-                    <span
-                      style={{
-                        fontSize: '10.5px',
-                        fontWeight: day.isToday || day.isPeak ? 800 : 600,
-                        color: day.isToday ? 'var(--blue)' : day.isPeak ? '#EA580C' : '#64748B',
-                        marginTop: '6px',
-                        textAlign: 'center',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {day.shortLabel}
-                    </span>
-                  </div>
-                );
-              })}
+                      {/* Date label */}
+                      <span
+                        style={{
+                          fontSize: '10.5px',
+                          fontWeight: day.isToday || day.isPeak ? 800 : 600,
+                          color: day.isToday ? 'var(--blue)' : day.isPeak ? '#EA580C' : '#64748B',
+                          marginTop: '6px',
+                          textAlign: 'center',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {day.shortLabel}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>

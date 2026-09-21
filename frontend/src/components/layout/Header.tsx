@@ -118,11 +118,11 @@ export const Header: React.FC = () => {
 
   return (
     <>
-      <nav className="tanda-nav" style={{ padding: '16px 32px', minHeight: '70px' }}>
-        <div style={{ maxWidth: '1280px', width: '100%', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
+      <nav className="tanda-nav">
+        <div style={{ maxWidth: '1280px', width: '100%', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
           
           {/* Left: Sidebar Toggle, Logo & Search */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: '1 1 auto', minWidth: 0, maxWidth: '540px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: '1 1 auto', minWidth: 0, maxWidth: '540px' }}>
             {/* Sidebar Toggle Button */}
             <button
               type="button"
@@ -131,8 +131,8 @@ export const Header: React.FC = () => {
               title={isSidebarOpen ? 'Сайдбарды жабу' : 'Сайдбарды ашу'}
               aria-label="Сайдбарды ашу/жабу"
               style={{
-                width: '40px',
-                height: '40px',
+                width: '38px',
+                height: '38px',
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -156,16 +156,16 @@ export const Header: React.FC = () => {
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                height: '40px',
+                height: '38px',
                 margin: 0,
                 padding: 0,
-                transform: 'translateY(-6px)',
+                transform: 'translateY(-4px)',
               }}
             >
               <img
                 src={tandaLogo}
                 alt="Tanda"
-                style={{ height: '34px', width: 'auto', display: 'block', objectFit: 'contain' }}
+                style={{ height: '32px', width: 'auto', display: 'block', objectFit: 'contain' }}
               />
             </Link>
 
@@ -175,11 +175,11 @@ export const Header: React.FC = () => {
               style={{
                 position: 'relative',
                 flex: 1,
-                minWidth: '160px',
+                minWidth: '100px',
                 maxWidth: '300px',
                 display: 'flex',
                 alignItems: 'center',
-                height: '40px',
+                height: '38px',
               }}
             >
               <div style={{ position: 'relative', width: '100%', display: 'flex', alignItems: 'center' }}>
@@ -187,12 +187,12 @@ export const Header: React.FC = () => {
                   type="text"
                   value={headerSearch}
                   onChange={(e) => handleSearchInput(e.target.value)}
-                  placeholder="Кітап атын іздеу..."
+                  placeholder="Кітап іздеу..."
                   autoComplete="off"
                   style={{
                     width: '100%',
-                    height: '40px',
-                    padding: '0 14px 0 36px',
+                    height: '38px',
+                    padding: '0 10px 0 32px',
                     border: '1.5px solid #CBD5E1',
                     borderRadius: '50px',
                     fontSize: '13px',
@@ -208,14 +208,14 @@ export const Header: React.FC = () => {
                 <svg
                   style={{
                     position: 'absolute',
-                    left: '12px',
+                    left: '10px',
                     top: '50%',
                     transform: 'translateY(-50%)',
                     color: '#64748B',
                     pointerEvents: 'none',
                   }}
-                  width="15"
-                  height="15"
+                  width="14"
+                  height="14"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -234,6 +234,7 @@ export const Header: React.FC = () => {
                     left: 0,
                     top: 'calc(100% + 6px)',
                     width: '320px',
+                    maxWidth: 'calc(100vw - 32px)',
                     maxHeight: '340px',
                     overflowY: 'auto',
                     background: '#FFFFFF',

@@ -180,19 +180,13 @@ export const MyBooksPage: React.FC = () => {
   }
 
   return (
-    <div style={{ maxWidth: '1280px', margin: '36px auto 90px', padding: '0 24px' }}>
+    <div className="max-w-7xl mx-auto my-4 sm:my-8 px-3 sm:px-6">
       
       {/* Top Header Banner */}
       <div
+        className="relative overflow-hidden rounded-2xl sm:rounded-3xl p-5 sm:p-8 md:p-10 text-white mb-6 sm:mb-8 shadow-lg"
         style={{
           background: 'linear-gradient(135deg, #004377 0%, #005FA8 100%)',
-          borderRadius: '24px',
-          padding: '40px 44px',
-          color: '#FFFFFF',
-          position: 'relative',
-          overflow: 'hidden',
-          boxShadow: '0 14px 36px rgba(0, 67, 119, 0.18)',
-          marginBottom: '36px',
         }}
       >
         {/* Background decorative circles */}
@@ -222,17 +216,17 @@ export const MyBooksPage: React.FC = () => {
         />
 
         <div style={{ position: 'relative', zIndex: 2, maxWidth: '720px' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(6px)', padding: '4px 14px', borderRadius: '50px', fontSize: '13px', fontWeight: 700, marginBottom: '16px' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(6px)', padding: '4px 12px', borderRadius: '50px', fontSize: '12px', fontWeight: 700, marginBottom: '12px' }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path>
             </svg>
             Жеке сөре
           </div>
 
-          <h1 style={{ fontSize: '32px', fontWeight: 900, margin: '0 0 10px', letterSpacing: '-0.02em', lineHeight: 1.2 }}>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-black m-0 mb-2 leading-tight">
             Менің сөрем
           </h1>
-          <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.85)', margin: 0, lineHeight: 1.6 }}>
+          <p className="text-xs sm:text-sm text-white/85 m-0 leading-relaxed">
             Сіздің жеке сөреңіз: қазір оқылып жатқан, толық аяқталған және кейінге сақталған таңдаулы қазақша кітаптар.
           </p>
         </div>
@@ -240,36 +234,28 @@ export const MyBooksPage: React.FC = () => {
 
       {/* Tabs & Search Bar Row */}
       <div
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '20px',
-          marginBottom: '32px',
-          borderBottom: '1.5px solid #E2E8F0',
-          paddingBottom: '16px',
-        }}
+        className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4 mb-6 pb-4 border-b border-slate-200"
       >
         {/* The 3 Tabs */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 no-scrollbar">
           {/* Tab 1: Қазір оқып жатқан кітаптарым */}
           <button
             type="button"
             onClick={() => handleTabChange('reading')}
             style={{
-              padding: '10px 20px',
+              padding: '8px 16px',
               borderRadius: '50px',
               border: 'none',
               background: activeTab === 'reading' ? 'var(--blue)' : '#F1F5F9',
               color: activeTab === 'reading' ? '#FFFFFF' : 'var(--text-dark)',
-              fontSize: '14px',
+              fontSize: '13px',
               fontWeight: 700,
               cursor: 'pointer',
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '8px',
+              gap: '6px',
               transition: 'all 0.2s',
+              whiteSpace: 'nowrap',
               boxShadow: activeTab === 'reading' ? '0 4px 14px rgba(0, 84, 148, 0.25)' : 'none',
             }}
           >
@@ -297,22 +283,23 @@ export const MyBooksPage: React.FC = () => {
             type="button"
             onClick={() => handleTabChange('completed')}
             style={{
-              padding: '10px 20px',
+              padding: '8px 16px',
               borderRadius: '50px',
               border: 'none',
               background: activeTab === 'completed' ? 'var(--blue)' : '#F1F5F9',
               color: activeTab === 'completed' ? '#FFFFFF' : 'var(--text-dark)',
-              fontSize: '14px',
+              fontSize: '13px',
               fontWeight: 700,
               cursor: 'pointer',
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '8px',
+              gap: '6px',
               transition: 'all 0.2s',
+              whiteSpace: 'nowrap',
               boxShadow: activeTab === 'completed' ? '0 4px 14px rgba(0, 84, 148, 0.25)' : 'none',
             }}
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
               <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
               <polyline points="22 4 12 14.01 9 11.01"></polyline>
             </svg>
@@ -321,7 +308,7 @@ export const MyBooksPage: React.FC = () => {
               style={{
                 fontSize: '11px',
                 fontWeight: 800,
-                padding: '2px 8px',
+                padding: '2px 7px',
                 borderRadius: '50px',
                 background: activeTab === 'completed' ? 'rgba(255,255,255,0.25)' : '#CBD5E1',
                 color: activeTab === 'completed' ? '#FFFFFF' : '#334155',
@@ -336,22 +323,23 @@ export const MyBooksPage: React.FC = () => {
             type="button"
             onClick={() => handleTabChange('want_to_read')}
             style={{
-              padding: '10px 20px',
+              padding: '8px 16px',
               borderRadius: '50px',
               border: 'none',
               background: activeTab === 'want_to_read' ? 'var(--orange)' : '#F1F5F9',
               color: activeTab === 'want_to_read' ? '#FFFFFF' : 'var(--text-dark)',
-              fontSize: '14px',
+              fontSize: '13px',
               fontWeight: 700,
               cursor: 'pointer',
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '8px',
+              gap: '6px',
               transition: 'all 0.2s',
+              whiteSpace: 'nowrap',
               boxShadow: activeTab === 'want_to_read' ? '0 4px 14px rgba(239, 126, 0, 0.3)' : 'none',
             }}
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
               <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path>
             </svg>
             <span>Енді оқимын</span>
@@ -359,7 +347,7 @@ export const MyBooksPage: React.FC = () => {
               style={{
                 fontSize: '11px',
                 fontWeight: 800,
-                padding: '2px 8px',
+                padding: '2px 7px',
                 borderRadius: '50px',
                 background: activeTab === 'want_to_read' ? 'rgba(255,255,255,0.28)' : '#CBD5E1',
                 color: activeTab === 'want_to_read' ? '#FFFFFF' : '#334155',
@@ -371,7 +359,7 @@ export const MyBooksPage: React.FC = () => {
         </div>
 
         {/* Filter / Search input */}
-        <div style={{ position: 'relative', width: '100%', maxWidth: '280px' }}>
+        <div className="relative w-full sm:w-auto sm:min-w-[240px]">
           <input
             type="text"
             value={searchQuery}

@@ -60,9 +60,9 @@ export const ReaderQuotesPage: React.FC = () => {
   };
 
   return (
-    <div style={{ maxWidth: '1080px', margin: '0 auto', padding: '32px 20px 80px 20px' }}>
+    <div className="max-w-6xl mx-auto px-3 sm:px-6 my-4 sm:my-8 mb-20">
       {/* Breadcrumbs */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#64748B', marginBottom: '20px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#64748B', marginBottom: '16px' }}>
         <Link to="/" style={{ color: '#64748B', textDecoration: 'none', fontWeight: 600 }}>
           Басты бет
         </Link>
@@ -72,15 +72,9 @@ export const ReaderQuotesPage: React.FC = () => {
 
       {/* Header Banner */}
       <div
+        className="relative overflow-hidden rounded-2xl sm:rounded-3xl p-5 sm:p-8 text-white mb-6 shadow-lg"
         style={{
           background: 'linear-gradient(135deg, #0A192F 0%, #002D50 100%)',
-          borderRadius: '24px',
-          padding: '36px 32px',
-          color: '#FFFFFF',
-          position: 'relative',
-          overflow: 'hidden',
-          boxShadow: '0 12px 36px rgba(0, 45, 80, 0.15)',
-          marginBottom: '32px',
         }}
       >
         {/* Decorative background circle */}
@@ -98,10 +92,10 @@ export const ReaderQuotesPage: React.FC = () => {
         />
 
         <div style={{ position: 'relative', zIndex: 1, maxWidth: '680px' }}>
-          <h1 style={{ fontSize: '28px', fontWeight: 900, margin: '0 0 10px 0', lineHeight: 1.25 }}>
+          <h1 className="text-2xl sm:text-3xl font-black m-0 mb-2 leading-tight">
             Кітаптан үзінділер
           </h1>
-          <p style={{ fontSize: '15px', color: '#CBD5E1', margin: 0, lineHeight: 1.6 }}>
+          <p className="text-xs sm:text-sm text-slate-200 m-0 leading-relaxed">
             Платформадан жіберілген нақыл сөздер мен үзінділер. Кез келген цитатаның кітабына өтіп, толық нұсқасын бірден оқи аласыз.
           </p>
         </div>
@@ -109,8 +103,8 @@ export const ReaderQuotesPage: React.FC = () => {
 
       {/* Search Toolbar */}
       {sentQuotes.length > 0 && (
-        <div style={{ marginBottom: '28px' }}>
-          <div style={{ position: 'relative', width: '100%', maxWidth: '480px' }}>
+        <div className="mb-6">
+          <div className="relative w-full max-w-md">
             <input
               type="text"
               value={searchQuery}
@@ -118,10 +112,10 @@ export const ReaderQuotesPage: React.FC = () => {
               placeholder="Іздеу..."
               style={{
                 width: '100%',
-                padding: '11px 16px 11px 40px',
+                padding: '10px 14px 10px 38px',
                 borderRadius: '12px',
                 border: '1.5px solid #CBD5E1',
-                fontSize: '13.5px',
+                fontSize: '13px',
                 fontWeight: 600,
                 outline: 'none',
                 background: '#FFFFFF',
@@ -130,8 +124,8 @@ export const ReaderQuotesPage: React.FC = () => {
               }}
             />
             <svg
-              width="16"
-              height="16"
+              width="15"
+              height="15"
               viewBox="0 0 24 24"
               fill="none"
               stroke="#94A3B8"
@@ -166,7 +160,7 @@ export const ReaderQuotesPage: React.FC = () => {
 
       {/* Quotes Cards Grid */}
       {filteredQuotes.length > 0 ? (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
           {filteredQuotes.map((quote) => {
             const matchedBook = quote.bookId
               ? books.find((b) => b.id === quote.bookId)

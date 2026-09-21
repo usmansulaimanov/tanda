@@ -373,13 +373,7 @@ export const BookFormPage: React.FC = () => {
 
         {/* Main Card */}
         <div
-          style={{
-            background: '#FFFFFF',
-            border: '1.5px solid #E2E8F0',
-            borderRadius: '16px',
-            padding: '36px',
-            boxShadow: '0 4px 20px -2px rgba(0, 84, 148, 0.05), 0 2px 6px -1px rgba(0, 0, 0, 0.03)',
-          }}
+          className="bg-white border border-slate-200 rounded-2xl sm:rounded-3xl p-4 sm:p-7 md:p-10 shadow-sm"
         >
           {/* Form Header */}
           <div style={{ borderBottom: '1.5px solid #F1F5F9', paddingBottom: '20px', marginBottom: '28px' }}>

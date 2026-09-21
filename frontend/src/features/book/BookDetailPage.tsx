@@ -122,7 +122,7 @@ export const BookDetailPage: React.FC = () => {
   };
 
   return (
-    <div style={{ maxWidth: '1000px', margin: '40px auto 80px', padding: '0 24px' }}>
+    <div className="max-w-5xl mx-auto my-4 sm:my-8 px-3 sm:px-6">
       <button
         type="button"
         onClick={() => navigate(-1)}
@@ -133,7 +133,7 @@ export const BookDetailPage: React.FC = () => {
           fontSize: '14px',
           fontWeight: 600,
           cursor: 'pointer',
-          marginBottom: '24px',
+          marginBottom: '16px',
           display: 'inline-flex',
           alignItems: 'center',
           gap: '6px',
@@ -144,35 +144,14 @@ export const BookDetailPage: React.FC = () => {
 
       {/* Book details container */}
       <div
-        style={{
-          background: '#FFFFFF',
-          border: '1px solid rgba(0,87,168,0.08)',
-          borderRadius: '16px',
-          padding: '40px',
-          boxShadow: '0 10px 30px rgba(0,0,0,0.05)',
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-          gap: '40px',
-        }}
+        className="bg-white border border-slate-200/80 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-10 shadow-sm grid grid-cols-1 md:grid-cols-[280px_1fr] gap-6 md:gap-10"
       >
         {/* Cover */}
-        {/* Cover */}
-        <div style={{ display: 'flex', justifyContent: 'center' }}>
+        <div className="flex justify-center md:justify-start">
           <div
+            className="w-full max-w-[240px] sm:max-w-[280px] md:max-w-[300px] aspect-[3/4] rounded-2xl relative shadow-xl overflow-hidden flex flex-col justify-end p-5 text-white"
             style={{
-              width: '100%',
-              maxWidth: '300px',
-              aspectRatio: '3/4',
-              borderRadius: '12px',
               background: book.gradient || 'linear-gradient(135deg, #0057A8, #003d7a)',
-              boxShadow: '0 12px 30px rgba(0,0,0,0.15)',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'flex-end',
-              padding: '24px',
-              position: 'relative',
-              color: '#FFF',
-              overflow: 'hidden',
             }}
           >
             {book.coverImage && (
@@ -199,8 +178,8 @@ export const BookDetailPage: React.FC = () => {
             <div style={{ position: 'relative', zIndex: 2 }}>
               {!book.coverImage && (
                 <>
-                  <div className="cover-title" style={{ fontSize: '22px' }}>{book.title}</div>
-                  <div className="cover-author-text" style={{ fontSize: '14px' }}>{book.author}</div>
+                  <div className="cover-title" style={{ fontSize: '20px' }}>{book.title}</div>
+                  <div className="cover-author-text" style={{ fontSize: '13px' }}>{book.author}</div>
                 </>
               )}
             </div>
@@ -210,39 +189,39 @@ export const BookDetailPage: React.FC = () => {
         {/* Info */}
         <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           <div>
-            <div style={{ marginBottom: '12px' }}>
+            <div style={{ marginBottom: '10px' }}>
               <span className="book-category">{book.category}</span>
             </div>
 
-            <h1 style={{ fontSize: '32px', fontWeight: 900, color: 'var(--text-dark)', marginBottom: '8px', lineHeight: 1.2 }}>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 mb-2 leading-tight">
               {book.title}
             </h1>
 
-            <p style={{ fontSize: '18px', color: 'var(--text-mid)', fontWeight: 600, marginBottom: '20px' }}>
-              Авторы: <span style={{ color: 'var(--text-dark)' }}>{book.author}</span>
+            <p className="text-base sm:text-lg text-slate-600 font-semibold mb-4">
+              Авторы: <span className="text-slate-900 font-bold">{book.author}</span>
             </p>
 
-            <div style={{ display: 'flex', gap: '20px', fontSize: '13px', color: 'var(--text-mid)', marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid #E2E8F0' }}>
+            <div className="flex flex-wrap gap-3 sm:gap-5 text-xs sm:text-sm text-slate-600 mb-5 pb-4 border-b border-slate-100">
               {book.pages && <div>Бет саны: <strong>{book.pages}</strong></div>}
               {book.audioDuration && <div>Ұзақтығы: <strong>{book.audioDuration}</strong></div>}
               {book.audioNarrator && <div>Диктор: <strong>{book.audioNarrator}</strong></div>}
             </div>
 
-            <h3 style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-dark)', marginBottom: '8px' }}>
+            <h3 className="text-sm sm:text-base font-extrabold text-slate-900 mb-2">
               Кітап туралы
             </h3>
-            <p style={{ fontSize: '14px', color: 'var(--text-mid)', lineHeight: 1.7, whiteSpace: 'pre-line' }}>
+            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed whitespace-pre-line">
               {book.description || 'Сипаттамасы жоқ.'}
             </p>
           </div>
 
           {/* Action buttons */}
-          <div style={{ display: 'flex', gap: '12px', marginTop: '32px', flexWrap: 'wrap', alignItems: 'center' }}>
+          <div className="flex flex-col sm:flex-row flex-wrap gap-2.5 sm:gap-3 mt-6 sm:mt-8 items-stretch sm:items-center">
             <button
               type="button"
               onClick={handleReadClick}
-              className="btn-primary"
-              style={{ padding: '14px 28px', fontSize: '15px', background: 'var(--blue)', cursor: 'pointer', border: 'none' }}
+              className="btn-primary w-full sm:w-auto text-center justify-center"
+              style={{ padding: '12px 24px', fontSize: '14px', background: 'var(--blue)', cursor: 'pointer', border: 'none' }}
             >
               Кітапты оқу
             </button>
@@ -251,8 +230,8 @@ export const BookDetailPage: React.FC = () => {
               <button
                 type="button"
                 onClick={handleAudioClick}
-                className="btn-primary"
-                style={{ padding: '14px 28px', fontSize: '15px', background: 'var(--orange)', cursor: 'pointer', border: 'none' }}
+                className="btn-primary w-full sm:w-auto text-center justify-center"
+                style={{ padding: '12px 24px', fontSize: '14px', background: 'var(--orange)', cursor: 'pointer', border: 'none' }}
               >
                 {isCurrentPlaying ? 'Тоқтату (Пауза)' : 'Аудионы тыңдау'}
               </button>
@@ -264,9 +243,10 @@ export const BookDetailPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleToggleSave}
+                  className="w-full sm:w-auto justify-center"
                   style={{
-                    padding: '13px 24px',
-                    fontSize: '14px',
+                    padding: '11px 20px',
+                    fontSize: '13px',
                     fontWeight: 700,
                     borderRadius: '50px',
                     cursor: 'pointer',
@@ -279,22 +259,10 @@ export const BookDetailPage: React.FC = () => {
                     border: isSaved ? '1.5px solid var(--orange)' : '1.5px solid #CBD5E1',
                     boxShadow: isSaved ? '0 2px 8px rgba(239, 126, 0, 0.2)' : 'none',
                   }}
-                  onMouseEnter={(e) => {
-                    if (!isSaved) {
-                      e.currentTarget.style.borderColor = 'var(--blue)';
-                      e.currentTarget.style.color = 'var(--blue)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isSaved) {
-                      e.currentTarget.style.borderColor = '#CBD5E1';
-                      e.currentTarget.style.color = 'var(--text-dark)';
-                    }
-                  }}
                 >
                   <svg
-                    width="16"
-                    height="16"
+                    width="15"
+                    height="15"
                     viewBox="0 0 24 24"
                     fill={isSaved ? 'currentColor' : 'none'}
                     stroke="currentColor"
@@ -311,9 +279,10 @@ export const BookDetailPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleToggleCompleted}
+                  className="w-full sm:w-auto justify-center"
                   style={{
-                    padding: '13px 24px',
-                    fontSize: '14px',
+                    padding: '11px 20px',
+                    fontSize: '13px',
                     fontWeight: 700,
                     borderRadius: '50px',
                     cursor: 'pointer',
@@ -326,22 +295,10 @@ export const BookDetailPage: React.FC = () => {
                     border: isCompleted ? '1.5px solid #10B981' : '1.5px solid #CBD5E1',
                     boxShadow: isCompleted ? '0 2px 8px rgba(16, 185, 129, 0.2)' : 'none',
                   }}
-                  onMouseEnter={(e) => {
-                    if (!isCompleted) {
-                      e.currentTarget.style.borderColor = '#10B981';
-                      e.currentTarget.style.color = '#059669';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isCompleted) {
-                      e.currentTarget.style.borderColor = '#CBD5E1';
-                      e.currentTarget.style.color = 'var(--text-dark)';
-                    }
-                  }}
                 >
                   <svg
-                    width="16"
-                    height="16"
+                    width="15"
+                    height="15"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
@@ -362,15 +319,9 @@ export const BookDetailPage: React.FC = () => {
       {/* Chapters list if audiobook */}
       {book.hasAudio && book.audioChapters && book.audioChapters.length > 0 && (
         <div
-          style={{
-            marginTop: '32px',
-            background: '#FFFFFF',
-            borderRadius: '16px',
-            padding: '32px',
-            border: '1px solid #CBD5E1',
-          }}
+          className="mt-6 sm:mt-8 bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-200/80 shadow-sm"
         >
-          <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-dark)', marginBottom: '16px' }}>
+          <h3 style={{ fontSize: '17px', fontWeight: 800, color: 'var(--text-dark)', marginBottom: '14px' }}>
             Тараулар: {book.audioChapters.length}
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column' }}>

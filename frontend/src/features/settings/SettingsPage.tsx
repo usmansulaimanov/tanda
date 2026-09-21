@@ -434,10 +434,10 @@ export const SettingsPage: React.FC = () => {
   const initialLetter = user.name ? user.name.trim().charAt(0).toUpperCase() : (user.email ? user.email.charAt(0).toUpperCase() : 'О');
 
   return (
-    <div style={{ maxWidth: '840px', margin: '40px auto 80px', padding: '0 24px' }}>
+    <div className="max-w-4xl mx-auto my-4 sm:my-8 px-3 sm:px-6 mb-20">
       
       {/* Top back button */}
-      <div style={{ marginBottom: '24px' }}>
+      <div style={{ marginBottom: '16px' }}>
         <button
           type="button"
           onClick={() => {

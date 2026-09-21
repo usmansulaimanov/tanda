@@ -61,10 +61,10 @@ export const PromoCodePage: React.FC = () => {
   };
 
   return (
-    <div style={{ maxWidth: '840px', margin: '40px auto 80px', padding: '0 24px' }}>
+    <div className="max-w-4xl mx-auto my-4 sm:my-8 px-3 sm:px-6 mb-20">
       
       {/* Top back button */}
-      <div style={{ marginBottom: '24px' }}>
+      <div style={{ marginBottom: '16px' }}>
         <button
           type="button"
           onClick={() => navigate(-1)}
@@ -86,16 +86,7 @@ export const PromoCodePage: React.FC = () => {
 
       {/* Main Activation Card */}
       <div
-        style={{
-          background: '#FFFFFF',
-          borderRadius: '24px',
-          padding: '40px 36px',
-          border: '1.5px solid #E2E8F0',
-          boxShadow: '0 10px 30px rgba(0, 45, 80, 0.05)',
-          marginBottom: '28px',
-          position: 'relative',
-          overflow: 'hidden',
-        }}
+        className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 border border-slate-200/80 shadow-sm mb-6 relative overflow-hidden"
       >
         {/* Decorative corner background */}
         <div
