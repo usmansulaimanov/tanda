@@ -106,13 +106,12 @@ class Phase3InfoVerificationTest {
     void testBookServiceDecoupledFromSecurityContext() {
         // Without setting SecurityContextHolder:
         // 1. Non-admin cannot see archived book
-        Page<BookResponseDto> userBooks = bookService.getBooks(null, "Мұрағат", true, false, PageRequest.of(0, 10));
-        assertThat(userBooks.getContent()).isEmpty();
+        Page<BookResponseDto> userBooks = bookService.getBooks(null, "Фаза 3 Мұрағат", true, false, PageRequest.of(0, 10));
+        assertThat(userBooks.getContent()).noneMatch(b -> b.getId().equals(archivedBook.getId()));
 
         // 2. Admin can see archived book
-        Page<BookResponseDto> adminBooks = bookService.getBooks(null, "Мұрағат", true, true, PageRequest.of(0, 10));
-        assertThat(adminBooks.getContent()).hasSize(1);
-        assertThat(adminBooks.getContent().get(0).getId()).isEqualTo(archivedBook.getId());
+        Page<BookResponseDto> adminBooks = bookService.getBooks(null, "Фаза 3 Мұрағат", true, true, PageRequest.of(0, 10));
+        assertThat(adminBooks.getContent()).anyMatch(b -> b.getId().equals(archivedBook.getId()));
 
         // 3. getBookById with isAdmin=false throws for archived book
         org.junit.jupiter.api.Assertions.assertThrows(

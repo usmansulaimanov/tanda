@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: tanda-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: tanda
+      POSTGRES_USER: tanda
+      POSTGRES_PASSWORD: tanda_local_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tanda -d tanda"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: tanda-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/tanda
+      SPRING_DATASOURCE_USERNAME: tanda
+      SPRING_DATASOURCE_PASSWORD: tanda_local_password
+      JWT_SECRET: c2VjdXJlLXRlc3Qtand0LXNlY3JldC1rZXktZm9yLXRhbmRhLXByb2R1Y3Rpb24tZ3JhZGUtdmVyaWZpY2F0aW9u
+      ADMIN_INITIAL_PASSWORD: AdminSuperSecretPassword2026!
+      APP_CORS_ALLOWED_ORIGINS: http://localhost:5173,http://localhost:3000,https://tanda.kz
+    ports:
+      - "8080:8080"
+    volumes:
+      - media_uploads:/app/uploads
+
+volumes:
+  postgres_data:
+  media_uploads:
