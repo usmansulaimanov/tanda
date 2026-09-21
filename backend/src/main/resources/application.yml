@@ -47,6 +47,10 @@ jwt:
 google:
   client-id: ${GOOGLE_CLIENT_ID:470329734598-c32dk937vu2hgkbvblqjuvi43noc1mu9.apps.googleusercontent.com}
 
+resend:
+  api-key: ${RESEND_API_KEY:}
+  from-email: ${RESEND_FROM_EMAIL:onboarding@resend.dev}
+
 management:
   endpoints:
     web:
