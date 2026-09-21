@@ -101,7 +101,7 @@ export const MyBooksPage: React.FC = () => {
   const handleChangeStatus = (bookId: string, status: BookShelfStatus, title: string) => {
     setBookStatus(bookId, status);
     const statusLabels: Record<BookShelfStatus, string> = {
-      reading: '«Қазір оқып жатқандар» бөліміне қосылды',
+      reading: '«Оқып жатқандарым» бөліміне қосылды',
       completed: '«Оқып болғандар» бөліміне қосылды',
       want_to_read: '«Енді оқимын» бөліміне қосылды',
     };
@@ -238,7 +238,7 @@ export const MyBooksPage: React.FC = () => {
       >
         {/* The 3 Tabs */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 no-scrollbar">
-          {/* Tab 1: Қазір оқып жатқан кітаптарым */}
+          {/* Tab 1: Оқып жатқандарым */}
           <button
             type="button"
             onClick={() => handleTabChange('reading')}
@@ -263,7 +263,7 @@ export const MyBooksPage: React.FC = () => {
               <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
               <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
             </svg>
-            <span>Қазір оқып жатқан кітаптарым</span>
+            <span>Оқып жатқандарым</span>
             <span
               style={{
                 fontSize: '11px',
@@ -278,7 +278,7 @@ export const MyBooksPage: React.FC = () => {
             </span>
           </button>
 
-          {/* Tab 2: Оқып болған кітаптарым */}
+          {/* Tab 2: Оқығандарым */}
           <button
             type="button"
             onClick={() => handleTabChange('completed')}
@@ -303,7 +303,7 @@ export const MyBooksPage: React.FC = () => {
               <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
               <polyline points="22 4 12 14.01 9 11.01"></polyline>
             </svg>
-            <span>Оқып болған кітаптарым</span>
+            <span>Оқығандарым</span>
             <span
               style={{
                 fontSize: '11px',
@@ -318,7 +318,7 @@ export const MyBooksPage: React.FC = () => {
             </span>
           </button>
 
-          {/* Tab 3: Енді оқимын деген кітаптарым */}
+          {/* Tab 3: Оқитындарым */}
           <button
             type="button"
             onClick={() => handleTabChange('want_to_read')}
@@ -342,7 +342,7 @@ export const MyBooksPage: React.FC = () => {
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
               <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path>
             </svg>
-            <span>Енді оқимын</span>
+            <span>Оқитындарым</span>
             <span
               style={{
                 fontSize: '11px',
@@ -714,7 +714,7 @@ export const MyBooksPage: React.FC = () => {
           </div>
 
           <h3 style={{ fontSize: '19px', fontWeight: 800, color: 'var(--text-dark)', marginBottom: '8px' }}>
-            {activeTab === 'reading' && 'Қазір оқып жатқан кітаптарыңыз жоқ'}
+            {activeTab === 'reading' && 'Оқып жатқан кітаптарыңыз жоқ'}
             {activeTab === 'completed' && 'Әзірге оқып болған кітаптар жоқ'}
             {activeTab === 'want_to_read' && '«Енді оқимын» бөлімінде кітап жоқ'}
           </h3>
