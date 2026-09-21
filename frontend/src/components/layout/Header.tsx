@@ -149,7 +149,7 @@ export const Header: React.FC = () => {
 
             {/* Logo */}
             <Link
-              to="/"
+              to={role === 'admin' || user?.role === 'admin' ? '/admin' : '/'}
               className="nav-logo"
               style={{
                 flexShrink: 0,
