@@ -67,7 +67,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGenericException(Exception ex, HttpServletRequest request) {
         log.error("Unhandled exception at URI: {}", request.getRequestURI(), ex);
-        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error", "An unexpected error occurred. Please contact support.", request.getRequestURI());
+        String msg = ex.getMessage() != null ? ex.getMessage() : "Серверде қате орын алды. Қайталап көріңіз.";
+        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error", msg, request.getRequestURI());
     }
 
     private ResponseEntity<Map<String, Object>> buildResponse(HttpStatus status, String error, String message, String path) {
