@@ -27,8 +27,9 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
-    private final GoogleTokenVerifier googleTokenVerifier;
     private final RefreshTokenService refreshTokenService;
+    private final GoogleTokenVerifier googleTokenVerifier;
+    private final EmailVerificationService emailVerificationService;
 
     public record AuthResult(AuthResponseDto responseDto, String rawRefreshToken) {}
 
@@ -131,12 +132,24 @@ public class AuthService {
         return new AuthResult(responseDto, rawRefreshToken);
     }
 
+    public void sendVerificationCode(com.tanda.dto.auth.SendVerificationCodeRequestDto dto) {
+        String email = dto.getEmail().trim().toLowerCase();
+        if ("REGISTER".equalsIgnoreCase(dto.getType()) && userRepository.existsByEmail(email)) {
+            throw new IllegalArgumentException("Бұл email бойынша пайдаланушы тіркеліп қойған");
+        }
+        emailVerificationService.sendVerificationCode(email, dto.getType());
+    }
+
     @Transactional
     public AuthResult register(RegisterRequestDto dto, String userAgent, String ipAddress) {
         String email = dto.getEmail().trim().toLowerCase();
 
         if (userRepository.existsByEmail(email)) {
             throw new IllegalArgumentException("Бұл email жүйеде тіркелген");
+        }
+
+        if (dto.getCode() == null || !emailVerificationService.verifyCode(email, dto.getCode())) {
+            throw new IllegalArgumentException("Растау коды қате немесе мерзімі өтіп кеткен");
         }
 
         long clientCount = userRepository.countByRole("client");

@@ -27,4 +27,8 @@ public class RegisterRequestDto {
     @NotBlank(message = "Құпия сөз міндетті түрде толтырылуы керек")
     @Size(min = 6, message = "Құпия сөз кемінде 6 таңбадан тұруы керек")
     private String password;
+
+    @NotBlank(message = "Поштаға жіберілген 6 таңбалы растау кодын енгізіңіз")
+    @Size(min = 6, max = 6, message = "Растау коды 6 таңбадан тұруы керек")
+    private String code;
 }

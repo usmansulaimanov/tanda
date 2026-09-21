@@ -1624,6 +1624,7 @@ body {
   .tanda-section { padding: 48px 16px; }
   .features-grid { grid-template-columns: 1fr; gap: 16px; }
   .books-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  .book-card .book-category { display: none !important; }
   .admin-page-section { padding: 20px 12px 48px !important; }
   .admin-card { padding: 20px 16px !important; border-radius: 14px; }
   .tanda-footer { padding: 40px 16px 24px !important; }

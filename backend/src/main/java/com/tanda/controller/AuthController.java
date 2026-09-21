@@ -61,6 +61,17 @@ public class AuthController {
                 .body(result.responseDto());
     }
 
+    @PostMapping("/send-verification-code")
+    public ResponseEntity<Map<String, Object>> sendVerificationCode(
+            @Valid @RequestBody com.tanda.dto.auth.SendVerificationCodeRequestDto request) {
+        authService.sendVerificationCode(request);
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Растау коды поштаңызға сәтті жіберілді",
+                "cooldown", 60
+        ));
+    }
+
     @PostMapping("/register")
     public ResponseEntity<AuthResponseDto> register(@Valid @RequestBody RegisterRequestDto request,
                                                     HttpServletRequest httpRequest) {

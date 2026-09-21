@@ -29,7 +29,8 @@ interface AuthState {
 
   login: (email: string, password: string) => Promise<void>;
   loginWithGoogle: (credential: string) => Promise<void>;
-  register: (name: string, email: string, password: string) => Promise<void>;
+  sendVerificationCode: (email: string, type?: 'REGISTER' | 'RESET_PASSWORD') => Promise<{ success: boolean; message: string; cooldown: number }>;
+  register: (name: string, email: string, password: string, code?: string) => Promise<void>;
   logout: () => void;
   restoreSession: () => Promise<void>;
   updateProfile: (data: { name: string; email: string; phone?: string; username?: string; birthDate?: string; gender?: 'male' | 'female' | 'other'; avatarUrl?: string }) => Promise<{ success: boolean; error?: string }>;
@@ -1632,26 +1633,27 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      register: async (name: string, email: string, password: string) => {
+      sendVerificationCode: async (email: string, type: 'REGISTER' | 'RESET_PASSWORD' = 'REGISTER') => {
+        set({ isLoading: true });
+        const cleanEmail = email.trim().toLowerCase();
+        try {
+          const { data } = await api.post('/api/v1/auth/send-verification-code', { email: cleanEmail, type });
+          return data;
+        } finally {
+          set({ isLoading: false });
+        }
+      },
+
+      register: async (name: string, email: string, password: string, code?: string) => {
         set({ isLoading: true });
         const trimmedEmail = email.trim().toLowerCase();
-
-        // Check if email belongs to any registered or blocked user
-        const allUsers = getStoredUsers();
-        const existingUser = allUsers.find((u) => u.email.toLowerCase() === trimmedEmail);
-        if (existingUser) {
-          set({ isLoading: false });
-          if (existingUser.isActive === false) {
-            throw new Error('Бұл электрондық пошта жүйеде бұғатталған. Жаңа аккаунт ашуға рұқсат етілмейді.');
-          }
-          throw new Error('Бұл электрондық поштамен аккаунт тіркелген. Жүйеге кіру бөлімін пайдаланыңыз.');
-        }
 
         try {
           const { data } = await api.post('/api/v1/auth/register', {
             name: name.trim(),
             email: trimmedEmail,
             password,
+            code: code ? code.trim() : '',
           });
           const regUser = {
             ...data.user,
@@ -1665,39 +1667,6 @@ export const useAuthStore = create<AuthState>()(
             authModalOpen: false,
           });
           sendWelcomeMessage(regUser);
-        } catch (err: any) {
-          if (err.message && (err.message.includes('бұғатталған') || err.message.includes('тіркелген'))) {
-            throw err;
-          }
-
-          // Fallback mock registration
-          const idNum = get().getNextAvailableIdNumber();
-          const count = allUsers.filter((u) => u.role === 'client').length + 1;
-          const defaultUsername = trimmedEmail.split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '') || `user${count}`;
-
-          const mockUser: User = {
-            id: `user-${Date.now()}`,
-            idNumber: idNum,
-            name: name.trim() || 'Оқырман',
-            email: trimmedEmail,
-            username: defaultUsername,
-            role: 'client',
-            avatarUrl: DEFAULT_READER_AVATAR,
-            isActive: true,
-            createdAt: new Date().toISOString(),
-          };
-
-          allUsers.push(mockUser);
-          saveStoredUsers(allUsers);
-
-          localStorage.setItem('tanda_token', 'mock-jwt-token');
-          set({
-            user: mockUser,
-            role: 'client',
-            isAuthenticated: true,
-            authModalOpen: false,
-          });
-          sendWelcomeMessage(mockUser);
         } finally {
           set({ isLoading: false });
         }

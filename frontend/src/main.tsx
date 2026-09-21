@@ -10,7 +10,7 @@ import './index.css';
 // Run migration to clean up legacy localStorage mocks
 runMigration();
 
-const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '249161344734-j51fft6shbogf2clnrhofn3l0c1euihl.apps.googleusercontent.com';
+const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '470329734598-c32dk937vu2hgkbvblqjuvi43noc1mu9.apps.googleusercontent.com';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
