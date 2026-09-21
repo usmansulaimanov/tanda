@@ -35,7 +35,7 @@ export const ReaderPage: React.FC = () => {
 
   useEffect(() => {
     if (id && isAuthenticated) {
-      api.get(`/api/progress/${id}`)
+      api.get(`/api/v1/progress/${id}`)
         .then(({ data }) => {
           if (data.currentPage) {
             setCurrentPage(data.currentPage);

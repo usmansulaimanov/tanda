@@ -72,13 +72,13 @@ class BookControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("GET /api/v1/books returns 200 OK and book list")
+    @DisplayName("GET /api/v1/books returns 200 OK and book page")
     void testGetAllBooks() throws Exception {
         mockMvc.perform(get("/api/v1/books")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", notNullValue()))
-                .andExpect(jsonPath("$", hasSize(greaterThanOrEqualTo(1))));
+                .andExpect(jsonPath("$.content", notNullValue()))
+                .andExpect(jsonPath("$.content", hasSize(greaterThanOrEqualTo(1))));
     }
 
     @Test
@@ -88,7 +88,7 @@ class BookControllerIntegrationTest {
                         .param("category", "Классика")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].category", is("Классика")));
+                .andExpect(jsonPath("$.content[0].category", is("Классика")));
     }
 
     @Test
@@ -98,7 +98,7 @@ class BookControllerIntegrationTest {
                         .param("search", "Тест кітап")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].title", is("Тест кітап")));
+                .andExpect(jsonPath("$.content[0].title", is("Тест кітап")));
     }
 
     @Test
@@ -307,6 +307,6 @@ class BookControllerIntegrationTest {
                         .param("includeArchived", "true")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[?(@.id == 'archived-test-book-1')]").exists());
+                .andExpect(jsonPath("$.content[?(@.id == 'archived-test-book-1')]").exists());
     }
 }

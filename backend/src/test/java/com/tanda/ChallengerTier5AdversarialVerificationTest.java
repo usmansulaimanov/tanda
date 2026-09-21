@@ -303,16 +303,16 @@ public class ChallengerTier5AdversarialVerificationTest {
                             .param("search", "Әуезов")
                             .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$", hasSize(greaterThanOrEqualTo(1))))
-                    .andExpect(jsonPath("$[0].author", containsString("Әуезов")));
+                    .andExpect(jsonPath("$.content", hasSize(greaterThanOrEqualTo(1))))
+                    .andExpect(jsonPath("$.content[0].author", containsString("Әуезов")));
 
             // Search by category with Kazakh Cyrillic
             mockMvc.perform(get("/api/v1/books")
                             .param("category", "Тарих")
                             .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$", hasSize(greaterThanOrEqualTo(1))))
-                    .andExpect(jsonPath("$[0].category", is("Тарих")));
+                    .andExpect(jsonPath("$.content", hasSize(greaterThanOrEqualTo(1))))
+                    .andExpect(jsonPath("$.content[0].category", is("Тарих")));
         }
 
         @Test

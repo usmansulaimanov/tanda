@@ -349,8 +349,8 @@ public class Challenger1M1Iter2EmpiricalVerificationTest {
                             .param("includeArchived", "true")
                             .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$[?(@.id == '" + ACTIVE_BOOK_ID + "')]").exists())
-                    .andExpect(jsonPath("$[?(@.id == '" + ARCHIVED_BOOK_ID + "')]").doesNotExist());
+                    .andExpect(jsonPath("$.content[?(@.id == '" + ACTIVE_BOOK_ID + "')]").exists())
+                    .andExpect(jsonPath("$.content[?(@.id == '" + ARCHIVED_BOOK_ID + "')]").doesNotExist());
         }
 
         @Test
@@ -360,8 +360,8 @@ public class Challenger1M1Iter2EmpiricalVerificationTest {
                             .param("includeArchived", "true")
                             .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$[?(@.id == '" + ACTIVE_BOOK_ID + "')]").exists())
-                    .andExpect(jsonPath("$[?(@.id == '" + ARCHIVED_BOOK_ID + "')]").doesNotExist());
+                    .andExpect(jsonPath("$.content[?(@.id == '" + ACTIVE_BOOK_ID + "')]").exists())
+                    .andExpect(jsonPath("$.content[?(@.id == '" + ARCHIVED_BOOK_ID + "')]").doesNotExist());
         }
 
         @Test
@@ -372,8 +372,8 @@ public class Challenger1M1Iter2EmpiricalVerificationTest {
                             .header("Authorization", "Bearer " + clientToken)
                             .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$[?(@.id == '" + ACTIVE_BOOK_ID + "')]").exists())
-                    .andExpect(jsonPath("$[?(@.id == '" + ARCHIVED_BOOK_ID + "')]").doesNotExist());
+                    .andExpect(jsonPath("$.content[?(@.id == '" + ACTIVE_BOOK_ID + "')]").exists())
+                    .andExpect(jsonPath("$.content[?(@.id == '" + ARCHIVED_BOOK_ID + "')]").doesNotExist());
         }
 
         @Test
@@ -384,8 +384,8 @@ public class Challenger1M1Iter2EmpiricalVerificationTest {
                             .header("Authorization", "Bearer " + clientToken)
                             .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$[?(@.id == '" + ACTIVE_BOOK_ID + "')]").exists())
-                    .andExpect(jsonPath("$[?(@.id == '" + ARCHIVED_BOOK_ID + "')]").doesNotExist());
+                    .andExpect(jsonPath("$.content[?(@.id == '" + ACTIVE_BOOK_ID + "')]").exists())
+                    .andExpect(jsonPath("$.content[?(@.id == '" + ARCHIVED_BOOK_ID + "')]").doesNotExist());
         }
 
         @Test
@@ -396,9 +396,9 @@ public class Challenger1M1Iter2EmpiricalVerificationTest {
                             .header("Authorization", "Bearer " + adminToken)
                             .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$[?(@.id == '" + ACTIVE_BOOK_ID + "')]").exists())
-                    .andExpect(jsonPath("$[?(@.id == '" + ARCHIVED_BOOK_ID + "')]").exists())
-                    .andExpect(jsonPath("$[?(@.id == '" + ARCHIVED_BOOK_ID + "')].isArchived").value(true));
+                    .andExpect(jsonPath("$.content[?(@.id == '" + ACTIVE_BOOK_ID + "')]").exists())
+                    .andExpect(jsonPath("$.content[?(@.id == '" + ARCHIVED_BOOK_ID + "')]").exists())
+                    .andExpect(jsonPath("$.content[?(@.id == '" + ARCHIVED_BOOK_ID + "')].isArchived").value(true));
         }
 
         @Test
@@ -409,9 +409,9 @@ public class Challenger1M1Iter2EmpiricalVerificationTest {
                             .header("Authorization", "Bearer " + adminToken)
                             .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$[?(@.id == '" + ACTIVE_BOOK_ID + "')]").exists())
-                    .andExpect(jsonPath("$[?(@.id == '" + ARCHIVED_BOOK_ID + "')]").exists())
-                    .andExpect(jsonPath("$[?(@.id == '" + ARCHIVED_BOOK_ID + "')].isArchived").value(true));
+                    .andExpect(jsonPath("$.content[?(@.id == '" + ACTIVE_BOOK_ID + "')]").exists())
+                    .andExpect(jsonPath("$.content[?(@.id == '" + ARCHIVED_BOOK_ID + "')]").exists())
+                    .andExpect(jsonPath("$.content[?(@.id == '" + ARCHIVED_BOOK_ID + "')].isArchived").value(true));
         }
 
         @Test
@@ -421,8 +421,8 @@ public class Challenger1M1Iter2EmpiricalVerificationTest {
                             .header("Authorization", "Bearer " + adminToken)
                             .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$[?(@.id == '" + ACTIVE_BOOK_ID + "')]").exists())
-                    .andExpect(jsonPath("$[?(@.id == '" + ARCHIVED_BOOK_ID + "')]").doesNotExist());
+                    .andExpect(jsonPath("$.content[?(@.id == '" + ACTIVE_BOOK_ID + "')]").exists())
+                    .andExpect(jsonPath("$.content[?(@.id == '" + ARCHIVED_BOOK_ID + "')]").doesNotExist());
         }
 
         @Test
@@ -433,8 +433,8 @@ public class Challenger1M1Iter2EmpiricalVerificationTest {
                             .header("Authorization", "Bearer " + adminToken)
                             .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$[?(@.id == '" + ACTIVE_BOOK_ID + "')]").exists())
-                    .andExpect(jsonPath("$[?(@.id == '" + ARCHIVED_BOOK_ID + "')]").doesNotExist());
+                    .andExpect(jsonPath("$.content[?(@.id == '" + ACTIVE_BOOK_ID + "')]").exists())
+                    .andExpect(jsonPath("$.content[?(@.id == '" + ARCHIVED_BOOK_ID + "')]").doesNotExist());
         }
 
         @Test

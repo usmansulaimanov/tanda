@@ -50,7 +50,7 @@ function debouncedSyncProgress(bookId: string, chapterId?: string, timeSec?: num
   }
 
   syncTimeout = setTimeout(() => {
-    api.put(`/api/progress/${bookId}`, {
+    api.put(`/api/v1/progress/${bookId}`, {
       currentAudioChapterId: chapterId,
       currentAudioTime: Math.floor(timeSec || 0),
     }).catch(() => {});

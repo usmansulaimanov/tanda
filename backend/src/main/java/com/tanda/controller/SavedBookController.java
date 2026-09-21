@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Map;
 
 @RestController
-@RequestMapping({"/api/saved-books", "/api/v1/saved-books"})
+@RequestMapping({"/api/v1/saved-books", "/api/saved-books"})
 @RequiredArgsConstructor
 public class SavedBookController {
 

@@ -83,9 +83,10 @@ export const useBookStore = create<BookState>()(
         set({ isSyncing: true });
         const deletedIds = getDeletedBookIds();
         try {
-          const { data } = await api.get('/api/books', { params });
-          if (Array.isArray(data)) {
-            const cleanData = data.filter((b: Book) => b && b.id && !deletedIds.has(String(b.id)));
+          const { data } = await api.get('/api/v1/books', { params });
+          const rawList = Array.isArray(data) ? data : (data?.content && Array.isArray(data.content) ? data.content : null);
+          if (rawList) {
+            const cleanData = rawList.filter((b: Book) => b && b.id && !deletedIds.has(String(b.id)));
             const currentBooks = (get().books || []).filter((b) => b && b.id && !deletedIds.has(String(b.id)));
             const serverMap = new Map(cleanData.map((b: Book) => [b.id, b]));
             const localOnly = currentBooks.filter((b) => !serverMap.has(b.id) && !deletedIds.has(String(b.id)));
@@ -109,7 +110,7 @@ export const useBookStore = create<BookState>()(
         const deletedIds = getDeletedBookIds();
         if (deletedIds.has(String(id))) return undefined;
         try {
-          const { data } = await api.get(`/api/books/${id}`);
+          const { data } = await api.get(`/api/v1/books/${id}`);
           if (data && data.id && !deletedIds.has(String(data.id))) return data;
         } catch {}
         return get().books.find((b) => b.id === id && !deletedIds.has(String(b.id)));
@@ -145,7 +146,7 @@ export const useBookStore = create<BookState>()(
         set((state) => ({ books: [localBook, ...state.books.filter((b) => b.id !== localId)] }));
 
         try {
-          const { data } = await api.post('/api/books', localBook);
+          const { data } = await api.post('/api/v1/books', localBook);
           if (data && data.id) {
             removeDeletedBookId(data.id);
             set((state) => ({
@@ -167,7 +168,7 @@ export const useBookStore = create<BookState>()(
           books: state.books.map((b) => (b.id === id ? { ...b, ...updates } : b)),
         }));
         try {
-          const { data } = await api.put(`/api/books/${id}`, updates);
+          const { data } = await api.put(`/api/v1/books/${id}`, updates);
           if (data && data.id) {
             set((state) => ({
               books: state.books.map((b) => (b.id === id ? data : b)),
@@ -193,7 +194,7 @@ export const useBookStore = create<BookState>()(
         }));
 
         try {
-          await api.delete(`/api/books/${strId}`);
+          await api.delete(`/api/v1/books/${strId}`);
         } catch {
           // ignore error on static/offline host
         }
@@ -213,7 +214,7 @@ export const useBookStore = create<BookState>()(
         }));
 
         try {
-          await Promise.allSettled(stringIds.map((id) => api.delete(`/api/books/${id}`)));
+          await Promise.allSettled(stringIds.map((id) => api.delete(`/api/v1/books/${id}`)));
         } catch {
           // ignore error on static host
         }
@@ -223,7 +224,7 @@ export const useBookStore = create<BookState>()(
         const book = get().books.find((b) => b.id === id);
         const newArchivedState = book ? !book.isArchived : true;
         try {
-          const { data } = await api.patch(`/api/books/${id}/archive`, {
+          const { data } = await api.patch(`/api/v1/books/${id}/archive`, {
             isArchived: newArchivedState,
           });
           set((state) => ({

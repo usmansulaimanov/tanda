@@ -31,6 +31,7 @@ public class MediaController {
     }
 
     @GetMapping("/media/stream/audio/{fileName}")
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Stream audio chapter with byte range support (HTTP 206)")
     public ResponseEntity<ResourceRegion> streamAudio(
             @PathVariable String fileName,

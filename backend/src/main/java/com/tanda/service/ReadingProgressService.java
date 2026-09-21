@@ -8,18 +8,22 @@ import com.tanda.exception.ResourceNotFoundException;
 import com.tanda.repository.BookRepository;
 import com.tanda.repository.ReadingProgressRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ReadingProgressService {
 
     private final ReadingProgressRepository progressRepository;
     private final BookRepository bookRepository;
+    private final org.springframework.transaction.PlatformTransactionManager transactionManager;
 
     @Transactional(readOnly = true)
     public ReadingProgressResponseDto getProgress(String userId, String bookId) {
@@ -38,8 +42,18 @@ public class ReadingProgressService {
         return toDto(progress);
     }
 
-    @Transactional
     public ReadingProgressResponseDto updateProgress(String userId, String bookId, ReadingProgressRequestDto dto) {
+        org.springframework.transaction.support.TransactionTemplate txTemplate =
+                new org.springframework.transaction.support.TransactionTemplate(transactionManager);
+        try {
+            return txTemplate.execute(status -> executeUpdateProgress(userId, bookId, dto));
+        } catch (DataIntegrityViolationException e) {
+            log.info("Concurrent insert race condition detected for user {} and book {}, retrying in new transaction...", userId, bookId);
+            return txTemplate.execute(status -> executeUpdateProgress(userId, bookId, dto));
+        }
+    }
+
+    private ReadingProgressResponseDto executeUpdateProgress(String userId, String bookId, ReadingProgressRequestDto dto) {
         ReadingProgress progress = progressRepository.findByUserIdAndBookId(userId, bookId)
                 .orElse(null);
 
@@ -47,30 +61,43 @@ public class ReadingProgressService {
             Book book = bookRepository.findById(bookId)
                     .orElseThrow(() -> new ResourceNotFoundException("Кітап табылмады id: " + bookId));
 
-            progress = ReadingProgress.builder()
-                    .id("rp-" + UUID.randomUUID().toString().substring(0, 8))
-                    .book(book)
-                    .userId(userId)
-                    .currentPage(dto.getCurrentPage() != null ? dto.getCurrentPage() : 1)
-                    .currentAudioChapterId(dto.getCurrentAudioChapterId())
-                    .currentAudioTime(dto.getCurrentAudioTime() != null ? dto.getCurrentAudioTime() : 0)
-                    .updatedAt(OffsetDateTime.now())
-                    .build();
+            try {
+                progress = ReadingProgress.builder()
+                        .id("rp-" + UUID.randomUUID().toString().substring(0, 8))
+                        .book(book)
+                        .userId(userId)
+                        .currentPage(dto.getCurrentPage() != null ? dto.getCurrentPage() : 1)
+                        .currentAudioChapterId(dto.getCurrentAudioChapterId())
+                        .currentAudioTime(dto.getCurrentAudioTime() != null ? dto.getCurrentAudioTime() : 0)
+                        .updatedAt(OffsetDateTime.now())
+                        .build();
+                progress = progressRepository.saveAndFlush(progress);
+            } catch (DataIntegrityViolationException e) {
+                log.info("Concurrent insert detected for user {} and book {}, falling back to update", userId, bookId);
+                progress = progressRepository.findByUserIdAndBookId(userId, bookId)
+                        .orElseThrow(() -> new RuntimeException("Прогрессті жаңарту мүмкін болмады"));
+                applyProgressUpdates(progress, dto);
+                progress = progressRepository.save(progress);
+            }
         } else {
-            if (dto.getCurrentPage() != null) {
-                progress.setCurrentPage(dto.getCurrentPage());
-            }
-            if (dto.getCurrentAudioChapterId() != null) {
-                progress.setCurrentAudioChapterId(dto.getCurrentAudioChapterId());
-            }
-            if (dto.getCurrentAudioTime() != null) {
-                progress.setCurrentAudioTime(dto.getCurrentAudioTime());
-            }
-            progress.setUpdatedAt(OffsetDateTime.now());
+            applyProgressUpdates(progress, dto);
+            progress = progressRepository.save(progress);
         }
 
-        progress = progressRepository.save(progress);
         return toDto(progress);
+    }
+
+    private void applyProgressUpdates(ReadingProgress progress, ReadingProgressRequestDto dto) {
+        if (dto.getCurrentPage() != null) {
+            progress.setCurrentPage(dto.getCurrentPage());
+        }
+        if (dto.getCurrentAudioChapterId() != null) {
+            progress.setCurrentAudioChapterId(dto.getCurrentAudioChapterId());
+        }
+        if (dto.getCurrentAudioTime() != null) {
+            progress.setCurrentAudioTime(dto.getCurrentAudioTime());
+        }
+        progress.setUpdatedAt(OffsetDateTime.now());
     }
 
     private ReadingProgressResponseDto toDto(ReadingProgress progress) {

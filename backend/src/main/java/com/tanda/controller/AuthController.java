@@ -11,6 +11,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -22,11 +23,14 @@ import java.util.Arrays;
 import java.util.Map;
 
 @RestController
-@RequestMapping({"/api/auth", "/api/v1/auth"})
+@RequestMapping({"/api/v1/auth", "/api/auth"})
 @RequiredArgsConstructor
 public class AuthController {
 
     private final AuthService authService;
+
+    @Value("${app.cookie.secure:true}")
+    private boolean cookieSecure;
 
     public static final String REFRESH_COOKIE_NAME = "refreshToken";
     public static final long REFRESH_COOKIE_MAX_AGE = 30L * 24 * 60 * 60; // 30 days
@@ -123,7 +127,7 @@ public class AuthController {
     private ResponseCookie createRefreshTokenCookie(String token, long maxAge) {
         return ResponseCookie.from(REFRESH_COOKIE_NAME, token)
                 .httpOnly(true)
-                .secure(false)
+                .secure(cookieSecure)
                 .path("/")
                 .maxAge(maxAge)
                 .sameSite("Lax")

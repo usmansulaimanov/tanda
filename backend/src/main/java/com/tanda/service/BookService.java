@@ -11,8 +11,8 @@ import com.tanda.exception.ResourceNotFoundException;
 import com.tanda.repository.BookRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,14 +29,15 @@ public class BookService {
 
     private final BookRepository bookRepository;
 
-    private boolean isAdmin() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    private boolean isSecurityContextAdmin() {
+        org.springframework.security.core.Authentication auth =
+                org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
         return auth != null && auth.getAuthorities() != null &&
                 auth.getAuthorities().stream().anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
     }
 
     @Transactional(readOnly = true)
-    public List<BookResponseDto> getBooks(String category, String search, boolean includeArchived) {
+    public Page<BookResponseDto> getBooks(String category, String search, boolean includeArchived, boolean isAdmin, Pageable pageable) {
         String cat = (category != null && !category.trim().isEmpty() && !category.equalsIgnoreCase("Барлығы"))
                 ? category.trim()
                 : null;
@@ -44,7 +45,26 @@ public class BookService {
                 ? search.trim()
                 : null;
 
-        boolean effectiveIncludeArchived = includeArchived && isAdmin();
+        boolean effectiveIncludeArchived = includeArchived && isAdmin;
+        Page<Book> books = bookRepository.searchBooks(cat, q, effectiveIncludeArchived, pageable);
+        return books.map(this::toResponseDto);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<BookResponseDto> getBooks(String category, String search, boolean includeArchived, Pageable pageable) {
+        return getBooks(category, search, includeArchived, isSecurityContextAdmin(), pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public List<BookResponseDto> getBooks(String category, String search, boolean includeArchived, boolean isAdmin) {
+        String cat = (category != null && !category.trim().isEmpty() && !category.equalsIgnoreCase("Барлығы"))
+                ? category.trim()
+                : null;
+        String q = (search != null && !search.trim().isEmpty())
+                ? search.trim()
+                : null;
+
+        boolean effectiveIncludeArchived = includeArchived && isAdmin;
         List<Book> books = bookRepository.searchBooks(cat, q, effectiveIncludeArchived);
         return books.stream()
                 .map(this::toResponseDto)
@@ -52,15 +72,25 @@ public class BookService {
     }
 
     @Transactional(readOnly = true)
-    public BookDetailResponseDto getBookById(String id) {
+    public List<BookResponseDto> getBooks(String category, String search, boolean includeArchived) {
+        return getBooks(category, search, includeArchived, isSecurityContextAdmin());
+    }
+
+    @Transactional(readOnly = true)
+    public BookDetailResponseDto getBookById(String id, boolean isAdmin) {
         Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Book", "id", id));
 
-        if (Boolean.TRUE.equals(book.getIsArchived()) && !isAdmin()) {
+        if (Boolean.TRUE.equals(book.getIsArchived()) && !isAdmin) {
             throw new ResourceNotFoundException("Book", "id", id);
         }
 
         return toDetailResponseDto(book);
+    }
+
+    @Transactional(readOnly = true)
+    public BookDetailResponseDto getBookById(String id) {
+        return getBookById(id, isSecurityContextAdmin());
     }
 
     @Transactional

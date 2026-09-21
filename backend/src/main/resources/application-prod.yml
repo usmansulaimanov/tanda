@@ -11,3 +11,12 @@ spring:
   flyway:
     enabled: true
     baseline-on-migrate: true
+
+app:
+  cookie:
+    secure: true
+  cors:
+    allowed-origins:
+      - https://tanda.kz
+      - https://www.tanda.kz
+      - https://usmansulaimanov.github.io

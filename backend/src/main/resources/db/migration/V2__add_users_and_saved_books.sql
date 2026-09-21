@@ -23,14 +23,4 @@ CREATE TABLE saved_books (
 
 CREATE INDEX idx_saved_books_user_id ON saved_books(user_id);
 
--- Initial admin user (password: admin123)
-INSERT INTO users (id, id_number, name, email, password_hash, role, is_active)
-VALUES (
-    'admin-1',
-    '000 001',
-    'Администратор',
-    'admin@tanda.kz',
-    '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG',
-    'admin',
-    TRUE
-);
+

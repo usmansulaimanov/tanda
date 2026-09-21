@@ -43,7 +43,7 @@ export const AppSidebarDrawer: React.FC = () => {
         setReadersCount(localCount);
       } catch {}
 
-      api.get('/api/admin/users', { params: { role: 'client' } })
+      api.get('/api/v1/admin/users', { params: { role: 'client' } })
         .then(({ data }) => {
           if (Array.isArray(data)) {
             setReadersCount(data.length);

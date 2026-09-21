@@ -1,5 +1,7 @@
 package com.tanda.security;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.Refill;
@@ -8,6 +10,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
@@ -17,16 +20,25 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE + 5)
 @Slf4j
 public class RateLimitingFilter extends OncePerRequestFilter {
 
-    private final Map<String, Bucket> authBuckets = new ConcurrentHashMap<>();
-    private final Map<String, Bucket> generalBuckets = new ConcurrentHashMap<>();
+    @Value("${app.rate-limiting.enabled:true}")
+    private boolean enabled;
+
+    private final Cache<String, Bucket> authBuckets = Caffeine.newBuilder()
+            .expireAfterAccess(10, TimeUnit.MINUTES)
+            .maximumSize(10_000)
+            .build();
+
+    private final Cache<String, Bucket> generalBuckets = Caffeine.newBuilder()
+            .expireAfterAccess(5, TimeUnit.MINUTES)
+            .maximumSize(100_000)
+            .build();
 
     private Bucket createAuthBucket() {
         // 20 requests per minute for auth endpoints
@@ -46,8 +58,9 @@ public class RateLimitingFilter extends OncePerRequestFilter {
                                     FilterChain filterChain) throws ServletException, IOException {
         String uri = request.getRequestURI();
         
-        // Skip rate limiting for static assets, test endpoints or OPTIONS
-        if ("OPTIONS".equalsIgnoreCase(request.getMethod()) ||
+        // Skip rate limiting if disabled, or for static assets, test endpoints or OPTIONS
+        if (!enabled ||
+            "OPTIONS".equalsIgnoreCase(request.getMethod()) ||
             uri.startsWith("/uploads/") ||
             uri.startsWith("/swagger-ui") ||
             uri.startsWith("/v3/api-docs") ||
@@ -60,10 +73,10 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         boolean isAuthEndpoint = uri.contains("/auth/login") || uri.contains("/auth/register") || uri.contains("/auth/refresh");
 
         Bucket bucket = isAuthEndpoint
-                ? authBuckets.computeIfAbsent(clientIp, k -> createAuthBucket())
-                : generalBuckets.computeIfAbsent(clientIp, k -> createGeneralBucket());
+                ? authBuckets.get(clientIp, k -> createAuthBucket())
+                : generalBuckets.get(clientIp, k -> createGeneralBucket());
 
-        if (bucket.tryConsume(1)) {
+        if (bucket != null && bucket.tryConsume(1)) {
             filterChain.doFilter(request, response);
         } else {
             log.warn("Rate limit exceeded for IP: {} on URI: {}", clientIp, uri);

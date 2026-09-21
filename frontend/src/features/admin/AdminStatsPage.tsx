@@ -108,7 +108,7 @@ export const AdminStatsPage: React.FC = () => {
     } catch {}
 
     api
-      .get('/api/admin/users', { params: { role: 'client' } })
+      .get('/api/v1/admin/users', { params: { role: 'client' } })
       .then(({ data }) => {
         if (Array.isArray(data) && data.length > 0) {
           setReaders(data);

@@ -1047,7 +1047,7 @@ export const useAuthStore = create<AuthState>()(
 
         // Optional sync with backend
         try {
-          await api.patch(`/api/admin/users/${userId}`, {
+          await api.patch(`/api/v1/admin/users/${userId}`, {
             name: cleanName,
             role: cleanRole,
             isActive: updatedUser.isActive,
@@ -1297,7 +1297,7 @@ export const useAuthStore = create<AuthState>()(
 
         // Try backend sync if online
         try {
-          await api.post('/api/admin/users', {
+          await api.post('/api/v1/admin/users', {
             name: cleanName,
             email: cleanEmail,
             phone: cleanPhone,
@@ -1391,7 +1391,7 @@ export const useAuthStore = create<AuthState>()(
 
         // Optional sync with backend
         try {
-          await api.put('/api/auth/profile', {
+          await api.put('/api/v1/auth/profile', {
             name: cleanName,
             email: cleanEmail,
             phone: cleanPhone,
@@ -1431,7 +1431,7 @@ export const useAuthStore = create<AuthState>()(
 
         // Optional sync with backend
         try {
-          await api.put('/api/auth/profile', {
+          await api.put('/api/v1/auth/profile', {
             name: currentUser.name,
             email: currentUser.email,
             avatarUrl: avatarUrl || null,
@@ -1455,7 +1455,7 @@ export const useAuthStore = create<AuthState>()(
 
         // Try backend sync if available
         try {
-          await api.put('/api/auth/password', {
+          await api.put('/api/v1/auth/password', {
             currentPassword,
             newPassword,
           });
@@ -1478,7 +1478,7 @@ export const useAuthStore = create<AuthState>()(
         }
 
         try {
-          const { data } = await api.post('/api/auth/login', {
+          const { data } = await api.post('/api/v1/auth/login', {
             email: trimmed,
             password,
           });
@@ -1552,7 +1552,7 @@ export const useAuthStore = create<AuthState>()(
       loginWithGoogle: async (credential: string) => {
         set({ isLoading: true });
         try {
-          const { data } = await api.post('/api/auth/google', { credential });
+          const { data } = await api.post('/api/v1/auth/google', { credential });
           if (data.user?.isActive === false) {
             throw new Error('Сіздің аккаунтыңыз әкімші тарапынан бұғатталған. Жүйеге кіре алмайсыз.');
           }
@@ -1648,7 +1648,7 @@ export const useAuthStore = create<AuthState>()(
         }
 
         try {
-          const { data } = await api.post('/api/auth/register', {
+          const { data } = await api.post('/api/v1/auth/register', {
             name: name.trim(),
             email: trimmedEmail,
             password,
@@ -1710,7 +1710,7 @@ export const useAuthStore = create<AuthState>()(
         }
 
         localStorage.removeItem('tanda_token');
-        api.post('/api/auth/logout').catch(() => {});
+        api.post('/api/v1/auth/logout').catch(() => {});
         set({ user: null, role: 'client', isAuthenticated: false, authModalOpen: false });
       },
 
@@ -1721,7 +1721,7 @@ export const useAuthStore = create<AuthState>()(
         }
 
         try {
-          const { data } = await api.get('/api/auth/me');
+          const { data } = await api.get('/api/v1/auth/me');
           set({
             user: data,
             role: data.role as 'admin' | 'client',

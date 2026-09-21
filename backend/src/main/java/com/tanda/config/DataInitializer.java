@@ -7,7 +7,9 @@ import com.tanda.entity.AudioChapter;
 import com.tanda.entity.Book;
 import com.tanda.repository.BookRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
@@ -27,6 +29,10 @@ public class DataInitializer implements CommandLineRunner {
     private final com.tanda.repository.UserRepository userRepository;
     private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
     private final ObjectMapper objectMapper;
+
+    @Setter
+    @Value("${app.admin.initial-password:#{null}}")
+    private String adminInitialPassword;
 
     @Override
     @Transactional
@@ -154,8 +160,11 @@ public class DataInitializer implements CommandLineRunner {
     private void seedAdminUser() {
         com.tanda.entity.User admin = userRepository.findByEmail("admin@tanda.kz").orElse(null);
         if (admin == null) {
-            // Admin does not exist yet — create with default password (change via admin panel in production)
-            String encodedPassword = passwordEncoder.encode("admin123");
+            if (adminInitialPassword == null || adminInitialPassword.isBlank()) {
+                log.info("ADMIN_INITIAL_PASSWORD is not configured. Skipping default admin user creation.");
+                return;
+            }
+            String encodedPassword = passwordEncoder.encode(adminInitialPassword);
             admin = com.tanda.entity.User.builder()
                     .id("admin-1")
                     .idNumber("000 001")
@@ -167,7 +176,7 @@ public class DataInitializer implements CommandLineRunner {
                     .createdAt(OffsetDateTime.now())
                     .build();
             userRepository.save(admin);
-            log.info("Default admin user created: admin@tanda.kz — change the password via admin panel before going to production.");
+            log.info("Default admin user created: admin@tanda.kz with password from ADMIN_INITIAL_PASSWORD.");
         } else {
             log.debug("Admin user already exists, skipping seed.");
         }

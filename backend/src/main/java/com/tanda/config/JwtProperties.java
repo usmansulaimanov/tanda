@@ -14,7 +14,7 @@ public class JwtProperties {
     /**
      * Secret key for signing JWT tokens. Must be at least 256 bits (32 chars).
      */
-    private String secret = "tanda-super-secret-jwt-key-minimum-256-bits-for-security-2026";
+    private String secret;
 
     /**
      * Expiration time in milliseconds (default: 15 minutes = 900000 ms).

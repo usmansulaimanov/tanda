@@ -12,3 +12,19 @@ spring:
     open-in-view: false
   flyway:
     enabled: true
+
+app:
+  cookie:
+    secure: false
+  admin:
+    initial-password: ${ADMIN_INITIAL_PASSWORD:admin123}
+  rate-limiting:
+    enabled: false
+  cors:
+    allowed-origins:
+      - http://localhost:5173
+      - http://localhost:3000
+
+jwt:
+  secret: ${JWT_SECRET:test-super-secret-jwt-key-minimum-256-bits-for-security-2026}
+  expiration: 900000

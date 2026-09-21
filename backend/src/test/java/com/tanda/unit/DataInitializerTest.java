@@ -41,10 +41,11 @@ class DataInitializerTest {
     void setUp() {
         passwordEncoder = new BCryptPasswordEncoder(4);
         dataInitializer = new DataInitializer(bookRepository, userRepository, passwordEncoder, new ObjectMapper());
+        dataInitializer.setAdminInitialPassword("admin123");
     }
 
     @Test
-    @DisplayName("seedAdminUser() creates admin when none exists")
+    @DisplayName("seedAdminUser() creates admin when none exists and password is provided")
     void seedAdminCreatesUserWhenAbsent() throws Exception {
         when(userRepository.findByEmail("admin@tanda.kz")).thenReturn(Optional.empty());
         when(bookRepository.count()).thenReturn(1L); // skip book seeding
@@ -62,6 +63,18 @@ class DataInitializerTest {
         // Password should be BCrypt-encoded, not plain text
         assertTrue(savedAdmin.getPasswordHash().startsWith("$2a$") || savedAdmin.getPasswordHash().startsWith("$2b$"),
                 "Password should be BCrypt hashed");
+    }
+
+    @Test
+    @DisplayName("seedAdminUser() skips admin creation when ADMIN_INITIAL_PASSWORD is unset")
+    void seedAdminSkipsWhenPasswordUnset() throws Exception {
+        dataInitializer.setAdminInitialPassword(null);
+        when(userRepository.findByEmail("admin@tanda.kz")).thenReturn(Optional.empty());
+        when(bookRepository.count()).thenReturn(1L);
+
+        dataInitializer.run();
+
+        verify(userRepository, never()).save(any());
     }
 
     @Test

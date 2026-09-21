@@ -76,7 +76,7 @@ public class Book {
     @Column(name = "created_at")
     private OffsetDateTime createdAt;
 
-    @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true, fetch = jakarta.persistence.FetchType.LAZY)
     @OrderBy("chapterOrder ASC")
     @Builder.Default
     private List<AudioChapter> audioChapters = new ArrayList<>();

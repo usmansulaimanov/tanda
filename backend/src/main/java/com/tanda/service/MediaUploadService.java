@@ -101,7 +101,13 @@ public class MediaUploadService {
     }
 
     public ResourceRegion getAudioResourceRegion(String fileName, HttpHeaders headers) throws IOException {
-        Path filePath = Paths.get(storageLocation).resolve("audio").resolve(fileName);
+        Path audioDir = Paths.get(storageLocation).resolve("audio").toAbsolutePath().normalize();
+        Path filePath = audioDir.resolve(fileName).normalize();
+
+        if (!filePath.startsWith(audioDir)) {
+            throw new BadRequestException("Недопустимый путь к файлу: " + fileName);
+        }
+
         if (!Files.exists(filePath)) {
             throw new BadRequestException("Аудио файл табылмады: " + fileName);
         }

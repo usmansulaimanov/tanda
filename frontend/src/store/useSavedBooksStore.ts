@@ -58,7 +58,7 @@ export const useSavedBooksStore = create<SavedBooksState>()(
         const token = localStorage.getItem('tanda_token');
         if (token && token !== 'mock-jwt-token') {
           try {
-            const { data } = await api.get('/api/saved-books');
+            const { data } = await api.get('/api/v1/saved-books');
             if (data?.bookIds && Array.isArray(data.bookIds)) {
               const strList = data.bookIds.map(String);
               const allSaved = { ...get().savedByUser };
@@ -97,7 +97,7 @@ export const useSavedBooksStore = create<SavedBooksState>()(
         if (userSaved.includes(strId)) {
           updatedList = userSaved.filter((id) => id !== strId);
           isNowSaved = false;
-          api.delete(`/api/saved-books/${strId}`).catch(() => {});
+          api.delete(`/api/v1/saved-books/${strId}`).catch(() => {});
 
           try {
             const myStore = useMyBooksStore.getState();
@@ -109,7 +109,7 @@ export const useSavedBooksStore = create<SavedBooksState>()(
         } else {
           updatedList = [...userSaved, strId];
           isNowSaved = true;
-          api.post(`/api/saved-books/${strId}`).catch(() => {});
+          api.post(`/api/v1/saved-books/${strId}`).catch(() => {});
 
           try {
             const myStore = useMyBooksStore.getState();
@@ -154,7 +154,7 @@ export const useSavedBooksStore = create<SavedBooksState>()(
             savedByUser: allSaved,
             savedBookIds: updatedList,
           });
-          api.post(`/api/saved-books/${strId}`).catch(() => {});
+          api.post(`/api/v1/saved-books/${strId}`).catch(() => {});
 
           try {
             const myStore = useMyBooksStore.getState();
@@ -178,7 +178,7 @@ export const useSavedBooksStore = create<SavedBooksState>()(
           savedByUser: allSaved,
           savedBookIds: updatedList,
         });
-        api.delete(`/api/saved-books/${strId}`).catch(() => {});
+        api.delete(`/api/v1/saved-books/${strId}`).catch(() => {});
 
         try {
           const myStore = useMyBooksStore.getState();
