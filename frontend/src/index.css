@@ -1578,7 +1578,8 @@ body {
 
 /* RESPONSIVE STYLES */
 @media (max-width: 1024px) {
-  .tanda-nav { padding: 12px 24px; min-height: 64px; }
+  .tanda-nav { padding: 12px 20px; min-height: 64px; }
+  .nav-links { display: none !important; }
   .books-grid { grid-template-columns: repeat(3, 1fr); gap: 18px; }
   .features-grid { grid-template-columns: repeat(2, 1fr); gap: 20px; }
   .admin-layout-container { flex-direction: column; gap: 20px; }
@@ -1586,8 +1587,8 @@ body {
 }
 
 @media (max-width: 768px) {
-  .tanda-nav { padding: 10px 16px; min-height: 60px; }
-  .nav-links { display: none; }
+  .tanda-nav { padding: 8px 14px; min-height: 56px; }
+  .nav-links { display: none !important; }
   .hero { min-height: auto; padding: 48px 16px 40px; text-align: center; }
   .hero-bg-cover {
     width: 100%;

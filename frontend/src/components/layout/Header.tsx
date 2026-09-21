@@ -159,7 +159,6 @@ export const Header: React.FC = () => {
                 height: '38px',
                 margin: 0,
                 padding: 0,
-                transform: 'translateY(-4px)',
               }}
             >
               <img
@@ -174,8 +173,8 @@ export const Header: React.FC = () => {
               ref={searchWrapRef}
               style={{
                 position: 'relative',
-                flex: 1,
-                minWidth: '100px',
+                flex: '1 1 auto',
+                minWidth: 0,
                 maxWidth: '300px',
                 display: 'flex',
                 alignItems: 'center',
@@ -304,9 +303,9 @@ export const Header: React.FC = () => {
             </div>
           </div>
 
-          {/* Middle: Links (Only shown for readers) */}
+          {/* Middle: Links (Only shown for readers on desktop) */}
           {role !== 'admin' && (
-            <ul className="nav-links" style={{ display: 'flex', alignItems: 'center', gap: '24px', margin: 0, padding: 0, listStyle: 'none', flexShrink: 0 }}>
+            <ul className="nav-links">
               <li>
                 <Link
                   to="/"
