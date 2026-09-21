@@ -142,34 +142,23 @@ public class EmailVerificationService {
                 + "</body>"
                 + "</html>";
 
-        // 1. Try Resend HTTPS REST API first
+        // 1. Try Brevo HTTPS REST API first (sends to any recipient without domain verification)
+        if (brevoApiKey != null && !brevoApiKey.isBlank()) {
+            try {
+                sendViaBrevo(toEmail, subject, htmlContent);
+                return;
+            } catch (Exception e) {
+                log.warn("Brevo API арқылы жіберілмеді: {}", e.getMessage());
+            }
+        }
+
+        // 2. Try Resend HTTPS REST API
         if (resendApiKey != null && !resendApiKey.isBlank()) {
             try {
                 sendViaResend(toEmail, subject, htmlContent);
                 return;
             } catch (Exception e) {
                 log.warn("Resend API арқылы жіберілмеді: {}", e.getMessage());
-                // If Brevo is available, fallback to Brevo
-                if (brevoApiKey != null && !brevoApiKey.isBlank()) {
-                    try {
-                        sendViaBrevo(toEmail, subject, htmlContent);
-                        return;
-                    } catch (Exception be) {
-                        log.error("Brevo API арқылы да жіберілмеді: {}", be.getMessage());
-                    }
-                }
-                throw new RuntimeException("Хат жіберу қатесі: " + e.getMessage());
-            }
-        }
-
-        // 2. Try Brevo HTTPS REST API
-        if (brevoApiKey != null && !brevoApiKey.isBlank()) {
-            try {
-                sendViaBrevo(toEmail, subject, htmlContent);
-                return;
-            } catch (Exception e) {
-                log.error("Brevo API қатесі: {}", e.getMessage());
-                throw new RuntimeException("Хат жіберу қатесі: " + e.getMessage());
             }
         }
 
