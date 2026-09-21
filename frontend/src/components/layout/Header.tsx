@@ -8,7 +8,6 @@ import { useSidebarStore } from '../../store/useSidebarStore';
 import { useMessageStore } from '../../store/useMessageStore';
 import { Book } from '../../types';
 import { hasAdminPermission } from '../../utils/permissions';
-import tandaLogo from '../../assets/tanda-logo.png';
 
 export const Header: React.FC = () => {
   const navigate = useNavigate();
@@ -147,27 +146,6 @@ export const Header: React.FC = () => {
               </svg>
             </button>
 
-            {/* Logo */}
-            <Link
-              to={role === 'admin' || user?.role === 'admin' ? '/admin' : '/'}
-              className="nav-logo"
-              style={{
-                flexShrink: 0,
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                height: '38px',
-                margin: 0,
-                padding: 0,
-              }}
-            >
-              <img
-                src={tandaLogo}
-                alt="Tanda"
-                style={{ height: '32px', width: 'auto', display: 'block', objectFit: 'contain' }}
-              />
-            </Link>
-
             {/* Header Search with Autocomplete */}
             <div
               ref={searchWrapRef}
@@ -175,7 +153,7 @@ export const Header: React.FC = () => {
                 position: 'relative',
                 flex: '1 1 auto',
                 minWidth: 0,
-                maxWidth: '300px',
+                maxWidth: '340px',
                 display: 'flex',
                 alignItems: 'center',
                 height: '38px',
@@ -649,22 +627,21 @@ export const Header: React.FC = () => {
                 )}
               </div>
             ) : (
-              <>
-                <Link
-                  to="/login"
-                  className="btn-nav-login"
-                  style={{ padding: '6px 16px', fontSize: '13px', fontWeight: 700, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
-                >
-                  Кіру
-                </Link>
-                <Link
-                  to="/signup"
-                  className="btn-nav-reg"
-                  style={{ padding: '6px 18px', fontSize: '13px', fontWeight: 700, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
-                >
-                  Тіркелу
-                </Link>
-              </>
+              <Link
+                to="/login"
+                className="btn-nav-reg"
+                style={{
+                  padding: '7px 20px',
+                  fontSize: '13.5px',
+                  fontWeight: 700,
+                  textDecoration: 'none',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                Кіру
+              </Link>
             )}
           </div>
         </div>
