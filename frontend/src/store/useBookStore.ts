@@ -66,7 +66,7 @@ function removeDeletedBookId(id: string) {
 export const useBookStore = create<BookState>()(
   persist(
     (set, get) => ({
-      books: INITIAL_BOOKS.filter((b) => !getDeletedBookIds().has(b.id)),
+      books: [],
       isLoading: false,
       isSyncing: false,
       searchQuery: '',
