@@ -220,6 +220,12 @@ export const BookFormPage: React.FC = () => {
     }
   };
 
+  useEffect(() => {
+    if (isEditing && id && !existingBook) {
+      useBookStore.getState().fetchBookById(id);
+    }
+  }, [isEditing, id, existingBook]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -231,35 +237,6 @@ export const BookFormPage: React.FC = () => {
     if (!author.trim()) {
       newErrors.author = 'Автордың аты-жөнін енгізіңіз';
     }
-    if (categories.length === 0) {
-      newErrors.categories = 'Кем дегенде бір жанрды таңдаңыз';
-    }
-    if (!pages.trim()) {
-      newErrors.pages = 'Бет санын енгізіңіз';
-    } else {
-      const pagesNum = parseInt(pages, 10);
-      if (isNaN(pagesNum) || pagesNum <= 0) {
-        newErrors.pages = 'Бет санын дұрыс санмен енгізіңіз';
-      }
-    }
-
-    if (hasAudio) {
-      if (!audioNarrator.trim()) {
-        newErrors.audioNarrator = 'Диктордың аты-жөнін енгізіңіз';
-      }
-      if (!audioDuration.trim()) {
-        newErrors.audioDuration = 'Аудионың жалпы ұзақтығын енгізіңіз';
-      }
-      if (audioChapters.length === 0) {
-        newErrors.audioChapters = 'Кем дегенде 1 аудио бөлім қосыңыз';
-      } else {
-        audioChapters.forEach((ch, idx) => {
-          if (!ch.audioUrl || !ch.audioUrl.trim()) {
-            newErrors[`audioUrl_${idx}`] = `${idx + 1}-аудионың YouTube сілтемесін немесе файлын жүктеңіз`;
-          }
-        });
-      }
-    }
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -268,10 +245,7 @@ export const BookFormPage: React.FC = () => {
       showToast(firstMessage, 'error');
 
       setTimeout(() => {
-        const targetId = firstKey.startsWith('audioUrl_')
-          ? `field-audioUrl-${firstKey.split('_')[1]}`
-          : `field-${firstKey}`;
-        const el = document.getElementById(targetId);
+        const el = document.getElementById(`field-${firstKey}`);
         if (el) {
           el.scrollIntoView({ behavior: 'smooth', block: 'center' });
           if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
@@ -285,16 +259,17 @@ export const BookFormPage: React.FC = () => {
     setErrors({});
 
     const pagesNum = parseInt(pages, 10);
-    const validPages = isNaN(pagesNum) || pagesNum <= 0 ? 1 : pagesNum;
+    const validPages = !isNaN(pagesNum) && pagesNum > 0 ? pagesNum : (existingBook?.pages || 1);
+    const finalCategories = categories.length > 0 ? categories : (existingBook?.categories || ['Көркем әдебиет']);
+    const categoryString = finalCategories.join(', ');
 
     const firstAudioUrl = audioChapters.find((ch) => ch.audioUrl?.trim())?.audioUrl || audioChapters[0]?.audioUrl || '';
-    const categoryString = categories.join(', ');
 
     const bookData = {
       title: title.trim(),
       author: author.trim(),
       category: categoryString,
-      categories: categories,
+      categories: finalCategories,
       pages: validPages,
       description: description.trim(),
       isFree,
@@ -302,15 +277,16 @@ export const BookFormPage: React.FC = () => {
       coverImage: coverImage.trim() || undefined,
       gradient: coverImage ? undefined : (existingBook?.gradient || DEFAULT_COVER_GRADIENT),
       hasAudio,
-      audioNarrator: hasAudio ? audioNarrator.trim() : undefined,
-      audioDuration: hasAudio ? audioDuration.trim() : undefined,
+      audioNarrator: hasAudio ? (audioNarrator.trim() || undefined) : undefined,
+      audioDuration: hasAudio ? (audioDuration.trim() || undefined) : undefined,
       audioUrl: hasAudio && firstAudioUrl.trim() ? firstAudioUrl.trim() : undefined,
       audioChapters: hasAudio && audioChapters.length > 0 ? audioChapters : undefined,
     };
 
     try {
-      if (isEditing && existingBook) {
-        await updateBook(existingBook.id, bookData);
+      if (isEditing && (existingBook || id)) {
+        const targetId = existingBook?.id || id!;
+        await updateBook(targetId, bookData);
         showToast('Кітап сәтті жаңартылды', 'success');
       } else {
         await addBook(bookData);
@@ -998,7 +974,7 @@ export const BookFormPage: React.FC = () => {
                   >
                     <div className="form-group" style={{ margin: 0 }}>
                       <label className="form-label" style={{ fontSize: '12px' }}>
-                        Диктор: <span className="req">*</span>
+                        Диктор (дыбыстаушы):
                       </label>
                       <input
                         id="field-audioNarrator"
@@ -1028,7 +1004,7 @@ export const BookFormPage: React.FC = () => {
 
                     <div className="form-group" style={{ margin: 0 }}>
                       <label className="form-label" style={{ fontSize: '12px' }}>
-                        Жалпы ұзақтығы: <span className="req">*</span>
+                        Жалпы ұзақтығы:
                       </label>
                       <input
                         id="field-audioDuration"
