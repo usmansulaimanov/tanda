@@ -98,7 +98,7 @@ export const BookFormPage: React.FC = () => {
           setDescription(book.description || '');
           setIsFree(Boolean(book.isFree));
           if (book.coverImage) setCoverImage(book.coverImage);
-          if (book.hasAudio) {
+          if (book.hasAudio || book.audioUrl || (book.audioChapters && book.audioChapters.length > 0)) {
             setHasAudio(true);
             setAudioNarrator(book.audioNarrator || '');
             setAudioDuration(book.audioDuration || '');
@@ -301,6 +301,8 @@ export const BookFormPage: React.FC = () => {
       }
     }
 
+    const effectiveHasAudio = hasAudio || Boolean(finalAudioUrl) || (finalChapters.length > 0 && finalChapters.some((c) => c.audioUrl && c.audioUrl.trim().length > 0));
+
     const bookData = {
       title: title.trim(),
       author: author.trim(),
@@ -312,11 +314,11 @@ export const BookFormPage: React.FC = () => {
       isArchived: existingBook ? existingBook.isArchived : false,
       coverImage: coverImage.trim() || undefined,
       gradient: coverImage ? undefined : (existingBook?.gradient || DEFAULT_COVER_GRADIENT),
-      hasAudio,
-      audioNarrator: hasAudio ? (audioNarrator.trim() || undefined) : undefined,
-      audioDuration: hasAudio ? (audioDuration.trim() || undefined) : undefined,
-      audioUrl: hasAudio && finalAudioUrl ? finalAudioUrl : undefined,
-      audioChapters: hasAudio && finalChapters.length > 0 ? finalChapters : undefined,
+      hasAudio: effectiveHasAudio,
+      audioNarrator: effectiveHasAudio ? (audioNarrator.trim() || undefined) : undefined,
+      audioDuration: effectiveHasAudio ? (audioDuration.trim() || undefined) : undefined,
+      audioUrl: effectiveHasAudio && finalAudioUrl ? finalAudioUrl : undefined,
+      audioChapters: effectiveHasAudio && finalChapters.length > 0 ? finalChapters : undefined,
     };
 
     try {

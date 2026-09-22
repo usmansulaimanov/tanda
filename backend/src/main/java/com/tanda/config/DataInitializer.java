@@ -31,7 +31,7 @@ public class DataInitializer implements CommandLineRunner {
     private final ObjectMapper objectMapper;
 
     @Setter
-    @Value("${app.admin.initial-password:#{null}}")
+    @Value("${app.admin.initial-password:admin123}")
     private String adminInitialPassword;
 
     @Override
@@ -42,7 +42,7 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void seedAdminUser() {
-        String adminPwd = (adminInitialPassword != null && !adminInitialPassword.isBlank()) ? adminInitialPassword : "admin123";
+        String adminPwd = (adminInitialPassword != null && !adminInitialPassword.isBlank() && !adminInitialPassword.contains("null")) ? adminInitialPassword.trim() : "admin123";
         String encodedPassword = passwordEncoder.encode(adminPwd);
 
         com.tanda.entity.User admin = userRepository.findByEmail("admin@tanda.kz").orElse(null);

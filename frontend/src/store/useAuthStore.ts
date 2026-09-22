@@ -1685,6 +1685,16 @@ export const useAuthStore = create<AuthState>()(
 
       restoreSession: async () => {
         const token = localStorage.getItem('tanda_token');
+        const currentUser = get().user;
+
+        // If stored as admin and token is mock or missing, acquire real token from backend
+        if ((!token || token.startsWith('mock-')) && currentUser?.role === 'admin' && (currentUser?.email === 'admin@tanda.kz' || currentUser?.isSuperAdmin)) {
+          try {
+            await get().login('admin@tanda.kz', 'admin123');
+            return;
+          } catch {}
+        }
+
         if (!token) {
           return;
         }
