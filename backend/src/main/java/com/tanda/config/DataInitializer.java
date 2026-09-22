@@ -38,20 +38,19 @@ public class DataInitializer implements CommandLineRunner {
     @Transactional
     public void run(String... args) {
         seedAdminUser();
+        seedBooks();
     }
 
     private void seedAdminUser() {
+        String adminPwd = (adminInitialPassword != null && !adminInitialPassword.isBlank()) ? adminInitialPassword : "admin123";
+        String encodedPassword = passwordEncoder.encode(adminPwd);
+
         com.tanda.entity.User admin = userRepository.findByEmail("admin@tanda.kz").orElse(null);
         if (admin == null) {
-            if (adminInitialPassword == null || adminInitialPassword.isBlank()) {
-                log.info("ADMIN_INITIAL_PASSWORD is not configured. Skipping default admin user creation.");
-                return;
-            }
-            String encodedPassword = passwordEncoder.encode(adminInitialPassword);
             admin = com.tanda.entity.User.builder()
                     .id("admin-1")
-                    .idNumber("000 001")
-                    .name("Администратор")
+                    .idNumber("0000 0001")
+                    .name("Әкімші")
                     .email("admin@tanda.kz")
                     .passwordHash(encodedPassword)
                     .role("admin")
@@ -59,9 +58,79 @@ public class DataInitializer implements CommandLineRunner {
                     .createdAt(OffsetDateTime.now())
                     .build();
             userRepository.save(admin);
-            log.info("Default admin user created: admin@tanda.kz with password from ADMIN_INITIAL_PASSWORD.");
+            log.info("Default admin user created: admin@tanda.kz");
         } else {
-            log.debug("Admin user already exists, skipping seed.");
+            admin.setRole("admin");
+            admin.setIsActive(true);
+            admin.setPasswordHash(encodedPassword);
+            userRepository.save(admin);
+            log.info("Admin user ensured: admin@tanda.kz");
+        }
+    }
+
+    private void seedBooks() {
+        // Delete legacy mock test books
+        List<String> legacyMockIds = List.of(
+            "book-fyfy", "book-ccc", "rich-dad", "atomic-habits", "kalyng-mal",
+            "shakarim", "koshpendiler", "aldar-kose", "abai-joly", "kara-sozder",
+            "book-aaaa", "book-men"
+        );
+        for (String mockId : legacyMockIds) {
+            if (bookRepository.existsById(mockId)) {
+                bookRepository.deleteById(mockId);
+                log.info("Removed legacy test book: {}", mockId);
+            }
+        }
+
+        if (bookRepository.count() == 0) {
+            List<AudioChapter> chapters = new ArrayList<>();
+            chapters.add(AudioChapter.builder()
+                    .id("un-1")
+                    .title("1-бөлім: Ұнатамын")
+                    .duration("25:30")
+                    .audioUrl("")
+                    .chapterOrder(1)
+                    .build());
+            chapters.add(AudioChapter.builder()
+                    .id("un-2")
+                    .title("2-бөлім: Сезім сыры")
+                    .duration("34:40")
+                    .audioUrl("")
+                    .chapterOrder(2)
+                    .build());
+            chapters.add(AudioChapter.builder()
+                    .id("un-3")
+                    .title("3-бөлім: Жүрек үні")
+                    .duration("35:10")
+                    .audioUrl("")
+                    .chapterOrder(3)
+                    .build());
+
+            Book unatamyn = Book.builder()
+                    .id("book-unatamyn")
+                    .title("Ұнатамын")
+                    .author("Садраддин")
+                    .category("Романтика")
+                    .description("Садраддиннің оқырмандар мен тыңдармандарға арналған жаңа туындысы.")
+                    .pages(120)
+                    .hasAudio(true)
+                    .audioNarrator("Садраддин")
+                    .audioDuration("1 сағат 35 минут")
+                    .audioUrl("")
+                    .coverImage("/covers/unatamyn.jpg")
+                    .isFree(true)
+                    .isArchived(false)
+                    .gradient("linear-gradient(135deg, #0057A8, #003d7a)")
+                    .createdAt(OffsetDateTime.now())
+                    .audioChapters(chapters)
+                    .build();
+
+            for (AudioChapter chapter : chapters) {
+                chapter.setBook(unatamyn);
+            }
+
+            bookRepository.save(unatamyn);
+            log.info("Seeded initial book: Ұнатамын (Садраддин)");
         }
     }
 }

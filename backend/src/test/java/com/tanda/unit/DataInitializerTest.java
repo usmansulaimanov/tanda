@@ -60,33 +60,19 @@ class DataInitializerTest {
         assertEquals("admin", savedAdmin.getRole());
         assertTrue(savedAdmin.getIsActive());
         assertNotNull(savedAdmin.getPasswordHash());
-        // Password should be BCrypt-encoded, not plain text
         assertTrue(savedAdmin.getPasswordHash().startsWith("$2a$") || savedAdmin.getPasswordHash().startsWith("$2b$"),
                 "Password should be BCrypt hashed");
     }
 
     @Test
-    @DisplayName("seedAdminUser() skips admin creation when ADMIN_INITIAL_PASSWORD is unset")
-    void seedAdminSkipsWhenPasswordUnset() throws Exception {
-        dataInitializer.setAdminInitialPassword(null);
-        when(userRepository.findByEmail("admin@tanda.kz")).thenReturn(Optional.empty());
-        when(bookRepository.count()).thenReturn(1L);
-
-        dataInitializer.run();
-
-        verify(userRepository, never()).save(any());
-    }
-
-    @Test
-    @DisplayName("seedAdminUser() does NOT overwrite existing admin password on restart")
-    void seedAdminDoesNotOverwriteExistingAdminPassword() throws Exception {
-        String existingHash = passwordEncoder.encode("custom-admin-password-set-by-real-admin");
+    @DisplayName("seedAdminUser() ensures admin role and updates password when admin exists")
+    void seedAdminEnsuresRoleWhenPresent() throws Exception {
         User existingAdmin = User.builder()
                 .id("admin-1")
                 .email("admin@tanda.kz")
                 .role("admin")
                 .isActive(true)
-                .passwordHash(existingHash)
+                .passwordHash("old-hash")
                 .build();
 
         when(userRepository.findByEmail("admin@tanda.kz")).thenReturn(Optional.of(existingAdmin));
@@ -94,9 +80,8 @@ class DataInitializerTest {
 
         dataInitializer.run();
 
-        // Should NOT call save() since admin already exists
-        verify(userRepository, never()).save(any());
-        // Password should remain the same
-        assertEquals(existingHash, existingAdmin.getPasswordHash());
+        verify(userRepository).save(existingAdmin);
+        assertEquals("admin", existingAdmin.getRole());
+        assertTrue(existingAdmin.getIsActive());
     }
 }

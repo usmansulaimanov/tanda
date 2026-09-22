@@ -87,10 +87,7 @@ export const useBookStore = create<BookState>()(
           const rawList = Array.isArray(data) ? data : (data?.content && Array.isArray(data.content) ? data.content : null);
           if (rawList) {
             const cleanData = rawList.filter((b: Book) => b && b.id && !deletedIds.has(String(b.id)));
-            const currentBooks = (get().books || []).filter((b) => b && b.id && !deletedIds.has(String(b.id)));
-            const serverMap = new Map(cleanData.map((b: Book) => [b.id, b]));
-            const localOnly = currentBooks.filter((b) => !serverMap.has(b.id) && !deletedIds.has(String(b.id)));
-            set({ books: [...cleanData, ...localOnly] });
+            set({ books: cleanData });
           }
         } catch {
           // If backend is not available (e.g. GitHub Pages or offline), preserve valid local books
