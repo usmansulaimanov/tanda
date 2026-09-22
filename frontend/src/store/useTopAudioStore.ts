@@ -1,120 +1,82 @@
 import { create } from 'zustand';
 import { Book } from '../types';
-
-export interface AudioListenEvent {
-  bookId: string;
-  timestamp: number;
-  dateStr: string; // YYYY-MM-DD
-}
+import { api } from '../lib/api';
 
 export interface RankedAudioBook {
   book: Book;
   rank: number;
   todayListens: number;
   totalListens: number;
+  totalSeconds?: number;
 }
 
 interface TopAudioState {
-  listenHistory: AudioListenEvent[];
+  topAudioBooks: RankedAudioBook[];
+  isLoading: boolean;
+  fetchTopAudio: (limit?: number) => Promise<void>;
+  getTop10AudioBooks: (allBooks?: Book[]) => RankedAudioBook[];
   recordAudioListen: (bookId: string) => void;
-  getTop10AudioBooks: (allBooks: Book[]) => RankedAudioBook[];
   getTodayListenCount: (bookId: string) => number;
 }
 
-function getTodayString(): string {
-  const d = new Date();
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
 export const useTopAudioStore = create<TopAudioState>((set, get) => ({
-  listenHistory: [],
+  topAudioBooks: [],
+  isLoading: false,
 
-  recordAudioListen: (bookId: string) => {
-    if (!bookId) return;
-    const now = Date.now();
-    const dateStr = getTodayString();
-
-    const newEvent: AudioListenEvent = {
-      bookId,
-      timestamp: now,
-      dateStr,
-    };
-
-    set((state) => {
-      // Keep history of the last 14 days
-      const fourteenDaysAgo = now - 14 * 24 * 60 * 60 * 1000;
-      const filtered = (state.listenHistory || []).filter(
-        (e) => e.timestamp >= fourteenDaysAgo
-      );
-      return {
-        listenHistory: [newEvent, ...filtered],
-      };
-    });
+  fetchTopAudio: async (limit = 10) => {
+    set({ isLoading: true });
+    try {
+      const { data } = await api.get('/api/v1/books/top-audio', {
+        params: { limit },
+      });
+      if (Array.isArray(data)) {
+        const mapped: RankedAudioBook[] = data.map((item: any, idx: number) => ({
+          book: item.book,
+          rank: item.rank || idx + 1,
+          todayListens: item.todayListens || 0,
+          totalListens: item.totalListens || 0,
+          totalSeconds: item.totalSeconds || 0,
+        }));
+        set({ topAudioBooks: mapped });
+      }
+    } catch (err) {
+      console.error('Failed to fetch top audio books from server:', err);
+    } finally {
+      set({ isLoading: false });
+    }
   },
 
-  getTodayListenCount: (bookId: string) => {
-    const dateStr = getTodayString();
-    const state = get();
-    return (state.listenHistory || []).filter(
-      (e) => e.bookId === bookId && e.dateStr === dateStr
-    ).length;
-  },
+  getTop10AudioBooks: (allBooks?: Book[]): RankedAudioBook[] => {
+    const serverTop = get().topAudioBooks;
+    if (serverTop.length > 0) {
+      return serverTop.slice(0, 10);
+    }
 
-  getTop10AudioBooks: (allBooks: Book[]): RankedAudioBook[] => {
+    // Fallback: If server top audio hasn't loaded yet, build initial list from allBooks
     if (!allBooks || allBooks.length === 0) return [];
-
-    const dateStr = getTodayString();
-    const state = get();
-
-    // 1. Filter books that strictly have audio enabled and are not archived
     const audioBooks = allBooks.filter((b) => !b.isArchived && Boolean(b.hasAudio));
     const candidateBooks = audioBooks.length > 0 ? audioBooks : allBooks.filter((b) => !b.isArchived);
 
-    // 2. Count real listens for today and total in history
-    const todayListenCounts: Record<string, number> = {};
-    const totalListenCounts: Record<string, number> = {};
-
-    (state.listenHistory || []).forEach((e) => {
-      totalListenCounts[e.bookId] = (totalListenCounts[e.bookId] || 0) + 1;
-      if (e.dateStr === dateStr) {
-        todayListenCounts[e.bookId] = (todayListenCounts[e.bookId] || 0) + 1;
-      }
-    });
-
-    // 3. Compute score based strictly on real events and backend listen counts
-    const scoredBooks = candidateBooks.map((book) => {
-      const todayListens = todayListenCounts[book.id] || 0;
-      const totalListens = (book.audioListensCount || book.listensCount || 0) + (totalListenCounts[book.id] || 0);
-
-      return {
-        book,
-        todayListens,
-        totalListens,
-      };
-    });
-
-    // 4. Sort descending by today's listens, then total listens
-    scoredBooks.sort((a, b) => {
-      if (b.todayListens !== a.todayListens) {
-        return b.todayListens - a.todayListens;
-      }
-      return b.totalListens - a.totalListens;
-    });
-
-    // 5. Take top 10 and assign ranks 1..10
-    return scoredBooks.slice(0, 10).map((item, idx) => ({
-      book: item.book,
+    return candidateBooks.slice(0, 10).map((b, idx) => ({
+      book: b,
       rank: idx + 1,
-      todayListens: item.todayListens,
-      totalListens: item.totalListens,
+      todayListens: 0,
+      totalListens: b.audioListensCount || b.listensCount || 0,
     }));
+  },
+
+  // Deprecated client-side recording (server handles via AudioSessions)
+  recordAudioListen: (_bookId: string) => {
+    // No-op: AudioSessionService records authentic listening events on server
+  },
+
+  getTodayListenCount: (bookId: string) => {
+    const found = get().topAudioBooks.find((r) => String(r.book?.id) === String(bookId));
+    return found ? found.todayListens : 0;
   },
 }));
 
-// Clean legacy localStorage key if present
+// Clean up deprecated mock stats key from localStorage immediately
 if (typeof window !== 'undefined') {
   try {
     localStorage.removeItem('tanda_top_audio_stats_v1');

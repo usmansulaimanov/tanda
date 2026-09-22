@@ -12,14 +12,23 @@ export const TopAudioSection: React.FC = () => {
   const navigate = useNavigate();
   const scrollRef = useRef<HTMLDivElement>(null);
   const { books } = useBookStore();
-  const { listenHistory, getTop10AudioBooks } = useTopAudioStore();
+  const { topAudioBooks, fetchTopAudio, getTop10AudioBooks } = useTopAudioStore();
   const { currentBook, isPlaying, playBook, togglePlay } = useAudioPlayerStore();
   const { isAuthenticated } = useAuthStore();
   const { showToast } = useToastStore();
   const { markAsReading } = useMyBooksStore();
 
+  React.useEffect(() => {
+    fetchTopAudio();
+  }, [fetchTopAudio]);
+
   const activeBooks = useMemo(() => books.filter((b) => !b.isArchived), [books]);
-  const top10 = useMemo(() => getTop10AudioBooks(activeBooks), [getTop10AudioBooks, activeBooks, listenHistory]);
+  const top10 = useMemo(() => {
+    if (topAudioBooks.length > 0) {
+      return topAudioBooks.slice(0, 10);
+    }
+    return getTop10AudioBooks(activeBooks);
+  }, [topAudioBooks, getTop10AudioBooks, activeBooks]);
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollRef.current) {

@@ -75,6 +75,24 @@ export const AdminStatsPage: React.FC = () => {
   const [isLoadingReaders, setIsLoadingReaders] = useState(false);
   const [authorSearchQuery, setAuthorSearchQuery] = useState('');
   const [bookSearchQuery, setBookSearchQuery] = useState('');
+  const [audioStats, setAudioStats] = useState<{
+    totalSessions: number;
+    totalSeconds: number;
+    totalListeningHours: number;
+    uniqueListeners: number;
+    topBooks: Array<{ bookId: string; title: string; author: string; coverImage?: string; sessionsCount: number; totalSeconds: number; uniqueListeners: number }>;
+  } | null>(null);
+
+  const refreshAudioStats = React.useCallback(() => {
+    api
+      .get('/api/v1/admin/stats/audio')
+      .then(({ data }) => {
+        if (data) {
+          setAudioStats(data);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (role !== 'admin' || !canViewStats) {
@@ -85,7 +103,8 @@ export const AdminStatsPage: React.FC = () => {
 
   useEffect(() => {
     fetchBooks({ includeArchived: true });
-  }, [fetchBooks]);
+    refreshAudioStats();
+  }, [fetchBooks, refreshAudioStats]);
 
   const refreshReaders = React.useCallback(() => {
     setIsLoadingReaders(true);
@@ -104,17 +123,21 @@ export const AdminStatsPage: React.FC = () => {
 
   useEffect(() => {
     refreshReaders();
+    refreshAudioStats();
     window.addEventListener('focus', refreshReaders);
     return () => {
       window.removeEventListener('focus', refreshReaders);
     };
-  }, [refreshReaders]);
+  }, [refreshReaders, refreshAudioStats]);
 
   useEffect(() => {
     if (activeTab === 'readers') {
       refreshReaders();
     }
-  }, [activeTab, refreshReaders]);
+    if (activeTab === 'books') {
+      refreshAudioStats();
+    }
+  }, [activeTab, refreshReaders, refreshAudioStats]);
 
   // 1. READERS STATS
   const totalReaders = readers.length;
@@ -992,6 +1015,41 @@ export const AdminStatsPage: React.FC = () => {
                       </tr>
                     </tbody>
                   </table>
+                </div>
+              </div>
+            </div>
+
+            {/* 2.5 Audio Listening Analytics (Real Server Sessions) */}
+            <div
+              className="admin-card"
+              style={{
+                padding: '0',
+                overflow: 'hidden',
+                borderRadius: '14px',
+                border: '1.5px solid #E2E8F0',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+                display: 'flex',
+                flexDirection: 'column',
+              }}
+            >
+              <div style={{ padding: '12px 18px', background: '#F8FAFC', borderBottom: '1.5px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 style={{ fontSize: '15px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
+                  🎧 Аудио-сессиялар және тыңдалу статистикасы
+                </h3>
+                <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 600 }}>Нақты серверлік есеп</span>
+              </div>
+              <div style={{ padding: '18px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+                <div style={{ padding: '14px', background: '#F1F5F9', borderRadius: '10px' }}>
+                  <div style={{ fontSize: '12px', color: '#64748B', fontWeight: 700 }}>Жалпы тыңдау сессиялары</div>
+                  <div style={{ fontSize: '24px', fontWeight: 900, color: '#0F172A', marginTop: '4px' }}>{audioStats?.totalSessions ?? 0}</div>
+                </div>
+                <div style={{ padding: '14px', background: '#EEF2FF', borderRadius: '10px' }}>
+                  <div style={{ fontSize: '12px', color: '#6366F1', fontWeight: 700 }}>Нақты тыңдалған уақыт</div>
+                  <div style={{ fontSize: '24px', fontWeight: 900, color: '#4F46E5', marginTop: '4px' }}>{audioStats?.totalListeningHours ?? 0} сағ</div>
+                </div>
+                <div style={{ padding: '14px', background: '#ECFDF5', borderRadius: '10px' }}>
+                  <div style={{ fontSize: '12px', color: '#059669', fontWeight: 700 }}>Бірегей тыңдармандар</div>
+                  <div style={{ fontSize: '24px', fontWeight: 900, color: '#047857', marginTop: '4px' }}>{audioStats?.uniqueListeners ?? 0}</div>
                 </div>
               </div>
             </div>
