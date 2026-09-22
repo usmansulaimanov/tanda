@@ -6,28 +6,9 @@ import { useToastStore } from '../../store/useToastStore';
 import { User } from '../../types';
 import { hasAdminPermission } from '../../utils/permissions';
 
-const USERS_REGISTRY_KEY = 'tanda_users_registry_v1';
-
-function getStoredUsers(): User[] {
-  try {
-    const raw = localStorage.getItem(USERS_REGISTRY_KEY);
-    if (raw) {
-      const list = JSON.parse(raw);
-      if (Array.isArray(list) && list.length > 0) return list;
-    }
-  } catch {}
-  return [];
-}
-
-function saveStoredUsers(users: User[]) {
-  try {
-    localStorage.setItem(USERS_REGISTRY_KEY, JSON.stringify(users));
-  } catch {}
-}
-
 export const ReadersPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, role, toggleBlockUser } = useAuthStore();
+  const { user, role, toggleBlockUser, fetchClients, deleteUser } = useAuthStore();
   const { showToast } = useToastStore();
 
   const canViewReaders = hasAdminPermission(user, 'readers_view');
@@ -52,11 +33,10 @@ export const ReadersPage: React.FC = () => {
   const [pageSize, setPageSize] = useState<number>(10);
   const [currentPage, setCurrentPage] = useState<number>(1);
 
-  const fetchReaders = () => {
+  const fetchReaders = async () => {
     setIsLoading(true);
     try {
-      const allUsers = getStoredUsers();
-      const clients = allUsers.filter((u) => u.role === 'client');
+      const clients = await fetchClients();
       setReaders(clients);
     } catch {
       showToast('Оқырмандар тізімін жүктеу мүмкін болмады', 'error');
@@ -116,14 +96,16 @@ export const ReadersPage: React.FC = () => {
     return filteredReaders.slice(start, start + pageSize);
   }, [filteredReaders, currentPage, pageSize]);
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (userToDelete) {
       try {
-        const allUsers = getStoredUsers();
-        const updated = allUsers.filter((u) => u.id !== userToDelete.id);
-        saveStoredUsers(updated);
-        setReaders((prev) => prev.filter((u) => u.id !== userToDelete.id));
-        showToast(`"${userToDelete.name || userToDelete.email}" оқырманы тізімнен өшірілді`, 'info');
+        const res = await deleteUser(userToDelete.id);
+        if (res.success) {
+          setReaders((prev) => prev.filter((u) => u.id !== userToDelete.id));
+          showToast(`"${userToDelete.name || userToDelete.email}" оқырманы тізімнен өшірілді`, 'info');
+        } else {
+          showToast(res.error || 'Оқырманды өшіру сәтсіз аяқталды', 'error');
+        }
       } catch {
         showToast('Оқырманды өшіру сәтсіз аяқталды', 'error');
       } finally {
@@ -166,8 +148,7 @@ export const ReadersPage: React.FC = () => {
 
   const exportToExcel = () => {
     try {
-      const allUsers = getStoredUsers();
-      const clients = allUsers.filter((u) => u.role === 'client');
+      const clients = readers;
 
       if (clients.length === 0) {
         showToast('Жүктеу үшін базада оқырмандар табылмады', 'info');

@@ -23,4 +23,10 @@ public class UserListResponseDto {
     private Boolean isActive;
     private OffsetDateTime createdAt;
     private Integer savedBooksCount;
+    private String phone;
+    private String username;
+    private Boolean isBlocked;
+    private String avatarUrl;
+    private String duty;
+    private String authProvider;
 }

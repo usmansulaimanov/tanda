@@ -75,7 +75,7 @@ const formatDisplayDate = (raw?: string): string => {
 export const SettingsPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { user, isAuthenticated, updateProfile, updateAvatar, changePassword, checkUsernameAvailable, getReservedUsernames, addReservedUsername, addReservedUsernames, removeReservedUsername } = useAuthStore();
+  const { user, isAuthenticated, updateProfile, updateAvatar, changePassword, checkUsernameAvailable, fetchReservedUsernames, getReservedUsernames, addReservedUsername, addReservedUsernames, removeReservedUsername } = useAuthStore();
   const { showToast } = useToastStore();
 
   const isAdmin = user?.role === 'admin' || Boolean(user?.isSuperAdmin);
@@ -171,8 +171,10 @@ export const SettingsPage: React.FC = () => {
   }, [isAuthenticated, user]);
 
   useEffect(() => {
-    setReservedList(getReservedUsernames());
-  }, [getReservedUsernames]);
+    fetchReservedUsernames().then((list) => {
+      if (list) setReservedList(list);
+    });
+  }, [fetchReservedUsernames]);
 
   const switchMode = (mode: 'menu' | 'profile' | 'password' | 'usernames') => {
     if (mode === 'usernames' && !isAdmin) {
@@ -188,7 +190,7 @@ export const SettingsPage: React.FC = () => {
     }
   };
 
-  const handleAddSingleUsername = (e: React.FormEvent) => {
+  const handleAddSingleUsername = async (e: React.FormEvent) => {
     e.preventDefault();
     setNewReservedError('');
     const clean = newReservedInput.trim().toLowerCase().replace(/^@/, '');
@@ -196,7 +198,7 @@ export const SettingsPage: React.FC = () => {
       setNewReservedError('Юзернеймді енгізіңіз');
       return;
     }
-    const res = addReservedUsername(clean);
+    const res = await addReservedUsername(clean);
     if (!res.success) {
       setNewReservedError(res.error || 'Қате орын алды');
       return;
@@ -206,7 +208,7 @@ export const SettingsPage: React.FC = () => {
     showToast(`@${clean} бұғатталған юзернеймдер тізіміне қосылды!`, 'success');
   };
 
-  const handleBatchAddSubmit = (e: React.FormEvent) => {
+  const handleBatchAddSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setBatchError('');
 
@@ -220,7 +222,7 @@ export const SettingsPage: React.FC = () => {
       return;
     }
 
-    const { addedCount, skippedCount, invalidCount } = addReservedUsernames(lines);
+    const { addedCount, skippedCount, invalidCount } = await addReservedUsernames(lines);
 
     if (addedCount === 0) {
       if (invalidCount > 0 && skippedCount === 0) {
@@ -244,11 +246,11 @@ export const SettingsPage: React.FC = () => {
     showToast(msg, 'success');
   };
 
-  const handleRemoveReservedUsername = (u: string) => {
+  const handleRemoveReservedUsername = async (u: string) => {
     if (!window.confirm(`@${u} юзернеймін бұғатталғандар тізімінен өшіргіңіз келетініне сенімдісіз бе?`)) {
       return;
     }
-    removeReservedUsername(u);
+    await removeReservedUsername(u);
     setReservedList(getReservedUsernames());
     showToast(`@${u} тізімнен өшірілді`, 'info');
   };

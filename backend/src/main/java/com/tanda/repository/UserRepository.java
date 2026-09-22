@@ -22,8 +22,17 @@ public interface UserRepository extends JpaRepository<User, String> {
 
     List<User> findByRole(String role);
 
+    Optional<User> findByUsernameIgnoreCase(String username);
+
+    boolean existsByUsernameIgnoreCase(String username);
+
+    boolean existsByIdNumber(String idNumber);
+
+    Optional<User> findByIdNumber(String idNumber);
+
     @Query("SELECT u FROM User u WHERE (:role IS NULL OR u.role = :role) AND " +
-           "(:search IS NULL OR LOWER(u.name) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(u.idNumber) LIKE LOWER(CONCAT('%', :search, '%'))) " +
+           "(:search IS NULL OR LOWER(u.name) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(u.idNumber) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(u.username) LIKE LOWER(CONCAT('%', :search, '%'))) " +
            "ORDER BY u.createdAt DESC")
     List<User> searchUsers(@Param("role") String role, @Param("search") String search);
 }
+

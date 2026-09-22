@@ -34,6 +34,15 @@ class UserServiceTest {
     @Mock
     private SavedBookRepository savedBookRepository;
 
+    @Mock
+    private com.tanda.repository.ManagerPermissionRepository managerPermissionRepository;
+
+    @Mock
+    private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+
+    @Mock
+    private com.tanda.service.ReservedUsernameService reservedUsernameService;
+
     @InjectMocks
     private UserService userService;
 

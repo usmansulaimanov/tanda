@@ -26,7 +26,7 @@ public class User {
     @Column(name = "id", length = 64, nullable = false)
     private String id;
 
-    @Column(name = "id_number", length = 10, unique = true)
+    @Column(name = "id_number", length = 50, unique = true)
     private String idNumber;
 
     @Column(name = "name", length = 255, nullable = false)
@@ -50,7 +50,35 @@ public class User {
 
     @Column(name = "role", length = 10, nullable = false)
     @Builder.Default
-    private String role = "client"; // "admin" | "client"
+    private String role = "client"; // "admin" | "client" | "author"
+
+    @Column(name = "phone", length = 50)
+    private String phone;
+
+    @Column(name = "username", length = 100, unique = true)
+    private String username;
+
+    @Column(name = "birth_date", length = 50)
+    private String birthDate;
+
+    @Column(name = "gender", length = 20)
+    private String gender;
+
+    @Column(name = "duty", length = 255)
+    private String duty;
+
+    @Column(name = "personal_message", columnDefinition = "TEXT")
+    private String personalMessage;
+
+    @Column(name = "personal_message_days")
+    private Integer personalMessageDays;
+
+    @Column(name = "personal_message_active")
+    private Boolean personalMessageActive;
+
+    @Column(name = "is_blocked", nullable = false)
+    @Builder.Default
+    private Boolean isBlocked = false;
 
     @Column(name = "created_at")
     private OffsetDateTime createdAt;
@@ -69,6 +97,9 @@ public class User {
         }
         if (isActive == null) {
             isActive = true;
+        }
+        if (isBlocked == null) {
+            isBlocked = false;
         }
         if (authProvider == null) {
             authProvider = "LOCAL";

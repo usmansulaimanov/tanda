@@ -8,19 +8,6 @@ import { User } from '../../types';
 import { hasAdminPermission } from '../../utils/permissions';
 import { api } from '../../lib/api';
 
-const USERS_REGISTRY_KEY = 'tanda_users_registry_v1';
-
-function getStoredUsers(): User[] {
-  try {
-    const raw = localStorage.getItem(USERS_REGISTRY_KEY);
-    if (raw) {
-      const list = JSON.parse(raw);
-      if (Array.isArray(list) && list.length > 0) return list;
-    }
-  } catch {}
-  return [];
-}
-
 type StatTab = 'readers' | 'books' | 'authors' | 'subscriptions';
 
 const ALL_SYSTEM_CATEGORIES = [
@@ -102,15 +89,10 @@ export const AdminStatsPage: React.FC = () => {
 
   const refreshReaders = React.useCallback(() => {
     setIsLoadingReaders(true);
-    try {
-      const localUsers = getStoredUsers().filter((u) => u.role === 'client');
-      setReaders(localUsers);
-    } catch {}
-
     api
       .get('/api/v1/admin/users', { params: { role: 'client' } })
       .then(({ data }) => {
-        if (Array.isArray(data) && data.length > 0) {
+        if (Array.isArray(data)) {
           setReaders(data);
         }
       })
@@ -122,16 +104,8 @@ export const AdminStatsPage: React.FC = () => {
 
   useEffect(() => {
     refreshReaders();
-
-    const handleStorage = (e: StorageEvent) => {
-      if (e.key === USERS_REGISTRY_KEY || !e.key) {
-        refreshReaders();
-      }
-    };
-    window.addEventListener('storage', handleStorage);
     window.addEventListener('focus', refreshReaders);
     return () => {
-      window.removeEventListener('storage', handleStorage);
       window.removeEventListener('focus', refreshReaders);
     };
   }, [refreshReaders]);

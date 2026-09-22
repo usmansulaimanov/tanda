@@ -47,6 +47,12 @@ class AuthServiceTest {
     @Mock
     private com.tanda.service.EmailVerificationService emailVerificationService;
 
+    @Mock
+    private com.tanda.service.ReservedUsernameService reservedUsernameService;
+
+    @Mock
+    private com.tanda.repository.ManagerPermissionRepository managerPermissionRepository;
+
     private PasswordEncoder passwordEncoder;
     private JwtTokenProvider jwtTokenProvider;
 
@@ -61,7 +67,16 @@ class AuthServiceTest {
         jwtTokenProvider = new JwtTokenProvider(props);
         jwtTokenProvider.init();
 
-        authService = new AuthService(userRepository, passwordEncoder, jwtTokenProvider, refreshTokenService, googleTokenVerifier, emailVerificationService);
+        authService = new AuthService(
+                userRepository,
+                passwordEncoder,
+                jwtTokenProvider,
+                refreshTokenService,
+                googleTokenVerifier,
+                emailVerificationService,
+                reservedUsernameService,
+                managerPermissionRepository
+        );
     }
 
     // ============================

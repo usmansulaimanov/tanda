@@ -39,12 +39,22 @@ public class UserController {
         return ResponseEntity.ok(userService.getUserById(id));
     }
 
+    @org.springframework.web.bind.annotation.PostMapping
+    public ResponseEntity<UserResponseDto> createUser(@jakarta.validation.Valid @RequestBody com.tanda.dto.user.CreateUserRequestDto request) {
+        return ResponseEntity.status(org.springframework.http.HttpStatus.CREATED).body(userService.createUser(request));
+    }
+
     @PatchMapping("/{id}")
     public ResponseEntity<UserResponseDto> updateUser(
             @PathVariable String id,
             @RequestBody UpdateUserRequestDto request
     ) {
         return ResponseEntity.ok(userService.updateUser(id, request));
+    }
+
+    @PatchMapping("/{id}/block")
+    public ResponseEntity<UserResponseDto> toggleBlockUser(@PathVariable String id) {
+        return ResponseEntity.ok(userService.toggleBlockUser(id));
     }
 
     @DeleteMapping("/{id}")

@@ -49,6 +49,8 @@ export const AdminManagersPage: React.FC = () => {
   const {
     user: currentUser,
     role,
+    fetchManagers,
+    fetchAuthors,
     getAllManagers,
     getAllAuthors,
     checkIdNumberAvailable,
@@ -152,10 +154,20 @@ export const AdminManagersPage: React.FC = () => {
   }, [fetchBooks]);
 
   // Refresh managers & authors list
-  const refreshList = () => {
-    setManagers(getAllManagers());
-    setAuthors(getAllAuthors());
+  const refreshList = async () => {
+    try {
+      const [m, a] = await Promise.all([fetchManagers(), fetchAuthors()]);
+      setManagers(m);
+      setAuthors(a);
+    } catch {
+      setManagers(getAllManagers());
+      setAuthors(getAllAuthors());
+    }
   };
+
+  useEffect(() => {
+    refreshList();
+  }, []);
 
   // Redirect if not super admin or lacks managers_manage permission
   useEffect(() => {

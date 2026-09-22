@@ -18,6 +18,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -31,6 +32,8 @@ public class AuthService {
     private final RefreshTokenService refreshTokenService;
     private final GoogleTokenVerifier googleTokenVerifier;
     private final EmailVerificationService emailVerificationService;
+    private final ReservedUsernameService reservedUsernameService;
+    private final com.tanda.repository.ManagerPermissionRepository managerPermissionRepository;
 
     public record AuthResult(AuthResponseDto responseDto, String rawRefreshToken) {}
 
@@ -81,7 +84,7 @@ public class AuthService {
             log.info("Google арқылы жаңа пайдаланушы тіркелді: {}", email);
         } else {
             // Check account active status
-            if (Boolean.FALSE.equals(user.getIsActive())) {
+            if (Boolean.FALSE.equals(user.getIsActive()) || Boolean.TRUE.equals(user.getIsBlocked())) {
                 throw new BadCredentialsException("Аккаунт бұғатталған");
             }
 
@@ -119,7 +122,7 @@ public class AuthService {
             throw new BadCredentialsException("Пайдаланушы табылмады немесе құпия сөз қате");
         }
 
-        if (Boolean.FALSE.equals(user.getIsActive())) {
+        if (Boolean.FALSE.equals(user.getIsActive()) || Boolean.TRUE.equals(user.getIsBlocked())) {
             throw new BadCredentialsException("Аккаунт бұғатталған");
         }
 
@@ -217,6 +220,10 @@ public class AuthService {
     }
 
     public UserResponseDto toUserDto(User user) {
+        List<String> permissions = managerPermissionRepository.findByUserId(user.getId()).stream()
+                .map(com.tanda.entity.ManagerPermission::getPermission)
+                .collect(java.util.stream.Collectors.toList());
+
         return UserResponseDto.builder()
                 .id(user.getId())
                 .idNumber(user.getIdNumber())
@@ -228,6 +235,16 @@ public class AuthService {
                 .avatarUrl(user.getAvatarUrl())
                 .authProvider(user.getAuthProvider() != null ? user.getAuthProvider() : (user.getGoogleId() != null ? "GOOGLE" : "LOCAL"))
                 .hasPassword(user.getPasswordHash() != null)
+                .phone(user.getPhone())
+                .username(user.getUsername())
+                .birthDate(user.getBirthDate())
+                .gender(user.getGender())
+                .duty(user.getDuty())
+                .personalMessage(user.getPersonalMessage())
+                .personalMessageDays(user.getPersonalMessageDays())
+                .personalMessageActive(user.getPersonalMessageActive())
+                .isBlocked(user.getIsBlocked())
+                .permissions(permissions)
                 .build();
     }
 
@@ -241,6 +258,29 @@ public class AuthService {
         }
         if (request.getAvatarUrl() != null) {
             user.setAvatarUrl(request.getAvatarUrl().isBlank() ? null : request.getAvatarUrl().trim());
+        }
+        if (request.getPhone() != null) {
+            user.setPhone(request.getPhone().trim());
+        }
+        if (request.getUsername() != null) {
+            String newUsername = request.getUsername().trim().toLowerCase().replaceAll("^@", "");
+            if (!newUsername.isBlank() && !newUsername.equalsIgnoreCase(user.getUsername())) {
+                if (reservedUsernameService.isReserved(newUsername)) {
+                    throw new BadRequestException("Бұл юзернейм жүйе тарапынан резервтелген");
+                }
+                if (userRepository.existsByUsernameIgnoreCase(newUsername)) {
+                    throw new BadRequestException("Бұл юзернейм бос емес");
+                }
+                user.setUsername(newUsername);
+            } else if (newUsername.isBlank()) {
+                user.setUsername(null);
+            }
+        }
+        if (request.getBirthDate() != null) {
+            user.setBirthDate(request.getBirthDate().trim());
+        }
+        if (request.getGender() != null) {
+            user.setGender(request.getGender().trim());
         }
         user = userRepository.save(user);
         return toUserDto(user);

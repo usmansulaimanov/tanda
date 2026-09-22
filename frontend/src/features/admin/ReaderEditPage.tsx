@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useToastStore } from '../../store/useToastStore';
 import { User } from '../../types';
+import { api } from '../../lib/api';
 
 const kazakhMonths = [
   'қаңтар', 'ақпан', 'наурыз', 'сәуір', 'мамыр', 'маусым',
@@ -169,42 +170,53 @@ export const ReaderEditPage: React.FC = () => {
       return;
     }
 
-    const found = getUserById(id);
-    if (found) {
-      setReader(found);
-      if (found.firstName || found.lastName) {
-        setFirstName(found.firstName || '');
-        setLastName(found.lastName || '');
-      } else if (found.name) {
-        const parts = found.name.trim().split(/\s+/);
-        if (parts.length > 1) {
-          setFirstName(parts[0]);
-          setLastName(parts.slice(1).join(' '));
+    const loadUser = async () => {
+      let found = getUserById(id);
+      if (!found) {
+        try {
+          const { data } = await api.get(`/api/v1/admin/users/${id}`);
+          if (data) found = data;
+        } catch {}
+      }
+
+      if (found) {
+        setReader(found);
+        if (found.firstName || found.lastName) {
+          setFirstName(found.firstName || '');
+          setLastName(found.lastName || '');
+        } else if (found.name) {
+          const parts = found.name.trim().split(/\s+/);
+          if (parts.length > 1) {
+            setFirstName(parts[0]);
+            setLastName(parts.slice(1).join(' '));
+          } else {
+            setFirstName(found.name);
+            setLastName('');
+          }
         } else {
-          setFirstName(found.name);
+          setFirstName('');
           setLastName('');
         }
-      } else {
-        setFirstName('');
-        setLastName('');
-      }
-      setEmail(found.email || '');
-      setBirthDate(toDotFormat(found.birthDate) || '');
-      setPassword(found.password || '123456');
-      setIdNumber(found.idNumber || '');
-      setPhone(found.phone ? formatPhoneNumber(found.phone) : '');
-      setUsername(found.username ? (found.username.startsWith('@') ? found.username : `@${found.username}`) : '');
-      setRole(found.role || 'client');
-      setIsActive(found.isActive !== false);
+        setEmail(found.email || '');
+        setBirthDate(toDotFormat(found.birthDate) || '');
+        setPassword(found.password || '123456');
+        setIdNumber(found.idNumber || '');
+        setPhone(found.phone ? formatPhoneNumber(found.phone) : '');
+        setUsername(found.username ? (found.username.startsWith('@') ? found.username : `@${found.username}`) : '');
+        setRole(found.role || 'client');
+        setIsActive(found.isActive !== false);
 
-      if (found.personalMessage) {
-        setMessageText(found.personalMessage.text || '');
-        setMessageDays(found.personalMessage.days || 7);
-        setIsMessageActive(found.personalMessage.isActive !== false);
-        setExistingExpiresAt(found.personalMessage.expiresAt || null);
+        if (found.personalMessage) {
+          setMessageText(found.personalMessage.text || '');
+          setMessageDays(found.personalMessage.days || 7);
+          setIsMessageActive(found.personalMessage.isActive !== false);
+          setExistingExpiresAt(found.personalMessage.expiresAt || null);
+        }
       }
-    }
-    setIsLoading(false);
+      setIsLoading(false);
+    };
+
+    loadUser();
   }, [id, getUserById]);
 
   const handleIdNumberChange = (val: string) => {
