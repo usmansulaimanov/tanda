@@ -23,6 +23,7 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -126,7 +127,6 @@ public class Phase5AudioAnalyticsIntegrationTest {
                         .content(objectMapper.writeValueAsString(StartAudioSessionRequestDto.builder().bookId(bookA.getId()).build())))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
-        String sessionA1 = objectMapper.readTree(resA1).get("sessionId").asText();
 
         // Reader 2 starts session on Book A
         mockMvc.perform(post("/api/v1/audio/sessions")
@@ -151,6 +151,42 @@ public class Phase5AudioAnalyticsIntegrationTest {
                 .andExpect(jsonPath("$[1].rank", is(2)))
                 .andExpect(jsonPath("$[1].book.id", is(bookB.getId())))
                 .andExpect(jsonPath("$[1].totalListens", is(1)));
+    }
+
+    @Test
+    @DisplayName("Phase 5: Top audio limit parameter operates accurately")
+    void testTopAudioLimitParameter() throws Exception {
+        mockMvc.perform(get("/api/v1/books/top-audio?limit=1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)));
+    }
+
+    @Test
+    @DisplayName("Phase 5: Archived books excluded from top audio even with sessions")
+    void testArchivedBooksExcludedFromTopAudio() throws Exception {
+        Book archivedBook = bookRepository.save(Book.builder()
+                .id("bk-archived-" + UUID.randomUUID().toString().substring(0, 6))
+                .title("Archived Audio Book")
+                .author("Author Secret")
+                .category("Roman")
+                .hasAudio(true)
+                .isArchived(true)
+                .audioDuration("10:00")
+                .audioUrl("https://example.com/audio/archived.mp3")
+                .createdAt(OffsetDateTime.now())
+                .build());
+
+        // Reader starts session on archived book
+        mockMvc.perform(post("/api/v1/audio/sessions")
+                        .header("Authorization", "Bearer " + reader1Token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(StartAudioSessionRequestDto.builder().bookId(archivedBook.getId()).build())))
+                .andExpect(status().isCreated());
+
+        // Call top audio
+        mockMvc.perform(get("/api/v1/books/top-audio?limit=10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.book.id == '" + archivedBook.getId() + "')]").doesNotExist());
     }
 
     @Test
