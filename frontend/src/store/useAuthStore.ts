@@ -607,33 +607,8 @@ export const useAuthStore = create<AuthState>()(
 
       grantBirthdayGiftManually: async (userId: string) => {
         try {
-          const today = new Date();
-          const currentYear = today.getFullYear();
-          const currentMonth = String(today.getMonth() + 1).padStart(2, '0');
-          const currentDay = String(today.getDate()).padStart(2, '0');
-          const todayStr = `${currentYear}-${currentMonth}-${currentDay}`;
-
-          const existingUser = get().getUserById(userId);
-          const baseTime = (existingUser?.isPremium && existingUser?.premiumExpiresAt && new Date(existingUser.premiumExpiresAt).getTime() > Date.now())
-            ? new Date(existingUser.premiumExpiresAt).getTime()
-            : Date.now();
-          const newExpiresAt = new Date(baseTime + 30 * 24 * 60 * 60 * 1000).toISOString();
-
-          set((state) => ({
-            clients: state.clients.map((u) =>
-              u.id === userId
-                ? {
-                    ...u,
-                    isPremium: true,
-                    premiumExpiresAt: newExpiresAt,
-                    lastBirthdayGreetingYear: currentYear,
-                    lastBirthdayGiftYear: currentYear,
-                    lastBirthdayGiftDate: todayStr,
-                  }
-                : u
-            ),
-          }));
-
+          await api.post(`/api/v1/admin/users/${userId}/birthday-gift`);
+          await get().fetchClients();
           return { success: true };
         } catch (err: any) {
           return {

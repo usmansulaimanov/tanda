@@ -29,4 +29,6 @@ public class UserListResponseDto {
     private String avatarUrl;
     private String duty;
     private String authProvider;
+    private Boolean isPremium;
+    private OffsetDateTime premiumExpiresAt;
 }

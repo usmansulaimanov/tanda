@@ -33,6 +33,8 @@ public class UserService {
     private final ManagerPermissionRepository managerPermissionRepository;
     private final PasswordEncoder passwordEncoder;
     private final ReservedUsernameService reservedUsernameService;
+    private final com.tanda.repository.PremiumEntitlementRepository premiumEntitlementRepository;
+    private final com.tanda.repository.BirthdayGiftRepository birthdayGiftRepository;
 
     @Transactional(readOnly = true)
     public List<UserListResponseDto> getAllUsers(String role, String search) {
@@ -293,6 +295,14 @@ public class UserService {
     }
 
     public UserResponseDto toUserDto(User user, List<String> permissions) {
+        java.time.OffsetDateTime now = java.time.OffsetDateTime.now();
+        java.util.Optional<com.tanda.entity.PremiumEntitlement> active = premiumEntitlementRepository
+                .findTopByUserIdAndIsActiveTrueAndExpiresAtAfterOrderByExpiresAtDesc(user.getId(), now);
+        boolean isPremium = active.isPresent();
+        java.time.OffsetDateTime premiumExpiresAt = active.map(com.tanda.entity.PremiumEntitlement::getExpiresAt).orElse(null);
+        Integer lastGiftYear = birthdayGiftRepository.findTopByUserIdOrderByGiftYearDesc(user.getId())
+                .map(com.tanda.entity.BirthdayGift::getGiftYear).orElse(null);
+
         return UserResponseDto.builder()
                 .id(user.getId())
                 .idNumber(user.getIdNumber())
@@ -314,10 +324,19 @@ public class UserService {
                 .personalMessageActive(user.getPersonalMessageActive())
                 .isBlocked(user.getIsBlocked())
                 .permissions(permissions)
+                .isPremium(isPremium)
+                .premiumExpiresAt(premiumExpiresAt)
+                .lastBirthdayGiftYear(lastGiftYear)
                 .build();
     }
 
     private UserListResponseDto toUserListDto(User user, int savedBooksCount) {
+        java.time.OffsetDateTime now = java.time.OffsetDateTime.now();
+        java.util.Optional<com.tanda.entity.PremiumEntitlement> active = premiumEntitlementRepository
+                .findTopByUserIdAndIsActiveTrueAndExpiresAtAfterOrderByExpiresAtDesc(user.getId(), now);
+        boolean isPremium = active.isPresent();
+        java.time.OffsetDateTime premiumExpiresAt = active.map(com.tanda.entity.PremiumEntitlement::getExpiresAt).orElse(null);
+
         return UserListResponseDto.builder()
                 .id(user.getId())
                 .idNumber(user.getIdNumber())
@@ -333,6 +352,8 @@ public class UserService {
                 .avatarUrl(user.getAvatarUrl())
                 .duty(user.getDuty())
                 .authProvider(user.getAuthProvider())
+                .isPremium(isPremium)
+                .premiumExpiresAt(premiumExpiresAt)
                 .build();
     }
 

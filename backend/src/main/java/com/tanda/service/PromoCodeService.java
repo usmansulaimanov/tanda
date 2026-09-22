@@ -44,6 +44,7 @@ public class PromoCodeService {
     private final PromoCodeRepository codeRepository;
     private final PromoUseRepository useRepository;
     private final UserRepository userRepository;
+    private final PremiumService premiumService;
 
     private static final String CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
     private static final SecureRandom RANDOM = new SecureRandom();
@@ -297,6 +298,18 @@ public class PromoCodeService {
         // Update promo used count
         promo.setUsedCount(promo.getUsedCount() + 1);
         codeRepository.save(promo);
+
+        // Grant premium if promo gives subscription/premium access
+        int days = promo.getDurationDays() != null && promo.getDurationDays() > 0 ? promo.getDurationDays() : 30;
+        String rt = promo.getRewardType() != null ? promo.getRewardType().toLowerCase() : "";
+        String title = promo.getRewardTitle() != null ? promo.getRewardTitle().toLowerCase() : "";
+        if (rt.contains("subscription") || rt.contains("premium") || title.contains("жазылым") || title.contains("премиум") || title.contains("подписка")) {
+            try {
+                premiumService.grantPremium(user.getId(), days, "PROMO_CODE", "SYSTEM");
+            } catch (Exception e) {
+                log.warn("Failed to automatically grant premium for promo code {}: {}", promo.getCode(), e.getMessage());
+            }
+        }
 
         log.info("User {} ({}) successfully applied promo code {}", user.getId(), user.getEmail(), promo.getCode());
 

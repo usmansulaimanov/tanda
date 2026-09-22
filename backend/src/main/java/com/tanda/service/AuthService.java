@@ -283,6 +283,14 @@ public class AuthService {
                 .map(com.tanda.entity.ManagerPermission::getPermission)
                 .collect(java.util.stream.Collectors.toList());
 
+        java.time.OffsetDateTime now = java.time.OffsetDateTime.now();
+        java.util.Optional<com.tanda.entity.PremiumEntitlement> active = premiumEntitlementRepository
+                .findTopByUserIdAndIsActiveTrueAndExpiresAtAfterOrderByExpiresAtDesc(user.getId(), now);
+        boolean isPremium = active.isPresent();
+        java.time.OffsetDateTime premiumExpiresAt = active.map(com.tanda.entity.PremiumEntitlement::getExpiresAt).orElse(null);
+        Integer lastGiftYear = birthdayGiftRepository.findTopByUserIdOrderByGiftYearDesc(user.getId())
+                .map(com.tanda.entity.BirthdayGift::getGiftYear).orElse(null);
+
         return UserResponseDto.builder()
                 .id(user.getId())
                 .idNumber(user.getIdNumber())
@@ -304,6 +312,9 @@ public class AuthService {
                 .personalMessageActive(user.getPersonalMessageActive())
                 .isBlocked(user.getIsBlocked())
                 .permissions(permissions)
+                .isPremium(isPremium)
+                .premiumExpiresAt(premiumExpiresAt)
+                .lastBirthdayGiftYear(lastGiftYear)
                 .build();
     }
 

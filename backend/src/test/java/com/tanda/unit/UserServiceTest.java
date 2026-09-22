@@ -43,6 +43,12 @@ class UserServiceTest {
     @Mock
     private com.tanda.service.ReservedUsernameService reservedUsernameService;
 
+    @Mock
+    private com.tanda.repository.PremiumEntitlementRepository premiumEntitlementRepository;
+
+    @Mock
+    private com.tanda.repository.BirthdayGiftRepository birthdayGiftRepository;
+
     @InjectMocks
     private UserService userService;
 

@@ -182,6 +182,31 @@ public class MessageService {
         }
     }
 
+    @Transactional
+    public void createBirthdayMessage(String recipientId, String recipientName) {
+        try {
+            Message bday = Message.builder()
+                    .id("msg-bday-" + UUID.randomUUID().toString().substring(0, 8))
+                    .senderName("Tanda")
+                    .senderRole("admin")
+                    .recipientId(recipientId)
+                    .targetType("single")
+                    .targetUserIds(recipientId)
+                    .targetUserNames(recipientName)
+                    .title("Туған күніңізбен!")
+                    .content("Құрметті " + (recipientName != null ? recipientName : "оқырман") + "! Сізді туған күніңізбен шын жүректен құттықтаймыз! Сізге Tanda платформасында 30 күн тегін Премиум жазылым сыйға берілді.")
+                    .priority("important")
+                    .canReaderDelete(true)
+                    .createdAt(OffsetDateTime.now())
+                    .readByUserIds("")
+                    .deletedByUserIds("")
+                    .build();
+            messageRepository.save(bday);
+        } catch (Exception e) {
+            log.warn("Could not create birthday message for user '{}': {}", recipientId, e.getMessage());
+        }
+    }
+
     private String mClean(String s) {
         return s != null ? s : "";
     }

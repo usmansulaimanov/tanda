@@ -36,4 +36,7 @@ public class UserResponseDto {
     private Boolean personalMessageActive;
     private Boolean isBlocked;
     private List<String> permissions;
+    private Boolean isPremium;
+    private OffsetDateTime premiumExpiresAt;
+    private Integer lastBirthdayGiftYear;
 }

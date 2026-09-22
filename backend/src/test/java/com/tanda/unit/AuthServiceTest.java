@@ -56,6 +56,12 @@ class AuthServiceTest {
     @Mock
     private com.tanda.repository.ManagerPermissionRepository managerPermissionRepository;
 
+    @Mock
+    private com.tanda.repository.PremiumEntitlementRepository premiumEntitlementRepository;
+
+    @Mock
+    private com.tanda.repository.BirthdayGiftRepository birthdayGiftRepository;
+
     private PasswordEncoder passwordEncoder;
     private JwtTokenProvider jwtTokenProvider;
 
@@ -79,7 +85,9 @@ class AuthServiceTest {
                 emailVerificationService,
                 reservedUsernameService,
                 messageService,
-                managerPermissionRepository
+                managerPermissionRepository,
+                premiumEntitlementRepository,
+                birthdayGiftRepository
         );
     }
 
