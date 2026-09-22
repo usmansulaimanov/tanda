@@ -103,6 +103,16 @@ public class BookService {
             throw new IllegalArgumentException("Book with id '" + bookId + "' already exists");
         }
 
+        boolean hasAudio = Boolean.TRUE.equals(dto.getHasAudio())
+                || (dto.getAudioUrl() != null && !dto.getAudioUrl().isBlank())
+                || (dto.getAudioChapters() != null && !dto.getAudioChapters().isEmpty());
+
+        String effectiveAudioUrl = (dto.getAudioUrl() != null && !dto.getAudioUrl().isBlank())
+                ? dto.getAudioUrl().trim()
+                : (dto.getAudioChapters() != null && !dto.getAudioChapters().isEmpty() && dto.getAudioChapters().get(0).getAudioUrl() != null
+                    ? dto.getAudioChapters().get(0).getAudioUrl().trim()
+                    : null);
+
         Book book = Book.builder()
                 .id(bookId)
                 .title(dto.getTitle().trim())
@@ -110,10 +120,10 @@ public class BookService {
                 .description(dto.getDescription())
                 .category(dto.getCategory().trim())
                 .pages(dto.getPages())
-                .hasAudio(dto.getHasAudio() != null ? dto.getHasAudio() : false)
-                .audioNarrator(dto.getAudioNarrator())
-                .audioDuration(dto.getAudioDuration())
-                .audioUrl(dto.getAudioUrl())
+                .hasAudio(hasAudio)
+                .audioNarrator(hasAudio ? dto.getAudioNarrator() : null)
+                .audioDuration(hasAudio ? dto.getAudioDuration() : null)
+                .audioUrl(hasAudio ? effectiveAudioUrl : null)
                 .coverImage(dto.getCoverImage())
                 .isFree(dto.getIsFree() != null ? dto.getIsFree() : true)
                 .isArchived(dto.getIsArchived() != null ? dto.getIsArchived() : false)
@@ -122,7 +132,20 @@ public class BookService {
                 .audioChapters(new ArrayList<>())
                 .build();
 
-        mapAudioChapters(dto.getAudioChapters(), book);
+        if (hasAudio) {
+            if (dto.getAudioChapters() != null && !dto.getAudioChapters().isEmpty()) {
+                mapAudioChapters(dto.getAudioChapters(), book);
+            } else if (effectiveAudioUrl != null && !effectiveAudioUrl.isBlank()) {
+                AudioChapter singleChapter = AudioChapter.builder()
+                        .id("ch-" + UUID.randomUUID().toString().substring(0, 8))
+                        .title("1-аудио")
+                        .audioUrl(effectiveAudioUrl)
+                        .duration(dto.getAudioDuration() != null ? dto.getAudioDuration() : "00:00")
+                        .chapterOrder(1)
+                        .build();
+                book.addAudioChapter(singleChapter);
+            }
+        }
 
         Book saved = bookRepository.save(book);
         log.info("Book created: id={}, title='{}', hasAudio={}", saved.getId(), saved.getTitle(), saved.getHasAudio());
@@ -134,23 +157,44 @@ public class BookService {
         Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Book", "id", id));
 
+        boolean hasAudio = Boolean.TRUE.equals(dto.getHasAudio())
+                || (dto.getAudioUrl() != null && !dto.getAudioUrl().isBlank())
+                || (dto.getAudioChapters() != null && !dto.getAudioChapters().isEmpty());
+
+        String effectiveAudioUrl = (dto.getAudioUrl() != null && !dto.getAudioUrl().isBlank())
+                ? dto.getAudioUrl().trim()
+                : (dto.getAudioChapters() != null && !dto.getAudioChapters().isEmpty() && dto.getAudioChapters().get(0).getAudioUrl() != null
+                    ? dto.getAudioChapters().get(0).getAudioUrl().trim()
+                    : null);
+
         book.setTitle(dto.getTitle().trim());
         book.setAuthor(dto.getAuthor().trim());
         book.setDescription(dto.getDescription());
         book.setCategory(dto.getCategory().trim());
         book.setPages(dto.getPages());
-        book.setHasAudio(dto.getHasAudio() != null ? dto.getHasAudio() : false);
-        book.setAudioNarrator(dto.getAudioNarrator());
-        book.setAudioDuration(dto.getAudioDuration());
-        book.setAudioUrl(dto.getAudioUrl());
+        book.setHasAudio(hasAudio);
+        book.setAudioNarrator(hasAudio ? dto.getAudioNarrator() : null);
+        book.setAudioDuration(hasAudio ? dto.getAudioDuration() : null);
+        book.setAudioUrl(hasAudio ? effectiveAudioUrl : null);
         book.setCoverImage(dto.getCoverImage());
         book.setIsFree(dto.getIsFree() != null ? dto.getIsFree() : true);
         book.setIsArchived(dto.getIsArchived() != null ? dto.getIsArchived() : false);
         book.setGradient(dto.getGradient());
 
-        if (dto.getAudioChapters() != null) {
-            book.getAudioChapters().clear();
-            mapAudioChapters(dto.getAudioChapters(), book);
+        book.getAudioChapters().clear();
+        if (hasAudio) {
+            if (dto.getAudioChapters() != null && !dto.getAudioChapters().isEmpty()) {
+                mapAudioChapters(dto.getAudioChapters(), book);
+            } else if (effectiveAudioUrl != null && !effectiveAudioUrl.isBlank()) {
+                AudioChapter singleChapter = AudioChapter.builder()
+                        .id("ch-" + UUID.randomUUID().toString().substring(0, 8))
+                        .title("1-аудио")
+                        .audioUrl(effectiveAudioUrl)
+                        .duration(dto.getAudioDuration() != null ? dto.getAudioDuration() : "00:00")
+                        .chapterOrder(1)
+                        .build();
+                book.addAudioChapter(singleChapter);
+            }
         }
 
         Book saved = bookRepository.save(book);

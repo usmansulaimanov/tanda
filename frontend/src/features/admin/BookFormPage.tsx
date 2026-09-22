@@ -286,22 +286,20 @@ export const BookFormPage: React.FC = () => {
 
     const finalAudioUrl = audioUrl.trim() || audioChapters.find((ch) => ch.audioUrl?.trim())?.audioUrl || '';
     let finalChapters = [...audioChapters];
-    if (hasAudio) {
-      if (finalChapters.length === 0 && finalAudioUrl) {
-        finalChapters = [
-          {
-            id: `ch-${Date.now()}`,
-            title: '1-аудио',
-            duration: audioDuration.trim() || '00:00',
-            audioUrl: finalAudioUrl,
-          },
-        ];
-      } else if (finalChapters.length > 0 && finalAudioUrl && !finalChapters[0].audioUrl) {
-        finalChapters[0] = { ...finalChapters[0], audioUrl: finalAudioUrl };
-      }
+    if (finalChapters.length === 0 && finalAudioUrl) {
+      finalChapters = [
+        {
+          id: `ch-${Date.now()}`,
+          title: '1-аудио',
+          duration: audioDuration.trim() || '00:00',
+          audioUrl: finalAudioUrl,
+        },
+      ];
+    } else if (finalChapters.length > 0 && finalAudioUrl && !finalChapters[0].audioUrl?.trim()) {
+      finalChapters[0] = { ...finalChapters[0], audioUrl: finalAudioUrl };
     }
 
-    const effectiveHasAudio = hasAudio || Boolean(finalAudioUrl) || (finalChapters.length > 0 && finalChapters.some((c) => c.audioUrl && c.audioUrl.trim().length > 0));
+    const effectiveHasAudio = Boolean(finalAudioUrl) || hasAudio || (finalChapters.length > 0 && finalChapters.some((c) => Boolean(c.audioUrl?.trim())));
 
     const bookData = {
       title: title.trim(),
@@ -318,7 +316,7 @@ export const BookFormPage: React.FC = () => {
       audioNarrator: effectiveHasAudio ? (audioNarrator.trim() || undefined) : undefined,
       audioDuration: effectiveHasAudio ? (audioDuration.trim() || undefined) : undefined,
       audioUrl: effectiveHasAudio && finalAudioUrl ? finalAudioUrl : undefined,
-      audioChapters: effectiveHasAudio && finalChapters.length > 0 ? finalChapters : undefined,
+      audioChapters: effectiveHasAudio && finalChapters.length > 0 ? finalChapters : [],
     };
 
     try {
