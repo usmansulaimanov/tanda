@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ToastContainer } from '../components/ui/Toast';
-import { useAuthStore, checkAndSendBirthdayGreeting } from '../store/useAuthStore';
+import { useAuthStore } from '../store/useAuthStore';
 import { useToastStore } from '../store/useToastStore';
 import { authApi } from '../shared/api/auth.api';
 
@@ -22,7 +22,6 @@ export const queryClient = new QueryClient({
 
 export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const restoreSession = useAuthStore((state) => state.restoreSession);
-  const user = useAuthStore((state) => state.user);
 
   useEffect(() => {
     // Perform silent authentication initialization on app launch
@@ -41,7 +40,6 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
               role: data.user.role as 'admin' | 'client',
               isAuthenticated: true,
             });
-            checkAndSendBirthdayGreeting(data.user);
           }
         }
       } catch {
@@ -51,12 +49,6 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
 
     initAuth();
   }, [restoreSession]);
-
-  useEffect(() => {
-    if (user) {
-      checkAndSendBirthdayGreeting(user);
-    }
-  }, [user]);
 
   useEffect(() => {
     // Realtime check if currently authenticated user has been blocked

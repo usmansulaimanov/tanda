@@ -33,7 +33,9 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -310,5 +312,102 @@ class AuthControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.SET_COOKIE, containsString("Max-Age=0")))
                 .andExpect(cookie().maxAge(AuthController.REFRESH_COOKIE_NAME, 0));
+    }
+
+    @Test
+    @DisplayName("PATCH /api/v1/auth/profile successfully updates user profile")
+    void testUpdateProfileSuccess() throws Exception {
+        LoginRequestDto loginDto = LoginRequestDto.builder()
+                .email("admin@tanda.kz")
+                .password("admin123")
+                .build();
+
+        MvcResult loginResult = mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(loginDto)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String token = objectMapper.readTree(loginResult.getResponse().getContentAsString())
+                .get("token").asText();
+
+        com.tanda.dto.auth.UpdateProfileRequestDto updateDto = com.tanda.dto.auth.UpdateProfileRequestDto.builder()
+                .name("Жаңартылған Әкімші")
+                .avatarUrl("https://example.com/avatar.jpg")
+                .build();
+
+        mockMvc.perform(patch("/api/v1/auth/profile")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateDto)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name", is("Жаңартылған Әкімші")))
+                .andExpect(jsonPath("$.avatarUrl", is("https://example.com/avatar.jpg")));
+    }
+
+    @Test
+    @DisplayName("PUT /api/v1/auth/password changes password and rejects invalid current password")
+    void testChangePasswordFlow() throws Exception {
+        // Create dedicated user for password change test
+        String email = "pwdtest_" + UUID.randomUUID() + "@tanda.kz";
+        User user = User.builder()
+                .id(UUID.randomUUID().toString())
+                .name("Password Tester")
+                .email(email)
+                .passwordHash(passwordEncoder.encode("oldpass123"))
+                .role("client")
+                .isActive(true)
+                .createdAt(OffsetDateTime.now())
+                .build();
+        userRepository.save(user);
+
+        LoginRequestDto loginDto = LoginRequestDto.builder()
+                .email(email)
+                .password("oldpass123")
+                .build();
+
+        MvcResult loginResult = mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(loginDto)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String token = objectMapper.readTree(loginResult.getResponse().getContentAsString())
+                .get("token").asText();
+
+        // 1. Attempt with wrong current password -> 400 Bad Request
+        com.tanda.dto.auth.ChangePasswordRequestDto wrongDto = com.tanda.dto.auth.ChangePasswordRequestDto.builder()
+                .currentPassword("wrongpass")
+                .newPassword("newpass123")
+                .build();
+
+        mockMvc.perform(put("/api/v1/auth/password")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(wrongDto)))
+                .andExpect(status().isBadRequest());
+
+        // 2. Valid change -> 200 OK
+        com.tanda.dto.auth.ChangePasswordRequestDto validDto = com.tanda.dto.auth.ChangePasswordRequestDto.builder()
+                .currentPassword("oldpass123")
+                .newPassword("newpass123")
+                .build();
+
+        mockMvc.perform(put("/api/v1/auth/password")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(validDto)))
+                .andExpect(status().isOk());
+
+        // 3. Login with new password succeeds
+        LoginRequestDto newLoginDto = LoginRequestDto.builder()
+                .email(email)
+                .password("newpass123")
+                .build();
+
+        mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(newLoginDto)))
+                .andExpect(status().isOk());
     }
 }

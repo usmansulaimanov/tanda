@@ -6,6 +6,7 @@ import com.tanda.dto.auth.LoginRequestDto;
 import com.tanda.dto.auth.RegisterRequestDto;
 import com.tanda.dto.user.UserResponseDto;
 import com.tanda.entity.User;
+import com.tanda.exception.BadRequestException;
 import com.tanda.exception.ResourceNotFoundException;
 import com.tanda.exception.UnauthorizedException;
 import com.tanda.repository.UserRepository;
@@ -112,32 +113,10 @@ public class AuthService {
     public AuthResult login(LoginRequestDto dto, String userAgent, String ipAddress) {
         String email = dto.getEmail().trim().toLowerCase();
         User user = userRepository.findByEmail(email)
-                .orElseGet(() -> {
-                    if ("admin@tanda.kz".equalsIgnoreCase(email) && "admin123".equals(dto.getPassword())) {
-                        User newAdmin = User.builder()
-                                .id("admin-1")
-                                .idNumber("0000 0001")
-                                .name("Әкімші")
-                                .email("admin@tanda.kz")
-                                .passwordHash(passwordEncoder.encode("admin123"))
-                                .role("admin")
-                                .isActive(true)
-                                .build();
-                        return userRepository.save(newAdmin);
-                    }
-                    throw new BadCredentialsException("Пайдаланушы табылмады немесе құпия сөз қате");
-                });
+                .orElseThrow(() -> new BadCredentialsException("Пайдаланушы табылмады немесе құпия сөз қате"));
 
         if (user.getPasswordHash() == null || !passwordEncoder.matches(dto.getPassword(), user.getPasswordHash())) {
-            if ("admin@tanda.kz".equalsIgnoreCase(email) && "admin123".equals(dto.getPassword())) {
-                user.setPasswordHash(passwordEncoder.encode("admin123"));
-                user.setRole("admin");
-                user.setIsActive(true);
-                user = userRepository.save(user);
-                log.info("Admin password self-healed on login: admin@tanda.kz");
-            } else {
-                throw new BadCredentialsException("Пайдаланушы табылмады немесе құпия сөз қате");
-            }
+            throw new BadCredentialsException("Пайдаланушы табылмады немесе құпия сөз қате");
         }
 
         if (Boolean.FALSE.equals(user.getIsActive())) {
@@ -250,6 +229,35 @@ public class AuthService {
                 .authProvider(user.getAuthProvider() != null ? user.getAuthProvider() : (user.getGoogleId() != null ? "GOOGLE" : "LOCAL"))
                 .hasPassword(user.getPasswordHash() != null)
                 .build();
+    }
+
+    @Transactional
+    public UserResponseDto updateProfile(String email, com.tanda.dto.auth.UpdateProfileRequestDto request) {
+        User user = userRepository.findByEmail(email.toLowerCase())
+                .orElseThrow(() -> new ResourceNotFoundException("Пайдаланушы табылмады"));
+
+        if (request.getName() != null && !request.getName().isBlank()) {
+            user.setName(request.getName().trim());
+        }
+        if (request.getAvatarUrl() != null) {
+            user.setAvatarUrl(request.getAvatarUrl().isBlank() ? null : request.getAvatarUrl().trim());
+        }
+        user = userRepository.save(user);
+        return toUserDto(user);
+    }
+
+    @Transactional
+    public void changePassword(String email, com.tanda.dto.auth.ChangePasswordRequestDto request) {
+        User user = userRepository.findByEmail(email.toLowerCase())
+                .orElseThrow(() -> new ResourceNotFoundException("Пайдаланушы табылмады"));
+
+        if (user.getPasswordHash() == null || !passwordEncoder.matches(request.getCurrentPassword(), user.getPasswordHash())) {
+            throw new BadRequestException("Қазіргі құпиясөз қате");
+        }
+
+        user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+        log.info("Password successfully changed for user: {}", email);
     }
 
     private String formatIdNumber(long num) {

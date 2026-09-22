@@ -135,6 +135,37 @@ public class AuthController {
         return ResponseEntity.ok(authService.getMe(principal.getEmail()));
     }
 
+    @PatchMapping("/profile")
+    public ResponseEntity<UserResponseDto> updateProfile(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @Valid @RequestBody com.tanda.dto.auth.UpdateProfileRequestDto request) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        return ResponseEntity.ok(authService.updateProfile(principal.getEmail(), request));
+    }
+
+    @PutMapping("/profile")
+    public ResponseEntity<UserResponseDto> putProfile(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @Valid @RequestBody com.tanda.dto.auth.UpdateProfileRequestDto request) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        return ResponseEntity.ok(authService.updateProfile(principal.getEmail(), request));
+    }
+
+    @PutMapping("/password")
+    public ResponseEntity<Map<String, String>> changePassword(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @Valid @RequestBody com.tanda.dto.auth.ChangePasswordRequestDto request) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        authService.changePassword(principal.getEmail(), request);
+        return ResponseEntity.ok(Map.of("message", "Құпиясөз сәтті өзгертілді"));
+    }
+
     private ResponseCookie createRefreshTokenCookie(String token, long maxAge) {
         return ResponseCookie.from(REFRESH_COOKIE_NAME, token)
                 .httpOnly(true)

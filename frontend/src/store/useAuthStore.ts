@@ -2,22 +2,6 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { api } from '../lib/api';
 import { User, AdminPermission } from '../types';
-import { useMessageStore } from './useMessageStore';
-
-function sendWelcomeMessage(user: { id: string; name?: string; email: string }) {
-  try {
-    useMessageStore.getState().sendMessage({
-      title: 'Tanda әлеміне қош келдіңіз!',
-      content: `Құрметті ${user.name || 'оқырман'}! Tanda онлайн кітапханасына сәтті тіркелуіңізбен құттықтаймыз! Мұнда қазақ және әлем әдебиетінің таңдаулы жауһарларын электронды түрде оқып, аудио нұсқасын тыңдай аласыз. Өзіңізге ұнаған кітаптарды «Менің сөрем» бөліміне қосып, кітап оқу сапарыңызды бастаңыз!`,
-      targetType: 'single',
-      targetUserIds: [user.id],
-      targetUserNames: [user.name || 'Оқырман'],
-      priority: 'news',
-      senderName: 'Tanda',
-      canReaderDelete: false,
-    });
-  } catch {}
-}
 
 interface AuthState {
   user: User | null;
@@ -69,10 +53,6 @@ interface AuthState {
   // Modal helpers
   openAuthModal: (mode?: 'login' | 'signup') => void;
   closeAuthModal: () => void;
-
-  // Convenience helpers
-  loginAsAdmin: () => Promise<void>;
-  loginAsClient: (email?: string, name?: string) => Promise<void>;
 }
 
 const USERS_REGISTRY_KEY = 'tanda_users_registry_v1';
@@ -249,86 +229,6 @@ function saveStoredUsers(users: User[]) {
   try {
     localStorage.setItem(USERS_REGISTRY_KEY, JSON.stringify(users));
   } catch {}
-}
-
-export function checkAndSendBirthdayGreeting(user?: User | null): boolean {
-  if (!user || !user.birthDate) return false;
-
-  try {
-    const today = new Date();
-    const currentYear = today.getFullYear();
-    const currentMonth = String(today.getMonth() + 1).padStart(2, '0');
-    const currentDay = String(today.getDate()).padStart(2, '0');
-    const todayStr = `${currentYear}-${currentMonth}-${currentDay}`;
-
-    // Parse user birthDate (supports "DD.MM.YYYY", "YYYY-MM-DD", "DD/MM/YYYY")
-    const parts = user.birthDate.split(/[-./]/);
-    let birthMonth = '';
-    let birthDay = '';
-
-    if (parts.length === 3) {
-      if (parts[0].length === 4) {
-        // YYYY-MM-DD
-        birthMonth = parts[1].padStart(2, '0');
-        birthDay = parts[2].padStart(2, '0');
-      } else {
-        // DD.MM.YYYY
-        birthDay = parts[0].padStart(2, '0');
-        birthMonth = parts[1].padStart(2, '0');
-      }
-    } else if (parts.length === 2) {
-      birthDay = parts[0].padStart(2, '0');
-      birthMonth = parts[1].padStart(2, '0');
-    }
-
-    if (!birthMonth || !birthDay) return false;
-
-    // Check if today is the user's birthday (same month and day)
-    if (birthMonth === currentMonth && birthDay === currentDay) {
-      // Deliver birthday greeting & 1-month free premium gift only once per calendar year
-      if (user.lastBirthdayGiftYear !== currentYear && user.lastBirthdayGreetingYear !== currentYear) {
-        // Calculate new 1-month (30-day) premium expiry date
-        const baseTime = (user.isPremium && user.premiumExpiresAt && new Date(user.premiumExpiresAt).getTime() > Date.now())
-          ? new Date(user.premiumExpiresAt).getTime()
-          : Date.now();
-        const newExpiresAt = new Date(baseTime + 30 * 24 * 60 * 60 * 1000).toISOString();
-
-        // Send celebratory message to reader
-        useMessageStore.getState().sendMessage({
-          title: `🎉 Туған күніңіз құтты болсын, ${user.name || 'құрметті оқырман'}!`,
-          content: `Құрметті ${user.name || 'оқырман'}! Сізді бүгінгі жеке мерекеңіз — туған күніңізбен Tanda онлайн кітапханасының ұжымы шын жүректен құттықтайды! 🎂✨\n\nСізге арнайы 1 айлық (30 күндік) Tanda Premium сыйлыққа берілді! Барлық кітаптар мен аудиокітаптарды шектеусіз оқып, тыңдауыңызға тілектеспіз! 🎁📚`,
-          targetType: 'single',
-          targetUserIds: [user.id],
-          targetUserNames: [user.name || 'Оқырман'],
-          priority: 'important',
-          senderName: 'Tanda',
-          canReaderDelete: true,
-        });
-
-        // Update user state with premium and gift flags
-        const updatedUser: User = {
-          ...user,
-          isPremium: true,
-          premiumExpiresAt: newExpiresAt,
-          lastBirthdayGreetingYear: currentYear,
-          lastBirthdayGiftYear: currentYear,
-          lastBirthdayGiftDate: todayStr,
-        };
-
-        const allUsers = getStoredUsers();
-        const idx = allUsers.findIndex((u) => u.id === user.id);
-        if (idx >= 0) {
-          allUsers[idx] = updatedUser;
-          saveStoredUsers(allUsers);
-        }
-        useAuthStore.setState({ user: updatedUser });
-        return true;
-      }
-    }
-  } catch (err) {
-    console.error('Birthday greeting check error:', err);
-  }
-  return false;
 }
 
 const RESERVED_USERNAMES_KEY = 'tanda_reserved_usernames_v1';
@@ -1077,18 +977,6 @@ export const useAuthStore = create<AuthState>()(
           : Date.now();
         const newExpiresAt = new Date(baseTime + 30 * 24 * 60 * 60 * 1000).toISOString();
 
-        // Send celebratory message
-        useMessageStore.getState().sendMessage({
-          title: `🎉 Туған күніңіз құтты болсын, ${targetUser.name || 'құрметті оқырман'}!`,
-          content: `Құрметті ${targetUser.name || 'оқырман'}! Сізді бүгінгі жеке мерекеңіз — туған күніңізбен Tanda онлайн кітапханасының ұжымы шын жүректен құттықтайды! 🎂✨\n\nСізге арнайы 1 айлық (30 күндік) Tanda Premium сыйлыққа берілді! Барлық кітаптар мен аудиокітаптарды шектеусіз оқып, тыңдауыңызға тілектеспіз! 🎁📚`,
-          targetType: 'single',
-          targetUserIds: [targetUser.id],
-          targetUserNames: [targetUser.name || 'Оқырман'],
-          priority: 'important',
-          senderName: 'Tanda',
-          canReaderDelete: true,
-        });
-
         const updatedUser: User = {
           ...targetUser,
           isPremium: true,
@@ -1294,7 +1182,6 @@ export const useAuthStore = create<AuthState>()(
 
         allUsers.push(newUser);
         saveStoredUsers(allUsers);
-        sendWelcomeMessage(newUser);
 
         // Try backend sync if online
         try {
@@ -1363,36 +1250,8 @@ export const useAuthStore = create<AuthState>()(
           }
         }
 
-        const updatedUser: User = {
-          ...currentUser,
-          name: cleanName,
-          email: cleanEmail,
-          phone: cleanPhone,
-          username: rawUsername || undefined,
-          birthDate: cleanBirthDate,
-          gender: cleanGender,
-          avatarUrl: newAvatarUrl,
-        };
-
-        // Update registry
-        const allUsers = getStoredUsers();
-        const existingIdx = allUsers.findIndex((u) => u.id === currentUser.id);
-        if (existingIdx >= 0) {
-          allUsers[existingIdx] = updatedUser;
-        } else {
-          allUsers.push(updatedUser);
-        }
-        saveStoredUsers(allUsers);
-
-        // Update state
-        set({ user: updatedUser });
-
-        // Trigger birthday greeting check if birthDate was set
-        checkAndSendBirthdayGreeting(updatedUser);
-
-        // Optional sync with backend
         try {
-          await api.put('/api/v1/auth/profile', {
+          const { data: updatedData } = await api.patch('/api/v1/auth/profile', {
             name: cleanName,
             email: cleanEmail,
             phone: cleanPhone,
@@ -1401,9 +1260,36 @@ export const useAuthStore = create<AuthState>()(
             gender: cleanGender || null,
             avatarUrl: newAvatarUrl || null,
           });
-        } catch {}
 
-        return { success: true };
+          const updatedUser: User = {
+            ...currentUser,
+            ...updatedData,
+            name: cleanName,
+            email: cleanEmail,
+            phone: cleanPhone,
+            username: rawUsername || currentUser.username,
+            birthDate: cleanBirthDate || currentUser.birthDate,
+            gender: cleanGender || currentUser.gender,
+            avatarUrl: newAvatarUrl || currentUser.avatarUrl,
+          };
+
+          const allUsers = getStoredUsers();
+          const existingIdx = allUsers.findIndex((u) => u.id === currentUser.id);
+          if (existingIdx >= 0) {
+            allUsers[existingIdx] = updatedUser;
+          } else {
+            allUsers.push(updatedUser);
+          }
+          saveStoredUsers(allUsers);
+
+          set({ user: updatedUser });
+          return { success: true };
+        } catch (err: any) {
+          return {
+            success: false,
+            error: err.response?.data?.message || err.message || 'Профильді жаңарту сәтсіз аяқталды',
+          };
+        }
       },
 
       updateAvatar: async (avatarUrl: string | null) => {
@@ -1412,34 +1298,34 @@ export const useAuthStore = create<AuthState>()(
           return { success: false, error: 'Жүйеге кірмегенсіз' };
         }
 
-        const updatedUser: User = {
-          ...currentUser,
-          avatarUrl: avatarUrl || undefined,
-        };
-
-        // Update registry
-        const allUsers = getStoredUsers();
-        const existingIdx = allUsers.findIndex((u) => u.id === currentUser.id);
-        if (existingIdx >= 0) {
-          allUsers[existingIdx] = updatedUser;
-        } else {
-          allUsers.push(updatedUser);
-        }
-        saveStoredUsers(allUsers);
-
-        // Update state
-        set({ user: updatedUser });
-
-        // Optional sync with backend
         try {
-          await api.put('/api/v1/auth/profile', {
-            name: currentUser.name,
-            email: currentUser.email,
+          const { data: updatedData } = await api.patch('/api/v1/auth/profile', {
             avatarUrl: avatarUrl || null,
           });
-        } catch {}
 
-        return { success: true };
+          const updatedUser: User = {
+            ...currentUser,
+            ...updatedData,
+            avatarUrl: avatarUrl || undefined,
+          };
+
+          const allUsers = getStoredUsers();
+          const existingIdx = allUsers.findIndex((u) => u.id === currentUser.id);
+          if (existingIdx >= 0) {
+            allUsers[existingIdx] = updatedUser;
+          } else {
+            allUsers.push(updatedUser);
+          }
+          saveStoredUsers(allUsers);
+
+          set({ user: updatedUser });
+          return { success: true };
+        } catch (err: any) {
+          return {
+            success: false,
+            error: err.response?.data?.message || err.message || 'Аватарды жаңарту сәтсіз аяқталды',
+          };
+        }
       },
 
       changePassword: async (currentPassword: string, newPassword: string) => {
@@ -1454,29 +1340,23 @@ export const useAuthStore = create<AuthState>()(
           return { success: false, error: 'Жаңа құпиясөз кемінде 6 таңбадан тұруы керек' };
         }
 
-        // Try backend sync if available
         try {
           await api.put('/api/v1/auth/password', {
             currentPassword,
             newPassword,
           });
-        } catch {}
-
-        return { success: true };
+          return { success: true };
+        } catch (err: any) {
+          return {
+            success: false,
+            error: err.response?.data?.message || err.message || 'Құпиясөзді өзгерту сәтсіз аяқталды',
+          };
+        }
       },
 
       login: async (emailOrPhone: string, password: string) => {
         set({ isLoading: true });
         const trimmed = emailOrPhone.trim().toLowerCase();
-        
-        // Extract national phone digits if an entered value looks like a phone number
-        const cleanDigits = trimmed.replace(/\D/g, '');
-        let phoneNational = '';
-        if (cleanDigits.length === 11 && (cleanDigits.startsWith('7') || cleanDigits.startsWith('8'))) {
-          phoneNational = cleanDigits.substring(1, 11);
-        } else if (cleanDigits.length === 10) {
-          phoneNational = cleanDigits;
-        }
 
         try {
           const { data } = await api.post('/api/v1/auth/login', {
@@ -1491,57 +1371,7 @@ export const useAuthStore = create<AuthState>()(
           localStorage.setItem('tanda_token', data.token);
           set({
             user: data.user,
-            role: data.user.role as 'admin' | 'client',
-            isAuthenticated: true,
-            authModalOpen: false,
-          });
-        } catch (err: any) {
-          if (err.message && err.message.includes('бұғатталған')) {
-            throw err;
-          }
-
-          // Fallback mock authentication if backend is offline
-          const allUsers = getStoredUsers();
-          let matched = allUsers.find((u) => {
-            if (u.email.toLowerCase() === trimmed) return true;
-            if (u.username && u.username.toLowerCase() === trimmed.replace(/^@/, '')) return true;
-            if (u.idNumber && u.idNumber.toLowerCase() === trimmed) return true;
-            if (phoneNational && u.phone) {
-              const uDigits = u.phone.replace(/\D/g, '');
-              const uNat = (uDigits.length > 10 && (uDigits.startsWith('7') || uDigits.startsWith('8')))
-                ? uDigits.substring(1, 11)
-                : uDigits.substring(0, 10);
-              if (uNat === phoneNational) return true;
-            }
-            return false;
-          });
-
-          if (matched && matched.isActive === false) {
-            throw new Error('Сіздің аккаунтыңыз әкімші тарапынан бұғатталған. Жүйеге кіре алмайсыз.');
-          }
-
-          if (!matched) {
-            const isAdmin = trimmed.includes('admin') || trimmed === 'admin@tanda.kz';
-            matched = {
-              id: isAdmin ? '001007' : `user-${Date.now()}`,
-              idNumber: isAdmin ? '0000 0001' : get().getNextAvailableIdNumber(),
-              name: isAdmin ? 'Әкімші' : 'Оқырман',
-              email: trimmed.includes('@') ? trimmed : `${trimmed}@tanda.kz`,
-              username: isAdmin ? 'admin' : (trimmed.includes('@') ? trimmed.split('@')[0] : trimmed),
-              phone: phoneNational ? formatPhoneNumber(trimmed) : undefined,
-              role: isAdmin ? 'admin' : 'client',
-              avatarUrl: isAdmin ? undefined : DEFAULT_READER_AVATAR,
-              isActive: true,
-              createdAt: new Date().toISOString(),
-            };
-            allUsers.push(matched);
-            saveStoredUsers(allUsers);
-          }
-
-          localStorage.setItem('tanda_token', 'mock-jwt-token');
-          set({
-            user: matched,
-            role: matched.role,
+            role: data.user.role as 'admin' | 'client' | 'author',
             isAuthenticated: true,
             authModalOpen: false,
           });
@@ -1561,70 +1391,7 @@ export const useAuthStore = create<AuthState>()(
           localStorage.setItem('tanda_token', data.token);
           set({
             user: data.user,
-            role: data.user.role as 'admin' | 'client',
-            isAuthenticated: true,
-            authModalOpen: false,
-          });
-        } catch (err: any) {
-          if (err.message && err.message.includes('бұғатталған')) {
-            throw err;
-          }
-
-          const payload = (() => {
-            try {
-              const base64Url = credential.split('.')[1];
-              const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-              const jsonPayload = decodeURIComponent(
-                atob(base64)
-                  .split('')
-                  .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-                  .join('')
-              );
-              return JSON.parse(jsonPayload);
-            } catch {
-              return { email: 'google.user@gmail.com', name: 'Google Пайдаланушысы' };
-            }
-          })();
-
-          const email = (payload.email || 'google.user@gmail.com').toLowerCase();
-          const name = payload.name || payload.given_name || 'Google Пайдаланушысы';
-          const picture = payload.picture || DEFAULT_READER_AVATAR;
-          const allUsers = getStoredUsers();
-          let matched = allUsers.find((u) => u.email.toLowerCase() === email);
-
-          if (matched && matched.isActive === false) {
-            throw new Error('Сіздің аккаунтыңыз әкімші тарапынан бұғатталған. Жүйеге кіре алмайсыз.');
-          }
-
-          if (!matched) {
-            const idNum = get().getNextAvailableIdNumber();
-            matched = {
-              id: `google-${Date.now()}`,
-              idNumber: idNum,
-              name,
-              email,
-              username: email.split('@')[0],
-              role: 'client',
-              authProvider: 'GOOGLE',
-              avatarUrl: picture,
-              hasPassword: false,
-              isActive: true,
-              createdAt: new Date().toISOString(),
-            };
-            allUsers.push(matched);
-            saveStoredUsers(allUsers);
-            sendWelcomeMessage(matched);
-          } else {
-            if (picture) {
-              matched.avatarUrl = picture;
-              saveStoredUsers(allUsers);
-            }
-          }
-
-          localStorage.setItem('tanda_token', 'mock-google-token');
-          set({
-            user: matched,
-            role: matched.role,
+            role: data.user.role as 'admin' | 'client' | 'author',
             isAuthenticated: true,
             authModalOpen: false,
           });
@@ -1638,7 +1405,17 @@ export const useAuthStore = create<AuthState>()(
         const cleanEmail = email.trim().toLowerCase();
         try {
           const { data } = await api.post('/api/v1/auth/send-verification-code', { email: cleanEmail, type });
-          return data;
+          return {
+            success: true,
+            message: data?.message || 'Растау коды поштаңызға сәтті жіберілді',
+            cooldown: data?.cooldown || 60,
+          };
+        } catch (err: any) {
+          return {
+            success: false,
+            message: err.response?.data?.message || err.message || 'Растау кодын жіберу сәтсіз аяқталды',
+            cooldown: 0,
+          };
         } finally {
           set({ isLoading: false });
         }
@@ -1646,38 +1423,29 @@ export const useAuthStore = create<AuthState>()(
 
       register: async (name: string, email: string, password: string, code?: string) => {
         set({ isLoading: true });
-        const trimmedEmail = email.trim().toLowerCase();
-
+        const cleanName = name.trim();
+        const cleanEmail = email.trim().toLowerCase();
         try {
           const { data } = await api.post('/api/v1/auth/register', {
-            name: name.trim(),
-            email: trimmedEmail,
+            name: cleanName,
+            email: cleanEmail,
             password,
-            code: code ? code.trim() : '',
+            code,
           });
-          const regUser = {
-            ...data.user,
-            avatarUrl: data.user?.avatarUrl || DEFAULT_READER_AVATAR,
-          };
+
           localStorage.setItem('tanda_token', data.token);
           set({
-            user: regUser,
-            role: regUser.role as 'admin' | 'client',
+            user: data.user,
+            role: data.user.role as 'admin' | 'client' | 'author',
             isAuthenticated: true,
             authModalOpen: false,
           });
-          sendWelcomeMessage(regUser);
         } finally {
           set({ isLoading: false });
         }
       },
 
       logout: () => {
-        // Automatically notify listeners (e.g. audio player) on logout
-        if (typeof window !== 'undefined') {
-          window.dispatchEvent(new CustomEvent('tanda:logout'));
-        }
-
         localStorage.removeItem('tanda_token');
         api.post('/api/v1/auth/logout').catch(() => {});
         set({ user: null, role: 'client', isAuthenticated: false, authModalOpen: false });
@@ -1685,17 +1453,10 @@ export const useAuthStore = create<AuthState>()(
 
       restoreSession: async () => {
         const token = localStorage.getItem('tanda_token');
-        const currentUser = get().user;
-
-        // If stored as admin and token is mock or missing, acquire real token from backend
-        if ((!token || token.startsWith('mock-')) && currentUser?.role === 'admin' && (currentUser?.email === 'admin@tanda.kz' || currentUser?.isSuperAdmin)) {
-          try {
-            await get().login('admin@tanda.kz', 'admin123');
-            return;
-          } catch {}
-        }
-
-        if (!token) {
+        if (!token || token.startsWith('mock-')) {
+          if (token?.startsWith('mock-')) {
+            localStorage.removeItem('tanda_token');
+          }
           return;
         }
 
@@ -1703,23 +1464,14 @@ export const useAuthStore = create<AuthState>()(
           const { data } = await api.get('/api/v1/auth/me');
           set({
             user: data,
-            role: data.role as 'admin' | 'client',
+            role: data.role as 'admin' | 'client' | 'author',
             isAuthenticated: true,
           });
-        } catch {
-          // If backend unavailable but token exists, retain cached user from persist
-        }
-      },
-
-      loginAsAdmin: async () => {
-        await get().login('admin@tanda.kz', 'admin123');
-      },
-
-      loginAsClient: async (email = 'reader@tanda.kz', name = 'Оқырман') => {
-        try {
-          await get().login(email, 'reader123');
-        } catch {
-          await get().register(name, email, 'reader123');
+        } catch (err: any) {
+          if (err?.response?.status === 401) {
+            localStorage.removeItem('tanda_token');
+            set({ user: null, role: 'client', isAuthenticated: false });
+          }
         }
       },
     }),

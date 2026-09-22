@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, User as UserIcon, ArrowRight, ArrowLeft, Shield, CheckCircle2, Tag } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, User as UserIcon, ArrowRight, ArrowLeft, Tag } from 'lucide-react';
 import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
 import { useAuthStore } from '../../store/useAuthStore';
 import { usePromoStore } from '../../store/usePromoStore';
@@ -21,7 +21,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialMode }) => {
   const isSignupPath = location.pathname === '/signup' || location.pathname === '/register';
   const mode: 'login' | 'signup' = initialMode || (isSignupPath ? 'signup' : 'login');
 
-  const { isAuthenticated, user, role, isLoading, login, register, loginAsAdmin, loginAsClient, loginWithGoogle } = useAuthStore();
+  const { isAuthenticated, user, role, isLoading, login, register, loginWithGoogle } = useAuthStore();
   const { activatePromoCode } = usePromoStore();
   const { showToast } = useToastStore();
 
@@ -128,25 +128,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialMode }) => {
     }
   };
 
-  const handleQuickLogin = async (targetRole: 'admin' | 'client') => {
-    setErrorMessage('');
-    try {
-      if (targetRole === 'admin') {
-        await loginAsAdmin();
-        showToast('Әкімші (Admin) аккаунтымен кірдіңіз', 'success');
-        navigate('/admin');
-      } else {
-        await loginAsClient('reader@tanda.kz', 'Оқырман');
-        showToast('Оқырман (Reader) аккаунтымен кірдіңіз', 'success');
-        navigate(redirectUrl);
-      }
-    } catch (err: any) {
-      const msg = err.message || 'Жүйеге кіру мүмкін болмады';
-      setErrorMessage(msg);
-      showToast(msg, 'error');
-    }
-  };
-
   const handleGoogleSuccess = async (response: CredentialResponse) => {
     if (response.credential) {
       try {
@@ -209,31 +190,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialMode }) => {
                 ? 'Жеке кабинетке кіру үшін деректеріңізді енгізіңіз.'
                 : 'Жаңа аккаунт ашып, барлық қазақша кітаптар мен аудиоларды оқыңыз.'}
             </p>
-          </div>
-
-          {/* Quick Demo Login Pill Helper */}
-          <div className="mb-5 p-3 bg-slate-50 rounded-2xl border border-slate-100">
-            <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 text-center">
-              Жылдам кіру (Тесттік режим):
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('admin')}
-                className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-white border border-[#0057A8]/30 hover:border-[#0057A8] text-[#0057A8] text-xs font-bold transition shadow-sm hover:shadow active:scale-[0.98] cursor-pointer"
-              >
-                <Shield size={14} className="text-[#0057A8]" />
-                <span>Админ</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('client')}
-                className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-white border border-emerald-300 hover:border-emerald-500 text-emerald-700 text-xs font-bold transition shadow-sm hover:shadow active:scale-[0.98] cursor-pointer"
-              >
-                <CheckCircle2 size={14} className="text-emerald-600" />
-                <span>Оқырман</span>
-              </button>
-            </div>
           </div>
 
           {/* 1-Click Social Sign-In (Google) */}

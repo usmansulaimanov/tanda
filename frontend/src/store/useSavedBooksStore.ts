@@ -1,225 +1,100 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 import { api } from '../lib/api';
-import { useAuthStore } from './useAuthStore';
-import { useMyBooksStore } from './useMyBooksStore';
 
 interface SavedBooksState {
-  savedByUser: Record<string, string[]>;
   savedBookIds: string[];
   isLoading: boolean;
 
   fetchSavedBooks: () => Promise<void>;
   getSavedBookIds: (userKey?: string) => string[];
-  toggleSavedBook: (bookId: string, userKey?: string) => boolean;
+  toggleSavedBook: (bookId: string, userKey?: string) => Promise<boolean>;
   isBookSaved: (bookId: string, userKey?: string) => boolean;
-  addSavedBook: (bookId: string, userKey?: string) => void;
-  removeSavedBook: (bookId: string, userKey?: string) => void;
+  addSavedBook: (bookId: string, userKey?: string) => Promise<void>;
+  removeSavedBook: (bookId: string, userKey?: string) => Promise<void>;
   clearSavedBooks: (userKey?: string) => void;
 }
 
-export function resolveUserKey(explicitKey?: string): string {
-  if (explicitKey && typeof explicitKey === 'string') {
-    return explicitKey.trim().toLowerCase();
-  }
-  try {
-    const currentUser = useAuthStore?.getState?.()?.user;
-    if (currentUser?.email || currentUser?.id) {
-      return String(currentUser.email || currentUser.id).trim().toLowerCase();
-    }
-  } catch {}
+export const useSavedBooksStore = create<SavedBooksState>((set, get) => ({
+  savedBookIds: [],
+  isLoading: false,
 
-  try {
-    const authStorage = typeof window !== 'undefined' ? localStorage.getItem('tanda_auth_storage') : null;
-    if (authStorage) {
-      const parsed = JSON.parse(authStorage);
-      const user = parsed?.state?.user;
-      if (user?.email || user?.id) {
-        return String(user.email || user.id).trim().toLowerCase();
+  fetchSavedBooks: async () => {
+    const token = localStorage.getItem('tanda_token');
+    if (!token) {
+      set({ savedBookIds: [] });
+      return;
+    }
+
+    set({ isLoading: true });
+    try {
+      const { data } = await api.get('/api/v1/saved-books');
+      if (data?.bookIds && Array.isArray(data.bookIds)) {
+        set({ savedBookIds: data.bookIds.map(String) });
       }
+    } catch (err: any) {
+      if (err?.response?.status === 401) {
+        set({ savedBookIds: [] });
+      }
+    } finally {
+      set({ isLoading: false });
     }
-  } catch {}
+  },
 
-  return 'guest';
-}
+  getSavedBookIds: (_userKey?: string) => {
+    return get().savedBookIds;
+  },
 
-export const useSavedBooksStore = create<SavedBooksState>()(
-  persist(
-    (set, get) => ({
-      savedByUser: {},
-      savedBookIds: [],
-      isLoading: false,
+  toggleSavedBook: async (bookId: string, _userKey?: string) => {
+    const strId = String(bookId);
+    const currentlySaved = get().savedBookIds.includes(strId);
 
-      fetchSavedBooks: async () => {
-        const key = resolveUserKey();
-        const localList = (get().savedByUser[key] || []).map(String);
-        set({ savedBookIds: localList });
-
-        const token = localStorage.getItem('tanda_token');
-        if (token && token !== 'mock-jwt-token') {
-          try {
-            const { data } = await api.get('/api/v1/saved-books');
-            if (data?.bookIds && Array.isArray(data.bookIds)) {
-              const strList = data.bookIds.map(String);
-              const allSaved = { ...get().savedByUser };
-              allSaved[key] = strList;
-              set({ savedByUser: allSaved, savedBookIds: strList });
-            }
-          } catch {
-            // retain local list on offline/GitHub Pages
-          }
-        }
-      },
-
-      getSavedBookIds: (userKey?: string) => {
-        const key = resolveUserKey(userKey);
-        const list = new Set((get().savedByUser[key] || []).map(String));
-        try {
-          const shelf = useMyBooksStore.getState().shelfByUser[key] || {};
-          for (const [bId, rec] of Object.entries(shelf)) {
-            if (rec.status === 'want_to_read') {
-              list.add(String(bId));
-            }
-          }
-        } catch {}
-        return Array.from(list);
-      },
-
-      toggleSavedBook: (bookId: string, userKey?: string) => {
-        const key = resolveUserKey(userKey);
-        const strId = String(bookId);
-        const allSaved = { ...get().savedByUser };
-        const userSaved = (allSaved[key] || []).map(String);
-
-        let isNowSaved = false;
-        let updatedList: string[] = [];
-
-        if (userSaved.includes(strId)) {
-          updatedList = userSaved.filter((id) => id !== strId);
-          isNowSaved = false;
-          api.delete(`/api/v1/saved-books/${strId}`).catch(() => {});
-
-          try {
-            const myStore = useMyBooksStore.getState();
-            const rec = myStore.getBookRecord(strId, key);
-            if (rec?.status === 'want_to_read') {
-              myStore.removeBookFromShelf(strId, key);
-            }
-          } catch {}
-        } else {
-          updatedList = [...userSaved, strId];
-          isNowSaved = true;
-          api.post(`/api/v1/saved-books/${strId}`).catch(() => {});
-
-          try {
-            const myStore = useMyBooksStore.getState();
-            const rec = myStore.getBookRecord(strId, key);
-            if (!rec || !rec.status) {
-              myStore.setBookStatus(strId, 'want_to_read', key);
-            }
-          } catch {}
-        }
-
-        allSaved[key] = updatedList;
-        set({
-          savedByUser: allSaved,
-          savedBookIds: updatedList,
-        });
-
-        return isNowSaved;
-      },
-
-      isBookSaved: (bookId: string, userKey?: string) => {
-        const key = resolveUserKey(userKey);
-        const strId = String(bookId);
-        const userSaved = (get().savedByUser[key] || []).map(String);
-        if (userSaved.includes(strId)) return true;
-        try {
-          const shelf = useMyBooksStore.getState().shelfByUser[key] || {};
-          if (shelf[strId]?.status === 'want_to_read') return true;
-        } catch {}
-        return false;
-      },
-
-      addSavedBook: (bookId: string, userKey?: string) => {
-        const key = resolveUserKey(userKey);
-        const strId = String(bookId);
-        const allSaved = { ...get().savedByUser };
-        const userSaved = (allSaved[key] || []).map(String);
-
-        if (!userSaved.includes(strId)) {
-          const updatedList = [...userSaved, strId];
-          allSaved[key] = updatedList;
-          set({
-            savedByUser: allSaved,
-            savedBookIds: updatedList,
-          });
-          api.post(`/api/v1/saved-books/${strId}`).catch(() => {});
-
-          try {
-            const myStore = useMyBooksStore.getState();
-            const rec = myStore.getBookRecord(strId, key);
-            if (!rec) {
-              myStore.setBookStatus(strId, 'want_to_read', key);
-            }
-          } catch {}
-        }
-      },
-
-      removeSavedBook: (bookId: string, userKey?: string) => {
-        const key = resolveUserKey(userKey);
-        const strId = String(bookId);
-        const allSaved = { ...get().savedByUser };
-        const userSaved = (allSaved[key] || []).map(String);
-        const updatedList = userSaved.filter((id) => id !== strId);
-
-        allSaved[key] = updatedList;
-        set({
-          savedByUser: allSaved,
-          savedBookIds: updatedList,
-        });
-        api.delete(`/api/v1/saved-books/${strId}`).catch(() => {});
-
-        try {
-          const myStore = useMyBooksStore.getState();
-          const rec = myStore.getBookRecord(strId, key);
-          if (rec?.status === 'want_to_read') {
-            myStore.removeBookFromShelf(strId, key);
-          }
-        } catch {}
-      },
-
-      clearSavedBooks: (userKey?: string) => {
-        const key = resolveUserKey(userKey);
-        const allSaved = { ...get().savedByUser };
-        allSaved[key] = [];
-
-        set({
-          savedByUser: allSaved,
-          savedBookIds: [],
-        });
-      },
-    }),
-    {
-      name: 'tanda_saved_books_storage',
-      onRehydrateStorage: () => (state) => {
-        if (state) {
-          const key = resolveUserKey();
-          state.savedBookIds = (state.savedByUser[key] || []).map(String);
-        }
-      },
+    if (currentlySaved) {
+      await api.delete(`/api/v1/saved-books/${strId}`);
+      set((state) => ({
+        savedBookIds: state.savedBookIds.filter((id) => id !== strId),
+      }));
+      return false;
+    } else {
+      await api.post(`/api/v1/saved-books/${strId}`);
+      set((state) => ({
+        savedBookIds: [...state.savedBookIds, strId],
+      }));
+      return true;
     }
-  )
-);
+  },
 
-// Synchronize savedBookIds whenever the logged-in user changes (login, switch account, logout)
+  isBookSaved: (bookId: string, _userKey?: string) => {
+    return get().savedBookIds.includes(String(bookId));
+  },
+
+  addSavedBook: async (bookId: string, _userKey?: string) => {
+    const strId = String(bookId);
+    if (!get().savedBookIds.includes(strId)) {
+      await api.post(`/api/v1/saved-books/${strId}`);
+      set((state) => ({
+        savedBookIds: [...state.savedBookIds, strId],
+      }));
+    }
+  },
+
+  removeSavedBook: async (bookId: string, _userKey?: string) => {
+    const strId = String(bookId);
+    if (get().savedBookIds.includes(strId)) {
+      await api.delete(`/api/v1/saved-books/${strId}`);
+      set((state) => ({
+        savedBookIds: state.savedBookIds.filter((id) => id !== strId),
+      }));
+    }
+  },
+
+  clearSavedBooks: (_userKey?: string) => {
+    set({ savedBookIds: [] });
+  },
+}));
+
+// Clean legacy localStorage key if present
 if (typeof window !== 'undefined') {
-  setTimeout(() => {
-    useAuthStore?.subscribe?.((authState) => {
-      const key = (authState?.user?.email || authState?.user?.id || 'guest').trim().toLowerCase();
-      const savedState = useSavedBooksStore.getState();
-      const currentList = (savedState.savedByUser[key] || []).map(String);
-      useSavedBooksStore.setState({ savedBookIds: currentList });
-    });
-  }, 0);
+  try {
+    localStorage.removeItem('tanda_saved_books_storage');
+  } catch {}
 }
