@@ -1,6 +1,5 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { useAuthStore } from './useAuthStore';
+import { api } from '../lib/api';
 import { useSavedBooksStore } from './useSavedBooksStore';
 
 export type BookShelfStatus = 'reading' | 'completed' | 'want_to_read';
@@ -14,289 +13,284 @@ export interface UserBookRecord {
   totalPages?: number;
   progressPercent?: number;
   completedAt?: string;
+  title?: string;
+  author?: string;
+  coverImage?: string;
+  category?: string;
+  hasAudio?: boolean;
+  audioDuration?: string;
+  isFree?: boolean;
+  gradient?: string;
 }
 
 interface MyBooksState {
-  shelfByUser: Record<string, Record<string, UserBookRecord>>;
   currentShelf: Record<string, UserBookRecord>;
   activeTab: BookShelfStatus;
+  isLoading: boolean;
 
+  fetchShelf: () => Promise<void>;
   setActiveTab: (tab: BookShelfStatus) => void;
-  setBookStatus: (bookId: string, status: BookShelfStatus, userKey?: string) => void;
-  removeBookFromShelf: (bookId: string, userKey?: string) => void;
-  getBookRecord: (bookId: string, userKey?: string) => UserBookRecord | undefined;
-  getBookStatus: (bookId: string, userKey?: string) => BookShelfStatus | null;
-  getBooksByStatus: (status: BookShelfStatus, userKey?: string) => UserBookRecord[];
+  setBookStatus: (bookId: string, status: BookShelfStatus) => Promise<void>;
+  removeBookFromShelf: (bookId: string) => Promise<void>;
+  getBookRecord: (bookId: string) => UserBookRecord | undefined;
+  getBookStatus: (bookId: string) => BookShelfStatus | null;
+  getBooksByStatus: (status: BookShelfStatus) => UserBookRecord[];
   
-  markAsReading: (bookId: string, currentPage?: number, totalPages?: number, userKey?: string) => void;
-  markAsCompleted: (bookId: string, userKey?: string) => void;
-  markAsWantToRead: (bookId: string, userKey?: string) => void;
-  updateReadingProgress: (bookId: string, currentPage: number, totalPages?: number, userKey?: string) => void;
+  markAsReading: (bookId: string, currentPage?: number, totalPages?: number) => Promise<void>;
+  markAsCompleted: (bookId: string) => Promise<void>;
+  markAsWantToRead: (bookId: string) => Promise<void>;
+  updateReadingProgress: (bookId: string, currentPage: number, totalPages?: number) => Promise<void>;
 }
 
-function resolveUserKey(explicitKey?: string): string {
-  if (explicitKey && typeof explicitKey === 'string') {
-    return explicitKey.trim().toLowerCase();
-  }
-  try {
-    const currentUser = useAuthStore?.getState?.()?.user;
-    if (currentUser?.email || currentUser?.id) {
-      return String(currentUser.email || currentUser.id).trim().toLowerCase();
-    }
-  } catch {}
+export const useMyBooksStore = create<MyBooksState>((set, get) => ({
+  currentShelf: {},
+  activeTab: 'reading',
+  isLoading: false,
 
-  try {
-    const authStorage = typeof window !== 'undefined' ? localStorage.getItem('tanda_auth_storage') : null;
-    if (authStorage) {
-      const parsed = JSON.parse(authStorage);
-      const user = parsed?.state?.user;
-      if (user?.email || user?.id) {
-        return String(user.email || user.id).trim().toLowerCase();
+  fetchShelf: async () => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('tanda_token') : null;
+    if (!token) {
+      set({ currentShelf: {}, isLoading: false });
+      return;
+    }
+
+    set({ isLoading: true });
+    try {
+      const { data } = await api.get('/api/v1/me/books');
+      if (Array.isArray(data)) {
+        const shelfMap: Record<string, UserBookRecord> = {};
+        for (const item of data) {
+          if (item?.bookId) {
+            shelfMap[String(item.bookId)] = {
+              bookId: String(item.bookId),
+              status: (item.status?.toLowerCase() || 'want_to_read') as BookShelfStatus,
+              addedAt: item.addedAt || new Date().toISOString(),
+              lastReadAt: item.lastReadAt,
+              currentPage: item.currentPage || 1,
+              totalPages: item.totalPages,
+              progressPercent: item.progressPercent || 0,
+              completedAt: item.completedAt,
+              title: item.title,
+              author: item.author,
+              coverImage: item.coverImage,
+              category: item.category,
+              hasAudio: item.hasAudio,
+              audioDuration: item.audioDuration,
+              isFree: item.isFree,
+              gradient: item.gradient,
+            };
+          }
+        }
+        set({ currentShelf: shelfMap });
       }
+    } catch (err: any) {
+      if (err?.response?.status === 401) {
+        set({ currentShelf: {} });
+      }
+    } finally {
+      set({ isLoading: false });
     }
-  } catch {}
+  },
 
-  return 'guest';
-}
+  setActiveTab: (tab) => set({ activeTab: tab }),
 
-export const useMyBooksStore = create<MyBooksState>()(
-  persist(
-    (set, get) => ({
-      shelfByUser: {},
-      currentShelf: {},
-      activeTab: 'reading',
+  setBookStatus: async (bookId: string, status: BookShelfStatus) => {
+    const strId = String(bookId);
+    const existing = get().currentShelf[strId];
+    const nowIso = new Date().toISOString();
 
-      setActiveTab: (tab) => set({ activeTab: tab }),
+    const optimisticRecord: UserBookRecord = {
+      bookId: strId,
+      status,
+      addedAt: existing?.addedAt || nowIso,
+      lastReadAt: status === 'reading' ? nowIso : existing?.lastReadAt,
+      currentPage: existing?.currentPage || 1,
+      totalPages: existing?.totalPages,
+      progressPercent: existing?.progressPercent || 0,
+      completedAt: status === 'completed' ? nowIso : undefined,
+    };
 
-      setBookStatus: (bookId: string, status: BookShelfStatus, userKey?: string) => {
-        const key = resolveUserKey(userKey);
-        const strId = String(bookId);
-        const allShelves = { ...get().shelfByUser };
-        const userShelf = { ...(allShelves[key] || {}) };
-        const existing = userShelf[strId];
-        const nowIso = new Date().toISOString();
+    set((state) => ({
+      currentShelf: { ...state.currentShelf, [strId]: optimisticRecord },
+    }));
 
-        userShelf[strId] = {
-          bookId: strId,
-          status,
-          addedAt: existing?.addedAt || nowIso,
-          lastReadAt: status === 'reading' ? nowIso : existing?.lastReadAt,
-          currentPage: existing?.currentPage || 1,
-          totalPages: existing?.totalPages,
-          progressPercent: existing?.progressPercent || 0,
-          completedAt: status === 'completed' ? nowIso : undefined,
-        };
+    try {
+      const { data } = await api.post(`/api/v1/me/books/${strId}`, { status });
+      if (data?.bookId) {
+        set((state) => ({
+          currentShelf: {
+            ...state.currentShelf,
+            [strId]: {
+              ...optimisticRecord,
+              status: (data.status?.toLowerCase() || status) as BookShelfStatus,
+              progressPercent: data.progressPercent ?? optimisticRecord.progressPercent,
+              completedAt: data.completedAt,
+            },
+          },
+        }));
+      }
 
-        allShelves[key] = userShelf;
-        set({
-          shelfByUser: allShelves,
-          currentShelf: userShelf,
-        });
-
-        // If marked as want_to_read, make sure it's in saved store as well
-        if (status === 'want_to_read') {
-          try {
-            useSavedBooksStore.getState().addSavedBook(strId, key);
-          } catch {}
-        }
-      },
-
-      removeBookFromShelf: (bookId: string, userKey?: string) => {
-        const key = resolveUserKey(userKey);
-        const strId = String(bookId);
-        const allShelves = { ...get().shelfByUser };
-        const userShelf = { ...(allShelves[key] || {}) };
-        delete userShelf[strId];
-
-        allShelves[key] = userShelf;
-        set({
-          shelfByUser: allShelves,
-          currentShelf: userShelf,
-        });
-
+      if (status === 'want_to_read') {
         try {
-          useSavedBooksStore.getState().removeSavedBook(strId, key);
+          useSavedBooksStore.getState().addSavedBook(strId);
         } catch {}
-      },
-
-      getBookRecord: (bookId: string, userKey?: string) => {
-        const key = resolveUserKey(userKey);
-        const strId = String(bookId);
-        const userShelf = get().shelfByUser[key] || {};
-        return userShelf[strId];
-      },
-
-      getBookStatus: (bookId: string, userKey?: string) => {
-        const key = resolveUserKey(userKey);
-        const strId = String(bookId);
-        const userShelf = get().shelfByUser[key] || {};
-        const rec = userShelf[strId];
-        if (rec) return rec.status;
-
-        // Fallback: check saved store (saved books automatically count as 'want_to_read')
-        try {
-          const isSaved = useSavedBooksStore.getState().isBookSaved(strId, key);
-          return isSaved ? 'want_to_read' : null;
-        } catch {
-          return null;
-        }
-      },
-
-      getBooksByStatus: (status: BookShelfStatus, userKey?: string) => {
-        const key = resolveUserKey(userKey);
-        const userShelf = get().shelfByUser[key] || {};
-
-        // If requesting 'want_to_read', return all saved books + want_to_read books unified
-        if (status === 'want_to_read') {
-          try {
-            const savedIds = useSavedBooksStore.getState().getSavedBookIds(key);
-            const savedIdSet = new Set(savedIds.map(String));
-
-            for (const [id, rec] of Object.entries(userShelf)) {
-              if (rec.status === 'want_to_read') {
-                savedIdSet.add(String(id));
-              }
-            }
-
-            const list: UserBookRecord[] = [];
-            for (const sId of savedIdSet) {
-              const existingRec = userShelf[sId];
-              list.push({
-                bookId: sId,
-                status: 'want_to_read',
-                addedAt: existingRec?.addedAt || new Date().toISOString(),
-                lastReadAt: existingRec?.lastReadAt,
-                currentPage: existingRec?.currentPage,
-                totalPages: existingRec?.totalPages,
-                progressPercent: existingRec?.progressPercent,
-              });
-            }
-            return list;
-          } catch {}
-        }
-
-        return Object.values(userShelf).filter((r) => r.status === status);
-      },
-
-      markAsReading: (bookId: string, currentPage = 1, totalPages?: number, userKey?: string) => {
-        const key = resolveUserKey(userKey);
-        const strId = String(bookId);
-        const allShelves = { ...get().shelfByUser };
-        const userShelf = { ...(allShelves[key] || {}) };
-        const existing = userShelf[strId];
-
-        // Don't downgrade completed books automatically unless requested
-        if (existing?.status === 'completed') {
-          return;
-        }
-
-        const nowIso = new Date().toISOString();
-        const percent = totalPages && totalPages > 0 
-          ? Math.min(100, Math.round((currentPage / totalPages) * 100))
-          : existing?.progressPercent || 5;
-
-        userShelf[strId] = {
-          bookId: strId,
-          status: 'reading',
-          addedAt: existing?.addedAt || nowIso,
-          lastReadAt: nowIso,
-          currentPage: currentPage || existing?.currentPage || 1,
-          totalPages: totalPages || existing?.totalPages,
-          progressPercent: percent,
-        };
-
-        allShelves[key] = userShelf;
-        set({
-          shelfByUser: allShelves,
-          currentShelf: userShelf,
+      }
+    } catch (err) {
+      console.error('Failed to set book status on server:', err);
+      // Revert if request failed
+      if (existing) {
+        set((state) => ({
+          currentShelf: { ...state.currentShelf, [strId]: existing },
+        }));
+      } else {
+        set((state) => {
+          const next = { ...state.currentShelf };
+          delete next[strId];
+          return { currentShelf: next };
         });
-      },
-
-      markAsCompleted: (bookId: string, userKey?: string) => {
-        const key = resolveUserKey(userKey);
-        const strId = String(bookId);
-        const allShelves = { ...get().shelfByUser };
-        const userShelf = { ...(allShelves[key] || {}) };
-        const existing = userShelf[strId];
-        const nowIso = new Date().toISOString();
-
-        userShelf[strId] = {
-          bookId: strId,
-          status: 'completed',
-          addedAt: existing?.addedAt || nowIso,
-          lastReadAt: nowIso,
-          completedAt: nowIso,
-          currentPage: existing?.totalPages || existing?.currentPage || 1,
-          totalPages: existing?.totalPages,
-          progressPercent: 100,
-        };
-
-        allShelves[key] = userShelf;
-        set({
-          shelfByUser: allShelves,
-          currentShelf: userShelf,
-        });
-      },
-
-      markAsWantToRead: (bookId: string, userKey?: string) => {
-        const key = resolveUserKey(userKey);
-        get().setBookStatus(bookId, 'want_to_read', key);
-      },
-
-      updateReadingProgress: (bookId: string, currentPage: number, totalPages?: number, userKey?: string) => {
-        const key = resolveUserKey(userKey);
-        const strId = String(bookId);
-        const allShelves = { ...get().shelfByUser };
-        const userShelf = { ...(allShelves[key] || {}) };
-        const existing = userShelf[strId];
-        const nowIso = new Date().toISOString();
-
-        const tot = totalPages || existing?.totalPages || 100;
-        const percent = Math.min(100, Math.max(0, Math.round((currentPage / tot) * 100)));
-        const isFinished = percent >= 100;
-
-        userShelf[strId] = {
-          bookId: strId,
-          status: isFinished ? 'completed' : 'reading',
-          addedAt: existing?.addedAt || nowIso,
-          lastReadAt: nowIso,
-          completedAt: isFinished ? nowIso : existing?.completedAt,
-          currentPage,
-          totalPages: tot,
-          progressPercent: percent,
-        };
-
-        allShelves[key] = userShelf;
-        set({
-          shelfByUser: allShelves,
-          currentShelf: userShelf,
-        });
-      },
-    }),
-    {
-      name: 'tanda_my_books_shelf_storage_v1',
-      partialize: (state) => ({
-        shelfByUser: state.shelfByUser,
-      }),
-      onRehydrateStorage: () => (state) => {
-        if (state) {
-          const key = resolveUserKey();
-          state.currentShelf = state.shelfByUser[key] || {};
-          state.activeTab = 'reading';
-        }
-      },
+      }
+      throw err;
     }
-  )
-);
+  },
 
-// Synchronize currentShelf on user change (login/logout/switch)
-if (typeof window !== 'undefined') {
-  setTimeout(() => {
-    useAuthStore?.subscribe?.((authState) => {
-      const key = (authState?.user?.email || authState?.user?.id || 'guest').trim().toLowerCase();
-      const state = useMyBooksStore.getState();
-      const current = state.shelfByUser[key] || {};
-      useMyBooksStore.setState({ currentShelf: current });
+  removeBookFromShelf: async (bookId: string) => {
+    const strId = String(bookId);
+    const existing = get().currentShelf[strId];
+
+    set((state) => {
+      const next = { ...state.currentShelf };
+      delete next[strId];
+      return { currentShelf: next };
     });
-  }, 0);
+
+    try {
+      await api.delete(`/api/v1/me/books/${strId}`);
+      try {
+        useSavedBooksStore.getState().removeSavedBook(strId);
+      } catch {}
+    } catch (err) {
+      console.error('Failed to remove book from shelf on server:', err);
+      if (existing) {
+        set((state) => ({
+          currentShelf: { ...state.currentShelf, [strId]: existing },
+        }));
+      }
+      throw err;
+    }
+  },
+
+  getBookRecord: (bookId: string) => {
+    return get().currentShelf[String(bookId)];
+  },
+
+  getBookStatus: (bookId: string) => {
+    const strId = String(bookId);
+    const rec = get().currentShelf[strId];
+    if (rec) return rec.status;
+
+    try {
+      const isSaved = useSavedBooksStore.getState().isBookSaved(strId);
+      return isSaved ? 'want_to_read' : null;
+    } catch {
+      return null;
+    }
+  },
+
+  getBooksByStatus: (status: BookShelfStatus) => {
+    const shelf = get().currentShelf;
+
+    if (status === 'want_to_read') {
+      try {
+        const savedIds = useSavedBooksStore.getState().getSavedBookIds();
+        const savedIdSet = new Set(savedIds.map(String));
+
+        for (const [id, rec] of Object.entries(shelf)) {
+          if (rec.status === 'want_to_read') {
+            savedIdSet.add(String(id));
+          }
+        }
+
+        const list: UserBookRecord[] = [];
+        for (const sId of savedIdSet) {
+          const existingRec = shelf[sId];
+          list.push({
+            bookId: sId,
+            status: 'want_to_read',
+            addedAt: existingRec?.addedAt || new Date().toISOString(),
+            lastReadAt: existingRec?.lastReadAt,
+            currentPage: existingRec?.currentPage,
+            totalPages: existingRec?.totalPages,
+            progressPercent: existingRec?.progressPercent,
+            title: existingRec?.title,
+            author: existingRec?.author,
+            coverImage: existingRec?.coverImage,
+            category: existingRec?.category,
+            hasAudio: existingRec?.hasAudio,
+            audioDuration: existingRec?.audioDuration,
+            isFree: existingRec?.isFree,
+            gradient: existingRec?.gradient,
+          });
+        }
+        return list;
+      } catch {}
+    }
+
+    return Object.values(shelf).filter((r) => r.status === status);
+  },
+
+  markAsReading: async (bookId: string, currentPage = 1, totalPages?: number) => {
+    const strId = String(bookId);
+    const existing = get().currentShelf[strId];
+    if (existing?.status === 'completed') {
+      return;
+    }
+
+    try {
+      await api.post(`/api/v1/me/books/${strId}`, {
+        status: 'reading',
+        currentPage,
+        totalPages,
+      });
+      await get().fetchShelf();
+    } catch (err) {
+      console.error('Failed to mark as reading on server:', err);
+    }
+  },
+
+  markAsCompleted: async (bookId: string) => {
+    const strId = String(bookId);
+    try {
+      await api.patch(`/api/v1/me/books/${strId}`, {
+        status: 'completed',
+        progressPercent: 100,
+      });
+      await get().fetchShelf();
+    } catch (err) {
+      console.error('Failed to mark as completed on server:', err);
+    }
+  },
+
+  markAsWantToRead: async (bookId: string) => {
+    await get().setBookStatus(bookId, 'want_to_read');
+  },
+
+  updateReadingProgress: async (bookId: string, currentPage: number, totalPages?: number) => {
+    const strId = String(bookId);
+    try {
+      await api.patch(`/api/v1/me/books/${strId}`, {
+        currentPage,
+        totalPages,
+      });
+      await get().fetchShelf();
+    } catch (err) {
+      console.error('Failed to update reading progress on server:', err);
+    }
+  },
+}));
+
+// Clean up deprecated localStorage key immediately
+if (typeof window !== 'undefined') {
+  try {
+    localStorage.removeItem('tanda_my_books_shelf_storage_v1');
+  } catch {}
 }

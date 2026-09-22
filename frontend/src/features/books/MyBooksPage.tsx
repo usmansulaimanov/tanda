@@ -16,7 +16,7 @@ export const MyBooksPage: React.FC = () => {
 
   const { user, isAuthenticated } = useAuthStore();
   const { books, fetchBooks } = useBookStore();
-  const { activeTab, setActiveTab, setBookStatus, removeBookFromShelf, currentShelf, getBooksByStatus } = useMyBooksStore();
+  const { activeTab, setActiveTab, setBookStatus, removeBookFromShelf, currentShelf, getBooksByStatus, fetchShelf } = useMyBooksStore();
   const { savedBookIds, fetchSavedBooks } = useSavedBooksStore();
   const { playBook } = useAudioPlayerStore();
   const { showToast } = useToastStore();
@@ -30,7 +30,8 @@ export const MyBooksPage: React.FC = () => {
     }
     fetchBooks();
     fetchSavedBooks();
-  }, [fetchBooks, fetchSavedBooks, setActiveTab, tabParam]);
+    fetchShelf();
+  }, [fetchBooks, fetchSavedBooks, fetchShelf, setActiveTab, tabParam]);
 
   const handleTabChange = (tab: BookShelfStatus) => {
     setActiveTab(tab);

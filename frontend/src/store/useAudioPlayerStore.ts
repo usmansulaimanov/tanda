@@ -3,8 +3,6 @@ import { persist } from 'zustand/middleware';
 import { Book, AudioChapter } from '../types';
 import { api } from '../lib/api';
 import { useMyBooksStore } from './useMyBooksStore';
-import { useTopAudioStore } from './useTopAudioStore';
-import { useRoyaltyStore } from './useRoyaltyStore';
 
 interface AudioPlayerState {
   currentBook: Book | null;
@@ -57,36 +55,76 @@ function debouncedSyncProgress(bookId: string, chapterId?: string, timeSec?: num
   }, 3000);
 }
 
-let lastTrackedTime: number | null = null;
-let lastTrackedBookId: string | null = null;
-
 export function resetRoyaltyTracking() {
-  lastTrackedTime = null;
-  lastTrackedBookId = null;
+  // Server-side AudioSession handles accurate listening tracking
 }
 
-function trackRoyaltyProgress(bookId: string, currentSec: number) {
-  if (!bookId || currentSec < 0) return;
-  if (lastTrackedBookId !== bookId || lastTrackedTime === null) {
-    lastTrackedBookId = bookId;
-    lastTrackedTime = currentSec;
-    return;
+// Backend Audio Session & Heartbeat Management
+let activeSessionId: string | null = null;
+let heartbeatInterval: any = null;
+
+async function startAudioSession(bookId: string, chapterId?: string) {
+  if (typeof window === 'undefined') return;
+  const token = localStorage.getItem('tanda_token');
+  if (!token) return;
+
+  if (activeSessionId) {
+    await endAudioSession();
   }
 
-  const diff = currentSec - lastTrackedTime;
-
-  // If user skipped forward/backward significantly (> 5s or < 0), reset anchor without counting skipped duration
-  if (diff < 0 || diff > 5) {
-    lastTrackedTime = currentSec;
-    return;
+  try {
+    const { data } = await api.post('/api/v1/audio/sessions', {
+      bookId: String(bookId),
+      chapterId: chapterId ? String(chapterId) : undefined,
+    });
+    if (data?.sessionId) {
+      activeSessionId = data.sessionId;
+      startHeartbeatTimer();
+    }
+  } catch (err) {
+    console.debug('Failed to start audio session:', err);
   }
+}
 
-  // When at least 0.5s of continuous listening has passed, record exact diff and advance anchor
-  if (diff >= 0.5) {
+function startHeartbeatTimer() {
+  if (heartbeatInterval) {
+    clearInterval(heartbeatInterval);
+  }
+  heartbeatInterval = setInterval(async () => {
+    const state = useAudioPlayerStore.getState();
+    if (!state.isPlaying || !activeSessionId) return;
+
     try {
-      useRoyaltyStore.getState().recordListeningTime(bookId, diff);
-    } catch {}
-    lastTrackedTime = currentSec;
+      await api.post(`/api/v1/audio/sessions/${activeSessionId}/heartbeat`, {
+        positionSeconds: Math.floor(state.progress || 0),
+      });
+    } catch (err) {
+      console.debug('Heartbeat error:', err);
+    }
+  }, 15000);
+}
+
+function stopHeartbeatTimer() {
+  if (heartbeatInterval) {
+    clearInterval(heartbeatInterval);
+    heartbeatInterval = null;
+  }
+}
+
+async function endAudioSession(finalPosition?: number) {
+  stopHeartbeatTimer();
+  if (!activeSessionId) return;
+
+  const currentId = activeSessionId;
+  activeSessionId = null;
+
+  try {
+    const currentSec = finalPosition ?? Math.floor(useAudioPlayerStore.getState().progress || 0);
+    await api.patch(`/api/v1/audio/sessions/${currentId}/end`, {
+      positionSeconds: currentSec,
+    });
+  } catch (err) {
+    console.debug('End audio session error:', err);
   }
 }
 
@@ -159,7 +197,6 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
         const startProgress = !hasOwnAudio && chapters.length > 0 ? getChapterStartTime(chapters, chapterIndex) : 0;
         const chapterDur = chapter?.duration ? parseDurationToSeconds(chapter.duration) : 180;
 
-        resetRoyaltyTracking();
         set({
           currentBook: book,
           currentChapter: chapter,
@@ -168,8 +205,9 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
           progress: startProgress,
           duration: chapterDur,
         });
+
         useMyBooksStore.getState().markAsReading(book.id);
-        useTopAudioStore.getState().recordAudioListen(book.id);
+        startAudioSession(book.id, chapter?.id);
         debouncedSyncProgress(book.id, chapter?.id, startProgress);
       },
 
@@ -183,7 +221,6 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
           const startProgress = !hasOwnAudio ? getChapterStartTime(chapters, index) : 0;
           const chapterDur = chapter.duration ? parseDurationToSeconds(chapter.duration) : 180;
 
-          resetRoyaltyTracking();
           set({
             chapterIndex: index,
             currentChapter: chapter,
@@ -191,26 +228,40 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
             progress: startProgress,
             duration: chapterDur,
           });
+
+          startAudioSession(currentBook.id, chapter?.id);
           debouncedSyncProgress(currentBook.id, chapter?.id, startProgress);
           window.dispatchEvent(new CustomEvent('tanda:audio:seek', { detail: { time: startProgress } }));
         }
       },
 
       setIsPlaying: (isPlaying) => {
-        if (!isPlaying) resetRoyaltyTracking();
+        if (isPlaying) {
+          startHeartbeatTimer();
+        } else {
+          stopHeartbeatTimer();
+        }
         set({ isPlaying });
       },
+
       togglePlay: () =>
         set((state) => {
-          if (state.isPlaying) resetRoyaltyTracking();
-          return { isPlaying: !state.isPlaying };
+          const next = !state.isPlaying;
+          if (next) {
+            startHeartbeatTimer();
+          } else {
+            stopHeartbeatTimer();
+          }
+          return { isPlaying: next };
         }),
+
       pause: () => {
-        resetRoyaltyTracking();
+        stopHeartbeatTimer();
         set({ isPlaying: false });
       },
+
       resume: () => {
-        resetRoyaltyTracking();
+        startHeartbeatTimer();
         set({ isPlaying: true });
       },
 
@@ -233,12 +284,9 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
           if (chapterIndex < chapters.length - 1) {
             get().playChapter(chapterIndex + 1);
           }
-          // If already at the last chapter: stay on the last chapter without jumping to chapter 1
         } else if (chapters.length === 1) {
-          // Single chapter -> replay from 0:00
           get().playChapter(0);
         } else {
-          // Single audio track with no chapters
           set({ progress: 0, isPlaying: true });
           window.dispatchEvent(new CustomEvent('tanda:audio:seek', { detail: { time: 0 } }));
         }
@@ -255,14 +303,11 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
           } else if (chapterIndex > 0) {
             get().playChapter(chapterIndex - 1);
           } else {
-            // Already at the 1st chapter: restart 1st chapter from 0:00 (do not jump to the last chapter)
             get().playChapter(0);
           }
         } else if (chapters.length === 1) {
-          // Single chapter -> replay from 0:00
           get().playChapter(0);
         } else {
-          // Single audio track with no chapters
           set({ progress: 0, isPlaying: true });
           window.dispatchEvent(new CustomEvent('tanda:audio:seek', { detail: { time: 0 } }));
         }
@@ -270,12 +315,9 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
 
       setProgress: (progress) => {
         set({ progress });
-        const { currentBook, currentChapter, isPlaying } = get();
+        const { currentBook, currentChapter } = get();
         if (currentBook) {
           debouncedSyncProgress(currentBook.id, currentChapter?.id, progress);
-          if (isPlaying) {
-            trackRoyaltyProgress(currentBook.id, progress);
-          }
         }
       },
 
@@ -305,7 +347,7 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
       },
 
       closePlayer: () => {
-        resetRoyaltyTracking();
+        endAudioSession();
         set({
           currentBook: null,
           currentChapter: null,
@@ -318,15 +360,31 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
       },
     }),
     {
-      name: 'tanda_audio_player_state_v1',
+      name: 'tanda_audio_player_settings_v1',
+      partialize: (state) => ({
+        volume: state.volume,
+        playbackRate: state.playbackRate,
+        repeatMode: state.repeatMode,
+      }),
     }
   )
 );
 
+// Clean up deprecated localStorage key immediately
 if (typeof window !== 'undefined') {
+  try {
+    localStorage.removeItem('tanda_audio_player_state_v1');
+  } catch {}
+
   window.addEventListener('tanda:logout', () => {
     try {
       useAudioPlayerStore.getState().closePlayer();
+    } catch {}
+  });
+
+  window.addEventListener('beforeunload', () => {
+    try {
+      endAudioSession();
     } catch {}
   });
 }

@@ -68,6 +68,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/me", "/api/v1/auth/me").authenticated()
                 .requestMatchers("/api/saved-books", "/api/saved-books/**", "/api/v1/saved-books", "/api/v1/saved-books/**").authenticated()
                 .requestMatchers("/api/progress", "/api/progress/**", "/api/v1/progress", "/api/v1/progress/**").authenticated()
+                .requestMatchers("/api/v1/me/**", "/api/v1/audio/**").authenticated()
 
                 // Admin-only endpoints
                 .requestMatchers(HttpMethod.POST, "/api/books", "/api/books/**", "/api/v1/books", "/api/v1/books/**").hasRole("ADMIN")
