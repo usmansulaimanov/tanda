@@ -5,7 +5,7 @@ CREATE TABLE users (
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
-    role VARCHAR(10) NOT NULL DEFAULT 'client' CHECK (role IN ('admin', 'client')),
+    role VARCHAR(10) NOT NULL DEFAULT 'client' CONSTRAINT users_role_check CHECK (role IN ('admin', 'client')),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     is_active BOOLEAN NOT NULL DEFAULT TRUE
 );

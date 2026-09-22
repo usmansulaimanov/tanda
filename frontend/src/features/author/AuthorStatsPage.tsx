@@ -47,7 +47,7 @@ export const AuthorStatsPage: React.FC = () => {
   const { user: currentUser, isAuthenticated, getAllAuthors } = useAuthStore();
   const { books } = useBookStore();
   const { showToast } = useToastStore();
-  const { getAuthorStats, requestPayout, listeningStats } = useRoyaltyStore();
+  const { fetchAuthorStats, requestPayout, authorStatsCache, authorBalances } = useRoyaltyStore();
 
   const [isPayoutModalOpen, setIsPayoutModalOpen] = useState(false);
   const [payoutAmount, setPayoutAmount] = useState('');
@@ -116,6 +116,16 @@ export const AuthorStatsPage: React.FC = () => {
     });
   }, [books, authorName, targetAuthor]);
 
+  // Fetch author stats from backend
+  useEffect(() => {
+    if (targetAuthor?.id) {
+      fetchAuthorStats(targetAuthor.id, selectedMonthKey);
+    }
+  }, [targetAuthor?.id, selectedMonthKey, fetchAuthorStats]);
+
+  const authorCacheKey = targetAuthor ? `${targetAuthor.id}_${selectedMonthKey}` : '';
+  const currentAuthorStats = authorStatsCache[authorCacheKey];
+
   // Aggregated metrics
   const stats = useMemo(() => {
     const totalBooks = authorBooks.length;
@@ -124,20 +134,15 @@ export const AuthorStatsPage: React.FC = () => {
 
     let totalReads = 0;
     let totalViews = 0;
-    let totalListens = 0;
     let totalShelfSaves = 0;
 
     authorBooks.forEach((b) => {
-      const views = b.viewsCount || 0;
-      const reads = b.readsCount || 0;
-      const trackedMin = listeningStats[b.id]?.totalMinutes || 0;
-      const saves = b.savedCount || 0;
-
-      totalViews += views;
-      totalReads += reads;
-      totalListens += trackedMin;
-      totalShelfSaves += saves;
+      totalViews += b.viewsCount || 0;
+      totalReads += b.readsCount || 0;
+      totalShelfSaves += b.savedCount || 0;
     });
+
+    const totalListens = currentAuthorStats?.totalMinutes || 0;
 
     return {
       totalBooks,
@@ -148,15 +153,32 @@ export const AuthorStatsPage: React.FC = () => {
       totalListens,
       totalShelfSaves,
     };
-  }, [authorBooks, listeningStats]);
+  }, [authorBooks, currentAuthorStats]);
 
   // Royalty and listening earnings
   const royalty = useMemo(() => {
     if (!targetAuthor) {
       return { totalMinutes: 0, totalSeconds: 0, estimatedEarned: 0, ratePerMinute: 0, currentBalance: 0, periodStatus: 'estimated' as const };
     }
-    return getAuthorStats(targetAuthor, books);
-  }, [targetAuthor, books, getAuthorStats]);
+    if (currentAuthorStats) {
+      return {
+        totalMinutes: currentAuthorStats.totalMinutes,
+        totalSeconds: currentAuthorStats.totalSeconds,
+        estimatedEarned: currentAuthorStats.estimatedEarned,
+        ratePerMinute: currentAuthorStats.ratePerMinute,
+        currentBalance: authorBalances[targetAuthor.id] ?? currentAuthorStats.currentBalance,
+        periodStatus: currentAuthorStats.periodStatus,
+      };
+    }
+    return {
+      totalMinutes: 0,
+      totalSeconds: 0,
+      estimatedEarned: 0,
+      ratePerMinute: 0,
+      currentBalance: authorBalances[targetAuthor.id] ?? 0,
+      periodStatus: 'estimated' as const,
+    };
+  }, [targetAuthor, currentAuthorStats, authorBalances]);
 
   // Kazakh month names
   const KZ_MONTHS: Record<number, string> = {
@@ -178,9 +200,9 @@ export const AuthorStatsPage: React.FC = () => {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
   };
 
-  // Monthly Analytics: compute stats for selectedMonthKey (all days of that month)
+  // Monthly Analytics: from backend stats
   const dailyAnalytics = useMemo(() => {
-    if (!targetAuthor) {
+    if (!currentAuthorStats) {
       return {
         dailyList: [],
         peakDay: null as PeakDayInfo | null,
@@ -194,106 +216,20 @@ export const AuthorStatsPage: React.FC = () => {
       };
     }
 
-    const [selYear, selMonth] = selectedMonthKey.split('-').map(Number);
-
-    // Build full dateMap from all history
-    const fullDateMap: Record<string, number> = {};
-    let latestTimestamp: string | null = null;
-
-    authorBooks.forEach((b) => {
-      const stat = listeningStats[b.id];
-      if (stat) {
-        if (stat.lastListenedAt) {
-          if (!latestTimestamp || new Date(stat.lastListenedAt) > new Date(latestTimestamp)) {
-            latestTimestamp = stat.lastListenedAt;
-          }
-        }
-        if (stat.dailySeconds) {
-          Object.entries(stat.dailySeconds).forEach(([d, s]) => {
-            fullDateMap[d] = (fullDateMap[d] || 0) + s;
-          });
-        }
-      }
-    });
-
-    const _now = new Date();
-    const todayIso = `${_now.getFullYear()}-${String(_now.getMonth() + 1).padStart(2, '0')}-${String(_now.getDate()).padStart(2, '0')}`;
-    const daysInMonth = new Date(selYear, selMonth, 0).getDate();
-
-    const days: {
-      date: string;
-      label: string;
-      shortLabel: string;
-      seconds: number;
-      minutes: number;
-      isToday: boolean;
-      isPeak: boolean;
-    }[] = [];
-
-    let maxSecInPeriod = 0;
-    let monthTotalSec = 0;
-
-    for (let day = 1; day <= daysInMonth; day++) {
-      const dayNum = String(day).padStart(2, '0');
-      const monthNum = String(selMonth).padStart(2, '0');
-      const iso = `${selYear}-${monthNum}-${dayNum}`;
-      const sec = Math.round(fullDateMap[iso] || 0);
-      if (sec > maxSecInPeriod) maxSecInPeriod = sec;
-      monthTotalSec += sec;
-
-      days.push({
-        date: iso,
-        label: `${dayNum}.${monthNum}`,
-        shortLabel: `${dayNum}.${monthNum}`,
-        seconds: sec,
-        minutes: Number((sec / 60).toFixed(1)),
-        isToday: iso === todayIso,
-        isPeak: false,
-      });
-    }
-
-    // Find peak day within the selected month
-    let peakDay: PeakDayInfo | null = null;
-    let maxSec = 0;
-    Object.entries(fullDateMap).forEach(([dStr, sec]) => {
-      if (dStr.startsWith(selectedMonthKey) && sec > maxSec && sec > 0) {
-        maxSec = Math.round(sec);
-        const dObj = new Date(dStr);
-        const dayStr = String(dObj.getDate()).padStart(2, '0');
-        const monthStr = String(dObj.getMonth() + 1).padStart(2, '0');
-        const yearStr = dObj.getFullYear();
-        peakDay = {
-          date: dStr,
-          label: `${dayStr}.${monthStr}.${yearStr}`,
-          seconds: maxSec,
-          minutes: Number((maxSec / 60).toFixed(1)),
-        };
-      }
-    });
-
-    // Mark peak day in chart
-    if (peakDay) {
-      const peakDate = (peakDay as PeakDayInfo).date;
-      days.forEach((day) => {
-        if (day.date === peakDate && day.seconds > 0) day.isPeak = true;
-      });
-    }
-
-    const activeDaysCount = days.filter((d) => d.seconds > 0).length;
-    const avgMin = activeDaysCount > 0 ? Number(((monthTotalSec / 60) / activeDaysCount).toFixed(1)) : 0;
+    const maxSec = currentAuthorStats.dailyList.reduce((m, d) => Math.max(m, d.seconds), 60);
 
     return {
-      dailyList: days,
-      peakDay,
-      peakMinutes: peakDay ? (peakDay as PeakDayInfo).minutes : 0,
-      peakSeconds: peakDay ? (peakDay as PeakDayInfo).seconds : 0,
-      totalListenedDays: activeDaysCount,
-      averageMinutes: avgMin,
-      totalSeconds: monthTotalSec,
-      maxSecInPeriod: Math.max(maxSecInPeriod, 60),
-      lastListenedAt: latestTimestamp,
+      dailyList: currentAuthorStats.dailyList,
+      peakDay: currentAuthorStats.peakDay,
+      peakMinutes: currentAuthorStats.peakMinutes,
+      peakSeconds: currentAuthorStats.peakSeconds,
+      totalListenedDays: currentAuthorStats.totalListenedDays,
+      averageMinutes: currentAuthorStats.averageMinutes,
+      totalSeconds: currentAuthorStats.totalSeconds,
+      maxSecInPeriod: maxSec,
+      lastListenedAt: currentAuthorStats.lastListenedAt,
     };
-  }, [targetAuthor, authorBooks, listeningStats, selectedMonthKey]);
+  }, [currentAuthorStats]);
 
   if (!currentUser) return null;
 
@@ -879,10 +815,10 @@ export const AuthorStatsPage: React.FC = () => {
                 </thead>
                 <tbody>
                   {authorBooks.map((book) => {
-                    const trackedSec = Math.floor(listeningStats[book.id]?.totalSeconds || 0);
-                    const trackedMin = listeningStats[book.id]?.totalMinutes || 0;
-                    const displayTime = trackedMin > 0 ? `${trackedMin} мин` : trackedSec > 0 ? `${trackedSec} сек` : '0 мин';
-                    const share = royalty.totalSeconds > 0 ? Math.round((trackedSec / royalty.totalSeconds) * 100) : 0;
+                    const authorBookStat = currentAuthorStats?.authorBooks?.find((ab: any) => ab.id === book.id);
+                    const trackedMin = authorBookStat?.totalMinutes || 0;
+                    const displayTime = trackedMin > 0 ? `${trackedMin} мин` : '0 мин';
+                    const share = royalty.totalMinutes > 0 ? Math.round((trackedMin / royalty.totalMinutes) * 100) : 0;
 
                     return (
                       <tr key={book.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
@@ -916,7 +852,7 @@ export const AuthorStatsPage: React.FC = () => {
                         <td style={{ padding: '14px', fontWeight: 800, color: '#2563EB' }}>
                           {displayTime}
                           <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 500 }}>
-                            {trackedSec} секунд
+                            {trackedMin * 60} секунд
                           </div>
                         </td>
 
@@ -1010,7 +946,7 @@ export const AuthorStatsPage: React.FC = () => {
               </div>
 
               <form
-                onSubmit={(e) => {
+                onSubmit={async (e) => {
                   e.preventDefault();
                   const amt = Number(payoutAmount);
                   if (!amt || amt <= 0) {
@@ -1025,12 +961,13 @@ export const AuthorStatsPage: React.FC = () => {
                     showToast('Карта немесе шот нөмірін жазыңыз', 'error');
                     return;
                   }
-                  const res = requestPayout(targetAuthor.id, targetAuthor.name, amt, payoutMethod, payoutAccount);
+                  const res = await requestPayout(targetAuthor.id, targetAuthor.name, amt, payoutMethod, payoutAccount);
                   if (res.success) {
                     showToast(`«${amt.toLocaleString()} ₸» сомасына ақша шығару өтінімі қабылданды!`, 'success');
                     setIsPayoutModalOpen(false);
                     setPayoutAmount('');
                     setPayoutAccount('');
+                    fetchAuthorStats(targetAuthor.id, selectedMonthKey);
                   } else {
                     showToast(res.error || 'Қате орын алды', 'error');
                   }

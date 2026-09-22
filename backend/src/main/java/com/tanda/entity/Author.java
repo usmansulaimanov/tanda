@@ -46,6 +46,10 @@ public class Author {
     @Builder.Default
     private Boolean isActive = true;
 
+    @Column(name = "balance", precision = 15, scale = 2, nullable = false)
+    @Builder.Default
+    private java.math.BigDecimal balance = java.math.BigDecimal.ZERO;
+
     @Column(name = "created_at")
     private OffsetDateTime createdAt;
 
@@ -62,6 +66,9 @@ public class Author {
         }
         if (isActive == null) {
             isActive = true;
+        }
+        if (balance == null) {
+            balance = java.math.BigDecimal.ZERO;
         }
     }
 

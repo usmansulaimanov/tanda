@@ -39,7 +39,7 @@ const getStoredRoyaltyDraft = (month: string) => {
 };
 
 export const AdminRoyaltyTab: React.FC = () => {
-  const { periods, activeMonth, listeningStats, calculateRoyalty, finalizeRoyaltyPeriod, resetAllStatsToZero } = useRoyaltyStore();
+  const { periods, activeMonth, calculateRoyalty, finalizeRoyaltyPeriod, fetchPeriods, fetchPeriod, resetAllStatsToZero } = useRoyaltyStore();
   const { getAllAuthors } = useAuthStore();
   const { books } = useBookStore();
   const { showToast } = useToastStore();
@@ -66,7 +66,18 @@ export const AdminRoyaltyTab: React.FC = () => {
     return currentPeriod?.adminNote || '';
   });
 
-  // Synchronize inputs when selected month changes and calculate initial state if needed
+  // Load periods on mount
+  useEffect(() => {
+    fetchPeriods();
+  }, [fetchPeriods]);
+
+  // Synchronize inputs when selected month changes or current period is loaded
+  useEffect(() => {
+    if (selectedMonth) {
+      fetchPeriod(selectedMonth);
+    }
+  }, [selectedMonth, fetchPeriod]);
+
   useEffect(() => {
     const draft = getStoredRoyaltyDraft(selectedMonth);
     const p = periods[selectedMonth];
@@ -77,20 +88,7 @@ export const AdminRoyaltyTab: React.FC = () => {
     setRevenueInput(rev);
     setExpenseInput(exp);
     setNoteInput(n);
-
-    if (rev > 0 || exp > 0) {
-      calculateRoyalty(
-        selectedMonth,
-        {
-          totalRevenue: rev,
-          adminExpense: exp,
-          adminNote: n,
-        },
-        authors,
-        books
-      );
-    }
-  }, [selectedMonth]);
+  }, [selectedMonth, currentPeriod]);
 
   const handleRevenueChange = (newVal: number) => {
     setRevenueInput(newVal);
@@ -100,16 +98,6 @@ export const AdminRoyaltyTab: React.FC = () => {
         JSON.stringify({ revenue: newVal, expense: expenseInput, note: noteInput })
       );
     } catch {}
-    calculateRoyalty(
-      selectedMonth,
-      {
-        totalRevenue: newVal,
-        adminExpense: expenseInput,
-        adminNote: noteInput,
-      },
-      authors,
-      books
-    );
   };
 
   const handleExpenseChange = (newVal: number) => {
@@ -120,44 +108,19 @@ export const AdminRoyaltyTab: React.FC = () => {
         JSON.stringify({ revenue: revenueInput, expense: newVal, note: noteInput })
       );
     } catch {}
-    calculateRoyalty(
-      selectedMonth,
-      {
-        totalRevenue: revenueInput,
-        adminExpense: newVal,
-        adminNote: noteInput,
-      },
-      authors,
-      books
-    );
   };
 
-  // Calculate live platform listening minutes and preview metrics strictly from real data
+  // Platform listening minutes from backend period
   const totalPlatformMinutes = useMemo(() => {
-    if (currentPeriod) return currentPeriod.totalMinutesListened;
-    let sum = 0;
-    authors.forEach((author) => {
-      const matchName = (author.assignedAuthorName || author.name).toLowerCase().trim();
-      const assignedIds = new Set(author.assignedBookIds || []);
-      const authorBooks = books.filter((b) => {
-        if (assignedIds.has(b.id)) return true;
-        if (!b.author) return false;
-        const bAuthor = b.author.toLowerCase().trim();
-        return bAuthor === matchName || bAuthor.includes(matchName);
-      });
-      authorBooks.forEach((b) => {
-        sum += listeningStats[b.id]?.totalMinutes || 0;
-      });
-    });
-    return sum;
-  }, [currentPeriod, authors, books, listeningStats]);
+    return currentPeriod?.totalMinutesListened || 0;
+  }, [currentPeriod]);
 
   const netPool = Math.max(0, revenueInput - expenseInput);
   const companyShare = Math.round(netPool * 0.5);
   const authorRoyaltyPool = netPool - companyShare;
   const previewRatePerMinute = totalPlatformMinutes > 0 ? Number((authorRoyaltyPool / totalPlatformMinutes).toFixed(2)) : 0;
 
-  const handleRecalculate = () => {
+  const handleRecalculate = async () => {
     if (expenseInput < 0) {
       showToast('Шығын сомасы теріс болмауы керек', 'error');
       return;
@@ -167,25 +130,27 @@ export const AdminRoyaltyTab: React.FC = () => {
       return;
     }
 
-    calculateRoyalty(
+    const updated = await calculateRoyalty(
       selectedMonth,
       {
         totalRevenue: Number(revenueInput),
         adminExpense: Number(expenseInput),
         adminNote: noteInput,
-      },
-      authors,
-      books
+      }
     );
 
-    showToast(`«${getMonthLabel(selectedMonth)}» айы үшін роялти есебі жаңартылды!`, 'success');
+    if (updated) {
+      showToast(`«${getMonthLabel(selectedMonth)}» айы үшін роялти есебі жаңартылды!`, 'success');
+    } else {
+      showToast('Роялти есебін жүргізу кезінде қате орын алды', 'error');
+    }
   };
 
-  const handleFinalize = () => {
+  const handleFinalize = async () => {
     if (!currentPeriod) {
-      handleRecalculate();
+      await handleRecalculate();
     }
-    const res = finalizeRoyaltyPeriod(selectedMonth);
+    const res = await finalizeRoyaltyPeriod(selectedMonth);
     if (res.success) {
       showToast(`«${getMonthLabel(selectedMonth)}» айының есебі сәтті бекітіліп, авторлар балансына ақша түсті!`, 'success');
     } else {
@@ -567,7 +532,7 @@ export const AdminRoyaltyTab: React.FC = () => {
                     return bAuthor === matchName || bAuthor.includes(matchName);
                   });
 
-                  const minutes = earningDetail?.totalMinutes ?? authorBooks.reduce((sum, b) => sum + (listeningStats[b.id]?.totalMinutes || 0), 0);
+                  const minutes = earningDetail?.totalMinutes ?? 0;
                   const earned = earningDetail?.totalEarned ?? (previewRatePerMinute > 0 ? Number((minutes * previewRatePerMinute).toFixed(2)) : 0);
                   const isPaid = currentPeriod?.isFinalized || earningDetail?.status === 'paid';
 

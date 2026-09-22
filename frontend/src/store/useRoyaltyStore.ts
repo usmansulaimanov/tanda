@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { api } from '../lib/api';
 import { User, Book } from '../types';
 
 export interface BookListeningStat {
@@ -8,7 +8,7 @@ export interface BookListeningStat {
   totalMinutes: number;
   uniqueListeners: number;
   lastListenedAt: string;
-  dailySeconds?: Record<string, number>; // "YYYY-MM-DD" -> seconds
+  dailySeconds?: Record<string, number>;
 }
 
 export interface AuthorEarningDetail {
@@ -22,16 +22,17 @@ export interface AuthorEarningDetail {
 
 export interface RoyaltyPeriod {
   id: string; // e.g. "2026-09"
-  monthLabel: string; // e.g. "Қыркүйек 2026"
+  month: string;
+  monthLabel: string;
   totalSubscribers: number;
   subscriptionPrice: number;
   totalRevenue: number;
   adminExpense: number;
-  netDistributablePool: number; // totalRevenue - adminExpense
-  companyShare: number; // 50% of netDistributablePool
-  authorRoyaltyPool: number; // 50% of netDistributablePool
+  netDistributablePool: number;
+  companyShare: number;
+  authorRoyaltyPool: number;
   totalMinutesListened: number;
-  ratePerMinute: number; // authorRoyaltyPool / totalMinutesListened (0 if 0 min)
+  ratePerMinute: number;
   authorEarnings: AuthorEarningDetail[];
   isFinalized: boolean;
   finalizedAt?: string;
@@ -46,25 +47,79 @@ export interface PayoutRecord {
   date: string;
   method: string;
   cardOrAccount?: string;
-  status: 'completed' | 'processing';
+  status: 'completed' | 'processing' | 'requested' | 'rejected';
+  rejectionReason?: string;
+}
+
+export interface AuthorDailyStat {
+  date: string;
+  label: string;
+  shortLabel: string;
+  seconds: number;
+  minutes: number;
+  isToday: boolean;
+  isPeak: boolean;
+}
+
+export interface PeakDayInfo {
+  date: string;
+  label: string;
+  seconds: number;
+  minutes: number;
+}
+
+export interface AuthorStatsData {
+  authorId: string;
+  authorName: string;
+  month: string;
+  authorBooks: any[];
+  totalMinutes: number;
+  totalSeconds: number;
+  estimatedEarned: number;
+  ratePerMinute: number;
+  currentBalance: number;
+  periodStatus: 'calculated' | 'paid' | 'estimated';
+  dailyList: AuthorDailyStat[];
+  peakDay: PeakDayInfo | null;
+  peakMinutes: number;
+  peakSeconds: number;
+  totalListenedDays: number;
+  averageMinutes: number;
+  lastListenedAt: string | null;
 }
 
 interface RoyaltyState {
   periods: Record<string, RoyaltyPeriod>;
   activeMonth: string;
   listeningStats: Record<string, BookListeningStat>;
-  authorBalances: Record<string, number>; // authorId -> payable balance (₸)
+  authorBalances: Record<string, number>;
   payoutHistory: PayoutRecord[];
+  authorStatsCache: Record<string, AuthorStatsData>;
+  isLoading: boolean;
+  error: string | null;
 
   // Actions
-  recordListeningTime: (bookId: string, seconds: number) => void;
+  fetchPeriods: () => Promise<RoyaltyPeriod[]>;
+  fetchPeriod: (monthKey: string) => Promise<RoyaltyPeriod | null>;
   calculateRoyalty: (
     monthKey: string,
     params: { totalRevenue: number; adminExpense: number; adminNote?: string },
-    authors: User[],
-    books: Book[]
-  ) => RoyaltyPeriod;
-  finalizeRoyaltyPeriod: (monthKey: string) => { success: boolean; error?: string };
+    authors?: User[],
+    books?: Book[]
+  ) => Promise<RoyaltyPeriod | null>;
+  finalizeRoyaltyPeriod: (monthKey: string) => Promise<{ success: boolean; error?: string }>;
+  fetchAuthorStats: (authorId?: string, monthKey?: string) => Promise<AuthorStatsData | null>;
+  fetchAuthorPayouts: () => Promise<PayoutRecord[]>;
+  requestPayout: (
+    authorId: string,
+    authorName: string,
+    amount: number,
+    method: string,
+    cardOrAccount?: string
+  ) => Promise<{ success: boolean; error?: string }>;
+  fetchAllAdminPayouts: () => Promise<PayoutRecord[]>;
+  approvePayout: (id: string) => Promise<{ success: boolean; error?: string }>;
+  rejectPayout: (id: string, reason?: string) => Promise<{ success: boolean; error?: string }>;
   getAuthorStats: (
     author: User,
     books: Book[],
@@ -78,13 +133,7 @@ interface RoyaltyState {
     currentBalance: number;
     periodStatus?: 'calculated' | 'paid' | 'estimated';
   };
-  requestPayout: (
-    authorId: string,
-    authorName: string,
-    amount: number,
-    method: string,
-    cardOrAccount?: string
-  ) => { success: boolean; error?: string };
+  recordListeningTime: (bookId: string, seconds: number) => void;
   resetAllStatsToZero: () => void;
 }
 
@@ -113,251 +162,332 @@ export const getMonthLabel = (monthKey: string): string => {
   return monthKey;
 };
 
+const mapBackendPeriod = (dto: any): RoyaltyPeriod => {
+  const isFinal = dto.status === 'FINALIZED';
+  return {
+    id: dto.month || dto.id,
+    month: dto.month,
+    monthLabel: dto.monthLabel || getMonthLabel(dto.month || dto.id),
+    totalSubscribers: dto.totalRevenue ? Math.round(dto.totalRevenue / 2000) : 0,
+    subscriptionPrice: 2000,
+    totalRevenue: Number(dto.totalRevenue) || 0,
+    adminExpense: Number(dto.adminExpense) || 0,
+    netDistributablePool: Number(dto.netPool) || 0,
+    companyShare: Number(dto.companyShare) || 0,
+    authorRoyaltyPool: Number(dto.royaltyPool) || 0,
+    totalMinutesListened: Number(dto.totalMinutes) || 0,
+    ratePerMinute: Number(dto.ratePerMinute) || 0,
+    authorEarnings: (dto.authorEarnings || []).map((ae: any) => ({
+      authorId: ae.authorId,
+      authorName: ae.authorName,
+      assignedBookIds: ae.assignedBookIds || [],
+      totalMinutes: Number(ae.totalMinutes) || 0,
+      totalEarned: Number(ae.totalEarned) || 0,
+      status: ae.status === 'paid' ? 'paid' : 'calculated',
+    })),
+    isFinalized: isFinal,
+    finalizedAt: dto.finalizedAt,
+    adminNote: dto.adminNote || '',
+  };
+};
+
 const currentMonthKey = '2026-09';
 
-export const useRoyaltyStore = create<RoyaltyState>()(
-  persist(
-    (set, get) => ({
+// Clean up legacy localStorage keys
+try {
+  localStorage.removeItem('tanda_royalty_store_v3');
+  localStorage.removeItem('tanda_royalty_store_v2');
+  localStorage.removeItem('tanda_royalty_store');
+} catch {}
+
+export const useRoyaltyStore = create<RoyaltyState>((set, get) => ({
+  periods: {},
+  activeMonth: currentMonthKey,
+  listeningStats: {},
+  authorBalances: {},
+  payoutHistory: [],
+  authorStatsCache: {},
+  isLoading: false,
+  error: null,
+
+  resetAllStatsToZero: () => {
+    set({
       periods: {},
-      activeMonth: currentMonthKey,
       listeningStats: {},
       authorBalances: {},
       payoutHistory: [],
+      authorStatsCache: {},
+    });
+  },
 
-      resetAllStatsToZero: () => {
-        set({
-          periods: {},
-          listeningStats: {},
-          authorBalances: {},
-          payoutHistory: [],
-        });
-      },
+  recordListeningTime: () => {
+    // Handled by backend AudioSessionService
+  },
 
-      recordListeningTime: (bookId: string, seconds: number) => {
-        if (!bookId || seconds <= 0) return;
-        const now = new Date();
-        const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-        set((state) => {
-          const current = state.listeningStats[bookId] || {
-            bookId,
-            totalSeconds: 0,
-            totalMinutes: 0,
-            uniqueListeners: 1,
-            dailySeconds: {},
-            lastListenedAt: new Date().toISOString(),
-          };
-
-          const newSeconds = current.totalSeconds + seconds;
-          const newMinutes = Math.floor(newSeconds / 60);
-          const currentDaily = current.dailySeconds || {};
-          const newDailySec = (currentDaily[today] || 0) + seconds;
-
-          return {
-            listeningStats: {
-              ...state.listeningStats,
-              [bookId]: {
-                ...current,
-                totalSeconds: newSeconds,
-                totalMinutes: newMinutes,
-                dailySeconds: {
-                  ...currentDaily,
-                  [today]: newDailySec,
-                },
-                lastListenedAt: new Date().toISOString(),
-              },
-            },
-          };
-        });
-      },
-
-      calculateRoyalty: (monthKey, params, authors, books) => {
-        const state = get();
-        const totalRevenue = Math.max(0, params.totalRevenue || 0);
-        const adminExpense = Math.max(0, params.adminExpense || 0);
-        const netPool = Math.max(0, totalRevenue - adminExpense);
-        
-        // 50 / 50 Rule
-        const companyShare = Math.round(netPool * 0.5);
-        const authorRoyaltyPool = netPool - companyShare;
-
-        // Calculate REAL minutes per author based on their assigned books and real listeningStats only
-        let totalPlatformMinutes = 0;
-        const authorEarnings: AuthorEarningDetail[] = [];
-
-        authors.forEach((author) => {
-          const matchName = (author.assignedAuthorName || author.name).toLowerCase().trim();
-          const assignedIds = new Set(author.assignedBookIds || []);
-
-          const authorBooks = books.filter((b) => {
-            if (assignedIds.has(b.id)) return true;
-            if (!b.author) return false;
-            const bAuthor = b.author.toLowerCase().trim();
-            return bAuthor === matchName || bAuthor.includes(matchName);
-          });
-
-          const bookIds = authorBooks.map((b) => b.id);
-
-          // Strictly real tracked minutes (0 if not yet listened)
-          let authorMinutes = 0;
-          authorBooks.forEach((b) => {
-            const recorded = state.listeningStats[b.id]?.totalMinutes;
-            if (recorded && recorded > 0) {
-              authorMinutes += recorded;
-            }
-          });
-
-          totalPlatformMinutes += authorMinutes;
-
-          authorEarnings.push({
-            authorId: author.id,
-            authorName: author.name,
-            assignedBookIds: bookIds,
-            totalMinutes: authorMinutes,
-            totalEarned: 0,
-            status: 'calculated',
-          });
-        });
-
-        const ratePerMinute = totalPlatformMinutes > 0
-          ? Number((authorRoyaltyPool / totalPlatformMinutes).toFixed(2))
-          : 0;
-
-        authorEarnings.forEach((ae) => {
-          ae.totalEarned = totalPlatformMinutes > 0 ? Number((ae.totalMinutes * ratePerMinute).toFixed(2)) : 0;
-        });
-
-        const newPeriod: RoyaltyPeriod = {
-          id: monthKey,
-          monthLabel: getMonthLabel(monthKey),
-          totalSubscribers: totalRevenue > 0 ? Math.round(totalRevenue / 2000) : 0,
-          subscriptionPrice: 2000,
-          totalRevenue,
-          adminExpense,
-          netDistributablePool: netPool,
-          companyShare,
-          authorRoyaltyPool,
-          totalMinutesListened: totalPlatformMinutes,
-          ratePerMinute,
-          authorEarnings,
-          isFinalized: false,
-          adminNote: params.adminNote || '',
-        };
-
-        set({
-          periods: {
-            ...state.periods,
-            [monthKey]: newPeriod,
-          },
-        });
-
-        return newPeriod;
-      },
-
-      finalizeRoyaltyPeriod: (monthKey: string) => {
-        const state = get();
-        const period = state.periods[monthKey];
-        if (!period) {
-          return { success: false, error: 'Кезең табылмады' };
-        }
-        if (period.isFinalized) {
-          return { success: false, error: 'Бұл кезең бұрыннан бекітілген' };
-        }
-
-        const newBalances = { ...state.authorBalances };
-        period.authorEarnings.forEach((ae) => {
-          newBalances[ae.authorId] = (newBalances[ae.authorId] || 0) + ae.totalEarned;
-          ae.status = 'paid';
-        });
-
-        const updatedPeriod: RoyaltyPeriod = {
-          ...period,
-          isFinalized: true,
-          finalizedAt: new Date().toISOString(),
-        };
-
-        set({
-          periods: {
-            ...state.periods,
-            [monthKey]: updatedPeriod,
-          },
-          authorBalances: newBalances,
-        });
-
-        return { success: true };
-      },
-
-      getAuthorStats: (author, books, monthKey) => {
-        const state = get();
-        const targetMonth = monthKey || state.activeMonth || currentMonthKey;
-        const period = state.periods[targetMonth];
-
-        const matchName = (author.assignedAuthorName || author.name).toLowerCase().trim();
-        const assignedIds = new Set(author.assignedBookIds || []);
-
-        const authorBooks = books.filter((b) => {
-          if (assignedIds.has(b.id)) return true;
-          if (!b.author) return false;
-          const bAuthor = b.author.toLowerCase().trim();
-          return bAuthor === matchName || bAuthor.includes(matchName);
-        });
-
-        // Strictly real tracked seconds & minutes
-        let totalMinutes = 0;
-        let totalSeconds = 0;
-        authorBooks.forEach((b) => {
-          const stat = state.listeningStats[b.id];
-          if (stat) {
-            totalSeconds += Math.floor(stat.totalSeconds || 0);
-            totalMinutes += stat.totalMinutes || 0;
-          }
-        });
-
-        const ratePerMinute = period?.ratePerMinute || 0;
-        const estimatedEarned = Number((totalMinutes * ratePerMinute).toFixed(2));
-        const currentBalance = state.authorBalances[author.id] || 0;
-
-        return {
-          authorBooks,
-          totalMinutes,
-          totalSeconds,
-          estimatedEarned,
-          ratePerMinute,
-          currentBalance,
-          periodStatus: period?.isFinalized ? 'paid' : 'estimated',
-        };
-      },
-
-      requestPayout: (authorId, authorName, amount, method, cardOrAccount) => {
-        const state = get();
-        const balance = state.authorBalances[authorId] || 0;
-        if (amount <= 0 || amount > balance) {
-          return { success: false, error: 'Шығару сомасы баланстан аспауы тиіс' };
-        }
-
-        const newRecord: PayoutRecord = {
-          id: `PO-${Date.now()}`,
-          authorId,
-          authorName,
-          amount,
-          date: new Date().toISOString().split('T')[0],
-          method,
-          cardOrAccount,
-          status: 'completed',
-        };
-
-        set({
-          authorBalances: {
-            ...state.authorBalances,
-            [authorId]: balance - amount,
-          },
-          payoutHistory: [newRecord, ...state.payoutHistory],
-        });
-
-        return { success: true };
-      },
-    }),
-    {
-      name: 'tanda_royalty_store_v3', // v3: All mock data removed, fresh zero state
+  fetchPeriods: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      const res = await api.get('/api/v1/admin/royalty/periods');
+      const periodsMap: Record<string, RoyaltyPeriod> = {};
+      (res.data || []).forEach((item: any) => {
+        const mapped = mapBackendPeriod(item);
+        periodsMap[mapped.id] = mapped;
+      });
+      set({ periods: periodsMap, isLoading: false });
+      return Object.values(periodsMap);
+    } catch (err: any) {
+      set({ isLoading: false, error: err.message });
+      return [];
     }
-  )
-);
+  },
+
+  fetchPeriod: async (monthKey: string) => {
+    set({ isLoading: true, error: null });
+    try {
+      const res = await api.get(`/api/v1/admin/royalty/periods/${monthKey}`);
+      const period = mapBackendPeriod(res.data);
+      set((state) => ({
+        periods: {
+          ...state.periods,
+          [monthKey]: period,
+        },
+        isLoading: false,
+      }));
+      return period;
+    } catch (err: any) {
+      set({ isLoading: false, error: err.message });
+      return null;
+    }
+  },
+
+  calculateRoyalty: async (monthKey, params) => {
+    set({ isLoading: true, error: null });
+    try {
+      const res = await api.post(`/api/v1/admin/royalty/periods/${monthKey}/calculate`, {
+        totalRevenue: params.totalRevenue,
+        adminExpense: params.adminExpense,
+        adminNote: params.adminNote,
+      });
+      const period = mapBackendPeriod(res.data);
+      set((state) => ({
+        periods: {
+          ...state.periods,
+          [monthKey]: period,
+        },
+        isLoading: false,
+      }));
+      return period;
+    } catch (err: any) {
+      set({ isLoading: false, error: err.response?.data?.message || err.message });
+      return null;
+    }
+  },
+
+  finalizeRoyaltyPeriod: async (monthKey: string) => {
+    set({ isLoading: true, error: null });
+    try {
+      const res = await api.post(`/api/v1/admin/royalty/periods/${monthKey}/finalize`);
+      const period = mapBackendPeriod(res.data);
+
+      const newBalances = { ...get().authorBalances };
+      period.authorEarnings.forEach((ae) => {
+        newBalances[ae.authorId] = (newBalances[ae.authorId] || 0) + ae.totalEarned;
+      });
+
+      set((state) => ({
+        periods: {
+          ...state.periods,
+          [monthKey]: period,
+        },
+        authorBalances: newBalances,
+        isLoading: false,
+      }));
+      return { success: true };
+    } catch (err: any) {
+      const msg = err.response?.data?.message || err.message || 'Бекіту сәтсіз аяқталды';
+      set({ isLoading: false, error: msg });
+      return { success: false, error: msg };
+    }
+  },
+
+  fetchAuthorStats: async (authorId?: string, monthKey?: string) => {
+    try {
+      const targetMonth = monthKey || get().activeMonth || currentMonthKey;
+      const params: Record<string, string> = { month: targetMonth };
+      if (authorId) {
+        params.authorId = authorId;
+      }
+      const res = await api.get('/api/v1/authors/me/stats', { params });
+      const data = res.data;
+      const statsObj: AuthorStatsData = {
+        authorId: data.authorId,
+        authorName: data.authorName,
+        month: data.month,
+        authorBooks: data.authorBooks || [],
+        totalMinutes: Number(data.totalMinutes) || 0,
+        totalSeconds: Number(data.totalSeconds) || 0,
+        estimatedEarned: Number(data.estimatedEarned) || 0,
+        ratePerMinute: Number(data.ratePerMinute) || 0,
+        currentBalance: Number(data.currentBalance) || 0,
+        periodStatus: data.periodStatus || 'estimated',
+        dailyList: data.dailyList || [],
+        peakDay: data.peakDay || null,
+        peakMinutes: Number(data.peakMinutes) || 0,
+        peakSeconds: Number(data.peakSeconds) || 0,
+        totalListenedDays: Number(data.totalListenedDays) || 0,
+        averageMinutes: Number(data.averageMinutes) || 0,
+        lastListenedAt: data.lastListenedAt || null,
+      };
+
+      const cacheKey = `${data.authorId}_${targetMonth}`;
+      set((state) => ({
+        authorStatsCache: {
+          ...state.authorStatsCache,
+          [cacheKey]: statsObj,
+        },
+        authorBalances: {
+          ...state.authorBalances,
+          [data.authorId]: statsObj.currentBalance,
+        },
+      }));
+      return statsObj;
+    } catch (err) {
+      return null;
+    }
+  },
+
+  fetchAuthorPayouts: async () => {
+    try {
+      const res = await api.get('/api/v1/authors/me/payouts');
+      const records: PayoutRecord[] = (res.data || []).map((p: any) => ({
+        id: p.id,
+        authorId: p.authorId,
+        authorName: p.authorName,
+        amount: Number(p.amount) || 0,
+        date: p.requestedAt ? p.requestedAt.split('T')[0] : '',
+        method: p.method || 'Kaspi Gold',
+        cardOrAccount: p.cardOrAccount,
+        status: (p.status || 'requested').toLowerCase() as any,
+        rejectionReason: p.rejectionReason,
+      }));
+      set({ payoutHistory: records });
+      return records;
+    } catch (err) {
+      return [];
+    }
+  },
+
+  requestPayout: async (authorId, authorName, amount, method, cardOrAccount) => {
+    try {
+      const res = await api.post('/api/v1/authors/me/payouts', {
+        amount,
+        method,
+        cardOrAccount,
+      });
+      const p = res.data;
+      const newRecord: PayoutRecord = {
+        id: p.id,
+        authorId: p.authorId,
+        authorName: p.authorName || authorName,
+        amount: Number(p.amount) || amount,
+        date: p.requestedAt ? p.requestedAt.split('T')[0] : new Date().toISOString().split('T')[0],
+        method: p.method || method,
+        cardOrAccount: p.cardOrAccount || cardOrAccount,
+        status: (p.status || 'requested').toLowerCase() as any,
+      };
+
+      const currentBalance = get().authorBalances[authorId] || 0;
+      set((state) => ({
+        authorBalances: {
+          ...state.authorBalances,
+          [authorId]: Math.max(0, currentBalance - amount),
+        },
+        payoutHistory: [newRecord, ...state.payoutHistory],
+      }));
+
+      return { success: true };
+    } catch (err: any) {
+      return {
+        success: false,
+        error: err.response?.data?.message || err.message || 'Шығару сәтсіз аяқталды',
+      };
+    }
+  },
+
+  fetchAllAdminPayouts: async () => {
+    try {
+      const res = await api.get('/api/v1/admin/payouts');
+      return (res.data || []).map((p: any) => ({
+        id: p.id,
+        authorId: p.authorId,
+        authorName: p.authorName,
+        amount: Number(p.amount) || 0,
+        date: p.requestedAt ? p.requestedAt.split('T')[0] : '',
+        method: p.method,
+        cardOrAccount: p.cardOrAccount,
+        status: (p.status || 'requested').toLowerCase() as any,
+        rejectionReason: p.rejectionReason,
+      }));
+    } catch (err) {
+      return [];
+    }
+  },
+
+  approvePayout: async (id: string) => {
+    try {
+      await api.patch(`/api/v1/admin/payouts/${id}/approve`);
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err.response?.data?.message || err.message };
+    }
+  },
+
+  rejectPayout: async (id: string, reason?: string) => {
+    try {
+      await api.patch(`/api/v1/admin/payouts/${id}/reject`, { reason });
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err.response?.data?.message || err.message };
+    }
+  },
+
+  getAuthorStats: (author, books, monthKey) => {
+    const state = get();
+    const targetMonth = monthKey || state.activeMonth || currentMonthKey;
+    const cacheKey = `${author.id}_${targetMonth}`;
+    const cached = state.authorStatsCache[cacheKey];
+
+    if (cached) {
+      return {
+        authorBooks: books.filter((b) => cached.authorBooks.some((ab: any) => ab.id === b.id)),
+        totalMinutes: cached.totalMinutes,
+        totalSeconds: cached.totalSeconds,
+        estimatedEarned: cached.estimatedEarned,
+        ratePerMinute: cached.ratePerMinute,
+        currentBalance: cached.currentBalance,
+        periodStatus: cached.periodStatus,
+      };
+    }
+
+    const period = state.periods[targetMonth];
+    const matchName = (author.assignedAuthorName || author.name).toLowerCase().trim();
+    const assignedIds = new Set(author.assignedBookIds || []);
+
+    const authorBooks = books.filter((b) => {
+      if (assignedIds.has(b.id)) return true;
+      if (!b.author) return false;
+      const bAuthor = b.author.toLowerCase().trim();
+      return bAuthor === matchName || bAuthor.includes(matchName);
+    });
+
+    return {
+      authorBooks,
+      totalMinutes: 0,
+      totalSeconds: 0,
+      estimatedEarned: 0,
+      ratePerMinute: period?.ratePerMinute || 0,
+      currentBalance: state.authorBalances[author.id] || 0,
+      periodStatus: period?.isFinalized ? 'paid' : 'estimated',
+    };
+  },
+}));
