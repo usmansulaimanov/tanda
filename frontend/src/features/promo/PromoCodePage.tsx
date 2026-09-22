@@ -7,7 +7,7 @@ import { useToastStore } from '../../store/useToastStore';
 export const PromoCodePage: React.FC = () => {
   const navigate = useNavigate();
   const { user, role, isAuthenticated, openAuthModal } = useAuthStore();
-  const { activatePromoCode, getUserActivatedPromos } = usePromoStore();
+  const { activatePromoCode, getUserActivatedPromos, fetchUserActivatedPromos } = usePromoStore();
   const { showToast } = useToastStore();
 
   const [inputCode, setInputCode] = useState('');
@@ -20,8 +20,10 @@ export const PromoCodePage: React.FC = () => {
       showToast('Промокодты белсендіру үшін алдымен тіркеліңіз немесе жүйеге кіріңіз!', 'info');
       openAuthModal('signup');
       navigate('/', { replace: true });
+    } else {
+      fetchUserActivatedPromos();
     }
-  }, [isAuthenticated, user, navigate, openAuthModal, showToast]);
+  }, [isAuthenticated, user, navigate, openAuthModal, showToast, fetchUserActivatedPromos]);
 
   const activatedList = user ? getUserActivatedPromos(user.id) : [];
 
@@ -29,7 +31,7 @@ export const PromoCodePage: React.FC = () => {
     return null;
   }
 
-  const handleActivate = (e: React.FormEvent) => {
+  const handleActivate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isAuthenticated || !user) {
       showToast('Промокодты белсендіру үшін жүйеге кіріңіз', 'info');
@@ -44,7 +46,7 @@ export const PromoCodePage: React.FC = () => {
 
     setIsSubmitting(true);
     try {
-      const res = activatePromoCode(inputCode, user);
+      const res = await activatePromoCode(inputCode, user);
       if (res.success) {
         const reward = res.rewardTitle || 'Сыйлық';
         setActivatedReward(reward);

@@ -14,6 +14,8 @@ export const AdminPromoCodesPage: React.FC = () => {
     generatePromoCodes,
     deleteBatch,
     toggleBatchStatus,
+    fetchBatches,
+    fetchPromoCodes,
   } = usePromoStore();
   const { showToast } = useToastStore();
 
@@ -23,8 +25,11 @@ export const AdminPromoCodesPage: React.FC = () => {
     if (role !== 'admin' || !canManagePromos) {
       showToast('Промокодтар бөліміне кіруге рұқсатыңыз жоқ', 'error');
       navigate('/admin', { replace: true });
+    } else {
+      fetchBatches();
+      fetchPromoCodes();
     }
-  }, [role, canManagePromos, navigate, showToast]);
+  }, [role, canManagePromos, navigate, showToast, fetchBatches, fetchPromoCodes]);
 
   // Generator form state
   const [count, setCount] = useState<number>(10);
@@ -88,23 +93,27 @@ export const AdminPromoCodesPage: React.FC = () => {
     ? `${cleanCustomWord}-HXAV66-TANDA`
     : `TANDA-HXAV66`;
 
-  const handleGenerate = (e: React.FormEvent) => {
+  const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
     const effectiveReward = rewardTitle;
 
     const effectiveCount = Math.max(1, count || 1);
-    const result = generatePromoCodes({
-      batchName: customBatchName.trim() || undefined,
-      count: effectiveCount,
-      rewardTitle: effectiveReward,
-      durationDays,
-      customWord: cleanCustomWord || undefined,
-      maxUses,
-    });
+    try {
+      const result = await generatePromoCodes({
+        batchName: customBatchName.trim() || undefined,
+        count: effectiveCount,
+        rewardTitle: effectiveReward,
+        durationDays,
+        customWord: cleanCustomWord || undefined,
+        maxUses,
+      });
 
-    setLastGeneratedInfo(result);
-    setCustomBatchName('');
-    showToast(`Сәтті! «${result.batch.name}» файлы жасалып, ${result.codes.length} промокод генерацияланды.`, 'success');
+      setLastGeneratedInfo(result);
+      setCustomBatchName('');
+      showToast(`Сәтті! «${result.batch.name}» файлы жасалып, ${result.codes.length} промокод генерацияланды.`, 'success');
+    } catch {
+      showToast('Промокодтарды генерациялау қатесі орын алды', 'error');
+    }
   };
 
   const copyToClipboard = (text: string, label = 'Промокод') => {

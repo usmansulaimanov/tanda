@@ -100,7 +100,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialMode }) => {
       // Auto-activate promo code if provided during registration
       if (cleanPromo) {
         const registeredUser = useAuthStore.getState().user;
-        const promoRes = activatePromoCode(cleanPromo, {
+        const promoRes = await activatePromoCode(cleanPromo, {
           id: registeredUser?.id || `user-${Date.now()}`,
           name: cleanName,
           email: cleanEmail,

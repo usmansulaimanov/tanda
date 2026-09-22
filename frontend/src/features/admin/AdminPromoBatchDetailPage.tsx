@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { usePromoStore, PromoCode, PromoBatch } from '../../store/usePromoStore';
 import { useToastStore } from '../../store/useToastStore';
@@ -15,8 +15,15 @@ export const AdminPromoBatchDetailPage: React.FC = () => {
     updatePromoNote,
     deleteBatch,
     toggleBatchStatus,
+    fetchBatches,
+    fetchPromoCodes,
   } = usePromoStore();
   const { showToast } = useToastStore();
+
+  useEffect(() => {
+    fetchBatches();
+    fetchPromoCodes();
+  }, [fetchBatches, fetchPromoCodes]);
 
   const [codeSearchQuery, setCodeSearchQuery] = useState<string>('');
   const [activeFilter, setActiveFilter] = useState<'all' | 'activated' | 'issued'>('all');

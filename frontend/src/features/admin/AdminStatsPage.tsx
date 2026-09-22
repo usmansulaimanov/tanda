@@ -32,7 +32,7 @@ export const AdminStatsPage: React.FC = () => {
 
   const { user, role } = useAuthStore();
   const { books, fetchBooks } = useBookStore();
-  const { batches, promocodes } = usePromoStore();
+  const { batches, promocodes, fetchBatches, fetchPromoCodes } = usePromoStore();
   const { showToast } = useToastStore();
 
   const canViewStats = hasAdminPermission(user, 'analytics_view');
@@ -104,7 +104,9 @@ export const AdminStatsPage: React.FC = () => {
   useEffect(() => {
     fetchBooks({ includeArchived: true });
     refreshAudioStats();
-  }, [fetchBooks, refreshAudioStats]);
+    fetchBatches();
+    fetchPromoCodes();
+  }, [fetchBooks, refreshAudioStats, fetchBatches, fetchPromoCodes]);
 
   const refreshReaders = React.useCallback(() => {
     setIsLoadingReaders(true);
