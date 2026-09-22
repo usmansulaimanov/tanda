@@ -1,3 +1,27 @@
 import { Book } from '../types';
 
-export const INITIAL_BOOKS: Book[] = [];
+export const INITIAL_BOOKS: Book[] = [
+  {
+    id: "book-unatamyn",
+    title: "Ұнатамын",
+    author: "Садраддин",
+    category: "Романтика",
+    categories: ["Романтика"],
+    pages: 120,
+    hasAudio: true,
+    audioNarrator: "Садраддин",
+    audioDuration: "1 сағат 35 минут",
+    audioChapters: [
+      { id: "un-1", title: "1-бөлім: Ұнатамын", duration: "25:30", audioUrl: "" },
+      { id: "un-2", title: "2-бөлім: Сезім сыры", duration: "34:40", audioUrl: "" },
+      { id: "un-3", title: "3-бөлім: Жүрек үні", duration: "35:10", audioUrl: "" }
+    ],
+    audioUrl: "",
+    coverImage: "/covers/unatamyn.jpg",
+    isFree: true,
+    isArchived: false,
+    gradient: "linear-gradient(135deg, #0057A8, #003d7a)",
+    description: "Садраддиннің оқырмандар мен тыңдармандарға арналған жаңа туындысы.",
+    createdAt: "2026-09-21T18:00:00.000Z"
+  }
+];

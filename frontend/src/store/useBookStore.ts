@@ -31,8 +31,8 @@ interface BookState {
   toggleArchive: (id: string) => Promise<void>;
 }
 
-const DELETED_BOOK_IDS_KEY = 'tanda_deleted_books_v3';
-const BOOKS_INITIALIZED_KEY = 'tanda_books_initialized_v3';
+const DELETED_BOOK_IDS_KEY = 'tanda_deleted_books_v4';
+const BOOKS_INITIALIZED_KEY = 'tanda_books_initialized_v4';
 
 function getDeletedBookIds(): Set<string> {
   try {
@@ -240,19 +240,49 @@ export const useBookStore = create<BookState>()(
       },
     }),
     {
-      name: 'tanda_books_storage_v3',
+      name: 'tanda_books_storage_v4',
       onRehydrateStorage: () => (state) => {
         if (!state) return;
         const deletedIds = getDeletedBookIds();
-        const testTitles = new Set(['кімді кінәләйсің', 'michael jackson', 'аааа', 'dddd']);
-        const testIds = new Set(['book-aaaa']);
+        const oldMockIds = new Set([
+          'book-fyfy',
+          'book-ccc',
+          'book-aaaa',
+          'book-men',
+          'rich-dad',
+          'atomic-habits',
+          'kalyng-mal',
+          'shuganyn-belgisi',
+          'little-prince',
+          'kan-men-ter',
+          'bakhytty-otbasy',
+          'abai-zholy-1',
+          'qara-sozder',
+          'koshpendiler-1',
+          'the-psychology-of-money',
+          'think-and-grow-rich',
+          '1984-book',
+          'the-alchemist',
+        ]);
+        const testTitles = new Set([
+          'кімді кінәләйсің',
+          'michael jackson',
+          'аааа',
+          'dddd',
+          'фыфы',
+          'ссс',
+          'бай әке, кедей әке',
+          'атомдық әдеттер',
+          'қызық кітап',
+        ]);
 
         let currentBooks = state.books && Array.isArray(state.books) ? state.books : [];
 
-        // Check if books exist in old storage keys on migration
+        // Check if books exist in old storage keys on migration (v3, v2, v1)
         if (currentBooks.length === 0 && !localStorage.getItem(BOOKS_INITIALIZED_KEY)) {
           try {
             const oldStorage =
+              localStorage.getItem('tanda_books_storage_v3') ||
               localStorage.getItem('tanda_books_storage_v2') ||
               localStorage.getItem('tanda_books_storage_v1') ||
               localStorage.getItem('tanda_books_storage');
@@ -265,26 +295,20 @@ export const useBookStore = create<BookState>()(
           } catch {}
         }
 
-        // Filter out deleted IDs and test mock books
+        // Filter out deleted IDs, old mock book IDs, and test mock books
         currentBooks = currentBooks.filter(
           (b) =>
             b &&
             b.id &&
             !deletedIds.has(String(b.id)) &&
+            !oldMockIds.has(String(b.id)) &&
             !testTitles.has((b.title || '').trim().toLowerCase()) &&
-            !testTitles.has((b.author || '').trim().toLowerCase()) &&
-            !testIds.has(b.id)
+            !testTitles.has((b.author || '').trim().toLowerCase())
         );
 
-        // First initialization only: seed INITIAL_BOOKS if not already initialized
-        const isInitialized = localStorage.getItem(BOOKS_INITIALIZED_KEY);
-        if (!isInitialized) {
-          const existingMap = new Map(currentBooks.map((b) => [b.id, b]));
-          INITIAL_BOOKS.forEach((initBook) => {
-            if (!deletedIds.has(initBook.id) && !existingMap.has(initBook.id)) {
-              currentBooks.push(initBook);
-            }
-          });
+        // First initialization or empty list: seed INITIAL_BOOKS
+        if (currentBooks.length === 0) {
+          currentBooks = [...INITIAL_BOOKS];
           localStorage.setItem(BOOKS_INITIALIZED_KEY, 'true');
         }
 
