@@ -202,6 +202,19 @@ public class BookService {
     }
 
     public BookResponseDto toResponseDto(Book book) {
+        List<AudioChapterDto> chapterDtos = (book.getAudioChapters() != null)
+                ? book.getAudioChapters().stream()
+                        .map(ch -> AudioChapterDto.builder()
+                                .id(ch.getId())
+                                .bookId(book.getId())
+                                .title(ch.getTitle())
+                                .audioUrl(ch.getAudioUrl())
+                                .duration(ch.getDuration())
+                                .chapterOrder(ch.getChapterOrder())
+                                .build())
+                        .collect(Collectors.toList())
+                : new ArrayList<>();
+
         return BookResponseDto.builder()
                 .id(book.getId())
                 .title(book.getTitle())
@@ -218,6 +231,7 @@ public class BookService {
                 .isArchived(book.getIsArchived())
                 .gradient(book.getGradient())
                 .createdAt(book.getCreatedAt())
+                .audioChapters(chapterDtos)
                 .build();
     }
 

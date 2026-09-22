@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -29,4 +31,7 @@ public class BookResponseDto {
     private Boolean isArchived;
     private String gradient;
     private OffsetDateTime createdAt;
+
+    @Builder.Default
+    private List<AudioChapterDto> audioChapters = new ArrayList<>();
 }
