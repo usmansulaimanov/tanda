@@ -186,7 +186,7 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
           chapters = [
             {
               id: `${book.id}-ch-1`,
-              title: '1-аудио',
+              title: '1-бөлім',
               duration: book.audioDuration || '05:00',
               audioUrl: book.audioUrl || '',
             },
