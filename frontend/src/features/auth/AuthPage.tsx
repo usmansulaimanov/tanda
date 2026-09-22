@@ -165,9 +165,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialMode }) => {
     showToast('Google авторизациясы қатемен аяқталды', 'error');
   };
 
-  const handleAppleClick = () => {
-    showToast('Apple ID арқылы кіру жақында қосылады. Google немесе пошта арқылы кіре аласыз.', 'info');
-  };
 
   const handleForgotPassword = () => {
     showToast('Құпиясөзді қалпына келтіру үшін support@tanda.kz хабарласыңыз немесе жедел кіру батырмасын басыңыз.', 'info');
@@ -239,9 +236,8 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialMode }) => {
             </div>
           </div>
 
-          {/* 1-Click Social Sign-In (Google & Apple) */}
-          <div className="space-y-2.5 mb-5">
-            {/* Google Sign-In Button */}
+          {/* 1-Click Social Sign-In (Google) */}
+          <div className="mb-5">
             <div className="w-full flex justify-center">
               <GoogleLogin
                 onSuccess={handleGoogleSuccess}
@@ -253,18 +249,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialMode }) => {
                 shape="rectangular"
               />
             </div>
-
-            {/* Apple 1-Click Button */}
-            <button
-              type="button"
-              onClick={handleAppleClick}
-              className="w-full py-2.5 px-4 bg-black hover:bg-neutral-900 active:bg-neutral-800 text-white rounded-xl text-sm font-semibold flex items-center justify-center gap-2.5 transition shadow-sm cursor-pointer"
-            >
-              <svg className="w-4 h-4 fill-current mb-0.5" viewBox="0 0 170 170">
-                <path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.19-2.12-9.97-3.17-14.34-3.17-4.58 0-9.49 1.05-14.75 3.17-5.26 2.13-9.5 3.24-12.74 3.35-4.35.13-9.16-1.9-14.42-6.08-3.69-3.04-7.67-7.81-11.96-14.34-5.77-8.81-10.36-19.12-13.78-30.93-3.42-11.81-5.13-23.01-5.13-33.6 0-14.28 3.52-26.17 10.56-35.67 7.04-9.5 15.82-14.35 26.33-14.56 5.26 0 11.03 1.48 17.3 4.44 6.27 2.97 10.14 4.51 11.61 4.63 1.25 0 5.41-1.63 12.47-4.89 7.07-3.26 13.06-4.63 17.97-4.12 13.37 1.06 23.85 5.86 31.44 14.4-11.75 7.09-17.51 16.73-17.29 28.92.21 9.53 3.93 17.47 11.16 23.83 7.23 6.36 15.7 10.05 25.41 11.06-2.12 6.52-4.68 13.37-7.68 20.55zM119.22 33.74c0-7.39 2.68-14.29 8.04-20.7 5.36-6.41 12-10.74 19.92-13.04.22 1.5.33 3.01.33 4.54 0 7.39-2.73 14.4-8.19 21.03-5.46 6.63-12.28 10.9-20.46 12.81-.22-1.5-.33-3.05-.33-4.64z"/>
-              </svg>
-              <span>{mode === 'login' ? 'Apple арқылы кіру' : 'Apple арқылы тіркелу'}</span>
-            </button>
           </div>
 
           {/* Divider */}
