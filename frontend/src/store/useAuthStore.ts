@@ -17,6 +17,8 @@ interface AuthState {
   reservedUsernames: string[];
 
   login: (email: string, password: string) => Promise<void>;
+  loginAsAdmin: () => Promise<void>;
+  loginAsClient: (email?: string, name?: string) => Promise<void>;
   loginWithGoogle: (credential: string) => Promise<void>;
   sendVerificationCode: (email: string, type?: 'REGISTER' | 'RESET_PASSWORD') => Promise<{ success: boolean; message: string; cooldown: number }>;
   register: (name: string, email: string, password: string, code?: string) => Promise<void>;
@@ -924,6 +926,18 @@ export const useAuthStore = create<AuthState>()(
           }
         } finally {
           set({ isLoading: false });
+        }
+      },
+
+      loginAsAdmin: async () => {
+        await get().login('admin@tanda.kz', 'admin123');
+      },
+
+      loginAsClient: async (email = 'reader@tanda.kz', name = 'Оқырман') => {
+        try {
+          await get().login(email, 'reader123');
+        } catch {
+          await get().register(name, email, 'reader123');
         }
       },
 

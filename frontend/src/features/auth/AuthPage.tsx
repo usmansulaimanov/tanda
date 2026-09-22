@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, User as UserIcon, ArrowRight, ArrowLeft, Tag } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, User as UserIcon, ArrowRight, ArrowLeft, Tag, ShieldCheck, BookOpen, Sparkles } from 'lucide-react';
 import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
 import { useAuthStore } from '../../store/useAuthStore';
 import { usePromoStore } from '../../store/usePromoStore';
@@ -21,7 +21,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialMode }) => {
   const isSignupPath = location.pathname === '/signup' || location.pathname === '/register';
   const mode: 'login' | 'signup' = initialMode || (isSignupPath ? 'signup' : 'login');
 
-  const { isAuthenticated, user, role, isLoading, login, register, loginWithGoogle } = useAuthStore();
+  const { isAuthenticated, user, role, isLoading, login, register, loginWithGoogle, loginAsAdmin, loginAsClient } = useAuthStore();
   const { activatePromoCode } = usePromoStore();
   const { showToast } = useToastStore();
 
@@ -31,6 +31,39 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialMode }) => {
   const [promoCode, setPromoCode] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [isQuickLoading, setIsQuickLoading] = useState(false);
+
+  const handleQuickAdmin = async () => {
+    setIsQuickLoading(true);
+    setErrorMessage('');
+    try {
+      await loginAsAdmin();
+      showToast('Әкімші (Админ) ретінде сәтті кірдіңіз!', 'success');
+      navigate(redirectUrl === '/' ? '/admin' : redirectUrl);
+    } catch (err: any) {
+      const msg = err.response?.data?.message || err.message || 'Админ ретінде кіру мүмкін болмады';
+      setErrorMessage(msg);
+      showToast(msg, 'error');
+    } finally {
+      setIsQuickLoading(false);
+    }
+  };
+
+  const handleQuickReader = async () => {
+    setIsQuickLoading(true);
+    setErrorMessage('');
+    try {
+      await loginAsClient();
+      showToast('Оқырман ретінде сәтті кірдіңіз!', 'success');
+      navigate(redirectUrl);
+    } catch (err: any) {
+      const msg = err.response?.data?.message || err.message || 'Оқырман ретінде кіру мүмкін болмады';
+      setErrorMessage(msg);
+      showToast(msg, 'error');
+    } finally {
+      setIsQuickLoading(false);
+    }
+  };
 
   // If already authenticated, redirect
   useEffect(() => {
@@ -204,6 +237,39 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialMode }) => {
                 text={mode === 'login' ? 'signin_with' : 'signup_with'}
                 shape="rectangular"
               />
+            </div>
+          </div>
+
+          {/* Quick Demo Role Logins (Admin & Reader) */}
+          <div className="mb-5 p-3.5 bg-slate-50 border border-slate-200/90 rounded-2xl">
+            <div className="flex items-center justify-between mb-2.5">
+              <span className="text-[11px] font-black uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                <Sparkles size={13} className="text-amber-500 flex-shrink-0" />
+                Жылдам кіру (Сынақ үшін):
+              </span>
+              <span className="text-[10px] font-bold text-slate-500 bg-white px-2 py-0.5 rounded-full border border-slate-200">
+                1 басумен
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-2.5">
+              <button
+                type="button"
+                onClick={handleQuickAdmin}
+                disabled={isQuickLoading || isLoading}
+                className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-white border border-[#0057A8]/30 text-[#0057A8] hover:bg-[#0057A8] hover:text-white hover:border-[#0057A8] active:scale-[0.98] transition-all shadow-sm text-xs font-bold cursor-pointer disabled:opacity-60 disabled:pointer-events-none"
+              >
+                <ShieldCheck size={16} />
+                <span>Админ ретінде</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleQuickReader}
+                disabled={isQuickLoading || isLoading}
+                className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-white border border-emerald-500/30 text-emerald-700 hover:bg-emerald-600 hover:text-white hover:border-emerald-600 active:scale-[0.98] transition-all shadow-sm text-xs font-bold cursor-pointer disabled:opacity-60 disabled:pointer-events-none"
+              >
+                <BookOpen size={16} />
+                <span>Оқырман ретінде</span>
+              </button>
             </div>
           </div>
 

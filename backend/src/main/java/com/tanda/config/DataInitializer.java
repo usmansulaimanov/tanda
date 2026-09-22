@@ -35,13 +35,21 @@ public class DataInitializer implements CommandLineRunner {
     private String adminInitialPassword;
 
     @Override
-    @Transactional
     public void run(String... args) {
-        seedAdminUser();
-        seedBooks();
+        try {
+            seedAdminUser();
+        } catch (Exception e) {
+            log.error("Failed to seed admin user: {}", e.getMessage(), e);
+        }
+        try {
+            seedBooks();
+        } catch (Exception e) {
+            log.error("Failed to seed books: {}", e.getMessage(), e);
+        }
     }
 
-    private void seedAdminUser() {
+    @Transactional
+    public void seedAdminUser() {
         String adminPwd = (adminInitialPassword != null && !adminInitialPassword.isBlank() && !adminInitialPassword.contains("null")) ? adminInitialPassword.trim() : "admin123";
         String encodedPassword = passwordEncoder.encode(adminPwd);
 
@@ -49,7 +57,7 @@ public class DataInitializer implements CommandLineRunner {
         if (admin == null) {
             admin = com.tanda.entity.User.builder()
                     .id("admin-1")
-                    .idNumber("0000 0001")
+                    .idNumber("000 001")
                     .name("Әкімші")
                     .email("admin@tanda.kz")
                     .passwordHash(encodedPassword)
@@ -68,7 +76,8 @@ public class DataInitializer implements CommandLineRunner {
         }
     }
 
-    private void seedBooks() {
+    @Transactional
+    public void seedBooks() {
         // Delete legacy mock test books
         List<String> legacyMockIds = List.of(
             "book-fyfy", "book-ccc", "rich-dad", "atomic-habits", "kalyng-mal",
@@ -76,9 +85,13 @@ public class DataInitializer implements CommandLineRunner {
             "book-aaaa", "book-men"
         );
         for (String mockId : legacyMockIds) {
-            if (bookRepository.existsById(mockId)) {
-                bookRepository.deleteById(mockId);
-                log.info("Removed legacy test book: {}", mockId);
+            try {
+                if (bookRepository.existsById(mockId)) {
+                    bookRepository.deleteById(mockId);
+                    log.info("Removed legacy test book: {}", mockId);
+                }
+            } catch (Exception e) {
+                log.warn("Could not delete legacy mock book {}: {}", mockId, e.getMessage());
             }
         }
 
