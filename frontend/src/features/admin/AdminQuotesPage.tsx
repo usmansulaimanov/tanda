@@ -21,10 +21,15 @@ export const AdminQuotesPage: React.FC = () => {
     toggleQuoteActive,
     updateSettings,
     triggerQuoteNotification,
+    fetchQuotes,
   } = useQuoteStore();
   const { showToast } = useToastStore();
 
   const canManageQuotes = hasAdminPermission(user, 'quotes_manage');
+
+  useEffect(() => {
+    fetchQuotes(true);
+  }, [fetchQuotes]);
 
   useEffect(() => {
     if (role !== 'admin' || !canManageQuotes) {
@@ -202,7 +207,7 @@ export const AdminQuotesPage: React.FC = () => {
     }
   };
 
-  const handleInstantSend = (e: React.FormEvent) => {
+  const handleInstantSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!instantText.trim()) {
       showToast('Цитата мәтінін енгізіңіз', 'error');
@@ -217,7 +222,7 @@ export const AdminQuotesPage: React.FC = () => {
     const bookTitle = selected?.title || instantBookTitle.trim() || undefined;
     const author = selected?.author || instantAuthor.trim() || 'Халық даналығы';
 
-    const created = addQuote({
+    const created = await addQuote({
       text: instantText.trim(),
       author: author,
       bookId: instantBookId,
@@ -225,7 +230,9 @@ export const AdminQuotesPage: React.FC = () => {
       isActive: true,
     });
 
-    triggerQuoteNotification(created.id);
+    if (created?.id) {
+      triggerQuoteNotification(created.id);
+    }
 
     setShowInstantSendModal(false);
     setInstantText('');

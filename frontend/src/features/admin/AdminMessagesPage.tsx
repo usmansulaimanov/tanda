@@ -9,11 +9,16 @@ import { User } from '../../types';
 
 export const AdminMessagesPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, role, getAllClients } = useAuthStore();
-  const { messages, sendMessage, deleteMessage } = useMessageStore();
+  const { user, role, getAllClients, fetchClients } = useAuthStore();
+  const { messages, sendMessage, deleteMessage, fetchAdminMessages } = useMessageStore();
   const { showToast } = useToastStore();
 
   const canManage = hasAdminPermission(user, 'messages_manage') || hasAdminPermission(user, 'quotes_manage');
+
+  useEffect(() => {
+    fetchAdminMessages();
+    fetchClients();
+  }, [fetchAdminMessages, fetchClients]);
 
   useEffect(() => {
     if (role !== 'admin' || !canManage) {

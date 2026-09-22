@@ -16,8 +16,13 @@ export const ReaderMessagesPage: React.FC = () => {
     markAsRead,
     markAllAsRead,
     deleteMessageForUser,
+    fetchMyMessages,
   } = useMessageStore();
   const { showToast } = useToastStore();
+
+  useEffect(() => {
+    fetchMyMessages();
+  }, [fetchMyMessages]);
 
   const [searchQuery, setSearchQuery] = useState('');
 

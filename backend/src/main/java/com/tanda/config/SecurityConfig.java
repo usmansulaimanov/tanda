@@ -58,6 +58,9 @@ public class SecurityConfig {
                 // Public endpoints
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/books", "/api/books/**", "/api/v1/books", "/api/v1/books/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/news", "/api/news/**", "/api/v1/news", "/api/v1/news/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/news/*/views", "/api/v1/news/*/views").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/quotes", "/api/quotes/**", "/api/v1/quotes", "/api/v1/quotes/**").permitAll()
                 .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/logout", "/api/auth/google", "/api/auth/refresh", "/api/auth/send-verification-code",
                                  "/api/v1/auth/login", "/api/v1/auth/register", "/api/v1/auth/logout", "/api/v1/auth/google", "/api/v1/auth/refresh", "/api/v1/auth/send-verification-code").permitAll()
                 .requestMatchers("/uploads/covers/**").permitAll()

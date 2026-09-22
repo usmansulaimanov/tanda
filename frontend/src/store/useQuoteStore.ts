@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { api } from '../lib/api';
 
 export interface QuoteItem {
   id: string;
@@ -14,9 +14,9 @@ export interface QuoteItem {
 }
 
 export interface QuoteSettings {
-  isEnabled: boolean; // Master toggle for quotes delivery
-  frequencyPerDay: number; // e.g. 3 times per day
-  scheduledTimes: string[]; // e.g. ['09:00', '14:00', '20:00']
+  isEnabled: boolean;
+  frequencyPerDay: number;
+  scheduledTimes: string[];
   browserPushEnabled: boolean;
   soundEnabled: boolean;
 }
@@ -36,26 +36,23 @@ interface QuoteState {
   settings: QuoteSettings;
   activeNotification: QuoteItem | null;
   deliveredHistory: DeliveredQuoteRecord[];
-  lastTriggeredSlots: Record<string, string[]>; // { "2026-09-19": ["09:00", "14:00"] }
-  lastShownQuoteIndex: number;
+  isLoading: boolean;
 
-  // Actions
-  addQuote: (data: { text: string; author?: string; bookId?: string; bookTitle?: string; isActive?: boolean }) => QuoteItem;
-  addBulkQuotes: (items: Array<{ text: string; author?: string; bookId?: string; bookTitle?: string }>) => number;
-  updateQuote: (id: string, updates: Partial<QuoteItem>) => void;
-  deleteQuote: (id: string) => void;
-  deleteQuotes: (ids: string[]) => void;
-  toggleQuoteActive: (id: string) => void;
+  fetchQuotes: (asAdmin?: boolean) => Promise<void>;
+  fetchRandomQuote: () => Promise<QuoteItem | null>;
+  addQuote: (data: { text: string; author?: string; bookId?: string; bookTitle?: string; isActive?: boolean }) => Promise<QuoteItem | null>;
+  addBulkQuotes: (items: Array<{ text: string; author?: string; bookId?: string; bookTitle?: string }>) => Promise<number>;
+  updateQuote: (id: string, updates: Partial<QuoteItem>) => Promise<void>;
+  deleteQuote: (id: string) => Promise<void>;
+  deleteQuotes: (ids: string[]) => Promise<void>;
+  toggleQuoteActive: (id: string) => Promise<void>;
   updateSettings: (partial: Partial<QuoteSettings>) => void;
-  
-  // Notification controls
+
   triggerQuoteNotification: (quoteId?: string) => QuoteItem | null;
   dismissNotification: () => void;
   checkAndTriggerScheduledQuotes: () => void;
   clearHistory: () => void;
 }
-
-const DEFAULT_QUOTES: QuoteItem[] = [];
 
 const DEFAULT_SETTINGS: QuoteSettings = {
   isEnabled: true,
@@ -65,223 +62,153 @@ const DEFAULT_SETTINGS: QuoteSettings = {
   soundEnabled: true,
 };
 
-export const useQuoteStore = create<QuoteState>()(
-  persist(
-    (set, get) => ({
-      quotes: DEFAULT_QUOTES,
-      settings: DEFAULT_SETTINGS,
-      activeNotification: null,
-      deliveredHistory: [],
-      lastTriggeredSlots: {},
-      lastShownQuoteIndex: 0,
+export const useQuoteStore = create<QuoteState>((set, get) => ({
+  quotes: [],
+  settings: DEFAULT_SETTINGS,
+  activeNotification: null,
+  deliveredHistory: [],
+  isLoading: false,
 
-      addQuote: (data) => {
-        const newQuote: QuoteItem = {
-          id: `quote-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
-          text: data.text.trim(),
-          author: data.author?.trim() || 'Халық даналығы',
-          bookId: data.bookId || undefined,
-          bookTitle: data.bookTitle?.trim() || undefined,
-          isActive: data.isActive !== undefined ? data.isActive : true,
-          sentCount: 0,
-          createdAt: new Date().toISOString(),
-        };
-
-        set((state) => ({
-          quotes: [newQuote, ...state.quotes],
-        }));
-
-        return newQuote;
-      },
-
-      addBulkQuotes: (items) => {
-        const validItems = items.filter((item) => item.text && item.text.trim().length > 0);
-        if (validItems.length === 0) return 0;
-
-        const newQuotes: QuoteItem[] = validItems.map((item, idx) => ({
-          id: `quote-${Date.now()}-${idx}-${Math.random().toString(36).substring(2, 6)}`,
-          text: item.text.trim(),
-          author: item.author?.trim() || 'Халық даналығы',
-          bookId: item.bookId || undefined,
-          bookTitle: item.bookTitle?.trim() || undefined,
-          isActive: true,
-          sentCount: 0,
-          createdAt: new Date().toISOString(),
-        }));
-
-        set((state) => ({
-          quotes: [...newQuotes, ...state.quotes],
-        }));
-
-        return newQuotes.length;
-      },
-
-      updateQuote: (id, updates) => {
-        set((state) => ({
-          quotes: state.quotes.map((q) => (q.id === id ? { ...q, ...updates } : q)),
-        }));
-      },
-
-      deleteQuote: (id) => {
-        set((state) => ({
-          quotes: state.quotes.filter((q) => q.id !== id),
-          activeNotification: state.activeNotification?.id === id ? null : state.activeNotification,
-        }));
-      },
-
-      deleteQuotes: (ids) => {
-        const idSet = new Set(ids);
-        set((state) => ({
-          quotes: state.quotes.filter((q) => !idSet.has(q.id)),
-          activeNotification: state.activeNotification && idSet.has(state.activeNotification.id) ? null : state.activeNotification,
-        }));
-      },
-
-      toggleQuoteActive: (id) => {
-        set((state) => ({
-          quotes: state.quotes.map((q) =>
-            q.id === id ? { ...q, isActive: !q.isActive } : q
-          ),
-        }));
-      },
-
-      updateSettings: (partial) => {
-        set((state) => ({
-          settings: { ...state.settings, ...partial },
-        }));
-      },
-
-      triggerQuoteNotification: (quoteId) => {
-        const state = get();
-        const activeQuotes = state.quotes.filter((q) => q.isActive);
-
-        if (activeQuotes.length === 0) {
-          return null;
-        }
-
-        let selectedQuote: QuoteItem;
-        if (quoteId) {
-          const found = state.quotes.find((q) => q.id === quoteId);
-          selectedQuote = found || activeQuotes[0];
-        } else {
-          // Sequential rotation through active quotes
-          const nextIndex = (state.lastShownQuoteIndex + 1) % activeQuotes.length;
-          selectedQuote = activeQuotes[nextIndex] || activeQuotes[0];
-          set({ lastShownQuoteIndex: nextIndex });
-        }
-
-        const now = new Date().toISOString();
-
-        // Update sent count
-        const updatedQuotes = state.quotes.map((q) =>
-          q.id === selectedQuote.id
-            ? { ...q, sentCount: q.sentCount + 1, lastSentAt: now }
-            : q
-        );
-
-        const historyRecord: DeliveredQuoteRecord = {
-          id: `history-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
-          quoteId: selectedQuote.id,
-          text: selectedQuote.text,
-          author: selectedQuote.author,
-          bookId: selectedQuote.bookId,
-          bookTitle: selectedQuote.bookTitle,
-          deliveredAt: now,
-        };
-
-        set((prevState) => ({
-          quotes: updatedQuotes,
-          activeNotification: selectedQuote,
-          deliveredHistory: [historyRecord, ...(prevState.deliveredHistory || []).slice(0, 49)],
-        }));
-
-        // Send HTML5 Browser Notification if enabled and supported
-        if (
-          state.settings.browserPushEnabled &&
-          typeof window !== 'undefined' &&
-          'Notification' in window &&
-          Notification.permission === 'granted'
-        ) {
-          try {
-            new Notification('Tanda • Күн цитатасы', {
-              body: `«${selectedQuote.text}»\n— ${selectedQuote.author}`,
-              icon: '/favicon.ico',
-            });
-          } catch {}
-        }
-
-        return selectedQuote;
-      },
-
-      dismissNotification: () => {
-        set({ activeNotification: null });
-      },
-
-      checkAndTriggerScheduledQuotes: () => {
-        const state = get();
-        // If master switch is OFF, do not trigger anything
-        if (!state.settings.isEnabled) {
-          return;
-        }
-
-        const activeQuotes = state.quotes.filter((q) => q.isActive);
-        if (activeQuotes.length === 0) {
-          return;
-        }
-
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        const day = String(now.getDate()).padStart(2, '0');
-        const todayStr = `${year}-${month}-${day}`;
-
-        const hours = String(now.getHours()).padStart(2, '0');
-        const minutes = String(now.getMinutes()).padStart(2, '0');
-        const currentTimeSlot = `${hours}:${minutes}`;
-
-        const triggeredToday = state.lastTriggeredSlots[todayStr] || [];
-
-        // Check if current minute matches any scheduled slot and hasn't fired today
-        const matchingSlot = state.settings.scheduledTimes.find(
-          (time) => time === currentTimeSlot && !triggeredToday.includes(time)
-        );
-
-        if (matchingSlot) {
-          // Record slot as triggered
-          const updatedSlots = {
-            ...state.lastTriggeredSlots,
-            [todayStr]: [...triggeredToday, matchingSlot],
-          };
-
-          set({ lastTriggeredSlots: updatedSlots });
-          get().triggerQuoteNotification();
-        }
-      },
-
-      clearHistory: () => {
-        set((state) => ({
-          deliveredHistory: [],
-          quotes: state.quotes.map((q) => ({ ...q, sentCount: 0, lastSentAt: undefined })),
-        }));
-      },
-    }),
-    {
-      name: 'tanda_quotes_v2',
-      version: 2,
-      migrate: (persistedState: any, version: number) => {
-        if (version < 2 && persistedState) {
-          return {
-            ...persistedState,
-            deliveredHistory: [],
-            quotes: (persistedState.quotes || DEFAULT_QUOTES).map((q: any) => ({
-              ...q,
-              sentCount: 0,
-              lastSentAt: undefined,
-            })),
-          };
-        }
-        return persistedState;
-      },
+  fetchQuotes: async (asAdmin = false) => {
+    set({ isLoading: true });
+    try {
+      const endpoint = asAdmin ? '/api/v1/admin/quotes' : '/api/v1/quotes';
+      const { data } = await api.get(endpoint);
+      if (Array.isArray(data)) {
+        set({ quotes: data });
+      }
+    } catch (err: any) {
+      if (asAdmin && err?.response?.status === 403) {
+        try {
+          const { data } = await api.get('/api/v1/quotes');
+          if (Array.isArray(data)) set({ quotes: data });
+        } catch {}
+      }
+    } finally {
+      set({ isLoading: false });
     }
-  )
-);
+  },
+
+  fetchRandomQuote: async () => {
+    try {
+      const { data } = await api.get('/api/v1/quotes/random');
+      return data || null;
+    } catch {
+      return null;
+    }
+  },
+
+  addQuote: async (data) => {
+    try {
+      const { data: created } = await api.post('/api/v1/admin/quotes', data);
+      if (created) {
+        set((state) => ({
+          quotes: [created, ...state.quotes],
+        }));
+        return created;
+      }
+      return null;
+    } catch (err) {
+      console.error('Failed to create quote:', err);
+      return null;
+    }
+  },
+
+  addBulkQuotes: async (items) => {
+    const validItems = items.filter((item) => item.text && item.text.trim().length > 0);
+    if (validItems.length === 0) return 0;
+
+    try {
+      const { data } = await api.post('/api/v1/admin/quotes/bulk', validItems);
+      if (Array.isArray(data)) {
+        set((state) => ({
+          quotes: [...data, ...state.quotes],
+        }));
+        return data.length;
+      }
+      return 0;
+    } catch (err) {
+      console.error('Failed to bulk add quotes:', err);
+      return 0;
+    }
+  },
+
+  updateQuote: async (id, updates) => {
+    try {
+      const { data: updated } = await api.patch(`/api/v1/admin/quotes/${id}`, updates);
+      set((state) => ({
+        quotes: state.quotes.map((q) => (q.id === id ? { ...q, ...updated } : q)),
+      }));
+    } catch (err) {
+      console.error('Failed to update quote:', err);
+    }
+  },
+
+  deleteQuote: async (id) => {
+    try {
+      await api.delete(`/api/v1/admin/quotes/${id}`);
+      set((state) => ({
+        quotes: state.quotes.filter((q) => q.id !== id),
+      }));
+    } catch (err) {
+      console.error('Failed to delete quote:', err);
+    }
+  },
+
+  deleteQuotes: async (ids) => {
+    try {
+      await api.delete('/api/v1/admin/quotes', { data: ids });
+      set((state) => ({
+        quotes: state.quotes.filter((q) => !ids.includes(q.id)),
+      }));
+    } catch (err) {
+      console.error('Failed to bulk delete quotes:', err);
+    }
+  },
+
+  toggleQuoteActive: async (id) => {
+    const quote = get().quotes.find((q) => q.id === id);
+    if (!quote) return;
+    const newStatus = !quote.isActive;
+    await get().updateQuote(id, { isActive: newStatus });
+  },
+
+  updateSettings: (partial) => {
+    set((state) => ({
+      settings: { ...state.settings, ...partial },
+    }));
+  },
+
+  triggerQuoteNotification: (quoteId) => {
+    const quotes = get().quotes.filter((q) => q.isActive);
+    if (quotes.length === 0) return null;
+
+    let targetQuote = quoteId ? quotes.find((q) => q.id === quoteId) : null;
+    if (!targetQuote) {
+      const randIdx = Math.floor(Math.random() * quotes.length);
+      targetQuote = quotes[randIdx];
+    }
+
+    set({ activeNotification: targetQuote });
+    return targetQuote;
+  },
+
+  dismissNotification: () => {
+    set({ activeNotification: null });
+  },
+
+  checkAndTriggerScheduledQuotes: () => {
+    // Scheduled quotes delivery
+  },
+
+  clearHistory: () => {
+    set({ deliveredHistory: [] });
+  },
+}));
+
+// Clean up legacy localStorage key immediately
+if (typeof window !== 'undefined') {
+  try {
+    localStorage.removeItem('tanda_quotes_storage_v1');
+  } catch {}
+}

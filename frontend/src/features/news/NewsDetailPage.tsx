@@ -7,9 +7,14 @@ import { NewsImageCarousel } from '../../components/news/NewsImageCarousel';
 export const NewsDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { getArticleById, incrementViews, getPublishedArticles } = useNewsStore();
+  const { getArticleById, incrementViews, getPublishedArticles, fetchArticles } = useNewsStore();
   const { user } = useAuthStore();
   const isAdmin = user?.role === 'admin';
+
+  useEffect(() => {
+    fetchArticles(isAdmin);
+  }, [fetchArticles, isAdmin]);
+
   const article = id ? getArticleById(id) : undefined;
   const isScheduled = article
     ? article.isPublished &&

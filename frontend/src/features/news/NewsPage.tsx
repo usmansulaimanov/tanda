@@ -227,7 +227,12 @@ const NewsArticleCard: React.FC<{
 };
 
 export const NewsPage: React.FC = () => {
-  const { getPublishedArticles } = useNewsStore();
+  const { getPublishedArticles, fetchArticles } = useNewsStore();
+
+  React.useEffect(() => {
+    fetchArticles();
+  }, [fetchArticles]);
+
   const articles = getPublishedArticles();
   const [searchQuery, setSearchQuery] = useState('');
 

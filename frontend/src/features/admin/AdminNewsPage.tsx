@@ -10,8 +10,12 @@ import { Search, Plus, Eye, Edit, Trash2 } from 'lucide-react';
 export const AdminNewsPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, role } = useAuthStore();
-  const { articles, deleteArticle } = useNewsStore();
+  const { articles, deleteArticle, fetchArticles } = useNewsStore();
   const { showToast } = useToastStore();
+
+  useEffect(() => {
+    fetchArticles(true);
+  }, [fetchArticles]);
 
   useEffect(() => {
     if (role !== 'admin' || !hasAdminPermission(user, 'news_manage')) {

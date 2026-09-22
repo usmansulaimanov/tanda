@@ -6,9 +6,13 @@ import { useToastStore } from '../../store/useToastStore';
 
 export const ReaderQuotesPage: React.FC = () => {
   const navigate = useNavigate();
-  const { quotes, deliveredHistory } = useQuoteStore();
+  const { quotes, deliveredHistory, fetchQuotes } = useQuoteStore();
   const { books } = useBookStore();
   const { showToast } = useToastStore();
+
+  React.useEffect(() => {
+    fetchQuotes();
+  }, [fetchQuotes]);
 
   const [searchQuery, setSearchQuery] = useState('');
 

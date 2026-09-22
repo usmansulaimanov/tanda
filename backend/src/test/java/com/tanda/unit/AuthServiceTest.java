@@ -51,6 +51,9 @@ class AuthServiceTest {
     private com.tanda.service.ReservedUsernameService reservedUsernameService;
 
     @Mock
+    private com.tanda.service.MessageService messageService;
+
+    @Mock
     private com.tanda.repository.ManagerPermissionRepository managerPermissionRepository;
 
     private PasswordEncoder passwordEncoder;
@@ -75,6 +78,7 @@ class AuthServiceTest {
                 googleTokenVerifier,
                 emailVerificationService,
                 reservedUsernameService,
+                messageService,
                 managerPermissionRepository
         );
     }

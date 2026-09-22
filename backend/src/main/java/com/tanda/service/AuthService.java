@@ -33,6 +33,7 @@ public class AuthService {
     private final GoogleTokenVerifier googleTokenVerifier;
     private final EmailVerificationService emailVerificationService;
     private final ReservedUsernameService reservedUsernameService;
+    private final MessageService messageService;
     private final com.tanda.repository.ManagerPermissionRepository managerPermissionRepository;
 
     public record AuthResult(AuthResponseDto responseDto, String rawRefreshToken) {}
@@ -65,6 +66,7 @@ public class AuthService {
                 .or(() -> userRepository.findByEmail(email))
                 .orElse(null);
 
+        boolean isNewGoogleUser = (user == null);
         if (user == null) {
             // Auto-register new Google user with strictly 'client' role
             long clientCount = userRepository.countByRole("client");
@@ -102,6 +104,9 @@ public class AuthService {
         }
 
         user = userRepository.save(user);
+        if (isNewGoogleUser) {
+            messageService.createWelcomeMessage(user.getId(), user.getName());
+        }
         String token = jwtTokenProvider.generateToken(user);
         String rawRefreshToken = refreshTokenService.createRefreshToken(user, userAgent, ipAddress);
 
@@ -171,6 +176,7 @@ public class AuthService {
                 .build();
 
         user = userRepository.save(user);
+        messageService.createWelcomeMessage(user.getId(), user.getName());
 
         String token = jwtTokenProvider.generateToken(user);
         String rawRefreshToken = refreshTokenService.createRefreshToken(user, userAgent, ipAddress);
