@@ -106,10 +106,24 @@ public class RoyaltyService {
                 .collect(Collectors.toList());
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public RoyaltyPeriodResponseDto getPeriod(String month) {
-        RoyaltyPeriod period = royaltyPeriodRepository.findByMonth(month)
-                .orElseThrow(() -> new ResourceNotFoundException("Роялти кезеңі табылмады: " + month));
+        validateMonth(month);
+        RoyaltyPeriod period = royaltyPeriodRepository.findByMonth(month).orElse(null);
+        if (period == null) {
+            return calculatePeriod(month, RoyaltyCalculateRequestDto.builder()
+                    .totalRevenue(BigDecimal.ZERO)
+                    .adminExpense(BigDecimal.ZERO)
+                    .adminNote("")
+                    .build());
+        }
+        if (!"FINALIZED".equalsIgnoreCase(period.getStatus())) {
+            return calculatePeriod(month, RoyaltyCalculateRequestDto.builder()
+                    .totalRevenue(period.getTotalRevenue() != null ? period.getTotalRevenue() : BigDecimal.ZERO)
+                    .adminExpense(period.getAdminExpense() != null ? period.getAdminExpense() : BigDecimal.ZERO)
+                    .adminNote(period.getAdminNote() != null ? period.getAdminNote() : "")
+                    .build());
+        }
         return toPeriodDto(period);
     }
 
@@ -678,9 +692,11 @@ public class RoyaltyService {
             BigDecimal earned = authorEarnedSum.getOrDefault(author.getId(), BigDecimal.ZERO);
             summaryList.add(AuthorEarningSummaryDto.builder()
                     .authorId(author.getId())
+                    .authorUserId(author.getUserId())
                     .authorName(author.getDisplayName())
                     .assignedBookIds(authorBookIdsMap.getOrDefault(author.getId(), Collections.emptyList()))
                     .totalMinutes(mins)
+                    .totalSeconds(mins * 60)
                     .totalEarned(earned)
                     .status("FINALIZED".equalsIgnoreCase(p.getStatus()) ? "paid" : "calculated")
                     .build());

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useRoyaltyStore, getMonthLabel, PayoutRecord } from '../../store/useRoyaltyStore';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -112,19 +112,17 @@ export const AdminRoyaltyTab: React.FC = () => {
     fetchPeriods();
   }, [fetchPeriods]);
 
-  // Synchronize inputs when selected month changes or current period is loaded
-  useEffect(() => {
-    if (selectedMonth) {
-      fetchPeriod(selectedMonth);
-    }
-  }, [selectedMonth, fetchPeriod]);
+  const saveTimeoutRef = useRef<any>(null);
 
+  // Synchronize inputs ONLY when selected month changes
   useEffect(() => {
     const p = periods[selectedMonth];
-    setRevenueInput(p?.totalRevenue || 0);
-    setExpenseInput(p?.adminExpense || 0);
-    setNoteInput(p?.adminNote || '');
-  }, [selectedMonth, currentPeriod]);
+    if (p) {
+      setRevenueInput(p.totalRevenue || 0);
+      setExpenseInput(p.adminExpense || 0);
+      setNoteInput(p.adminNote || '');
+    }
+  }, [selectedMonth]);
 
   // Load payouts
   const loadPayouts = useCallback(async () => {
@@ -147,15 +145,37 @@ export const AdminRoyaltyTab: React.FC = () => {
 
   const handleRevenueChange = (newVal: number) => {
     setRevenueInput(newVal);
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    saveTimeoutRef.current = setTimeout(() => {
+      calculateRoyalty(selectedMonth, {
+        totalRevenue: Number(newVal),
+        adminExpense: Number(expenseInput),
+        adminNote: noteInput,
+      });
+    }, 600);
   };
 
   const handleExpenseChange = (newVal: number) => {
     setExpenseInput(newVal);
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    saveTimeoutRef.current = setTimeout(() => {
+      calculateRoyalty(selectedMonth, {
+        totalRevenue: Number(revenueInput),
+        adminExpense: Number(newVal),
+        adminNote: noteInput,
+      });
+    }, 600);
   };
 
-  // Platform listening minutes from backend period
+  // Platform listening minutes from backend period (or sum of author earnings)
   const totalPlatformMinutes = useMemo(() => {
-    return currentPeriod?.totalMinutesListened || 0;
+    if (currentPeriod?.totalMinutesListened && currentPeriod.totalMinutesListened > 0) {
+      return currentPeriod.totalMinutesListened;
+    }
+    if (currentPeriod?.authorEarnings && currentPeriod.authorEarnings.length > 0) {
+      return currentPeriod.authorEarnings.reduce((acc, ae) => acc + (ae.totalMinutes || 0), 0);
+    }
+    return 0;
   }, [currentPeriod]);
 
   const netPool = Math.max(0, revenueInput - expenseInput);
@@ -841,8 +861,10 @@ export const AdminRoyaltyTab: React.FC = () => {
               </thead>
               <tbody>
                 {authors.map((author) => {
-                  const earningDetail = currentPeriod?.authorEarnings.find((ae) => ae.authorId === author.id);
                   const matchName = (author.assignedAuthorName || author.name).toLowerCase().trim();
+                  const earningDetail = currentPeriod?.authorEarnings?.find(
+                    (ae) => ae.authorId === author.id || ae.authorUserId === author.id || (ae.authorName && ae.authorName.toLowerCase().trim() === matchName)
+                  );
                   const assignedIds = new Set(author.assignedBookIds || []);
 
                   const authorBooks = books.filter((b) => {
@@ -853,7 +875,9 @@ export const AdminRoyaltyTab: React.FC = () => {
                   });
 
                   const minutes = earningDetail?.totalMinutes ?? 0;
-                  const earned = earningDetail?.totalEarned ?? (previewRatePerMinute > 0 ? Number((minutes * previewRatePerMinute).toFixed(2)) : 0);
+                  const seconds = earningDetail?.totalSeconds ?? (minutes * 60);
+                  const hrs = Number((seconds / 3600).toFixed(1));
+                  const earned = previewRatePerMinute > 0 ? Number((minutes * previewRatePerMinute).toFixed(2)) : (earningDetail?.totalEarned ?? 0);
                   const isPaid = currentPeriod?.isFinalized || earningDetail?.status === 'paid';
 
                   return (
@@ -889,7 +913,7 @@ export const AdminRoyaltyTab: React.FC = () => {
                       <td style={{ padding: '14px', fontWeight: 800, color: 'var(--text-dark)' }}>
                         <div>{minutes.toLocaleString('ru-RU')} мин</div>
                         <div style={{ fontSize: '11px', color: 'var(--text-mid)', fontWeight: 600, marginTop: '2px' }}>
-                          🕒 {(minutes / 60).toFixed(1)} сағ • ⏱ {(minutes * 60).toLocaleString('ru-RU')} сек
+                          🕒 {hrs} сағ • ⏱ {seconds.toLocaleString('ru-RU')} сек
                         </div>
                       </td>
 

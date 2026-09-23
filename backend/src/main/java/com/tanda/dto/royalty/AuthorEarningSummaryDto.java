@@ -16,9 +16,11 @@ import java.util.List;
 @Builder
 public class AuthorEarningSummaryDto {
     private String authorId;
+    private String authorUserId;
     private String authorName;
     private List<String> assignedBookIds;
     private Long totalMinutes;
+    private Long totalSeconds;
     private BigDecimal totalEarned;
     private String status;
 }

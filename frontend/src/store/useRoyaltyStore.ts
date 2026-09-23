@@ -13,9 +13,11 @@ export interface BookListeningStat {
 
 export interface AuthorEarningDetail {
   authorId: string;
+  authorUserId?: string;
   authorName: string;
   assignedBookIds: string[];
   totalMinutes: number;
+  totalSeconds?: number;
   totalEarned: number;
   status: 'calculated' | 'paid';
 }
@@ -183,9 +185,11 @@ const mapBackendPeriod = (dto: any): RoyaltyPeriod => {
     ratePerMinute: Number(dto.ratePerMinute) || 0,
     authorEarnings: (dto.authorEarnings || []).map((ae: any) => ({
       authorId: ae.authorId,
+      authorUserId: ae.authorUserId,
       authorName: ae.authorName,
       assignedBookIds: ae.assignedBookIds || [],
       totalMinutes: Number(ae.totalMinutes) || 0,
+      totalSeconds: Number(ae.totalSeconds) || (Number(ae.totalMinutes) || 0) * 60,
       totalEarned: Number(ae.totalEarned) || 0,
       status: ae.status === 'paid' ? 'paid' : 'calculated',
     })),
