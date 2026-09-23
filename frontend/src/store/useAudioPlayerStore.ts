@@ -16,6 +16,12 @@ interface AudioPlayerState {
   repeatMode: 'off' | 'one' | 'all';
   sleepTimerMinutes: number | null;
   sleepTimerEndTime: number | null;
+  isDailyLimitReached: boolean;
+  showDailyLimitModal: boolean;
+
+  openDailyLimitModal: () => void;
+  closeDailyLimitModal: () => void;
+  checkDailyLimit: () => Promise<boolean>;
 
   playBook: (book: Book, chapterIndex?: number) => void;
   playChapter: (index: number) => void;
@@ -68,6 +74,12 @@ async function startAudioSession(bookId: string, chapterId?: string) {
   const token = localStorage.getItem('tanda_token');
   if (!token) return;
 
+  if (useAudioPlayerStore.getState().isDailyLimitReached) {
+    useAudioPlayerStore.getState().pause();
+    useAudioPlayerStore.setState({ showDailyLimitModal: true });
+    return;
+  }
+
   if (activeSessionId) {
     await endAudioSession();
   }
@@ -81,7 +93,15 @@ async function startAudioSession(bookId: string, chapterId?: string) {
       activeSessionId = data.sessionId;
       startHeartbeatTimer();
     }
-  } catch (err) {
+  } catch (err: any) {
+    const msg = err?.response?.data?.message || '';
+    if (err?.response?.status === 400 && (msg.includes('лимитіңіз') || msg.includes('8 сағат'))) {
+      useAudioPlayerStore.getState().pause();
+      useAudioPlayerStore.setState({
+        isDailyLimitReached: true,
+        showDailyLimitModal: true,
+      });
+    }
     console.debug('Failed to start audio session:', err);
   }
 }
@@ -95,10 +115,29 @@ function startHeartbeatTimer() {
     if (!state.isPlaying || !activeSessionId) return;
 
     try {
-      await api.post(`/api/v1/audio/sessions/${activeSessionId}/heartbeat`, {
+      const { data } = await api.post(`/api/v1/audio/sessions/${activeSessionId}/heartbeat`, {
         positionSeconds: Math.floor(state.progress || 0),
+        playbackRate: state.playbackRate || 1.0,
       });
-    } catch (err) {
+
+      if (data?.dailyLimitReached) {
+        stopHeartbeatTimer();
+        useAudioPlayerStore.getState().pause();
+        useAudioPlayerStore.setState({
+          isDailyLimitReached: true,
+          showDailyLimitModal: true,
+        });
+      }
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || '';
+      if (err?.response?.status === 400 && (msg.includes('лимитіңіз') || msg.includes('8 сағат'))) {
+        stopHeartbeatTimer();
+        useAudioPlayerStore.getState().pause();
+        useAudioPlayerStore.setState({
+          isDailyLimitReached: true,
+          showDailyLimitModal: true,
+        });
+      }
       console.debug('Heartbeat error:', err);
     }
   }, 15000);
@@ -120,8 +159,10 @@ async function endAudioSession(finalPosition?: number) {
 
   try {
     const currentSec = finalPosition ?? Math.floor(useAudioPlayerStore.getState().progress || 0);
+    const rate = useAudioPlayerStore.getState().playbackRate || 1.0;
     await api.patch(`/api/v1/audio/sessions/${currentId}/end`, {
       positionSeconds: currentSec,
+      playbackRate: rate,
     });
   } catch (err) {
     console.debug('End audio session error:', err);
@@ -179,8 +220,34 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
       repeatMode: 'off',
       sleepTimerMinutes: null,
       sleepTimerEndTime: null,
+      isDailyLimitReached: false,
+      showDailyLimitModal: false,
+
+      openDailyLimitModal: () => set({ showDailyLimitModal: true }),
+      closeDailyLimitModal: () => set({ showDailyLimitModal: false }),
+      checkDailyLimit: async () => {
+        try {
+          const token = localStorage.getItem('tanda_token');
+          if (!token) return false;
+          const { data } = await api.get('/api/v1/audio/sessions/daily-limit');
+          if (data?.limitReached) {
+            set({ isDailyLimitReached: true });
+            return true;
+          } else {
+            set({ isDailyLimitReached: false });
+            return false;
+          }
+        } catch {
+          return false;
+        }
+      },
 
       playBook: (book, chapterIndex = 0) => {
+        if (get().isDailyLimitReached) {
+          set({ showDailyLimitModal: true, isPlaying: false });
+          return;
+        }
+
         let chapters = book.audioChapters || [];
         if (chapters.length === 0 && (book.hasAudio || book.audioUrl)) {
           chapters = [
@@ -212,6 +279,11 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
       },
 
       playChapter: (index) => {
+        if (get().isDailyLimitReached) {
+          set({ showDailyLimitModal: true, isPlaying: false });
+          return;
+        }
+
         const { currentBook } = get();
         if (!currentBook) return;
         const chapters = currentBook.audioChapters || [];
@@ -236,6 +308,10 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
       },
 
       setIsPlaying: (isPlaying) => {
+        if (isPlaying && get().isDailyLimitReached) {
+          set({ showDailyLimitModal: true, isPlaying: false });
+          return;
+        }
         if (isPlaying) {
           startHeartbeatTimer();
         } else {
@@ -246,6 +322,9 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
 
       togglePlay: () =>
         set((state) => {
+          if (!state.isPlaying && state.isDailyLimitReached) {
+            return { showDailyLimitModal: true, isPlaying: false };
+          }
           const next = !state.isPlaying;
           if (next) {
             startHeartbeatTimer();
@@ -261,6 +340,10 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
       },
 
       resume: () => {
+        if (get().isDailyLimitReached) {
+          set({ showDailyLimitModal: true, isPlaying: false });
+          return;
+        }
         startHeartbeatTimer();
         set({ isPlaying: true });
       },
@@ -387,4 +470,9 @@ if (typeof window !== 'undefined') {
       endAudioSession();
     } catch {}
   });
+
+  // Check daily limit on startup
+  setTimeout(() => {
+    useAudioPlayerStore.getState().checkDailyLimit().catch(() => {});
+  }, 1000);
 }

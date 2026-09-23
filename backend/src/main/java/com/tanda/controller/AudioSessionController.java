@@ -61,4 +61,14 @@ public class AudioSessionController {
         }
         return ResponseEntity.ok(audioSessionService.endSession(principal.getId(), sessionId, request));
     }
+
+    @org.springframework.web.bind.annotation.GetMapping("/daily-limit")
+    public ResponseEntity<com.tanda.dto.audio.UserDailyLimitResponseDto> getDailyLimit(
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        return ResponseEntity.ok(audioSessionService.getDailyLimit(principal.getId()));
+    }
 }

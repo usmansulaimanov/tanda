@@ -2386,32 +2386,66 @@ export const AdminManagersPage: React.FC = () => {
                       })
                       .map((b) => {
                         const isSelected = authorAssignedBookIds.includes(b.id);
+                        const otherAuthor = authors.find(
+                          (a) =>
+                            a.id !== editingAuthor?.id &&
+                            (a as any).authorId !== editingAuthor?.id &&
+                            (a as any).userId !== editingAuthor?.id &&
+                            a.assignedBookIds?.includes(b.id)
+                        );
+                        const isAssignedToOther = Boolean(otherAuthor);
+
                         return (
                           <label
                             key={b.id}
+                            onClick={(e) => {
+                              if (isAssignedToOther) {
+                                e.preventDefault();
+                                showToast(
+                                  `«${b.title}» кітабы қазір ${otherAuthor?.assignedAuthorName || otherAuthor?.name} авторына бекітілген. Бір кітап тек бір авторға бекітілуі мүмкін!`,
+                                  'error'
+                                );
+                              }
+                            }}
                             style={{
                               display: 'flex',
                               alignItems: 'center',
                               gap: '10px',
                               padding: '8px 10px',
                               borderRadius: '8px',
-                              background: isSelected ? '#EFF6FF' : '#FFFFFF',
-                              border: isSelected ? '1.5px solid #93C5FD' : '1px solid #E2E8F0',
-                              cursor: 'pointer',
+                              background: isSelected
+                                ? '#EFF6FF'
+                                : isAssignedToOther
+                                ? '#F1F5F9'
+                                : '#FFFFFF',
+                              border: isSelected
+                                ? '1.5px solid #93C5FD'
+                                : isAssignedToOther
+                                ? '1px dashed #CBD5E1'
+                                : '1px solid #E2E8F0',
+                              cursor: isAssignedToOther ? 'not-allowed' : 'pointer',
+                              opacity: isAssignedToOther ? 0.75 : 1,
                               transition: 'all 0.15s',
                             }}
                           >
                             <input
                               type="checkbox"
                               checked={isSelected}
+                              disabled={isAssignedToOther}
                               onChange={(e) => {
+                                if (isAssignedToOther) return;
                                 if (e.target.checked) {
                                   setAuthorAssignedBookIds([...authorAssignedBookIds, b.id]);
                                 } else {
                                   setAuthorAssignedBookIds(authorAssignedBookIds.filter((id) => id !== b.id));
                                 }
                               }}
-                              style={{ width: '16px', height: '16px', accentColor: 'var(--blue)' }}
+                              style={{
+                                width: '16px',
+                                height: '16px',
+                                accentColor: 'var(--blue)',
+                                cursor: isAssignedToOther ? 'not-allowed' : 'pointer',
+                              }}
                             />
                             <div
                               style={{
@@ -2432,7 +2466,7 @@ export const AdminManagersPage: React.FC = () => {
                                 style={{
                                   fontSize: '13px',
                                   fontWeight: 800,
-                                  color: 'var(--text-dark)',
+                                  color: isAssignedToOther ? '#64748B' : 'var(--text-dark)',
                                   overflow: 'hidden',
                                   textOverflow: 'ellipsis',
                                   whiteSpace: 'nowrap',
@@ -2440,9 +2474,38 @@ export const AdminManagersPage: React.FC = () => {
                               >
                                 {b.title}
                               </div>
-                              <div style={{ fontSize: '11px', color: '#64748B', display: 'flex', gap: '8px' }}>
+                              <div style={{ fontSize: '11px', color: '#64748B', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginTop: '2px' }}>
                                 <span>{b.author || 'Авторсыз'}</span>
                                 {b.hasAudio && <span style={{ color: '#2563EB', fontWeight: 700 }}>🎧 Аудио</span>}
+                                {isAssignedToOther ? (
+                                  <span
+                                    style={{
+                                      fontSize: '10.5px',
+                                      fontWeight: 700,
+                                      color: '#B91C1C',
+                                      background: '#FEF2F2',
+                                      border: '1px solid #FECACA',
+                                      borderRadius: '4px',
+                                      padding: '1px 6px',
+                                    }}
+                                  >
+                                    🔒 Бекітілген: {otherAuthor?.assignedAuthorName || otherAuthor?.name}
+                                  </span>
+                                ) : isSelected ? (
+                                  <span
+                                    style={{
+                                      fontSize: '10.5px',
+                                      fontWeight: 700,
+                                      color: '#15803D',
+                                      background: '#F0FDF4',
+                                      border: '1px solid #BBF7D0',
+                                      borderRadius: '4px',
+                                      padding: '1px 6px',
+                                    }}
+                                  >
+                                    ✓ Таңдалды
+                                  </span>
+                                ) : null}
                               </div>
                             </div>
                           </label>

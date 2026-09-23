@@ -98,6 +98,9 @@ export const AuthorStatsPage: React.FC = () => {
     return targetAuthor.assignedAuthorName?.trim() || targetAuthor.name.trim();
   }, [targetAuthor]);
 
+  const authorCacheKey = targetAuthor ? `${targetAuthor.id}_${selectedMonthKey}` : '';
+  const currentAuthorStats = authorStatsCache[authorCacheKey];
+
   // Filter books belonging to this author
   const authorBooks = useMemo(() => {
     if (!targetAuthor) return [];
@@ -107,6 +110,12 @@ export const AuthorStatsPage: React.FC = () => {
 
     const lowAuthor = authorName.toLowerCase();
     const assignedIds = new Set(targetAuthor.assignedBookIds || []);
+    if (currentAuthorStats?.authorBooks) {
+      currentAuthorStats.authorBooks.forEach((b: any) => {
+        if (b.id) assignedIds.add(b.id);
+        if (b.bookId) assignedIds.add(b.bookId);
+      });
+    }
 
     return books.filter((b) => {
       if (assignedIds.has(b.id)) return true;
@@ -114,7 +123,7 @@ export const AuthorStatsPage: React.FC = () => {
       const bAuthor = b.author.toLowerCase().trim();
       return bAuthor === lowAuthor || bAuthor.includes(lowAuthor) || lowAuthor.includes(bAuthor);
     });
-  }, [books, authorName, targetAuthor]);
+  }, [books, authorName, targetAuthor, currentAuthorStats]);
 
   // Fetch author stats from backend
   useEffect(() => {
@@ -122,9 +131,6 @@ export const AuthorStatsPage: React.FC = () => {
       fetchAuthorStats(targetAuthor.id, selectedMonthKey);
     }
   }, [targetAuthor?.id, selectedMonthKey, fetchAuthorStats]);
-
-  const authorCacheKey = targetAuthor ? `${targetAuthor.id}_${selectedMonthKey}` : '';
-  const currentAuthorStats = authorStatsCache[authorCacheKey];
 
   // Aggregated metrics
   const stats = useMemo(() => {

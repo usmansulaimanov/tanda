@@ -52,6 +52,10 @@ public class AudioSession {
     @Builder.Default
     private Integer validSeconds = 0;
 
+    @Column(name = "credited_seconds")
+    @Builder.Default
+    private Integer creditedSeconds = 0;
+
     @PrePersist
     public void onPrePersist() {
         OffsetDateTime now = OffsetDateTime.now();
@@ -63,6 +67,9 @@ public class AudioSession {
         }
         if (this.validSeconds == null) {
             this.validSeconds = 0;
+        }
+        if (this.creditedSeconds == null) {
+            this.creditedSeconds = 0;
         }
     }
 }

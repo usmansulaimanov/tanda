@@ -14,6 +14,7 @@ import com.tanda.dto.royalty.RoyaltyPeriodResponseDto;
 import com.tanda.entity.AudioDailyStats;
 import com.tanda.entity.Author;
 import com.tanda.entity.AuthorBook;
+import com.tanda.entity.AuthorDailyBookStats;
 import com.tanda.entity.Book;
 import com.tanda.entity.PayoutRequest;
 import com.tanda.entity.PayoutTransaction;
@@ -25,6 +26,7 @@ import com.tanda.exception.ConflictException;
 import com.tanda.exception.ResourceNotFoundException;
 import com.tanda.repository.AudioDailyStatsRepository;
 import com.tanda.repository.AuthorBookRepository;
+import com.tanda.repository.AuthorDailyBookStatsRepository;
 import com.tanda.repository.AuthorRepository;
 import com.tanda.repository.BookRepository;
 import com.tanda.repository.PayoutRequestRepository;
@@ -65,6 +67,7 @@ public class RoyaltyService {
     private final AuthorBookRepository authorBookRepository;
     private final BookRepository bookRepository;
     private final AudioDailyStatsRepository audioDailyStatsRepository;
+    private final AuthorDailyBookStatsRepository authorDailyBookStatsRepository;
     private final UserRepository userRepository;
 
     private static final Map<String, String> MONTH_NAMES_KZ = Map.ofEntries(
@@ -315,9 +318,13 @@ public class RoyaltyService {
         LocalDate startDate = ym.atDay(1);
         LocalDate endDate = ym.atEndOfMonth();
 
-        // 1. Author's books
-        List<AuthorBook> assignments = authorBookRepository.findByAuthorId(author.getId());
-        Set<String> authorBookIds = assignments.stream().map(AuthorBook::getBookId).collect(Collectors.toSet());
+        // 1. Author's books (active + historical for target month)
+        List<AuthorBook> activeAssignments = authorBookRepository.findByAuthorIdAndIsActiveTrue(author.getId());
+        Set<String> authorBookIds = activeAssignments.stream().map(AuthorBook::getBookId).collect(Collectors.toSet());
+
+        List<AuthorDailyBookStats> authorSpecificStats = authorDailyBookStatsRepository.findByAuthorIdAndStatDateBetween(author.getId(), startDate, endDate);
+        Set<String> historicalBookIds = authorSpecificStats.stream().map(AuthorDailyBookStats::getBookId).collect(Collectors.toSet());
+        authorBookIds.addAll(historicalBookIds);
 
         String matchName = author.getDisplayName() != null ? author.getDisplayName().toLowerCase().trim() : "";
         List<Book> allBooks = bookRepository.findAll();
@@ -328,25 +335,40 @@ public class RoyaltyService {
 
         List<String> matchedIds = matchedBooks.stream().map(Book::getId).collect(Collectors.toList());
 
-        // 2. Audio stats for author's books
-        List<AudioDailyStats> dailyStats = matchedIds.isEmpty()
-                ? Collections.emptyList()
-                : audioDailyStatsRepository.findByBookIdInAndStatDateBetween(matchedIds, startDate, endDate);
-
         Map<String, Long> dateSecondsMap = new HashMap<>();
         Map<String, Long> bookMinutesMap = new HashMap<>();
         OffsetDateTime latestListenedAt = null;
 
-        for (AudioDailyStats s : dailyStats) {
-            String dateStr = s.getStatDate().toString();
-            long sec = s.getTotalSeconds() != null ? s.getTotalSeconds() : 0L;
-            dateSecondsMap.put(dateStr, dateSecondsMap.getOrDefault(dateStr, 0L) + sec);
+        if (!authorSpecificStats.isEmpty()) {
+            for (AuthorDailyBookStats s : authorSpecificStats) {
+                String dateStr = s.getStatDate().toString();
+                long sec = s.getTotalSeconds() != null ? s.getTotalSeconds() : 0L;
+                dateSecondsMap.put(dateStr, dateSecondsMap.getOrDefault(dateStr, 0L) + sec);
 
-            String bId = s.getBook().getId();
-            bookMinutesMap.put(bId, bookMinutesMap.getOrDefault(bId, 0L) + (sec / 60));
+                String bId = s.getBookId();
+                bookMinutesMap.put(bId, bookMinutesMap.getOrDefault(bId, 0L) + (sec / 60));
 
-            if (s.getUpdatedAt() != null && (latestListenedAt == null || s.getUpdatedAt().isAfter(latestListenedAt))) {
-                latestListenedAt = s.getUpdatedAt();
+                if (s.getUpdatedAt() != null && (latestListenedAt == null || s.getUpdatedAt().isAfter(latestListenedAt))) {
+                    latestListenedAt = s.getUpdatedAt();
+                }
+            }
+        } else {
+            // Fallback to audioDailyStats for book-level matching
+            List<AudioDailyStats> dailyStats = matchedIds.isEmpty()
+                    ? Collections.emptyList()
+                    : audioDailyStatsRepository.findByBookIdInAndStatDateBetween(matchedIds, startDate, endDate);
+
+            for (AudioDailyStats s : dailyStats) {
+                String dateStr = s.getStatDate().toString();
+                long sec = s.getTotalSeconds() != null ? s.getTotalSeconds() : 0L;
+                dateSecondsMap.put(dateStr, dateSecondsMap.getOrDefault(dateStr, 0L) + sec);
+
+                String bId = s.getBook().getId();
+                bookMinutesMap.put(bId, bookMinutesMap.getOrDefault(bId, 0L) + (sec / 60));
+
+                if (s.getUpdatedAt() != null && (latestListenedAt == null || s.getUpdatedAt().isAfter(latestListenedAt))) {
+                    latestListenedAt = s.getUpdatedAt();
+                }
             }
         }
 

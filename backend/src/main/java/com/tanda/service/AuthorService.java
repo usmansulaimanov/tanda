@@ -18,10 +18,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -41,7 +43,7 @@ public class AuthorService {
         List<Author> authors = authorRepository.findAll();
         List<String> authorIds = authors.stream().map(Author::getId).collect(Collectors.toList());
 
-        List<AuthorBook> allAuthorBooks = authorBookRepository.findByAuthorIdIn(authorIds);
+        List<AuthorBook> allAuthorBooks = authorBookRepository.findByAuthorIdInAndIsActiveTrue(authorIds);
         Map<String, List<String>> authorBookIdsMap = allAuthorBooks.stream()
                 .collect(Collectors.groupingBy(
                         AuthorBook::getAuthorId,
@@ -87,7 +89,7 @@ public class AuthorService {
                 .orElseThrow(() -> new ResourceNotFoundException("Автор табылмады id: " + id));
 
         User user = author.getUserId() != null ? userRepository.findById(author.getUserId()).orElse(null) : null;
-        List<String> assignedBookIds = authorBookRepository.findByAuthorId(id).stream()
+        List<String> assignedBookIds = authorBookRepository.findByAuthorIdAndIsActiveTrue(id).stream()
                 .map(AuthorBook::getBookId)
                 .collect(Collectors.toList());
 
@@ -165,12 +167,25 @@ public class AuthorService {
                 .build();
         author = authorRepository.save(author);
 
-        // 3. Link assigned books
+        // 3. Link assigned books with single author per book validation
         List<String> assignedBookIds = dto.getAssignedBookIds() != null ? dto.getAssignedBookIds() : Collections.emptyList();
-        for (String bookId : assignedBookIds) {
+        for (String rawBookId : assignedBookIds) {
+            String bookId = rawBookId.trim();
+            List<AuthorBook> existingActive = authorBookRepository.findByBookIdAndIsActiveTrue(bookId);
+            if (!existingActive.isEmpty()) {
+                String existingAuthorId = existingActive.get(0).getAuthorId();
+                String existingAuthorName = authorRepository.findById(existingAuthorId)
+                        .map(Author::getDisplayName)
+                        .orElse("басқа автор");
+                Book book = bookRepository.findById(bookId).orElse(null);
+                String bookTitle = book != null ? book.getTitle() : bookId;
+                throw new BadRequestException("«" + bookTitle + "» кітабы қазір " + existingAuthorName + " авторына бекітілген. Бір кітап тек бір авторға бекітілуі мүмкін.");
+            }
             authorBookRepository.save(AuthorBook.builder()
                     .authorId(author.getId())
-                    .bookId(bookId.trim())
+                    .bookId(bookId)
+                    .isActive(true)
+                    .assignedAt(OffsetDateTime.now())
                     .build());
         }
 
@@ -237,16 +252,62 @@ public class AuthorService {
         }
 
         if (dto.getAssignedBookIds() != null) {
-            authorBookRepository.deleteByAuthorId(author.getId());
-            for (String bookId : dto.getAssignedBookIds()) {
-                authorBookRepository.save(AuthorBook.builder()
-                        .authorId(author.getId())
-                        .bookId(bookId.trim())
-                        .build());
+            List<String> newBookIds = dto.getAssignedBookIds().stream()
+                    .map(String::trim)
+                    .filter(s -> !s.isBlank())
+                    .distinct()
+                    .collect(Collectors.toList());
+
+            // 1. Conflict check: cannot assign a book already active with another author
+            for (String bookId : newBookIds) {
+                List<AuthorBook> existingActive = authorBookRepository.findByBookIdAndIsActiveTrue(bookId);
+                for (AuthorBook active : existingActive) {
+                    if (!active.getAuthorId().equals(author.getId())) {
+                        String existingAuthorName = authorRepository.findById(active.getAuthorId())
+                                .map(Author::getDisplayName)
+                                .orElse("басқа автор");
+                        Book book = bookRepository.findById(bookId).orElse(null);
+                        String bookTitle = book != null ? book.getTitle() : bookId;
+                        throw new BadRequestException("«" + bookTitle + "» кітабы қазір " + existingAuthorName + " авторына бекітілген. Бір кітап тек бір авторға бекітілуі мүмкін.");
+                    }
+                }
+            }
+
+            // 2. Soft-unassign books that were removed
+            List<AuthorBook> currentAuthorBooks = authorBookRepository.findByAuthorId(author.getId());
+            for (AuthorBook ab : currentAuthorBooks) {
+                if (!newBookIds.contains(ab.getBookId())) {
+                    if (Boolean.TRUE.equals(ab.getIsActive())) {
+                        ab.setIsActive(false);
+                        ab.setUnassignedAt(OffsetDateTime.now());
+                        authorBookRepository.save(ab);
+                    }
+                }
+            }
+
+            // 3. Reactivate or create new AuthorBook entries
+            for (String bookId : newBookIds) {
+                Optional<AuthorBook> existing = authorBookRepository.findByAuthorIdAndBookId(author.getId(), bookId);
+                if (existing.isPresent()) {
+                    AuthorBook ab = existing.get();
+                    if (!Boolean.TRUE.equals(ab.getIsActive())) {
+                        ab.setIsActive(true);
+                        ab.setAssignedAt(OffsetDateTime.now());
+                        ab.setUnassignedAt(null);
+                        authorBookRepository.save(ab);
+                    }
+                } else {
+                    authorBookRepository.save(AuthorBook.builder()
+                            .authorId(author.getId())
+                            .bookId(bookId)
+                            .isActive(true)
+                            .assignedAt(OffsetDateTime.now())
+                            .build());
+                }
             }
         }
 
-        List<String> assignedBookIds = authorBookRepository.findByAuthorId(author.getId()).stream()
+        List<String> assignedBookIds = authorBookRepository.findByAuthorIdAndIsActiveTrue(author.getId()).stream()
                 .map(AuthorBook::getBookId)
                 .collect(Collectors.toList());
 
@@ -260,7 +321,14 @@ public class AuthorService {
                 .or(() -> authorRepository.findByUserId(id))
                 .orElseThrow(() -> new ResourceNotFoundException("Автор табылмады id: " + id));
 
-        authorBookRepository.deleteByAuthorId(author.getId());
+        // Soft-unassign any active book mappings so historical data remains coherent
+        List<AuthorBook> authorBooks = authorBookRepository.findByAuthorId(author.getId());
+        for (AuthorBook ab : authorBooks) {
+            ab.setIsActive(false);
+            ab.setUnassignedAt(OffsetDateTime.now());
+            authorBookRepository.save(ab);
+        }
+
         String userId = author.getUserId();
         authorRepository.deleteById(author.getId());
 

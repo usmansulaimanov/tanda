@@ -16,4 +16,6 @@ public class AudioHeartbeatRequestDto {
     @NotNull(message = "Position in seconds is required")
     @Min(value = 0, message = "Position must be non-negative")
     private Integer positionSeconds;
+
+    private Double playbackRate;
 }

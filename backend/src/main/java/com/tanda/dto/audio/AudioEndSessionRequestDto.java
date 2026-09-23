@@ -14,4 +14,6 @@ public class AudioEndSessionRequestDto {
 
     @Min(value = 0, message = "Position must be non-negative")
     private Integer positionSeconds;
+
+    private Double playbackRate;
 }

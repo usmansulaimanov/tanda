@@ -3,6 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { Header } from './Header';
 import { Footer } from './Footer';
 import { AudioPlayerBar } from '../player/AudioPlayerBar';
+import { DailyLimitModal } from '../player/DailyLimitModal';
 import { ToastContainer } from '../ui/Toast';
 import { AppSidebarDrawer } from './AppSidebarDrawer';
 import { QuoteNotificationPopup } from '../quotes/QuoteNotificationPopup';
@@ -33,6 +34,7 @@ export const Layout: React.FC = () => {
       </main>
       {!isListenPage && <Footer />}
       <AudioPlayerBar />
+      <DailyLimitModal />
       <ToastContainer />
       <QuoteNotificationPopup />
       <MessageNotificationPopup />

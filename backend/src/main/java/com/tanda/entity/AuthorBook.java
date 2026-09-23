@@ -39,13 +39,30 @@ public class AuthorBook {
     @Builder.Default
     private BigDecimal royaltyShare = new BigDecimal("100.00");
 
+    @Column(name = "is_active", nullable = false)
+    @Builder.Default
+    private Boolean isActive = true;
+
+    @Column(name = "assigned_at")
+    private OffsetDateTime assignedAt;
+
+    @Column(name = "unassigned_at")
+    private OffsetDateTime unassignedAt;
+
     @Column(name = "created_at")
     private OffsetDateTime createdAt;
 
     @PrePersist
     public void prePersist() {
+        OffsetDateTime now = OffsetDateTime.now();
         if (createdAt == null) {
-            createdAt = OffsetDateTime.now();
+            createdAt = now;
+        }
+        if (assignedAt == null) {
+            assignedAt = now;
+        }
+        if (isActive == null) {
+            isActive = true;
         }
         if (royaltyShare == null) {
             royaltyShare = new BigDecimal("100.00");

@@ -14,4 +14,6 @@ public class AudioSessionHeartbeatResponseDto {
     private String sessionId;
     private Integer validSeconds;
     private Integer positionSeconds;
+    private Boolean dailyLimitReached;
+    private Integer remainingDailySeconds;
 }
