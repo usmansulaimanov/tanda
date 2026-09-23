@@ -34,6 +34,11 @@ public class UserController {
         return ResponseEntity.ok(userService.getAllUsers(role, search));
     }
 
+    @GetMapping("/next-id")
+    public ResponseEntity<java.util.Map<String, String>> getNextReaderId() {
+        return ResponseEntity.ok(java.util.Map.of("idNumber", userService.generateNextReaderId()));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<UserResponseDto> getUserById(@PathVariable String id) {
         return ResponseEntity.ok(userService.getUserById(id));

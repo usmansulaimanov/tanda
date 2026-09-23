@@ -145,6 +145,8 @@ public class UserService {
         String password = dto.getPassword();
         if (password == null || password.isBlank()) {
             password = "reader123";
+        } else if (password.trim().length() < 8) {
+            throw new BadRequestException("Құпиясөз кемінде 8 таңбадан тұруы керек");
         }
 
         User user = User.builder()
@@ -389,5 +391,9 @@ public class UserService {
                 .isPremium(isPremium)
                 .premiumExpiresAt(premiumExpiresAt)
                 .build();
+    }
+
+    public String generateNextReaderId() {
+        return idNumberService.generateUniqueReaderId();
     }
 }

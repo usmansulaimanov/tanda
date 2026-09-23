@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuthStore } from '../../store/useAuthStore';
+import { useAuthStore, validatePasswordComplexity, generateCompliantPassword } from '../../store/useAuthStore';
 import { useToastStore } from '../../store/useToastStore';
 
 const formatKazakhDate = (val: string): string => {
@@ -62,7 +62,7 @@ const getPhoneNationalDigitsCount = (val: string): number => {
 
 export const ReaderCreatePage: React.FC = () => {
   const navigate = useNavigate();
-  const { createReaderByAdmin, checkUsernameAvailable, checkIdNumberAvailable, getNextAvailableIdNumber } = useAuthStore();
+  const { createReaderByAdmin, checkUsernameAvailable, checkIdNumberAvailable, getNextAvailableIdNumber, fetchNextAvailableIdNumber } = useAuthStore();
   const { showToast } = useToastStore();
 
   const [firstName, setFirstName] = useState('');
@@ -84,15 +84,37 @@ export const ReaderCreatePage: React.FC = () => {
   const [isMessageActive, setIsMessageActive] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Auto-generate default next available unique ID Number
+  // Auto-generate default next available unique random ID Number in established format
   useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      try {
+        const nextId = await fetchNextAvailableIdNumber();
+        if (isMounted && nextId) {
+          setIdNumber(nextId);
+        }
+      } catch {
+        if (isMounted) {
+          setIdNumber(getNextAvailableIdNumber());
+        }
+      }
+    })();
+    return () => { isMounted = false; };
+  }, [fetchNextAvailableIdNumber, getNextAvailableIdNumber]);
+
+  const handleGenerateRandomId = async () => {
     try {
+      const nextId = await fetchNextAvailableIdNumber();
+      setIdNumber(nextId);
+      setIdNumberError('');
+      showToast('Кездейсоқ ID нөмірі құрастырылды!', 'info');
+    } catch {
       const nextId = getNextAvailableIdNumber();
       setIdNumber(nextId);
-    } catch {
-      setIdNumber('0000 5001');
+      setIdNumberError('');
+      showToast('Кездейсоқ ID нөмірі құрастырылды!', 'info');
     }
-  }, [getNextAvailableIdNumber]);
+  };
 
   const handleIdNumberChange = (val: string) => {
     setIdNumber(val);
@@ -147,14 +169,10 @@ export const ReaderCreatePage: React.FC = () => {
   };
 
   const generateRandomPassword = () => {
-    const chars = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let res = '';
-    for (let i = 0; i < 8; i++) {
-      res += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
+    const res = generateCompliantPassword(10);
     setPassword(res);
     setShowPassword(true);
-    showToast('Кездейсоқ құпиясөз құрастырылды!', 'info');
+    showToast('Ережеге сай кездейсоқ құпиясөз құрастырылды!', 'info');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -170,8 +188,13 @@ export const ReaderCreatePage: React.FC = () => {
       showToast('Электронды поштасын енгізіңіз', 'error');
       return;
     }
-    if (!password.trim() || password.length < 6) {
-      showToast('Құпиясөз кемінде 6 таңбадан тұруы керек', 'error');
+    if (!password.trim()) {
+      showToast('Құпиясөзді енгізіңіз немесе авто-құрастыруды басыңыз', 'error');
+      return;
+    }
+    const passValidation = validatePasswordComplexity(password.trim());
+    if (!passValidation.valid) {
+      showToast(passValidation.error || 'Құпиясөз кемінде 8 таңбадан тұруы керек', 'error');
       return;
     }
 
@@ -401,15 +424,32 @@ export const ReaderCreatePage: React.FC = () => {
             >
               {/* ID Number */}
               <div className="form-group" style={{ margin: 0 }}>
-                <label className="form-label">
-                  ID нөмірі <span className="req">*</span>
-                </label>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                  <label className="form-label" style={{ margin: 0 }}>
+                    ID нөмірі <span className="req">*</span>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleGenerateRandomId}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: 'var(--blue)',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      padding: 0,
+                    }}
+                  >
+                    Авто-құрастыру
+                  </button>
+                </div>
                 <input
                   type="text"
                   required
                   value={idNumber}
                   onChange={(e) => handleIdNumberChange(e.target.value)}
-                  placeholder="0000 1003"
+                  placeholder="0000 5001"
                   className="form-input"
                   style={{
                     fontFamily: 'monospace',
@@ -642,7 +682,7 @@ export const ReaderCreatePage: React.FC = () => {
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Кемінде 6 таңба"
+                    placeholder="Кемінде 8 таңба"
                     className="form-input"
                     style={{ paddingRight: '42px', fontWeight: 600 }}
                   />

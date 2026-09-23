@@ -41,6 +41,7 @@ interface AuthState {
   checkUsernameAvailable: (username: string, excludeUserId?: string) => { available: boolean; error?: string };
   checkIdNumberAvailable: (idNumber: string, excludeUserId?: string) => { available: boolean; error?: string };
   getNextAvailableIdNumber: () => string;
+  fetchNextAvailableIdNumber: () => Promise<string>;
 
   // Reserved usernames (Бұғатталған/резервтелген юзернеймдер)
   fetchReservedUsernames: () => Promise<string[]>;
@@ -107,6 +108,28 @@ export const validatePasswordComplexity = (password: string): { valid: boolean; 
     return { valid: false, error: 'Құпиясөз тек ағылшын әріптері, сандар және арнайы таңбалардан тұруы керек' };
   }
   return { valid: true };
+};
+
+export const generateCompliantPassword = (length = 10): string => {
+  const uppercase = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+  const lowercase = 'abcdefghjkmnpqrstuvwxyz';
+  const digits = '23456789';
+  const all = uppercase + lowercase + digits;
+
+  // Guarantee at least 1 uppercase, 1 lowercase, 1 digit
+  const pwd = [
+    uppercase[Math.floor(Math.random() * uppercase.length)],
+    lowercase[Math.floor(Math.random() * lowercase.length)],
+    digits[Math.floor(Math.random() * digits.length)],
+  ];
+  for (let i = pwd.length; i < length; i++) {
+    pwd.push(all[Math.floor(Math.random() * all.length)]);
+  }
+  for (let i = pwd.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pwd[i], pwd[j]] = [pwd[j], pwd[i]];
+  }
+  return pwd.join('');
 };
 
 export const useAuthStore = create<AuthState>()((set, get) => ({
@@ -385,6 +408,18 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
           }
         }
         return '0000 5001';
+      },
+
+      fetchNextAvailableIdNumber: async (): Promise<string> => {
+        try {
+          const { data } = await api.get('/api/v1/admin/users/next-id');
+          if (data?.idNumber) {
+            return data.idNumber;
+          }
+        } catch {
+          // ignore network error, fallback to store generation
+        }
+        return get().getNextAvailableIdNumber();
       },
 
       getUserById: (userId: string): User | undefined => {

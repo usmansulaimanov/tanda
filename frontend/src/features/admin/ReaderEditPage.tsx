@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useAuthStore } from '../../store/useAuthStore';
+import { useAuthStore, validatePasswordComplexity, generateCompliantPassword } from '../../store/useAuthStore';
 import { useToastStore } from '../../store/useToastStore';
 import { User } from '../../types';
 import { api } from '../../lib/api';
@@ -272,14 +272,10 @@ export const ReaderEditPage: React.FC = () => {
   };
 
   const generateRandomPassword = () => {
-    const chars = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let res = '';
-    for (let i = 0; i < 8; i++) {
-      res += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
+    const res = generateCompliantPassword(10);
     setPassword(res);
     setShowPassword(true);
-    showToast('Кездейсоқ құпиясөз құрастырылды!', 'info');
+    showToast('Ережеге сай кездейсоқ құпиясөз құрастырылды!', 'info');
   };
 
   const handleGrantBirthdayGift = async () => {
@@ -321,9 +317,12 @@ export const ReaderEditPage: React.FC = () => {
       return;
     }
 
-    if (password.trim() && password.length < 6) {
-      showToast('Құпиясөз кемінде 6 таңбадан тұруы керек', 'error');
-      return;
+    if (password.trim()) {
+      const passValidation = validatePasswordComplexity(password.trim());
+      if (!passValidation.valid) {
+        showToast(passValidation.error || 'Құпиясөз кемінде 8 таңбадан тұруы керек', 'error');
+        return;
+      }
     }
 
     // ID Number validation
@@ -938,7 +937,7 @@ export const ReaderEditPage: React.FC = () => {
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Кемінде 6 таңба"
+                    placeholder="Кемінде 8 таңба"
                     className="form-input"
                     style={{ paddingRight: '42px', fontWeight: 600 }}
                   />

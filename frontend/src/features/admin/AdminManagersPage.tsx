@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
-import { useAuthStore, DEFAULT_MANAGER_AVATAR } from '../../store/useAuthStore';
+import { useAuthStore, DEFAULT_MANAGER_AVATAR, generateCompliantPassword } from '../../store/useAuthStore';
 import { useBookStore } from '../../store/useBookStore';
 import { useToastStore } from '../../store/useToastStore';
 import { User, AdminPermission } from '../../types';
@@ -500,14 +500,10 @@ export const AdminManagersPage: React.FC = () => {
   };
 
   const generateAuthorPassword = () => {
-    const chars = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let res = '';
-    for (let i = 0; i < 8; i++) {
-      res += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
+    const res = generateCompliantPassword(10);
     setAuthorPassword(res);
     setShowAuthorPassword(true);
-    showToast('Кездейсоқ құпиясөз құрастырылды!', 'info');
+    showToast('Ережеге сай кездейсоқ құпиясөз құрастырылды!', 'info');
   };
 
   const handleAuthorSubmit = async (e: React.FormEvent) => {
@@ -2293,7 +2289,7 @@ export const AdminManagersPage: React.FC = () => {
                     <div style={{ position: 'relative' }}>
                       <input
                         type={showAuthorPassword ? 'text' : 'password'}
-                        placeholder="Кемінде 6 таңба"
+                        placeholder="Кемінде 8 таңба"
                         value={authorPassword}
                         onChange={(e) => setAuthorPassword(e.target.value)}
                         style={{
