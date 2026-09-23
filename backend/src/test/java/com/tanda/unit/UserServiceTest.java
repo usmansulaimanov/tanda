@@ -49,6 +49,9 @@ class UserServiceTest {
     @Mock
     private com.tanda.repository.BirthdayGiftRepository birthdayGiftRepository;
 
+    @Mock
+    private com.tanda.service.IdNumberService idNumberService;
+
     @InjectMocks
     private UserService userService;
 
@@ -62,7 +65,7 @@ class UserServiceTest {
                 .email("admin@tanda.kz")
                 .role("admin")
                 .isActive(true)
-                .idNumber("000 001")
+                .idNumber("0000 0001")
                 .name("Admin")
                 .build();
 

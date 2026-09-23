@@ -99,7 +99,7 @@ public class UserAdminIntegrationTest {
             return userRepository.findByEmail("admin@tanda.kz").orElseGet(() -> {
                 User a = User.builder()
                         .id("admin-1")
-                        .idNumber("000 001")
+                        .idNumber("0000 0001")
                         .name("Бас Әкімші")
                         .email("admin@tanda.kz")
                         .passwordHash(passwordEncoder.encode("admin123"))
@@ -119,7 +119,7 @@ public class UserAdminIntegrationTest {
         secondAdminUser = userRepository.findById(SECOND_ADMIN_ID).orElseGet(() -> {
             User a2 = User.builder()
                     .id(SECOND_ADMIN_ID)
-                    .idNumber("000 002")
+                    .idNumber("0000 0002")
                     .name("Екінші Әкімші")
                     .email("second_admin_test@tanda.kz")
                     .passwordHash(passwordEncoder.encode("admin123"))

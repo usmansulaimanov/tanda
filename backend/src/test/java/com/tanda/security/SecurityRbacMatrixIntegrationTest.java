@@ -88,7 +88,7 @@ public class SecurityRbacMatrixIntegrationTest {
         adminUser = userRepository.findByEmail("admin@tanda.kz").orElseGet(() -> {
             User a = User.builder()
                     .id("admin-rbac-1")
-                    .idNumber("000 001")
+                    .idNumber("0000 0001")
                     .name("Бас Әкімші")
                     .email("admin@tanda.kz")
                     .passwordHash(passwordEncoder.encode("admin123"))

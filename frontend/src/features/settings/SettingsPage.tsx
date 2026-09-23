@@ -416,9 +416,9 @@ export const SettingsPage: React.FC = () => {
         const currentEmail = user?.email?.trim().toLowerCase();
 
         if (tokenEmail && currentEmail && tokenEmail !== currentEmail) {
-          const errMsg = `Таңдалған Google аккаунты (${tokenEmail}) осы профильдің поштасымен (${currentEmail}) сәйкес келмейді! Тек осы аккаунтқа тіркелген Google поштасын таңдаңыз.`;
+          const errMsg = 'Таңдалған Google аккаунты бұл профильдің поштасымен сәйкес келмейді. Тек осы аккаунтқа тіркелген Google поштасын таңдаңыз.';
           setPasswordError(errMsg);
-          showToast(`Қате: ${tokenEmail} осы профильдің поштасы емес!`, 'error');
+          showToast('Таңдалған Google аккаунты бұл профильдің поштасымен сәйкес келмейді', 'error');
           setGoogleReAuthToken(null);
           setIsGoogleVerified(false);
           return;
@@ -682,7 +682,7 @@ export const SettingsPage: React.FC = () => {
                   color: '#0F172A',
                 }}
               >
-                ID: {user.idNumber || (user.role === 'admin' ? '0000 0001' : '0000 1001')}
+                ID: {user.idNumber || '—'}
               </span>
             </div>
 

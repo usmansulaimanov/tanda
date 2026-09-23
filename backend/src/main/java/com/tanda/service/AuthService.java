@@ -37,6 +37,7 @@ public class AuthService {
     private final com.tanda.repository.ManagerPermissionRepository managerPermissionRepository;
     private final com.tanda.repository.PremiumEntitlementRepository premiumEntitlementRepository;
     private final com.tanda.repository.BirthdayGiftRepository birthdayGiftRepository;
+    private final IdNumberService idNumberService;
 
     public record AuthResult(AuthResponseDto responseDto, String rawRefreshToken) {}
 
@@ -71,7 +72,7 @@ public class AuthService {
         boolean isNewGoogleUser = (user == null);
         if (user == null) {
             // Auto-register new Google user with strictly 'client' role
-            String idNumber = generateUniqueIdNumber();
+            String idNumber = idNumberService.generateUniqueReaderId();
             user = User.builder()
                     .id("user-" + UUID.randomUUID().toString().substring(0, 8))
                     .idNumber(idNumber)
@@ -142,7 +143,7 @@ public class AuthService {
             if (admin == null) {
                 admin = User.builder()
                         .id("admin-1")
-                        .idNumber("000 001")
+                        .idNumber("0000 0001")
                         .name("Әкімші")
                         .email("admin@tanda.kz")
                         .passwordHash(passwordEncoder.encode("admin123"))
@@ -169,10 +170,9 @@ public class AuthService {
         } else if ("reader@tanda.kz".equalsIgnoreCase(email) && "reader123".equals(dto.getPassword())) {
             User reader = userRepository.findByEmail("reader@tanda.kz").orElse(null);
             if (reader == null) {
-                long clientCount = userRepository.countByRole("client");
                 reader = User.builder()
                         .id("user-reader-demo")
-                        .idNumber(formatIdNumber(1001 + clientCount))
+                        .idNumber(idNumberService.generateUniqueReaderId())
                         .name("Оқырман")
                         .email("reader@tanda.kz")
                         .passwordHash(passwordEncoder.encode("reader123"))
@@ -240,7 +240,7 @@ public class AuthService {
             emailVerificationService.verifyCode(email, dto.getCode());
         }
 
-        String idNumber = generateUniqueIdNumber();
+        String idNumber = idNumberService.generateUniqueReaderId();
 
         User user = User.builder()
                 .id("user-" + UUID.randomUUID().toString().substring(0, 8))
@@ -451,7 +451,7 @@ public class AuthService {
 
         if (!emailMatches && !subMatches) {
             log.warn("Google re-auth mismatch: googleEmail={}, userEmail={}", googleEmail, user.getEmail());
-            throw new BadRequestException("Таңдалған Google аккаунты (" + (googleEmail != null ? googleEmail : "белгісіз") + ") бұл профильдің поштасымен (" + user.getEmail() + ") сәйкес келмейді");
+            throw new BadRequestException("Таңдалған Google аккаунты бұл профильдің поштасымен сәйкес келмейді");
         }
     }
 
@@ -471,21 +471,5 @@ public class AuthService {
         if (!password.matches("^[\\x21-\\x7E]+$")) {
             throw new BadRequestException("Құпиясөз тек ағылшын әріптері, сандар және арнайы таңбалардан тұруы керек");
         }
-    }
-
-    private synchronized String generateUniqueIdNumber() {
-        long count = userRepository.countByRole("client");
-        long candidate = 1001 + count;
-        String idNum = formatIdNumber(candidate);
-        while (userRepository.existsByIdNumber(idNum)) {
-            candidate++;
-            idNum = formatIdNumber(candidate);
-        }
-        return idNum;
-    }
-
-    private String formatIdNumber(long num) {
-        String str = String.format("%06d", num);
-        return str.substring(0, 3) + " " + str.substring(3);
     }
 }

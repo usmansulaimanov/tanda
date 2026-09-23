@@ -37,6 +37,7 @@ public class AuthorService {
     private final UserRepository userRepository;
     private final BookRepository bookRepository;
     private final PasswordEncoder passwordEncoder;
+    private final IdNumberService idNumberService;
 
     @Transactional(readOnly = true)
     public List<AuthorResponseDto> getAllAuthors() {
@@ -123,8 +124,7 @@ public class AuthorService {
                 throw new BadRequestException("Бұл ID нөмірі бос емес");
             }
         } else {
-            long authorCount = authorRepository.count() + 1;
-            idNum = String.format("0000 %04d", authorCount);
+            idNum = idNumberService.generateUniqueReaderId();
         }
 
         String password = dto.getPassword();

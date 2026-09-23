@@ -65,7 +65,7 @@ class SavedBookAndProgressIntegrationTest {
         if (userRepository.findByEmail("admin@tanda.kz").isEmpty()) {
             com.tanda.entity.User admin = com.tanda.entity.User.builder()
                     .id("001007")
-                    .idNumber("000 001")
+                    .idNumber("0000 0001")
                     .name("Әкімші")
                     .email("admin@tanda.kz")
                     .passwordHash(passwordEncoder.encode("admin123"))

@@ -90,7 +90,7 @@ export const ReaderCreatePage: React.FC = () => {
       const nextId = getNextAvailableIdNumber();
       setIdNumber(nextId);
     } catch {
-      setIdNumber('0000 1001');
+      setIdNumber('0000 5001');
     }
   }, [getNextAvailableIdNumber]);
 

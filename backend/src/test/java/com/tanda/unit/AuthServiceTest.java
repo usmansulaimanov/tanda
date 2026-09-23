@@ -9,6 +9,7 @@ import com.tanda.repository.UserRepository;
 import com.tanda.security.JwtTokenProvider;
 import com.tanda.service.AuthService;
 import com.tanda.service.GoogleTokenVerifier;
+import com.tanda.service.IdNumberService;
 import com.tanda.service.RefreshTokenService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -62,6 +63,9 @@ class AuthServiceTest {
     @Mock
     private com.tanda.repository.BirthdayGiftRepository birthdayGiftRepository;
 
+    @Mock
+    private IdNumberService idNumberService;
+
     private PasswordEncoder passwordEncoder;
     private JwtTokenProvider jwtTokenProvider;
 
@@ -87,7 +91,8 @@ class AuthServiceTest {
                 messageService,
                 managerPermissionRepository,
                 premiumEntitlementRepository,
-                birthdayGiftRepository
+                birthdayGiftRepository,
+                idNumberService
         );
     }
 
@@ -212,7 +217,7 @@ class AuthServiceTest {
     @DisplayName("register() creates new user with role=client and returns token")
     void registerCreatesClientUser() {
         when(userRepository.existsByEmail("newuser@tanda.kz")).thenReturn(false);
-        when(userRepository.countByRole("client")).thenReturn(5L);
+        when(idNumberService.generateUniqueReaderId()).thenReturn("0000 5001");
         when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
 
         AuthResponseDto result = authService.register(RegisterRequestDto.builder()
@@ -248,7 +253,7 @@ class AuthServiceTest {
     @DisplayName("register() trims and lowercases email before saving")
     void registerNormalizesEmail() {
         when(userRepository.existsByEmail("trim@tanda.kz")).thenReturn(false);
-        when(userRepository.countByRole("client")).thenReturn(0L);
+        when(idNumberService.generateUniqueReaderId()).thenReturn("0000 5001");
         when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
 
         AuthResponseDto result = authService.register(RegisterRequestDto.builder()
@@ -551,7 +556,7 @@ class AuthServiceTest {
     void loginWithOldAdminEmailRejectsAfterEmailUpdate() {
         User updatedAdmin = User.builder()
                 .id("admin-1")
-                .idNumber("000 001")
+                .idNumber("0000 0001")
                 .name("Әкімші")
                 .email("usman.custom@gmail.com") // customized email
                 .passwordHash(passwordEncoder.encode("admin123"))

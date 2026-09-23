@@ -75,7 +75,7 @@ class AuthControllerIntegrationTest {
         } else {
             admin = User.builder()
                     .id("admin-1")
-                    .idNumber("000 001")
+                    .idNumber("0000 0001")
                     .name("Администратор")
                     .email("admin@tanda.kz")
                     .passwordHash(passwordEncoder.encode("admin123"))

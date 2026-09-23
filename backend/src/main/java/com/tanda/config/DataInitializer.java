@@ -60,7 +60,7 @@ public class DataInitializer implements CommandLineRunner {
         if (admin == null) {
             admin = com.tanda.entity.User.builder()
                     .id("admin-1")
-                    .idNumber("000 001")
+                    .idNumber("0000 0001")
                     .name("Әкімші")
                     .email("admin@tanda.kz")
                     .passwordHash(encodedPassword)

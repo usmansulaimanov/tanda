@@ -29,6 +29,7 @@ public class ManagerService {
     private final ManagerPermissionRepository managerPermissionRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserService userService;
+    private final IdNumberService idNumberService;
 
     @Transactional(readOnly = true)
     public List<UserResponseDto> getAllManagers() {
@@ -60,8 +61,7 @@ public class ManagerService {
                 throw new BadRequestException("Бұл ID нөмірі бос емес");
             }
         } else {
-            long adminCount = userRepository.countByRole("admin") + 1;
-            idNum = String.format("0000 %04d", adminCount);
+            idNum = idNumberService.generateUniqueReaderId();
         }
 
         String username = email.split("@")[0].toLowerCase().replaceAll("[^a-z0-9_]", "");

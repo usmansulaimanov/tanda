@@ -98,7 +98,7 @@ public class ChallengerTier5AdversarialVerificationTest {
         adminUser = userRepository.findByEmail("admin@tanda.kz").orElseGet(() -> {
             User a = User.builder()
                     .id("admin-t5-1")
-                    .idNumber("000 001")
+                    .idNumber("0000 0001")
                     .name("Бас Әкімші")
                     .email("admin@tanda.kz")
                     .passwordHash(passwordEncoder.encode("admin123"))

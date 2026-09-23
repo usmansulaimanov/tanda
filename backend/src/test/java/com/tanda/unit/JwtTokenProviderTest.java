@@ -121,7 +121,7 @@ class JwtTokenProviderTest {
     private User buildTestUser(String email, String id) {
         return User.builder()
                 .id(id)
-                .idNumber("000 001")
+                .idNumber("0000 0001")
                 .name("Test User")
                 .email(email)
                 .role("client")

@@ -355,34 +355,36 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       },
 
       getNextAvailableIdNumber: (): string => {
-        const allClients = get().clients;
-        const usedNums = new Set<number>();
-        let maxNum = 1000;
-
-        allClients.forEach((u) => {
+        const allKnown = [...get().clients, ...get().managers, ...get().authors];
+        const used = new Set<string>();
+        allKnown.forEach((u) => {
           if (u.idNumber) {
-            const match = u.idNumber.match(/0000\s*(\d+)/i) || u.idNumber.match(/0001\s*(\d+)/i) || u.idNumber.match(/(\d+)/);
-            if (match) {
-              let n = parseInt(match[1], 10);
-              if (!isNaN(n) && n > 0) {
-                if (n < 1000 && u.role === 'client') {
-                  n = 1000 + n;
-                }
-                if (n >= 1001) {
-                  usedNums.add(n);
-                  if (n > maxNum) maxNum = n;
-                }
-              }
-            }
+            used.add(u.idNumber.replace(/\s+/g, ''));
           }
         });
 
-        let next = 1001;
-        while (usedNums.has(next)) {
-          next++;
+        const isVanity = (digits: string): boolean => {
+          // 1. All 8 identical: 11111111, 77777777
+          if (/^(\d)\1{7}$/.test(digits)) return true;
+          // 2. Sequential ascending or descending: 12345678, 87654321
+          const asc = '01234567890123456789';
+          const desc = '98765432109876543210';
+          if (asc.includes(digits) || desc.includes(digits)) return true;
+          // 3. First 4 identical AND last 4 identical: XXXX YYYY
+          const first4 = digits.substring(0, 4);
+          const last4 = digits.substring(4, 8);
+          if (/^(\d)\1{3}$/.test(first4) && /^(\d)\1{3}$/.test(last4)) return true;
+          return false;
+        };
+
+        for (let attempt = 0; attempt < 1000; attempt++) {
+          const num = Math.floor(Math.random() * (99999999 - 5001 + 1)) + 5001;
+          const str = String(num).padStart(8, '0');
+          if (!used.has(str) && !isVanity(str)) {
+            return `${str.slice(0, 4)} ${str.slice(4, 8)}`;
+          }
         }
-        const candidate = Math.max(next, maxNum + 1);
-        return `0000 ${String(candidate).padStart(4, '0')}`;
+        return '0000 5001';
       },
 
       getUserById: (userId: string): User | undefined => {

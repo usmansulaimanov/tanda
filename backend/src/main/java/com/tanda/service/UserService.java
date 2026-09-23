@@ -35,6 +35,7 @@ public class UserService {
     private final ReservedUsernameService reservedUsernameService;
     private final com.tanda.repository.PremiumEntitlementRepository premiumEntitlementRepository;
     private final com.tanda.repository.BirthdayGiftRepository birthdayGiftRepository;
+    private final IdNumberService idNumberService;
 
     @Transactional(readOnly = true)
     public List<UserListResponseDto> getAllUsers(String role, String search) {
@@ -133,7 +134,7 @@ public class UserService {
                 throw new BadRequestException("Бұл ID нөмірі бос емес");
             }
         } else {
-            idNumber = generateUniqueIdNumber();
+            idNumber = idNumberService.generateUniqueReaderId();
         }
 
         String rawRole = dto.getRole() != null ? dto.getRole().trim().toLowerCase() : "client";
@@ -388,21 +389,5 @@ public class UserService {
                 .isPremium(isPremium)
                 .premiumExpiresAt(premiumExpiresAt)
                 .build();
-    }
-
-    private synchronized String generateUniqueIdNumber() {
-        long count = userRepository.count();
-        long candidate = 1001 + count;
-        String idNum = formatIdNumber(candidate);
-        while (userRepository.existsByIdNumber(idNum)) {
-            candidate++;
-            idNum = formatIdNumber(candidate);
-        }
-        return idNum;
-    }
-
-    private String formatIdNumber(long num) {
-        String str = String.format("%08d", num);
-        return str.substring(0, 4) + " " + str.substring(4);
     }
 }
