@@ -3,6 +3,7 @@ import { User } from '../../types';
 
 export interface AuthResponse {
   token: string;
+  refreshToken?: string;
   user: User;
 }
 
@@ -23,12 +24,17 @@ export const authApi = {
   },
 
   refresh: async (): Promise<AuthResponse> => {
-    const { data } = await apiClient.post<AuthResponse>('/api/v1/auth/refresh');
+    const refreshToken = localStorage.getItem('tanda_refresh_token');
+    const { data } = await apiClient.post<AuthResponse>(
+      '/api/v1/auth/refresh',
+      refreshToken ? { refreshToken } : {}
+    );
     return data;
   },
 
   logout: async (): Promise<void> => {
-    await apiClient.post('/api/v1/auth/logout');
+    const refreshToken = localStorage.getItem('tanda_refresh_token');
+    await apiClient.post('/api/v1/auth/logout', refreshToken ? { refreshToken } : {});
   },
 
   getMe: async (): Promise<User> => {

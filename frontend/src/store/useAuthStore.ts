@@ -885,6 +885,9 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
           }
 
           localStorage.setItem('tanda_token', data.token);
+          if (data.refreshToken) {
+            localStorage.setItem('tanda_refresh_token', data.refreshToken);
+          }
           set({
             user: data.user,
             role: data.user.role as 'admin' | 'client' | 'author',
@@ -924,6 +927,9 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
           }
 
           localStorage.setItem('tanda_token', data.token);
+          if (data.refreshToken) {
+            localStorage.setItem('tanda_refresh_token', data.refreshToken);
+          }
           set({
             user: data.user,
             role: data.user.role as 'admin' | 'client' | 'author',
@@ -976,6 +982,9 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
           });
 
           localStorage.setItem('tanda_token', data.token);
+          if (data.refreshToken) {
+            localStorage.setItem('tanda_refresh_token', data.refreshToken);
+          }
           set({
             user: data.user,
             role: data.user.role as 'admin' | 'client' | 'author',
@@ -988,8 +997,10 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       },
 
       logout: () => {
+        const refreshToken = localStorage.getItem('tanda_refresh_token');
         localStorage.removeItem('tanda_token');
-        api.post('/api/v1/auth/logout').catch(() => {});
+        localStorage.removeItem('tanda_refresh_token');
+        api.post('/api/v1/auth/logout', refreshToken ? { refreshToken } : {}).catch(() => {});
         set({
           user: null,
           role: 'client',
@@ -1003,13 +1014,36 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       },
 
       restoreSession: async () => {
-        const token = localStorage.getItem('tanda_token');
+        let token = localStorage.getItem('tanda_token');
         if (!token || token.startsWith('mock-')) {
           if (token?.startsWith('mock-')) {
             localStorage.removeItem('tanda_token');
+            localStorage.removeItem('tanda_refresh_token');
           }
-          set({ isAuthInitialized: true });
-          return;
+          // Attempt refresh if refresh token is present
+          const refreshToken = localStorage.getItem('tanda_refresh_token');
+          if (refreshToken) {
+            try {
+              const refreshUrl = (import.meta.env.VITE_API_URL || '') + '/api/v1/auth/refresh';
+              const { data } = await api.post(
+                refreshUrl,
+                { refreshToken },
+                { withCredentials: true }
+              );
+              token = data.token;
+              localStorage.setItem('tanda_token', token as string);
+              if (data.refreshToken) {
+                localStorage.setItem('tanda_refresh_token', data.refreshToken);
+              }
+            } catch {
+              localStorage.removeItem('tanda_refresh_token');
+              set({ isAuthInitialized: true });
+              return;
+            }
+          } else {
+            set({ isAuthInitialized: true });
+            return;
+          }
         }
 
         try {
@@ -1030,6 +1064,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
         } catch (err: any) {
           if (err?.response?.status === 401) {
             localStorage.removeItem('tanda_token');
+            localStorage.removeItem('tanda_refresh_token');
             set({ user: null, role: 'client', isAuthenticated: false, isAuthInitialized: true });
           } else {
             set({ isAuthInitialized: true });

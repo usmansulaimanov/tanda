@@ -123,6 +123,7 @@ public class AuthService {
 
         AuthResponseDto dto = AuthResponseDto.builder()
                 .token(token)
+                .refreshToken(rawRefreshToken)
                 .user(toUserDto(user))
                 .build();
         return new AuthResult(dto, rawRefreshToken);
@@ -198,6 +199,7 @@ public class AuthService {
 
         AuthResponseDto responseDto = AuthResponseDto.builder()
                 .token(token)
+                .refreshToken(rawRefreshToken)
                 .user(toUserDto(user))
                 .build();
         return new AuthResult(responseDto, rawRefreshToken);
@@ -245,6 +247,7 @@ public class AuthService {
 
         AuthResponseDto responseDto = AuthResponseDto.builder()
                 .token(token)
+                .refreshToken(rawRefreshToken)
                 .user(toUserDto(user))
                 .build();
         return new AuthResult(responseDto, rawRefreshToken);
@@ -270,6 +273,7 @@ public class AuthService {
         RefreshTokenService.TokenRotationResult result = refreshTokenService.rotateRefreshToken(rawRefreshToken, userAgent, ipAddress);
         AuthResponseDto responseDto = AuthResponseDto.builder()
                 .token(result.newAccessToken())
+                .refreshToken(result.newRawRefreshToken())
                 .user(toUserDto(result.user()))
                 .build();
         return new AuthResult(responseDto, result.newRawRefreshToken());

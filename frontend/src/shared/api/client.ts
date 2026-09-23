@@ -90,14 +90,19 @@ apiClient.interceptors.response.use(
     isRefreshing = true;
 
     try {
+      const refreshToken = localStorage.getItem('tanda_refresh_token');
+      const refreshUrl = (import.meta.env.VITE_API_URL || '') + '/api/v1/auth/refresh';
       const { data } = await axios.post(
-        '/api/v1/auth/refresh',
-        {},
+        refreshUrl,
+        refreshToken ? { refreshToken } : {},
         { withCredentials: true }
       );
 
       const newToken = data.token;
       localStorage.setItem('tanda_token', newToken);
+      if (data.refreshToken) {
+        localStorage.setItem('tanda_refresh_token', data.refreshToken);
+      }
 
       if (originalRequest.headers) {
         originalRequest.headers.Authorization = `Bearer ${newToken}`;
@@ -108,6 +113,7 @@ apiClient.interceptors.response.use(
     } catch (refreshError) {
       processQueue(refreshError, null);
       localStorage.removeItem('tanda_token');
+      localStorage.removeItem('tanda_refresh_token');
       return Promise.reject(refreshError);
     } finally {
       isRefreshing = false;
