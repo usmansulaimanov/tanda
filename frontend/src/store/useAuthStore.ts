@@ -26,7 +26,7 @@ interface AuthState {
   restoreSession: () => Promise<void>;
   updateProfile: (data: { name: string; email: string; phone?: string; username?: string; birthDate?: string; gender?: 'male' | 'female' | 'other'; avatarUrl?: string }) => Promise<{ success: boolean; error?: string }>;
   updateAvatar: (avatarUrl: string | null) => Promise<{ success: boolean; error?: string }>;
-  changePassword: (currentPassword: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
+  changePassword: (currentPassword: string, newPassword: string, googleIdToken?: string) => Promise<{ success: boolean; error?: string }>;
   updateUserByAdmin: (userId: string, data: { name: string; firstName?: string; lastName?: string; email: string; phone?: string; password?: string; username?: string; idNumber?: string; birthDate?: string; role?: 'admin' | 'client' | 'author'; isActive?: boolean; personalMessage?: { text: string; days?: number; isActive?: boolean } | null }) => Promise<{ success: boolean; user?: User; error?: string }>;
   toggleBlockUser: (userId: string) => Promise<{ success: boolean; isBlocked?: boolean; error?: string }>;
   createReaderByAdmin: (data: { name: string; firstName?: string; lastName?: string; email: string; phone?: string; password?: string; username?: string; idNumber?: string; birthDate?: string; role?: 'admin' | 'client' | 'author'; personalMessage?: { text: string; days?: number; isActive?: boolean } }) => Promise<{ success: boolean; user?: User; error?: string }>;
@@ -849,13 +849,13 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
         }
       },
 
-      changePassword: async (currentPassword: string, newPassword: string) => {
+      changePassword: async (currentPassword: string, newPassword: string, googleIdToken?: string) => {
         const currentUser = get().user;
         if (!currentUser) {
           return { success: false, error: 'Жүйеге кірмегенсіз' };
         }
-        if (currentUser.hasPassword !== false && !currentPassword?.trim()) {
-          return { success: false, error: 'Қазіргі құпиясөзді енгізіңіз' };
+        if (!googleIdToken && currentUser.hasPassword !== false && !currentPassword?.trim()) {
+          return { success: false, error: 'Қазіргі құпиясөзді енгізіңіз немесе Google арқылы растаңыз' };
         }
         if (!newPassword || newPassword.length < 6) {
           return { success: false, error: 'Жаңа құпиясөз кемінде 6 таңбадан тұруы керек' };
@@ -865,6 +865,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
           await api.put('/api/v1/auth/password', {
             currentPassword: currentPassword?.trim() || null,
             newPassword,
+            googleIdToken: googleIdToken || null,
           });
           set((state) => ({
             user: state.user ? { ...state.user, hasPassword: true } : null,

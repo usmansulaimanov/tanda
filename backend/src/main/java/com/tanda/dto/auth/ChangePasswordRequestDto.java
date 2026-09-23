@@ -20,4 +20,6 @@ public class ChangePasswordRequestDto {
     @NotBlank(message = "Жаңа құпиясөзді енгізіңіз")
     @Size(min = 6, message = "Жаңа құпиясөз кемінде 6 таңбадан тұруы керек")
     private String newPassword;
+
+    private String googleIdToken;
 }

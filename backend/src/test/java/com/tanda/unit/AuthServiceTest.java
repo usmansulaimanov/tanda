@@ -404,6 +404,67 @@ class AuthServiceTest {
     }
 
     @Test
+    @DisplayName("changePassword() with valid Google ID token allows resetting password without current password")
+    void changePasswordAllowsResetWithGoogleReAuth() {
+        User user = User.builder()
+                .id("google-user-reauth")
+                .email("verified@gmail.com")
+                .passwordHash(passwordEncoder.encode("oldForgottenPass"))
+                .build();
+
+        when(userRepository.findById("google-user-reauth")).thenReturn(Optional.of(user));
+        when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        com.google.api.client.googleapis.auth.oauth2.GoogleIdToken.Payload payload =
+                new com.google.api.client.googleapis.auth.oauth2.GoogleIdToken.Payload();
+        payload.setEmail("verified@gmail.com");
+        payload.setSubject("google-sub-12345");
+
+        when(googleTokenVerifier.verify("valid-google-token")).thenReturn(payload);
+
+        com.tanda.dto.auth.ChangePasswordRequestDto request = com.tanda.dto.auth.ChangePasswordRequestDto.builder()
+                .googleIdToken("valid-google-token")
+                .currentPassword(null)
+                .newPassword("brandNewPassword999")
+                .build();
+
+        assertDoesNotThrow(() -> authService.changePassword("google-user-reauth", request));
+        verify(userRepository).save(user);
+        assertTrue(passwordEncoder.matches("brandNewPassword999", user.getPasswordHash()));
+    }
+
+    @Test
+    @DisplayName("changePassword() with mismatched Google ID token throws BadRequestException")
+    void changePasswordRejectsMismatchedGoogleToken() {
+        User user = User.builder()
+                .id("google-user-reauth")
+                .email("original@gmail.com")
+                .googleId("sub-111")
+                .passwordHash(passwordEncoder.encode("oldForgottenPass"))
+                .build();
+
+        when(userRepository.findById("google-user-reauth")).thenReturn(Optional.of(user));
+
+        com.google.api.client.googleapis.auth.oauth2.GoogleIdToken.Payload payload =
+                new com.google.api.client.googleapis.auth.oauth2.GoogleIdToken.Payload();
+        payload.setEmail("someone.else@gmail.com");
+        payload.setSubject("sub-999");
+
+        when(googleTokenVerifier.verify("intruder-google-token")).thenReturn(payload);
+
+        com.tanda.dto.auth.ChangePasswordRequestDto request = com.tanda.dto.auth.ChangePasswordRequestDto.builder()
+                .googleIdToken("intruder-google-token")
+                .currentPassword(null)
+                .newPassword("hackerPass123")
+                .build();
+
+        assertThrows(com.tanda.exception.BadRequestException.class, () ->
+                authService.changePassword("google-user-reauth", request)
+        );
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
     @DisplayName("login() with old admin@tanda.kz rejects and does not overwrite admin's customized email")
     void loginWithOldAdminEmailRejectsAfterEmailUpdate() {
         User updatedAdmin = User.builder()

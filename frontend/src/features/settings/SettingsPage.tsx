@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useToastStore } from '../../store/useToastStore';
 import { resizeAndCompressImage } from '../../utils/imageUtils';
@@ -111,6 +112,8 @@ export const SettingsPage: React.FC = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordError, setPasswordError] = useState('');
   const [isSavingPassword, setIsSavingPassword] = useState(false);
+  const [googleReAuthToken, setGoogleReAuthToken] = useState<string | null>(null);
+  const [isGoogleVerified, setIsGoogleVerified] = useState(false);
 
   // Usernames / Reserved usernames state
   const [reservedList, setReservedList] = useState<string[]>([]);
@@ -394,12 +397,21 @@ export const SettingsPage: React.FC = () => {
     }
   };
 
+  const handleGoogleReAuthSuccess = (credentialResponse: CredentialResponse) => {
+    if (credentialResponse.credential) {
+      setGoogleReAuthToken(credentialResponse.credential);
+      setIsGoogleVerified(true);
+      setPasswordError('');
+      showToast('Google арқылы сәтті расталды! Жаңа құпиясөзді енгізіп сақтаңыз.', 'success');
+    }
+  };
+
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setPasswordError('');
 
-    if (hasPassword && !currentPassword) {
-      setPasswordError('Қазіргі құпиясөзді енгізіңіз');
+    if (!isGoogleVerified && hasPassword && !currentPassword) {
+      setPasswordError('Қазіргі құпиясөзді енгізіңіз немесе Google арқылы растаңыз');
       showToast('Қазіргі құпиясөзді енгізіңіз', 'error');
       return;
     }
@@ -416,12 +428,14 @@ export const SettingsPage: React.FC = () => {
 
     setIsSavingPassword(true);
     try {
-      const res = await changePassword(currentPassword, newPassword);
+      const res = await changePassword(currentPassword, newPassword, googleReAuthToken || undefined);
       if (res.success) {
         showToast(hasPassword ? 'Пароль сәтті өзгертілді!' : 'Құпиясөз сәтті орнатылды!', 'success');
         setCurrentPassword('');
         setNewPassword('');
         setConfirmPassword('');
+        setGoogleReAuthToken(null);
+        setIsGoogleVerified(false);
         setPasswordError('');
         switchMode('menu');
       } else {
@@ -1227,7 +1241,7 @@ export const SettingsPage: React.FC = () => {
               <div style={{ maxWidth: '480px', display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '28px' }}>
                 
                 {/* Current Password */}
-                {hasPassword && (
+                {hasPassword && !isGoogleVerified && (
                   <div className="form-group" style={{ margin: 0 }}>
                     <label className="form-label">
                       Қазіргі құпиясөз <span className="req">*</span>
@@ -1235,7 +1249,6 @@ export const SettingsPage: React.FC = () => {
                     <div style={{ position: 'relative' }}>
                       <input
                         type={showCurrentPassword ? 'text' : 'password'}
-                        required
                         value={currentPassword}
                         onChange={(e) => setCurrentPassword(e.target.value)}
                         placeholder="••••••••"
@@ -1274,6 +1287,46 @@ export const SettingsPage: React.FC = () => {
                       </button>
                     </div>
                     <span className="form-hint">Жеке аккаунтыңыздың қазіргі құпиясөзі</span>
+
+                    {/* Google Re-Auth helper */}
+                    <div style={{ marginTop: '12px', padding: '12px 14px', background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '10px' }}>
+                      <div style={{ fontSize: '12.5px', color: '#475569', marginBottom: '8px', fontWeight: 500, lineHeight: 1.4 }}>
+                        Құпиясөзді ұмыттыңыз ба? Google арқылы растап, ескі құпиясөзсіз жаңасын орната аласыз:
+                      </div>
+                      <div style={{ display: 'inline-block' }}>
+                        <GoogleLogin
+                          onSuccess={handleGoogleReAuthSuccess}
+                          onError={() => {
+                            setPasswordError('Google арқылы растау сәтсіз аяқталды');
+                            showToast('Google арқылы растау сәтсіз аяқталды', 'error');
+                          }}
+                          text="continue_with"
+                          shape="pill"
+                          size="medium"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {hasPassword && isGoogleVerified && (
+                  <div style={{ padding: '12px 16px', background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#166534', fontSize: '13px', fontWeight: 600 }}>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                      <span>Google арқылы расталды (ескі құпиясөз қажет емес)</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setGoogleReAuthToken(null);
+                        setIsGoogleVerified(false);
+                      }}
+                      style={{ fontSize: '12px', color: '#64748B', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', whiteSpace: 'nowrap' }}
+                    >
+                      Болдырмау
+                    </button>
                   </div>
                 )}
 

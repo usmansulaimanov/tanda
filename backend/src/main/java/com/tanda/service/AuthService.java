@@ -408,12 +408,25 @@ public class AuthService {
                 .or(() -> userRepository.findByEmail(userIdentifier.trim().toLowerCase()))
                 .orElseThrow(() -> new ResourceNotFoundException("Пайдаланушы табылмады"));
 
-        // If user already has a password, verify current password.
-        // If user logged in via Google and has no password yet (passwordHash == null),
-        // allow them to set their initial password directly without current password.
-        if (user.getPasswordHash() != null) {
+        // If googleIdToken is provided, verify Google ownership for re-authentication
+        if (request.getGoogleIdToken() != null && !request.getGoogleIdToken().isBlank()) {
+            com.google.api.client.googleapis.auth.oauth2.GoogleIdToken.Payload payload =
+                    googleTokenVerifier.verify(request.getGoogleIdToken());
+            String googleEmail = payload.getEmail();
+            String googleSub = payload.getSubject();
+
+            boolean emailMatches = googleEmail != null && googleEmail.equalsIgnoreCase(user.getEmail());
+            boolean subMatches = googleSub != null && (googleSub.equals(user.getGoogleId()) || googleSub.equals(user.getId()));
+
+            if (!emailMatches && !subMatches) {
+                log.warn("Google re-auth mismatch: googleEmail={}, userEmail={}", googleEmail, user.getEmail());
+                throw new BadRequestException("Бұл Google аккаунты профиліңізге сәйкес келмейді");
+            }
+            log.info("Password update authorized via Google re-authentication for user id={}", user.getId());
+        } else if (user.getPasswordHash() != null) {
+            // Normal password change requiring current password
             if (request.getCurrentPassword() == null || request.getCurrentPassword().isBlank()) {
-                throw new BadRequestException("Қазіргі құпиясөзді енгізіңіз");
+                throw new BadRequestException("Қазіргі құпиясөзді енгізіңіз немесе Google арқылы растаңыз");
             }
             if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPasswordHash())) {
                 throw new BadRequestException("Қазіргі құпиясөз қате");
