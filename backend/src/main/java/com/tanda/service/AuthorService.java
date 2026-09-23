@@ -168,9 +168,10 @@ public class AuthorService {
         author = authorRepository.save(author);
 
         // 3. Link assigned books with single author per book validation
-        List<String> assignedBookIds = dto.getAssignedBookIds() != null ? dto.getAssignedBookIds() : Collections.emptyList();
-        for (String rawBookId : assignedBookIds) {
-            String bookId = rawBookId.trim();
+        List<String> assignedBookIds = dto.getAssignedBookIds() != null
+                ? dto.getAssignedBookIds().stream().map(String::trim).filter(s -> !s.isBlank()).distinct().collect(Collectors.toList())
+                : Collections.emptyList();
+        for (String bookId : assignedBookIds) {
             List<AuthorBook> existingActive = authorBookRepository.findByBookIdAndIsActiveTrue(bookId);
             if (!existingActive.isEmpty()) {
                 String existingAuthorId = existingActive.get(0).getAuthorId();
@@ -275,6 +276,9 @@ public class AuthorService {
 
             // 2. Soft-unassign books that were removed
             List<AuthorBook> currentAuthorBooks = authorBookRepository.findByAuthorId(author.getId());
+            Map<String, AuthorBook> existingMap = currentAuthorBooks.stream()
+                    .collect(Collectors.toMap(AuthorBook::getBookId, ab -> ab, (a, b) -> a));
+
             for (AuthorBook ab : currentAuthorBooks) {
                 if (!newBookIds.contains(ab.getBookId())) {
                     if (Boolean.TRUE.equals(ab.getIsActive())) {
@@ -285,11 +289,14 @@ public class AuthorService {
                 }
             }
 
-            // 3. Reactivate or create new AuthorBook entries
+            // 3. Reactivate or create new AuthorBook entries safely
             for (String bookId : newBookIds) {
-                Optional<AuthorBook> existing = authorBookRepository.findByAuthorIdAndBookId(author.getId(), bookId);
-                if (existing.isPresent()) {
-                    AuthorBook ab = existing.get();
+                AuthorBook ab = existingMap.get(bookId);
+                if (ab == null) {
+                    ab = authorBookRepository.findByAuthorIdAndBookId(author.getId(), bookId).orElse(null);
+                }
+
+                if (ab != null) {
                     if (!Boolean.TRUE.equals(ab.getIsActive())) {
                         ab.setIsActive(true);
                         ab.setAssignedAt(OffsetDateTime.now());
