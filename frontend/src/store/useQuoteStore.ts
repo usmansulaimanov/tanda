@@ -43,6 +43,7 @@ interface QuoteState {
   addQuote: (data: { text: string; author?: string; bookId?: string; bookTitle?: string; isActive?: boolean }) => Promise<QuoteItem | null>;
   addBulkQuotes: (items: Array<{ text: string; author?: string; bookId?: string; bookTitle?: string }>) => Promise<number>;
   updateQuote: (id: string, updates: Partial<QuoteItem>) => Promise<void>;
+  sendQuote: (id: string) => Promise<QuoteItem | null>;
   deleteQuote: (id: string) => Promise<void>;
   deleteQuotes: (ids: string[]) => Promise<void>;
   toggleQuoteActive: (id: string) => Promise<void>;
@@ -144,6 +145,22 @@ export const useQuoteStore = create<QuoteState>((set, get) => ({
     }
   },
 
+  sendQuote: async (id) => {
+    try {
+      const { data: updated } = await api.post(`/api/v1/admin/quotes/${id}/send`);
+      if (updated) {
+        set((state) => ({
+          quotes: state.quotes.map((q) => (q.id === id ? { ...q, ...updated } : q)),
+        }));
+        return updated;
+      }
+      return null;
+    } catch (err) {
+      console.error('Failed to send quote:', err);
+      return null;
+    }
+  },
+
   deleteQuote: async (id) => {
     try {
       await api.delete(`/api/v1/admin/quotes/${id}`);
@@ -189,7 +206,38 @@ export const useQuoteStore = create<QuoteState>((set, get) => ({
       targetQuote = quotes[randIdx];
     }
 
-    set({ activeNotification: targetQuote });
+    const historyItem: DeliveredQuoteRecord = {
+      id: 'deliv-' + Date.now(),
+      quoteId: targetQuote.id,
+      text: targetQuote.text,
+      author: targetQuote.author,
+      bookId: targetQuote.bookId,
+      bookTitle: targetQuote.bookTitle,
+      deliveredAt: new Date().toISOString(),
+    };
+
+    set((state) => ({
+      activeNotification: targetQuote,
+      deliveredHistory: [
+        historyItem,
+        ...state.deliveredHistory.filter((d) => d.quoteId !== targetQuote!.id).slice(0, 49),
+      ],
+    }));
+
+    if (
+      typeof window !== 'undefined' &&
+      'Notification' in window &&
+      Notification.permission === 'granted' &&
+      get().settings.browserPushEnabled
+    ) {
+      try {
+        new Notification(`Tanda • ${targetQuote.author}`, {
+          body: targetQuote.text,
+          icon: '/favicon.ico',
+        });
+      } catch {}
+    }
+
     return targetQuote;
   },
 
@@ -197,8 +245,52 @@ export const useQuoteStore = create<QuoteState>((set, get) => ({
     set({ activeNotification: null });
   },
 
-  checkAndTriggerScheduledQuotes: () => {
-    // Scheduled quotes delivery
+  checkAndTriggerScheduledQuotes: async () => {
+    const { quotes, settings, triggerQuoteNotification, fetchQuotes } = get();
+    if (!settings.isEnabled) return;
+
+    if (quotes.length === 0) {
+      await fetchQuotes();
+    }
+
+    const currentQuotes = get().quotes.filter((q) => q.isActive);
+    if (currentQuotes.length === 0) return;
+
+    // 1. Check if there is an admin-sent quote that has not been delivered to this user yet
+    const sentQuotes = currentQuotes
+      .filter((q) => (q.sentCount && q.sentCount > 0) || Boolean(q.lastSentAt))
+      .sort((a, b) => {
+        const timeA = a.lastSentAt ? new Date(a.lastSentAt).getTime() : 0;
+        const timeB = b.lastSentAt ? new Date(b.lastSentAt).getTime() : 0;
+        return timeB - timeA;
+      });
+
+    if (sentQuotes.length > 0) {
+      const latestSent = sentQuotes[0];
+      const seenKey = `tanda_seen_quote_${latestSent.id}_${latestSent.lastSentAt || latestSent.sentCount}`;
+      if (typeof window !== 'undefined' && !localStorage.getItem(seenKey)) {
+        localStorage.setItem(seenKey, 'true');
+        triggerQuoteNotification(latestSent.id);
+        return;
+      }
+    }
+
+    // 2. Check scheduled timeslots (e.g. 09:00, 14:00, 20:00)
+    if (typeof window !== 'undefined') {
+      const now = new Date();
+      const currentHours = String(now.getHours()).padStart(2, '0');
+      const currentMinutes = String(now.getMinutes()).padStart(2, '0');
+      const currentTime = `${currentHours}:${currentMinutes}`;
+      const todayDate = now.toISOString().slice(0, 10);
+
+      if (settings.scheduledTimes.includes(currentTime)) {
+        const scheduleKey = `tanda_scheduled_quote_${todayDate}_${currentTime}`;
+        if (!localStorage.getItem(scheduleKey)) {
+          localStorage.setItem(scheduleKey, 'true');
+          triggerQuoteNotification();
+        }
+      }
+    }
   },
 
   clearHistory: () => {

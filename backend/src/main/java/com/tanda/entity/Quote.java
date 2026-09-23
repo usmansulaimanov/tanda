@@ -48,6 +48,9 @@ public class Quote {
     @Builder.Default
     private Integer sentCount = 0;
 
+    @Column(name = "last_sent_at")
+    private OffsetDateTime lastSentAt;
+
     @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
 

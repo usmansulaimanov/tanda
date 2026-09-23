@@ -20,10 +20,12 @@ export const AdminQuotesPage: React.FC = () => {
     deleteQuotes,
     toggleQuoteActive,
     updateSettings,
+    sendQuote,
     triggerQuoteNotification,
     fetchQuotes,
   } = useQuoteStore();
   const { showToast } = useToastStore();
+  const [sendingQuoteId, setSendingQuoteId] = useState<string | null>(null);
 
   const canManageQuotes = hasAdminPermission(user, 'quotes_manage');
 
@@ -232,6 +234,7 @@ export const AdminQuotesPage: React.FC = () => {
     });
 
     if (created?.id) {
+      await sendQuote(created.id);
       triggerQuoteNotification(created.id);
     }
 
@@ -386,6 +389,23 @@ export const AdminQuotesPage: React.FC = () => {
       showToast('Цитаталар таратылымы ҚОСЫЛДЫ. Оқырмандарға күнделікті 3 рет жіберіледі.', 'success');
     } else {
       showToast('Цитаталар таратылымы ӨШІРІЛДІ. Уақытша оқырмандарға уведомление бармайды.', 'info');
+    }
+  };
+
+  const handleSendQuote = async (quote: QuoteItem) => {
+    setSendingQuoteId(quote.id);
+    try {
+      const updated = await sendQuote(quote.id);
+      if (updated) {
+        triggerQuoteNotification(quote.id);
+        showToast(`Цитата оқырмандарға жіберілді: «${updated.text.slice(0, 30)}...» (${updated.author})`, 'success');
+      } else {
+        showToast('Цитатаны жіберу сәтсіз аяқталды', 'error');
+      }
+    } catch {
+      showToast('Цитатаны жіберу кезінде қате шықты', 'error');
+    } finally {
+      setSendingQuoteId(null);
     }
   };
 
@@ -1215,19 +1235,20 @@ export const AdminQuotesPage: React.FC = () => {
 
                       <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
                         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '22px', justifyContent: 'flex-end' }}>
-                          {/* Test send this specific quote */}
+                          {/* Send this specific quote to readers */}
                           <button
                             type="button"
-                            onClick={() => handleTestNotification(quote.id)}
-                            title="Осы цитатаны қазір оқырмандарға жіберу"
+                            onClick={() => handleSendQuote(quote)}
+                            disabled={sendingQuoteId === quote.id}
+                            title="Осы цитатаны қазір барлық оқырмандарға жіберу"
                             style={{
                               padding: '4px 0',
                               fontSize: '13px',
                               fontWeight: 700,
                               background: 'transparent',
-                              color: 'var(--text-dark)',
+                              color: sendingQuoteId === quote.id ? '#94A3B8' : 'var(--blue)',
                               border: 'none',
-                              cursor: 'pointer',
+                              cursor: sendingQuoteId === quote.id ? 'not-allowed' : 'pointer',
                               display: 'inline-flex',
                               alignItems: 'center',
                               gap: '4px',
@@ -1237,7 +1258,7 @@ export const AdminQuotesPage: React.FC = () => {
                               <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
                               <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
                             </svg>
-                            Жіберу
+                            {sendingQuoteId === quote.id ? 'Жіберілуде...' : 'Жіберу'}
                           </button>
 
                           {/* Edit */}

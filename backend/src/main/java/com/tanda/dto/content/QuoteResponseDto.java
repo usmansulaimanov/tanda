@@ -20,6 +20,7 @@ public class QuoteResponseDto {
     private String bookTitle;
     private Boolean isActive;
     private Integer sentCount;
+    private OffsetDateTime lastSentAt;
     private OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;
 }

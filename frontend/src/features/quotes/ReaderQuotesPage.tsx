@@ -16,21 +16,23 @@ export const ReaderQuotesPage: React.FC = () => {
 
   const [searchQuery, setSearchQuery] = useState('');
 
-  // ONLY quotes that have been sent/delivered to readers
+  // ONLY quotes that have been sent/delivered to readers (fallback to active quotes if none explicitly sent yet)
   const sentQuotes = useMemo(() => {
-    return quotes
-      .filter((q) => {
-        const isSentInQuotes = (q.sentCount && q.sentCount > 0) || Boolean(q.lastSentAt);
-        const isDeliveredInHistory = (deliveredHistory || []).some(
-          (d) => d.quoteId === q.id || d.text.trim() === q.text.trim()
-        );
-        return isSentInQuotes || isDeliveredInHistory;
-      })
-      .sort((a, b) => {
-        const timeA = a.lastSentAt ? new Date(a.lastSentAt).getTime() : 0;
-        const timeB = b.lastSentAt ? new Date(b.lastSentAt).getTime() : 0;
-        return timeB - timeA;
-      });
+    const explicitlySent = quotes.filter((q) => {
+      const isSentInQuotes = (q.sentCount && q.sentCount > 0) || Boolean(q.lastSentAt);
+      const isDeliveredInHistory = (deliveredHistory || []).some(
+        (d) => d.quoteId === q.id || d.text.trim() === q.text.trim()
+      );
+      return isSentInQuotes || isDeliveredInHistory;
+    });
+
+    const listToDisplay = explicitlySent.length > 0 ? explicitlySent : quotes.filter((q) => q.isActive);
+
+    return [...listToDisplay].sort((a, b) => {
+      const timeA = a.lastSentAt ? new Date(a.lastSentAt).getTime() : new Date(a.createdAt).getTime();
+      const timeB = b.lastSentAt ? new Date(b.lastSentAt).getTime() : new Date(b.createdAt).getTime();
+      return timeB - timeA;
+    });
   }, [quotes, deliveredHistory]);
 
   // Filtered quotes based on search

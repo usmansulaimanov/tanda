@@ -251,4 +251,25 @@ public class MessageService {
                 .deletedByUserIds(new ArrayList<>(deletedSet))
                 .build();
     }
+
+    @Transactional
+    public void createQuoteBroadcast(com.tanda.entity.Quote quote) {
+        String authorName = (quote.getAuthor() != null && !quote.getAuthor().isBlank()) ? quote.getAuthor().trim() : "Халық даналығы";
+        String title = "Күнделікті үзінді: " + authorName;
+        Message message = Message.builder()
+                .id("msg-quote-" + UUID.randomUUID().toString().substring(0, 8))
+                .senderName("Tanda • Цитата")
+                .senderRole("admin")
+                .targetType("all")
+                .title(title)
+                .content(quote.getText())
+                .bookId(quote.getBookId())
+                .bookTitle(quote.getBookTitle())
+                .priority("normal")
+                .canReaderDelete(true)
+                .createdAt(OffsetDateTime.now())
+                .build();
+        messageRepository.save(message);
+        log.info("Created quote broadcast message: id='{}', quoteId='{}'", message.getId(), quote.getId());
+    }
 }

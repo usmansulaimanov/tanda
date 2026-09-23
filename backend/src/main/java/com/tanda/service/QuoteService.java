@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 public class QuoteService {
 
     private final QuoteRepository quoteRepository;
+    private final MessageService messageService;
 
     @Transactional(readOnly = true)
     public List<QuoteResponseDto> getActiveQuotes() {
@@ -125,6 +126,27 @@ public class QuoteService {
         }
     }
 
+    @Transactional
+    public QuoteResponseDto sendQuote(String id) {
+        Quote quote = quoteRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Quote", "id", id));
+
+        OffsetDateTime now = OffsetDateTime.now();
+        quote.setSentCount((quote.getSentCount() != null ? quote.getSentCount() : 0) + 1);
+        quote.setLastSentAt(now);
+        quote.setUpdatedAt(now);
+        Quote saved = quoteRepository.save(quote);
+        log.info("Quote sent to all readers: id='{}', author='{}', totalSentCount={}", saved.getId(), saved.getAuthor(), saved.getSentCount());
+
+        try {
+            messageService.createQuoteBroadcast(saved);
+        } catch (Exception e) {
+            log.warn("Failed to create broadcast message for quote id='{}': {}", saved.getId(), e.getMessage());
+        }
+
+        return toDto(saved);
+    }
+
     private QuoteResponseDto toDto(Quote q) {
         return QuoteResponseDto.builder()
                 .id(q.getId())
@@ -134,6 +156,7 @@ public class QuoteService {
                 .bookTitle(q.getBookTitle())
                 .isActive(q.getIsActive())
                 .sentCount(q.getSentCount())
+                .lastSentAt(q.getLastSentAt())
                 .createdAt(q.getCreatedAt())
                 .updatedAt(q.getUpdatedAt())
                 .build();

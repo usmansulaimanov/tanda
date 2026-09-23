@@ -61,6 +61,12 @@ public class QuoteController {
         return ResponseEntity.ok(quoteService.updateQuote(id, request));
     }
 
+    @PostMapping({"/api/v1/admin/quotes/{id}/send", "/api/admin/quotes/{id}/send"})
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<QuoteResponseDto> sendQuote(@PathVariable String id) {
+        return ResponseEntity.ok(quoteService.sendQuote(id));
+    }
+
     @DeleteMapping({"/api/v1/admin/quotes/{id}", "/api/admin/quotes/{id}"})
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteQuote(@PathVariable String id) {
