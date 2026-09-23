@@ -854,7 +854,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
         if (!currentUser) {
           return { success: false, error: 'Жүйеге кірмегенсіз' };
         }
-        if (!currentPassword.trim()) {
+        if (currentUser.hasPassword !== false && !currentPassword?.trim()) {
           return { success: false, error: 'Қазіргі құпиясөзді енгізіңіз' };
         }
         if (!newPassword || newPassword.length < 6) {
@@ -863,9 +863,12 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
 
         try {
           await api.put('/api/v1/auth/password', {
-            currentPassword,
+            currentPassword: currentPassword?.trim() || null,
             newPassword,
           });
+          set((state) => ({
+            user: state.user ? { ...state.user, hasPassword: true } : null,
+          }));
           return { success: true };
         } catch (err: any) {
           return {

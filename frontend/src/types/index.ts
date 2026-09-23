@@ -120,6 +120,7 @@ export interface User {
   savedBooksCount?: number;
   avatarUrl?: string;
   authProvider?: 'LOCAL' | 'GOOGLE';
+  googleId?: string;
   hasPassword?: boolean;
   password?: string;
   personalMessage?: UserPersonalMessage;

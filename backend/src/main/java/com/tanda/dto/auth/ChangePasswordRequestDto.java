@@ -15,7 +15,6 @@ import lombok.Setter;
 @Builder
 public class ChangePasswordRequestDto {
 
-    @NotBlank(message = "Қазіргі құпиясөзді енгізіңіз")
     private String currentPassword;
 
     @NotBlank(message = "Жаңа құпиясөзді енгізіңіз")

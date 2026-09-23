@@ -79,6 +79,8 @@ export const SettingsPage: React.FC = () => {
   const { showToast } = useToastStore();
 
   const isAdmin = user?.role === 'admin' || Boolean(user?.isSuperAdmin);
+  const isGoogleUser = Boolean(user && (user.authProvider === 'GOOGLE' || Boolean(user.googleId)));
+  const hasPassword = Boolean(user && user.hasPassword !== false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const datePickerInputRef = useRef<HTMLInputElement>(null);
@@ -396,7 +398,7 @@ export const SettingsPage: React.FC = () => {
     e.preventDefault();
     setPasswordError('');
 
-    if (!currentPassword) {
+    if (hasPassword && !currentPassword) {
       setPasswordError('Қазіргі құпиясөзді енгізіңіз');
       showToast('Қазіргі құпиясөзді енгізіңіз', 'error');
       return;
@@ -416,15 +418,15 @@ export const SettingsPage: React.FC = () => {
     try {
       const res = await changePassword(currentPassword, newPassword);
       if (res.success) {
-        showToast('Пароль сәтті өзгертілді!', 'success');
+        showToast(hasPassword ? 'Пароль сәтті өзгертілді!' : 'Құпиясөз сәтті орнатылды!', 'success');
         setCurrentPassword('');
         setNewPassword('');
         setConfirmPassword('');
         setPasswordError('');
         switchMode('menu');
       } else {
-        setPasswordError(res.error || 'Парольді өзгерту кезінде қате орын алды');
-        showToast(res.error || 'Парольді өзгерту сәтсіз аяқталды', 'error');
+        setPasswordError(res.error || 'Құпиясөзді сақтау кезінде қате орын алды');
+        showToast(res.error || 'Құпиясөзді сақтау сәтсіз аяқталды', 'error');
       }
     } catch {
       showToast('Парольді өзгерту мүмкін болмады', 'error');
@@ -759,10 +761,10 @@ export const SettingsPage: React.FC = () => {
                   </div>
                   <div>
                     <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-dark)', margin: '0 0 4px 0' }}>
-                      Парольді өзгерту
+                      {hasPassword ? 'Парольді өзгерту' : 'Құпиясөз орнату'}
                     </h3>
                     <p style={{ fontSize: '13px', color: 'var(--text-mid)', margin: 0, lineHeight: 1.4 }}>
-                      Қауіпсіздік үшін жаңа құпиясөз орнату
+                      {hasPassword ? 'Қауіпсіздік үшін жаңа құпиясөз орнату' : 'Пошта және парольмен кіру үшін құпиясөз орнату'}
                     </p>
                   </div>
                 </div>
@@ -939,17 +941,49 @@ export const SettingsPage: React.FC = () => {
               >
                 {/* Email */}
                 <div className="form-group" style={{ margin: 0 }}>
-                  <label className="form-label">
-                    Электронды пошта <span className="req">*</span>
-                  </label>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                    <label className="form-label" style={{ margin: 0 }}>
+                      Электронды пошта <span className="req">*</span>
+                    </label>
+                    {isGoogleUser && (
+                      <span
+                        style={{
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          color: '#0057A8',
+                          background: 'rgba(0, 87, 168, 0.08)',
+                          padding: '2px 8px',
+                          borderRadius: '6px',
+                        }}
+                      >
+                        Google аккаунты
+                      </span>
+                    )}
+                  </div>
                   <input
                     type="email"
                     required
+                    disabled={isGoogleUser}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="siz@mail.kz"
                     className="form-input"
+                    style={
+                      isGoogleUser
+                        ? {
+                            backgroundColor: '#F8FAFC',
+                            color: '#64748B',
+                            cursor: 'not-allowed',
+                            borderColor: '#E2E8F0',
+                          }
+                        : undefined
+                    }
                   />
+                  {isGoogleUser && (
+                    <span className="form-hint" style={{ color: '#64748B', marginTop: '6px', display: 'block' }}>
+                      Аккаунт Google арқылы байланыстырылған. Қауіпсіздік үшін пошта өзгертілмейді.
+                    </span>
+                  )}
                 </div>
 
                 {/* Phone number */}
@@ -1159,10 +1193,12 @@ export const SettingsPage: React.FC = () => {
               <div>
                 <span className="section-tag" style={{ marginBottom: '8px' }}>Қауіпсіздік</span>
                 <h2 style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-dark)', margin: '4px 0' }}>
-                  Парольді өзгерту
+                  {hasPassword ? 'Парольді өзгерту' : 'Құпиясөз орнату'}
                 </h2>
                 <p style={{ fontSize: '13px', color: 'var(--text-mid)', margin: 0 }}>
-                  Аккаунтыңыздың қауіпсіздігі үшін сенімді әрі күрделі құпиясөзді таңдаңыз.
+                  {hasPassword
+                    ? 'Аккаунтыңыздың қауіпсіздігі үшін сенімді әрі күрделі құпиясөзді таңдаңыз.'
+                    : 'Сіздің аккаунтыңыз Google арқылы тіркелген. Қосымша құпиясөз орнатсаңыз, келесі жолы осы поштаңыз бен құпиясөз арқылы да кіре аласыз.'}
                 </p>
               </div>
 
@@ -1191,53 +1227,55 @@ export const SettingsPage: React.FC = () => {
               <div style={{ maxWidth: '480px', display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '28px' }}>
                 
                 {/* Current Password */}
-                <div className="form-group" style={{ margin: 0 }}>
-                  <label className="form-label">
-                    Қазіргі құпиясөз <span className="req">*</span>
-                  </label>
-                  <div style={{ position: 'relative' }}>
-                    <input
-                      type={showCurrentPassword ? 'text' : 'password'}
-                      required
-                      value={currentPassword}
-                      onChange={(e) => setCurrentPassword(e.target.value)}
-                      placeholder="••••••••"
-                      className="form-input"
-                      style={{ paddingRight: '42px' }}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                      style={{
-                        position: 'absolute',
-                        right: '12px',
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        background: 'none',
-                        border: 'none',
-                        color: '#64748B',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                      title={showCurrentPassword ? 'Жасыру' : 'Көрсету'}
-                    >
-                      {showCurrentPassword ? (
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-                          <line x1="1" y1="1" x2="23" y2="23"></line>
-                        </svg>
-                      ) : (
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                          <circle cx="12" cy="12" r="3"></circle>
-                        </svg>
-                      )}
-                    </button>
+                {hasPassword && (
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <label className="form-label">
+                      Қазіргі құпиясөз <span className="req">*</span>
+                    </label>
+                    <div style={{ position: 'relative' }}>
+                      <input
+                        type={showCurrentPassword ? 'text' : 'password'}
+                        required
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
+                        placeholder="••••••••"
+                        className="form-input"
+                        style={{ paddingRight: '42px' }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                        style={{
+                          position: 'absolute',
+                          right: '12px',
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          background: 'none',
+                          border: 'none',
+                          color: '#64748B',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                        title={showCurrentPassword ? 'Жасыру' : 'Көрсету'}
+                      >
+                        {showCurrentPassword ? (
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                            <line x1="1" y1="1" x2="23" y2="23"></line>
+                          </svg>
+                        ) : (
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                          </svg>
+                        )}
+                      </button>
+                    </div>
+                    <span className="form-hint">Жеке аккаунтыңыздың қазіргі құпиясөзі</span>
                   </div>
-                  <span className="form-hint">Жеке аккаунтыңыздың қазіргі құпиясөзі</span>
-                </div>
+                )}
 
                 {/* New Password */}
                 <div className="form-group" style={{ margin: 0 }}>
@@ -1364,7 +1402,7 @@ export const SettingsPage: React.FC = () => {
 
                 <button
                   type="submit"
-                  disabled={isSavingPassword || !currentPassword || !newPassword || !confirmPassword}
+                  disabled={isSavingPassword || (hasPassword && !currentPassword) || !newPassword || !confirmPassword}
                   className="btn-primary"
                   style={{
                     padding: '12px 32px',
@@ -1372,11 +1410,11 @@ export const SettingsPage: React.FC = () => {
                     fontSize: '14px',
                     fontWeight: 700,
                     background: 'var(--blue)',
-                    opacity: isSavingPassword || !currentPassword || !newPassword || !confirmPassword ? 0.6 : 1,
-                    cursor: isSavingPassword || !currentPassword || !newPassword || !confirmPassword ? 'not-allowed' : 'pointer',
+                    opacity: isSavingPassword || (hasPassword && !currentPassword) || !newPassword || !confirmPassword ? 0.6 : 1,
+                    cursor: isSavingPassword || (hasPassword && !currentPassword) || !newPassword || !confirmPassword ? 'not-allowed' : 'pointer',
                   }}
                 >
-                  {isSavingPassword ? 'Сақталуда...' : 'Парольді жаңарту'}
+                  {isSavingPassword ? 'Сақталуда...' : (hasPassword ? 'Парольді жаңарту' : 'Құпиясөзді сақтау')}
                 </button>
               </div>
             </form>

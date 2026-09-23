@@ -193,7 +193,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialMode }) => {
           </div>
 
           {/* 1-Click Social Sign-In (Google) */}
-          <div className="mb-5">
+          <div className="mb-2">
             <div className="w-full flex justify-center">
               <GoogleLogin
                 onSuccess={handleGoogleSuccess}
@@ -207,148 +207,120 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialMode }) => {
             </div>
           </div>
 
-          {/* Divider */}
-          <div className="relative my-5">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-slate-200" />
+          {/* On Signup: Show friendly explanation */}
+          {mode === 'signup' && (
+            <div className="mt-4 p-4 rounded-2xl bg-gradient-to-b from-blue-50/60 to-slate-50 border border-blue-100 text-center">
+              <p className="text-xs font-semibold text-slate-700 leading-relaxed">
+                Tanda платформасына тіркелу тек сенімді <span className="text-[#0057A8] font-bold">Google аккаунты</span> арқылы жылдам әрі қауіпсіз жүргізіледі.
+              </p>
+              <p className="text-[11px] text-slate-500 mt-1.5 leading-normal">
+                Пароль ойлап тауып әуре болмайсыз. Қаласаңыз, кейін баптаулардан жеке құпиясөз орнатып алуға болады.
+              </p>
             </div>
-            <div className="relative flex justify-center text-xs">
-              <span className="bg-white px-3 text-slate-400 uppercase font-bold tracking-wider">
-                немесе Email арқылы
-              </span>
-            </div>
-          </div>
+          )}
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Full Name field on Signup */}
-            {mode === 'signup' && (
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">
-                  Аты-жөніңіз
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                    <UserIcon size={18} />
+          {/* On Login: Divider and Email/Password Form */}
+          {mode === 'login' && (
+            <>
+              {/* Divider */}
+              <div className="relative my-5">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-slate-200" />
+                </div>
+                <div className="relative flex justify-center text-xs">
+                  <span className="bg-white px-3 text-slate-400 uppercase font-bold tracking-wider">
+                    немесе Email мен құпиясөз арқылы
+                  </span>
+                </div>
+              </div>
+
+              {/* Form */}
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Email / Phone Field */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">
+                    Email немесе телефон нөмірі
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                      <Mail size={18} />
+                    </div>
+                    <input
+                      type="text"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="example@gmail.com немесе +7 (777)..."
+                      className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-[#0057A8] focus:ring-4 focus:ring-[#0057A8]/10 transition-all"
+                    />
                   </div>
-                  <input
-                    type="text"
-                    required
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Мысалы: Азамат Серікұлы"
-                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-[#0057A8] focus:ring-4 focus:ring-[#0057A8]/10 transition-all"
-                  />
                 </div>
-              </div>
-            )}
 
-            {/* Email / Phone Field */}
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">
-                {mode === 'login' ? 'Email немесе телефон нөмірі' : 'Email (Поштаңыз)'}
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                  <Mail size={18} />
-                </div>
-                <input
-                  type={mode === 'login' ? 'text' : 'email'}
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder={mode === 'login' ? 'example@gmail.com немесе +7 (777)...' : 'example@gmail.com'}
-                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-[#0057A8] focus:ring-4 focus:ring-[#0057A8]/10 transition-all"
-                />
-              </div>
-            </div>
-
-            {/* Password Field */}
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">
-                Құпиясөз
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                  <Lock size={18} />
-                </div>
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full pl-10 pr-11 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-[#0057A8] focus:ring-4 focus:ring-[#0057A8]/10 transition-all"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 focus:outline-none"
-                  aria-label={showPassword ? 'Құпиясөзді жасыру' : 'Құпиясөзді көрсету'}
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-            </div>
-
-            {/* Promo Code Input on Signup */}
-            {mode === 'signup' && (
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">
-                  Промокод (міндетті емес)
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                    <Tag size={18} />
+                {/* Password Field */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">
+                    Құпиясөз
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                      <Lock size={18} />
+                    </div>
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full pl-10 pr-11 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-[#0057A8] focus:ring-4 focus:ring-[#0057A8]/10 transition-all"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer"
+                      aria-label={showPassword ? 'Құпиясөзді жасыру' : 'Құпиясөзді көрсету'}
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
                   </div>
-                  <input
-                    type="text"
-                    value={promoCode}
-                    onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
-                    placeholder="Промокод"
-                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-[#0057A8] focus:ring-4 focus:ring-[#0057A8]/10 transition-all uppercase tracking-wider font-mono"
-                  />
                 </div>
-              </div>
-            )}
 
-            {/* Forgot password link */}
-            {mode === 'login' && (
-              <div className="flex justify-end">
+                {/* Forgot password link */}
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={handleForgotPassword}
+                    className="text-xs font-semibold text-slate-500 hover:text-[#0057A8] transition-colors cursor-pointer"
+                  >
+                    Құпиясөзді ұмыттыңыз ба?
+                  </button>
+                </div>
+
+                {/* Error message */}
+                {errorMessage && (
+                  <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs font-medium text-rose-600 flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500 flex-shrink-0" />
+                    <span>{errorMessage}</span>
+                  </div>
+                )}
+
+                {/* Submit Button */}
                 <button
-                  type="button"
-                  onClick={handleForgotPassword}
-                  className="text-xs font-semibold text-slate-500 hover:text-[#0057A8] transition-colors cursor-pointer"
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full mt-2 py-3.5 px-6 rounded-xl bg-[#0057A8] hover:bg-[#00478a] active:bg-[#00386e] text-white text-sm font-bold tracking-wide transition-all shadow-md shadow-[#0057A8]/25 flex items-center justify-center gap-2 group disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
                 >
-                  Құпиясөзді ұмыттыңыз ба?
+                  {isLoading ? (
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      <span>Кіру</span>
+                      <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
+                    </>
+                  )}
                 </button>
-              </div>
-            )}
-
-            {/* Error message */}
-            {errorMessage && (
-              <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs font-medium text-rose-600 flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-rose-500 flex-shrink-0" />
-                <span>{errorMessage}</span>
-              </div>
-            )}
-
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full mt-2 py-3.5 px-6 rounded-xl bg-[#0057A8] hover:bg-[#00478a] active:bg-[#00386e] text-white text-sm font-bold tracking-wide transition-all shadow-md shadow-[#0057A8]/25 flex items-center justify-center gap-2 group disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
-            >
-              {isLoading ? (
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : (
-                <>
-                  <span>{mode === 'login' ? 'Кіру' : 'Тіркелу'}</span>
-                  <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
-                </>
-              )}
-            </button>
-          </form>
+              </form>
+            </>
+          )}
 
           {/* Bottom Switcher */}
           <div className="mt-6 text-center text-sm text-slate-500">

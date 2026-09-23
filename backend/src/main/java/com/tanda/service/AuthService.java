@@ -185,7 +185,14 @@ public class AuthService {
             user = userRepository.findByEmail(email)
                     .orElseThrow(() -> new BadCredentialsException("Пайдаланушы табылмады немесе құпия сөз қате"));
 
-            if (user.getPasswordHash() == null || !passwordEncoder.matches(dto.getPassword(), user.getPasswordHash())) {
+            if (user.getPasswordHash() == null) {
+                if ("GOOGLE".equalsIgnoreCase(user.getAuthProvider()) || user.getGoogleId() != null) {
+                    throw new BadCredentialsException("Бұл аккаунт Google арқылы тіркелген. Алдымен Google арқылы кіріп, баптаулардан құпиясөз орнатыңыз немесе «Google арқылы кіру» түймесін басыңыз.");
+                }
+                throw new BadCredentialsException("Пайдаланушы табылмады немесе құпия сөз қате");
+            }
+
+            if (!passwordEncoder.matches(dto.getPassword(), user.getPasswordHash())) {
                 throw new BadCredentialsException("Пайдаланушы табылмады немесе құпия сөз қате");
             }
 
@@ -344,6 +351,9 @@ public class AuthService {
         if (request.getEmail() != null && !request.getEmail().isBlank()) {
             String newEmail = request.getEmail().trim().toLowerCase();
             if (!newEmail.equalsIgnoreCase(user.getEmail())) {
+                if ("GOOGLE".equalsIgnoreCase(user.getAuthProvider()) || user.getGoogleId() != null) {
+                    throw new BadRequestException("Google арқылы тіркелген қолданушылар электронды поштасын өзгерте алмайды");
+                }
                 if (userRepository.existsByEmail(newEmail)) {
                     throw new BadRequestException("Бұл email жүйеде тіркеліп қойған");
                 }
@@ -385,17 +395,26 @@ public class AuthService {
     }
 
     @Transactional
-    public void changePassword(String email, com.tanda.dto.auth.ChangePasswordRequestDto request) {
-        User user = userRepository.findByEmail(email.toLowerCase())
+    public void changePassword(String userIdentifier, com.tanda.dto.auth.ChangePasswordRequestDto request) {
+        User user = userRepository.findById(userIdentifier)
+                .or(() -> userRepository.findByEmail(userIdentifier.trim().toLowerCase()))
                 .orElseThrow(() -> new ResourceNotFoundException("Пайдаланушы табылмады"));
 
-        if (user.getPasswordHash() == null || !passwordEncoder.matches(request.getCurrentPassword(), user.getPasswordHash())) {
-            throw new BadRequestException("Қазіргі құпиясөз қате");
+        // If user already has a password, verify current password.
+        // If user logged in via Google and has no password yet (passwordHash == null),
+        // allow them to set their initial password directly without current password.
+        if (user.getPasswordHash() != null) {
+            if (request.getCurrentPassword() == null || request.getCurrentPassword().isBlank()) {
+                throw new BadRequestException("Қазіргі құпиясөзді енгізіңіз");
+            }
+            if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPasswordHash())) {
+                throw new BadRequestException("Қазіргі құпиясөз қате");
+            }
         }
 
         user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
-        log.info("Password successfully changed for user: {}", email);
+        log.info("Password successfully set/updated for user id={}", user.getId());
     }
 
     private synchronized String generateUniqueIdNumber() {

@@ -334,4 +334,72 @@ class AuthServiceTest {
         assertEquals("reader@tanda.kz", result.getEmail());
         assertEquals("user-456", result.getId());
     }
+
+    @Test
+    @DisplayName("updateProfile() throws BadRequestException if Google account tries to change email")
+    void updateProfileThrowsIfGoogleAccountChangesEmail() {
+        User googleUser = User.builder()
+                .id("google-user-1")
+                .email("original@gmail.com")
+                .authProvider("GOOGLE")
+                .role("client")
+                .build();
+
+        when(userRepository.findById("google-user-1")).thenReturn(Optional.of(googleUser));
+
+        com.tanda.dto.auth.UpdateProfileRequestDto request = com.tanda.dto.auth.UpdateProfileRequestDto.builder()
+                .email("fake@mail.kz")
+                .build();
+
+        com.tanda.exception.BadRequestException ex = assertThrows(com.tanda.exception.BadRequestException.class, () ->
+                authService.updateProfile("google-user-1", request)
+        );
+        assertTrue(ex.getMessage().contains("Google арқылы тіркелген"));
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("changePassword() allows Google user without password to set initial password directly")
+    void changePasswordAllowsInitialPasswordSetup() {
+        User googleUser = User.builder()
+                .id("google-user-2")
+                .email("reader2@gmail.com")
+                .authProvider("GOOGLE")
+                .passwordHash(null) // no initial password
+                .build();
+
+        when(userRepository.findById("google-user-2")).thenReturn(Optional.of(googleUser));
+        when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        com.tanda.dto.auth.ChangePasswordRequestDto request = com.tanda.dto.auth.ChangePasswordRequestDto.builder()
+                .currentPassword(null)
+                .newPassword("myNewSecurePass123")
+                .build();
+
+        assertDoesNotThrow(() -> authService.changePassword("google-user-2", request));
+        verify(userRepository).save(googleUser);
+        assertNotNull(googleUser.getPasswordHash());
+        assertTrue(passwordEncoder.matches("myNewSecurePass123", googleUser.getPasswordHash()));
+    }
+
+    @Test
+    @DisplayName("changePassword() requires valid current password if password is already set")
+    void changePasswordRequiresValidCurrentPassword() {
+        User user = User.builder()
+                .id("user-with-pass")
+                .email("user@tanda.kz")
+                .passwordHash(passwordEncoder.encode("existingPass123"))
+                .build();
+
+        when(userRepository.findById("user-with-pass")).thenReturn(Optional.of(user));
+
+        com.tanda.dto.auth.ChangePasswordRequestDto badRequest = com.tanda.dto.auth.ChangePasswordRequestDto.builder()
+                .currentPassword("wrongPass")
+                .newPassword("brandNewPass123")
+                .build();
+
+        assertThrows(com.tanda.exception.BadRequestException.class, () ->
+                authService.changePassword("user-with-pass", badRequest)
+        );
+    }
 }

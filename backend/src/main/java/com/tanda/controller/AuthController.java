@@ -162,7 +162,7 @@ public class AuthController {
         if (principal == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        authService.changePassword(principal.getEmail(), request);
+        authService.changePassword(principal.getId(), request);
         return ResponseEntity.ok(Map.of("message", "Құпиясөз сәтті өзгертілді"));
     }
 
