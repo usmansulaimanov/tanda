@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
-import { useAuthStore } from '../../store/useAuthStore';
+import { useAuthStore, validatePasswordComplexity } from '../../store/useAuthStore';
 import { useToastStore } from '../../store/useToastStore';
 import { resizeAndCompressImage } from '../../utils/imageUtils';
 
@@ -415,9 +415,10 @@ export const SettingsPage: React.FC = () => {
       showToast('Қазіргі құпиясөзді енгізіңіз', 'error');
       return;
     }
-    if (!newPassword || newPassword.length < 6) {
-      setPasswordError('Жаңа құпиясөз кемінде 6 таңбадан тұруы керек');
-      showToast('Жаңа құпиясөз кемінде 6 таңбадан тұруы керек', 'error');
+    const passValidation = validatePasswordComplexity(newPassword);
+    if (!passValidation.valid) {
+      setPasswordError(passValidation.error || 'Құпиясөз талаптарға сай емес');
+      showToast(passValidation.error || 'Құпиясөз талаптарға сай емес', 'error');
       return;
     }
     if (newPassword !== confirmPassword) {
@@ -1341,7 +1342,7 @@ export const SettingsPage: React.FC = () => {
                       required
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
-                      placeholder="Кемінде 6 таңба"
+                      placeholder="Кемінде 8 таңба"
                       className="form-input"
                       style={{ paddingRight: '42px' }}
                     />
@@ -1376,7 +1377,36 @@ export const SettingsPage: React.FC = () => {
                       )}
                     </button>
                   </div>
-                  <span className="form-hint">Кемінде 6 таңбадан тұруы керек</span>
+                  <div style={{ marginTop: '6px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <span className="form-hint" style={{ color: '#0284C7', fontWeight: 600, fontSize: '12.5px', lineHeight: 1.4 }}>
+                      (Парольда міндетті түрде 1 бас әріп, 1 кіші әріп, 1 сан болуы шарт)
+                    </span>
+                    <span className="form-hint" style={{ fontSize: '12px', color: '#64748B' }}>
+                      Кемінде 8 таңба. Тек ағылшын әріптері, сандар және таңбалар рұқсат етілген.
+                    </span>
+
+                    {/* Live validation checklist */}
+                    {newPassword.length > 0 && (
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '6px', padding: '10px 12px', background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px', fontSize: '12px', marginTop: '4px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: newPassword.length >= 8 ? '#16A34A' : '#94A3B8', fontWeight: newPassword.length >= 8 ? 600 : 400 }}>
+                          <span>{newPassword.length >= 8 ? '✓' : '○'}</span>
+                          <span>Кемінде 8 таңба</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: /[A-Z]/.test(newPassword) ? '#16A34A' : '#94A3B8', fontWeight: /[A-Z]/.test(newPassword) ? 600 : 400 }}>
+                          <span>{/[A-Z]/.test(newPassword) ? '✓' : '○'}</span>
+                          <span>1 бас әріп (A-Z)</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: /[a-z]/.test(newPassword) ? '#16A34A' : '#94A3B8', fontWeight: /[a-z]/.test(newPassword) ? 600 : 400 }}>
+                          <span>{/[a-z]/.test(newPassword) ? '✓' : '○'}</span>
+                          <span>1 кіші әріп (a-z)</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: /[0-9]/.test(newPassword) ? '#16A34A' : '#94A3B8', fontWeight: /[0-9]/.test(newPassword) ? 600 : 400 }}>
+                          <span>{/[0-9]/.test(newPassword) ? '✓' : '○'}</span>
+                          <span>1 сан (0-9)</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Confirm New Password */}

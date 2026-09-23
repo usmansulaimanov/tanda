@@ -404,6 +404,8 @@ public class AuthService {
 
     @Transactional
     public void changePassword(String userIdentifier, com.tanda.dto.auth.ChangePasswordRequestDto request) {
+        validatePasswordComplexity(request.getNewPassword());
+
         User user = userRepository.findById(userIdentifier)
                 .or(() -> userRepository.findByEmail(userIdentifier.trim().toLowerCase()))
                 .orElseThrow(() -> new ResourceNotFoundException("Пайдаланушы табылмады"));
@@ -436,6 +438,24 @@ public class AuthService {
         user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
         log.info("Password successfully set/updated for user id={}", user.getId());
+    }
+
+    private void validatePasswordComplexity(String password) {
+        if (password == null || password.length() < 8) {
+            throw new BadRequestException("Құпиясөз кемінде 8 таңбадан тұруы керек");
+        }
+        if (!password.matches(".*[A-Z].*")) {
+            throw new BadRequestException("Құпиясөзде кемінде 1 бас латын әрпі (A-Z) болуы шарт");
+        }
+        if (!password.matches(".*[a-z].*")) {
+            throw new BadRequestException("Құпиясөзде кемінде 1 кіші латын әрпі (a-z) болуы шарт");
+        }
+        if (!password.matches(".*[0-9].*")) {
+            throw new BadRequestException("Құпиясөзде кемінде 1 сан (0-9) болуы шарт");
+        }
+        if (!password.matches("^[\\x21-\\x7E]+$")) {
+            throw new BadRequestException("Құпиясөз тек ағылшын әріптері, сандар және арнайы таңбалардан тұруы керек");
+        }
     }
 
     private synchronized String generateUniqueIdNumber() {

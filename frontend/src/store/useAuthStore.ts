@@ -89,6 +89,25 @@ function toAuthorUser(a: any): User {
   };
 }
 
+export const validatePasswordComplexity = (password: string): { valid: boolean; error?: string } => {
+  if (!password || password.length < 8) {
+    return { valid: false, error: 'Құпиясөз кемінде 8 таңбадан тұруы керек' };
+  }
+  if (!/[A-Z]/.test(password)) {
+    return { valid: false, error: 'Құпиясөзде кемінде 1 бас латын әрпі (A-Z) болуы шарт' };
+  }
+  if (!/[a-z]/.test(password)) {
+    return { valid: false, error: 'Құпиясөзде кемінде 1 кіші латын әрпі (a-z) болуы шарт' };
+  }
+  if (!/[0-9]/.test(password)) {
+    return { valid: false, error: 'Құпиясөзде кемінде 1 сан (0-9) болуы шарт' };
+  }
+  if (!/^[\x21-\x7E]+$/.test(password)) {
+    return { valid: false, error: 'Құпиясөз тек ағылшын әріптері, сандар және арнайы таңбалардан тұруы керек' };
+  }
+  return { valid: true };
+};
+
 export const useAuthStore = create<AuthState>()((set, get) => ({
       user: null,
       role: 'client',
@@ -857,8 +876,9 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
         if (!googleIdToken && currentUser.hasPassword !== false && !currentPassword?.trim()) {
           return { success: false, error: 'Қазіргі құпиясөзді енгізіңіз немесе Google арқылы растаңыз' };
         }
-        if (!newPassword || newPassword.length < 6) {
-          return { success: false, error: 'Жаңа құпиясөз кемінде 6 таңбадан тұруы керек' };
+        const validation = validatePasswordComplexity(newPassword);
+        if (!validation.valid) {
+          return { success: false, error: validation.error };
         }
 
         try {

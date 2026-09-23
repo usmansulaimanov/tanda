@@ -378,7 +378,7 @@ class AuthControllerIntegrationTest {
         // 1. Attempt with wrong current password -> 400 Bad Request
         com.tanda.dto.auth.ChangePasswordRequestDto wrongDto = com.tanda.dto.auth.ChangePasswordRequestDto.builder()
                 .currentPassword("wrongpass")
-                .newPassword("newpass123")
+                .newPassword("NewPass123")
                 .build();
 
         mockMvc.perform(put("/api/v1/auth/password")
@@ -387,10 +387,22 @@ class AuthControllerIntegrationTest {
                         .content(objectMapper.writeValueAsString(wrongDto)))
                 .andExpect(status().isBadRequest());
 
+        // 1b. Attempt with weak new password (no uppercase, no digits) -> 400 Bad Request
+        com.tanda.dto.auth.ChangePasswordRequestDto weakDto = com.tanda.dto.auth.ChangePasswordRequestDto.builder()
+                .currentPassword("oldpass123")
+                .newPassword("weakpassword")
+                .build();
+
+        mockMvc.perform(put("/api/v1/auth/password")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(weakDto)))
+                .andExpect(status().isBadRequest());
+
         // 2. Valid change -> 200 OK
         com.tanda.dto.auth.ChangePasswordRequestDto validDto = com.tanda.dto.auth.ChangePasswordRequestDto.builder()
                 .currentPassword("oldpass123")
-                .newPassword("newpass123")
+                .newPassword("NewPass123")
                 .build();
 
         mockMvc.perform(put("/api/v1/auth/password")
@@ -402,7 +414,7 @@ class AuthControllerIntegrationTest {
         // 3. Login with new password succeeds
         LoginRequestDto newLoginDto = LoginRequestDto.builder()
                 .email(email)
-                .password("newpass123")
+                .password("NewPass123")
                 .build();
 
         mockMvc.perform(post("/api/v1/auth/login")

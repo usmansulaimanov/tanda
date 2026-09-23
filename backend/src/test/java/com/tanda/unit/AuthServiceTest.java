@@ -404,6 +404,45 @@ class AuthServiceTest {
     }
 
     @Test
+    @DisplayName("changePassword() rejects passwords violating complexity rules (length, uppercase, lowercase, digit, non-ASCII)")
+    void changePasswordRejectsInvalidComplexity() {
+        com.tanda.dto.auth.ChangePasswordRequestDto shortPass = com.tanda.dto.auth.ChangePasswordRequestDto.builder()
+                .newPassword("Short1!")
+                .build();
+        assertThrows(com.tanda.exception.BadRequestException.class, () ->
+                authService.changePassword("any-id", shortPass)
+        );
+
+        com.tanda.dto.auth.ChangePasswordRequestDto noUpper = com.tanda.dto.auth.ChangePasswordRequestDto.builder()
+                .newPassword("nouppercase123")
+                .build();
+        assertThrows(com.tanda.exception.BadRequestException.class, () ->
+                authService.changePassword("any-id", noUpper)
+        );
+
+        com.tanda.dto.auth.ChangePasswordRequestDto noLower = com.tanda.dto.auth.ChangePasswordRequestDto.builder()
+                .newPassword("NOLOWERCASE123")
+                .build();
+        assertThrows(com.tanda.exception.BadRequestException.class, () ->
+                authService.changePassword("any-id", noLower)
+        );
+
+        com.tanda.dto.auth.ChangePasswordRequestDto noDigit = com.tanda.dto.auth.ChangePasswordRequestDto.builder()
+                .newPassword("NoDigitPassword!")
+                .build();
+        assertThrows(com.tanda.exception.BadRequestException.class, () ->
+                authService.changePassword("any-id", noDigit)
+        );
+
+        com.tanda.dto.auth.ChangePasswordRequestDto cyrillicPass = com.tanda.dto.auth.ChangePasswordRequestDto.builder()
+                .newPassword("Құпиясөз123A")
+                .build();
+        assertThrows(com.tanda.exception.BadRequestException.class, () ->
+                authService.changePassword("any-id", cyrillicPass)
+        );
+    }
+
+    @Test
     @DisplayName("changePassword() with valid Google ID token allows resetting password without current password")
     void changePasswordAllowsResetWithGoogleReAuth() {
         User user = User.builder()
