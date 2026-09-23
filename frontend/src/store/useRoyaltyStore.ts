@@ -43,8 +43,12 @@ export interface PayoutRecord {
   id: string;
   authorId: string;
   authorName: string;
+  authorEmail?: string;
+  authorPhone?: string;
   amount: number;
   date: string;
+  requestedAt?: string;
+  processedAt?: string;
   method: string;
   cardOrAccount?: string;
   status: 'completed' | 'processing' | 'requested' | 'rejected';
@@ -421,9 +425,13 @@ export const useRoyaltyStore = create<RoyaltyState>((set, get) => ({
         id: p.id,
         authorId: p.authorId,
         authorName: p.authorName,
+        authorEmail: p.authorEmail,
+        authorPhone: p.authorPhone,
         amount: Number(p.amount) || 0,
         date: p.requestedAt ? p.requestedAt.split('T')[0] : '',
-        method: p.method,
+        requestedAt: p.requestedAt,
+        processedAt: p.processedAt,
+        method: p.method || 'Kaspi Gold',
         cardOrAccount: p.cardOrAccount,
         status: (p.status || 'requested').toLowerCase() as any,
         rejectionReason: p.rejectionReason,

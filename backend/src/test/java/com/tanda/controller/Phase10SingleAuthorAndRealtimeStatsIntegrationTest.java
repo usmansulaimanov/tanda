@@ -4,6 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tanda.dto.admin.AuthorRequestDto;
 import com.tanda.dto.audio.AudioHeartbeatRequestDto;
 import com.tanda.dto.audio.StartAudioSessionRequestDto;
+import com.tanda.dto.royalty.PayoutRejectRequestDto;
+import com.tanda.dto.royalty.PayoutRequestCreateDto;
+import com.tanda.dto.royalty.RoyaltyCalculateRequestDto;
 import com.tanda.entity.Author;
 import com.tanda.entity.AuthorBook;
 import com.tanda.entity.Book;
@@ -14,6 +17,9 @@ import com.tanda.repository.AuthorBookRepository;
 import com.tanda.repository.AuthorDailyBookStatsRepository;
 import com.tanda.repository.AuthorRepository;
 import com.tanda.repository.BookRepository;
+import com.tanda.repository.PayoutRequestRepository;
+import com.tanda.repository.RoyaltyEarningRepository;
+import com.tanda.repository.RoyaltyPeriodRepository;
 import com.tanda.repository.UserDailyAudioLimitRepository;
 import com.tanda.repository.UserRepository;
 import com.tanda.security.JwtTokenProvider;
@@ -72,6 +78,15 @@ public class Phase10SingleAuthorAndRealtimeStatsIntegrationTest {
 
     @Autowired
     private UserDailyAudioLimitRepository userDailyAudioLimitRepository;
+
+    @Autowired
+    private RoyaltyPeriodRepository royaltyPeriodRepository;
+
+    @Autowired
+    private RoyaltyEarningRepository royaltyEarningRepository;
+
+    @Autowired
+    private PayoutRequestRepository payoutRequestRepository;
 
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
@@ -452,5 +467,201 @@ public class Phase10SingleAuthorAndRealtimeStatsIntegrationTest {
                 .andExpect(jsonPath("$.totalMinutes", is(2)))
                 .andExpect(jsonPath("$.authorBooks[0].id", is(phase4Book.getId())))
                 .andExpect(jsonPath("$.authorBooks[0].totalMinutes", is(2)));
+    }
+
+    @Test
+    @DisplayName("Phase 5: Royalty Calculation (50/50), Finalization, and Full Author Payout Lifecycle (Request -> Approve & Reject with refund)")
+    void testPhase5RoyaltyCalculationFinalizationAndPayoutLifecycle() throws Exception {
+        String currentMonth = String.format("%04d-%02d", LocalDate.now().getYear(), LocalDate.now().getMonthValue());
+
+        // 1. Create a dedicated author user and entity for Phase 5 test
+        String uniqueSuffix = UUID.randomUUID().toString().substring(0, 6);
+        User phase5AuthorUser = userRepository.save(User.builder()
+                .id("u-phase5-" + uniqueSuffix)
+                .email("phase5-" + uniqueSuffix + "@author.kz")
+                .name("Phase5 Author " + uniqueSuffix)
+                .role("author")
+                .isActive(true)
+                .createdAt(OffsetDateTime.now())
+                .build());
+        String authorToken = "Bearer " + jwtTokenProvider.generateToken(phase5AuthorUser);
+
+        Author phase5Author = authorRepository.save(Author.builder()
+                .id("auth-phase5-" + uniqueSuffix)
+                .userId(phase5AuthorUser.getId())
+                .displayName("Phase5 Author " + uniqueSuffix)
+                .balance(BigDecimal.ZERO)
+                .createdAt(OffsetDateTime.now())
+                .updatedAt(OffsetDateTime.now())
+                .build());
+
+        Book phase5Book = bookRepository.save(Book.builder()
+                .id("b-phase5-" + uniqueSuffix)
+                .title("Phase5 Book " + uniqueSuffix)
+                .author(phase5Author.getDisplayName())
+                .category("Роман")
+                .hasAudio(true)
+                .createdAt(OffsetDateTime.now())
+                .build());
+
+        authorBookRepository.save(AuthorBook.builder()
+                .authorId(phase5Author.getId())
+                .bookId(phase5Book.getId())
+                .royaltyShare(new BigDecimal("100.00"))
+                .isActive(true)
+                .assignedAt(OffsetDateTime.now())
+                .build());
+
+        // Simulate listening: 120 seconds (2 minutes)
+        StartAudioSessionRequestDto startDto = StartAudioSessionRequestDto.builder()
+                .bookId(phase5Book.getId())
+                .build();
+
+        MvcResult startRes = mockMvc.perform(post("/api/v1/audio/sessions")
+                        .header("Authorization", readerToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(startDto)))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        String sessionId = objectMapper.readTree(startRes.getResponse().getContentAsString()).get("sessionId").asText();
+
+        var session = audioSessionRepository.findById(sessionId).orElseThrow();
+        session.setLastHeartbeatAt(session.getLastHeartbeatAt().minusSeconds(40));
+        audioSessionRepository.save(session);
+        mockMvc.perform(post("/api/v1/audio/sessions/" + sessionId + "/heartbeat")
+                        .header("Authorization", readerToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(AudioHeartbeatRequestDto.builder()
+                                .positionSeconds(40).playbackRate(1.0).build())))
+                .andExpect(status().isOk());
+
+        session = audioSessionRepository.findById(sessionId).orElseThrow();
+        session.setLastHeartbeatAt(session.getLastHeartbeatAt().minusSeconds(40));
+        audioSessionRepository.save(session);
+        mockMvc.perform(post("/api/v1/audio/sessions/" + sessionId + "/heartbeat")
+                        .header("Authorization", readerToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(AudioHeartbeatRequestDto.builder()
+                                .positionSeconds(80).playbackRate(1.0).build())))
+                .andExpect(status().isOk());
+
+        session = audioSessionRepository.findById(sessionId).orElseThrow();
+        session.setLastHeartbeatAt(session.getLastHeartbeatAt().minusSeconds(40));
+        audioSessionRepository.save(session);
+        mockMvc.perform(post("/api/v1/audio/sessions/" + sessionId + "/heartbeat")
+                        .header("Authorization", readerToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(AudioHeartbeatRequestDto.builder()
+                                .positionSeconds(120).playbackRate(1.0).build())))
+                .andExpect(status().isOk());
+
+        // 2. Admin calculates royalty period: Total Revenue = 100,000 ₸, Expense = 20,000 ₸
+        // Net pool = 80,000 ₸, Company Share (50%) = 40,000 ₸, Author Pool (50%) = 40,000 ₸
+        RoyaltyCalculateRequestDto calcReq = RoyaltyCalculateRequestDto.builder()
+                .totalRevenue(new BigDecimal("100000.00"))
+                .adminExpense(new BigDecimal("20000.00"))
+                .adminNote("Phase 5 Test Calculation")
+                .build();
+
+        mockMvc.perform(post("/api/v1/admin/royalty/periods/" + currentMonth + "/calculate")
+                        .header("Authorization", adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(calcReq)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status", is("CALCULATED")))
+                .andExpect(jsonPath("$.netPool", is(80000.0)))
+                .andExpect(jsonPath("$.companyShare", is(40000.0)))
+                .andExpect(jsonPath("$.royaltyPool", is(40000.0)));
+
+        // 3. Admin finalizes royalty period
+        mockMvc.perform(post("/api/v1/admin/royalty/periods/" + currentMonth + "/finalize")
+                        .header("Authorization", adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status", is("FINALIZED")))
+                .andExpect(jsonPath("$.finalizedAt", notNullValue()));
+
+        // Author's balance should now be credited with their earned royalty
+        Author updatedAuthor = authorRepository.findById(phase5Author.getId()).orElseThrow();
+        assertTrue(updatedAuthor.getBalance().compareTo(BigDecimal.ZERO) > 0, "Author balance should be greater than 0");
+        BigDecimal creditedBalance = updatedAuthor.getBalance();
+
+        // 4. Author requests payout: half of the balance
+        BigDecimal payout1Amount = creditedBalance.divide(BigDecimal.valueOf(2), 2, java.math.RoundingMode.HALF_DOWN);
+        PayoutRequestCreateDto payout1Req = PayoutRequestCreateDto.builder()
+                .amount(payout1Amount)
+                .method("Kaspi Gold")
+                .cardOrAccount("4400 1234 5678 9012")
+                .build();
+
+        MvcResult p1Result = mockMvc.perform(post("/api/v1/authors/me/payouts")
+                        .header("Authorization", authorToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(payout1Req)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.status", is("REQUESTED")))
+                .andExpect(jsonPath("$.amount", is(payout1Amount.doubleValue())))
+                .andExpect(jsonPath("$.cardOrAccount", is("4400 1234 5678 9012")))
+                .andReturn();
+
+        String payout1Id = objectMapper.readTree(p1Result.getResponse().getContentAsString()).get("id").asText();
+
+        // Check balance after request: should be immediately reduced by payout1Amount
+        Author authorAfterReq1 = authorRepository.findById(phase5Author.getId()).orElseThrow();
+        assertEquals(creditedBalance.subtract(payout1Amount).setScale(2), authorAfterReq1.getBalance().setScale(2));
+
+        // 5. Admin lists payouts
+        mockMvc.perform(get("/api/v1/admin/payouts")
+                        .header("Authorization", adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(greaterThanOrEqualTo(1))));
+
+        // 6. Admin approves payout 1
+        mockMvc.perform(patch("/api/v1/admin/payouts/" + payout1Id + "/approve")
+                        .header("Authorization", adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status", is("COMPLETED")))
+                .andExpect(jsonPath("$.processedAt", notNullValue()));
+
+        // 7. Author requests payout 2 for remaining balance
+        BigDecimal payout2Amount = authorAfterReq1.getBalance();
+        PayoutRequestCreateDto payout2Req = PayoutRequestCreateDto.builder()
+                .amount(payout2Amount)
+                .method("Halyk Bank")
+                .cardOrAccount("KZ123456789012345678")
+                .build();
+
+        MvcResult p2Result = mockMvc.perform(post("/api/v1/authors/me/payouts")
+                        .header("Authorization", authorToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(payout2Req)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.status", is("REQUESTED")))
+                .andReturn();
+
+        String payout2Id = objectMapper.readTree(p2Result.getResponse().getContentAsString()).get("id").asText();
+
+        // Balance should now be 0.00
+        Author authorAfterReq2 = authorRepository.findById(phase5Author.getId()).orElseThrow();
+        assertEquals(0, authorAfterReq2.getBalance().compareTo(BigDecimal.ZERO));
+
+        // 8. Admin rejects payout 2: reason "Қате IBAN нөмірі"
+        PayoutRejectRequestDto rejectDto = PayoutRejectRequestDto.builder()
+                .reason("Қате IBAN нөмірі")
+                .build();
+
+        mockMvc.perform(patch("/api/v1/admin/payouts/" + payout2Id + "/reject")
+                        .header("Authorization", adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(rejectDto)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status", is("REJECTED")))
+                .andExpect(jsonPath("$.rejectionReason", is("Қате IBAN нөмірі")))
+                .andExpect(jsonPath("$.processedAt", notNullValue()));
+
+        // 9. Author balance MUST be refunded back!
+        Author authorAfterReject = authorRepository.findById(phase5Author.getId()).orElseThrow();
+        assertEquals(payout2Amount.setScale(2), authorAfterReject.getBalance().setScale(2),
+                "Rejected payout amount must be refunded back to author's balance");
     }
 }
