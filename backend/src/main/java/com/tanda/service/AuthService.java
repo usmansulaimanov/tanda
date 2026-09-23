@@ -412,18 +412,7 @@ public class AuthService {
 
         // If googleIdToken is provided, verify Google ownership for re-authentication
         if (request.getGoogleIdToken() != null && !request.getGoogleIdToken().isBlank()) {
-            com.google.api.client.googleapis.auth.oauth2.GoogleIdToken.Payload payload =
-                    googleTokenVerifier.verify(request.getGoogleIdToken());
-            String googleEmail = payload.getEmail();
-            String googleSub = payload.getSubject();
-
-            boolean emailMatches = googleEmail != null && googleEmail.equalsIgnoreCase(user.getEmail());
-            boolean subMatches = googleSub != null && (googleSub.equals(user.getGoogleId()) || googleSub.equals(user.getId()));
-
-            if (!emailMatches && !subMatches) {
-                log.warn("Google re-auth mismatch: googleEmail={}, userEmail={}", googleEmail, user.getEmail());
-                throw new BadRequestException("Бұл Google аккаунты профиліңізге сәйкес келмейді");
-            }
+            verifyGoogleOwnership(user, request.getGoogleIdToken());
             log.info("Password update authorized via Google re-authentication for user id={}", user.getId());
         } else if (user.getPasswordHash() != null) {
             // Normal password change requiring current password
@@ -438,6 +427,32 @@ public class AuthService {
         user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
         log.info("Password successfully set/updated for user id={}", user.getId());
+    }
+
+    public void verifyGoogleReauth(String userIdentifier, String googleIdToken) {
+        User user = userRepository.findById(userIdentifier)
+                .or(() -> userRepository.findByEmail(userIdentifier.trim().toLowerCase()))
+                .orElseThrow(() -> new ResourceNotFoundException("Пайдаланушы табылмады"));
+
+        verifyGoogleOwnership(user, googleIdToken);
+    }
+
+    private void verifyGoogleOwnership(User user, String googleIdToken) {
+        if (googleIdToken == null || googleIdToken.isBlank()) {
+            throw new BadRequestException("Google токені көрсетілмеген");
+        }
+        com.google.api.client.googleapis.auth.oauth2.GoogleIdToken.Payload payload =
+                googleTokenVerifier.verify(googleIdToken);
+        String googleEmail = payload.getEmail();
+        String googleSub = payload.getSubject();
+
+        boolean emailMatches = googleEmail != null && googleEmail.equalsIgnoreCase(user.getEmail());
+        boolean subMatches = googleSub != null && (googleSub.equals(user.getGoogleId()) || googleSub.equals(user.getId()));
+
+        if (!emailMatches && !subMatches) {
+            log.warn("Google re-auth mismatch: googleEmail={}, userEmail={}", googleEmail, user.getEmail());
+            throw new BadRequestException("Таңдалған Google аккаунты (" + (googleEmail != null ? googleEmail : "белгісіз") + ") бұл профильдің поштасымен (" + user.getEmail() + ") сәйкес келмейді");
+        }
     }
 
     private void validatePasswordComplexity(String password) {

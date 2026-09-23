@@ -166,6 +166,17 @@ public class AuthController {
         return ResponseEntity.ok(Map.of("message", "Құпиясөз сәтті өзгертілді"));
     }
 
+    @PostMapping("/verify-google-reauth")
+    public ResponseEntity<Map<String, Object>> verifyGoogleReauth(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @Valid @RequestBody com.tanda.dto.auth.VerifyGoogleReauthRequestDto request) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        authService.verifyGoogleReauth(principal.getId(), request.getGoogleIdToken());
+        return ResponseEntity.ok(Map.of("success", true, "message", "Google аккаунты сәтті расталды"));
+    }
+
     private ResponseCookie createRefreshTokenCookie(String token, long maxAge) {
         return ResponseCookie.from(REFRESH_COOKIE_NAME, token)
                 .httpOnly(true)

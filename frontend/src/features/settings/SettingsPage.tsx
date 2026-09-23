@@ -76,7 +76,7 @@ const formatDisplayDate = (raw?: string): string => {
 export const SettingsPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { user, isAuthenticated, updateProfile, updateAvatar, changePassword, checkUsernameAvailable, fetchReservedUsernames, getReservedUsernames, addReservedUsername, addReservedUsernames, removeReservedUsername } = useAuthStore();
+  const { user, isAuthenticated, updateProfile, updateAvatar, changePassword, verifyGoogleReauth, checkUsernameAvailable, fetchReservedUsernames, getReservedUsernames, addReservedUsername, addReservedUsernames, removeReservedUsername } = useAuthStore();
   const { showToast } = useToastStore();
 
   const isAdmin = user?.role === 'admin' || Boolean(user?.isSuperAdmin);
@@ -114,6 +114,7 @@ export const SettingsPage: React.FC = () => {
   const [isSavingPassword, setIsSavingPassword] = useState(false);
   const [googleReAuthToken, setGoogleReAuthToken] = useState<string | null>(null);
   const [isGoogleVerified, setIsGoogleVerified] = useState(false);
+  const [isVerifyingGoogle, setIsVerifyingGoogle] = useState(false);
 
   // Usernames / Reserved usernames state
   const [reservedList, setReservedList] = useState<string[]>([]);
@@ -397,12 +398,59 @@ export const SettingsPage: React.FC = () => {
     }
   };
 
-  const handleGoogleReAuthSuccess = (credentialResponse: CredentialResponse) => {
-    if (credentialResponse.credential) {
-      setGoogleReAuthToken(credentialResponse.credential);
-      setIsGoogleVerified(true);
-      setPasswordError('');
-      showToast('Google арқылы сәтті расталды! Жаңа құпиясөзді енгізіп сақтаңыз.', 'success');
+  const handleGoogleReAuthSuccess = async (credentialResponse: CredentialResponse) => {
+    if (!credentialResponse.credential) {
+      setPasswordError('Google токені алынбады');
+      showToast('Google токені алынбады', 'error');
+      return;
+    }
+
+    const token = credentialResponse.credential;
+
+    // 1-Level Client Guard: Decode JWT payload and compare email
+    try {
+      const parts = token.split('.');
+      if (parts.length === 3) {
+        const payload = JSON.parse(atob(parts[1]));
+        const tokenEmail = payload.email?.trim().toLowerCase();
+        const currentEmail = user?.email?.trim().toLowerCase();
+
+        if (tokenEmail && currentEmail && tokenEmail !== currentEmail) {
+          const errMsg = `Таңдалған Google аккаунты (${tokenEmail}) осы профильдің поштасымен (${currentEmail}) сәйкес келмейді! Тек осы аккаунтқа тіркелген Google поштасын таңдаңыз.`;
+          setPasswordError(errMsg);
+          showToast(`Қате: ${tokenEmail} осы профильдің поштасы емес!`, 'error');
+          setGoogleReAuthToken(null);
+          setIsGoogleVerified(false);
+          return;
+        }
+      }
+    } catch (e) {
+      console.error('Failed to parse Google JWT payload:', e);
+    }
+
+    // 2-Level Backend Verification: Cryptographically verify token and ownership on server
+    setIsVerifyingGoogle(true);
+    setPasswordError('');
+    try {
+      const res = await verifyGoogleReauth(token);
+      if (res.success) {
+        setGoogleReAuthToken(token);
+        setIsGoogleVerified(true);
+        setPasswordError('');
+        showToast('Google арқылы сәтті расталды! Жаңа құпиясөзді енгізіп сақтаңыз.', 'success');
+      } else {
+        setGoogleReAuthToken(null);
+        setIsGoogleVerified(false);
+        setPasswordError(res.error || 'Google аккаунты расталмады');
+        showToast(res.error || 'Google аккаунты расталмады', 'error');
+      }
+    } catch {
+      setGoogleReAuthToken(null);
+      setIsGoogleVerified(false);
+      setPasswordError('Google арқылы растау кезінде қате орын алды');
+      showToast('Google арқылы растау қатесі', 'error');
+    } finally {
+      setIsVerifyingGoogle(false);
     }
   };
 
@@ -1294,7 +1342,7 @@ export const SettingsPage: React.FC = () => {
                       <div style={{ fontSize: '12.5px', color: '#475569', marginBottom: '8px', fontWeight: 500, lineHeight: 1.4 }}>
                         Құпиясөзді ұмыттыңыз ба? Google арқылы растап, ескі құпиясөзсіз жаңасын орната аласыз:
                       </div>
-                      <div style={{ display: 'inline-block' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <GoogleLogin
                           onSuccess={handleGoogleReAuthSuccess}
                           onError={() => {
@@ -1305,6 +1353,11 @@ export const SettingsPage: React.FC = () => {
                           shape="pill"
                           size="medium"
                         />
+                        {isVerifyingGoogle && (
+                          <span style={{ fontSize: '13px', color: '#0284C7', fontWeight: 600 }}>
+                            Тексерілуде...
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>

@@ -504,6 +504,49 @@ class AuthServiceTest {
     }
 
     @Test
+    @DisplayName("verifyGoogleReauth() succeeds when Google token matches user's email")
+    void verifyGoogleReauthSucceedsWhenEmailMatches() {
+        User user = User.builder()
+                .id("test-reauth-user")
+                .email("owner@gmail.com")
+                .build();
+
+        when(userRepository.findById("test-reauth-user")).thenReturn(Optional.of(user));
+
+        com.google.api.client.googleapis.auth.oauth2.GoogleIdToken.Payload payload =
+                new com.google.api.client.googleapis.auth.oauth2.GoogleIdToken.Payload();
+        payload.setEmail("owner@gmail.com");
+        payload.setSubject("google-sub-555");
+
+        when(googleTokenVerifier.verify("token-555")).thenReturn(payload);
+
+        assertDoesNotThrow(() -> authService.verifyGoogleReauth("test-reauth-user", "token-555"));
+    }
+
+    @Test
+    @DisplayName("verifyGoogleReauth() throws BadRequestException when Google token email does not match user's email")
+    void verifyGoogleReauthThrowsWhenMismatched() {
+        User user = User.builder()
+                .id("test-reauth-user")
+                .email("owner@gmail.com")
+                .build();
+
+        when(userRepository.findById("test-reauth-user")).thenReturn(Optional.of(user));
+
+        com.google.api.client.googleapis.auth.oauth2.GoogleIdToken.Payload payload =
+                new com.google.api.client.googleapis.auth.oauth2.GoogleIdToken.Payload();
+        payload.setEmail("intruder@gmail.com");
+        payload.setSubject("google-sub-999");
+
+        when(googleTokenVerifier.verify("token-intruder")).thenReturn(payload);
+
+        com.tanda.exception.BadRequestException ex = assertThrows(com.tanda.exception.BadRequestException.class, () ->
+                authService.verifyGoogleReauth("test-reauth-user", "token-intruder")
+        );
+        assertTrue(ex.getMessage().contains("сәйкес келмейді"));
+    }
+
+    @Test
     @DisplayName("login() with old admin@tanda.kz rejects and does not overwrite admin's customized email")
     void loginWithOldAdminEmailRejectsAfterEmailUpdate() {
         User updatedAdmin = User.builder()

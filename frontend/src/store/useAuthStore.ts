@@ -27,6 +27,7 @@ interface AuthState {
   updateProfile: (data: { name: string; email: string; phone?: string; username?: string; birthDate?: string; gender?: 'male' | 'female' | 'other'; avatarUrl?: string }) => Promise<{ success: boolean; error?: string }>;
   updateAvatar: (avatarUrl: string | null) => Promise<{ success: boolean; error?: string }>;
   changePassword: (currentPassword: string, newPassword: string, googleIdToken?: string) => Promise<{ success: boolean; error?: string }>;
+  verifyGoogleReauth: (googleIdToken: string) => Promise<{ success: boolean; error?: string }>;
   updateUserByAdmin: (userId: string, data: { name: string; firstName?: string; lastName?: string; email: string; phone?: string; password?: string; username?: string; idNumber?: string; birthDate?: string; role?: 'admin' | 'client' | 'author'; isActive?: boolean; personalMessage?: { text: string; days?: number; isActive?: boolean } | null }) => Promise<{ success: boolean; user?: User; error?: string }>;
   toggleBlockUser: (userId: string) => Promise<{ success: boolean; isBlocked?: boolean; error?: string }>;
   createReaderByAdmin: (data: { name: string; firstName?: string; lastName?: string; email: string; phone?: string; password?: string; username?: string; idNumber?: string; birthDate?: string; role?: 'admin' | 'client' | 'author'; personalMessage?: { text: string; days?: number; isActive?: boolean } }) => Promise<{ success: boolean; user?: User; error?: string }>;
@@ -895,6 +896,18 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
           return {
             success: false,
             error: err.response?.data?.message || err.message || 'Құпиясөзді өзгерту сәтсіз аяқталды',
+          };
+        }
+      },
+
+      verifyGoogleReauth: async (googleIdToken: string) => {
+        try {
+          await api.post('/api/v1/auth/verify-google-reauth', { googleIdToken });
+          return { success: true };
+        } catch (err: any) {
+          return {
+            success: false,
+            error: err.response?.data?.message || err.message || 'Google аккаунтын растау сәтсіз аяқталды',
           };
         }
       },
