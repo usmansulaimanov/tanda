@@ -71,8 +71,7 @@ public class AuthService {
         boolean isNewGoogleUser = (user == null);
         if (user == null) {
             // Auto-register new Google user with strictly 'client' role
-            long clientCount = userRepository.countByRole("client");
-            String idNumber = formatIdNumber(1001 + clientCount);
+            String idNumber = generateUniqueIdNumber();
             user = User.builder()
                     .id("user-" + UUID.randomUUID().toString().substring(0, 8))
                     .idNumber(idNumber)
@@ -84,6 +83,7 @@ public class AuthService {
                     .avatarUrl(picture)
                     .role("client")
                     .isActive(true)
+                    .createdAt(java.time.OffsetDateTime.now())
                     .build();
             log.info("Google арқылы жаңа пайдаланушы тіркелді: {}", email);
         } else {
@@ -225,8 +225,7 @@ public class AuthService {
             emailVerificationService.verifyCode(email, dto.getCode());
         }
 
-        long clientCount = userRepository.countByRole("client");
-        String idNumber = formatIdNumber(1001 + clientCount);
+        String idNumber = generateUniqueIdNumber();
 
         User user = User.builder()
                 .id("user-" + UUID.randomUUID().toString().substring(0, 8))
@@ -237,6 +236,7 @@ public class AuthService {
                 .authProvider("LOCAL")
                 .role("client")
                 .isActive(true)
+                .createdAt(java.time.OffsetDateTime.now())
                 .build();
 
         user = userRepository.save(user);
@@ -381,6 +381,17 @@ public class AuthService {
         user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
         log.info("Password successfully changed for user: {}", email);
+    }
+
+    private synchronized String generateUniqueIdNumber() {
+        long count = userRepository.countByRole("client");
+        long candidate = 1001 + count;
+        String idNum = formatIdNumber(candidate);
+        while (userRepository.existsByIdNumber(idNum)) {
+            candidate++;
+            idNum = formatIdNumber(candidate);
+        }
+        return idNum;
     }
 
     private String formatIdNumber(long num) {

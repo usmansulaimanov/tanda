@@ -42,10 +42,26 @@ public class UserService {
         String cleanSearch = (search != null && !search.isBlank()) ? search.trim() : null;
 
         List<User> users;
-        if (cleanRole != null || cleanSearch != null) {
-            users = userRepository.searchUsers(cleanRole, cleanSearch);
+        boolean isClientRole = cleanRole != null && (cleanRole.equals("client") || cleanRole.equals("reader") || cleanRole.equals("user"));
+
+        if (isClientRole) {
+            if (cleanSearch != null) {
+                users = userRepository.searchClients(cleanSearch);
+            } else {
+                users = userRepository.findAllClients();
+            }
+        } else if (cleanRole != null) {
+            if (cleanSearch != null) {
+                users = userRepository.searchByRole(cleanRole, cleanSearch);
+            } else {
+                users = userRepository.findByRoleIgnoreCase(cleanRole);
+            }
         } else {
-            users = userRepository.findAll();
+            if (cleanSearch != null) {
+                users = userRepository.searchAllUsers(cleanSearch);
+            } else {
+                users = userRepository.findAll();
+            }
         }
 
         // Single batch query instead of N+1 per user
@@ -117,8 +133,7 @@ public class UserService {
                 throw new BadRequestException("Бұл ID нөмірі бос емес");
             }
         } else {
-            long clientCount = userRepository.countByRole("client");
-            idNumber = formatIdNumber(1001 + clientCount);
+            idNumber = generateUniqueIdNumber();
         }
 
         String rawRole = dto.getRole() != null ? dto.getRole().trim().toLowerCase() : "client";
@@ -373,6 +388,17 @@ public class UserService {
                 .isPremium(isPremium)
                 .premiumExpiresAt(premiumExpiresAt)
                 .build();
+    }
+
+    private synchronized String generateUniqueIdNumber() {
+        long count = userRepository.count();
+        long candidate = 1001 + count;
+        String idNum = formatIdNumber(candidate);
+        while (userRepository.existsByIdNumber(idNum)) {
+            candidate++;
+            idNum = formatIdNumber(candidate);
+        }
+        return idNum;
     }
 
     private String formatIdNumber(long num) {
