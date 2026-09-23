@@ -7,7 +7,7 @@ import { hasAdminPermission } from '../../utils/permissions';
 
 export const AdminPromoCodesPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, role } = useAuthStore();
+  const { user, role, isAuthInitialized } = useAuthStore();
   const {
     batches,
     promocodes,
@@ -22,6 +22,7 @@ export const AdminPromoCodesPage: React.FC = () => {
   const canManagePromos = hasAdminPermission(user, 'promocodes_manage');
 
   useEffect(() => {
+    if (!isAuthInitialized) return;
     if (role !== 'admin' || !canManagePromos) {
       showToast('Промокодтар бөліміне кіруге рұқсатыңыз жоқ', 'error');
       navigate('/admin', { replace: true });
@@ -29,7 +30,7 @@ export const AdminPromoCodesPage: React.FC = () => {
       fetchBatches();
       fetchPromoCodes();
     }
-  }, [role, canManagePromos, navigate, showToast, fetchBatches, fetchPromoCodes]);
+  }, [isAuthInitialized, role, canManagePromos, navigate, showToast, fetchBatches, fetchPromoCodes]);
 
   // Generator form state
   const [count, setCount] = useState<number>(10);

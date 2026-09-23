@@ -8,7 +8,7 @@ import { hasAdminPermission } from '../../utils/permissions';
 
 export const AdminQuotesPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, role } = useAuthStore();
+  const { user, role, isAuthInitialized } = useAuthStore();
   const { books } = useBookStore();
   const {
     quotes,
@@ -32,11 +32,12 @@ export const AdminQuotesPage: React.FC = () => {
   }, [fetchQuotes]);
 
   useEffect(() => {
+    if (!isAuthInitialized) return;
     if (role !== 'admin' || !canManageQuotes) {
       showToast('Цитаталар бөліміне кіруге рұқсатыңыз жоқ', 'error');
       navigate('/admin', { replace: true });
     }
-  }, [role, canManageQuotes, navigate, showToast]);
+  }, [isAuthInitialized, role, canManageQuotes, navigate, showToast]);
 
   // Form states
   const [newText, setNewText] = useState('');

@@ -30,7 +30,7 @@ export const AdminStatsPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = searchParams.get('tab') as StatTab | null;
 
-  const { user, role } = useAuthStore();
+  const { user, role, isAuthInitialized } = useAuthStore();
   const { books, fetchBooks } = useBookStore();
   const { batches, promocodes, fetchBatches, fetchPromoCodes } = usePromoStore();
   const { showToast } = useToastStore();
@@ -95,11 +95,12 @@ export const AdminStatsPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    if (!isAuthInitialized) return;
     if (role !== 'admin' || !canViewStats) {
       showToast('Статистика бөліміне кіруге рұқсатыңыз жоқ', 'error');
       navigate('/admin', { replace: true });
     }
-  }, [role, canViewStats, navigate, showToast]);
+  }, [isAuthInitialized, role, canViewStats, navigate, showToast]);
 
   useEffect(() => {
     fetchBooks({ includeArchived: true });

@@ -6,6 +6,7 @@ interface AuthState {
   user: User | null;
   role: 'admin' | 'client' | 'author';
   isAuthenticated: boolean;
+  isAuthInitialized: boolean;
   isLoading: boolean;
   authModalOpen: boolean;
   authModalMode: 'login' | 'signup';
@@ -92,6 +93,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       user: null,
       role: 'client',
       isAuthenticated: false,
+      isAuthInitialized: false,
       isLoading: false,
       authModalOpen: false,
       authModalMode: 'login',
@@ -1006,6 +1008,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
           if (token?.startsWith('mock-')) {
             localStorage.removeItem('tanda_token');
           }
+          set({ isAuthInitialized: true });
           return;
         }
 
@@ -1015,6 +1018,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
             user: data,
             role: data.role as 'admin' | 'client' | 'author',
             isAuthenticated: true,
+            isAuthInitialized: true,
           });
 
           if (data.role === 'admin') {
@@ -1026,7 +1030,9 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
         } catch (err: any) {
           if (err?.response?.status === 401) {
             localStorage.removeItem('tanda_token');
-            set({ user: null, role: 'client', isAuthenticated: false });
+            set({ user: null, role: 'client', isAuthenticated: false, isAuthInitialized: true });
+          } else {
+            set({ isAuthInitialized: true });
           }
         }
       },

@@ -49,6 +49,7 @@ export const AdminManagersPage: React.FC = () => {
   const {
     user: currentUser,
     role,
+    isAuthInitialized,
     fetchManagers,
     fetchAuthors,
     getAllManagers,
@@ -172,11 +173,12 @@ export const AdminManagersPage: React.FC = () => {
 
   // Redirect if not super admin or lacks managers_manage permission
   useEffect(() => {
+    if (!isAuthInitialized) return;
     if (role !== 'admin' || !hasAdminPermission(currentUser, 'managers_manage')) {
       showToast('Бұл бетке кіру үшін Бас әкімші рұқсаты қажет', 'error');
       navigate('/admin', { replace: true });
     }
-  }, [role, currentUser, navigate, showToast]);
+  }, [isAuthInitialized, role, currentUser, navigate, showToast]);
 
   const superAdmin = useMemo(() => {
     return managers.find((m) => m.isSuperAdmin || m.id === '001007' || m.email === 'admin@tanda.kz') || managers[0];

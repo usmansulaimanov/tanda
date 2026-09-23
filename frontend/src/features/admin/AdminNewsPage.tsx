@@ -9,7 +9,7 @@ import { Search, Plus, Eye, Edit, Trash2 } from 'lucide-react';
 
 export const AdminNewsPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, role } = useAuthStore();
+  const { user, role, isAuthInitialized } = useAuthStore();
   const { articles, deleteArticle, fetchArticles } = useNewsStore();
   const { showToast } = useToastStore();
 
@@ -18,11 +18,12 @@ export const AdminNewsPage: React.FC = () => {
   }, [fetchArticles]);
 
   useEffect(() => {
+    if (!isAuthInitialized) return;
     if (role !== 'admin' || !hasAdminPermission(user, 'news_manage')) {
       showToast('Бұл бөлімге кіруге рұқсатыңыз жоқ', 'error');
       navigate('/admin', { replace: true });
     }
-  }, [role, user, navigate, showToast]);
+  }, [isAuthInitialized, role, user, navigate, showToast]);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'published' | 'scheduled' | 'draft'>('all');

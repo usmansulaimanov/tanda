@@ -9,7 +9,7 @@ import { User } from '../../types';
 
 export const AdminMessagesPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, role, getAllClients, fetchClients } = useAuthStore();
+  const { user, role, isAuthInitialized, getAllClients, fetchClients } = useAuthStore();
   const { messages, sendMessage, deleteMessage, fetchAdminMessages } = useMessageStore();
   const { showToast } = useToastStore();
 
@@ -21,11 +21,12 @@ export const AdminMessagesPage: React.FC = () => {
   }, [fetchAdminMessages, fetchClients]);
 
   useEffect(() => {
+    if (!isAuthInitialized) return;
     if (role !== 'admin' || !canManage) {
       showToast('Бұл бөлімге кіруге рұқсатыңыз жоқ', 'error');
       navigate('/admin', { replace: true });
     }
-  }, [role, canManage, navigate, showToast]);
+  }, [isAuthInitialized, role, canManage, navigate, showToast]);
 
   const allClients = useMemo(() => {
     return getAllClients().filter((c) => c.role !== 'admin');

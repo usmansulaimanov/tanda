@@ -8,7 +8,7 @@ import { hasAdminPermission } from '../../utils/permissions';
 
 export const ReadersPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, role, toggleBlockUser, fetchClients, deleteUser } = useAuthStore();
+  const { user, role, isAuthInitialized, toggleBlockUser, fetchClients, deleteUser } = useAuthStore();
   const { showToast } = useToastStore();
 
   const canViewReaders = hasAdminPermission(user, 'readers_view');
@@ -16,11 +16,12 @@ export const ReadersPage: React.FC = () => {
   const canDeleteReaders = hasAdminPermission(user, 'readers_delete');
 
   useEffect(() => {
+    if (!isAuthInitialized) return;
     if (role !== 'admin' || !canViewReaders) {
       showToast('Оқырмандар бөліміне кіруге рұқсатыңыз жоқ', 'error');
       navigate('/admin', { replace: true });
     }
-  }, [role, canViewReaders, navigate, showToast]);
+  }, [isAuthInitialized, role, canViewReaders, navigate, showToast]);
 
   const [readers, setReaders] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(false);

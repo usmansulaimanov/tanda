@@ -17,13 +17,6 @@ export const ProfilePage: React.FC = () => {
   const { playBook } = useAudioPlayerStore();
   const { showToast } = useToastStore();
 
-  // If user is admin, redirect to admin dashboard
-  useEffect(() => {
-    if (isAuthenticated && user?.role === 'admin') {
-      navigate('/admin', { replace: true });
-    }
-  }, [isAuthenticated, user, navigate]);
-
   // Fetch books & saved list
   useEffect(() => {
     fetchBooks();

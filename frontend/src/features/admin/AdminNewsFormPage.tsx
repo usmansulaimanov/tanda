@@ -646,14 +646,15 @@ export const AdminNewsFormPage: React.FC = () => {
   const navigate = useNavigate();
   const { articles, addArticle, updateArticle, getArticleById } = useNewsStore();
   const { showToast } = useToastStore();
-  const { user, role } = useAuthStore();
+  const { user, role, isAuthInitialized } = useAuthStore();
 
   useEffect(() => {
+    if (!isAuthInitialized) return;
     if (role !== 'admin' || !hasAdminPermission(user, 'news_manage')) {
       showToast('Бұл бөлімге кіруге рұқсатыңыз жоқ', 'error');
       navigate('/admin', { replace: true });
     }
-  }, [role, user, navigate, showToast]);
+  }, [isAuthInitialized, role, user, navigate, showToast]);
 
   const isEditing = Boolean(id);
   const existingArticle = id ? getArticleById(id) || articles.find((a) => a.id === id) : null;

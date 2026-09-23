@@ -44,6 +44,8 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
         }
       } catch {
         // Silent refresh failure is normal for unauthenticated visitors
+      } finally {
+        useAuthStore.setState({ isAuthInitialized: true });
       }
     };
 
