@@ -146,6 +146,7 @@ export const AdminManagersPage: React.FC = () => {
   const [isUploadingAuthorAvatar, setIsUploadingAuthorAvatar] = useState(false);
   const [authorAssignedBookIds, setAuthorAssignedBookIds] = useState<string[]>([]);
   const [bookSearchInModal, setBookSearchInModal] = useState('');
+  const [bookFilterTabInModal, setBookFilterTabInModal] = useState<'all' | 'available' | 'assigned_here' | 'locked'>('all');
   const [authorIsActive, setAuthorIsActive] = useState(true);
   const [isAuthorSubmitting, setIsAuthorSubmitting] = useState(false);
 
@@ -422,6 +423,7 @@ export const AdminManagersPage: React.FC = () => {
     setAuthorAvatarUrl(DEFAULT_MANAGER_AVATAR);
     setAuthorAssignedBookIds([]);
     setBookSearchInModal('');
+    setBookFilterTabInModal('all');
     setAuthorIsActive(true);
     setIsAuthorModalOpen(true);
   };
@@ -439,6 +441,7 @@ export const AdminManagersPage: React.FC = () => {
     setAuthorAvatarUrl(aut.avatarUrl || DEFAULT_MANAGER_AVATAR);
     setAuthorAssignedBookIds(aut.assignedBookIds || []);
     setBookSearchInModal('');
+    setBookFilterTabInModal('all');
     setAuthorIsActive(aut.isActive !== false);
     setIsAuthorModalOpen(true);
   };
@@ -1278,6 +1281,51 @@ export const AdminManagersPage: React.FC = () => {
                               Оқылған саны: {author.totalReads}
                             </span>
                           </div>
+
+                          {author.assignedBookIds && author.assignedBookIds.length > 0 && (
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px', alignItems: 'center' }}>
+                              <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 700 }}>Бекітілген кітаптар:</span>
+                              {author.assignedBookIds.slice(0, 4).map((bId) => {
+                                const bk = books.find((b) => b.id === bId);
+                                return (
+                                  <span
+                                    key={bId}
+                                    style={{
+                                      fontSize: '11px',
+                                      fontWeight: 600,
+                                      padding: '2px 8px',
+                                      borderRadius: '6px',
+                                      background: '#F1F5F9',
+                                      color: '#334155',
+                                      border: '1px solid #E2E8F0',
+                                      maxWidth: '200px',
+                                      overflow: 'hidden',
+                                      textOverflow: 'ellipsis',
+                                      whiteSpace: 'nowrap',
+                                    }}
+                                    title={bk?.title || bId}
+                                  >
+                                    📖 {bk?.title || bId}
+                                  </span>
+                                );
+                              })}
+                              {author.assignedBookIds.length > 4 && (
+                                <span
+                                  style={{
+                                    fontSize: '11px',
+                                    fontWeight: 700,
+                                    padding: '2px 7px',
+                                    borderRadius: '6px',
+                                    background: '#EFF6FF',
+                                    color: 'var(--blue)',
+                                    border: '1px solid #BFDBFE',
+                                  }}
+                                >
+                                  +{author.assignedBookIds.length - 4} тағы
+                                </span>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </div>
 
@@ -2329,10 +2377,25 @@ export const AdminManagersPage: React.FC = () => {
                     <div style={{ display: 'flex', gap: '10px' }}>
                       <button
                         type="button"
-                        onClick={() => setAuthorAssignedBookIds(books.map((b) => b.id))}
+                        onClick={() => {
+                          const availableIds = books
+                            .filter((b) => {
+                              const isLocked = authors.some(
+                                (a) =>
+                                  a.id !== editingAuthor?.id &&
+                                  (a as any).authorId !== editingAuthor?.id &&
+                                  (a as any).userId !== editingAuthor?.id &&
+                                  a.assignedBookIds?.includes(b.id)
+                              );
+                              return !isLocked;
+                            })
+                            .map((b) => b.id);
+                          setAuthorAssignedBookIds(availableIds);
+                        }}
                         style={{ fontSize: '11.5px', color: 'var(--blue)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700 }}
+                        title="Басқа авторларға бекітілмеген барлық кітаптарды таңдау"
                       >
-                        Барлығын таңдау
+                        Барлығын таңдау (бос кітаптар)
                       </button>
                       <button
                         type="button"
@@ -2355,15 +2418,86 @@ export const AdminManagersPage: React.FC = () => {
                       borderRadius: '8px',
                       border: '1.5px solid #CBD5E1',
                       fontSize: '12.5px',
-                      marginBottom: '10px',
+                      marginBottom: '8px',
                       outline: 'none',
                       boxSizing: 'border-box',
                     }}
                   />
 
+                  {/* Filter Pills with Counts */}
+                  {(() => {
+                    let availableCount = 0;
+                    let lockedCount = 0;
+                    books.forEach((b) => {
+                      const isLocked = authors.some(
+                        (a) =>
+                          a.id !== editingAuthor?.id &&
+                          (a as any).authorId !== editingAuthor?.id &&
+                          (a as any).userId !== editingAuthor?.id &&
+                          a.assignedBookIds?.includes(b.id)
+                      );
+                      if (isLocked) {
+                        lockedCount++;
+                      } else {
+                        availableCount++;
+                      }
+                    });
+
+                    const tabs = [
+                      { id: 'all', label: 'Барлығы', count: books.length },
+                      { id: 'available', label: 'Бос кітаптар', count: availableCount },
+                      { id: 'assigned_here', label: 'Таңдалды', count: authorAssignedBookIds.length },
+                      { id: 'locked', label: 'Басқалардікі', count: lockedCount },
+                    ];
+
+                    return (
+                      <div style={{ display: 'flex', gap: '6px', marginBottom: '10px', overflowX: 'auto', paddingBottom: '2px' }}>
+                        {tabs.map((tab) => {
+                          const isActive = bookFilterTabInModal === tab.id;
+                          return (
+                            <button
+                              key={tab.id}
+                              type="button"
+                              onClick={() => setBookFilterTabInModal(tab.id as any)}
+                              style={{
+                                padding: '4px 10px',
+                                borderRadius: '20px',
+                                fontSize: '11.5px',
+                                fontWeight: isActive ? 700 : 500,
+                                border: isActive ? '1.5px solid var(--blue)' : '1px solid #CBD5E1',
+                                background: isActive ? 'rgba(0, 84, 148, 0.08)' : '#FFFFFF',
+                                color: isActive ? 'var(--blue)' : '#64748B',
+                                cursor: 'pointer',
+                                whiteSpace: 'nowrap',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '5px',
+                                transition: 'all 0.15s',
+                              }}
+                            >
+                              <span>{tab.label}</span>
+                              <span
+                                style={{
+                                  fontSize: '10px',
+                                  padding: '1px 6px',
+                                  borderRadius: '10px',
+                                  background: isActive ? 'var(--blue)' : '#F1F5F9',
+                                  color: isActive ? '#FFFFFF' : '#64748B',
+                                  fontWeight: 700,
+                                }}
+                              >
+                                {tab.count}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()}
+
                   <div
                     style={{
-                      maxHeight: '180px',
+                      maxHeight: '190px',
                       overflowY: 'auto',
                       border: '1.5px solid #E2E8F0',
                       borderRadius: '12px',
@@ -2374,8 +2508,22 @@ export const AdminManagersPage: React.FC = () => {
                       gap: '6px',
                     }}
                   >
-                    {books
-                      .filter((b) => {
+                    {(() => {
+                      const filteredList = books.filter((b) => {
+                        const isSelected = authorAssignedBookIds.includes(b.id);
+                        const otherAuthor = authors.find(
+                          (a) =>
+                            a.id !== editingAuthor?.id &&
+                            (a as any).authorId !== editingAuthor?.id &&
+                            (a as any).userId !== editingAuthor?.id &&
+                            a.assignedBookIds?.includes(b.id)
+                        );
+                        const isAssignedToOther = Boolean(otherAuthor);
+
+                        if (bookFilterTabInModal === 'available' && (isAssignedToOther || isSelected)) return false;
+                        if (bookFilterTabInModal === 'assigned_here' && !isSelected) return false;
+                        if (bookFilterTabInModal === 'locked' && !isAssignedToOther) return false;
+
                         if (!bookSearchInModal.trim()) return true;
                         const q = bookSearchInModal.toLowerCase().trim();
                         return (
@@ -2383,8 +2531,23 @@ export const AdminManagersPage: React.FC = () => {
                           (b.author && b.author.toLowerCase().includes(q)) ||
                           (b.category && b.category.toLowerCase().includes(q))
                         );
-                      })
-                      .map((b) => {
+                      });
+
+                      if (filteredList.length === 0) {
+                        return (
+                          <div style={{ textAlign: 'center', padding: '24px 12px', color: '#94A3B8', fontSize: '13px' }}>
+                            {bookFilterTabInModal === 'available'
+                              ? 'Бос (бекітілмеген) кітаптар табылмады'
+                              : bookFilterTabInModal === 'assigned_here'
+                              ? 'Бұл авторға әлі кітап таңдалмаған'
+                              : bookFilterTabInModal === 'locked'
+                              ? 'Басқа авторларға бекітілген кітаптар жоқ'
+                              : 'Іздеу бойынша кітап табылмады'}
+                          </div>
+                        );
+                      }
+
+                      return filteredList.map((b) => {
                         const isSelected = authorAssignedBookIds.includes(b.id);
                         const otherAuthor = authors.find(
                           (a) =>
@@ -2510,7 +2673,8 @@ export const AdminManagersPage: React.FC = () => {
                             </div>
                           </label>
                         );
-                      })}
+                      });
+                    })()}
                   </div>
                 </div>
 
