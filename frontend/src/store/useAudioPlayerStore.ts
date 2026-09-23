@@ -313,26 +313,36 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
           return;
         }
         if (isPlaying) {
-          startHeartbeatTimer();
+          const curBook = get().currentBook;
+          if (!activeSessionId && curBook) {
+            startAudioSession(curBook.id, get().currentChapter?.id);
+          } else {
+            startHeartbeatTimer();
+          }
         } else {
           stopHeartbeatTimer();
         }
         set({ isPlaying });
       },
 
-      togglePlay: () =>
-        set((state) => {
-          if (!state.isPlaying && state.isDailyLimitReached) {
-            return { showDailyLimitModal: true, isPlaying: false };
-          }
-          const next = !state.isPlaying;
-          if (next) {
-            startHeartbeatTimer();
+      togglePlay: () => {
+        const state = get();
+        if (!state.isPlaying && state.isDailyLimitReached) {
+          set({ showDailyLimitModal: true, isPlaying: false });
+          return;
+        }
+        const next = !state.isPlaying;
+        if (next) {
+          if (!activeSessionId && state.currentBook) {
+            startAudioSession(state.currentBook.id, state.currentChapter?.id);
           } else {
-            stopHeartbeatTimer();
+            startHeartbeatTimer();
           }
-          return { isPlaying: next };
-        }),
+        } else {
+          stopHeartbeatTimer();
+        }
+        set({ isPlaying: next });
+      },
 
       pause: () => {
         stopHeartbeatTimer();
@@ -340,11 +350,16 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
       },
 
       resume: () => {
-        if (get().isDailyLimitReached) {
+        const state = get();
+        if (state.isDailyLimitReached) {
           set({ showDailyLimitModal: true, isPlaying: false });
           return;
         }
-        startHeartbeatTimer();
+        if (!activeSessionId && state.currentBook) {
+          startAudioSession(state.currentBook.id, state.currentChapter?.id);
+        } else {
+          startHeartbeatTimer();
+        }
         set({ isPlaying: true });
       },
 

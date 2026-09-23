@@ -343,15 +343,18 @@ export const useRoyaltyStore = create<RoyaltyState>((set, get) => ({
         lastListenedAt: data.lastListenedAt || null,
       };
 
-      const cacheKey = `${data.authorId}_${targetMonth}`;
+      const cacheKey1 = `${data.authorId}_${targetMonth}`;
+      const cacheKey2 = authorId ? `${authorId}_${targetMonth}` : cacheKey1;
       set((state) => ({
         authorStatsCache: {
           ...state.authorStatsCache,
-          [cacheKey]: statsObj,
+          [cacheKey1]: statsObj,
+          [cacheKey2]: statsObj,
         },
         authorBalances: {
           ...state.authorBalances,
           [data.authorId]: statsObj.currentBalance,
+          ...(authorId ? { [authorId]: statsObj.currentBalance } : {}),
         },
       }));
       return statsObj;

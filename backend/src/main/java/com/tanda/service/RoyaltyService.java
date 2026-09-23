@@ -484,7 +484,7 @@ public class RoyaltyService {
         ).collect(Collectors.toList());
 
         return AuthorStatsResponseDto.builder()
-                .authorId(author.getId())
+                .authorId(authorUserIdOrId != null && !authorUserIdOrId.isBlank() ? authorUserIdOrId : author.getId())
                 .authorName(author.getDisplayName())
                 .month(targetMonth)
                 .authorBooks(bookItems)

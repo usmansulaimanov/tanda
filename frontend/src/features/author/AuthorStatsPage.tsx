@@ -124,8 +124,20 @@ export const AuthorStatsPage: React.FC = () => {
     return targetAuthor.assignedAuthorName?.trim() || targetAuthor.name.trim();
   }, [targetAuthor]);
 
-  const authorCacheKey = targetAuthor ? `${targetAuthor.id}_${selectedMonthKey}` : '';
-  const currentAuthorStats = authorStatsCache[authorCacheKey];
+  const currentAuthorStats = useMemo(() => {
+    if (!targetAuthor) return null;
+    const directKey = `${targetAuthor.id}_${selectedMonthKey}`;
+    if (authorStatsCache[directKey]) {
+      return authorStatsCache[directKey];
+    }
+    const match = Object.values(authorStatsCache).find(
+      (s) => s.month === selectedMonthKey && (
+        s.authorId === targetAuthor.id ||
+        (s.authorName && authorName && s.authorName.toLowerCase().trim() === authorName.toLowerCase().trim())
+      )
+    );
+    return match || null;
+  }, [targetAuthor, selectedMonthKey, authorStatsCache, authorName]);
 
   // Filter books belonging to this author
   const authorBooks = useMemo(() => {
