@@ -8,7 +8,7 @@ import { hasAdminPermission } from '../../utils/permissions';
 
 export const ReadersPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, role, isAuthInitialized, toggleBlockUser, fetchClients, deleteUser } = useAuthStore();
+  const { clients, user, role, isAuthInitialized, toggleBlockUser, fetchClients, deleteUser } = useAuthStore();
   const { showToast } = useToastStore();
 
   const canViewReaders = hasAdminPermission(user, 'readers_view');
@@ -23,7 +23,7 @@ export const ReadersPage: React.FC = () => {
     }
   }, [isAuthInitialized, role, canViewReaders, navigate, showToast]);
 
-  const [readers, setReaders] = useState<User[]>([]);
+  const [readers, setReaders] = useState<User[]>(() => clients || []);
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
@@ -37,18 +37,31 @@ export const ReadersPage: React.FC = () => {
   const fetchReaders = async () => {
     setIsLoading(true);
     try {
-      const clients = await fetchClients();
-      setReaders(clients);
-    } catch {
+      const list = await fetchClients();
+      if (Array.isArray(list)) {
+        setReaders(list);
+      }
+    } catch (err) {
+      console.error('Error fetching readers:', err);
       showToast('Оқырмандар тізімін жүктеу мүмкін болмады', 'error');
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Sync with store when clients change
   useEffect(() => {
-    fetchReaders();
-  }, []);
+    if (clients && clients.length > 0) {
+      setReaders(clients);
+    }
+  }, [clients]);
+
+  // Fetch readers once auth is initialized
+  useEffect(() => {
+    if (isAuthInitialized && role === 'admin' && canViewReaders) {
+      fetchReaders();
+    }
+  }, [isAuthInitialized, role, canViewReaders]);
 
   // Apply search query
   const filteredReaders = useMemo(() => {
@@ -293,6 +306,45 @@ export const ReadersPage: React.FC = () => {
                   <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                 </svg>
               </div>
+
+              {/* Refresh Button */}
+              <button
+                type="button"
+                onClick={fetchReaders}
+                disabled={isLoading}
+                title="Оқырмандар тізімін жаңарту"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '9px 14px',
+                  borderRadius: '8px',
+                  background: '#FFFFFF',
+                  color: 'var(--text-dark)',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  border: '1.5px solid #CBD5E1',
+                  transition: 'all 0.15s',
+                  whiteSpace: 'nowrap',
+                  cursor: isLoading ? 'not-allowed' : 'pointer',
+                  opacity: isLoading ? 0.7 : 1,
+                }}
+              >
+                <svg
+                  width="15"
+                  height="15"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  style={{ animation: isLoading ? 'spin 1s linear infinite' : 'none' }}
+                >
+                  <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
+                </svg>
+                <span>{isLoading ? 'Жүктелуде...' : 'Жаңарту'}</span>
+              </button>
 
               {/* Export Excel Button */}
               <button
@@ -610,9 +662,53 @@ export const ReadersPage: React.FC = () => {
             </table>
           </div>
 
+          {isLoading && (
+            <div style={{ textAlign: 'center', padding: '48px 20px', color: 'var(--text-mid)' }}>
+              <div
+                style={{
+                  width: '32px',
+                  height: '32px',
+                  border: '3px solid #CBD5E1',
+                  borderTopColor: 'var(--blue)',
+                  borderRadius: '50%',
+                  margin: '0 auto 12px auto',
+                  animation: 'spin 0.8s linear infinite',
+                }}
+              />
+              <div style={{ fontSize: '14px', fontWeight: 600 }}>Оқырмандар тізімі жүктелуде...</div>
+            </div>
+          )}
+
           {!isLoading && filteredReaders.length === 0 && (
-            <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-mid)' }}>
-              Оқырмандар табылмады немесе тізім бос.
+            <div style={{ textAlign: 'center', padding: '48px 20px', color: 'var(--text-mid)' }}>
+              <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '6px' }}>
+                {searchQuery.trim() ? 'Іздеу бойынша оқырман табылмады' : 'Оқырмандар табылмады немесе тізім бос'}
+              </div>
+              <p style={{ fontSize: '13px', margin: '0 0 16px 0', maxWidth: '400px', marginLeft: 'auto', marginRight: 'auto' }}>
+                {searchQuery.trim()
+                  ? `«${searchQuery}» сұранысы бойынша ешқандай оқырман табылмады. Іздеу сөзін өзгертіп көріңіз.`
+                  : 'Жүйеде әлі тіркелген оқырмандар жоқ немесе желідегі деректерді жаңарту қажет.'}
+              </p>
+              <button
+                type="button"
+                onClick={fetchReaders}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '8px 18px',
+                  borderRadius: '8px',
+                  background: 'var(--blue)',
+                  color: '#FFFFFF',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  border: 'none',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 6px rgba(0, 87, 168, 0.25)',
+                }}
+              >
+                Қайта жүктеу
+              </button>
             </div>
           )}
 

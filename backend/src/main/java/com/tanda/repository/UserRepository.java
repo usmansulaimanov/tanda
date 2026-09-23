@@ -30,7 +30,10 @@ public interface UserRepository extends JpaRepository<User, String> {
 
     Optional<User> findByIdNumber(String idNumber);
 
-    @Query("SELECT u FROM User u WHERE (:role IS NULL OR u.role = :role) AND " +
+    @Query("SELECT u FROM User u WHERE " +
+           "(:role IS NULL OR " +
+           " (LOWER(:role) IN ('client', 'reader', 'user') AND (u.role IS NULL OR LOWER(u.role) IN ('client', 'reader', 'user') OR (LOWER(u.role) NOT IN ('admin', 'author', 'manager')))) OR " +
+           " (LOWER(:role) NOT IN ('client', 'reader', 'user') AND LOWER(u.role) = LOWER(:role))) AND " +
            "(:search IS NULL OR LOWER(u.name) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(u.idNumber) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(u.username) LIKE LOWER(CONCAT('%', :search, '%'))) " +
            "ORDER BY u.createdAt DESC")
     List<User> searchUsers(@Param("role") String role, @Param("search") String search);

@@ -38,12 +38,12 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public List<UserListResponseDto> getAllUsers(String role, String search) {
+        String cleanRole = (role != null && !role.isBlank() && !role.equalsIgnoreCase("all")) ? role.trim().toLowerCase() : null;
+        String cleanSearch = (search != null && !search.isBlank()) ? search.trim() : null;
+
         List<User> users;
-        if ((role != null && !role.isBlank()) || (search != null && !search.isBlank())) {
-            users = userRepository.searchUsers(
-                    (role != null && !role.isBlank() && !role.equalsIgnoreCase("all")) ? role : null,
-                    (search != null && !search.isBlank()) ? search.trim() : null
-            );
+        if (cleanRole != null || cleanSearch != null) {
+            users = userRepository.searchUsers(cleanRole, cleanSearch);
         } else {
             users = userRepository.findAll();
         }
@@ -61,12 +61,24 @@ public class UserService {
         if (userIds.isEmpty()) {
             return Map.of();
         }
-        return savedBookRepository.countSavedBooksByUserIds(userIds)
-                .stream()
-                .collect(Collectors.toMap(
-                        row -> (String) row[0],
-                        row -> (Long) row[1]
-                ));
+        try {
+            return savedBookRepository.countSavedBooksByUserIds(userIds)
+                    .stream()
+                    .filter(row -> row != null && row.length >= 2 && row[0] != null)
+                    .collect(Collectors.toMap(
+                            row -> String.valueOf(row[0]),
+                            row -> {
+                                if (row[1] instanceof Number) {
+                                    return ((Number) row[1]).longValue();
+                                }
+                                return 0L;
+                            },
+                            (existing, replacing) -> existing
+                    ));
+        } catch (Exception e) {
+            log.warn("Failed to build saved count map: {}", e.getMessage());
+            return Map.of();
+        }
     }
 
     @Transactional(readOnly = true)
@@ -331,11 +343,17 @@ public class UserService {
     }
 
     private UserListResponseDto toUserListDto(User user, int savedBooksCount) {
-        java.time.OffsetDateTime now = java.time.OffsetDateTime.now();
-        java.util.Optional<com.tanda.entity.PremiumEntitlement> active = premiumEntitlementRepository
-                .findTopByUserIdAndIsActiveTrueAndExpiresAtAfterOrderByExpiresAtDesc(user.getId(), now);
-        boolean isPremium = active.isPresent();
-        java.time.OffsetDateTime premiumExpiresAt = active.map(com.tanda.entity.PremiumEntitlement::getExpiresAt).orElse(null);
+        boolean isPremium = false;
+        java.time.OffsetDateTime premiumExpiresAt = null;
+        try {
+            java.time.OffsetDateTime now = java.time.OffsetDateTime.now();
+            java.util.Optional<com.tanda.entity.PremiumEntitlement> active = premiumEntitlementRepository
+                    .findTopByUserIdAndIsActiveTrueAndExpiresAtAfterOrderByExpiresAtDesc(user.getId(), now);
+            isPremium = active.isPresent();
+            premiumExpiresAt = active.map(com.tanda.entity.PremiumEntitlement::getExpiresAt).orElse(null);
+        } catch (Exception e) {
+            log.warn("Failed to check premium entitlement for user {}: {}", user.getId(), e.getMessage());
+        }
 
         return UserListResponseDto.builder()
                 .id(user.getId())

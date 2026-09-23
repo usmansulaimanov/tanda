@@ -119,7 +119,8 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
           const list: User[] = Array.isArray(data) ? data : [];
           set({ clients: list });
           return list;
-        } catch {
+        } catch (err) {
+          console.error('Failed to fetch clients:', err);
           return get().clients;
         }
       },
