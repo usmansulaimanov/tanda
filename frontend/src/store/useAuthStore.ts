@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 import { api } from '../lib/api';
 import { User, AdminPermission } from '../types';
 
@@ -89,9 +88,7 @@ function toAuthorUser(a: any): User {
   };
 }
 
-export const useAuthStore = create<AuthState>()(
-  persist(
-    (set, get) => ({
+export const useAuthStore = create<AuthState>()((set, get) => ({
       user: null,
       role: 'client',
       isAuthenticated: false,
@@ -1033,14 +1030,14 @@ export const useAuthStore = create<AuthState>()(
           }
         }
       },
-    }),
-    {
-      name: 'tanda_auth_storage_v1',
-      partialize: (state) => ({
-        user: state.user,
-        role: state.role,
-        isAuthenticated: state.isAuthenticated,
-      }),
-    }
-  )
-);
+}));
+
+if (typeof window !== 'undefined') {
+  try {
+    localStorage.removeItem('tanda_auth_storage_v1');
+    localStorage.removeItem('tanda_users_registry_v1');
+  } catch {
+    // Ignore storage errors in restricted contexts
+  }
+}
+

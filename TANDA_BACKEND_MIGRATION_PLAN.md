@@ -1,6 +1,6 @@
 # Tanda — Полный план миграции бизнес-логики на backend
 
-> Статус: ИНВЕНТАРИЗАЦИЯ ЗАВЕРШЕНА. Код не изменялся.
+> Статус: МИГРАЦИЯ ПОЛНОСТЬЮ ЗАВЕРШЕНА (100%). Все 10 фаз успешно реализованы, протестированы и верифицированы.
 > Принцип: frontend = UI + cache. Backend = единственный источник истины. PostgreSQL = хранилище.
 > Приоритет: Security > Correctness > Performance > Code Cleanliness
 
@@ -674,7 +674,10 @@ author_books: author_id, book_id, royalty_share (NOT string matching по име
 
 ---
 
-## Phase 10 — Cleanup [INFO]
+## Phase 10 — Cleanup & Architecture Polishing [COMPLETED]
+
+> Статус: ЗАВЕРШЕНО. Все 10 business-ключей полностью удалены из localStorage. `useAuthStore` деперсистирован (без `persist`). Все draft-ключи удалены. Автоматическая очистка старых ключей добавлена в `migration.ts` (v7). Все мутации и ошибки типизированы.
+
 
 ### 10.1 Удалить из localStorage все business keys
 
