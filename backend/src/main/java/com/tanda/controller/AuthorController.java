@@ -51,6 +51,15 @@ public class AuthorController {
         return ResponseEntity.ok(authorService.updateAuthor(id, request));
     }
 
+    @org.springframework.web.bind.annotation.PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<AuthorResponseDto> updateAuthorPut(
+            @PathVariable String id,
+            @RequestBody AuthorRequestDto request
+    ) {
+        return ResponseEntity.ok(authorService.updateAuthor(id, request));
+    }
+
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteAuthor(@PathVariable String id) {

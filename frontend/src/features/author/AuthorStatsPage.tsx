@@ -513,7 +513,7 @@ export const AuthorStatsPage: React.FC = () => {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))',
               gap: '14px',
             }}
           >
@@ -522,10 +522,13 @@ export const AuthorStatsPage: React.FC = () => {
               <div style={{ fontSize: '24px', fontWeight: 900, marginTop: '4px' }}>
                 {authorBooks.length}
               </div>
+              <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.7)', marginTop: '2px' }}>
+                {stats.audioBooks} аудиокітап
+              </div>
             </div>
 
             <div style={{ background: 'rgba(255,255,255,0.12)', borderRadius: '16px', padding: '16px 20px' }}>
-              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)', fontWeight: 600 }}>Тыңдалған уақыт</div>
+              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)', fontWeight: 600 }}>Нақты тыңдалған уақыт</div>
               <div style={{ fontSize: '24px', fontWeight: 900, marginTop: '4px' }}>
                 {royalty.totalSeconds >= 60
                   ? `${Math.floor(royalty.totalSeconds / 60)} мин`
@@ -535,27 +538,62 @@ export const AuthorStatsPage: React.FC = () => {
               </div>
               <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.7)', marginTop: '2px' }}>
                 {royalty.totalSeconds >= 3600
-                  ? `≈ ${(royalty.totalSeconds / 3600).toFixed(1)} сағат`
+                  ? `≈ ${(royalty.totalSeconds / 3600).toFixed(1)} сағат (${royalty.totalSeconds} сек)`
                   : `${royalty.totalSeconds} секунд`}
               </div>
             </div>
 
             <div style={{ background: 'rgba(255,255,255,0.12)', borderRadius: '16px', padding: '16px 20px' }}>
-              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)', fontWeight: 600 }}>1 минуттың бағасы</div>
+              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)', fontWeight: 600 }}>1 минуттың құны</div>
               <div style={{ fontSize: '24px', fontWeight: 900, marginTop: '4px' }}>
-                {royalty.ratePerMinute} ₸
+                {royalty.periodStatus === 'paid' ? `${royalty.ratePerMinute} ₸` : '—'}
               </div>
               <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.7)', marginTop: '2px' }}>
-                1 сағатқа ≈ {(royalty.ratePerMinute * 60).toFixed(1)} ₸
+                {royalty.periodStatus === 'paid' ? '✓ Ай соңында бекітілді' : 'Ай соңында анықталады'}
               </div>
             </div>
 
             <div style={{ background: 'rgba(255,255,255,0.12)', borderRadius: '16px', padding: '16px 20px' }}>
-              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)', fontWeight: 600 }}>{formatMonthLabel(selectedMonthKey)} роялти табысы</div>
-              <div style={{ fontSize: '24px', fontWeight: 900, marginTop: '4px', color: '#86EFAC' }}>
-                {Number((Math.floor(dailyAnalytics.totalSeconds / 60) * royalty.ratePerMinute).toFixed(2)).toLocaleString()} ₸
+              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)', fontWeight: 600 }}>{formatMonthLabel(selectedMonthKey)} табысы</div>
+              <div style={{ fontSize: '24px', fontWeight: 900, marginTop: '4px', color: royalty.periodStatus === 'paid' ? '#86EFAC' : '#FDE047' }}>
+                {royalty.periodStatus === 'paid'
+                  ? `${Number((Math.floor(dailyAnalytics.totalSeconds / 60) * royalty.ratePerMinute).toFixed(2)).toLocaleString()} ₸`
+                  : 'Жинақталуда'}
+              </div>
+              <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.7)', marginTop: '2px' }}>
+                {royalty.periodStatus === 'paid' ? 'Ресми есептелген' : 'Ай соңында бекітіледі'}
               </div>
             </div>
+
+            <div style={{ background: 'rgba(255,255,255,0.18)', borderRadius: '16px', padding: '16px 20px', border: '1px solid rgba(255,255,255,0.25)' }}>
+              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.9)', fontWeight: 700 }}>Қолжетімді баланс</div>
+              <div style={{ fontSize: '24px', fontWeight: 900, marginTop: '4px', color: '#FFFFFF' }}>
+                {Number((royalty.currentBalance || 0).toFixed(2)).toLocaleString()} ₸
+              </div>
+              <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.8)', marginTop: '2px' }}>
+                Шығарып алуға дайын
+              </div>
+            </div>
+          </div>
+
+          <div
+            style={{
+              marginTop: '16px',
+              padding: '12px 18px',
+              borderRadius: '12px',
+              background: 'rgba(255, 255, 255, 0.08)',
+              border: '1px solid rgba(255, 255, 255, 0.15)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              fontSize: '12.5px',
+              color: 'rgba(255, 255, 255, 0.9)',
+            }}
+          >
+            <span style={{ fontSize: '16px' }}>ℹ️</span>
+            <span>
+              <strong>Нақты уақыттағы тыңдалым ережесі:</strong> Оқырман аудионы 60 секундтан асырып тыңдаған сәтте автор есебіне бірден жазылады. Ал роялтидің ресми ақшалай сомасы әр айдың соңында әкімшілік түсім мен шығынды бекіткенде қолжетімді балансқа түседі.
+            </span>
           </div>
         </div>
 
@@ -842,8 +880,19 @@ export const AuthorStatsPage: React.FC = () => {
                             {book.coverImage && <img src={book.coverImage} alt={book.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
                           </div>
                           <div>
-                            <div style={{ fontWeight: 800, color: 'var(--text-dark)' }}>{book.title}</div>
-                            <div style={{ fontSize: '11.5px', color: '#64748B' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                              <span style={{ fontWeight: 800, color: 'var(--text-dark)' }}>{book.title}</span>
+                              {targetAuthor?.assignedBookIds?.includes(book.id) ? (
+                                <span style={{ fontSize: '10px', fontWeight: 700, color: '#15803D', background: '#F0FDF4', border: '1px solid #BBF7D0', padding: '1px 6px', borderRadius: '4px' }}>
+                                  ✓ Бекітілген
+                                </span>
+                              ) : (
+                                <span style={{ fontSize: '10px', fontWeight: 700, color: '#0369A1', background: '#F0F9FF', border: '1px solid #BAE6FD', padding: '1px 6px', borderRadius: '4px' }}>
+                                  🕒 Тарихи тыңдалым
+                                </span>
+                              )}
+                            </div>
+                            <div style={{ fontSize: '11.5px', color: '#64748B', marginTop: '2px' }}>
                               {book.pages ? `${book.pages} бет` : ''} {book.hasAudio ? '• 🎧 Аудио' : ''}
                             </div>
                           </div>

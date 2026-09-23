@@ -344,4 +344,113 @@ public class Phase10SingleAuthorAndRealtimeStatsIntegrationTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message", containsString("Бүгінгі күнге берілген тыңдалым лимитіңіз (8 сағат) аяқталды")));
     }
+
+    @Test
+    @DisplayName("5. Phase 4: Author stats real-time aggregation and historical continuity after book unassignment")
+    void testPhase4AuthorStatsAndHistoricalContinuity() throws Exception {
+        Book phase4Book = bookRepository.save(Book.builder()
+                .id("book-p4-" + UUID.randomUUID().toString().substring(0, 8))
+                .title("Қазақ романы " + UUID.randomUUID().toString().substring(0, 4))
+                .author("Бейтаныс Автор " + UUID.randomUUID().toString().substring(0, 6))
+                .category("Роман")
+                .hasAudio(true)
+                .audioUrl("https://example.com/audio/p4.mp3")
+                .build());
+
+        // Step A: Create Author with phase4Book
+        AuthorRequestDto authorDto = AuthorRequestDto.builder()
+                .name("Author Phase4")
+                .email("phase4_" + UUID.randomUUID().toString().substring(0, 6) + "@tanda.kz")
+                .assignedAuthorName(phase4Book.getAuthor())
+                .assignedBookIds(List.of(phase4Book.getId()))
+                .build();
+
+        MvcResult authorRes = mockMvc.perform(post("/api/v1/admin/authors")
+                        .header("Authorization", adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(authorDto)))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        String authorId = objectMapper.readTree(authorRes.getResponse().getContentAsString()).get("id").asText();
+
+        // Step B: Reader listens for 120 seconds
+        StartAudioSessionRequestDto startDto = StartAudioSessionRequestDto.builder()
+                .bookId(phase4Book.getId())
+                .build();
+
+        MvcResult startRes = mockMvc.perform(post("/api/v1/audio/sessions")
+                        .header("Authorization", readerToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(startDto)))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        String sessionId = objectMapper.readTree(startRes.getResponse().getContentAsString()).get("sessionId").asText();
+
+        // Heartbeat 1: 40s
+        var session = audioSessionRepository.findById(sessionId).orElseThrow();
+        session.setLastHeartbeatAt(session.getLastHeartbeatAt().minusSeconds(40));
+        audioSessionRepository.save(session);
+        mockMvc.perform(post("/api/v1/audio/sessions/" + sessionId + "/heartbeat")
+                        .header("Authorization", readerToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(AudioHeartbeatRequestDto.builder()
+                                .positionSeconds(40).playbackRate(1.0).build())))
+                .andExpect(status().isOk());
+
+        // Heartbeat 2: 40s (total 80s >= 60s threshold)
+        session = audioSessionRepository.findById(sessionId).orElseThrow();
+        session.setLastHeartbeatAt(session.getLastHeartbeatAt().minusSeconds(40));
+        audioSessionRepository.save(session);
+        mockMvc.perform(post("/api/v1/audio/sessions/" + sessionId + "/heartbeat")
+                        .header("Authorization", readerToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(AudioHeartbeatRequestDto.builder()
+                                .positionSeconds(80).playbackRate(1.0).build())))
+                .andExpect(status().isOk());
+
+        // Heartbeat 3: 40s (total 120s = 2 minutes)
+        session = audioSessionRepository.findById(sessionId).orElseThrow();
+        session.setLastHeartbeatAt(session.getLastHeartbeatAt().minusSeconds(40));
+        audioSessionRepository.save(session);
+        mockMvc.perform(post("/api/v1/audio/sessions/" + sessionId + "/heartbeat")
+                        .header("Authorization", readerToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(AudioHeartbeatRequestDto.builder()
+                                .positionSeconds(120).playbackRate(1.0).build())))
+                .andExpect(status().isOk());
+
+        // Step C: Check author stats endpoint - real-time minutes should be visible
+        mockMvc.perform(get("/api/v1/authors/me/stats")
+                        .param("authorId", authorId)
+                        .header("Authorization", adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalSeconds", is(120)))
+                .andExpect(jsonPath("$.totalMinutes", is(2)))
+                .andExpect(jsonPath("$.authorBooks[0].totalMinutes", is(2)));
+
+        // Step D: Admin unassigns book from author
+        AuthorRequestDto updateDto = AuthorRequestDto.builder()
+                .name("Author Phase4")
+                .assignedAuthorName(phase4Book.getAuthor())
+                .assignedBookIds(List.of()) // Empty list: unassign book
+                .build();
+
+        mockMvc.perform(put("/api/v1/admin/authors/" + authorId)
+                        .header("Authorization", adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateDto)))
+                .andExpect(status().isOk());
+
+        // Step E: Historical continuity: getAuthorStats STILL shows the book and 2 minutes for this month!
+        mockMvc.perform(get("/api/v1/authors/me/stats")
+                        .param("authorId", authorId)
+                        .header("Authorization", adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalSeconds", is(120)))
+                .andExpect(jsonPath("$.totalMinutes", is(2)))
+                .andExpect(jsonPath("$.authorBooks[0].id", is(phase4Book.getId())))
+                .andExpect(jsonPath("$.authorBooks[0].totalMinutes", is(2)));
+    }
 }

@@ -12,5 +12,6 @@ import java.util.Optional;
 public interface AuthorDailyBookStatsRepository extends JpaRepository<AuthorDailyBookStats, String> {
     Optional<AuthorDailyBookStats> findByAuthorIdAndBookIdAndStatDate(String authorId, String bookId, LocalDate statDate);
     List<AuthorDailyBookStats> findByAuthorIdAndStatDateBetween(String authorId, LocalDate startDate, LocalDate endDate);
+    List<AuthorDailyBookStats> findByStatDateBetween(LocalDate startDate, LocalDate endDate);
     List<AuthorDailyBookStats> findByAuthorId(String authorId);
 }

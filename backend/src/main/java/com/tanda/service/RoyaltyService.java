@@ -163,12 +163,25 @@ public class RoyaltyService {
         // Temporary holding structure: authorId -> list of {bookId, minutes}
         Map<String, Map<String, Long>> authorBookMinutesMap = new HashMap<>();
 
+        List<AuthorDailyBookStats> monthlyDailyAuthorStats = authorDailyBookStatsRepository.findByStatDateBetween(startDate, endDate);
+        Map<String, Map<String, Long>> authorBookSecFromDaily = new HashMap<>();
+        for (AuthorDailyBookStats st : monthlyDailyAuthorStats) {
+            authorBookSecFromDaily
+                    .computeIfAbsent(st.getAuthorId(), k -> new HashMap<>())
+                    .merge(st.getBookId(), st.getTotalSeconds() != null ? st.getTotalSeconds() : 0L, Long::sum);
+        }
+
         for (Author author : authors) {
             String authorId = author.getId();
             List<AuthorBook> explicitAssignments = authorBooksMap.getOrDefault(authorId, Collections.emptyList());
             Set<String> assignedBookIds = explicitAssignments.stream()
                     .map(AuthorBook::getBookId)
                     .collect(Collectors.toSet());
+
+            // Also include books where author had stats recorded this month (preserves historical continuity)
+            if (authorBookSecFromDaily.containsKey(authorId)) {
+                assignedBookIds.addAll(authorBookSecFromDaily.get(authorId).keySet());
+            }
 
             Map<String, BigDecimal> shareMap = explicitAssignments.stream()
                     .collect(Collectors.toMap(AuthorBook::getBookId, AuthorBook::getRoyaltyShare, (s1, s2) -> s1));
@@ -186,7 +199,12 @@ public class RoyaltyService {
 
             Map<String, Long> authorBooksResult = new HashMap<>();
             for (String bookId : assignedBookIds) {
-                long sec = bookSecondsMap.getOrDefault(bookId, 0L);
+                long sec;
+                if (authorBookSecFromDaily.containsKey(authorId) && authorBookSecFromDaily.get(authorId).containsKey(bookId)) {
+                    sec = authorBookSecFromDaily.get(authorId).get(bookId);
+                } else {
+                    sec = bookSecondsMap.getOrDefault(bookId, 0L);
+                }
                 long min = sec / 60;
                 BigDecimal share = shareMap.getOrDefault(bookId, new BigDecimal("100.00"));
                 long authorMin = (long) Math.floor(min * (share.doubleValue() / 100.0));
@@ -336,40 +354,45 @@ public class RoyaltyService {
         List<String> matchedIds = matchedBooks.stream().map(Book::getId).collect(Collectors.toList());
 
         Map<String, Long> dateSecondsMap = new HashMap<>();
-        Map<String, Long> bookMinutesMap = new HashMap<>();
+        Map<String, Long> bookSecondsMap = new HashMap<>();
+        Set<String> coveredBookDates = new HashSet<>();
         OffsetDateTime latestListenedAt = null;
 
-        if (!authorSpecificStats.isEmpty()) {
-            for (AuthorDailyBookStats s : authorSpecificStats) {
-                String dateStr = s.getStatDate().toString();
-                long sec = s.getTotalSeconds() != null ? s.getTotalSeconds() : 0L;
-                dateSecondsMap.put(dateStr, dateSecondsMap.getOrDefault(dateStr, 0L) + sec);
+        for (AuthorDailyBookStats s : authorSpecificStats) {
+            String dateStr = s.getStatDate().toString();
+            long sec = s.getTotalSeconds() != null ? s.getTotalSeconds() : 0L;
+            dateSecondsMap.put(dateStr, dateSecondsMap.getOrDefault(dateStr, 0L) + sec);
 
-                String bId = s.getBookId();
-                bookMinutesMap.put(bId, bookMinutesMap.getOrDefault(bId, 0L) + (sec / 60));
+            String bId = s.getBookId();
+            bookSecondsMap.put(bId, bookSecondsMap.getOrDefault(bId, 0L) + sec);
+            coveredBookDates.add(bId + "_" + dateStr);
 
-                if (s.getUpdatedAt() != null && (latestListenedAt == null || s.getUpdatedAt().isAfter(latestListenedAt))) {
-                    latestListenedAt = s.getUpdatedAt();
-                }
+            if (s.getUpdatedAt() != null && (latestListenedAt == null || s.getUpdatedAt().isAfter(latestListenedAt))) {
+                latestListenedAt = s.getUpdatedAt();
             }
-        } else {
-            // Fallback to audioDailyStats for book-level matching
-            List<AudioDailyStats> dailyStats = matchedIds.isEmpty()
-                    ? Collections.emptyList()
-                    : audioDailyStatsRepository.findByBookIdInAndStatDateBetween(matchedIds, startDate, endDate);
+        }
 
+        // Fallback for legacy audioDailyStats for any book-date not recorded in authorSpecificStats
+        if (!matchedIds.isEmpty()) {
+            List<AudioDailyStats> dailyStats = audioDailyStatsRepository.findByBookIdInAndStatDateBetween(matchedIds, startDate, endDate);
             for (AudioDailyStats s : dailyStats) {
-                String dateStr = s.getStatDate().toString();
-                long sec = s.getTotalSeconds() != null ? s.getTotalSeconds() : 0L;
-                dateSecondsMap.put(dateStr, dateSecondsMap.getOrDefault(dateStr, 0L) + sec);
-
                 String bId = s.getBook().getId();
-                bookMinutesMap.put(bId, bookMinutesMap.getOrDefault(bId, 0L) + (sec / 60));
+                String dateStr = s.getStatDate().toString();
+                if (!coveredBookDates.contains(bId + "_" + dateStr)) {
+                    long sec = s.getTotalSeconds() != null ? s.getTotalSeconds() : 0L;
+                    dateSecondsMap.put(dateStr, dateSecondsMap.getOrDefault(dateStr, 0L) + sec);
+                    bookSecondsMap.put(bId, bookSecondsMap.getOrDefault(bId, 0L) + sec);
 
-                if (s.getUpdatedAt() != null && (latestListenedAt == null || s.getUpdatedAt().isAfter(latestListenedAt))) {
-                    latestListenedAt = s.getUpdatedAt();
+                    if (s.getUpdatedAt() != null && (latestListenedAt == null || s.getUpdatedAt().isAfter(latestListenedAt))) {
+                        latestListenedAt = s.getUpdatedAt();
+                    }
                 }
             }
+        }
+
+        Map<String, Long> bookMinutesMap = new HashMap<>();
+        for (Map.Entry<String, Long> entry : bookSecondsMap.entrySet()) {
+            bookMinutesMap.put(entry.getKey(), entry.getValue() / 60);
         }
 
         // 3. Build day list
