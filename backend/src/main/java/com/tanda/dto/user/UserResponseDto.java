@@ -39,4 +39,5 @@ public class UserResponseDto {
     private Boolean isPremium;
     private OffsetDateTime premiumExpiresAt;
     private Integer lastBirthdayGiftYear;
+    private String token;
 }

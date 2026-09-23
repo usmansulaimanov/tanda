@@ -132,7 +132,7 @@ public class AuthController {
         if (principal == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        return ResponseEntity.ok(authService.getMe(principal.getEmail()));
+        return ResponseEntity.ok(authService.getMe(principal.getId()));
     }
 
     @PatchMapping("/profile")
@@ -142,7 +142,7 @@ public class AuthController {
         if (principal == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        return ResponseEntity.ok(authService.updateProfile(principal.getEmail(), request));
+        return ResponseEntity.ok(authService.updateProfile(principal.getId(), request));
     }
 
     @PutMapping("/profile")
@@ -152,7 +152,7 @@ public class AuthController {
         if (principal == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        return ResponseEntity.ok(authService.updateProfile(principal.getEmail(), request));
+        return ResponseEntity.ok(authService.updateProfile(principal.getId(), request));
     }
 
     @PutMapping("/password")

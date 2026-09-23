@@ -259,4 +259,79 @@ class AuthServiceTest {
 
         assertEquals("trim@tanda.kz", result.getUser().getEmail());
     }
+
+    // ============================
+    //  updateProfile() & getMe() tests
+    // ============================
+
+    @Test
+    @DisplayName("updateProfile() successfully updates email and returns new token")
+    void updateProfileUpdatesEmailAndReturnsToken() {
+        User existingUser = User.builder()
+                .id("user-123")
+                .idNumber("1001")
+                .email("old@tanda.kz")
+                .name("Old Name")
+                .role("admin")
+                .isActive(true)
+                .build();
+
+        when(userRepository.findById("user-123")).thenReturn(Optional.of(existingUser));
+        when(userRepository.existsByEmail("new@tanda.kz")).thenReturn(false);
+        when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        com.tanda.dto.auth.UpdateProfileRequestDto request = com.tanda.dto.auth.UpdateProfileRequestDto.builder()
+                .name("New Name")
+                .email("new@tanda.kz")
+                .build();
+
+        com.tanda.dto.user.UserResponseDto result = authService.updateProfile("user-123", request);
+
+        assertNotNull(result);
+        assertEquals("new@tanda.kz", result.getEmail());
+        assertEquals("New Name", result.getName());
+        assertNotNull(result.getToken(), "Should return refreshed token with new email");
+        assertEquals("new@tanda.kz", jwtTokenProvider.getEmailFromToken(result.getToken()));
+        assertEquals("user-123", jwtTokenProvider.getUserIdFromToken(result.getToken()));
+    }
+
+    @Test
+    @DisplayName("updateProfile() throws BadRequestException if new email is taken")
+    void updateProfileThrowsIfEmailAlreadyTaken() {
+        User existingUser = User.builder()
+                .id("user-123")
+                .email("old@tanda.kz")
+                .role("client")
+                .build();
+
+        when(userRepository.findById("user-123")).thenReturn(Optional.of(existingUser));
+        when(userRepository.existsByEmail("taken@tanda.kz")).thenReturn(true);
+
+        com.tanda.dto.auth.UpdateProfileRequestDto request = com.tanda.dto.auth.UpdateProfileRequestDto.builder()
+                .email("taken@tanda.kz")
+                .build();
+
+        assertThrows(com.tanda.exception.BadRequestException.class, () ->
+                authService.updateProfile("user-123", request)
+        );
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("getMe() retrieves user by user ID")
+    void getMeRetrievesUserById() {
+        User user = User.builder()
+                .id("user-456")
+                .email("reader@tanda.kz")
+                .name("Reader")
+                .role("client")
+                .build();
+
+        when(userRepository.findById("user-456")).thenReturn(Optional.of(user));
+
+        com.tanda.dto.user.UserResponseDto result = authService.getMe("user-456");
+        assertNotNull(result);
+        assertEquals("reader@tanda.kz", result.getEmail());
+        assertEquals("user-456", result.getId());
+    }
 }

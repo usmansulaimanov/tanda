@@ -285,8 +285,9 @@ public class AuthService {
     }
 
     @Transactional(readOnly = true)
-    public UserResponseDto getMe(String email) {
-        User user = userRepository.findByEmail(email.trim().toLowerCase())
+    public UserResponseDto getMe(String identifier) {
+        User user = userRepository.findById(identifier)
+                .or(() -> userRepository.findByEmail(identifier.trim().toLowerCase()))
                 .orElseThrow(() -> new ResourceNotFoundException("Пайдаланушы табылмады"));
         return toUserDto(user);
     }
@@ -332,12 +333,23 @@ public class AuthService {
     }
 
     @Transactional
-    public UserResponseDto updateProfile(String email, com.tanda.dto.auth.UpdateProfileRequestDto request) {
-        User user = userRepository.findByEmail(email.toLowerCase())
+    public UserResponseDto updateProfile(String userIdentifier, com.tanda.dto.auth.UpdateProfileRequestDto request) {
+        User user = userRepository.findById(userIdentifier)
+                .or(() -> userRepository.findByEmail(userIdentifier.trim().toLowerCase()))
                 .orElseThrow(() -> new ResourceNotFoundException("Пайдаланушы табылмады"));
 
         if (request.getName() != null && !request.getName().isBlank()) {
             user.setName(request.getName().trim());
+        }
+        if (request.getEmail() != null && !request.getEmail().isBlank()) {
+            String newEmail = request.getEmail().trim().toLowerCase();
+            if (!newEmail.equalsIgnoreCase(user.getEmail())) {
+                if (userRepository.existsByEmail(newEmail)) {
+                    throw new BadRequestException("Бұл email жүйеде тіркеліп қойған");
+                }
+                user.setEmail(newEmail);
+                log.info("User id={} updated email to {}", user.getId(), newEmail);
+            }
         }
         if (request.getAvatarUrl() != null) {
             user.setAvatarUrl(request.getAvatarUrl().isBlank() ? null : request.getAvatarUrl().trim());
@@ -366,7 +378,10 @@ public class AuthService {
             user.setGender(request.getGender().trim());
         }
         user = userRepository.save(user);
-        return toUserDto(user);
+
+        UserResponseDto dto = toUserDto(user);
+        dto.setToken(jwtTokenProvider.generateToken(user));
+        return dto;
     }
 
     @Transactional

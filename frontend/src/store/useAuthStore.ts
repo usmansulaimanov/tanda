@@ -790,6 +790,10 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
             avatarUrl: newAvatarUrl || null,
           });
 
+          if (updatedData?.token) {
+            localStorage.setItem('tanda_token', updatedData.token);
+          }
+
           const updatedUser: User = {
             ...currentUser,
             ...updatedData,
