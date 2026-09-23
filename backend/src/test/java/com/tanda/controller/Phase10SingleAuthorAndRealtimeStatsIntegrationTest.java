@@ -245,6 +245,35 @@ public class Phase10SingleAuthorAndRealtimeStatsIntegrationTest {
         var statAfter = authorDailyBookStatsRepository.findByAuthorIdAndBookIdAndStatDate(author.getId(), testBook.getId(), LocalDate.now());
         assertTrue(statAfter.isPresent());
         assertEquals(70L, statAfter.get().getTotalSeconds(), "Full 70 seconds should be retroactively credited");
+
+        // Heartbeat 3: Listen another 20 seconds (total 90 seconds = 1.5 minutes)
+        session = audioSessionRepository.findById(sessionId).orElseThrow();
+        session.setLastHeartbeatAt(session.getLastHeartbeatAt().minusSeconds(20));
+        audioSessionRepository.save(session);
+
+        AudioHeartbeatRequestDto hb3 = AudioHeartbeatRequestDto.builder()
+                .positionSeconds(90)
+                .playbackRate(1.0)
+                .build();
+
+        mockMvc.perform(post("/api/v1/audio/sessions/" + sessionId + "/heartbeat")
+                        .header("Authorization", readerToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(hb3)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.validSeconds", is(90)));
+
+        var statAfter90 = authorDailyBookStatsRepository.findByAuthorIdAndBookIdAndStatDate(author.getId(), testBook.getId(), LocalDate.now());
+        assertTrue(statAfter90.isPresent());
+        assertEquals(90L, statAfter90.get().getTotalSeconds(), "Full 90 seconds (1.5 minutes) should be credited");
+
+        // Check author stats endpoint reflects the 90 seconds
+        mockMvc.perform(get("/api/v1/authors/me/stats")
+                        .param("authorId", author.getId())
+                        .header("Authorization", adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalSeconds", is(90)))
+                .andExpect(jsonPath("$.totalMinutes", is(1)));
     }
 
     @Test
