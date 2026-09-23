@@ -261,10 +261,10 @@ public class ChallengerM1AuthSecurityTest {
         String[] parts = validToken.split("\\.");
         String signature = parts[2];
 
-        // Flip last character of signature
-        char lastChar = signature.charAt(signature.length() - 1);
-        char alteredChar = (lastChar == 'z') ? 'a' : (char) (lastChar + 1);
-        String corruptSignature = signature.substring(0, signature.length() - 1) + alteredChar;
+        // Corrupt signature (flip first character to guarantee altered HMAC bytes without base64 padding collision)
+        char firstChar = signature.charAt(0);
+        char alteredChar = (firstChar == 'z') ? 'a' : (char) (firstChar + 1);
+        String corruptSignature = alteredChar + signature.substring(1);
 
         String corruptToken = parts[0] + "." + parts[1] + "." + corruptSignature;
 

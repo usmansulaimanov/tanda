@@ -38,11 +38,13 @@ jobs:
 
       - name: Build project
         working-directory: frontend
+        env:
+          VITE_API_URL: https://tanda-backend-7lpj.onrender.com
         run: npm run build
 
       - name: Copy index to 404
         working-directory: frontend
-        run: cp dist/index.source.html dist/404.html && cp dist/index.source.html dist/index.html
+        run: cp dist/index.html dist/404.html
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
