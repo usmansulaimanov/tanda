@@ -32,9 +32,11 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialMode }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [isQuickLoading, setIsQuickLoading] = useState(false);
+  const [quickTarget, setQuickTarget] = useState<'admin' | 'reader' | null>(null);
 
   const handleQuickAdmin = async () => {
     setIsQuickLoading(true);
+    setQuickTarget('admin');
     setErrorMessage('');
     try {
       await loginAsAdmin();
@@ -46,11 +48,13 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialMode }) => {
       showToast(msg, 'error');
     } finally {
       setIsQuickLoading(false);
+      setQuickTarget(null);
     }
   };
 
   const handleQuickReader = async () => {
     setIsQuickLoading(true);
+    setQuickTarget('reader');
     setErrorMessage('');
     try {
       await loginAsClient();
@@ -62,6 +66,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialMode }) => {
       showToast(msg, 'error');
     } finally {
       setIsQuickLoading(false);
+      setQuickTarget(null);
     }
   };
 
@@ -258,8 +263,12 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialMode }) => {
                 disabled={isQuickLoading || isLoading}
                 className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-white border border-[#0057A8]/30 text-[#0057A8] hover:bg-[#0057A8] hover:text-white hover:border-[#0057A8] active:scale-[0.98] transition-all shadow-sm text-xs font-bold cursor-pointer disabled:opacity-60 disabled:pointer-events-none"
               >
-                <ShieldCheck size={16} />
-                <span>Админ ретінде</span>
+                {quickTarget === 'admin' ? (
+                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <ShieldCheck size={16} />
+                )}
+                <span>{quickTarget === 'admin' ? 'Кіруде...' : 'Админ ретінде'}</span>
               </button>
               <button
                 type="button"
@@ -267,8 +276,12 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialMode }) => {
                 disabled={isQuickLoading || isLoading}
                 className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-white border border-emerald-500/30 text-emerald-700 hover:bg-emerald-600 hover:text-white hover:border-emerald-600 active:scale-[0.98] transition-all shadow-sm text-xs font-bold cursor-pointer disabled:opacity-60 disabled:pointer-events-none"
               >
-                <BookOpen size={16} />
-                <span>Оқырман ретінде</span>
+                {quickTarget === 'reader' ? (
+                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <BookOpen size={16} />
+                )}
+                <span>{quickTarget === 'reader' ? 'Кіруде...' : 'Оқырман ретінде'}</span>
               </button>
             </div>
           </div>
