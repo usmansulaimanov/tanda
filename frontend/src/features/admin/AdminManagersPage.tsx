@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
-import { useAuthStore, DEFAULT_MANAGER_AVATAR, generateCompliantPassword } from '../../store/useAuthStore';
+import { useAuthStore, DEFAULT_MANAGER_AVATAR, generateCompliantPassword, formatIdNumberInput } from '../../store/useAuthStore';
 import { useBookStore } from '../../store/useBookStore';
 import { useToastStore } from '../../store/useToastStore';
 import { User, AdminPermission } from '../../types';
@@ -277,13 +277,18 @@ export const AdminManagersPage: React.FC = () => {
   };
 
   const handleIdNumberChange = (val: string) => {
-    setFormIdNumber(val);
-    const trimmed = val.trim();
-    if (!trimmed) {
+    const formatted = formatIdNumberInput(val);
+    setFormIdNumber(formatted);
+    const digits = formatted.replace(/\D/g, '');
+    if (!digits) {
       setFormIdNumberError('');
       return;
     }
-    const res = checkIdNumberAvailable(trimmed, editingManager?.id);
+    if (digits.length < 8) {
+      setFormIdNumberError('ID нөмірі толық 8 саннан тұруы керек');
+      return;
+    }
+    const res = checkIdNumberAvailable(formatted, editingManager?.id);
     if (!res.available) {
       setFormIdNumberError(res.error || 'Бұл ID нөмірі бос емес, басқасын таңдаңыз');
     } else {
@@ -459,13 +464,18 @@ export const AdminManagersPage: React.FC = () => {
   }, [editAuthorIdParam, authors]);
 
   const handleAuthorIdNumberChange = (val: string) => {
-    setAuthorIdNumber(val);
-    const trimmed = val.trim();
-    if (!trimmed) {
+    const formatted = formatIdNumberInput(val);
+    setAuthorIdNumber(formatted);
+    const digits = formatted.replace(/\D/g, '');
+    if (!digits) {
       setAuthorIdNumberError('');
       return;
     }
-    const res = checkIdNumberAvailable(trimmed, editingAuthor?.id);
+    if (digits.length < 8) {
+      setAuthorIdNumberError('ID нөмірі толық 8 саннан тұруы керек');
+      return;
+    }
+    const res = checkIdNumberAvailable(formatted, editingAuthor?.id);
     if (!res.available) {
       setAuthorIdNumberError(res.error || 'Бұл ID нөмірі бос емес, басқасын таңдаңыз');
     } else {
@@ -1746,6 +1756,8 @@ export const AdminManagersPage: React.FC = () => {
                     </label>
                     <input
                       type="text"
+                      maxLength={9}
+                      placeholder="0000 0002"
                       value={formIdNumber}
                       onChange={(e) => handleIdNumberChange(e.target.value)}
                       style={{
@@ -2342,6 +2354,7 @@ export const AdminManagersPage: React.FC = () => {
                     </label>
                     <input
                       type="text"
+                      maxLength={9}
                       placeholder="0000 0001"
                       value={authorIdNumber}
                       onChange={(e) => handleAuthorIdNumberChange(e.target.value)}

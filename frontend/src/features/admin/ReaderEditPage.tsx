@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useAuthStore, validatePasswordComplexity, generateCompliantPassword } from '../../store/useAuthStore';
+import { useAuthStore, validatePasswordComplexity, generateCompliantPassword, formatIdNumberInput } from '../../store/useAuthStore';
 import { useToastStore } from '../../store/useToastStore';
 import { User } from '../../types';
 import { api } from '../../lib/api';
@@ -136,6 +136,8 @@ export const ReaderEditPage: React.FC = () => {
     checkIdNumberAvailable,
     grantBirthdayGiftManually,
     resetBirthdayGiftHistory,
+    fetchNextAvailableIdNumber,
+    getNextAvailableIdNumber,
   } = useAuthStore();
   const { showToast } = useToastStore();
 
@@ -219,14 +221,33 @@ export const ReaderEditPage: React.FC = () => {
     loadUser();
   }, [id, getUserById]);
 
+  const handleGenerateRandomId = async () => {
+    try {
+      const nextId = await fetchNextAvailableIdNumber();
+      setIdNumber(nextId);
+      setIdNumberError('');
+      showToast('Кездейсоқ ID нөмірі құрастырылды!', 'info');
+    } catch {
+      const nextId = getNextAvailableIdNumber();
+      setIdNumber(nextId);
+      setIdNumberError('');
+      showToast('Кездейсоқ ID нөмірі құрастырылды!', 'info');
+    }
+  };
+
   const handleIdNumberChange = (val: string) => {
-    setIdNumber(val);
-    const trimmed = val.trim();
-    if (!trimmed) {
+    const formatted = formatIdNumberInput(val);
+    setIdNumber(formatted);
+    const digits = formatted.replace(/\D/g, '');
+    if (!digits) {
       setIdNumberError('');
       return;
     }
-    const res = checkIdNumberAvailable(trimmed, id);
+    if (digits.length < 8) {
+      setIdNumberError('ID нөмірі толық 8 саннан тұруы керек');
+      return;
+    }
+    const res = checkIdNumberAvailable(formatted, id);
     if (!res.available) {
       setIdNumberError(res.error || 'Бұл ID нөмірі тіркеліп қойған');
     } else {
@@ -327,6 +348,12 @@ export const ReaderEditPage: React.FC = () => {
 
     // ID Number validation
     if (idNumber.trim()) {
+      const digits = idNumber.replace(/\D/g, '');
+      if (digits.length < 8) {
+        setIdNumberError('ID нөмірі толық 8 саннан тұруы керек');
+        showToast('ID нөмірі толық 8 саннан тұруы керек (мысалы: 0000 5001)', 'error');
+        return;
+      }
       const idCheck = checkIdNumberAvailable(idNumber.trim(), id);
       if (!idCheck.available) {
         setIdNumberError(idCheck.error || 'Бұл ID нөмірі басқа оқырманға тіркелген');
@@ -666,14 +693,32 @@ export const ReaderEditPage: React.FC = () => {
             >
               {/* ID Number */}
               <div className="form-group" style={{ margin: 0 }}>
-                <label className="form-label">
-                  ID нөмірі
-                </label>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                  <label className="form-label" style={{ margin: 0 }}>
+                    ID нөмірі
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleGenerateRandomId}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: 'var(--blue)',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      padding: 0,
+                    }}
+                  >
+                    Авто-құрастыру
+                  </button>
+                </div>
                 <input
                   type="text"
+                  maxLength={9}
                   value={idNumber}
                   onChange={(e) => handleIdNumberChange(e.target.value)}
-                  placeholder="0000 1002"
+                  placeholder="0000 5001"
                   className="form-input"
                   style={{
                     fontFamily: 'monospace',

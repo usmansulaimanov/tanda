@@ -130,6 +130,11 @@ public class UserService {
         // ID number generation or validation
         String idNumber = dto.getIdNumber() != null ? dto.getIdNumber().trim() : null;
         if (idNumber != null && !idNumber.isBlank()) {
+            String digits = idNumber.replaceAll("\\D", "");
+            if (digits.length() != 8) {
+                throw new BadRequestException("ID нөмірі толық 8 саннан тұруы керек (XXXX XXXX)");
+            }
+            idNumber = digits.substring(0, 4) + " " + digits.substring(4);
             if (userRepository.existsByIdNumber(idNumber)) {
                 throw new BadRequestException("Бұл ID нөмірі бос емес");
             }
@@ -228,7 +233,11 @@ public class UserService {
             }
         }
         if (dto.getIdNumber() != null && !dto.getIdNumber().isBlank()) {
-            String newIdNumber = dto.getIdNumber().trim();
+            String digits = dto.getIdNumber().trim().replaceAll("\\D", "");
+            if (digits.length() != 8) {
+                throw new BadRequestException("ID нөмірі толық 8 саннан тұруы керек (XXXX XXXX)");
+            }
+            String newIdNumber = digits.substring(0, 4) + " " + digits.substring(4);
             if (!newIdNumber.equalsIgnoreCase(user.getIdNumber()) && userRepository.existsByIdNumber(newIdNumber)) {
                 throw new BadRequestException("Бұл ID нөмірі бос емес");
             }

@@ -132,6 +132,12 @@ export const generateCompliantPassword = (length = 10): string => {
   return pwd.join('');
 };
 
+export const formatIdNumberInput = (val: string): string => {
+  const digits = val.replace(/\D/g, '').slice(0, 8);
+  if (digits.length <= 4) return digits;
+  return `${digits.slice(0, 4)} ${digits.slice(4)}`;
+};
+
 export const useAuthStore = create<AuthState>()((set, get) => ({
       user: null,
       role: 'client',

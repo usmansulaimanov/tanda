@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuthStore, validatePasswordComplexity, generateCompliantPassword } from '../../store/useAuthStore';
+import { useAuthStore, validatePasswordComplexity, generateCompliantPassword, formatIdNumberInput } from '../../store/useAuthStore';
 import { useToastStore } from '../../store/useToastStore';
 
 const formatKazakhDate = (val: string): string => {
@@ -117,13 +117,18 @@ export const ReaderCreatePage: React.FC = () => {
   };
 
   const handleIdNumberChange = (val: string) => {
-    setIdNumber(val);
-    const trimmed = val.trim();
-    if (!trimmed) {
+    const formatted = formatIdNumberInput(val);
+    setIdNumber(formatted);
+    const digits = formatted.replace(/\D/g, '');
+    if (!digits) {
       setIdNumberError('ID нөмірін енгізіңіз');
       return;
     }
-    const res = checkIdNumberAvailable(trimmed);
+    if (digits.length < 8) {
+      setIdNumberError('ID нөмірі толық 8 саннан тұруы керек');
+      return;
+    }
+    const res = checkIdNumberAvailable(formatted);
     if (!res.available) {
       setIdNumberError(res.error || 'Бұл ID нөмірі тіркеліп қойған');
     } else {
@@ -202,6 +207,12 @@ export const ReaderCreatePage: React.FC = () => {
     if (!idNumber.trim()) {
       setIdNumberError('ID нөмірін енгізіңіз');
       showToast('ID нөмірін енгізіңіз', 'error');
+      return;
+    }
+    const digits = idNumber.replace(/\D/g, '');
+    if (digits.length < 8) {
+      setIdNumberError('ID нөмірі толық 8 саннан тұруы керек');
+      showToast('ID нөмірі толық 8 саннан тұруы керек (мысалы: 0000 5001)', 'error');
       return;
     }
     const idCheck = checkIdNumberAvailable(idNumber.trim());
@@ -447,6 +458,7 @@ export const ReaderCreatePage: React.FC = () => {
                 <input
                   type="text"
                   required
+                  maxLength={9}
                   value={idNumber}
                   onChange={(e) => handleIdNumberChange(e.target.value)}
                   placeholder="0000 5001"
