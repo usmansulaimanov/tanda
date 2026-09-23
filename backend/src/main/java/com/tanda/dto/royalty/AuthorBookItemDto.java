@@ -20,6 +20,7 @@ public class AuthorBookItemDto {
     private Long viewsCount;
     private Long readsCount;
     private Long totalMinutes;
+    private Long totalSeconds;
     private Long savedCount;
     private Boolean hasAudio;
     private String audioUrl;

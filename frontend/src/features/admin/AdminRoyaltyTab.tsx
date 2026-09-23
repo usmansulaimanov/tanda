@@ -887,9 +887,9 @@ export const AdminRoyaltyTab: React.FC = () => {
                       </td>
 
                       <td style={{ padding: '14px', fontWeight: 800, color: 'var(--text-dark)' }}>
-                        {minutes.toLocaleString()} мин
-                        <div style={{ fontSize: '11px', color: 'var(--text-mid)', fontWeight: 500 }}>
-                          ≈ {(minutes / 60).toFixed(1)} сағат
+                        <div>{minutes.toLocaleString('ru-RU')} мин</div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-mid)', fontWeight: 600, marginTop: '2px' }}>
+                          🕒 {(minutes / 60).toFixed(1)} сағ • ⏱ {(minutes * 60).toLocaleString('ru-RU')} сек
                         </div>
                       </td>
 

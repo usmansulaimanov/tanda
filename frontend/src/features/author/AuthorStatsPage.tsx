@@ -13,6 +13,32 @@ interface PeakDayInfo {
   minutes: number;
 }
 
+export interface FormattedListeningTime {
+  seconds: number;
+  minutes: number;
+  hours: number;
+  secondsFormatted: string;
+  minutesFormatted: string;
+  hoursFormatted: string;
+  compositeFormatted: string;
+}
+
+export const formatListeningTime = (totalSecInput: number | undefined | null): FormattedListeningTime => {
+  const sec = Math.max(0, Math.round(totalSecInput || 0));
+  const min = Math.floor(sec / 60);
+  const hrs = Number((sec / 3600).toFixed(1));
+
+  return {
+    seconds: sec,
+    minutes: min,
+    hours: hrs,
+    secondsFormatted: `${sec.toLocaleString('ru-RU')} сек`,
+    minutesFormatted: `${min.toLocaleString('ru-RU')} мин`,
+    hoursFormatted: `${hrs} сағ`,
+    compositeFormatted: `${hrs} сағ • ${min.toLocaleString('ru-RU')} мин • ${sec.toLocaleString('ru-RU')} сек`,
+  };
+};
+
 const formatNumberWithSpaces = (val: number | string): string => {
   if (val === '' || val === null || val === undefined) return '';
   const digits = String(val).replace(/\D/g, '');
@@ -530,16 +556,11 @@ export const AuthorStatsPage: React.FC = () => {
             <div style={{ background: 'rgba(255,255,255,0.12)', borderRadius: '16px', padding: '16px 20px' }}>
               <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)', fontWeight: 600 }}>Нақты тыңдалған уақыт</div>
               <div style={{ fontSize: '24px', fontWeight: 900, marginTop: '4px' }}>
-                {royalty.totalSeconds >= 60
-                  ? `${Math.floor(royalty.totalSeconds / 60)} мин`
-                  : royalty.totalSeconds > 0
-                  ? `${royalty.totalSeconds} сек`
-                  : '0 мин'}
+                {formatListeningTime(royalty.totalSeconds).minutesFormatted}
               </div>
-              <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.7)', marginTop: '2px' }}>
-                {royalty.totalSeconds >= 3600
-                  ? `≈ ${(royalty.totalSeconds / 3600).toFixed(1)} сағат (${royalty.totalSeconds} сек)`
-                  : `${royalty.totalSeconds} секунд`}
+              <div style={{ fontSize: '11.5px', color: 'rgba(255,255,255,0.85)', marginTop: '4px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                <span>🕒 {formatListeningTime(royalty.totalSeconds).hoursFormatted} ({formatListeningTime(royalty.totalSeconds).hours} сағат)</span>
+                <span>⏱️ {formatListeningTime(royalty.totalSeconds).secondsFormatted}</span>
               </div>
             </div>
 
@@ -676,10 +697,10 @@ export const AuthorStatsPage: React.FC = () => {
               <div style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-dark)' }}>
                 {dailyAnalytics.peakDay ? (dailyAnalytics.peakDay as PeakDayInfo).label : 'Әлі тыңдалмады'}
               </div>
-              <div style={{ fontSize: '12px', fontWeight: 500, color: '#64748B', marginTop: '4px' }}>
+              <div style={{ fontSize: '12px', fontWeight: 600, color: '#005494', marginTop: '4px' }}>
                 {dailyAnalytics.peakDay
-                  ? `${dailyAnalytics.peakMinutes > 0 ? `${dailyAnalytics.peakMinutes} минут` : `${dailyAnalytics.peakSeconds} секунд`}`
-                  : '0 минут'}
+                  ? formatListeningTime(dailyAnalytics.peakSeconds || (dailyAnalytics.peakMinutes * 60)).compositeFormatted
+                  : '0 сағ • 0 мин • 0 сек'}
               </div>
             </div>
 
@@ -698,6 +719,9 @@ export const AuthorStatsPage: React.FC = () => {
               <div style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-dark)' }}>
                 {dailyAnalytics.totalListenedDays} күн
               </div>
+              <div style={{ fontSize: '12px', fontWeight: 600, color: '#64748B', marginTop: '4px' }}>
+                {selectedMonthKey ? `${formatMonthLabel(selectedMonthKey)} бойынша` : ''}
+              </div>
             </div>
 
             {/* Average Daily Card */}
@@ -712,14 +736,21 @@ export const AuthorStatsPage: React.FC = () => {
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                 <span style={{ fontSize: '13px', fontWeight: 700, color: '#64748B' }}>Орташа күнделікті уақыт</span>
               </div>
-              <div style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-dark)' }}>
-                {(() => {
-                  const activeDays = dailyAnalytics.totalListenedDays;
-                  if (activeDays === 0 || royalty.totalSeconds === 0) return '0 мин';
-                  const avg = Number((Math.floor(royalty.totalSeconds / 60) / activeDays).toFixed(1));
-                  return `${avg} мин`;
-                })()}
-              </div>
+              {(() => {
+                const activeDays = dailyAnalytics.totalListenedDays;
+                const avgSec = activeDays > 0 ? Math.round(royalty.totalSeconds / activeDays) : 0;
+                const avgTime = formatListeningTime(avgSec);
+                return (
+                  <>
+                    <div style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-dark)' }}>
+                      {avgTime.minutesFormatted}
+                    </div>
+                    <div style={{ fontSize: '12px', fontWeight: 600, color: '#64748B', marginTop: '4px' }}>
+                      {avgTime.hoursFormatted} • {avgTime.secondsFormatted}
+                    </div>
+                  </>
+                );
+              })()}
             </div>
           </div>
 
@@ -750,6 +781,7 @@ export const AuthorStatsPage: React.FC = () => {
                   const heightPercent = dailyAnalytics.maxSecInPeriod > 0
                     ? Math.max(6, Math.round((day.seconds / dailyAnalytics.maxSecInPeriod) * 75))
                     : 6;
+                  const dayTime = formatListeningTime(day.seconds);
 
                   return (
                     <div
@@ -762,7 +794,7 @@ export const AuthorStatsPage: React.FC = () => {
                         justifyContent: 'flex-end',
                         position: 'relative',
                       }}
-                      title={`${day.label}: ${day.minutes > 0 ? `${day.minutes} мин` : `${day.seconds} сек`}`}
+                      title={`${day.label}: ${dayTime.hoursFormatted} | ${dayTime.minutesFormatted} | ${dayTime.secondsFormatted}`}
                     >
                       {/* Bar */}
                       <div
@@ -821,8 +853,6 @@ export const AuthorStatsPage: React.FC = () => {
           </div>
         </div>
 
-
-
         {/* 6. Book-by-Book Breakdown Table */}
         <div
           style={{
@@ -859,10 +889,10 @@ export const AuthorStatsPage: React.FC = () => {
                 </thead>
                 <tbody>
                   {authorBooks.map((book) => {
-                    const authorBookStat = currentAuthorStats?.authorBooks?.find((ab: any) => ab.id === book.id);
-                    const trackedMin = authorBookStat?.totalMinutes || 0;
-                    const displayTime = trackedMin > 0 ? `${trackedMin} мин` : '0 мин';
-                    const share = royalty.totalMinutes > 0 ? Math.round((trackedMin / royalty.totalMinutes) * 100) : 0;
+                    const authorBookStat = currentAuthorStats?.authorBooks?.find((ab: any) => ab.id === book.id || ab.bookId === book.id);
+                    const trackedSec = authorBookStat?.totalSeconds ?? ((authorBookStat?.totalMinutes ?? 0) * 60);
+                    const bookTime = formatListeningTime(trackedSec);
+                    const share = royalty.totalMinutes > 0 ? Math.round((bookTime.minutes / royalty.totalMinutes) * 100) : 0;
 
                     return (
                       <tr key={book.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
@@ -905,9 +935,9 @@ export const AuthorStatsPage: React.FC = () => {
                         </td>
 
                         <td style={{ padding: '14px', fontWeight: 800, color: '#2563EB' }}>
-                          {displayTime}
-                          <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 500 }}>
-                            {trackedMin * 60} секунд
+                          <div>{bookTime.minutesFormatted}</div>
+                          <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600, marginTop: '2px' }}>
+                            ⏱ {bookTime.secondsFormatted} • 🕒 {bookTime.hoursFormatted}
                           </div>
                         </td>
 

@@ -476,6 +476,7 @@ public class RoyaltyService {
                 .viewsCount(0L)
                 .readsCount(0L)
                 .totalMinutes(bookMinutesMap.getOrDefault(b.getId(), 0L))
+                .totalSeconds(bookSecondsMap.getOrDefault(b.getId(), 0L))
                 .savedCount(0L)
                 .hasAudio(Boolean.TRUE.equals(b.getHasAudio()) || (b.getAudioUrl() != null && !b.getAudioUrl().isBlank()))
                 .audioUrl(b.getAudioUrl())
