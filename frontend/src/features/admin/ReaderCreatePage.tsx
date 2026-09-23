@@ -62,12 +62,13 @@ const getPhoneNationalDigitsCount = (val: string): number => {
 
 export const ReaderCreatePage: React.FC = () => {
   const navigate = useNavigate();
-  const { createReaderByAdmin, checkUsernameAvailable, checkIdNumberAvailable, getNextAvailableIdNumber, fetchNextAvailableIdNumber } = useAuthStore();
+  const { createReaderByAdmin, checkUsernameAvailable, checkIdNumberAvailable, checkEmailAvailable, getNextAvailableIdNumber, fetchNextAvailableIdNumber } = useAuthStore();
   const { showToast } = useToastStore();
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
+  const [emailError, setEmailError] = useState('');
   const [birthDate, setBirthDate] = useState('');
   const datePickerInputRef = useRef<HTMLInputElement>(null);
   const [password, setPassword] = useState('');
@@ -136,6 +137,25 @@ export const ReaderCreatePage: React.FC = () => {
     }
   };
 
+  const handleEmailChange = (val: string) => {
+    setEmail(val);
+    const trimmed = val.trim();
+    if (!trimmed) {
+      setEmailError('Электронды поштасын енгізіңіз');
+      return;
+    }
+    if (!trimmed.includes('@') || !trimmed.includes('.')) {
+      setEmailError('Жарамды электронды пошта енгізіңіз');
+      return;
+    }
+    const res = checkEmailAvailable(trimmed);
+    if (!res.available) {
+      setEmailError(res.error || 'Бұл электронды пошта жүйеде тіркеліп қойған');
+    } else {
+      setEmailError('');
+    }
+  };
+
   const handlePhoneChange = (val: string) => {
     const formatted = formatPhoneNumber(val);
     setPhone(formatted);
@@ -190,7 +210,14 @@ export const ReaderCreatePage: React.FC = () => {
     const fullName = [firstName.trim(), lastName.trim()].filter(Boolean).join(' ');
 
     if (!email.trim()) {
+      setEmailError('Электронды поштасын енгізіңіз');
       showToast('Электронды поштасын енгізіңіз', 'error');
+      return;
+    }
+    const emailCheck = checkEmailAvailable(email.trim());
+    if (!emailCheck.available) {
+      setEmailError(emailCheck.error || 'Бұл электронды пошта жүйеде тіркеліп қойған');
+      showToast(emailCheck.error || 'Бұл электронды пошта жүйеде тіркеліп қойған', 'error');
       return;
     }
     if (!password.trim()) {
@@ -268,7 +295,15 @@ export const ReaderCreatePage: React.FC = () => {
         showToast(`Жаңа оқырман «${fullName}» сәтті тіркелді! Оқырман өз деректерімен жүйеге кіре алады.`, 'success');
         navigate('/admin/readers');
       } else {
-        showToast(res.error || 'Оқырманды тіркеу кезінде қате орын алды', 'error');
+        const errMsg = res.error || 'Оқырманды тіркеу кезінде қате орын алды';
+        if (errMsg.toLowerCase().includes('пошта') || errMsg.toLowerCase().includes('email')) {
+          setEmailError(errMsg);
+        } else if (errMsg.toLowerCase().includes('юзернейм') || errMsg.toLowerCase().includes('username')) {
+          setUsernameError(errMsg);
+        } else if (errMsg.toLowerCase().includes('id')) {
+          setIdNumberError(errMsg);
+        }
+        showToast(errMsg, 'error');
       }
     } catch {
       showToast('Оқырманды тіркеу сәтсіз аяқталды', 'error');
@@ -486,10 +521,19 @@ export const ReaderCreatePage: React.FC = () => {
                   type="email"
                   required
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => handleEmailChange(e.target.value)}
                   placeholder="example@gmail.com"
                   className="form-input"
+                  style={{
+                    borderColor: emailError ? '#DC2626' : undefined,
+                    boxShadow: emailError ? '0 0 0 3px rgba(220, 38, 38, 0.12)' : undefined,
+                  }}
                 />
+                {emailError && (
+                  <span style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#DC2626', marginTop: '6px' }}>
+                    {emailError}
+                  </span>
+                )}
               </div>
             </div>
 

@@ -55,6 +55,8 @@ export const AdminManagersPage: React.FC = () => {
     getAllManagers,
     getAllAuthors,
     checkIdNumberAvailable,
+    checkEmailAvailable,
+    getNextAvailableIdNumber,
     createManagerByAdmin,
     updateManagerPermissions,
     deleteManager,
@@ -138,6 +140,7 @@ export const AdminManagersPage: React.FC = () => {
   const [authorName, setAuthorName] = useState('');
   const [authorAssignedName, setAuthorAssignedName] = useState('');
   const [authorEmail, setAuthorEmail] = useState('');
+  const [authorEmailError, setAuthorEmailError] = useState('');
   const [authorPhone, setAuthorPhone] = useState('');
   const [authorPassword, setAuthorPassword] = useState('');
   const [showAuthorPassword, setShowAuthorPassword] = useState(false);
@@ -422,10 +425,15 @@ export const AdminManagersPage: React.FC = () => {
     setAuthorName('');
     setAuthorAssignedName('');
     setAuthorEmail('');
+    setAuthorEmailError('');
     setAuthorPhone('');
     setAuthorPassword('');
     setShowAuthorPassword(false);
-    setAuthorIdNumber('');
+    try {
+      setAuthorIdNumber(getNextAvailableIdNumber());
+    } catch {
+      setAuthorIdNumber('0000 5001');
+    }
     setAuthorIdNumberError('');
     setAuthorAvatarUrl(DEFAULT_MANAGER_AVATAR);
     setAuthorAssignedBookIds([]);
@@ -440,6 +448,7 @@ export const AdminManagersPage: React.FC = () => {
     setAuthorName(aut.name);
     setAuthorAssignedName(aut.assignedAuthorName || aut.name);
     setAuthorEmail(aut.email);
+    setAuthorEmailError('');
     setAuthorPhone(formatPhoneNumber(aut.phone || ''));
     setAuthorPassword(aut.password || '');
     setShowAuthorPassword(false);
@@ -462,6 +471,25 @@ export const AdminManagersPage: React.FC = () => {
       }
     }
   }, [editAuthorIdParam, authors]);
+
+  const handleAuthorEmailChange = (val: string) => {
+    setAuthorEmail(val);
+    const trimmed = val.trim();
+    if (!trimmed) {
+      setAuthorEmailError('');
+      return;
+    }
+    if (!trimmed.includes('@') || !trimmed.includes('.')) {
+      setAuthorEmailError('Жарамды электронды пошта енгізіңіз');
+      return;
+    }
+    const res = checkEmailAvailable(trimmed, editingAuthor?.id);
+    if (!res.available) {
+      setAuthorEmailError(res.error || 'Бұл электронды пошта жүйеде тіркеліп қойған');
+    } else {
+      setAuthorEmailError('');
+    }
+  };
 
   const handleAuthorIdNumberChange = (val: string) => {
     const formatted = formatIdNumberInput(val);
@@ -525,7 +553,14 @@ export const AdminManagersPage: React.FC = () => {
       return;
     }
     if (!authorEmail.trim() || !authorEmail.includes('@')) {
+      setAuthorEmailError('Жарамды электронды пошта енгізіңіз');
       showToast('Жарамды электронды пошта енгізіңіз', 'error');
+      return;
+    }
+    const emailCheck = checkEmailAvailable(authorEmail.trim(), editingAuthor?.id);
+    if (!emailCheck.available) {
+      setAuthorEmailError(emailCheck.error || 'Бұл электронды пошта жүйеде тіркеліп қойған');
+      showToast(emailCheck.error || 'Бұл электронды пошта жүйеде тіркеліп қойған', 'error');
       return;
     }
     if (authorIdNumber.trim()) {
@@ -556,7 +591,13 @@ export const AdminManagersPage: React.FC = () => {
           setIsAuthorModalOpen(false);
           refreshList();
         } else {
-          showToast(res.error || 'Қате орын алды', 'error');
+          const errMsg = res.error || 'Қате орын алды';
+          if (errMsg.toLowerCase().includes('пошта') || errMsg.toLowerCase().includes('email')) {
+            setAuthorEmailError(errMsg);
+          } else if (errMsg.toLowerCase().includes('id')) {
+            setAuthorIdNumberError(errMsg);
+          }
+          showToast(errMsg, 'error');
         }
       } else {
         const res = await createAuthorByAdmin({
@@ -574,7 +615,13 @@ export const AdminManagersPage: React.FC = () => {
           setIsAuthorModalOpen(false);
           refreshList();
         } else {
-          showToast(res.error || 'Қате орын алды', 'error');
+          const errMsg = res.error || 'Қате орын алды';
+          if (errMsg.toLowerCase().includes('пошта') || errMsg.toLowerCase().includes('email')) {
+            setAuthorEmailError(errMsg);
+          } else if (errMsg.toLowerCase().includes('id')) {
+            setAuthorIdNumberError(errMsg);
+          }
+          showToast(errMsg, 'error');
         }
       }
     } finally {
@@ -2232,17 +2279,23 @@ export const AdminManagersPage: React.FC = () => {
                       required
                       placeholder="author@example.com"
                       value={authorEmail}
-                      onChange={(e) => setAuthorEmail(e.target.value)}
+                      onChange={(e) => handleAuthorEmailChange(e.target.value)}
                       style={{
                         width: '100%',
                         padding: '11px 14px',
                         borderRadius: '10px',
-                        border: '1.5px solid #CBD5E1',
+                        border: authorEmailError ? '1.5px solid #DC2626' : '1.5px solid #CBD5E1',
+                        boxShadow: authorEmailError ? '0 0 0 3px rgba(220, 38, 38, 0.12)' : 'none',
                         fontSize: '14px',
                         outline: 'none',
                         boxSizing: 'border-box',
                       }}
                     />
+                    {authorEmailError && (
+                      <div style={{ color: '#DC2626', fontSize: '12px', marginTop: '4px', fontWeight: 600 }}>
+                        {authorEmailError}
+                      </div>
+                    )}
                   </div>
 
                   <div>

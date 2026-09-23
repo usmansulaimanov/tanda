@@ -134,6 +134,7 @@ export const ReaderEditPage: React.FC = () => {
     updateUserByAdmin,
     checkUsernameAvailable,
     checkIdNumberAvailable,
+    checkEmailAvailable,
     grantBirthdayGiftManually,
     resetBirthdayGiftHistory,
     fetchNextAvailableIdNumber,
@@ -147,6 +148,7 @@ export const ReaderEditPage: React.FC = () => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
+  const [emailError, setEmailError] = useState('');
   const [birthDate, setBirthDate] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -255,6 +257,25 @@ export const ReaderEditPage: React.FC = () => {
     }
   };
 
+  const handleEmailChange = (val: string) => {
+    setEmail(val);
+    const trimmed = val.trim();
+    if (!trimmed) {
+      setEmailError('Электронды поштасын енгізіңіз');
+      return;
+    }
+    if (!trimmed.includes('@') || !trimmed.includes('.')) {
+      setEmailError('Жарамды электронды пошта енгізіңіз');
+      return;
+    }
+    const res = checkEmailAvailable(trimmed, id);
+    if (!res.available) {
+      setEmailError(res.error || 'Бұл электронды пошта жүйеде тіркеліп қойған');
+    } else {
+      setEmailError('');
+    }
+  };
+
   const handlePhoneChange = (val: string) => {
     const formatted = formatPhoneNumber(val);
     setPhone(formatted);
@@ -334,7 +355,14 @@ export const ReaderEditPage: React.FC = () => {
     const fullName = [firstName.trim(), lastName.trim()].filter(Boolean).join(' ');
 
     if (!email.trim()) {
+      setEmailError('Электронды поштасын енгізіңіз');
       showToast('Электронды поштасын енгізіңіз', 'error');
+      return;
+    }
+    const emailCheck = checkEmailAvailable(email.trim(), id);
+    if (!emailCheck.available) {
+      setEmailError(emailCheck.error || 'Бұл электронды пошта жүйеде тіркеліп қойған');
+      showToast(emailCheck.error || 'Бұл электронды пошта жүйеде тіркеліп қойған', 'error');
       return;
     }
 
@@ -408,7 +436,15 @@ export const ReaderEditPage: React.FC = () => {
         showToast('Оқырман мәліметтері сәтті сақталды!', 'success');
         navigate('/admin/readers');
       } else {
-        showToast(res.error || 'Сақтау кезінде қате орын алды', 'error');
+        const errMsg = res.error || 'Сақтау кезінде қате орын алды';
+        if (errMsg.toLowerCase().includes('пошта') || errMsg.toLowerCase().includes('email')) {
+          setEmailError(errMsg);
+        } else if (errMsg.toLowerCase().includes('юзернейм') || errMsg.toLowerCase().includes('username')) {
+          setUsernameError(errMsg);
+        } else if (errMsg.toLowerCase().includes('id')) {
+          setIdNumberError(errMsg);
+        }
+        showToast(errMsg, 'error');
       }
     } catch {
       showToast('Оқырман мәліметтерін сақтау сәтсіз аяқталды', 'error');
@@ -743,10 +779,19 @@ export const ReaderEditPage: React.FC = () => {
                   type="email"
                   required
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => handleEmailChange(e.target.value)}
                   placeholder="reader@tanda.kz"
                   className="form-input"
+                  style={{
+                    borderColor: emailError ? '#DC2626' : undefined,
+                    boxShadow: emailError ? '0 0 0 3px rgba(220, 38, 38, 0.12)' : undefined,
+                  }}
                 />
+                {emailError && (
+                  <span style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#DC2626', marginTop: '6px' }}>
+                    {emailError}
+                  </span>
+                )}
               </div>
             </div>
 

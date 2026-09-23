@@ -40,6 +40,7 @@ interface AuthState {
   getClientsCount: () => number;
   checkUsernameAvailable: (username: string, excludeUserId?: string) => { available: boolean; error?: string };
   checkIdNumberAvailable: (idNumber: string, excludeUserId?: string) => { available: boolean; error?: string };
+  checkEmailAvailable: (email: string, excludeUserId?: string) => { available: boolean; error?: string };
   getNextAvailableIdNumber: () => string;
   fetchNextAvailableIdNumber: () => Promise<string>;
 
@@ -377,6 +378,29 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
           return {
             available: false,
             error: `Бұл ID нөмірі (${trimmed}) тіркеліп қойған (${conflict.name || conflict.email})`,
+          };
+        }
+
+        return { available: true };
+      },
+
+      checkEmailAvailable: (email: string, excludeUserId?: string) => {
+        const trimmed = email.trim().toLowerCase();
+        if (!trimmed) {
+          return { available: false, error: 'Электронды поштасын енгізіңіз' };
+        }
+        if (!trimmed.includes('@') || !trimmed.includes('.')) {
+          return { available: false, error: 'Жарамды электронды пошта енгізіңіз' };
+        }
+        const allKnown = [...get().clients, ...get().managers, ...get().authors];
+        const conflict = allKnown.find(
+          (u) => u.id !== excludeUserId && (u as any).authorId !== excludeUserId && u.email && u.email.trim().toLowerCase() === trimmed
+        );
+
+        if (conflict) {
+          return {
+            available: false,
+            error: `Бұл электронды пошта жүйеде тіркеліп қойған (${conflict.name || conflict.email})`,
           };
         }
 
