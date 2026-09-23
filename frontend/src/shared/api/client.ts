@@ -27,6 +27,18 @@ export const apiClient = axios.create({
 
 // Request interceptor: attach token
 apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+  // Do not attach token to public auth endpoints
+  const isAuthEndpoint =
+    config.url?.includes('/auth/login') ||
+    config.url?.includes('/auth/register') ||
+    config.url?.includes('/auth/google') ||
+    config.url?.includes('/auth/refresh') ||
+    config.url?.includes('/auth/send-verification-code');
+
+  if (isAuthEndpoint) {
+    return config;
+  }
+
   const token = localStorage.getItem('tanda_token');
   if (token && config.headers) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -44,12 +56,15 @@ apiClient.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    // Do not retry refresh or login/register endpoint failures
-    if (
+    // Do not retry refresh, login, register, google auth, or verification code failures
+    const isAuthEndpoint =
       originalRequest.url?.includes('/auth/refresh') ||
       originalRequest.url?.includes('/auth/login') ||
-      originalRequest.url?.includes('/auth/register')
-    ) {
+      originalRequest.url?.includes('/auth/register') ||
+      originalRequest.url?.includes('/auth/google') ||
+      originalRequest.url?.includes('/auth/send-verification-code');
+
+    if (isAuthEndpoint) {
       return Promise.reject(error);
     }
 

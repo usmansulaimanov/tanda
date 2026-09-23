@@ -21,3 +21,6 @@ app:
       - https://www.tanda.kz
       - https://usmansulaimanov.github.io
       - https://tanda-xi.vercel.app
+
+google:
+  client-id: ${GOOGLE_CLIENT_ID:470329734598-c32dk937vu2hgkbvblqjuvi43noc1mu9.apps.googleusercontent.com}

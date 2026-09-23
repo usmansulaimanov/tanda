@@ -102,6 +102,15 @@ public class AuthService {
             if (user.getAuthProvider() == null) {
                 user.setAuthProvider("GOOGLE");
             }
+            if (user.getRole() == null) {
+                user.setRole("client");
+            }
+            if (user.getIsActive() == null) {
+                user.setIsActive(true);
+            }
+            if (user.getIsBlocked() == null) {
+                user.setIsBlocked(false);
+            }
             log.info("Google арқылы кіру: {}", email);
         }
 

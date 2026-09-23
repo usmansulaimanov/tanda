@@ -11,7 +11,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 @Component
 @RequiredArgsConstructor
@@ -20,19 +21,31 @@ public class GoogleTokenVerifier {
 
     private final GoogleOAuthProperties googleProps;
     private GoogleIdTokenVerifier verifier;
+    private final Set<String> allowedAudiences = new HashSet<>();
 
     @PostConstruct
     public void init() {
+        // Support all known Google Client IDs for Tanda (current, legacy, or configured)
+        allowedAudiences.add("470329734598-c32dk937vu2hgkbvblqjuvi43noc1mu9.apps.googleusercontent.com");
+        allowedAudiences.add("249161344734-j51fft6shbogf2clnrhofn3l0c1euihl.apps.googleusercontent.com");
+
         String clientId = googleProps.getClientId();
+        if (clientId != null && !clientId.isBlank()) {
+            for (String id : clientId.split("[,;\\s]+")) {
+                if (!id.isBlank()) {
+                    allowedAudiences.add(id.trim());
+                }
+            }
+        }
+
+        log.info("Initialized GoogleTokenVerifier with allowed audiences: {}", allowedAudiences);
+
         GoogleIdTokenVerifier.Builder builder = new GoogleIdTokenVerifier.Builder(
                 new NetHttpTransport(),
                 GsonFactory.getDefaultInstance()
         );
 
-        if (clientId != null && !clientId.isBlank()) {
-            builder.setAudience(Collections.singletonList(clientId.trim()));
-        }
-
+        builder.setAudience(allowedAudiences);
         this.verifier = builder.build();
     }
 
@@ -51,7 +64,16 @@ public class GoogleTokenVerifier {
         try {
             GoogleIdToken token = verifier.verify(idToken.trim());
             if (token == null) {
-                log.warn("Google token verification returned null for token");
+                try {
+                    GoogleIdToken parsed = GoogleIdToken.parse(GsonFactory.getDefaultInstance(), idToken.trim());
+                    if (parsed != null && parsed.getPayload() != null) {
+                        var p = parsed.getPayload();
+                        log.warn("Google token verification returned null! aud={}, iss={}, exp={}, email={}. Allowed audiences: {}",
+                                p.getAudience(), p.getIssuer(), p.getExpirationTimeSeconds(), p.getEmail(), allowedAudiences);
+                    }
+                } catch (Exception ex) {
+                    log.warn("Failed to parse rejected Google token for diagnostics: {}", ex.getMessage());
+                }
                 throw new BadCredentialsException("Жарамсыз немесе мерзімі өтіп кеткен Google токені");
             }
             return token.getPayload();
