@@ -402,4 +402,32 @@ class AuthServiceTest {
                 authService.changePassword("user-with-pass", badRequest)
         );
     }
+
+    @Test
+    @DisplayName("login() with old admin@tanda.kz rejects and does not overwrite admin's customized email")
+    void loginWithOldAdminEmailRejectsAfterEmailUpdate() {
+        User updatedAdmin = User.builder()
+                .id("admin-1")
+                .idNumber("000 001")
+                .name("Әкімші")
+                .email("usman.custom@gmail.com") // customized email
+                .passwordHash(passwordEncoder.encode("admin123"))
+                .role("admin")
+                .isActive(true)
+                .build();
+
+        when(userRepository.findById("admin-1")).thenReturn(Optional.of(updatedAdmin));
+
+        LoginRequestDto oldEmailLogin = LoginRequestDto.builder()
+                .email("admin@tanda.kz")
+                .password("admin123")
+                .build();
+
+        BadCredentialsException ex = assertThrows(BadCredentialsException.class, () ->
+                authService.login(oldEmailLogin, "Agent", "127.0.0.1")
+        );
+        assertTrue(ex.getMessage().contains("жаңа поштаңызды енгізіңіз"));
+        verify(userRepository, never()).save(any());
+        assertEquals("usman.custom@gmail.com", updatedAdmin.getEmail());
+    }
 }

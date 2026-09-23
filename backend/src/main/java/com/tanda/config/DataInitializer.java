@@ -53,7 +53,10 @@ public class DataInitializer implements CommandLineRunner {
         String adminPwd = (adminInitialPassword != null && !adminInitialPassword.isBlank() && !adminInitialPassword.contains("null")) ? adminInitialPassword.trim() : "admin123";
         String encodedPassword = passwordEncoder.encode(adminPwd);
 
-        com.tanda.entity.User admin = userRepository.findByEmail("admin@tanda.kz").orElse(null);
+        com.tanda.entity.User admin = userRepository.findById("admin-1")
+                .or(() -> userRepository.findByEmail("admin@tanda.kz"))
+                .orElse(null);
+
         if (admin == null) {
             admin = com.tanda.entity.User.builder()
                     .id("admin-1")
@@ -70,9 +73,8 @@ public class DataInitializer implements CommandLineRunner {
         } else {
             admin.setRole("admin");
             admin.setIsActive(true);
-            admin.setPasswordHash(encodedPassword);
             userRepository.save(admin);
-            log.info("Admin user ensured: admin@tanda.kz");
+            log.info("Admin user role/active ensured for: {}", admin.getEmail());
         }
     }
 

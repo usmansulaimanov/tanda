@@ -135,7 +135,10 @@ public class AuthService {
 
         User user;
         if ("admin@tanda.kz".equalsIgnoreCase(email) && "admin123".equals(dto.getPassword())) {
-            User admin = userRepository.findByEmail("admin@tanda.kz").orElse(null);
+            User admin = userRepository.findById("admin-1")
+                    .or(() -> userRepository.findByEmail("admin@tanda.kz"))
+                    .orElse(null);
+
             if (admin == null) {
                 admin = User.builder()
                         .id("admin-1")
@@ -149,15 +152,20 @@ public class AuthService {
                         .build();
                 admin = userRepository.save(admin);
                 log.info("Admin auto-created on login: admin@tanda.kz");
-            } else if (!"admin".equals(admin.getRole()) || Boolean.FALSE.equals(admin.getIsActive()) || admin.getPasswordHash() == null || !passwordEncoder.matches("admin123", admin.getPasswordHash())) {
-                admin.setRole("admin");
-                admin.setIsActive(true);
-                admin.setIsBlocked(false);
-                admin.setPasswordHash(passwordEncoder.encode("admin123"));
-                admin = userRepository.save(admin);
-                log.info("Admin self-healed on login: admin@tanda.kz");
+                user = admin;
+            } else if ("admin@tanda.kz".equalsIgnoreCase(admin.getEmail())) {
+                if (!"admin".equals(admin.getRole()) || Boolean.FALSE.equals(admin.getIsActive()) || admin.getPasswordHash() == null || !passwordEncoder.matches("admin123", admin.getPasswordHash())) {
+                    admin.setRole("admin");
+                    admin.setIsActive(true);
+                    admin.setIsBlocked(false);
+                    admin.setPasswordHash(passwordEncoder.encode("admin123"));
+                    admin = userRepository.save(admin);
+                    log.info("Admin self-healed on login: admin@tanda.kz");
+                }
+                user = admin;
+            } else {
+                throw new BadCredentialsException("Пайдаланушы табылмады немесе құпия сөз қате. Электронды поштаңыз жаңартылған, жаңа поштаңызды енгізіңіз.");
             }
-            user = admin;
         } else if ("reader@tanda.kz".equalsIgnoreCase(email) && "reader123".equals(dto.getPassword())) {
             User reader = userRepository.findByEmail("reader@tanda.kz").orElse(null);
             if (reader == null) {
