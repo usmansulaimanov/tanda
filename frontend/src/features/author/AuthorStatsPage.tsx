@@ -81,12 +81,7 @@ export const AuthorStatsPage: React.FC = () => {
   } = useAuthStore();
   const { books } = useBookStore();
   const { showToast } = useToastStore();
-  const { fetchAuthorStats, requestPayout, authorStatsCache, authorBalances } = useRoyaltyStore();
-
-  const [isPayoutModalOpen, setIsPayoutModalOpen] = useState(false);
-  const [payoutAmount, setPayoutAmount] = useState('');
-  const [payoutMethod, setPayoutMethod] = useState('Kaspi Gold');
-  const [payoutAccount, setPayoutAccount] = useState('');
+  const { fetchAuthorStats, authorStatsCache, authorBalances } = useRoyaltyStore();
 
   // Selected month for chart (YYYY-MM), defaults to current month
   const [selectedMonthKey, setSelectedMonthKey] = useState<string>(() => {
@@ -633,33 +628,6 @@ export const AuthorStatsPage: React.FC = () => {
                 </h2>
               </div>
             </div>
-
-            {currentUser.id === targetAuthor.id && (
-              <button
-                type="button"
-                onClick={() => setIsPayoutModalOpen(true)}
-                style={{
-                  padding: '11px 22px',
-                  borderRadius: '50px',
-                  border: 'none',
-                  background: 'var(--orange)',
-                  color: '#FFFFFF',
-                  fontSize: '13.5px',
-                  fontWeight: 800,
-                  cursor: 'pointer',
-                  boxShadow: '0 6px 20px rgba(239, 126, 0, 0.4)',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                }}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <rect x="2" y="5" width="20" height="14" rx="2"></rect>
-                  <line x1="2" y1="10" x2="22" y2="10"></line>
-                </svg>
-                Ақшаны шығару
-              </button>
-            )}
           </div>
 
           <div
@@ -718,7 +686,7 @@ export const AuthorStatsPage: React.FC = () => {
                 {Number((royalty.currentBalance || 0).toFixed(2)).toLocaleString()} ₸
               </div>
               <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.8)', marginTop: '2px' }}>
-                Шығарып алуға дайын
+                Жалпы жинақталған баланс
               </div>
             </div>
           </div>
@@ -1085,212 +1053,6 @@ export const AuthorStatsPage: React.FC = () => {
             </div>
           )}
         </div>
-
-        {/* 8. Payout Request Modal */}
-        {isPayoutModalOpen && (
-          <div
-            style={{
-              position: 'fixed',
-              inset: 0,
-              zIndex: 1000,
-              background: 'rgba(0, 20, 45, 0.65)',
-              backdropFilter: 'blur(6px)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '20px',
-            }}
-            onClick={() => setIsPayoutModalOpen(false)}
-          >
-            <div
-              style={{
-                background: '#FFFFFF',
-                borderRadius: '24px',
-                width: '100%',
-                maxWidth: '480px',
-                boxShadow: '0 24px 60px rgba(0, 0, 0, 0.3)',
-                padding: '32px',
-                position: 'relative',
-              }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <h3 style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
-                  Қаражатты шығару
-                </h3>
-                <button
-                  type="button"
-                  onClick={() => setIsPayoutModalOpen(false)}
-                  style={{
-                    background: '#F1F5F9',
-                    border: 'none',
-                    borderRadius: '50%',
-                    width: '34px',
-                    height: '34px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    color: '#64748B',
-                  }}
-                >
-                  ✕
-                </button>
-              </div>
-
-              <div
-                style={{
-                  background: '#F8FAFC',
-                  borderRadius: '14px',
-                  padding: '14px 18px',
-                  border: '1px solid #E2E8F0',
-                  marginBottom: '20px',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                }}
-              >
-                <span style={{ fontSize: '13px', color: '#64748B', fontWeight: 600 }}>Қолжетімді баланс:</span>
-                <span style={{ fontSize: '18px', fontWeight: 900, color: '#16A34A' }}>
-                  {royalty.currentBalance.toLocaleString()} ₸
-                </span>
-              </div>
-
-              <form
-                onSubmit={async (e) => {
-                  e.preventDefault();
-                  const amt = Number(payoutAmount);
-                  if (!amt || amt <= 0) {
-                    showToast('Жарамды сома енгізіңіз', 'error');
-                    return;
-                  }
-                  if (amt > royalty.currentBalance) {
-                    showToast('Шығару сомасы баланстан аспауы керек', 'error');
-                    return;
-                  }
-                  if (!payoutAccount.trim()) {
-                    showToast('Карта немесе шот нөмірін жазыңыз', 'error');
-                    return;
-                  }
-                  const res = await requestPayout(targetAuthor.id, targetAuthor.name, amt, payoutMethod, payoutAccount);
-                  if (res.success) {
-                    showToast(`«${amt.toLocaleString()} ₸» сомасына ақша шығару өтінімі қабылданды!`, 'success');
-                    setIsPayoutModalOpen(false);
-                    setPayoutAmount('');
-                    setPayoutAccount('');
-                    fetchAuthorStats(targetAuthor.id, selectedMonthKey);
-                  } else {
-                    showToast(res.error || 'Қате орын алды', 'error');
-                  }
-                }}
-              >
-                <div style={{ marginBottom: '16px' }}>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '6px' }}>
-                    Шығару әдісі
-                  </label>
-                  <select
-                    value={payoutMethod}
-                    onChange={(e) => setPayoutMethod(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '10px 14px',
-                      borderRadius: '10px',
-                      border: '1.5px solid #CBD5E1',
-                      fontSize: '13.5px',
-                      fontWeight: 700,
-                      outline: 'none',
-                      boxSizing: 'border-box',
-                    }}
-                  >
-                    <option value="Kaspi Gold">Kaspi Gold (Телефон немесе Карта)</option>
-                    <option value="Halyk Bank">Halyk Bank (Карта нөмірі)</option>
-                    <option value="Банктік шот (ИП / ЖК / Өзін-өзі жұмыспен қамтығандар)">Банктік шот (IBAN KZ...)</option>
-                  </select>
-                </div>
-
-                <div style={{ marginBottom: '16px' }}>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '6px' }}>
-                    Шығару сомасы (₸)
-                  </label>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    placeholder="Мысалы: 50 000"
-                    value={formatNumberWithSpaces(payoutAmount)}
-                    onChange={(e) => {
-                      const parsed = parseFormattedNumber(e.target.value);
-                      setPayoutAmount(parsed > 0 ? String(parsed) : '');
-                    }}
-                    required
-                    style={{
-                      width: '100%',
-                      padding: '10px 14px',
-                      borderRadius: '10px',
-                      border: '1.5px solid #CBD5E1',
-                      fontSize: '14px',
-                      fontWeight: 700,
-                      outline: 'none',
-                      boxSizing: 'border-box',
-                    }}
-                  />
-                </div>
-
-                <div style={{ marginBottom: '24px' }}>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '6px' }}>
-                    Деректемелер (Карта нөмірі / Телефон / IBAN)
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="4400 4300 .... немесе +7 (701) ..."
-                    value={payoutAccount}
-                    onChange={(e) => setPayoutAccount(e.target.value)}
-                    required
-                    style={{
-                      width: '100%',
-                      padding: '10px 14px',
-                      borderRadius: '10px',
-                      border: '1.5px solid #CBD5E1',
-                      fontSize: '14px',
-                      outline: 'none',
-                      boxSizing: 'border-box',
-                    }}
-                  />
-                </div>
-
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-                  <button
-                    type="button"
-                    onClick={() => setIsPayoutModalOpen(false)}
-                    style={{
-                      padding: '10px 20px',
-                      fontSize: '13px',
-                      fontWeight: 700,
-                      borderRadius: '50px',
-                      border: '1.5px solid #CBD5E1',
-                      background: '#FFFFFF',
-                      color: 'var(--text-mid)',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    Бас тарту
-                  </button>
-                  <button
-                    type="submit"
-                    className="btn-primary"
-                    style={{
-                      padding: '10px 24px',
-                      fontSize: '13px',
-                      fontWeight: 800,
-                      borderRadius: '50px',
-                    }}
-                  >
-                    Өтінім жіберу
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
 
       </div>
     </section>
