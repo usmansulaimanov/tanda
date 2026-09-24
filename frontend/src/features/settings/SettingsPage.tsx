@@ -4,6 +4,7 @@ import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
 import { useAuthStore, validatePasswordComplexity } from '../../store/useAuthStore';
 import { useToastStore } from '../../store/useToastStore';
 import { resizeAndCompressImage } from '../../utils/imageUtils';
+import { hasAdminPermission } from '../../utils/permissions';
 
 const formatPhoneNumber = (val: string): string => {
   if (!val) return '';
@@ -79,7 +80,9 @@ export const SettingsPage: React.FC = () => {
   const { user, isAuthenticated, updateProfile, updateAvatar, changePassword, verifyGoogleReauth, checkUsernameAvailable, fetchReservedUsernames, getReservedUsernames, addReservedUsername, addReservedUsernames, removeReservedUsername } = useAuthStore();
   const { showToast } = useToastStore();
 
+  const isClient = !user?.role || user.role === 'client';
   const isAdmin = user?.role === 'admin' || Boolean(user?.isSuperAdmin);
+  const canManageUsernames = hasAdminPermission(user, 'usernames_manage');
   const isGoogleUser = Boolean(user && (user.authProvider === 'GOOGLE' || Boolean(user.googleId)));
   const hasPassword = Boolean(user && user.hasPassword !== false);
 
@@ -89,7 +92,7 @@ export const SettingsPage: React.FC = () => {
 
   // Navigation mode: 'menu' | 'profile' | 'password' | 'usernames'
   const rawMode = searchParams.get('mode') as 'profile' | 'password' | 'usernames' | null;
-  const initialMode = (rawMode === 'usernames' && !isAdmin) ? 'menu' : (rawMode || 'menu');
+  const initialMode = (rawMode === 'usernames' && !canManageUsernames) ? 'menu' : (rawMode || 'menu');
   const [viewMode, setViewMode] = useState<'menu' | 'profile' | 'password' | 'usernames'>(initialMode);
 
   // Profile Form state
@@ -362,8 +365,8 @@ export const SettingsPage: React.FC = () => {
       return;
     }
 
-    const rawUser = username.trim().replace(/^@/, '');
-    if (rawUser) {
+    const rawUser = isClient ? username.trim().replace(/^@/, '') : undefined;
+    if (isClient && rawUser) {
       const check = checkUsernameAvailable(rawUser);
       if (!check.available) {
         setUsernameError(check.error || 'Бұл юзернейм бос емес');
@@ -378,9 +381,9 @@ export const SettingsPage: React.FC = () => {
         name: name.trim(),
         email: email.trim(),
         phone: phone.trim(),
-        username: rawUser,
-        birthDate: birthDate.trim(),
-        gender: (gender as 'male' | 'female' | 'other') || undefined,
+        username: isClient ? rawUser : undefined,
+        birthDate: isClient ? birthDate.trim() : undefined,
+        gender: isClient ? ((gender as 'male' | 'female' | 'other') || undefined) : undefined,
       });
 
       if (res.success) {
@@ -688,7 +691,7 @@ export const SettingsPage: React.FC = () => {
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '4px', fontSize: '13px', flexWrap: 'wrap' }}>
               <span style={{ color: '#64748B' }}>{user.email}</span>
-              {user.username && (
+              {isClient && user.username && (
                 <span style={{ color: '#0F172A', fontWeight: 700 }}>
                   @{user.username.replace(/^@/, '')}
                 </span>
@@ -762,7 +765,9 @@ export const SettingsPage: React.FC = () => {
                       Ақпаратты өңдеу
                     </h3>
                     <p style={{ fontSize: '13px', color: 'var(--text-mid)', margin: 0, lineHeight: 1.4 }}>
-                      Аты-жөні, пошта, телефон және юзернеймді өзгерту
+                      {isClient
+                        ? 'Аты-жөні, пошта, телефон және юзернеймді өзгерту'
+                        : 'Аты-жөні, пошта және телефонды өзгерту'}
                     </p>
                   </div>
                 </div>
@@ -837,74 +842,6 @@ export const SettingsPage: React.FC = () => {
                   </svg>
                 </div>
               </button>
-
-              {/* Button 3: Ағылшынша юзернеймдер (Тек админдер үшін) */}
-              {isAdmin && (
-                <button
-                  type="button"
-                  onClick={() => switchMode('usernames')}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '22px 24px',
-                    borderRadius: '16px',
-                    background: '#FFFFFF',
-                    border: '1.5px solid #CBD5E1',
-                    cursor: 'pointer',
-                    textAlign: 'left',
-                    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = 'var(--blue)';
-                    e.currentTarget.style.background = '#F8FAFC';
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                    e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 84, 148, 0.12)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = '#CBD5E1';
-                    e.currentTarget.style.background = '#FFFFFF';
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.04)';
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <div
-                      style={{
-                        width: '48px',
-                        height: '48px',
-                        borderRadius: '12px',
-                        background: 'rgba(99, 102, 241, 0.12)',
-                        color: '#6366F1',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                      }}
-                    >
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="12" cy="12" r="4"></circle>
-                        <path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-3.92 7.94"></path>
-                      </svg>
-                    </div>
-                    <div>
-                      <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-dark)', margin: '0 0 4px 0' }}>
-                        Username
-                      </h3>
-                      <p style={{ fontSize: '13px', color: 'var(--text-mid)', margin: 0, lineHeight: 1.4 }}>
-                        Бұғатталған және арнайы юзернеймдерді басқару
-                      </p>
-                    </div>
-                  </div>
-                  <div style={{ color: 'var(--blue)', paddingLeft: '12px' }}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="9 18 15 12 9 6"></polyline>
-                    </svg>
-                  </div>
-                </button>
-              )}
-
             </div>
           </div>
         )}
@@ -941,17 +878,60 @@ export const SettingsPage: React.FC = () => {
             </div>
 
             <form onSubmit={handleProfileSubmit}>
-              {/* Row 1: Name and Username */}
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-                  gap: '20px',
-                  marginBottom: '20px',
-                }}
-              >
-                {/* Full Name */}
-                <div className="form-group" style={{ margin: 0 }}>
+              {/* Row 1: Name (and Username only for Readers) */}
+              {isClient ? (
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                    gap: '20px',
+                    marginBottom: '20px',
+                  }}
+                >
+                  {/* Full Name */}
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <label className="form-label">
+                      Аты-жөніңіз <span className="req">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Мысалы: Азамат Серікұлы"
+                      className="form-input"
+                    />
+                  </div>
+
+                  {/* Username */}
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <label className="form-label">
+                      Username <span className="req">*</span>
+                    </label>
+                    <div style={{ position: 'relative' }}>
+                      <input
+                        type="text"
+                        value={username}
+                        onChange={(e) => handleUsernameChange(e.target.value)}
+                        placeholder="@azamat_01"
+                        className="form-input"
+                        style={{
+                          borderColor: usernameError ? '#DC2626' : undefined,
+                          paddingLeft: '14px',
+                          fontWeight: 700,
+                        }}
+                      />
+                    </div>
+                    
+                    {usernameError && (
+                      <span style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#DC2626', marginTop: '6px' }}>
+                        {usernameError}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="form-group" style={{ marginBottom: '20px' }}>
                   <label className="form-label">
                     Аты-жөніңіз <span className="req">*</span>
                   </label>
@@ -964,34 +944,7 @@ export const SettingsPage: React.FC = () => {
                     className="form-input"
                   />
                 </div>
-
-                {/* Username */}
-                <div className="form-group" style={{ margin: 0 }}>
-                  <label className="form-label">
-                    Username <span className="req">*</span>
-                  </label>
-                  <div style={{ position: 'relative' }}>
-                    <input
-                      type="text"
-                      value={username}
-                      onChange={(e) => handleUsernameChange(e.target.value)}
-                      placeholder="@azamat_01"
-                      className="form-input"
-                      style={{
-                        borderColor: usernameError ? '#DC2626' : undefined,
-                        paddingLeft: '14px',
-                        fontWeight: 700,
-                      }}
-                    />
-                  </div>
-                  
-                  {usernameError && (
-                    <span style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#DC2626', marginTop: '6px' }}>
-                      {usernameError}
-                    </span>
-                  )}
-                </div>
-              </div>
+              )}
 
               {/* Row 2: Email and Phone */}
               <div
@@ -999,7 +952,7 @@ export const SettingsPage: React.FC = () => {
                   display: 'grid',
                   gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
                   gap: '20px',
-                  marginBottom: '28px',
+                  marginBottom: isClient ? '28px' : '28px',
                 }}
               >
                 {/* Email */}
@@ -1105,109 +1058,111 @@ export const SettingsPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Row 3: Birth Date and Gender */}
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-                  gap: '20px',
-                  marginBottom: '28px',
-                }}
-              >
-                {/* Birth Date */}
-                <div className="form-group" style={{ margin: 0 }}>
-                  <label className="form-label">
-                    Туған күні
-                  </label>
-                  <div style={{ position: 'relative' }}>
-                    <input
-                      type="text"
-                      value={birthDate}
-                      onChange={(e) => setBirthDate(formatKazakhDate(e.target.value))}
-                      placeholder="кк.аа.жжжж"
-                      maxLength={10}
-                      className="form-input"
-                      style={{
-                        paddingRight: '40px',
-                        fontWeight: birthDate ? 700 : 400,
-                        letterSpacing: birthDate ? '0.04em' : 'normal',
-                      }}
-                    />
-                    <input
-                      ref={datePickerInputRef}
-                      type="date"
-                      max={new Date().toISOString().split('T')[0]}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        if (val) {
-                          const p = val.split('-');
-                          if (p.length === 3) setBirthDate(`${p[2]}.${p[1]}.${p[0]}`);
-                        }
-                      }}
-                      tabIndex={-1}
-                      style={{
-                        position: 'absolute',
-                        opacity: 0,
-                        pointerEvents: 'none',
-                        width: '1px',
-                        height: '1px',
-                        bottom: 0,
-                        right: 0,
-                      }}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        try {
-                          datePickerInputRef.current?.showPicker();
-                        } catch {
-                          datePickerInputRef.current?.focus();
-                        }
-                      }}
-                      title="Күнтізбеден таңдау"
-                      aria-label="Күнтізбеден таңдау"
-                      style={{
-                        position: 'absolute',
-                        right: '10px',
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        background: 'none',
-                        border: 'none',
-                        color: 'var(--blue)',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        padding: '4px',
-                        borderRadius: '6px',
-                      }}
+              {/* Row 3: Birth Date and Gender (Only for Readers) */}
+              {isClient && (
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                    gap: '20px',
+                    marginBottom: '28px',
+                  }}
+                >
+                  {/* Birth Date */}
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <label className="form-label">
+                      Туған күні
+                    </label>
+                    <div style={{ position: 'relative' }}>
+                      <input
+                        type="text"
+                        value={birthDate}
+                        onChange={(e) => setBirthDate(formatKazakhDate(e.target.value))}
+                        placeholder="кк.аа.жжжж"
+                        maxLength={10}
+                        className="form-input"
+                        style={{
+                          paddingRight: '40px',
+                          fontWeight: birthDate ? 700 : 400,
+                          letterSpacing: birthDate ? '0.04em' : 'normal',
+                        }}
+                      />
+                      <input
+                        ref={datePickerInputRef}
+                        type="date"
+                        max={new Date().toISOString().split('T')[0]}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val) {
+                            const p = val.split('-');
+                            if (p.length === 3) setBirthDate(`${p[2]}.${p[1]}.${p[0]}`);
+                          }
+                        }}
+                        tabIndex={-1}
+                        style={{
+                          position: 'absolute',
+                          opacity: 0,
+                          pointerEvents: 'none',
+                          width: '1px',
+                          height: '1px',
+                          bottom: 0,
+                          right: 0,
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          try {
+                            datePickerInputRef.current?.showPicker();
+                          } catch {
+                            datePickerInputRef.current?.focus();
+                          }
+                        }}
+                        title="Күнтізбеден таңдау"
+                        aria-label="Күнтізбеден таңдау"
+                        style={{
+                          position: 'absolute',
+                          right: '10px',
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          background: 'none',
+                          border: 'none',
+                          color: 'var(--blue)',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          padding: '4px',
+                          borderRadius: '6px',
+                        }}
+                      >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                          <line x1="16" y1="2" x2="16" y2="6"></line>
+                          <line x1="8" y1="2" x2="8" y2="6"></line>
+                          <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Gender */}
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <label className="form-label">
+                      Жынысы
+                    </label>
+                    <select
+                      value={gender}
+                      onChange={(e) => setGender(e.target.value as 'male' | 'female' | 'other' | '')}
+                      className="form-select"
                     >
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                        <line x1="16" y1="2" x2="16" y2="6"></line>
-                        <line x1="8" y1="2" x2="8" y2="6"></line>
-                        <line x1="3" y1="10" x2="21" y2="10"></line>
-                      </svg>
-                    </button>
+                      <option value="">Таңдалмаған</option>
+                      <option value="male">Ер</option>
+                      <option value="female">Әйел</option>
+                    </select>
                   </div>
                 </div>
-
-                {/* Gender */}
-                <div className="form-group" style={{ margin: 0 }}>
-                  <label className="form-label">
-                    Жынысы
-                  </label>
-                  <select
-                    value={gender}
-                    onChange={(e) => setGender(e.target.value as 'male' | 'female' | 'other' | '')}
-                    className="form-select"
-                  >
-                    <option value="">Таңдалмаған</option>
-                    <option value="male">Ер</option>
-                    <option value="female">Әйел</option>
-                  </select>
-                </div>
-              </div>
+              )}
 
               {/* Action buttons */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '12px', paddingTop: '20px', borderTop: '1.5px solid #F1F5F9' }}>
@@ -1558,7 +1513,7 @@ export const SettingsPage: React.FC = () => {
         )}
 
         {/* 3. SUB-PAGE 3: Ағылшынша юзернеймдер (English Usernames) */}
-        {viewMode === 'usernames' && isAdmin && (
+        {viewMode === 'usernames' && canManageUsernames && (
           <div>
             {/* Header */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
@@ -1573,7 +1528,7 @@ export const SettingsPage: React.FC = () => {
 
               <button
                 type="button"
-                onClick={() => switchMode('menu')}
+                onClick={() => navigate(-1)}
                 style={{
                   background: '#F1F5F9',
                   border: '1.5px solid #CBD5E1',
@@ -1588,7 +1543,7 @@ export const SettingsPage: React.FC = () => {
                   gap: '6px',
                 }}
               >
-                ← Баптауларға қайту
+                ← Артқа қайту
               </button>
             </div>
 

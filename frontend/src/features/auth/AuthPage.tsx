@@ -72,8 +72,9 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialMode }) => {
         showToast('Жүйеге сәтті кірдіңіз!', 'success');
         const updatedRole = useAuthStore.getState().role;
         const updatedUser = useAuthStore.getState().user;
-        const isAdminOrManager = updatedRole === 'admin' || (updatedUser?.permissions && updatedUser.permissions.length > 0);
-        if (isAdminOrManager) {
+        if (updatedRole === 'author' || updatedUser?.isAuthor) {
+          navigate('/author/stats');
+        } else if (updatedRole === 'admin' || (updatedUser?.permissions && updatedUser.permissions.length > 0)) {
           navigate('/admin/home');
         } else {
           navigate(redirectUrl);
@@ -119,8 +120,9 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialMode }) => {
 
       const updatedRole = useAuthStore.getState().role;
       const updatedUser = useAuthStore.getState().user;
-      const isAdminOrManager = updatedRole === 'admin' || (updatedUser?.permissions && updatedUser.permissions.length > 0);
-      if (isAdminOrManager) {
+      if (updatedRole === 'author' || updatedUser?.isAuthor) {
+        navigate('/author/stats');
+      } else if (updatedRole === 'admin' || (updatedUser?.permissions && updatedUser.permissions.length > 0)) {
         navigate('/admin/home');
       } else {
         navigate(redirectUrl);
@@ -139,8 +141,9 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialMode }) => {
         showToast('Google арқылы сәтті кірдіңіз!', 'success');
         const updatedRole = useAuthStore.getState().role;
         const updatedUser = useAuthStore.getState().user;
-        const isAdminOrManager = updatedRole === 'admin' || (updatedUser?.permissions && updatedUser.permissions.length > 0);
-        if (isAdminOrManager) {
+        if (updatedRole === 'author' || updatedUser?.isAuthor) {
+          navigate('/author/stats');
+        } else if (updatedRole === 'admin' || (updatedUser?.permissions && updatedUser.permissions.length > 0)) {
           navigate('/admin/home');
         } else {
           navigate(redirectUrl);

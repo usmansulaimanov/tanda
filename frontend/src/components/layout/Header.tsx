@@ -437,7 +437,7 @@ export const Header: React.FC = () => {
                           >
                             ID: {user.idNumber || '—'}
                           </span>
-                          {user.username && (
+                          {(!user.role || user.role === 'client') && user.username && (
                             <span
                               style={{
                                 fontSize: '12px',

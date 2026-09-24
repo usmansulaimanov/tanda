@@ -64,7 +64,8 @@ export type AdminPermission =
   | 'messages_manage'   // Хабарламаларды басқару және тарату
   | 'news_manage'       // Жаңалықтарды басқару және жариялау
   | 'analytics_view'    // Статистика мен көрсеткіштерді көру
-  | 'managers_manage';  // Көмекшілерді тағайындау және рұқсат беру
+  | 'managers_manage'   // Көмекшілерді тағайындау және рұқсат беру
+  | 'usernames_manage'; // Бұғатталған және арнайы юзернеймдерді басқару
 
 export interface NewsArticle {
   id: string;

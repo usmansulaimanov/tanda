@@ -97,6 +97,12 @@ export const ALL_PERMISSIONS: PermissionDefinition[] = [
     description: 'Жаңа көмекшілер қосу және рұқсаттарын өзгерту',
     category: 'system',
   },
+  {
+    key: 'usernames_manage',
+    label: 'Юзернеймдерді басқару',
+    description: 'Бұғатталған және арнайы юзернеймдер базасын реттеу',
+    category: 'system',
+  },
 ];
 
 export const PERMISSION_CATEGORIES = [
