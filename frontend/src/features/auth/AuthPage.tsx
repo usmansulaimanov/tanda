@@ -32,16 +32,25 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialMode }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  // If already authenticated, redirect
+  const navigateByRole = (targetUser: any, targetRole: string | null) => {
+    const isAuthor = Boolean(targetRole === 'author' || targetUser?.role === 'author' || targetUser?.isAuthor);
+    const isStaff = Boolean(targetRole === 'admin' || targetUser?.role === 'admin' || targetUser?.isSuperAdmin || Boolean(targetUser?.duty));
+
+    if (isAuthor) {
+      navigate('/author/home', { replace: true });
+    } else if (isStaff) {
+      navigate('/admin/home', { replace: true });
+    } else {
+      navigate('/', { replace: true });
+    }
+  };
+
+  // If already authenticated, redirect strictly by role
   useEffect(() => {
     if (isAuthenticated && user) {
-      if (role === 'admin' && redirectUrl === '/') {
-        navigate('/admin/home', { replace: true });
-      } else {
-        navigate(redirectUrl, { replace: true });
-      }
+      navigateByRole(user, role);
     }
-  }, [isAuthenticated, user, role, redirectUrl, navigate]);
+  }, [isAuthenticated, user, role]);
 
   // Clear error when mode or inputs change
   useEffect(() => {
@@ -72,13 +81,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialMode }) => {
         showToast('Жүйеге сәтті кірдіңіз!', 'success');
         const updatedRole = useAuthStore.getState().role;
         const updatedUser = useAuthStore.getState().user;
-        if (updatedRole === 'author' || updatedUser?.isAuthor) {
-          navigate('/author/stats');
-        } else if (updatedRole === 'admin' || (updatedUser?.permissions && updatedUser.permissions.length > 0)) {
-          navigate('/admin/home');
-        } else {
-          navigate(redirectUrl);
-        }
+        navigateByRole(updatedUser, updatedRole);
       } catch (err: any) {
         const msg = err.response?.data?.message || err.message || 'Кіру қатесі. Деректерді қайта тексеріңіз';
         setErrorMessage(msg);
@@ -120,13 +123,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialMode }) => {
 
       const updatedRole = useAuthStore.getState().role;
       const updatedUser = useAuthStore.getState().user;
-      if (updatedRole === 'author' || updatedUser?.isAuthor) {
-        navigate('/author/stats');
-      } else if (updatedRole === 'admin' || (updatedUser?.permissions && updatedUser.permissions.length > 0)) {
-        navigate('/admin/home');
-      } else {
-        navigate(redirectUrl);
-      }
+      navigateByRole(updatedUser, updatedRole);
     } catch (err: any) {
       const msg = err.response?.data?.message || err.message || 'Тіркелу кезінде қате орын алды';
       setErrorMessage(msg);
@@ -141,13 +138,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialMode }) => {
         showToast('Google арқылы сәтті кірдіңіз!', 'success');
         const updatedRole = useAuthStore.getState().role;
         const updatedUser = useAuthStore.getState().user;
-        if (updatedRole === 'author' || updatedUser?.isAuthor) {
-          navigate('/author/stats');
-        } else if (updatedRole === 'admin' || (updatedUser?.permissions && updatedUser.permissions.length > 0)) {
-          navigate('/admin/home');
-        } else {
-          navigate(redirectUrl);
-        }
+        navigateByRole(updatedUser, updatedRole);
       } catch (err: any) {
         const msg = err.response?.data?.message || err.message || 'Google арқылы кіру мүмкін болмады';
         setErrorMessage(msg);

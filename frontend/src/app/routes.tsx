@@ -120,7 +120,7 @@ const AdminRouteGuard: React.FC<{ children: React.ReactNode }> = ({ children }) 
   }
 
   if (!isAdminOrStaff) {
-    return <Navigate to="/login?redirect=/admin/home" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   return <>{children}</>;

@@ -118,14 +118,7 @@ export const Header: React.FC = () => {
   const handleLogout = () => {
     logout();
     showToast('Жүйеден сәтті шықтыңыз', 'info');
-    if (
-      location.pathname.startsWith('/admin') ||
-      location.pathname.startsWith('/promocode') ||
-      location.pathname.startsWith('/profile') ||
-      location.pathname.startsWith('/settings')
-    ) {
-      navigate('/');
-    }
+    navigate('/', { replace: true });
   };
 
 

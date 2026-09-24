@@ -17,7 +17,7 @@ export const AuthorHomePage: React.FC = () => {
     if (!isAuthInitialized) return;
     if (!user || (!isAuthor && !isSuperAdmin)) {
       showToast('Бұл бетке тек авторлар кіре алады', 'error');
-      navigate('/login?redirect=/author/home', { replace: true });
+      navigate('/login', { replace: true });
     }
   }, [isAuthInitialized, user, isAuthor, isSuperAdmin, navigate, showToast]);
 

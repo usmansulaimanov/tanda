@@ -19,7 +19,7 @@ export const AuthorBooksPage: React.FC = () => {
     if (!isAuthInitialized) return;
     if (!user || (!isAuthor && !isSuperAdmin)) {
       showToast('Бұл бетке тек авторлар кіре алады', 'error');
-      navigate('/login?redirect=/author/books', { replace: true });
+      navigate('/login', { replace: true });
     }
   }, [isAuthInitialized, user, isAuthor, isSuperAdmin, navigate, showToast]);
 
