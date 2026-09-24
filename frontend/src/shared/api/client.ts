@@ -20,7 +20,7 @@ const processQueue = (error: any, token: string | null = null) => {
 export const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '',
   withCredentials: true, // required for httpOnly refresh cookies
-  timeout: 30000,
+  timeout: 60000,
   headers: {
     'Content-Type': 'application/json',
   },

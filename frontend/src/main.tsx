@@ -10,6 +10,11 @@ import './index.css';
 // Run migration to clean up legacy localStorage mocks
 runMigration();
 
+// Background pre-warm for Render backend instance
+if (typeof window !== 'undefined') {
+  fetch((import.meta.env.VITE_API_URL || '') + '/api/v1/books', { method: 'GET', keepalive: true }).catch(() => {});
+}
+
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '470329734598-c32dk937vu2hgkbvblqjuvi43noc1mu9.apps.googleusercontent.com';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
