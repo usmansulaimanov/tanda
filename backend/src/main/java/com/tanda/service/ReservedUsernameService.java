@@ -74,4 +74,27 @@ public class ReservedUsernameService {
         reservedUsernameRepository.deleteByUsernameIgnoreCase(clean);
         log.info("Reserved username removed: {}", clean);
     }
+
+    @Transactional
+    public void removeReservedUsernames(List<String> usernames) {
+        if (usernames == null || usernames.isEmpty()) {
+            return;
+        }
+        List<String> cleanList = usernames.stream()
+                .filter(u -> u != null && !u.isBlank())
+                .map(u -> u.trim().toLowerCase().replaceAll("^@", ""))
+                .distinct()
+                .toList();
+        if (!cleanList.isEmpty()) {
+            reservedUsernameRepository.deleteAllByUsernamesIgnoreCase(cleanList);
+            log.info("Reserved usernames batch removed: count={}", cleanList.size());
+        }
+    }
+
+    @Transactional
+    public void removeAllReservedUsernames() {
+        long count = reservedUsernameRepository.count();
+        reservedUsernameRepository.deleteAll();
+        log.info("All reserved usernames removed: count={}", count);
+    }
 }

@@ -50,6 +50,8 @@ interface AuthState {
   addReservedUsername: (username: string) => Promise<{ success: boolean; error?: string }>;
   addReservedUsernames: (usernames: string[]) => Promise<{ addedCount: number; skippedCount: number; invalidCount: number; error?: string }>;
   removeReservedUsername: (username: string) => Promise<{ success: boolean; error?: string }>;
+  removeReservedUsernames: (usernames: string[]) => Promise<{ success: boolean; error?: string }>;
+  removeAllReservedUsernames: () => Promise<{ success: boolean; error?: string }>;
 
   // Manager (Көмекші / Басқару) operations
   fetchManagers: () => Promise<User[]>;
@@ -324,6 +326,40 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
           return {
             success: false,
             error: err.response?.data?.message || err.message || 'Юзернеймді өшіру сәтсіз аяқталды',
+          };
+        }
+      },
+
+      removeReservedUsernames: async (usernames: string[]) => {
+        const cleanList = usernames
+          .map((u) => u.trim().toLowerCase().replace(/^@/, ''))
+          .filter(Boolean);
+        if (cleanList.length === 0) return { success: true };
+
+        try {
+          await api.post('/api/v1/admin/usernames/reserved/batch-delete', { usernames: cleanList });
+          const deleteSet = new Set(cleanList);
+          set((state) => ({
+            reservedUsernames: state.reservedUsernames.filter((u) => !deleteSet.has(u.toLowerCase())),
+          }));
+          return { success: true };
+        } catch (err: any) {
+          return {
+            success: false,
+            error: err.response?.data?.message || err.message || 'Таңдалған юзернеймдерді өшіру сәтсіз аяқталды',
+          };
+        }
+      },
+
+      removeAllReservedUsernames: async () => {
+        try {
+          await api.delete('/api/v1/admin/usernames/reserved/all');
+          set({ reservedUsernames: [] });
+          return { success: true };
+        } catch (err: any) {
+          return {
+            success: false,
+            error: err.response?.data?.message || err.message || 'Барлық юзернеймдерді өшіру сәтсіз аяқталды',
           };
         }
       },

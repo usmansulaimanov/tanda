@@ -57,4 +57,29 @@ public class ReservedUsernameController {
         reservedUsernameService.removeReservedUsername(username);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/batch-delete")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> batchDeleteReservedUsernames(@RequestBody Map<String, Object> body) {
+        if (Boolean.TRUE.equals(body.get("all"))) {
+            reservedUsernameService.removeAllReservedUsernames();
+            return ResponseEntity.noContent().build();
+        }
+        Object rawUsernames = body.get("usernames");
+        if (rawUsernames instanceof List<?> list) {
+            List<String> toDelete = list.stream()
+                    .filter(item -> item instanceof String && !((String) item).isBlank())
+                    .map(item -> (String) item)
+                    .toList();
+            reservedUsernameService.removeReservedUsernames(toDelete);
+        }
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/all")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> removeAllReservedUsernames() {
+        reservedUsernameService.removeAllReservedUsernames();
+        return ResponseEntity.noContent().build();
+    }
 }

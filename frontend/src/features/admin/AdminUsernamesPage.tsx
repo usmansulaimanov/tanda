@@ -15,6 +15,8 @@ export const AdminUsernamesPage: React.FC = () => {
     addReservedUsername,
     addReservedUsernames,
     removeReservedUsername,
+    removeReservedUsernames,
+    removeAllReservedUsernames,
   } = useAuthStore();
   const { showToast } = useToastStore();
 
@@ -35,7 +37,10 @@ export const AdminUsernamesPage: React.FC = () => {
   const [batchError, setBatchError] = useState('');
   const [isAddingBatch, setIsAddingBatch] = useState(false);
 
-  // Deleting state
+  // Selection states for multi-deletion
+  const [selectedUsernames, setSelectedUsernames] = useState<Set<string>>(new Set());
+  const [isDeletingBatch, setIsDeletingBatch] = useState(false);
+  const [isDeletingAll, setIsDeletingAll] = useState(false);
   const [deletingUsername, setDeletingUsername] = useState<string | null>(null);
 
   // Fetch reserved usernames on mount
@@ -146,7 +151,7 @@ export const AdminUsernamesPage: React.FC = () => {
     }
   };
 
-  // Remove reserved username
+  // Remove single reserved username
   const handleRemove = async (u: string) => {
     if (!window.confirm(`@${u} юзернеймін бұғатталғандар тізімінен өшіргіңіз келетініне сенімдісіз бе?`)) {
       return;
@@ -155,6 +160,11 @@ export const AdminUsernamesPage: React.FC = () => {
     try {
       const res = await removeReservedUsername(u);
       if (res.success) {
+        setSelectedUsernames((prev) => {
+          const next = new Set(prev);
+          next.delete(u);
+          return next;
+        });
         showToast(`@${u} тізімнен өшірілді`, 'info');
       } else {
         showToast(res.error || 'Өшіру сәтсіз аяқталды', 'error');
@@ -173,6 +183,97 @@ export const AdminUsernamesPage: React.FC = () => {
       .filter((u) => !cleanSearch || u.toLowerCase().includes(cleanSearch))
       .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
   }, [reservedUsernames, searchQuery]);
+
+  // Toggle single item selection
+  const toggleSelect = (u: string) => {
+    setSelectedUsernames((prev) => {
+      const next = new Set(prev);
+      if (next.has(u)) {
+        next.delete(u);
+      } else {
+        next.add(u);
+      }
+      return next;
+    });
+  };
+
+  // Toggle select all filtered items
+  const isAllFilteredSelected = filteredList.length > 0 && filteredList.every((u) => selectedUsernames.has(u));
+  const toggleSelectAllFiltered = () => {
+    if (isAllFilteredSelected) {
+      // Unselect all in current filter
+      setSelectedUsernames((prev) => {
+        const next = new Set(prev);
+        filteredList.forEach((u) => next.delete(u));
+        return next;
+      });
+    } else {
+      // Select all in current filter
+      setSelectedUsernames((prev) => {
+        const next = new Set(prev);
+        filteredList.forEach((u) => next.add(u));
+        return next;
+      });
+    }
+  };
+
+  // Batch delete selected usernames
+  const handleDeleteSelected = async () => {
+    const count = selectedUsernames.size;
+    if (count === 0) return;
+
+    if (!window.confirm(`Таңдалған ${count} юзернеймді тізімнен өшіруге сенімдісіз бе?`)) {
+      return;
+    }
+
+    setIsDeletingBatch(true);
+    try {
+      const listToDelete = Array.from(selectedUsernames);
+      const res = await removeReservedUsernames(listToDelete);
+      if (res.success) {
+        setSelectedUsernames(new Set());
+        showToast(`Таңдалған ${count} юзернейм сәтті өшірілді!`, 'success');
+      } else {
+        showToast(res.error || 'Таңдалғандарды өшіру сәтсіз аяқталды', 'error');
+      }
+    } catch {
+      showToast('Өшіру кезінде қате орын алды', 'error');
+    } finally {
+      setIsDeletingBatch(false);
+    }
+  };
+
+  // Delete ALL reserved usernames
+  const handleDeleteAll = async () => {
+    const totalCount = reservedUsernames.length;
+    if (totalCount === 0) return;
+
+    const confirmText = window.prompt(
+      `НАЗАР АУДАРЫҢЫЗ! Барлық ${totalCount} юзернеймді базадан толық өшіру үшін «ӨШІРУ» сөзін жазыңыз:`
+    );
+
+    if (confirmText?.trim().toUpperCase() !== 'ӨШІРУ') {
+      if (confirmText !== null) {
+        showToast('Растау сөзі қате енгізілді. Операция тоқтатылды.', 'error');
+      }
+      return;
+    }
+
+    setIsDeletingAll(true);
+    try {
+      const res = await removeAllReservedUsernames();
+      if (res.success) {
+        setSelectedUsernames(new Set());
+        showToast('Барлық бұғатталған юзернеймдер сәтті өшірілді!', 'success');
+      } else {
+        showToast(res.error || 'Барлығын өшіру сәтсіз аяқталды', 'error');
+      }
+    } catch {
+      showToast('Барлығын өшіру кезінде қате орын алды', 'error');
+    } finally {
+      setIsDeletingAll(false);
+    }
+  };
 
   if (!isAuthInitialized || !user || !canManageUsernames) {
     return null;
@@ -397,12 +498,49 @@ export const AdminUsernamesPage: React.FC = () => {
             )}
           </form>
 
-          {/* Search & Counter Toolbar */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-dark)' }}>
-                Бұғатталғандар тізімі
-              </span>
+          {/* Search & Bulk Actions Toolbar */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: '16px',
+              flexWrap: 'wrap',
+              gap: '12px',
+              paddingBottom: '16px',
+              borderBottom: '1.5px solid #F1F5F9',
+            }}
+          >
+            {/* Left: Select All Checkbox & Count */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+              {filteredList.length > 0 && (
+                <label
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    cursor: 'pointer',
+                    fontSize: '13.5px',
+                    fontWeight: 700,
+                    color: 'var(--text-dark)',
+                    userSelect: 'none',
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={isAllFilteredSelected}
+                    onChange={toggleSelectAllFiltered}
+                    style={{
+                      width: '18px',
+                      height: '18px',
+                      cursor: 'pointer',
+                      accentColor: 'var(--blue)',
+                    }}
+                  />
+                  <span>Барлығын таңдау</span>
+                </label>
+              )}
+
               <span
                 style={{
                   padding: '3px 10px',
@@ -417,6 +555,7 @@ export const AdminUsernamesPage: React.FC = () => {
               </span>
             </div>
 
+            {/* Right: Search Box */}
             <div style={{ position: 'relative', width: '260px', maxWidth: '100%' }}>
               <input
                 type="text"
@@ -432,6 +571,121 @@ export const AdminUsernamesPage: React.FC = () => {
               />
             </div>
           </div>
+
+          {/* Bulk Action Strip (Visible when items selected or list not empty) */}
+          {(selectedUsernames.size > 0 || reservedUsernames.length > 0) && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '10px',
+                background: selectedUsernames.size > 0 ? '#FEF2F2' : '#F8FAFC',
+                border: selectedUsernames.size > 0 ? '1.5px solid #FECACA' : '1px solid #E2E8F0',
+                borderRadius: '12px',
+                padding: '10px 16px',
+                marginBottom: '16px',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                {selectedUsernames.size > 0 ? (
+                  <>
+                    <span style={{ fontSize: '13px', fontWeight: 800, color: '#DC2626' }}>
+                      Таңдалды: {selectedUsernames.size}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedUsernames(new Set())}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#64748B',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        textDecoration: 'underline',
+                        padding: 0,
+                      }}
+                    >
+                      Таңдауды алып тастау
+                    </button>
+                  </>
+                ) : (
+                  <span style={{ fontSize: '13px', color: '#64748B', fontWeight: 500 }}>
+                    Бірнеше юзернеймді өшіру үшін төмендегі ұяшықтарды белгілеңіз
+                  </span>
+                )}
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {selectedUsernames.size > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleDeleteSelected}
+                    disabled={isDeletingBatch}
+                    style={{
+                      background: '#DC2626',
+                      border: 'none',
+                      borderRadius: '50px',
+                      padding: '6px 16px',
+                      fontSize: '12.5px',
+                      fontWeight: 700,
+                      color: '#FFFFFF',
+                      cursor: isDeletingBatch ? 'not-allowed' : 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      boxShadow: '0 2px 6px rgba(220, 38, 38, 0.25)',
+                      opacity: isDeletingBatch ? 0.7 : 1,
+                    }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="3 6 5 6 21 6"></polyline>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                    {isDeletingBatch ? 'Өшірілуде...' : `Таңдалғандарды өшіру (${selectedUsernames.size})`}
+                  </button>
+                )}
+
+                {reservedUsernames.length > 0 && selectedUsernames.size === 0 && (
+                  <button
+                    type="button"
+                    onClick={handleDeleteAll}
+                    disabled={isDeletingAll}
+                    style={{
+                      background: '#FFFFFF',
+                      border: '1.5px solid #FCA5A5',
+                      borderRadius: '50px',
+                      padding: '5px 14px',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      color: '#DC2626',
+                      cursor: isDeletingAll ? 'not-allowed' : 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      opacity: isDeletingAll ? 0.7 : 1,
+                      transition: 'all 0.15s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = '#FEE2E2';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = '#FFFFFF';
+                    }}
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="3 6 5 6 21 6"></polyline>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                    {isDeletingAll ? 'Тазалануда...' : 'Барлығын өшіру'}
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* List of Reserved Usernames */}
           {filteredList.length === 0 ? (
@@ -456,71 +710,97 @@ export const AdminUsernamesPage: React.FC = () => {
                 gap: '12px',
               }}
             >
-              {filteredList.map((u) => (
-                <div
-                  key={u}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '10px 14px',
-                    background: '#FFFFFF',
-                    border: '1px solid #E2E8F0',
-                    borderRadius: '12px',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
-                    <span style={{ color: 'var(--blue)', fontWeight: 800, fontSize: '13px' }}>@</span>
-                    <span
-                      style={{
-                        fontSize: '13.5px',
-                        fontWeight: 700,
-                        color: 'var(--text-dark)',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                      }}
-                      title={`@${u}`}
-                    >
-                      {u}
-                    </span>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => handleRemove(u)}
-                    disabled={deletingUsername === u}
-                    title="Өшіру"
+              {filteredList.map((u) => {
+                const isSelected = selectedUsernames.has(u);
+                return (
+                  <div
+                    key={u}
+                    onClick={() => toggleSelect(u)}
                     style={{
-                      background: 'none',
-                      border: 'none',
-                      color: '#EF4444',
-                      cursor: deletingUsername === u ? 'not-allowed' : 'pointer',
-                      padding: '4px',
-                      borderRadius: '6px',
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center',
-                      opacity: deletingUsername === u ? 0.4 : 0.8,
+                      justifyContent: 'space-between',
+                      padding: '10px 14px',
+                      background: isSelected ? '#EFF6FF' : '#FFFFFF',
+                      border: isSelected ? '1.5px solid var(--blue)' : '1px solid #E2E8F0',
+                      borderRadius: '12px',
+                      boxShadow: isSelected ? '0 2px 8px rgba(0, 84, 148, 0.12)' : '0 1px 3px rgba(0,0,0,0.02)',
+                      cursor: 'pointer',
                       transition: 'all 0.15s ease',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.opacity = '1';
-                      e.currentTarget.style.background = '#FEE2E2';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.opacity = deletingUsername === u ? '0.4' : '0.8';
-                      e.currentTarget.style.background = 'none';
+                      userSelect: 'none',
                     }}
                   >
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="3 6 5 6 21 6"></polyline>
-                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                    </svg>
-                  </button>
-                </div>
-              ))}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={(e) => {
+                          e.stopPropagation();
+                          toggleSelect(u);
+                        }}
+                        style={{
+                          width: '16px',
+                          height: '16px',
+                          cursor: 'pointer',
+                          accentColor: 'var(--blue)',
+                        }}
+                      />
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', minWidth: 0 }}>
+                        <span style={{ color: 'var(--blue)', fontWeight: 800, fontSize: '13px' }}>@</span>
+                        <span
+                          style={{
+                            fontSize: '13.5px',
+                            fontWeight: 700,
+                            color: isSelected ? 'var(--blue)' : 'var(--text-dark)',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                          }}
+                          title={`@${u}`}
+                        >
+                          {u}
+                        </span>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemove(u);
+                      }}
+                      disabled={deletingUsername === u}
+                      title="Өшіру"
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#EF4444',
+                        cursor: deletingUsername === u ? 'not-allowed' : 'pointer',
+                        padding: '4px',
+                        borderRadius: '6px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        opacity: deletingUsername === u ? 0.4 : 0.8,
+                        transition: 'all 0.15s ease',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.opacity = '1';
+                        e.currentTarget.style.background = '#FEE2E2';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.opacity = deletingUsername === u ? '0.4' : '0.8';
+                        e.currentTarget.style.background = 'none';
+                      }}
+                    >
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                      </svg>
+                    </button>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
