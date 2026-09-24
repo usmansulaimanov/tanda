@@ -517,9 +517,8 @@ export const AudioPlayerBar: React.FC = () => {
       }
     } else if (audioRef.current) {
       audioRef.current.playbackRate = playbackRate;
-      audioRef.current.loop = (repeatMode === 'one');
     }
-  }, [playbackRate, repeatMode, isYouTube]);
+  }, [playbackRate, isYouTube]);
 
   // Polling YouTube progress & chapter boundary transitions
   useEffect(() => {
@@ -655,7 +654,6 @@ export const AudioPlayerBar: React.FC = () => {
         <audio
           ref={audioRef}
           src={audioSrc}
-          loop={repeatMode === 'one'}
           onLoadedMetadata={(e) => {
             const dur = e.currentTarget.duration;
             if (dur && !isNaN(dur) && dur > 0) setDuration(dur);
@@ -674,6 +672,19 @@ export const AudioPlayerBar: React.FC = () => {
             }
             if (isPlaying) {
               e.currentTarget.play().catch(() => {});
+            }
+          }}
+          onPlay={() => {
+            if (!useAudioPlayerStore.getState().isPlaying) {
+              useAudioPlayerStore.getState().setIsPlaying(true);
+            }
+          }}
+          onPause={(e) => {
+            const el = e.currentTarget;
+            if (!el.ended && el.currentTime < (el.duration || 0) - 0.5) {
+              if (useAudioPlayerStore.getState().isPlaying) {
+                useAudioPlayerStore.getState().setIsPlaying(false);
+              }
             }
           }}
           onTimeUpdate={(e) => {

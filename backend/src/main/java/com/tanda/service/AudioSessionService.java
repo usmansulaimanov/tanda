@@ -36,6 +36,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -156,6 +157,20 @@ public class AudioSessionService {
                     ? dto.getPlaybackRate()
                     : 1.0;
             int contentDeltaSeconds = (int) Math.round(rawDeltaSeconds * rate);
+
+            // Anti-stall / Anti-cheat: Check if position moved since previous heartbeat
+            Optional<AudioListenEvent> lastEventOpt = audioListenEventRepository.findTopBySessionIdOrderByRecordedAtDesc(sessionId);
+            if (lastEventOpt.isPresent() && dto.getPositionSeconds() != null) {
+                AudioListenEvent lastEvent = lastEventOpt.get();
+                if (lastEvent.getPositionSeconds() != null) {
+                    int posDiff = Math.abs(dto.getPositionSeconds() - lastEvent.getPositionSeconds());
+                    long eventTimeDiff = Duration.between(lastEvent.getRecordedAt(), now).getSeconds();
+                    if (eventTimeDiff >= 10 && posDiff == 0) {
+                        // Position did not move for >= 10s -> player is frozen, paused or stalled
+                        contentDeltaSeconds = 0;
+                    }
+                }
+            }
 
             // Enforce 8-hour daily content limit
             int currentUsed = dailyLimit.getTotalSeconds() != null ? dailyLimit.getTotalSeconds() : 0;
