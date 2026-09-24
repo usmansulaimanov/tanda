@@ -356,11 +356,11 @@ export const Header: React.FC = () => {
             {role === 'admin' && (
               <li>
                 <Link
-                  to="/admin"
+                  to="/admin/home"
                   className={location.pathname.startsWith('/admin') ? 'active' : ''}
                   style={{ textDecoration: 'none', fontSize: '14px', fontWeight: 700, color: 'var(--blue)' }}
                 >
-                  Басқару панелі
+                  Жеке кабинет
                 </Link>
               </li>
             )}
@@ -566,7 +566,7 @@ export const Header: React.FC = () => {
                       ) : user.role === 'admin' ? (
                         <>
                           <Link
-                            to="/admin"
+                            to="/admin/home"
                             className="profile-menu-item"
                             onClick={() => setProfileOpen(false)}
                           >
@@ -576,7 +576,7 @@ export const Header: React.FC = () => {
                               <rect x="14" y="14" width="7" height="7"></rect>
                               <rect x="3" y="14" width="7" height="7"></rect>
                             </svg>
-                            Басқару панелі
+                            Жеке кабинет
                           </Link>
 
                           {hasAdminPermission(user, 'analytics_view') && (
