@@ -214,31 +214,6 @@ export const AdminHomePage: React.FC = () => {
                     </svg>
                     <span>Авторлық статистика</span>
                   </Link>
-
-                  <Link
-                    to="/admin"
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      padding: '12px 22px',
-                      borderRadius: '12px',
-                      background: '#FFFFFF',
-                      color: 'var(--blue)',
-                      fontWeight: 700,
-                      fontSize: '14px',
-                      textDecoration: 'none',
-                      boxShadow: '0 6px 20px rgba(0, 0, 0, 0.15)',
-                      transition: 'transform 0.15s ease, box-shadow 0.15s ease',
-                    }}
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path>
-                      <path d="M6 6h10"></path>
-                      <path d="M6 10h10"></path>
-                    </svg>
-                    <span>Кітаптарым</span>
-                  </Link>
                 </>
               ) : (
                 <>
@@ -362,51 +337,6 @@ export const AdminHomePage: React.FC = () => {
                   </div>
                   <div style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.4 }}>
                     Тыңдалымдар, оқырмандар саны және роялти табысы
-                  </div>
-                </div>
-              </Link>
-
-              <Link
-                to="/admin"
-                style={{
-                  textDecoration: 'none',
-                  background: '#FFFFFF',
-                  borderRadius: '16px',
-                  padding: '20px',
-                  border: '1px solid #E2E8F0',
-                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '12px',
-                  transition: 'all 0.2s ease',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div
-                    style={{
-                      width: '42px',
-                      height: '42px',
-                      borderRadius: '12px',
-                      background: '#EFF6FF',
-                      color: 'var(--blue)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path>
-                      <path d="M6 6h10"></path>
-                      <path d="M6 10h10"></path>
-                    </svg>
-                  </div>
-                </div>
-                <div>
-                  <div style={{ fontSize: '16px', fontWeight: 700, color: '#1E293B', marginBottom: '4px' }}>
-                    Кітаптарым
-                  </div>
-                  <div style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.4 }}>
-                    Сізге бекітілген кітаптар тізімі
                   </div>
                 </div>
               </Link>

@@ -331,15 +331,6 @@ export const Header: React.FC = () => {
                     </li>
                     <li>
                       <Link
-                        to="/admin"
-                        className={location.pathname === '/admin' || location.pathname.startsWith('/admin/books') ? 'active' : ''}
-                        style={{ textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}
-                      >
-                        Кітаптарым
-                      </Link>
-                    </li>
-                    <li>
-                      <Link
                         to="/admin/home"
                         className={location.pathname === '/admin/home' ? 'active' : ''}
                         style={{ textDecoration: 'none', fontSize: '14px', fontWeight: 700, color: 'var(--blue)' }}
