@@ -657,18 +657,24 @@ export const AudioPlayerBar: React.FC = () => {
           onLoadedMetadata={(e) => {
             const dur = e.currentTarget.duration;
             if (dur && !isNaN(dur) && dur > 0) setDuration(dur);
+            const savedProgress = useAudioPlayerStore.getState().progress || 0;
             if (pendingSeekTimeRef.current !== null) {
               e.currentTarget.currentTime = pendingSeekTimeRef.current;
               pendingSeekTimeRef.current = null;
+            } else if (savedProgress > 0 && Math.abs(e.currentTarget.currentTime - savedProgress) > 1) {
+              e.currentTarget.currentTime = savedProgress;
             }
             if (isPlaying) {
               e.currentTarget.play().catch(() => {});
             }
           }}
           onCanPlay={(e) => {
+            const savedProgress = useAudioPlayerStore.getState().progress || 0;
             if (pendingSeekTimeRef.current !== null) {
               e.currentTarget.currentTime = pendingSeekTimeRef.current;
               pendingSeekTimeRef.current = null;
+            } else if (savedProgress > 0 && Math.abs(e.currentTarget.currentTime - savedProgress) > 1) {
+              e.currentTarget.currentTime = savedProgress;
             }
             if (isPlaying) {
               e.currentTarget.play().catch(() => {});

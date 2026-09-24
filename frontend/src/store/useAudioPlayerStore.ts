@@ -23,7 +23,7 @@ interface AudioPlayerState {
   closeDailyLimitModal: () => void;
   checkDailyLimit: () => Promise<boolean>;
 
-  playBook: (book: Book, chapterIndex?: number) => void;
+  playBook: (book: Book, chapterIndex?: number, initialProgress?: number) => Promise<void> | void;
   playChapter: (index: number) => void;
   setIsPlaying: (isPlaying: boolean) => void;
   togglePlay: () => void;
@@ -44,6 +44,26 @@ interface AudioPlayerState {
 
 let syncTimeout: any = null;
 
+async function syncProgressNow(bookId: string, chapterId?: string, timeSec?: number) {
+  if (typeof window === 'undefined') return;
+  const token = localStorage.getItem('tanda_token');
+  if (!token) return;
+
+  if (syncTimeout) {
+    clearTimeout(syncTimeout);
+    syncTimeout = null;
+  }
+
+  try {
+    await api.put(`/api/v1/progress/${bookId}`, {
+      currentAudioChapterId: chapterId,
+      currentAudioTime: Math.floor(timeSec || 0),
+    });
+  } catch {
+    // ignore
+  }
+}
+
 function debouncedSyncProgress(bookId: string, chapterId?: string, timeSec?: number) {
   if (typeof window === 'undefined') return;
   const token = localStorage.getItem('tanda_token');
@@ -58,7 +78,7 @@ function debouncedSyncProgress(bookId: string, chapterId?: string, timeSec?: num
       currentAudioChapterId: chapterId,
       currentAudioTime: Math.floor(timeSec || 0),
     }).catch(() => {});
-  }, 3000);
+  }, 2500);
 }
 
 export function resetRoyaltyTracking() {
@@ -242,7 +262,7 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
         }
       },
 
-      playBook: (book, chapterIndex = 0) => {
+      playBook: async (book, targetChapterIndex?: number, explicitProgress?: number) => {
         if (get().isDailyLimitReached) {
           set({ showDailyLimitModal: true, isPlaying: false });
           return;
@@ -259,15 +279,47 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
             },
           ];
         }
-        const chapter = chapters[chapterIndex] || chapters[0] || null;
+
+        let resolvedChapterIndex = targetChapterIndex !== undefined ? targetChapterIndex : 0;
+        let resolvedProgress = explicitProgress !== undefined ? explicitProgress : 0;
+
+        const isSameBook = get().currentBook?.id === book.id;
+        if (targetChapterIndex === undefined && explicitProgress === undefined) {
+          if (isSameBook && get().progress > 0) {
+            resolvedProgress = get().progress;
+            resolvedChapterIndex = get().chapterIndex;
+          } else {
+            try {
+              const token = localStorage.getItem('tanda_token');
+              if (token) {
+                const { data } = await api.get(`/api/v1/progress/${book.id}`);
+                if (data && data.currentAudioTime !== undefined && data.currentAudioTime > 0) {
+                  resolvedProgress = data.currentAudioTime;
+                  if (data.currentAudioChapterId) {
+                    const chIdx = chapters.findIndex((c) => c.id === data.currentAudioChapterId);
+                    if (chIdx >= 0) {
+                      resolvedChapterIndex = chIdx;
+                    }
+                  }
+                }
+              }
+            } catch {
+              // fallback
+            }
+          }
+        }
+
+        const chapter = chapters[resolvedChapterIndex] || chapters[0] || null;
         const hasOwnAudio = Boolean(chapter?.audioUrl && chapter.audioUrl.trim());
-        const startProgress = !hasOwnAudio && chapters.length > 0 ? getChapterStartTime(chapters, chapterIndex) : 0;
+        const startProgress = resolvedProgress > 0
+          ? resolvedProgress
+          : (!hasOwnAudio && chapters.length > 0 ? getChapterStartTime(chapters, resolvedChapterIndex) : 0);
         const chapterDur = chapter?.duration ? parseDurationToSeconds(chapter.duration) : 180;
 
         set({
           currentBook: book,
           currentChapter: chapter,
-          chapterIndex,
+          chapterIndex: resolvedChapterIndex,
           isPlaying: true,
           progress: startProgress,
           duration: chapterDur,
@@ -276,6 +328,7 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
         useMyBooksStore.getState().markAsReading(book.id);
         startAudioSession(book.id, chapter?.id);
         debouncedSyncProgress(book.id, chapter?.id, startProgress);
+        window.dispatchEvent(new CustomEvent('tanda:audio:seek', { detail: { time: startProgress } }));
       },
 
       playChapter: (index) => {
@@ -321,6 +374,10 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
           }
         } else {
           stopHeartbeatTimer();
+          const state = get();
+          if (state.currentBook) {
+            syncProgressNow(state.currentBook.id, state.currentChapter?.id, state.progress);
+          }
         }
         set({ isPlaying });
       },
@@ -340,12 +397,19 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
           }
         } else {
           stopHeartbeatTimer();
+          if (state.currentBook) {
+            syncProgressNow(state.currentBook.id, state.currentChapter?.id, state.progress);
+          }
         }
         set({ isPlaying: next });
       },
 
       pause: () => {
         stopHeartbeatTimer();
+        const state = get();
+        if (state.currentBook) {
+          syncProgressNow(state.currentBook.id, state.currentChapter?.id, state.progress);
+        }
         set({ isPlaying: false });
       },
 

@@ -6,7 +6,7 @@ import { useToastStore } from '../../store/useToastStore';
 
 export const PromoCodePage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, role, isAuthenticated, openAuthModal } = useAuthStore();
+  const { user, role, isAuthenticated, isAuthInitialized, openAuthModal } = useAuthStore();
   const { activatePromoCode, getUserActivatedPromos, fetchUserActivatedPromos } = usePromoStore();
   const { showToast } = useToastStore();
 
@@ -16,6 +16,7 @@ export const PromoCodePage: React.FC = () => {
 
   // Authentication protection: only registered readers can access promo codes
   useEffect(() => {
+    if (!isAuthInitialized) return;
     if (!isAuthenticated || !user) {
       showToast('Промокодты белсендіру үшін алдымен тіркеліңіз немесе жүйеге кіріңіз!', 'info');
       openAuthModal('signup');
@@ -23,11 +24,11 @@ export const PromoCodePage: React.FC = () => {
     } else {
       fetchUserActivatedPromos();
     }
-  }, [isAuthenticated, user, navigate, openAuthModal, showToast, fetchUserActivatedPromos]);
+  }, [isAuthInitialized, isAuthenticated, user, navigate, openAuthModal, showToast, fetchUserActivatedPromos]);
 
   const activatedList = user ? getUserActivatedPromos(user.id) : [];
 
-  if (!isAuthenticated || !user) {
+  if (!isAuthInitialized || !isAuthenticated || !user) {
     return null;
   }
 

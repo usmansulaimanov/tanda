@@ -66,7 +66,7 @@ export const BookDetailPage: React.FC = () => {
     }
     markAsReading(book.id, 1, book.pages ? parseInt(String(book.pages)) : undefined);
     if (currentBook?.id !== book.id) {
-      playBook(book, 0);
+      playBook(book);
     }
     navigate(`/listen/${book.id}`);
   };

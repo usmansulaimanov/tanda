@@ -89,7 +89,7 @@ export const AudioPlayerPage: React.FC = () => {
   // If this book is opened and isn't currently loaded in the player store, start playing it
   useEffect(() => {
     if (book && isAuthenticated && (!currentBook || currentBook.id !== book.id)) {
-      playBook(book, 0);
+      playBook(book);
     }
   }, [book, isAuthenticated, currentBook, playBook]);
 

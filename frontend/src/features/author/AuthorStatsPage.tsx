@@ -1,9 +1,10 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { useAuthStore } from '../../store/useAuthStore';
+import { useAuthStore, DEFAULT_MANAGER_AVATAR } from '../../store/useAuthStore';
 import { useBookStore } from '../../store/useBookStore';
 import { useToastStore } from '../../store/useToastStore';
 import { useRoyaltyStore } from '../../store/useRoyaltyStore';
+import { api } from '../../lib/api';
 import { User } from '../../types';
 
 interface PeakDayInfo {
@@ -70,7 +71,14 @@ export const AuthorStatsPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const queryAuthorId = routeAuthorId || searchParams.get('authorId');
 
-  const { user: currentUser, isAuthenticated, getAllAuthors } = useAuthStore();
+  const {
+    user: currentUser,
+    isAuthenticated,
+    isAuthInitialized,
+    authors,
+    fetchAuthors,
+    getAllAuthors,
+  } = useAuthStore();
   const { books } = useBookStore();
   const { showToast } = useToastStore();
   const { fetchAuthorStats, requestPayout, authorStatsCache, authorBalances } = useRoyaltyStore();
@@ -86,37 +94,118 @@ export const AuthorStatsPage: React.FC = () => {
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   });
 
-  // All authors list for Admin dropdown
-  const allAuthors = useMemo(() => getAllAuthors(), [getAllAuthors]);
+  const [isAuthorsLoaded, setIsAuthorsLoaded] = useState(false);
+  const [directAuthor, setDirectAuthor] = useState<User | null>(null);
 
-  // If not authenticated, redirect
+  // If not authenticated, redirect with preserved return URL
   useEffect(() => {
+    if (!isAuthInitialized) return;
+
     if (!isAuthenticated || !currentUser) {
       showToast('Бұл бетті көру үшін жүйеге кіріңіз', 'error');
-      navigate('/login', { replace: true });
+      const currentPath = window.location.pathname + window.location.search;
+      navigate(`/login?redirect=${encodeURIComponent(currentPath)}`, { replace: true });
+      return;
     }
-  }, [isAuthenticated, currentUser, navigate, showToast]);
+
+    const isUserAdmin = currentUser.role === 'admin' || Boolean(currentUser.isSuperAdmin);
+    const isUserAuthor = currentUser.role === 'author' || Boolean(currentUser.isAuthor);
+
+    if (!isUserAdmin && !isUserAuthor) {
+      showToast('Бұл бетке кіруге рұқсатыңыз жоқ', 'error');
+      navigate('/', { replace: true });
+      return;
+    }
+
+    if (isUserAdmin) {
+      fetchAuthors()
+        .then(() => setIsAuthorsLoaded(true))
+        .catch(() => setIsAuthorsLoaded(true));
+    } else {
+      setIsAuthorsLoaded(true);
+    }
+  }, [isAuthInitialized, isAuthenticated, currentUser, navigate, showToast, fetchAuthors]);
 
   const isAdmin = currentUser?.role === 'admin' || Boolean(currentUser?.isSuperAdmin);
+
+  // If queryAuthorId is provided and author not in store, fetch directly
+  useEffect(() => {
+    if (!queryAuthorId || !isAuthInitialized || !currentUser) return;
+    const isUserAdmin = currentUser.role === 'admin' || Boolean(currentUser.isSuperAdmin);
+    if (!isUserAdmin) return;
+
+    const exists = (authors || []).some(
+      (a) => a.id === queryAuthorId || a.authorId === queryAuthorId || a.idNumber === queryAuthorId
+    );
+    if (!exists) {
+      api
+        .get(`/api/v1/admin/authors/${queryAuthorId}`)
+        .then(({ data }) => {
+          if (data) {
+            setDirectAuthor({
+              id: data.userId || data.id,
+              authorId: data.id,
+              name: data.name || '',
+              email: data.email || '',
+              phone: data.phone || undefined,
+              idNumber: data.idNumber || undefined,
+              avatarUrl: data.avatarUrl || DEFAULT_MANAGER_AVATAR,
+              assignedAuthorName: data.assignedAuthorName || data.name || '',
+              assignedBookIds: data.bookIds || data.assignedBookIds || [],
+              role: 'author',
+              isAuthor: true,
+              duty: 'Автор',
+              isActive: data.isActive !== false,
+              createdAt: data.createdAt,
+            });
+          }
+        })
+        .catch(() => {
+          // not found
+        });
+    }
+  }, [queryAuthorId, isAuthInitialized, currentUser, authors]);
+
+  // All authors list for Admin dropdown
+  const allAuthors = useMemo(() => {
+    const list = authors && authors.length > 0 ? authors : getAllAuthors();
+    if (directAuthor && !list.some((a) => a.id === directAuthor.id || a.authorId === directAuthor.authorId)) {
+      return [...list, directAuthor];
+    }
+    return list;
+  }, [authors, getAllAuthors, directAuthor]);
 
   // Target author to display
   const targetAuthor: User | null = useMemo(() => {
     if (!currentUser) return null;
     if (queryAuthorId) {
-      const found = allAuthors.find((a) => a.id === queryAuthorId);
+      const found = allAuthors.find(
+        (a) => a.id === queryAuthorId || a.authorId === queryAuthorId || a.idNumber === queryAuthorId
+      );
       if (found) return found;
+      if (
+        directAuthor &&
+        (directAuthor.id === queryAuthorId ||
+          directAuthor.authorId === queryAuthorId ||
+          directAuthor.idNumber === queryAuthorId)
+      ) {
+        return directAuthor;
+      }
     }
     if (currentUser.role === 'author') {
       return currentUser;
     }
     if (isAdmin) {
       if (queryAuthorId) {
-        return allAuthors.find((a) => a.id === queryAuthorId) || allAuthors[0] || null;
+        const found = allAuthors.find(
+          (a) => a.id === queryAuthorId || a.authorId === queryAuthorId || a.idNumber === queryAuthorId
+        );
+        return found || directAuthor || null;
       }
       return allAuthors[0] || null;
     }
     return currentUser;
-  }, [queryAuthorId, allAuthors, currentUser, isAdmin]);
+  }, [queryAuthorId, allAuthors, directAuthor, currentUser, isAdmin]);
 
   // Determine author name to match
   const authorName = useMemo(() => {
@@ -126,15 +215,20 @@ export const AuthorStatsPage: React.FC = () => {
 
   const currentAuthorStats = useMemo(() => {
     if (!targetAuthor) return null;
-    const directKey = `${targetAuthor.id}_${selectedMonthKey}`;
-    if (authorStatsCache[directKey]) {
-      return authorStatsCache[directKey];
+    const directKey1 = `${targetAuthor.id}_${selectedMonthKey}`;
+    const directKey2 = targetAuthor.authorId ? `${targetAuthor.authorId}_${selectedMonthKey}` : directKey1;
+    if (authorStatsCache[directKey1]) {
+      return authorStatsCache[directKey1];
+    }
+    if (authorStatsCache[directKey2]) {
+      return authorStatsCache[directKey2];
     }
     const match = Object.values(authorStatsCache).find(
-      (s) => s.month === selectedMonthKey && (
-        s.authorId === targetAuthor.id ||
-        (s.authorName && authorName && s.authorName.toLowerCase().trim() === authorName.toLowerCase().trim())
-      )
+      (s) =>
+        s.month === selectedMonthKey &&
+        (s.authorId === targetAuthor.id ||
+          (targetAuthor.authorId && s.authorId === targetAuthor.authorId) ||
+          (s.authorName && authorName && s.authorName.toLowerCase().trim() === authorName.toLowerCase().trim()))
     );
     return match || null;
   }, [targetAuthor, selectedMonthKey, authorStatsCache, authorName]);
@@ -165,10 +259,11 @@ export const AuthorStatsPage: React.FC = () => {
 
   // Fetch author stats from backend
   useEffect(() => {
-    if (targetAuthor?.id) {
-      fetchAuthorStats(targetAuthor.id, selectedMonthKey);
+    if (targetAuthor?.id || targetAuthor?.authorId) {
+      const idToFetch = targetAuthor.authorId || targetAuthor.id;
+      fetchAuthorStats(idToFetch, selectedMonthKey);
     }
-  }, [targetAuthor?.id, selectedMonthKey, fetchAuthorStats]);
+  }, [targetAuthor?.id, targetAuthor?.authorId, selectedMonthKey, fetchAuthorStats]);
 
   // Aggregated metrics
   const stats = useMemo(() => {
@@ -204,13 +299,19 @@ export const AuthorStatsPage: React.FC = () => {
     if (!targetAuthor) {
       return { totalMinutes: 0, totalSeconds: 0, estimatedEarned: 0, ratePerMinute: 0, currentBalance: 0, periodStatus: 'estimated' as const };
     }
+    const targetBalance =
+      authorBalances[targetAuthor.authorId || targetAuthor.id] ??
+      authorBalances[targetAuthor.id] ??
+      currentAuthorStats?.currentBalance ??
+      0;
+
     if (currentAuthorStats) {
       return {
         totalMinutes: currentAuthorStats.totalMinutes,
         totalSeconds: currentAuthorStats.totalSeconds,
         estimatedEarned: currentAuthorStats.estimatedEarned,
         ratePerMinute: currentAuthorStats.ratePerMinute,
-        currentBalance: authorBalances[targetAuthor.id] ?? currentAuthorStats.currentBalance,
+        currentBalance: targetBalance,
         periodStatus: currentAuthorStats.periodStatus,
       };
     }
@@ -219,7 +320,7 @@ export const AuthorStatsPage: React.FC = () => {
       totalSeconds: 0,
       estimatedEarned: 0,
       ratePerMinute: 0,
-      currentBalance: authorBalances[targetAuthor.id] ?? 0,
+      currentBalance: targetBalance,
       periodStatus: 'estimated' as const,
     };
   }, [targetAuthor, currentAuthorStats, authorBalances]);
@@ -274,6 +375,19 @@ export const AuthorStatsPage: React.FC = () => {
       lastListenedAt: currentAuthorStats.lastListenedAt,
     };
   }, [currentAuthorStats]);
+
+  // Loading skeleton while initializing auth or loading target author
+  if (!isAuthInitialized || (isAdmin && queryAuthorId && !targetAuthor && !isAuthorsLoaded)) {
+    return (
+      <section style={{ padding: '32px 16px 80px', backgroundColor: '#F8FAFC', minHeight: 'calc(100vh - 80px)' }}>
+        <div style={{ maxWidth: '1140px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div style={{ height: '60px', background: '#FFFFFF', borderRadius: '18px', border: '1.5px solid #E2E8F0', opacity: 0.6 }} />
+          <div style={{ height: '120px', background: '#FFFFFF', borderRadius: '24px', border: '1.5px solid #E2E8F0', opacity: 0.6 }} />
+          <div style={{ height: '200px', background: '#FFFFFF', borderRadius: '24px', border: '1.5px solid #E2E8F0', opacity: 0.6 }} />
+        </div>
+      </section>
+    );
+  }
 
   if (!currentUser) return null;
 
@@ -360,7 +474,7 @@ export const AuthorStatsPage: React.FC = () => {
                   Авторды ауыстыру:
                 </label>
                 <select
-                  value={targetAuthor.id}
+                  value={targetAuthor.authorId || targetAuthor.id}
                   onChange={(e) => navigate(`/admin/authors/${e.target.value}`)}
                   style={{
                     padding: '7px 14px',
@@ -375,7 +489,7 @@ export const AuthorStatsPage: React.FC = () => {
                   }}
                 >
                   {allAuthors.map((aut) => (
-                    <option key={aut.id} value={aut.id}>
+                    <option key={aut.id} value={aut.authorId || aut.id}>
                       {aut.name} ({aut.assignedBookIds?.length || 0} кітап)
                     </option>
                   ))}

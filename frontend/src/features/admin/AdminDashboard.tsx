@@ -8,7 +8,7 @@ import { hasAdminPermission } from '../../utils/permissions';
 
 export const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useAuthStore();
+  const { user, role, isAuthInitialized } = useAuthStore();
   const { books, toggleArchive, deleteBook, deleteBooks, fetchBooks } = useBookStore();
   const { showToast } = useToastStore();
 
@@ -25,8 +25,18 @@ export const AdminDashboard: React.FC = () => {
   const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false);
 
   React.useEffect(() => {
-    fetchBooks({ includeArchived: true });
-  }, [fetchBooks]);
+    if (!isAuthInitialized) return;
+    if (!user || (role !== 'admin' && !user.isSuperAdmin)) {
+      showToast('Бұл бетке кіру үшін әкімші рұқсаты қажет', 'error');
+      navigate('/login?redirect=/admin', { replace: true });
+    }
+  }, [isAuthInitialized, user, role, navigate, showToast]);
+
+  React.useEffect(() => {
+    if (isAuthInitialized && user && (role === 'admin' || user.isSuperAdmin)) {
+      fetchBooks({ includeArchived: true });
+    }
+  }, [isAuthInitialized, user, role, fetchBooks]);
 
   const activeCount = useMemo(() => books.filter((b) => !b.isArchived).length, [books]);
   const archivedCount = useMemo(() => books.filter((b) => b.isArchived).length, [books]);
@@ -119,6 +129,14 @@ export const AdminDashboard: React.FC = () => {
       setBookToDelete(null);
     }
   };
+
+  if (!isAuthInitialized) {
+    return (
+      <section className="admin-page-section" id="admin-section" style={{ minHeight: '80vh', padding: '32px 16px' }}>
+        <div style={{ maxWidth: '1280px', margin: '0 auto', height: '400px', background: '#FFFFFF', borderRadius: '24px', border: '1.5px solid #E2E8F0', opacity: 0.6 }} />
+      </section>
+    );
+  }
 
   return (
     <section className="admin-page-section" id="admin-section">
