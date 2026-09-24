@@ -60,8 +60,8 @@ export const AdminRoyaltyTab: React.FC = () => {
     approvePayout,
     rejectPayout,
   } = useRoyaltyStore();
-  const { getAllAuthors } = useAuthStore();
-  const { books } = useBookStore();
+  const { authors, fetchAuthors } = useAuthStore();
+  const { books, fetchBooks } = useBookStore();
   const { showToast } = useToastStore();
 
   // Sub-tabs: 'calculator' | 'payouts'
@@ -89,8 +89,6 @@ export const AdminRoyaltyTab: React.FC = () => {
   const [selectedMonth, setSelectedMonth] = useState<string>(activeMonth || defaultMonth);
   const currentPeriod = periods[selectedMonth];
 
-  const authors = useMemo(() => getAllAuthors(), [getAllAuthors]);
-
   // Form states initialized from current period
   const [revenueInput, setRevenueInput] = useState<number>(() => currentPeriod?.totalRevenue || 0);
   const [expenseInput, setExpenseInput] = useState<number>(() => currentPeriod?.adminExpense || 0);
@@ -107,10 +105,12 @@ export const AdminRoyaltyTab: React.FC = () => {
   const [rejectionReasonInput, setRejectionReasonInput] = useState<string>('');
   const [isSubmittingReject, setIsSubmittingReject] = useState<boolean>(false);
 
-  // Load periods on mount
+  // Load periods, authors, and books on mount
   useEffect(() => {
     fetchPeriods();
-  }, [fetchPeriods]);
+    fetchAuthors();
+    fetchBooks();
+  }, [fetchPeriods, fetchAuthors, fetchBooks]);
 
   const saveTimeoutRef = useRef<any>(null);
 
