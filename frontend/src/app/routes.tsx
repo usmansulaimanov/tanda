@@ -62,6 +62,8 @@ const AdminNewsPage = lazyWithRetry(() => import('../features/admin/AdminNewsPag
 const AdminNewsFormPage = lazyWithRetry(() => import('../features/admin/AdminNewsFormPage').then((m) => ({ default: m.AdminNewsFormPage })));
 const AdminStatsPage = lazyWithRetry(() => import('../features/admin/AdminStatsPage').then((m) => ({ default: m.AdminStatsPage })));
 const AdminUsernamesPage = lazyWithRetry(() => import('../features/admin/AdminUsernamesPage').then((m) => ({ default: m.AdminUsernamesPage })));
+const AuthorHomePage = lazyWithRetry(() => import('../features/author/AuthorHomePage').then((m) => ({ default: m.AuthorHomePage })));
+const AuthorBooksPage = lazyWithRetry(() => import('../features/author/AuthorBooksPage').then((m) => ({ default: m.AuthorBooksPage })));
 const AuthorStatsPage = lazyWithRetry(() => import('../features/author/AuthorStatsPage').then((m) => ({ default: m.AuthorStatsPage })));
 
 const PageLoader = () => (
@@ -85,11 +87,14 @@ const ReaderLandingRoute: React.FC = () => {
     return <PageLoader />;
   }
 
-  const isStaffOrAuthor = Boolean(
-    isAuthenticated && user && (role === 'admin' || role === 'author' || user.role === 'admin' || user.role === 'author' || user.isSuperAdmin || user.isAuthor || Boolean(user.duty))
-  );
+  const isAuthor = Boolean(isAuthenticated && user && (role === 'author' || user.role === 'author' || user.isAuthor));
+  const isStaff = Boolean(isAuthenticated && user && !isAuthor && (role === 'admin' || user.role === 'admin' || user.isSuperAdmin || Boolean(user.duty)));
 
-  if (isStaffOrAuthor) {
+  if (isAuthor) {
+    return <Navigate to="/author/home" replace />;
+  }
+
+  if (isStaff) {
     return <Navigate to="/admin/home" replace />;
   }
 
@@ -98,6 +103,27 @@ const ReaderLandingRoute: React.FC = () => {
       <LandingPage />
     </Suspense>
   );
+};
+
+const AdminRouteGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user, role, isAuthenticated, isAuthInitialized } = useAuthStore();
+
+  if (!isAuthInitialized) {
+    return <PageLoader />;
+  }
+
+  const isAuthor = Boolean(isAuthenticated && user && (role === 'author' || user.role === 'author' || user.isAuthor));
+  const isAdminOrStaff = Boolean(isAuthenticated && user && (role === 'admin' || user.role === 'admin' || user.isSuperAdmin || Boolean(user.duty)));
+
+  if (isAuthor && !user?.isSuperAdmin) {
+    return <Navigate to="/author/home" replace />;
+  }
+
+  if (!isAdminOrStaff) {
+    return <Navigate to="/login?redirect=/admin/home" replace />;
+  }
+
+  return <>{children}</>;
 };
 
 export const router = createBrowserRouter([
@@ -220,98 +246,142 @@ export const router = createBrowserRouter([
       {
         path: 'admin/home',
         element: (
-          <Suspense fallback={<PageLoader />}>
-            <AdminHomePage />
-          </Suspense>
+          <AdminRouteGuard>
+            <Suspense fallback={<PageLoader />}>
+              <AdminHomePage />
+            </Suspense>
+          </AdminRouteGuard>
         ),
       },
       {
         path: 'admin',
         element: (
-          <Suspense fallback={<PageLoader />}>
-            <AdminDashboard />
-          </Suspense>
+          <AdminRouteGuard>
+            <Suspense fallback={<PageLoader />}>
+              <AdminDashboard />
+            </Suspense>
+          </AdminRouteGuard>
         ),
       },
       {
         path: 'admin/news',
         element: (
-          <Suspense fallback={<PageLoader />}>
-            <AdminNewsPage />
-          </Suspense>
+          <AdminRouteGuard>
+            <Suspense fallback={<PageLoader />}>
+              <AdminNewsPage />
+            </Suspense>
+          </AdminRouteGuard>
         ),
       },
       {
         path: 'admin/news/new',
         element: (
-          <Suspense fallback={<PageLoader />}>
-            <AdminNewsFormPage />
-          </Suspense>
+          <AdminRouteGuard>
+            <Suspense fallback={<PageLoader />}>
+              <AdminNewsFormPage />
+            </Suspense>
+          </AdminRouteGuard>
         ),
       },
       {
         path: 'admin/news/:id/edit',
         element: (
-          <Suspense fallback={<PageLoader />}>
-            <AdminNewsFormPage />
-          </Suspense>
+          <AdminRouteGuard>
+            <Suspense fallback={<PageLoader />}>
+              <AdminNewsFormPage />
+            </Suspense>
+          </AdminRouteGuard>
         ),
       },
       {
         path: 'admin/promocodes',
         element: (
-          <Suspense fallback={<PageLoader />}>
-            <AdminPromoCodesPage />
-          </Suspense>
+          <AdminRouteGuard>
+            <Suspense fallback={<PageLoader />}>
+              <AdminPromoCodesPage />
+            </Suspense>
+          </AdminRouteGuard>
         ),
       },
       {
         path: 'admin/promocodes/:batchId',
         element: (
-          <Suspense fallback={<PageLoader />}>
-            <AdminPromoBatchDetailPage />
-          </Suspense>
+          <AdminRouteGuard>
+            <Suspense fallback={<PageLoader />}>
+              <AdminPromoBatchDetailPage />
+            </Suspense>
+          </AdminRouteGuard>
         ),
       },
       {
         path: 'admin/quotes',
         element: (
-          <Suspense fallback={<PageLoader />}>
-            <AdminQuotesPage />
-          </Suspense>
+          <AdminRouteGuard>
+            <Suspense fallback={<PageLoader />}>
+              <AdminQuotesPage />
+            </Suspense>
+          </AdminRouteGuard>
         ),
       },
       {
         path: 'admin/messages',
         element: (
-          <Suspense fallback={<PageLoader />}>
-            <AdminMessagesPage />
-          </Suspense>
+          <AdminRouteGuard>
+            <Suspense fallback={<PageLoader />}>
+              <AdminMessagesPage />
+            </Suspense>
+          </AdminRouteGuard>
         ),
       },
       {
         path: 'admin/managers',
         element: (
-          <Suspense fallback={<PageLoader />}>
-            <AdminManagersPage />
-          </Suspense>
+          <AdminRouteGuard>
+            <Suspense fallback={<PageLoader />}>
+              <AdminManagersPage />
+            </Suspense>
+          </AdminRouteGuard>
         ),
       },
       {
         path: 'admin/stats',
         element: (
-          <Suspense fallback={<PageLoader />}>
-            <AdminStatsPage />
-          </Suspense>
+          <AdminRouteGuard>
+            <Suspense fallback={<PageLoader />}>
+              <AdminStatsPage />
+            </Suspense>
+          </AdminRouteGuard>
         ),
       },
       {
         path: 'admin/usernames',
         element: (
+          <AdminRouteGuard>
+            <Suspense fallback={<PageLoader />}>
+              <AdminUsernamesPage />
+            </Suspense>
+          </AdminRouteGuard>
+        ),
+      },
+      {
+        path: 'author/home',
+        element: (
           <Suspense fallback={<PageLoader />}>
-            <AdminUsernamesPage />
+            <AuthorHomePage />
           </Suspense>
         ),
+      },
+      {
+        path: 'author/books',
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <AuthorBooksPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'author',
+        element: <Navigate to="/author/home" replace />,
       },
       {
         path: 'author/stats',
@@ -332,57 +402,71 @@ export const router = createBrowserRouter([
       {
         path: 'admin/authors/:authorId',
         element: (
-          <Suspense fallback={<PageLoader />}>
-            <AuthorStatsPage />
-          </Suspense>
+          <AdminRouteGuard>
+            <Suspense fallback={<PageLoader />}>
+              <AuthorStatsPage />
+            </Suspense>
+          </AdminRouteGuard>
         ),
       },
       {
         path: 'admin/readers',
         element: (
-          <Suspense fallback={<PageLoader />}>
-            <ReadersPage />
-          </Suspense>
+          <AdminRouteGuard>
+            <Suspense fallback={<PageLoader />}>
+              <ReadersPage />
+            </Suspense>
+          </AdminRouteGuard>
         ),
       },
       {
         path: 'admin/readers/new',
         element: (
-          <Suspense fallback={<PageLoader />}>
-            <ReaderCreatePage />
-          </Suspense>
+          <AdminRouteGuard>
+            <Suspense fallback={<PageLoader />}>
+              <ReaderCreatePage />
+            </Suspense>
+          </AdminRouteGuard>
         ),
       },
       {
         path: 'admin/readers/:id/edit',
         element: (
-          <Suspense fallback={<PageLoader />}>
-            <ReaderEditPage />
-          </Suspense>
+          <AdminRouteGuard>
+            <Suspense fallback={<PageLoader />}>
+              <ReaderEditPage />
+            </Suspense>
+          </AdminRouteGuard>
         ),
       },
       {
         path: 'admin/readers/:id',
         element: (
-          <Suspense fallback={<PageLoader />}>
-            <ReaderEditPage />
-          </Suspense>
+          <AdminRouteGuard>
+            <Suspense fallback={<PageLoader />}>
+              <ReaderEditPage />
+            </Suspense>
+          </AdminRouteGuard>
         ),
       },
       {
         path: 'admin/books/new',
         element: (
-          <Suspense fallback={<PageLoader />}>
-            <BookFormPage />
-          </Suspense>
+          <AdminRouteGuard>
+            <Suspense fallback={<PageLoader />}>
+              <BookFormPage />
+            </Suspense>
+          </AdminRouteGuard>
         ),
       },
       {
         path: 'admin/books/:id/edit',
         element: (
-          <Suspense fallback={<PageLoader />}>
-            <BookFormPage />
-          </Suspense>
+          <AdminRouteGuard>
+            <Suspense fallback={<PageLoader />}>
+              <BookFormPage />
+            </Suspense>
+          </AdminRouteGuard>
         ),
       },
       {

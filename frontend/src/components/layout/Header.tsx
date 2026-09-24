@@ -25,10 +25,13 @@ export const Header: React.FC = () => {
     return getUnreadCountForUser(user.id);
   }, [user, messages, getUnreadCountForUser]);
 
+  const isAuthor = Boolean(
+    isAuthenticated && user && (role === 'author' || user.role === 'author' || user.isAuthor)
+  );
   const isStaffOrAuthor = Boolean(
     isAuthenticated && user && (role === 'admin' || role === 'author' || user.role === 'admin' || user.role === 'author' || user.isSuperAdmin || user.isAuthor || Boolean(user.duty))
   );
-  const homeRoute = isStaffOrAuthor ? '/admin/home' : '/';
+  const homeRoute = isAuthor ? '/author/home' : isStaffOrAuthor ? '/admin/home' : '/';
   const canViewBooks = hasAdminPermission(user, 'books_view');
   const canViewReaders = hasAdminPermission(user, 'readers_view');
 
@@ -309,7 +312,7 @@ export const Header: React.FC = () => {
           <ul className="nav-links">
             {isStaffOrAuthor ? (
               <>
-                {(role === 'author' || user?.isAuthor) ? (
+                {isAuthor ? (
                   <>
                     <li>
                       <Link
@@ -323,7 +326,7 @@ export const Header: React.FC = () => {
                     <li>
                       <Link
                         to="/author/stats"
-                        className={location.pathname.startsWith('/author') ? 'active' : ''}
+                        className={location.pathname.startsWith('/author/stats') ? 'active' : ''}
                         style={{ textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}
                       >
                         Авторлық статистика
@@ -331,8 +334,17 @@ export const Header: React.FC = () => {
                     </li>
                     <li>
                       <Link
-                        to="/admin/home"
-                        className={location.pathname === '/admin/home' ? 'active' : ''}
+                        to="/author/books"
+                        className={location.pathname.startsWith('/author/books') ? 'active' : ''}
+                        style={{ textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}
+                      >
+                        Кітаптарым
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        to="/author/home"
+                        className={location.pathname === '/author/home' || location.pathname === '/author' ? 'active' : ''}
                         style={{ textDecoration: 'none', fontSize: '14px', fontWeight: 700, color: 'var(--blue)' }}
                       >
                         Жеке кабинет
@@ -536,7 +548,7 @@ export const Header: React.FC = () => {
 
                     {/* Quick Navigation Links */}
                     <div className="profile-card-actions">
-                      {user.role !== 'admin' && (
+                      {!isStaffOrAuthor ? (
                         <>
                           <Link
                             to="/my-books"
@@ -613,12 +625,10 @@ export const Header: React.FC = () => {
                             <span style={{ flex: 1 }}>Баптаулар</span>
                           </Link>
                         </>
-                      )}
-
-                      {user.role === 'author' || user.isAuthor ? (
+                      ) : isAuthor ? (
                         <>
                           <Link
-                            to="/admin/home"
+                            to="/author/home"
                             className="profile-menu-item"
                             onClick={() => setProfileOpen(false)}
                           >
@@ -629,6 +639,19 @@ export const Header: React.FC = () => {
                               <rect x="3" y="14" width="7" height="7"></rect>
                             </svg>
                             <span>Жеке кабинет</span>
+                          </Link>
+
+                          <Link
+                            to="/author/books"
+                            className="profile-menu-item"
+                            onClick={() => setProfileOpen(false)}
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path>
+                              <path d="M6 6h10"></path>
+                              <path d="M6 10h10"></path>
+                            </svg>
+                            <span>Кітаптарым</span>
                           </Link>
 
                           <Link
@@ -712,19 +735,7 @@ export const Header: React.FC = () => {
                             <span>Баптаулар</span>
                           </Link>
                         </>
-                      ) : (
-                        <Link
-                          to="/catalog"
-                          className="profile-menu-item"
-                          onClick={() => setProfileOpen(false)}
-                        >
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-                          </svg>
-                          Кітаптар қоры
-                        </Link>
-                      )}
+                      ) : null}
 
                       <button
                         type="button"
