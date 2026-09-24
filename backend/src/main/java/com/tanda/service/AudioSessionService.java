@@ -146,35 +146,11 @@ public class AudioSessionService {
         }
 
         OffsetDateTime now = OffsetDateTime.now();
-        long wallClockDiff = Duration.between(session.getLastHeartbeatAt(), now).getSeconds();
+        int contentDeltaSeconds = calculateContentDelta(sessionId, dto.getPositionSeconds(), session.getLastHeartbeatAt(), now, dto.getPlaybackRate());
 
-        if (wallClockDiff > 0) {
-            // Anti-cheat: Maximum acceptable wall-clock delta between consecutive heartbeats is 45 seconds
-            int rawDeltaSeconds = (int) Math.min(wallClockDiff, 45);
-
-            // Playback rate adjustment (content duration: 2x = 2 content seconds per 1 wall-clock second)
-            double rate = (dto.getPlaybackRate() != null && dto.getPlaybackRate() > 0 && dto.getPlaybackRate() <= 3.0)
-                    ? dto.getPlaybackRate()
-                    : 1.0;
-            int contentDeltaSeconds = (int) Math.round(rawDeltaSeconds * rate);
-
-            // Anti-stall / Anti-cheat: Check if position moved since previous heartbeat
-            Optional<AudioListenEvent> lastEventOpt = audioListenEventRepository.findTopBySessionIdOrderByRecordedAtDesc(sessionId);
-            if (lastEventOpt.isPresent() && dto.getPositionSeconds() != null) {
-                AudioListenEvent lastEvent = lastEventOpt.get();
-                if (lastEvent.getPositionSeconds() != null) {
-                    int posDiff = Math.abs(dto.getPositionSeconds() - lastEvent.getPositionSeconds());
-                    long eventTimeDiff = Duration.between(lastEvent.getRecordedAt(), now).getSeconds();
-                    if (eventTimeDiff >= 10 && posDiff == 0) {
-                        // Position did not move for >= 10s -> player is frozen, paused or stalled
-                        contentDeltaSeconds = 0;
-                    }
-                }
-            }
-
-            // Enforce 8-hour daily content limit
-            int currentUsed = dailyLimit.getTotalSeconds() != null ? dailyLimit.getTotalSeconds() : 0;
-            int allowedContentSeconds = Math.max(0, Math.min(contentDeltaSeconds, DAILY_MAX_CONTENT_SECONDS - currentUsed));
+        // Enforce 8-hour daily content limit
+        int currentUsed = dailyLimit.getTotalSeconds() != null ? dailyLimit.getTotalSeconds() : 0;
+        int allowedContentSeconds = Math.max(0, Math.min(contentDeltaSeconds, DAILY_MAX_CONTENT_SECONDS - currentUsed));
 
             if (allowedContentSeconds > 0) {
                 int newValid = session.getValidSeconds() + allowedContentSeconds;
@@ -203,7 +179,6 @@ public class AudioSessionService {
                     }
                 }
             }
-        }
 
         session.setLastHeartbeatAt(now);
         audioSessionRepository.save(session);
@@ -242,50 +217,45 @@ public class AudioSessionService {
         LocalDate today = LocalDate.now();
         OffsetDateTime now = OffsetDateTime.now();
         if (session.getEndedAt() == null) {
-            long wallClockDiff = Duration.between(session.getLastHeartbeatAt(), now).getSeconds();
-            if (wallClockDiff > 0 && wallClockDiff <= 45) {
-                int rawDeltaSeconds = (int) wallClockDiff;
-                double rate = (dto != null && dto.getPlaybackRate() != null && dto.getPlaybackRate() > 0 && dto.getPlaybackRate() <= 3.0)
-                        ? dto.getPlaybackRate()
-                        : 1.0;
-                int contentDeltaSeconds = (int) Math.round(rawDeltaSeconds * rate);
+            Integer pos = dto != null ? dto.getPositionSeconds() : null;
+            Double rate = dto != null ? dto.getPlaybackRate() : null;
+            int contentDeltaSeconds = calculateContentDelta(sessionId, pos, session.getLastHeartbeatAt(), now, rate);
 
-                UserDailyAudioLimit dailyLimit = userDailyAudioLimitRepository.findByUserIdAndStatDate(userId, today)
-                        .orElseGet(() -> UserDailyAudioLimit.builder()
-                                .id("udal-" + UUID.randomUUID().toString().substring(0, 8))
-                                .userId(userId)
-                                .statDate(today)
-                                .totalSeconds(0)
-                                .build());
+            UserDailyAudioLimit dailyLimit = userDailyAudioLimitRepository.findByUserIdAndStatDate(userId, today)
+                    .orElseGet(() -> UserDailyAudioLimit.builder()
+                            .id("udal-" + UUID.randomUUID().toString().substring(0, 8))
+                            .userId(userId)
+                            .statDate(today)
+                            .totalSeconds(0)
+                            .build());
 
-                int currentUsed = dailyLimit.getTotalSeconds() != null ? dailyLimit.getTotalSeconds() : 0;
-                int allowedContentSeconds = Math.max(0, Math.min(contentDeltaSeconds, DAILY_MAX_CONTENT_SECONDS - currentUsed));
+            int currentUsed = dailyLimit.getTotalSeconds() != null ? dailyLimit.getTotalSeconds() : 0;
+            int allowedContentSeconds = Math.max(0, Math.min(contentDeltaSeconds, DAILY_MAX_CONTENT_SECONDS - currentUsed));
 
-                if (allowedContentSeconds > 0) {
-                    int newValid = session.getValidSeconds() + allowedContentSeconds;
-                    session.setValidSeconds(newValid);
+            if (allowedContentSeconds > 0) {
+                int newValid = session.getValidSeconds() + allowedContentSeconds;
+                session.setValidSeconds(newValid);
 
-                    dailyLimit.setTotalSeconds(currentUsed + allowedContentSeconds);
-                    userDailyAudioLimitRepository.save(dailyLimit);
+                dailyLimit.setTotalSeconds(currentUsed + allowedContentSeconds);
+                userDailyAudioLimitRepository.save(dailyLimit);
 
-                    if (dto != null && dto.getPositionSeconds() != null) {
-                        AudioListenEvent event = AudioListenEvent.builder()
-                                .id("ale-" + UUID.randomUUID().toString().substring(0, 8))
-                                .session(session)
-                                .positionSeconds(dto.getPositionSeconds())
-                                .durationSeconds(allowedContentSeconds)
-                                .recordedAt(now)
-                                .build();
-                        audioListenEventRepository.save(event);
-                    }
+                if (dto != null && dto.getPositionSeconds() != null) {
+                    AudioListenEvent event = AudioListenEvent.builder()
+                            .id("ale-" + UUID.randomUUID().toString().substring(0, 8))
+                            .session(session)
+                            .positionSeconds(dto.getPositionSeconds())
+                            .durationSeconds(allowedContentSeconds)
+                            .recordedAt(now)
+                            .build();
+                    audioListenEventRepository.save(event);
+                }
 
-                    int credited = session.getCreditedSeconds() != null ? session.getCreditedSeconds() : 0;
-                    if (newValid >= MINIMUM_SESSION_THRESHOLD_SECONDS) {
-                        int uncredited = newValid - credited;
-                        if (uncredited > 0) {
-                            creditStatsToAuthorAndBook(session.getBook().getId(), today, uncredited, credited == 0);
-                            session.setCreditedSeconds(credited + uncredited);
-                        }
+                int credited = session.getCreditedSeconds() != null ? session.getCreditedSeconds() : 0;
+                if (newValid >= MINIMUM_SESSION_THRESHOLD_SECONDS) {
+                    int uncredited = newValid - credited;
+                    if (uncredited > 0) {
+                        creditStatsToAuthorAndBook(session.getBook().getId(), today, uncredited, credited == 0);
+                        session.setCreditedSeconds(credited + uncredited);
                     }
                 }
             }
@@ -366,6 +336,47 @@ public class AudioSessionService {
             aStats.setListenCount((aStats.getListenCount() != null ? aStats.getListenCount() : 0) + 1);
         }
         authorDailyBookStatsRepository.save(aStats);
+    }
+
+    private int calculateContentDelta(String sessionId, Integer currentPos, OffsetDateTime lastHeartbeatAt, OffsetDateTime now, Double playbackRate) {
+        long wallClockDiff = Duration.between(lastHeartbeatAt, now).getSeconds();
+        if (wallClockDiff <= 0) {
+            return 0;
+        }
+        int boundedWallClock = (int) Math.min(wallClockDiff, 45);
+        double rate = (playbackRate != null && playbackRate > 0 && playbackRate <= 3.0) ? playbackRate : 1.0;
+
+        Optional<AudioListenEvent> lastEventOpt = audioListenEventRepository.findTopBySessionIdOrderByRecordedAtDesc(sessionId);
+        if (lastEventOpt.isPresent() && currentPos != null) {
+            AudioListenEvent lastEvent = lastEventOpt.get();
+            if (lastEvent.getPositionSeconds() != null) {
+                int posDiff = currentPos - lastEvent.getPositionSeconds();
+                if (posDiff > 0) {
+                    // Maximum plausible progression: wallClock * rate * 1.5 + buffer
+                    int maxPlausible = (int) Math.round(boundedWallClock * Math.max(rate, 2.0) * 1.5) + 6;
+                    if (posDiff <= maxPlausible) {
+                        return posDiff;
+                    } else {
+                        // Forward seek / skip occurred: credit only elapsed time * rate
+                        return (int) Math.round(boundedWallClock * rate);
+                    }
+                } else if (posDiff == 0) {
+                    // Frozen or paused
+                    return 0;
+                } else {
+                    // Rewind or repeat loop back to 0:00
+                    return Math.min(currentPos, (int) Math.round(boundedWallClock * rate));
+                }
+            }
+        } else if (currentPos != null && currentPos > 0) {
+            // First heartbeat in session: verify starting delta
+            int maxPlausible = (int) Math.round(boundedWallClock * Math.max(rate, 2.0) * 1.5) + 6;
+            if (currentPos <= maxPlausible) {
+                return currentPos;
+            }
+        }
+
+        return (int) Math.round(boundedWallClock * rate);
     }
 
     private AudioSessionResponseDto toSessionResponseDto(AudioSession session) {
