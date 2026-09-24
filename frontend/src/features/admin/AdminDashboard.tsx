@@ -12,9 +12,13 @@ export const AdminDashboard: React.FC = () => {
   const { books, toggleArchive, deleteBook, deleteBooks, fetchBooks } = useBookStore();
   const { showToast } = useToastStore();
 
-  const canCreateBooks = hasAdminPermission(user, 'books_create');
-  const canEditBooks = hasAdminPermission(user, 'books_edit');
-  const canDeleteBooks = hasAdminPermission(user, 'books_delete');
+  const isAuthor = Boolean(role === 'author' || user?.isAuthor || user?.role === 'author');
+  const isAdminOrStaff = Boolean(role === 'admin' || user?.role === 'admin' || user?.isSuperAdmin || Boolean(user?.duty));
+  const isAllowed = isAuthor || isAdminOrStaff;
+
+  const canCreateBooks = isAdminOrStaff && hasAdminPermission(user, 'books_create');
+  const canEditBooks = isAdminOrStaff && hasAdminPermission(user, 'books_edit');
+  const canDeleteBooks = isAdminOrStaff && hasAdminPermission(user, 'books_delete');
 
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'archived'>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -26,23 +30,38 @@ export const AdminDashboard: React.FC = () => {
 
   React.useEffect(() => {
     if (!isAuthInitialized) return;
-    if (!user || (role !== 'admin' && !user.isSuperAdmin)) {
-      showToast('Бұл бетке кіру үшін әкімші рұқсаты қажет', 'error');
+    if (!user || !isAllowed) {
+      showToast('Бұл бетке кіру үшін жүйеге кіріңіз немесе тиісті рұқсат қажет', 'error');
       navigate('/login?redirect=/admin', { replace: true });
     }
-  }, [isAuthInitialized, user, role, navigate, showToast]);
+  }, [isAuthInitialized, user, isAllowed, navigate]);
 
   React.useEffect(() => {
-    if (isAuthInitialized && user && (role === 'admin' || user.isSuperAdmin)) {
+    if (isAuthInitialized && user && isAllowed) {
       fetchBooks({ includeArchived: true });
     }
-  }, [isAuthInitialized, user, role, fetchBooks]);
+  }, [isAuthInitialized, user, isAllowed, fetchBooks]);
 
-  const activeCount = useMemo(() => books.filter((b) => !b.isArchived).length, [books]);
-  const archivedCount = useMemo(() => books.filter((b) => b.isArchived).length, [books]);
+  const authorName = (user?.assignedAuthorName?.trim() || user?.name?.trim() || '').toLowerCase();
+  const assignedIds = useMemo(() => new Set(user?.assignedBookIds || []), [user?.assignedBookIds]);
+
+  const baseBooks = useMemo(() => {
+    if (isAuthor && !isAdminOrStaff) {
+      return books.filter((b) => {
+        if (assignedIds.has(b.id)) return true;
+        if (!b.author) return false;
+        const bAuthor = b.author.toLowerCase().trim();
+        return bAuthor === authorName || bAuthor.includes(authorName) || authorName.includes(bAuthor);
+      });
+    }
+    return books;
+  }, [books, isAuthor, isAdminOrStaff, assignedIds, authorName]);
+
+  const activeCount = useMemo(() => baseBooks.filter((b) => !b.isArchived).length, [baseBooks]);
+  const archivedCount = useMemo(() => baseBooks.filter((b) => b.isArchived).length, [baseBooks]);
 
   const filteredBooks = useMemo(() => {
-    return books.filter((b) => {
+    return baseBooks.filter((b) => {
       if (filterStatus === 'active' && b.isArchived) return false;
       if (filterStatus === 'archived' && !b.isArchived) return false;
       if (searchQuery.trim()) {
@@ -54,7 +73,7 @@ export const AdminDashboard: React.FC = () => {
       }
       return true;
     });
-  }, [books, filterStatus, searchQuery]);
+  }, [baseBooks, filterStatus, searchQuery]);
 
   const totalPages = Math.max(1, Math.ceil(filteredBooks.length / pageSize));
 
@@ -155,69 +174,73 @@ export const AdminDashboard: React.FC = () => {
           >
             <div>
               <h2 style={{ fontSize: '24px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
-                Кітаптарды басқару панелі
+                {isAuthor && !isAdminOrStaff ? 'Кітаптарым' : 'Кітаптарды басқару панелі'}
               </h2>
               <p style={{ fontSize: '13px', color: 'var(--text-mid)', marginTop: '4px' }}>
-                Барлығы: <span style={{ fontWeight: 700, color: 'var(--blue)' }}>{books.length}</span> кітап |{' '}
-                Архивте: <span style={{ fontWeight: 700, color: '#64748B' }}>{archivedCount}</span> кітап
+                Барлығы: <span style={{ fontWeight: 700, color: 'var(--blue)' }}>{baseBooks.length}</span> кітап
+                {isAdminOrStaff && (
+                  <>
+                    {' '}| Архивте: <span style={{ fontWeight: 700, color: '#64748B' }}>{archivedCount}</span> кітап
+                  </>
+                )}
               </p>
             </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
-                  {/* Search input */}
-                  <div style={{ position: 'relative', minWidth: '220px' }}>
-                    <input
-                      type="text"
-                      placeholder="Кітапты не авторды іздеу..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      style={{
-                        padding: '7px 12px 7px 32px',
-                        borderRadius: '8px',
-                        border: '1.5px solid #CBD5E1',
-                        fontSize: '13px',
-                        background: '#FFFFFF',
-                        color: 'var(--text-dark)',
-                        outline: 'none',
-                        width: '100%',
-                        boxSizing: 'border-box',
-                      }}
-                    />
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="#94A3B8"
-                      strokeWidth="2.5"
-                      style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}
-                    >
-                      <circle cx="11" cy="11" r="8"></circle>
-                      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                    </svg>
-                  </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+              {/* Search input */}
+              <div style={{ position: 'relative', minWidth: '220px' }}>
+                <input
+                  type="text"
+                  placeholder="Кітапты не авторды іздеу..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  style={{
+                    padding: '7px 12px 7px 32px',
+                    borderRadius: '8px',
+                    border: '1.5px solid #CBD5E1',
+                    fontSize: '13px',
+                    background: '#FFFFFF',
+                    color: 'var(--text-dark)',
+                    outline: 'none',
+                    width: '100%',
+                    boxSizing: 'border-box',
+                  }}
+                />
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#94A3B8"
+                  strokeWidth="2.5"
+                  style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}
+                >
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+              </div>
 
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <button
-                      type="button"
-                      onClick={() => setFilterStatus('all')}
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        fontSize: '12px',
-                        fontWeight: 700,
-                        color: filterStatus === 'all' ? '#FFFFFF' : '#64748B',
-                        background: filterStatus === 'all' ? 'var(--blue)' : '#F1F5F9',
-                        padding: '6px 14px',
-                        borderRadius: '6px',
-                        border: `1.5px solid ${filterStatus === 'all' ? 'var(--blue)' : '#CBD5E1'}`,
-                        cursor: 'pointer',
-                        transition: 'all 0.15s',
-                      }}
-                    >
-                      Барлығы
-                    </button>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => setFilterStatus('all')}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    color: filterStatus === 'all' ? '#FFFFFF' : '#64748B',
+                    background: filterStatus === 'all' ? 'var(--blue)' : '#F1F5F9',
+                    padding: '6px 14px',
+                    borderRadius: '6px',
+                    border: `1.5px solid ${filterStatus === 'all' ? 'var(--blue)' : '#CBD5E1'}`,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  Барлығы
+                </button>
 
                 <button
                   type="button"
@@ -241,27 +264,29 @@ export const AdminDashboard: React.FC = () => {
                   Белсенді: {activeCount}
                 </button>
 
-                <button
-                  type="button"
-                  onClick={() => setFilterStatus('archived')}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    fontSize: '12px',
-                    fontWeight: 700,
-                    color: '#64748B',
-                    background: filterStatus === 'archived' ? '#E2E8F0' : '#F1F5F9',
-                    padding: '6px 14px',
-                    borderRadius: '6px',
-                    border: '1.5px solid #CBD5E1',
-                    cursor: 'pointer',
-                    transition: 'all 0.15s',
-                  }}
-                >
-                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#94A3B8' }}></span>
-                  Архивте: {archivedCount}
-                </button>
+                {isAdminOrStaff && (
+                  <button
+                    type="button"
+                    onClick={() => setFilterStatus('archived')}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      color: '#64748B',
+                      background: filterStatus === 'archived' ? '#E2E8F0' : '#F1F5F9',
+                      padding: '6px 14px',
+                      borderRadius: '6px',
+                      border: '1.5px solid #CBD5E1',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#94A3B8' }}></span>
+                    Архивте: {archivedCount}
+                  </button>
+                )}
               </div>
 
               {/* Add Book Button (navigates to /admin/books/new) */}
@@ -290,8 +315,8 @@ export const AdminDashboard: React.FC = () => {
             </div>
           </div>
 
-          {/* Bulk Selection Action Bar */}
-          {selectedBookIds.length > 0 && (
+          {/* Bulk Selection Action Bar (Admin only) */}
+          {isAdminOrStaff && selectedBookIds.length > 0 && (
             <div
               style={{
                 display: 'flex',
@@ -405,18 +430,20 @@ export const AdminDashboard: React.FC = () => {
             <table className="admin-table">
               <thead>
                 <tr>
-                  <th style={{ width: '40px', textAlign: 'center' }}>
-                    <input
-                      type="checkbox"
-                      checked={isAllSelected}
-                      ref={(el) => {
-                        if (el) el.indeterminate = isSomeSelected;
-                      }}
-                      onChange={handleSelectAll}
-                      style={{ cursor: 'pointer', width: '16px', height: '16px', accentColor: 'var(--blue)' }}
-                      title={isAllSelected ? 'Барлығын таңдаудан алу' : 'Барлығын таңдау'}
-                    />
-                  </th>
+                  {isAdminOrStaff && (
+                    <th style={{ width: '40px', textAlign: 'center' }}>
+                      <input
+                        type="checkbox"
+                        checked={isAllSelected}
+                        ref={(el) => {
+                          if (el) el.indeterminate = isSomeSelected;
+                        }}
+                        onChange={handleSelectAll}
+                        style={{ cursor: 'pointer', width: '16px', height: '16px', accentColor: 'var(--blue)' }}
+                        title={isAllSelected ? 'Барлығын таңдаудан алу' : 'Барлығын таңдау'}
+                      />
+                    </th>
+                  )}
                   <th style={{ width: '45px', textAlign: 'center' }}>№</th>
                   <th style={{ width: '60px' }}>Мұқаба</th>
                   <th>Атауы мен авторы</th>
@@ -440,16 +467,18 @@ export const AdminDashboard: React.FC = () => {
                         transition: 'background-color 0.15s ease',
                       }}
                     >
-                      {/* Checkbox selection cell */}
-                      <td style={{ textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
-                        <input
-                          type="checkbox"
-                          checked={isSelected}
-                          onChange={() => {}}
-                          onClick={(e) => handleSelectBook(book.id, e)}
-                          style={{ cursor: 'pointer', width: '16px', height: '16px', accentColor: 'var(--blue)' }}
-                        />
-                      </td>
+                      {/* Checkbox selection cell (Admin only) */}
+                      {isAdminOrStaff && (
+                        <td style={{ textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => {}}
+                            onClick={(e) => handleSelectBook(book.id, e)}
+                            style={{ cursor: 'pointer', width: '16px', height: '16px', accentColor: 'var(--blue)' }}
+                          />
+                        </td>
+                      )}
 
                       {/* Sequential № */}
                       <td style={{ textAlign: 'center', fontWeight: 700, color: '#64748B', fontSize: '12px' }}>
@@ -583,70 +612,115 @@ export const AdminDashboard: React.FC = () => {
                     {/* Action buttons */}
                     <td style={{ textAlign: 'right' }}>
                       <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                        {/* Edit */}
-                        {canEditBooks && (
-                          <Link
-                            to={`/admin/books/${book.id}/edit`}
-                            style={{
-                              padding: '6px 12px',
-                              fontSize: '12px',
-                              fontWeight: 700,
-                              background: '#F1F5F9',
-                              color: 'var(--text-dark)',
-                              borderRadius: '6px',
-                              border: '1px solid #CBD5E1',
-                              textDecoration: 'none',
-                              cursor: 'pointer',
-                            }}
-                          >
-                            Өңдеу
-                          </Link>
-                        )}
+                        {isAuthor && !isAdminOrStaff ? (
+                          <>
+                            <Link
+                              to={`/book/${book.id}`}
+                              style={{
+                                padding: '6px 12px',
+                                fontSize: '12px',
+                                fontWeight: 700,
+                                background: '#EFF6FF',
+                                color: 'var(--blue)',
+                                borderRadius: '6px',
+                                border: '1px solid #BFDBFE',
+                                textDecoration: 'none',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                              }}
+                            >
+                              Көру ↗
+                            </Link>
+                            {book.hasAudio && (
+                              <Link
+                                to={`/listen/${book.id}`}
+                                style={{
+                                  padding: '6px 12px',
+                                  fontSize: '12px',
+                                  fontWeight: 700,
+                                  background: '#FFF7ED',
+                                  color: 'var(--orange)',
+                                  borderRadius: '6px',
+                                  border: '1px solid #FED7AA',
+                                  textDecoration: 'none',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                }}
+                              >
+                                ▶ Тыңдау
+                              </Link>
+                            )}
+                          </>
+                        ) : (
+                          <>
+                            {/* Edit */}
+                            {canEditBooks && (
+                              <Link
+                                to={`/admin/books/${book.id}/edit`}
+                                style={{
+                                  padding: '6px 12px',
+                                  fontSize: '12px',
+                                  fontWeight: 700,
+                                  background: '#F1F5F9',
+                                  color: 'var(--text-dark)',
+                                  borderRadius: '6px',
+                                  border: '1px solid #CBD5E1',
+                                  textDecoration: 'none',
+                                  cursor: 'pointer',
+                                }}
+                              >
+                                Өңдеу
+                              </Link>
+                            )}
 
-                        {/* Archive / Unarchive */}
-                        {canDeleteBooks && (
-                          <button
-                            type="button"
-                            onClick={() => handleToggleArchive(book)}
-                            style={{
-                              padding: '6px 12px',
-                              fontSize: '12px',
-                              fontWeight: 700,
-                              background: '#F1F5F9',
-                              color: 'var(--text-dark)',
-                              borderRadius: '6px',
-                              border: '1px solid #CBD5E1',
-                              cursor: 'pointer',
-                            }}
-                          >
-                            {book.isArchived ? 'Шығару' : 'Архивтеу'}
-                          </button>
-                        )}
+                            {/* Archive / Unarchive */}
+                            {canDeleteBooks && (
+                              <button
+                                type="button"
+                                onClick={() => handleToggleArchive(book)}
+                                style={{
+                                  padding: '6px 12px',
+                                  fontSize: '12px',
+                                  fontWeight: 700,
+                                  background: '#F1F5F9',
+                                  color: 'var(--text-dark)',
+                                  borderRadius: '6px',
+                                  border: '1px solid #CBD5E1',
+                                  cursor: 'pointer',
+                                }}
+                              >
+                                {book.isArchived ? 'Шығару' : 'Архивтеу'}
+                              </button>
+                            )}
 
-                        {/* Delete */}
-                        {canDeleteBooks && (
-                          <button
-                            type="button"
-                            onClick={() => setBookToDelete(book)}
-                            style={{
-                              padding: '6px 12px',
-                              fontSize: '12px',
-                              fontWeight: 700,
-                              background: '#FEF2F2',
-                              color: '#B91C1C',
-                              borderRadius: '6px',
-                              border: '1px solid #FECACA',
-                              cursor: 'pointer',
-                            }}
-                          >
-                            Өшіру
-                          </button>
-                        )}
+                            {/* Delete */}
+                            {canDeleteBooks && (
+                              <button
+                                type="button"
+                                onClick={() => setBookToDelete(book)}
+                                style={{
+                                  padding: '6px 12px',
+                                  fontSize: '12px',
+                                  fontWeight: 700,
+                                  background: '#FEF2F2',
+                                  color: '#B91C1C',
+                                  borderRadius: '6px',
+                                  border: '1px solid #FECACA',
+                                  cursor: 'pointer',
+                                }}
+                              >
+                                Өшіру
+                              </button>
+                            )}
 
-                        {!canEditBooks && !canDeleteBooks && (
-                          <span style={{ fontSize: '11px', color: '#94A3B8', fontStyle: 'italic', padding: '4px 8px' }}>
-                            Тек көру
-                          </span>
+                            {!canEditBooks && !canDeleteBooks && (
+                              <span style={{ fontSize: '11px', color: '#94A3B8', fontStyle: 'italic', padding: '4px 8px' }}>
+                                Тек көру
+                              </span>
+                            )}
+                          </>
                         )}
                       </div>
                     </td>
