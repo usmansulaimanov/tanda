@@ -43,6 +43,7 @@ export const AdminHomePage: React.FC = () => {
   const canManageNews = hasAdminPermission(user, 'news_manage');
   const canViewStats = hasAdminPermission(user, 'analytics_view');
   const canManageManagers = hasAdminPermission(user, 'managers_manage');
+  const canManageUsernames = hasAdminPermission(user, 'usernames_manage');
 
   // Current formatted date as DD.MM.YYYY.
   const todayFormatted = useMemo(() => {
@@ -636,6 +637,52 @@ export const AdminHomePage: React.FC = () => {
                 </div>
                 <div style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.4 }}>
                   Көмекшілер аккаунттарын, міндеттерін және рұқсаттарын басқару
+                </div>
+              </div>
+            </Link>
+          )}
+
+          {canManageUsernames && (
+            <Link
+              to="/admin/usernames"
+              style={{
+                textDecoration: 'none',
+                background: '#FFFFFF',
+                borderRadius: '16px',
+                padding: '20px',
+                border: '1px solid #E2E8F0',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div
+                  style={{
+                    width: '42px',
+                    height: '42px',
+                    borderRadius: '12px',
+                    background: '#EFF6FF',
+                    color: 'var(--blue)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="4"></circle>
+                    <path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8"></path>
+                  </svg>
+                </div>
+              </div>
+              <div>
+                <div style={{ fontSize: '16px', fontWeight: 700, color: '#1E293B', marginBottom: '4px' }}>
+                  Юзернеймдер
+                </div>
+                <div style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.4 }}>
+                  Бұғатталған және арнайы резервтелген юзернеймдер базасы
                 </div>
               </div>
             </Link>

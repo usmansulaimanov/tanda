@@ -61,6 +61,7 @@ const NewsDetailPage = lazyWithRetry(() => import('../features/news/NewsDetailPa
 const AdminNewsPage = lazyWithRetry(() => import('../features/admin/AdminNewsPage').then((m) => ({ default: m.AdminNewsPage })));
 const AdminNewsFormPage = lazyWithRetry(() => import('../features/admin/AdminNewsFormPage').then((m) => ({ default: m.AdminNewsFormPage })));
 const AdminStatsPage = lazyWithRetry(() => import('../features/admin/AdminStatsPage').then((m) => ({ default: m.AdminStatsPage })));
+const AdminUsernamesPage = lazyWithRetry(() => import('../features/admin/AdminUsernamesPage').then((m) => ({ default: m.AdminUsernamesPage })));
 const AuthorStatsPage = lazyWithRetry(() => import('../features/author/AuthorStatsPage').then((m) => ({ default: m.AuthorStatsPage })));
 
 const PageLoader = () => (
@@ -281,6 +282,14 @@ export const router = createBrowserRouter([
         element: (
           <Suspense fallback={<PageLoader />}>
             <AdminStatsPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'admin/usernames',
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <AdminUsernamesPage />
           </Suspense>
         ),
       },

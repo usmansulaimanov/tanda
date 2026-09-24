@@ -120,7 +120,7 @@ public class UserService {
         if (dto.getUsername() != null && !dto.getUsername().isBlank()) {
             username = dto.getUsername().trim().toLowerCase().replaceAll("^@", "");
             if (reservedUsernameService.isReserved(username)) {
-                throw new BadRequestException("Бұл юзернейм жүйе тарапынан резервтелген");
+                throw new BadRequestException("Бұл юзернейм бос емес");
             }
             if (userRepository.existsByUsernameIgnoreCase(username)) {
                 throw new BadRequestException("Бұл юзернейм бос емес");
@@ -224,7 +224,7 @@ public class UserService {
             String newUsername = dto.getUsername().trim().toLowerCase().replaceAll("^@", "");
             if (!newUsername.isBlank() && !newUsername.equalsIgnoreCase(user.getUsername())) {
                 if (reservedUsernameService.isReserved(newUsername)) {
-                    throw new BadRequestException("Бұл юзернейм жүйе тарапынан резервтелген");
+                    throw new BadRequestException("Бұл юзернейм бос емес");
                 }
                 if (userRepository.existsByUsernameIgnoreCase(newUsername)) {
                     throw new BadRequestException("Бұл юзернейм бос емес");

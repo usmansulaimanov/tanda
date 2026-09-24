@@ -385,7 +385,7 @@ public class AuthService {
                 String newUsername = request.getUsername().trim().toLowerCase().replaceAll("^@", "");
                 if (!newUsername.isBlank() && !newUsername.equalsIgnoreCase(user.getUsername())) {
                     if (reservedUsernameService.isReserved(newUsername)) {
-                        throw new BadRequestException("Бұл юзернейм жүйе тарапынан резервтелген");
+                        throw new BadRequestException("Бұл юзернейм бос емес");
                     }
                     if (userRepository.existsByUsernameIgnoreCase(newUsername)) {
                         throw new BadRequestException("Бұл юзернейм бос емес");

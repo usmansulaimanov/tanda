@@ -163,7 +163,7 @@ public class Phase2AdminManagementIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message", is("Бұл юзернейм жүйе тарапынан резервтелген")));
+                .andExpect(jsonPath("$.message", is("Бұл юзернейм бос емес")));
     }
 
     @Test
