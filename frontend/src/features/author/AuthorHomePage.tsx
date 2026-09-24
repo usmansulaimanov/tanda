@@ -12,15 +12,6 @@ export const AuthorHomePage: React.FC = () => {
   const isAuthor = Boolean(role === 'author' || user?.isAuthor || user?.role === 'author');
   const isSuperAdmin = Boolean(user?.isSuperAdmin || (role === 'admin' && !user?.duty));
 
-  // Auth protection guard for Author area
-  React.useEffect(() => {
-    if (!isAuthInitialized) return;
-    if (!user || (!isAuthor && !isSuperAdmin)) {
-      showToast('Бұл бетке тек авторлар кіре алады', 'error');
-      navigate('/login', { replace: true });
-    }
-  }, [isAuthInitialized, user, isAuthor, isSuperAdmin, navigate, showToast]);
-
   const userDisplayName = user?.assignedAuthorName || user?.name || 'Автор';
 
   // Current formatted date as DD.MM.YYYY.

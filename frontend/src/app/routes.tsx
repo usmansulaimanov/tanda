@@ -112,15 +112,44 @@ const AdminRouteGuard: React.FC<{ children: React.ReactNode }> = ({ children }) 
     return <PageLoader />;
   }
 
-  const isAuthor = Boolean(isAuthenticated && user && (role === 'author' || user.role === 'author' || user.isAuthor));
-  const isAdminOrStaff = Boolean(isAuthenticated && user && (role === 'admin' || user.role === 'admin' || user.isSuperAdmin || Boolean(user.duty)));
+  if (!isAuthenticated || !user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  const isAuthor = Boolean(role === 'author' || user.role === 'author' || user.isAuthor);
+  const isAdminOrStaff = Boolean(role === 'admin' || user.role === 'admin' || user.isSuperAdmin || Boolean(user.duty));
 
   if (isAuthor && !user?.isSuperAdmin) {
     return <Navigate to="/author/home" replace />;
   }
 
   if (!isAdminOrStaff) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <>{children}</>;
+};
+
+const AuthorRouteGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user, role, isAuthenticated, isAuthInitialized } = useAuthStore();
+
+  if (!isAuthInitialized) {
+    return <PageLoader />;
+  }
+
+  if (!isAuthenticated || !user) {
     return <Navigate to="/login" replace />;
+  }
+
+  const isAuthor = Boolean(role === 'author' || user.role === 'author' || user.isAuthor);
+  const isSuperAdmin = Boolean(user.isSuperAdmin || (role === 'admin' && !user.duty));
+
+  if (!isAuthor && !isSuperAdmin) {
+    const isStaff = Boolean(role === 'admin' || user.role === 'admin' || Boolean(user.duty));
+    if (isStaff) {
+      return <Navigate to="/admin/home" replace />;
+    }
+    return <Navigate to="/" replace />;
   }
 
   return <>{children}</>;
@@ -401,17 +430,21 @@ export const router = createBrowserRouter([
       {
         path: 'author/home',
         element: (
-          <Suspense fallback={<PageLoader />}>
-            <AuthorHomePage />
-          </Suspense>
+          <AuthorRouteGuard>
+            <Suspense fallback={<PageLoader />}>
+              <AuthorHomePage />
+            </Suspense>
+          </AuthorRouteGuard>
         ),
       },
       {
         path: 'author/books',
         element: (
-          <Suspense fallback={<PageLoader />}>
-            <AuthorBooksPage />
-          </Suspense>
+          <AuthorRouteGuard>
+            <Suspense fallback={<PageLoader />}>
+              <AuthorBooksPage />
+            </Suspense>
+          </AuthorRouteGuard>
         ),
       },
       {
@@ -421,17 +454,21 @@ export const router = createBrowserRouter([
       {
         path: 'author/stats',
         element: (
-          <Suspense fallback={<PageLoader />}>
-            <AuthorStatsPage />
-          </Suspense>
+          <AuthorRouteGuard>
+            <Suspense fallback={<PageLoader />}>
+              <AuthorStatsPage />
+            </Suspense>
+          </AuthorRouteGuard>
         ),
       },
       {
         path: 'author/stats/:authorId',
         element: (
-          <Suspense fallback={<PageLoader />}>
-            <AuthorStatsPage />
-          </Suspense>
+          <AuthorRouteGuard>
+            <Suspense fallback={<PageLoader />}>
+              <AuthorStatsPage />
+            </Suspense>
+          </AuthorRouteGuard>
         ),
       },
       {

@@ -14,15 +14,6 @@ export const AuthorBooksPage: React.FC = () => {
   const isAuthor = Boolean(role === 'author' || user?.isAuthor || user?.role === 'author');
   const isSuperAdmin = Boolean(user?.isSuperAdmin || (role === 'admin' && !user?.duty));
 
-  // Protection Guard
-  useEffect(() => {
-    if (!isAuthInitialized) return;
-    if (!user || (!isAuthor && !isSuperAdmin)) {
-      showToast('Бұл бетке тек авторлар кіре алады', 'error');
-      navigate('/login', { replace: true });
-    }
-  }, [isAuthInitialized, user, isAuthor, isSuperAdmin, navigate, showToast]);
-
   useEffect(() => {
     if (isAuthInitialized && user && (isAuthor || isSuperAdmin)) {
       fetchBooks({ includeArchived: true });

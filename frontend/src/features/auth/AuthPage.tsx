@@ -205,7 +205,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialMode }) => {
                 onError={handleGoogleError}
                 theme="outline"
                 size="large"
-                width="100%"
+                width="340"
                 text={mode === 'login' ? 'signin_with' : 'signup_with'}
                 shape="rectangular"
               />
