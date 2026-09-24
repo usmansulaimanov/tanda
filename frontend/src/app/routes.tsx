@@ -76,6 +76,30 @@ const PageLoader = () => (
   </div>
 );
 
+import { useAuthStore } from '../store/useAuthStore';
+
+const ReaderLandingRoute: React.FC = () => {
+  const { user, role, isAuthenticated, isAuthInitialized } = useAuthStore();
+
+  if (!isAuthInitialized) {
+    return <PageLoader />;
+  }
+
+  const isStaffOrAuthor = Boolean(
+    isAuthenticated && user && (role === 'admin' || role === 'author' || user.role === 'admin' || user.role === 'author' || user.isSuperAdmin || user.isAuthor || Boolean(user.duty))
+  );
+
+  if (isStaffOrAuthor) {
+    return <Navigate to="/admin/home" replace />;
+  }
+
+  return (
+    <Suspense fallback={<PageLoader />}>
+      <LandingPage />
+    </Suspense>
+  );
+};
+
 export const router = createBrowserRouter([
   {
     path: '/login',
@@ -107,11 +131,7 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: (
-          <Suspense fallback={<PageLoader />}>
-            <LandingPage />
-          </Suspense>
-        ),
+        element: <ReaderLandingRoute />,
       },
       {
         path: 'catalog',

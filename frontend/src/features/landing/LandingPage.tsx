@@ -66,15 +66,7 @@ function useCountUp(target: number, duration = 1800): number {
 export const LandingPage: React.FC = () => {
   const location = useLocation();
   const { books } = useBookStore();
-  const { role, user, isAuthenticated } = useAuthStore();
-
-  const isStaffOrAuthor = Boolean(
-    isAuthenticated && user && (role === 'admin' || role === 'author' || user.role === 'admin' || user.role === 'author' || user.isSuperAdmin || user.isAuthor || Boolean(user.duty))
-  );
-
-  if (isStaffOrAuthor) {
-    return <Navigate to="/admin/home" replace />;
-  }
+  const { user, isAuthenticated } = useAuthStore();
 
   const [selectedCat, setSelectedCat] = useState('Бәрі');
   const [search, setSearch] = useState('');
