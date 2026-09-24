@@ -663,6 +663,21 @@ public class RoyaltyService {
     }
 
     private RoyaltyPeriodResponseDto toPeriodDto(RoyaltyPeriod p) {
+        YearMonth ym = YearMonth.parse(p.getMonth());
+        LocalDate startDate = ym.atDay(1);
+        LocalDate endDate = ym.atEndOfMonth();
+
+        // 1. Live stats from author_daily_book_stats across all books
+        List<AuthorDailyBookStats> monthlyDailyAuthorStats = authorDailyBookStatsRepository.findByStatDateBetween(startDate, endDate);
+        Map<String, Long> authorLiveSecondsSum = new HashMap<>();
+        for (AuthorDailyBookStats st : monthlyDailyAuthorStats) {
+            authorLiveSecondsSum.merge(
+                    st.getAuthorId(),
+                    st.getTotalSeconds() != null ? st.getTotalSeconds() : 0L,
+                    Long::sum
+            );
+        }
+
         List<RoyaltyEarning> earnings = royaltyEarningRepository.findByPeriodId(p.getId());
         List<RoyaltyEarningResponseDto> earningDtos = mapEarningsToDtos(earnings);
 
@@ -686,21 +701,40 @@ public class RoyaltyService {
                     authorEarnedSum.getOrDefault(e.getAuthorId(), BigDecimal.ZERO).add(e.getAmount()));
         }
 
+        long totalPlatformLiveMinutes = 0L;
         List<AuthorEarningSummaryDto> summaryList = new ArrayList<>();
         for (Author author : authorMap.values()) {
-            long mins = authorMinutesSum.getOrDefault(author.getId(), 0L);
+            long liveSec = authorLiveSecondsSum.getOrDefault(author.getId(), 0L);
+            long liveMin = liveSec / 60;
+
+            // If finalized, use stored earnings; otherwise use live minutes from author_daily_book_stats
+            long mins = "FINALIZED".equalsIgnoreCase(p.getStatus())
+                    ? authorMinutesSum.getOrDefault(author.getId(), liveMin)
+                    : (liveMin > 0 ? liveMin : authorMinutesSum.getOrDefault(author.getId(), 0L));
+            long totalSec = "FINALIZED".equalsIgnoreCase(p.getStatus()) ? (mins * 60) : liveSec;
+
+            totalPlatformLiveMinutes += mins;
+
             BigDecimal earned = authorEarnedSum.getOrDefault(author.getId(), BigDecimal.ZERO);
+            if (!"FINALIZED".equalsIgnoreCase(p.getStatus()) && p.getRatePerMinute() != null && p.getRatePerMinute().compareTo(BigDecimal.ZERO) > 0) {
+                earned = p.getRatePerMinute().multiply(BigDecimal.valueOf(mins)).setScale(2, RoundingMode.HALF_UP);
+            }
+
             summaryList.add(AuthorEarningSummaryDto.builder()
                     .authorId(author.getId())
                     .authorUserId(author.getUserId())
                     .authorName(author.getDisplayName())
                     .assignedBookIds(authorBookIdsMap.getOrDefault(author.getId(), Collections.emptyList()))
                     .totalMinutes(mins)
-                    .totalSeconds(mins * 60)
+                    .totalSeconds(totalSec)
                     .totalEarned(earned)
                     .status("FINALIZED".equalsIgnoreCase(p.getStatus()) ? "paid" : "calculated")
                     .build());
         }
+
+        long finalTotalMinutes = "FINALIZED".equalsIgnoreCase(p.getStatus())
+                ? (p.getTotalMinutes() != null ? p.getTotalMinutes() : 0L)
+                : (totalPlatformLiveMinutes > 0 ? totalPlatformLiveMinutes : (p.getTotalMinutes() != null ? p.getTotalMinutes() : 0L));
 
         return RoyaltyPeriodResponseDto.builder()
                 .id(p.getId())
@@ -712,7 +746,7 @@ public class RoyaltyService {
                 .netPool(p.getNetPool())
                 .companyShare(p.getCompanyShare())
                 .royaltyPool(p.getRoyaltyPool())
-                .totalMinutes(p.getTotalMinutes())
+                .totalMinutes(finalTotalMinutes)
                 .ratePerMinute(p.getRatePerMinute())
                 .adminNote(p.getAdminNote())
                 .calculatedAt(p.getCalculatedAt())

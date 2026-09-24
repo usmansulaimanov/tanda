@@ -114,6 +114,12 @@ export const AdminRoyaltyTab: React.FC = () => {
 
   const saveTimeoutRef = useRef<any>(null);
 
+  useEffect(() => {
+    if (selectedMonth) {
+      fetchPeriod(selectedMonth);
+    }
+  }, [selectedMonth, fetchPeriod]);
+
   // Synchronize inputs ONLY when selected month changes
   useEffect(() => {
     const p = periods[selectedMonth];
@@ -122,7 +128,7 @@ export const AdminRoyaltyTab: React.FC = () => {
       setExpenseInput(p.adminExpense || 0);
       setNoteInput(p.adminNote || '');
     }
-  }, [selectedMonth]);
+  }, [selectedMonth, periods]);
 
   // Load payouts
   const loadPayouts = useCallback(async () => {
