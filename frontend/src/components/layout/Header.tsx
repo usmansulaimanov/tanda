@@ -30,6 +30,7 @@ export const Header: React.FC = () => {
   );
   const homeRoute = isStaffOrAuthor ? '/admin/home' : '/';
   const canViewBooks = hasAdminPermission(user, 'books_view');
+  const canViewReaders = hasAdminPermission(user, 'readers_view');
 
   // Search state
   const [headerSearch, setHeaderSearch] = useState('');
@@ -360,14 +361,14 @@ export const Header: React.FC = () => {
                         </Link>
                       </li>
                     )}
-                    {canViewBooks && (
+                    {canViewReaders && (
                       <li>
                         <Link
-                          to="/admin"
-                          className={location.pathname === '/admin' || location.pathname.startsWith('/admin/books') ? 'active' : ''}
+                          to="/admin/readers"
+                          className={location.pathname.startsWith('/admin/readers') ? 'active' : ''}
                           style={{ textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}
                         >
-                          Кітаптар қоры
+                          Оқырмандар
                         </Link>
                       </li>
                     )}
