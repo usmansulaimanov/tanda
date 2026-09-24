@@ -36,7 +36,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialMode }) => {
   useEffect(() => {
     if (isAuthenticated && user) {
       if (role === 'admin' && redirectUrl === '/') {
-        navigate('/admin', { replace: true });
+        navigate('/admin/home', { replace: true });
       } else {
         navigate(redirectUrl, { replace: true });
       }
@@ -72,7 +72,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialMode }) => {
         showToast('Жүйеге сәтті кірдіңіз!', 'success');
         const updatedRole = useAuthStore.getState().role;
         if (updatedRole === 'admin' && redirectUrl === '/') {
-          navigate('/admin');
+          navigate('/admin/home');
         } else {
           navigate(redirectUrl);
         }
@@ -133,7 +133,12 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialMode }) => {
       try {
         await loginWithGoogle(response.credential);
         showToast('Google арқылы сәтті кірдіңіз!', 'success');
-        navigate(redirectUrl);
+        const updatedRole = useAuthStore.getState().role;
+        if (updatedRole === 'admin' && redirectUrl === '/') {
+          navigate('/admin/home');
+        } else {
+          navigate(redirectUrl);
+        }
       } catch (err: any) {
         const msg = err.response?.data?.message || err.message || 'Google арқылы кіру мүмкін болмады';
         setErrorMessage(msg);

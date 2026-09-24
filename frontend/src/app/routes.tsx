@@ -8,6 +8,7 @@ const LandingPage = lazy(() => import('../features/landing/LandingPage').then((m
 const CatalogPage = lazy(() => import('../features/catalog/CatalogPage').then((m) => ({ default: m.CatalogPage })));
 const BookDetailPage = lazy(() => import('../features/book/BookDetailPage').then((m) => ({ default: m.BookDetailPage })));
 const ReaderPage = lazy(() => import('../features/reader/ReaderPage').then((m) => ({ default: m.ReaderPage })));
+const AdminHomePage = lazy(() => import('../features/admin/AdminHomePage').then((m) => ({ default: m.AdminHomePage })));
 const AdminDashboard = lazy(() => import('../features/admin/AdminDashboard').then((m) => ({ default: m.AdminDashboard })));
 const BookFormPage = lazy(() => import('../features/admin/BookFormPage').then((m) => ({ default: m.BookFormPage })));
 const ReadersPage = lazy(() => import('../features/admin/ReadersPage').then((m) => ({ default: m.ReadersPage })));
@@ -163,6 +164,14 @@ export const router = createBrowserRouter([
         element: (
           <Suspense fallback={<PageLoader />}>
             <PromoCodePage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'admin/home',
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <AdminHomePage />
           </Suspense>
         ),
       },
