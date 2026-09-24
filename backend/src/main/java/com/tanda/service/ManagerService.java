@@ -91,11 +91,13 @@ public class ManagerService {
 
         manager = userRepository.save(manager);
 
-        List<String> perms = dto.getPermissions() != null ? dto.getPermissions() : Collections.emptyList();
+        List<String> perms = dto.getPermissions() != null
+                ? dto.getPermissions().stream().filter(p -> p != null && !p.isBlank()).map(String::trim).distinct().collect(Collectors.toList())
+                : Collections.emptyList();
         for (String perm : perms) {
             managerPermissionRepository.save(ManagerPermission.builder()
                     .userId(manager.getId())
-                    .permission(perm.trim())
+                    .permission(perm)
                     .build());
         }
 
@@ -150,12 +152,21 @@ public class ManagerService {
 
         if (dto.getPermissions() != null) {
             managerPermissionRepository.deleteByUserId(id);
-            for (String perm : dto.getPermissions()) {
+            managerPermissionRepository.flush();
+
+            List<String> distinctPerms = dto.getPermissions().stream()
+                    .filter(p -> p != null && !p.isBlank())
+                    .map(String::trim)
+                    .distinct()
+                    .collect(Collectors.toList());
+
+            for (String perm : distinctPerms) {
                 managerPermissionRepository.save(ManagerPermission.builder()
                         .userId(manager.getId())
-                        .permission(perm.trim())
+                        .permission(perm)
                         .build());
             }
+            managerPermissionRepository.flush();
         }
 
         List<String> perms = managerPermissionRepository.findByUserId(id).stream()
