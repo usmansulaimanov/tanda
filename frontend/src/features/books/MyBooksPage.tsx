@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams, Navigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useBookStore } from '../../store/useBookStore';
 import { useMyBooksStore, BookShelfStatus } from '../../store/useMyBooksStore';
@@ -113,6 +113,14 @@ export const MyBooksPage: React.FC = () => {
     removeBookFromShelf(bookId);
     showToast(`«${title}» сөреден өшірілді`, 'info');
   };
+
+  const isStaffOrAuthor = Boolean(
+    isAuthenticated && user && (user.role === 'admin' || user.role === 'author' || user.isSuperAdmin || user.isAuthor || Boolean(user.duty))
+  );
+
+  if (isStaffOrAuthor) {
+    return <Navigate to="/admin/home" replace />;
+  }
 
   if (!isAuthenticated || !user) {
     return (

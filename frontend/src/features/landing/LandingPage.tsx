@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, Navigate } from 'react-router-dom';
 import { useBookStore } from '../../store/useBookStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { BookCard } from '../../components/ui/BookCard';
@@ -67,6 +67,14 @@ export const LandingPage: React.FC = () => {
   const location = useLocation();
   const { books } = useBookStore();
   const { role, user, isAuthenticated } = useAuthStore();
+
+  const isStaffOrAuthor = Boolean(
+    isAuthenticated && user && (role === 'admin' || role === 'author' || user.role === 'admin' || user.role === 'author' || user.isSuperAdmin || user.isAuthor || Boolean(user.duty))
+  );
+
+  if (isStaffOrAuthor) {
+    return <Navigate to="/admin/home" replace />;
+  }
 
   const [selectedCat, setSelectedCat] = useState('Бәрі');
   const [search, setSearch] = useState('');
