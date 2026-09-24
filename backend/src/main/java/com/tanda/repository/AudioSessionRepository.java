@@ -25,6 +25,13 @@ public interface AudioSessionRepository extends JpaRepository<AudioSession, Stri
            "ORDER BY COUNT(s.id) DESC, COALESCE(SUM(s.validSeconds), 0) DESC")
     List<Object[]> findTopAudioSessionsSince(@Param("since") OffsetDateTime since, Pageable pageable);
 
+    @Query("SELECT s.book.id, COUNT(s.id), COALESCE(SUM(s.validSeconds), 0), COUNT(DISTINCT s.userId) " +
+           "FROM AudioSession s " +
+           "WHERE s.startedAt >= :start AND s.startedAt < :end " +
+           "GROUP BY s.book.id " +
+           "ORDER BY COALESCE(SUM(s.validSeconds), 0) DESC, COUNT(s.id) DESC")
+    List<Object[]> findTopAudioSessionsBetween(@Param("start") OffsetDateTime start, @Param("end") OffsetDateTime end, Pageable pageable);
+
     @Query("SELECT COUNT(s.id) FROM AudioSession s WHERE s.book.id = :bookId AND s.startedAt >= :since")
     long countSessionsForBookSince(@Param("bookId") String bookId, @Param("since") OffsetDateTime since);
 
