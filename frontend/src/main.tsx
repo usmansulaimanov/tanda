@@ -10,8 +10,37 @@ import './index.css';
 // Run migration to clean up legacy localStorage mocks
 runMigration();
 
-// Background pre-warm for Render backend instance
+// Handle Vite stale chunk dynamic import failures (e.g. after new deployment)
 if (typeof window !== 'undefined') {
+  const reloadWithCooldown = () => {
+    const lastReload = sessionStorage.getItem('chunk_reload_ts');
+    const now = Date.now();
+    // Prevent reload loops: trigger reload once every 10 seconds max
+    if (!lastReload || now - parseInt(lastReload, 10) > 10000) {
+      sessionStorage.setItem('chunk_reload_ts', String(now));
+      window.location.reload();
+    }
+  };
+
+  window.addEventListener('vite:preloadError', (event) => {
+    event.preventDefault();
+    reloadWithCooldown();
+  });
+
+  window.addEventListener('error', (event) => {
+    const msg = event?.message || '';
+    if (
+      msg.includes('Failed to fetch dynamically imported module') ||
+      msg.includes('Importing a module script failed') ||
+      msg.includes('error loading dynamically imported module') ||
+      msg.includes('Loading chunk')
+    ) {
+      event.preventDefault();
+      reloadWithCooldown();
+    }
+  });
+
+  // Background pre-warm for Render backend instance
   fetch((import.meta.env.VITE_API_URL || '') + '/api/v1/books', { method: 'GET', keepalive: true }).catch(() => {});
 }
 
