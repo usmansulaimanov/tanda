@@ -81,13 +81,17 @@ export const AudioPlayerBar: React.FC = () => {
     const trimmed = rawUrl.trim();
     // Raw telegram file ID (e.g. CQACAgIA...)
     if (!trimmed.includes('/') && !trimmed.includes('.') && trimmed.length > 20) {
-      const apiBase = import.meta.env.VITE_API_URL || '';
+      const apiBase = import.meta.env.VITE_API_URL || 'https://tanda-backend-7lpj.onrender.com';
       return `${apiBase}/api/v1/media/telegram/${trimmed}`;
     }
     // Relative api URL
     if (trimmed.startsWith('/api/')) {
-      const apiBase = import.meta.env.VITE_API_URL || '';
+      const apiBase = import.meta.env.VITE_API_URL || 'https://tanda-backend-7lpj.onrender.com';
       return `${apiBase}${trimmed}`;
+    }
+    // If it's an old 489q domain, replace with current 7lpj domain
+    if (trimmed.includes('tanda-backend-489q.onrender.com')) {
+      return trimmed.replace('tanda-backend-489q.onrender.com', 'tanda-backend-7lpj.onrender.com');
     }
     return trimmed;
   };
@@ -752,7 +756,7 @@ export const AudioPlayerBar: React.FC = () => {
           src={audioSrc}
           playsInline
           preload="metadata"
-          crossOrigin="anonymous"
+          controlsList="nodownload"
           onLoadedMetadata={(e) => {
             const dur = e.currentTarget.duration;
             if (dur && !isNaN(dur) && dur > 0) setDuration(dur);

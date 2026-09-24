@@ -128,6 +128,11 @@ public class TelegramMediaService {
 
             response.setContentType(contentType);
             response.setHeader("Accept-Ranges", "bytes");
+            response.setHeader("Access-Control-Allow-Origin", "*");
+            response.setHeader("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS");
+            response.setHeader("Access-Control-Allow-Headers", "Range, Authorization, Content-Type, Accept");
+            response.setHeader("Access-Control-Expose-Headers", "Content-Range, Content-Length, Accept-Ranges");
+            response.setHeader("Content-Disposition", "inline; filename=\"stream.mp3\"");
 
             String contentRange = connection.getHeaderField("Content-Range");
             if (contentRange != null) {
