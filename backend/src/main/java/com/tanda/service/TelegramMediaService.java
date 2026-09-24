@@ -182,29 +182,42 @@ public class TelegramMediaService {
             int messageId = post.path("message_id").asInt();
 
             String fileId = null;
-            String fileName = "Аудио";
+            String fileName = "Файл";
+            String fileTypeTitle = "Файл";
 
             if (post.has("audio")) {
                 JsonNode audio = post.get("audio");
                 fileId = audio.path("file_id").asText();
                 fileName = audio.path("file_name").asText(audio.path("title").asText("Аудио"));
+                fileTypeTitle = "Аудиокітап";
             } else if (post.has("voice")) {
                 JsonNode voice = post.get("voice");
                 fileId = voice.path("file_id").asText();
                 fileName = "Дауыстық жазба";
+                fileTypeTitle = "Аудио";
             } else if (post.has("document")) {
                 JsonNode doc = post.get("document");
-                String mime = doc.path("mime_type").asText("");
-                String fn = doc.path("file_name").asText("");
-                if (mime.startsWith("audio/") || fn.endsWith(".mp3") || fn.endsWith(".m4a") || fn.endsWith(".ogg") || fn.endsWith(".m4r")) {
-                    fileId = doc.path("file_id").asText();
-                    fileName = fn.isBlank() ? "Аудио" : fn;
+                String mime = doc.path("mime_type").asText("").toLowerCase();
+                String fn = doc.path("file_name").asText("").toLowerCase();
+                fileId = doc.path("file_id").asText();
+                fileName = doc.path("file_name").asText("Құжат");
+
+                if (mime.startsWith("audio/") || fn.endsWith(".mp3") || fn.endsWith(".m4a") || fn.endsWith(".ogg") || fn.endsWith(".m4r") || fn.endsWith(".wav")) {
+                    fileTypeTitle = "Аудиокітап";
+                } else if (fn.endsWith(".epub") || mime.contains("epub")) {
+                    fileTypeTitle = "Электронды кітап (EPUB)";
+                } else if (fn.endsWith(".pdf") || mime.contains("pdf")) {
+                    fileTypeTitle = "Электронды кітап (PDF)";
+                } else if (fn.endsWith(".txt") || fn.endsWith(".fb2")) {
+                    fileTypeTitle = "Электронды кітап (Мәтін)";
+                } else {
+                    fileTypeTitle = "Құжат / Эл. кітап";
                 }
             }
 
             if (fileId != null && !fileId.isBlank()) {
                 String streamUrl = "https://tanda-backend-7lpj.onrender.com/api/v1/media/telegram/" + fileId;
-                String replyText = "✅ <b>Аудио қабылданды!</b>\n"
+                String replyText = "✅ <b>" + fileTypeTitle + " қабылданды!</b>\n"
                         + "📁 <b>Файл:</b> " + fileName + "\n\n"
                         + "🔗 <b>Tanda үшін сілтеме:</b>\n"
                         + "<code>" + streamUrl + "</code>\n\n"
