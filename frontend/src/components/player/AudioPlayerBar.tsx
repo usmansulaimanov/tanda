@@ -76,10 +76,90 @@ export const AudioPlayerBar: React.FC = () => {
   const timerMenuRef = useRef<HTMLDivElement>(null);
   const speedMenuRef = useRef<HTMLDivElement>(null);
 
+  const formatAudioUrl = (rawUrl?: string): string => {
+    if (!rawUrl) return '';
+    const trimmed = rawUrl.trim();
+    // Raw telegram file ID (e.g. CQACAgIA...)
+    if (!trimmed.includes('/') && !trimmed.includes('.') && trimmed.length > 20) {
+      const apiBase = import.meta.env.VITE_API_URL || '';
+      return `${apiBase}/api/v1/media/telegram/${trimmed}`;
+    }
+    // Relative api URL
+    if (trimmed.startsWith('/api/')) {
+      const apiBase = import.meta.env.VITE_API_URL || '';
+      return `${apiBase}${trimmed}`;
+    }
+    return trimmed;
+  };
+
   const DEFAULT_SAMPLE_AUDIO = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3';
-  const audioSrc = currentChapter?.audioUrl || currentBook?.audioUrl || (currentBook?.hasAudio ? DEFAULT_SAMPLE_AUDIO : '');
+  const rawAudioSource = currentChapter?.audioUrl || currentBook?.audioUrl || (currentBook?.hasAudio ? DEFAULT_SAMPLE_AUDIO : '');
+  const audioSrc = formatAudioUrl(rawAudioSource);
   const ytVideoId = extractYouTubeVideoId(audioSrc);
   const isYouTube = !!ytVideoId;
+
+  // Media Session API for iOS Safari, Android Chrome & Lock Screen Controls
+  useEffect(() => {
+    if (!('mediaSession' in navigator) || !currentBook) return;
+
+    try {
+      const cover = currentBook.coverImage || '';
+      const artwork = cover
+        ? [
+            { src: cover, sizes: '96x96', type: 'image/jpeg' },
+            { src: cover, sizes: '128x128', type: 'image/jpeg' },
+            { src: cover, sizes: '192x192', type: 'image/jpeg' },
+            { src: cover, sizes: '256x256', type: 'image/jpeg' },
+            { src: cover, sizes: '512x512', type: 'image/jpeg' },
+          ]
+        : [];
+
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: currentChapter?.title || currentBook.title,
+        artist: currentBook.author || 'Tanda',
+        album: currentBook.title,
+        artwork,
+      });
+
+      navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
+
+      navigator.mediaSession.setActionHandler('play', () => {
+        setIsPlaying(true);
+        if (audioRef.current) audioRef.current.play().catch(() => {});
+      });
+
+      navigator.mediaSession.setActionHandler('pause', () => {
+        setIsPlaying(false);
+        if (audioRef.current) audioRef.current.pause();
+      });
+
+      navigator.mediaSession.setActionHandler('previoustrack', () => {
+        prevChapter();
+      });
+
+      navigator.mediaSession.setActionHandler('nexttrack', () => {
+        nextChapter();
+      });
+
+      navigator.mediaSession.setActionHandler('seekbackward', (details) => {
+        const skip = details.seekOffset || 10;
+        window.dispatchEvent(new CustomEvent('tanda:audio:skip', { detail: { seconds: -skip } }));
+      });
+
+      navigator.mediaSession.setActionHandler('seekforward', (details) => {
+        const skip = details.seekOffset || 10;
+        window.dispatchEvent(new CustomEvent('tanda:audio:skip', { detail: { seconds: skip } }));
+      });
+
+      navigator.mediaSession.setActionHandler('seekto', (details) => {
+        if (details.seekTime !== undefined && details.seekTime !== null) {
+          window.dispatchEvent(new CustomEvent('tanda:audio:seek', { detail: { time: details.seekTime } }));
+        }
+      });
+    } catch (e) {
+      console.debug('MediaSession registration note:', e);
+    }
+  }, [currentBook, currentChapter, isPlaying, setIsPlaying, nextChapter, prevChapter]);
 
   // Listen to custom seek & skip events triggered from full player page
   useEffect(() => {
@@ -670,6 +750,9 @@ export const AudioPlayerBar: React.FC = () => {
         <audio
           ref={audioRef}
           src={audioSrc}
+          playsInline
+          preload="metadata"
+          crossOrigin="anonymous"
           onLoadedMetadata={(e) => {
             const dur = e.currentTarget.duration;
             if (dur && !isNaN(dur) && dur > 0) setDuration(dur);

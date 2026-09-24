@@ -56,6 +56,10 @@ brevo:
   from-email: ${BREVO_FROM_EMAIL:tandamenapp@gmail.com}
   from-name: ${BREVO_FROM_NAME:Tanda}
 
+telegram:
+  bot:
+    token: ${TELEGRAM_BOT_TOKEN:8656738239:AAE0ryDJRET9vBeVXSTS-08SKt2FRSi435Q}
+
 management:
   endpoints:
     web:
