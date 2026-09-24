@@ -203,6 +203,7 @@ export const BookDetailPage: React.FC = () => {
 
             <div className="flex flex-wrap gap-3 sm:gap-5 text-xs sm:text-sm text-slate-600 mb-5 pb-4 border-b border-slate-100">
               {book.pages && <div>Бет саны: <strong>{book.pages}</strong></div>}
+              {book.ebookFormat && <div>Форматы: <strong>{book.ebookFormat}</strong></div>}
               {book.audioDuration && <div>Ұзақтығы: <strong>{book.audioDuration}</strong></div>}
               {book.audioNarrator && <div>Диктор: <strong>{book.audioNarrator}</strong></div>}
             </div>

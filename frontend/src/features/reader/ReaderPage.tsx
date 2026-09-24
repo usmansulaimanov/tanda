@@ -211,32 +211,95 @@ export const ReaderPage: React.FC = () => {
       </div>
 
       {/* Reader Body */}
-      <main className="max-w-3xl mx-auto my-6 sm:my-10 px-4 sm:px-6 mb-20">
-        <article className="reader-content" style={{ fontSize: `${fontSize}px` }}>
-          <div style={{ textAlign: 'center', marginBottom: '40px', borderBottom: '1px solid rgba(0,0,0,0.1)', paddingBottom: '24px' }}>
-            <span className="book-category">{book.category}</span>
-            <h1 style={{ fontSize: `${fontSize + 10}px`, fontWeight: 900, marginTop: '12px', marginBottom: '8px' }}>
-              {book.title}
-            </h1>
-            <div style={{ fontSize: '15px', opacity: 0.8 }}>{book.author}</div>
+      <main className="max-w-4xl mx-auto my-4 sm:my-8 px-3 sm:px-6 mb-20">
+        {book.ebookUrl ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span
+                  style={{
+                    display: 'inline-block',
+                    padding: '4px 10px',
+                    borderRadius: '6px',
+                    background: 'rgba(0, 84, 148, 0.1)',
+                    color: '#005494',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                  }}
+                >
+                  {book.ebookFormat || 'PDF / Эл. нұсқа'}
+                </span>
+                <span style={{ fontSize: '13px', opacity: 0.8 }}>Электронды нұсқа жүктелді</span>
+              </div>
+
+              <a
+                href={book.ebookUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-primary"
+                style={{
+                  padding: '8px 16px',
+                  fontSize: '13px',
+                  textDecoration: 'none',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                Толық экранда ашу ↗
+              </a>
+            </div>
+
+            <div
+              style={{
+                width: '100%',
+                height: 'calc(100vh - 180px)',
+                minHeight: '600px',
+                borderRadius: '16px',
+                overflow: 'hidden',
+                border: '1.5px solid rgba(0,0,0,0.1)',
+                background: '#FFFFFF',
+                boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
+              }}
+            >
+              <iframe
+                src={book.ebookUrl}
+                title={book.title}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  border: 'none',
+                }}
+              />
+            </div>
           </div>
+        ) : (
+          <article className="reader-content" style={{ fontSize: `${fontSize}px` }}>
+            <div style={{ textAlign: 'center', marginBottom: '40px', borderBottom: '1px solid rgba(0,0,0,0.1)', paddingBottom: '24px' }}>
+              <span className="book-category">{book.category}</span>
+              <h1 style={{ fontSize: `${fontSize + 10}px`, fontWeight: 900, marginTop: '12px', marginBottom: '8px' }}>
+                {book.title}
+              </h1>
+              <div style={{ fontSize: '15px', opacity: 0.8 }}>{book.author}</div>
+            </div>
 
-          <p>
-            {book.description || 'Бұл кітаптың мәтіні электронды кітапхана қорына жүктелген.'}
-          </p>
+            <p>
+              {book.description || 'Бұл кітаптың мәтіні электронды кітапхана қорына жүктелген.'}
+            </p>
 
-          <p>
-            Кітап адам өміріндегі ең адал дос әрі жолбасшы. Бұл туынды оқырманның жан дүниесіне рухани нәр беріп, өмірлік сауалдарына жауап табуына септігін тигізеді. Әрбір бетін парақтаған сайын жаңа ой, терең пайым мен парасатты көзқарас ашыла түседі.
-          </p>
+            <p>
+              Кітап адам өміріндегі ең адал дос әрі жолбасшы. Бұл туынды оқырманның жан дүниесіне рухани нәр беріп, өмірлік сауалдарына жауап табуына септігін тигізеді. Әрбір бетін парақтаған сайын жаңа ой, терең пайым мен парасатты көзқарас ашыла түседі.
+            </p>
 
-          <p>
-            Қазақ даласының кеңдігі мен рухани байлығы бабадан балаға осындай құнды шығармалар арқылы жеткен. Сөз өнері – адамзаттың ең ұлы жетістіктерінің бірі. Әрбір тараудағы сөз саптау, ой толғау мен кейіпкерлер бейнесі терең психологиялық және тарихи мазмұнға ие.
-          </p>
+            <p>
+              Қазақ даласының кеңдігі мен рухани байлығы бабадан балаға осындай құнды шығармалар арқылы жеткен. Сөз өнері – адамзаттың ең ұлы жетістіктерінің бірі. Әрбір тараудағы сөз саптау, ой толғау мен кейіпкерлер бейнесі терең психологиялық және тарихи мазмұнға ие.
+            </p>
 
-          <p>
-            Tanda платформасы арқылы оқырман кез келген уақытта және кез келген жерде өз ана тіліндегі сапалы әдебиетке қол жеткізе алады. Оқу залындағы қолайлы параметрлер көзіңізді шаршатпай, мазмұнға толықтай енуге мүмкіндік береді.
-          </p>
-        </article>
+            <p>
+              Tanda платформасы арқылы оқырман кез келген уақытта және кез келген жерде өз ана тіліндегі сапалы әдебиетке қол жеткізе алады. Оқу залындағы қолайлы параметрлер көзіңізді шаршатпай, мазмұнға толықтай енуге мүмкіндік береді.
+            </p>
+          </article>
+        )}
       </main>
     </div>
   );

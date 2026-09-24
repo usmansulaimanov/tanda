@@ -113,6 +113,20 @@ public class BookService {
                     ? dto.getAudioChapters().get(0).getAudioUrl().trim()
                     : null);
 
+        boolean hasEbook = Boolean.TRUE.equals(dto.getHasEbook())
+                || (dto.getEbookUrl() != null && !dto.getEbookUrl().isBlank());
+        String effectiveEbookUrl = (dto.getEbookUrl() != null && !dto.getEbookUrl().isBlank())
+                ? dto.getEbookUrl().trim()
+                : null;
+        String effectiveEbookFormat = dto.getEbookFormat();
+        if ((effectiveEbookFormat == null || effectiveEbookFormat.isBlank()) && effectiveEbookUrl != null) {
+            String lower = effectiveEbookUrl.toLowerCase();
+            if (lower.contains(".epub")) effectiveEbookFormat = "EPUB";
+            else if (lower.contains(".pdf")) effectiveEbookFormat = "PDF";
+            else if (lower.contains(".fb2") || lower.contains(".txt")) effectiveEbookFormat = "TXT";
+            else effectiveEbookFormat = "PDF";
+        }
+
         Book book = Book.builder()
                 .id(bookId)
                 .title(dto.getTitle().trim())
@@ -127,6 +141,9 @@ public class BookService {
                 .coverImage(dto.getCoverImage())
                 .isFree(dto.getIsFree() != null ? dto.getIsFree() : true)
                 .isArchived(dto.getIsArchived() != null ? dto.getIsArchived() : false)
+                .hasEbook(hasEbook)
+                .ebookUrl(hasEbook ? effectiveEbookUrl : null)
+                .ebookFormat(hasEbook ? effectiveEbookFormat : null)
                 .gradient(dto.getGradient())
                 .createdAt(OffsetDateTime.now())
                 .audioChapters(new ArrayList<>())
@@ -167,6 +184,20 @@ public class BookService {
                     ? dto.getAudioChapters().get(0).getAudioUrl().trim()
                     : null);
 
+        boolean hasEbook = Boolean.TRUE.equals(dto.getHasEbook())
+                || (dto.getEbookUrl() != null && !dto.getEbookUrl().isBlank());
+        String effectiveEbookUrl = (dto.getEbookUrl() != null && !dto.getEbookUrl().isBlank())
+                ? dto.getEbookUrl().trim()
+                : null;
+        String effectiveEbookFormat = dto.getEbookFormat();
+        if ((effectiveEbookFormat == null || effectiveEbookFormat.isBlank()) && effectiveEbookUrl != null) {
+            String lower = effectiveEbookUrl.toLowerCase();
+            if (lower.contains(".epub")) effectiveEbookFormat = "EPUB";
+            else if (lower.contains(".pdf")) effectiveEbookFormat = "PDF";
+            else if (lower.contains(".fb2") || lower.contains(".txt")) effectiveEbookFormat = "TXT";
+            else effectiveEbookFormat = "PDF";
+        }
+
         book.setTitle(dto.getTitle().trim());
         book.setAuthor(dto.getAuthor().trim());
         book.setDescription(dto.getDescription());
@@ -179,6 +210,9 @@ public class BookService {
         book.setCoverImage(dto.getCoverImage());
         book.setIsFree(dto.getIsFree() != null ? dto.getIsFree() : true);
         book.setIsArchived(dto.getIsArchived() != null ? dto.getIsArchived() : false);
+        book.setHasEbook(hasEbook);
+        book.setEbookUrl(hasEbook ? effectiveEbookUrl : null);
+        book.setEbookFormat(hasEbook ? effectiveEbookFormat : null);
         book.setGradient(dto.getGradient());
 
         book.getAudioChapters().clear();
@@ -273,6 +307,9 @@ public class BookService {
                 .coverImage(book.getCoverImage())
                 .isFree(book.getIsFree())
                 .isArchived(book.getIsArchived())
+                .hasEbook(book.getHasEbook())
+                .ebookUrl(book.getEbookUrl())
+                .ebookFormat(book.getEbookFormat())
                 .gradient(book.getGradient())
                 .createdAt(book.getCreatedAt())
                 .audioChapters(chapterDtos)
@@ -305,6 +342,9 @@ public class BookService {
                 .coverImage(book.getCoverImage())
                 .isFree(book.getIsFree())
                 .isArchived(book.getIsArchived())
+                .hasEbook(book.getHasEbook())
+                .ebookUrl(book.getEbookUrl())
+                .ebookFormat(book.getEbookFormat())
                 .gradient(book.getGradient())
                 .createdAt(book.getCreatedAt())
                 .audioChapters(chapterDtos)

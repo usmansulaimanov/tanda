@@ -115,14 +115,20 @@ public class TelegramMediaService {
             // Copy relevant streaming headers
             String contentType = connection.getContentType();
             if (contentType == null || contentType.contains("octet-stream") || contentType.contains("text/plain")) {
-                if (filePath.endsWith(".mp3")) {
+                if (filePath.endsWith(".pdf")) {
+                    contentType = "application/pdf";
+                } else if (filePath.endsWith(".epub")) {
+                    contentType = "application/epub+zip";
+                } else if (filePath.endsWith(".txt")) {
+                    contentType = "text/plain; charset=UTF-8";
+                } else if (filePath.endsWith(".mp3")) {
                     contentType = "audio/mpeg";
                 } else if (filePath.endsWith(".m4a") || filePath.endsWith(".mp4") || filePath.endsWith(".m4r")) {
                     contentType = "audio/mp4";
                 } else if (filePath.endsWith(".ogg")) {
                     contentType = "audio/ogg";
                 } else {
-                    contentType = "audio/mpeg";
+                    contentType = "application/octet-stream";
                 }
             }
 
@@ -132,7 +138,8 @@ public class TelegramMediaService {
             response.setHeader("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS");
             response.setHeader("Access-Control-Allow-Headers", "Range, Authorization, Content-Type, Accept");
             response.setHeader("Access-Control-Expose-Headers", "Content-Range, Content-Length, Accept-Ranges");
-            response.setHeader("Content-Disposition", "inline; filename=\"stream.mp3\"");
+            String filename = filePath.contains("/") ? filePath.substring(filePath.lastIndexOf('/') + 1) : "file";
+            response.setHeader("Content-Disposition", "inline; filename=\"" + filename + "\"");
 
             String contentRange = connection.getHeaderField("Content-Range");
             if (contentRange != null) {

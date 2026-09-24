@@ -44,6 +44,12 @@ public class UpdateBookRequestDto {
     @Builder.Default
     private Boolean isArchived = false;
 
+    @Builder.Default
+    private Boolean hasEbook = false;
+
+    private String ebookUrl;
+    private String ebookFormat;
+
     private String gradient;
 
     private List<AudioChapterDto> audioChapters;

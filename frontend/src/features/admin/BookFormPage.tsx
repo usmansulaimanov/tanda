@@ -57,6 +57,11 @@ export const BookFormPage: React.FC = () => {
   const [coverImage, setCoverImage] = useState('');
   const [coverImageError, setCoverImageError] = useState(false);
 
+  // E-book settings
+  const [hasEbook, setHasEbook] = useState(false);
+  const [ebookUrl, setEbookUrl] = useState('');
+  const [ebookFormat, setEbookFormat] = useState('PDF');
+
   // Audio settings
   const [hasAudio, setHasAudio] = useState(false);
   const [audioNarrator, setAudioNarrator] = useState('');
@@ -98,6 +103,11 @@ export const BookFormPage: React.FC = () => {
           setDescription(book.description || '');
           setIsFree(Boolean(book.isFree));
           if (book.coverImage) setCoverImage(book.coverImage);
+          if (book.hasEbook || book.ebookUrl || book.pdfUrl || book.epubUrl) {
+            setHasEbook(true);
+            setEbookUrl(book.ebookUrl || book.pdfUrl || book.epubUrl || '');
+            setEbookFormat(book.ebookFormat || (book.epubUrl ? 'EPUB' : 'PDF'));
+          }
           if (book.hasAudio || book.audioUrl || (book.audioChapters && book.audioChapters.length > 0)) {
             setHasAudio(true);
             setAudioNarrator(book.audioNarrator || '');
@@ -300,6 +310,7 @@ export const BookFormPage: React.FC = () => {
     }
 
     const effectiveHasAudio = Boolean(finalAudioUrl) || hasAudio || (finalChapters.length > 0 && finalChapters.some((c) => Boolean(c.audioUrl?.trim())));
+    const effectiveHasEbook = Boolean(hasEbook || ebookUrl.trim());
 
     const bookData = {
       title: title.trim(),
@@ -312,6 +323,11 @@ export const BookFormPage: React.FC = () => {
       isArchived: existingBook ? existingBook.isArchived : false,
       coverImage: coverImage.trim() || undefined,
       gradient: coverImage ? undefined : (existingBook?.gradient || DEFAULT_COVER_GRADIENT),
+      hasEbook: effectiveHasEbook,
+      ebookUrl: effectiveHasEbook && ebookUrl.trim() ? ebookUrl.trim() : undefined,
+      ebookFormat: effectiveHasEbook ? ebookFormat : undefined,
+      pdfUrl: effectiveHasEbook && ebookFormat === 'PDF' && ebookUrl.trim() ? ebookUrl.trim() : undefined,
+      epubUrl: effectiveHasEbook && ebookFormat === 'EPUB' && ebookUrl.trim() ? ebookUrl.trim() : undefined,
       hasAudio: effectiveHasAudio,
       audioNarrator: effectiveHasAudio ? (audioNarrator.trim() || undefined) : undefined,
       audioDuration: effectiveHasAudio ? (audioDuration.trim() || undefined) : undefined,
@@ -926,6 +942,165 @@ export const BookFormPage: React.FC = () => {
                   </div>
                 </div>
               </div>
+            </div>
+
+            {/* E-BOOK SETTINGS SECTION */}
+            <div
+              style={{
+                background: '#F8FAFC',
+                border: '1.5px solid #E2E8F0',
+                borderRadius: '14px',
+                padding: '24px',
+                marginBottom: '24px',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  paddingBottom: hasEbook ? '16px' : '0',
+                  borderBottom: hasEbook ? '1.5px solid #E2E8F0' : 'none',
+                  marginBottom: hasEbook ? '20px' : '0',
+                }}
+              >
+                <div>
+                  <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                    Электронды кітап (Эл. нұсқа)
+                  </h3>
+                  <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#64748B' }}>
+                    PDF, EPUB немесе Telegram арқылы электронды нұсқаны тіркеу
+                  </p>
+                </div>
+
+                <label
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    cursor: 'pointer',
+                    background: '#FFFFFF',
+                    padding: '8px 16px',
+                    borderRadius: '50px',
+                    border: '1.5px solid #CBD5E1',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    color: '#0F172A',
+                    userSelect: 'none',
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={hasEbook}
+                    onChange={(e) => {
+                      setHasEbook(e.target.checked);
+                    }}
+                    style={{
+                      accentColor: '#005494',
+                      width: '16px',
+                      height: '16px',
+                      cursor: 'pointer',
+                    }}
+                  />
+                  Эл. нұсқасы бар
+                </label>
+              </div>
+
+              {hasEbook && (
+                <div>
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                      gap: '18px',
+                      marginBottom: '18px',
+                    }}
+                  >
+                    {/* Format Selector */}
+                    <div className="form-group" style={{ margin: 0 }}>
+                      <label className="form-label" style={{ fontSize: '12px' }}>
+                        Кітап форматы:
+                      </label>
+                      <select
+                        value={ebookFormat}
+                        onChange={(e) => setEbookFormat(e.target.value)}
+                        className="form-input"
+                        style={{
+                          height: '42px',
+                          background: '#FFFFFF',
+                          border: '1.5px solid #CBD5E1',
+                          borderRadius: '8px',
+                          padding: '0 12px',
+                          fontSize: '14px',
+                          fontWeight: 600,
+                          color: '#0F172A',
+                          width: '100%',
+                        }}
+                      >
+                        <option value="PDF">PDF құжаты</option>
+                        <option value="EPUB">EPUB электронды кітабы</option>
+                        <option value="TXT">Мәтіндік (TXT / FB2)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Ebook URL input */}
+                  <div className="form-group" style={{ marginBottom: '8px' }}>
+                    <label className="form-label" style={{ fontSize: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span>Электронды кітап сілтемесі (PDF / EPUB / Telegram URL):</span>
+                      {ebookUrl && (
+                        <a
+                          href={ebookUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            fontSize: '12px',
+                            color: '#005494',
+                            fontWeight: 700,
+                            textDecoration: 'none',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                          }}
+                        >
+                          Сілтемені ашып көру ↗
+                        </a>
+                      )}
+                    </label>
+                    <input
+                      id="field-ebookUrl"
+                      type="url"
+                      value={ebookUrl}
+                      onChange={(e) => setEbookUrl(e.target.value)}
+                      placeholder="https://t.me/... немесе https://.../book.pdf"
+                      className="form-input"
+                      style={{
+                        background: '#FFFFFF',
+                        border: '1.5px solid #CBD5E1',
+                        borderRadius: '8px',
+                        padding: '10px 14px',
+                        fontSize: '14px',
+                        width: '100%',
+                        color: '#0F172A',
+                      }}
+                    />
+                    <div
+                      style={{
+                        marginTop: '10px',
+                        padding: '12px 14px',
+                        borderRadius: '8px',
+                        background: '#EFF6FF',
+                        border: '1px solid #BFDBFE',
+                        fontSize: '12.5px',
+                        color: '#1E40AF',
+                        lineHeight: 1.5,
+                      }}
+                    >
+                      💡 <strong>Telegram арқылы қосу:</strong> Кітап файлын (PDF немесе EPUB) каналға жүктеңіз, бот берген сілтемені осы жерге қойыңыз.
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* AUDIOBOOK SETTINGS SECTION */}

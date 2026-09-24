@@ -70,6 +70,16 @@ public class Book {
     @Builder.Default
     private Boolean isArchived = false;
 
+    @Column(name = "has_ebook", nullable = false)
+    @Builder.Default
+    private Boolean hasEbook = false;
+
+    @Column(name = "ebook_url", columnDefinition = "TEXT")
+    private String ebookUrl;
+
+    @Column(name = "ebook_format", length = 32)
+    private String ebookFormat;
+
     @Column(name = "gradient", length = 255)
     private String gradient;
 
@@ -88,6 +98,9 @@ public class Book {
         }
         if (hasAudio == null) {
             hasAudio = false;
+        }
+        if (hasEbook == null) {
+            hasEbook = false;
         }
         if (isFree == null) {
             isFree = true;

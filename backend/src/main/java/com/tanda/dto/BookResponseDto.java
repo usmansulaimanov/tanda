@@ -29,6 +29,9 @@ public class BookResponseDto {
     private String coverImage;
     private Boolean isFree;
     private Boolean isArchived;
+    private Boolean hasEbook;
+    private String ebookUrl;
+    private String ebookFormat;
     private String gradient;
     private OffsetDateTime createdAt;
 
