@@ -308,17 +308,17 @@ export const Header: React.FC = () => {
           <ul className="nav-links">
             {isStaffOrAuthor ? (
               <>
-                <li>
-                  <Link
-                    to="/admin/home"
-                    className={location.pathname === '/admin/home' ? 'active' : ''}
-                    style={{ textDecoration: 'none', fontSize: '14px', fontWeight: 700, color: 'var(--blue)' }}
-                  >
-                    Жеке кабинет
-                  </Link>
-                </li>
                 {(role === 'author' || user?.isAuthor) ? (
                   <>
+                    <li>
+                      <Link
+                        to="/news"
+                        className={location.pathname.startsWith('/news') ? 'active' : ''}
+                        style={{ textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}
+                      >
+                        Жаңалықтар
+                      </Link>
+                    </li>
                     <li>
                       <Link
                         to="/author/stats"
@@ -337,9 +337,29 @@ export const Header: React.FC = () => {
                         Кітаптарым
                       </Link>
                     </li>
+                    <li>
+                      <Link
+                        to="/admin/home"
+                        className={location.pathname === '/admin/home' ? 'active' : ''}
+                        style={{ textDecoration: 'none', fontSize: '14px', fontWeight: 700, color: 'var(--blue)' }}
+                      >
+                        Жеке кабинет
+                      </Link>
+                    </li>
                   </>
                 ) : (
                   <>
+                    {hasAdminPermission(user, 'news_manage') && (
+                      <li>
+                        <Link
+                          to="/admin/news"
+                          className={location.pathname.startsWith('/admin/news') ? 'active' : ''}
+                          style={{ textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}
+                        >
+                          Жаңалықтар
+                        </Link>
+                      </li>
+                    )}
                     {canViewBooks && (
                       <li>
                         <Link
@@ -362,17 +382,15 @@ export const Header: React.FC = () => {
                         </Link>
                       </li>
                     )}
-                    {hasAdminPermission(user, 'news_manage') && (
-                      <li>
-                        <Link
-                          to="/admin/news"
-                          className={location.pathname.startsWith('/admin/news') ? 'active' : ''}
-                          style={{ textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}
-                        >
-                          Жаңалықтар
-                        </Link>
-                      </li>
-                    )}
+                    <li>
+                      <Link
+                        to="/admin/home"
+                        className={location.pathname === '/admin/home' ? 'active' : ''}
+                        style={{ textDecoration: 'none', fontSize: '14px', fontWeight: 700, color: 'var(--blue)' }}
+                      >
+                        Жеке кабинет
+                      </Link>
+                    </li>
                   </>
                 )}
               </>
