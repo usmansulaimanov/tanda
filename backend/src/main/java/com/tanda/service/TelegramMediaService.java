@@ -191,7 +191,7 @@ public class TelegramMediaService {
             }
 
             if (fileId != null && !fileId.isBlank()) {
-                String streamUrl = "https://tanda-backend-489q.onrender.com/api/v1/media/telegram/" + fileId;
+                String streamUrl = "https://tanda-backend-7lpj.onrender.com/api/v1/media/telegram/" + fileId;
                 String replyText = "✅ <b>Аудио қабылданды!</b>\n"
                         + "📁 <b>Файл:</b> " + fileName + "\n\n"
                         + "🔗 <b>Tanda үшін сілтеме:</b>\n"
