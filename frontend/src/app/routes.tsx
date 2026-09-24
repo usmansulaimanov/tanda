@@ -119,7 +119,7 @@ const AdminRouteGuard: React.FC<{ children: React.ReactNode }> = ({ children }) 
   const isAuthor = Boolean(role === 'author' || user.role === 'author' || user.isAuthor);
   const isAdminOrStaff = Boolean(role === 'admin' || user.role === 'admin' || user.isSuperAdmin || Boolean(user.duty));
 
-  if (isAuthor && !user?.isSuperAdmin) {
+  if (isAuthor) {
     return <Navigate to="/author/home" replace />;
   }
 
@@ -142,10 +142,9 @@ const AuthorRouteGuard: React.FC<{ children: React.ReactNode }> = ({ children })
   }
 
   const isAuthor = Boolean(role === 'author' || user.role === 'author' || user.isAuthor);
-  const isSuperAdmin = Boolean(user.isSuperAdmin || (role === 'admin' && !user.duty));
+  const isStaff = Boolean(role === 'admin' || user.role === 'admin' || user.isSuperAdmin || Boolean(user.duty));
 
-  if (!isAuthor && !isSuperAdmin) {
-    const isStaff = Boolean(role === 'admin' || user.role === 'admin' || Boolean(user.duty));
+  if (!isAuthor) {
     if (isStaff) {
       return <Navigate to="/admin/home" replace />;
     }
