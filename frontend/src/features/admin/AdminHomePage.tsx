@@ -32,9 +32,6 @@ export const AdminHomePage: React.FC = () => {
     : user?.duty?.trim() || 'Әкімші көмекшісі';
 
   const userDisplayName = user?.name || (isSuperAdmin ? 'Әкімші' : 'Көмекші');
-  const userDisplayTag = user?.username
-    ? `@${user.username.replace(/^@/, '')}`
-    : (user?.email ? `@${user.email.split('@')[0]}` : '');
 
   // Permissions check for quick access tiles
   const canViewBooks = hasAdminPermission(user, 'books_view');
@@ -150,25 +147,21 @@ export const AdminHomePage: React.FC = () => {
               Қош келдіңіз, {userDisplayName}!
             </h1>
 
-            {/* Username / Subtitle */}
+            {/* ID & Email Subtitle */}
             <div
               style={{
-                fontSize: '16px',
-                color: 'rgba(255, 255, 255, 0.85)',
+                fontSize: '15px',
+                color: 'rgba(255, 255, 255, 0.88)',
                 marginBottom: '24px',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
-                fontWeight: 500,
+                fontWeight: 600,
               }}
             >
-              <span>{userDisplayTag}</span>
-              {user?.idNumber && (
-                <>
-                  <span>•</span>
-                  <span>ID: {user.idNumber}</span>
-                </>
-              )}
+              {user?.idNumber && <span>ID: {user.idNumber}</span>}
+              {user?.idNumber && user?.email && <span>•</span>}
+              {user?.email && <span style={{ opacity: 0.9, fontWeight: 500 }}>{user.email}</span>}
             </div>
 
             <p
