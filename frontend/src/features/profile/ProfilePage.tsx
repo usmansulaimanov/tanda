@@ -10,7 +10,7 @@ import { TandaPremiumBadge } from '../../components/ui/TandaPremiumBadge';
 
 export const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuthStore();
+  const { user, isAuthenticated, isAuthInitialized } = useAuthStore();
   const { books, fetchBooks } = useBookStore();
   const { savedBookIds, fetchSavedBooks, removeSavedBook, getSavedBookIds } = useSavedBooksStore();
   const { currentShelf } = useMyBooksStore();
@@ -34,6 +34,14 @@ export const ProfilePage: React.FC = () => {
     removeSavedBook(bookId);
     showToast(`«${bookTitle}» сақталғандардан өшірілді`, 'info');
   };
+
+  if (!isAuthInitialized) {
+    return (
+      <div style={{ maxWidth: '600px', margin: '80px auto', padding: '0 24px' }}>
+        <div style={{ background: '#FFFFFF', borderRadius: '20px', padding: '48px 32px', height: '240px', border: '1px solid #E2E8F0', opacity: 0.6 }} />
+      </div>
+    );
+  }
 
   if (!isAuthenticated || !user) {
     return (

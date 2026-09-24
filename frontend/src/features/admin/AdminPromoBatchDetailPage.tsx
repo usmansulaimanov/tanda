@@ -1,11 +1,14 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { usePromoStore, PromoCode, PromoBatch } from '../../store/usePromoStore';
+import { useAuthStore } from '../../store/useAuthStore';
 import { useToastStore } from '../../store/useToastStore';
+import { hasAdminPermission } from '../../utils/permissions';
 
 export const AdminPromoBatchDetailPage: React.FC = () => {
   const { batchId } = useParams<{ batchId: string }>();
   const navigate = useNavigate();
+  const { user, role, isAuthInitialized } = useAuthStore();
   const {
     batches,
     promocodes,
@@ -20,10 +23,22 @@ export const AdminPromoBatchDetailPage: React.FC = () => {
   } = usePromoStore();
   const { showToast } = useToastStore();
 
+  const canManage = hasAdminPermission(user, 'promocodes_manage');
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+
   useEffect(() => {
-    fetchBatches();
-    fetchPromoCodes();
+    Promise.all([fetchBatches(), fetchPromoCodes()]).finally(() => {
+      setIsInitialLoading(false);
+    });
   }, [fetchBatches, fetchPromoCodes]);
+
+  useEffect(() => {
+    if (!isAuthInitialized) return;
+    if (role !== 'admin' || !canManage) {
+      showToast('Промокодтар бөліміне кіруге рұқсатыңыз жоқ', 'error');
+      navigate('/admin', { replace: true });
+    }
+  }, [isAuthInitialized, role, canManage, navigate, showToast]);
 
   const [codeSearchQuery, setCodeSearchQuery] = useState<string>('');
   const [activeFilter, setActiveFilter] = useState<'all' | 'activated' | 'issued'>('all');
@@ -116,6 +131,13 @@ export const AdminPromoBatchDetailPage: React.FC = () => {
   };
 
   if (!currentBatch) {
+    if (isInitialLoading || !isAuthInitialized) {
+      return (
+        <section className="admin-page-section" style={{ padding: '40px 16px', backgroundColor: '#F8FAFC', minHeight: 'calc(100vh - 80px)' }}>
+          <div style={{ maxWidth: '800px', margin: '0 auto', height: '300px', background: '#FFFFFF', borderRadius: '16px', border: '1.5px solid #E2E8F0', opacity: 0.6 }} />
+        </section>
+      );
+    }
     return (
       <section className="admin-page-section" style={{ padding: '40px 16px', backgroundColor: '#F8FAFC', minHeight: 'calc(100vh - 80px)' }}>
         <div style={{ maxWidth: '800px', margin: '0 auto', textAlign: 'center', background: '#FFFFFF', padding: '48px 24px', borderRadius: '16px', border: '1.5px solid #E2E8F0' }}>
