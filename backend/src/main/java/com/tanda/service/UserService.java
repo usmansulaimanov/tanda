@@ -154,6 +154,8 @@ public class UserService {
             throw new BadRequestException("Құпиясөз кемінде 8 таңбадан тұруы керек");
         }
 
+        boolean isClient = rawRole.equals("client") || rawRole.equals("reader");
+
         User user = User.builder()
                 .id("user-" + UUID.randomUUID().toString().substring(0, 8))
                 .idNumber(idNumber)
@@ -163,9 +165,9 @@ public class UserService {
                 .authProvider("LOCAL")
                 .role(rawRole)
                 .phone(dto.getPhone() != null ? dto.getPhone().trim() : null)
-                .username(username)
-                .birthDate(dto.getBirthDate() != null ? dto.getBirthDate().trim() : null)
-                .gender(dto.getGender() != null ? dto.getGender().trim() : null)
+                .username(isClient ? username : null)
+                .birthDate(isClient && dto.getBirthDate() != null ? dto.getBirthDate().trim() : null)
+                .gender(isClient && dto.getGender() != null ? dto.getGender().trim() : null)
                 .duty(dto.getDuty() != null ? dto.getDuty().trim() : null)
                 .avatarUrl(dto.getAvatarUrl())
                 .personalMessage(dto.getPersonalMessage())
@@ -280,6 +282,13 @@ public class UserService {
             }
         }
 
+        boolean isClient = user.getRole() == null || "client".equalsIgnoreCase(user.getRole()) || "reader".equalsIgnoreCase(user.getRole());
+        if (!isClient) {
+            user.setUsername(null);
+            user.setBirthDate(null);
+            user.setGender(null);
+        }
+
         user = userRepository.save(user);
         List<String> permissions = managerPermissionRepository.findByUserId(id).stream()
                 .map(ManagerPermission::getPermission)
@@ -342,6 +351,8 @@ public class UserService {
         Integer lastGiftYear = birthdayGiftRepository.findTopByUserIdOrderByGiftYearDesc(user.getId())
                 .map(com.tanda.entity.BirthdayGift::getGiftYear).orElse(null);
 
+        boolean isClient = user.getRole() == null || "client".equalsIgnoreCase(user.getRole()) || "reader".equalsIgnoreCase(user.getRole());
+
         return UserResponseDto.builder()
                 .id(user.getId())
                 .idNumber(user.getIdNumber())
@@ -354,9 +365,9 @@ public class UserService {
                 .authProvider(user.getAuthProvider() != null ? user.getAuthProvider() : (user.getGoogleId() != null ? "GOOGLE" : "LOCAL"))
                 .hasPassword(user.getPasswordHash() != null)
                 .phone(user.getPhone())
-                .username(user.getUsername())
-                .birthDate(user.getBirthDate())
-                .gender(user.getGender())
+                .username(isClient ? user.getUsername() : null)
+                .birthDate(isClient ? user.getBirthDate() : null)
+                .gender(isClient ? user.getGender() : null)
                 .duty(user.getDuty())
                 .personalMessage(user.getPersonalMessage())
                 .personalMessageDays(user.getPersonalMessageDays())
@@ -382,6 +393,8 @@ public class UserService {
             log.warn("Failed to check premium entitlement for user {}: {}", user.getId(), e.getMessage());
         }
 
+        boolean isClient = user.getRole() == null || "client".equalsIgnoreCase(user.getRole()) || "reader".equalsIgnoreCase(user.getRole());
+
         return UserListResponseDto.builder()
                 .id(user.getId())
                 .idNumber(user.getIdNumber())
@@ -392,7 +405,7 @@ public class UserService {
                 .createdAt(user.getCreatedAt())
                 .savedBooksCount(savedBooksCount)
                 .phone(user.getPhone())
-                .username(user.getUsername())
+                .username(isClient ? user.getUsername() : null)
                 .isBlocked(user.getIsBlocked())
                 .avatarUrl(user.getAvatarUrl())
                 .duty(user.getDuty())

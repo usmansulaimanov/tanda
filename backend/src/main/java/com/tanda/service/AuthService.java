@@ -320,6 +320,8 @@ public class AuthService {
         Integer lastGiftYear = birthdayGiftRepository.findTopByUserIdOrderByGiftYearDesc(user.getId())
                 .map(com.tanda.entity.BirthdayGift::getGiftYear).orElse(null);
 
+        boolean isClient = user.getRole() == null || "client".equalsIgnoreCase(user.getRole()) || "reader".equalsIgnoreCase(user.getRole());
+
         return UserResponseDto.builder()
                 .id(user.getId())
                 .idNumber(user.getIdNumber())
@@ -332,9 +334,9 @@ public class AuthService {
                 .authProvider(user.getAuthProvider() != null ? user.getAuthProvider() : (user.getGoogleId() != null ? "GOOGLE" : "LOCAL"))
                 .hasPassword(user.getPasswordHash() != null)
                 .phone(user.getPhone())
-                .username(user.getUsername())
-                .birthDate(user.getBirthDate())
-                .gender(user.getGender())
+                .username(isClient ? user.getUsername() : null)
+                .birthDate(isClient ? user.getBirthDate() : null)
+                .gender(isClient ? user.getGender() : null)
                 .duty(user.getDuty())
                 .personalMessage(user.getPersonalMessage())
                 .personalMessageDays(user.getPersonalMessageDays())
@@ -375,26 +377,37 @@ public class AuthService {
         if (request.getPhone() != null) {
             user.setPhone(request.getPhone().trim());
         }
-        if (request.getUsername() != null) {
-            String newUsername = request.getUsername().trim().toLowerCase().replaceAll("^@", "");
-            if (!newUsername.isBlank() && !newUsername.equalsIgnoreCase(user.getUsername())) {
-                if (reservedUsernameService.isReserved(newUsername)) {
-                    throw new BadRequestException("Бұл юзернейм жүйе тарапынан резервтелген");
+
+        boolean isClient = user.getRole() == null || "client".equalsIgnoreCase(user.getRole()) || "reader".equalsIgnoreCase(user.getRole());
+
+        if (isClient) {
+            if (request.getUsername() != null) {
+                String newUsername = request.getUsername().trim().toLowerCase().replaceAll("^@", "");
+                if (!newUsername.isBlank() && !newUsername.equalsIgnoreCase(user.getUsername())) {
+                    if (reservedUsernameService.isReserved(newUsername)) {
+                        throw new BadRequestException("Бұл юзернейм жүйе тарапынан резервтелген");
+                    }
+                    if (userRepository.existsByUsernameIgnoreCase(newUsername)) {
+                        throw new BadRequestException("Бұл юзернейм бос емес");
+                    }
+                    user.setUsername(newUsername);
+                } else if (newUsername.isBlank()) {
+                    user.setUsername(null);
                 }
-                if (userRepository.existsByUsernameIgnoreCase(newUsername)) {
-                    throw new BadRequestException("Бұл юзернейм бос емес");
-                }
-                user.setUsername(newUsername);
-            } else if (newUsername.isBlank()) {
-                user.setUsername(null);
             }
+            if (request.getBirthDate() != null) {
+                user.setBirthDate(request.getBirthDate().trim());
+            }
+            if (request.getGender() != null) {
+                user.setGender(request.getGender().trim());
+            }
+        } else {
+            // Strictly enforce: Admins, Managers, and Authors never have username, birthDate, or gender in DB
+            user.setUsername(null);
+            user.setBirthDate(null);
+            user.setGender(null);
         }
-        if (request.getBirthDate() != null) {
-            user.setBirthDate(request.getBirthDate().trim());
-        }
-        if (request.getGender() != null) {
-            user.setGender(request.getGender().trim());
-        }
+
         user = userRepository.save(user);
 
         UserResponseDto dto = toUserDto(user);
