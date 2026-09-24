@@ -264,40 +264,8 @@ export const TopAudioSection: React.FC = () => {
                     </div>
                   )}
 
-                  {/* Rank Badge */}
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: '10px',
-                      left: '10px',
-                      minWidth: '28px',
-                      height: '28px',
-                      padding: '0 8px',
-                      borderRadius: '8px',
-                      background:
-                        rank === 1
-                          ? 'linear-gradient(135deg, #F59E0B, #D97706)'
-                          : rank === 2
-                          ? 'linear-gradient(135deg, #94A3B8, #64748B)'
-                          : rank === 3
-                          ? 'linear-gradient(135deg, #D97706, #B45309)'
-                          : 'rgba(15, 23, 42, 0.78)',
-                      backdropFilter: 'blur(4px)',
-                      color: '#FFFFFF',
-                      fontWeight: 800,
-                      fontSize: '13px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
-                      zIndex: 2,
-                    }}
-                  >
-                    #{rank}
-                  </div>
-
                   {/* Premium badge */}
-                  {!book.isFree && <TandaPremiumBadge size="sm" position="right" />}
+                  {!book.isFree && <TandaPremiumBadge size="sm" position="left" />}
 
                   {/* Play Button Overlay */}
                   <button
