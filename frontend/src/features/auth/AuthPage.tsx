@@ -71,7 +71,9 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialMode }) => {
         await login(cleanEmail, cleanPassword);
         showToast('Жүйеге сәтті кірдіңіз!', 'success');
         const updatedRole = useAuthStore.getState().role;
-        if (updatedRole === 'admin' && redirectUrl === '/') {
+        const updatedUser = useAuthStore.getState().user;
+        const isAdminOrManager = updatedRole === 'admin' || (updatedUser?.permissions && updatedUser.permissions.length > 0);
+        if (isAdminOrManager) {
           navigate('/admin/home');
         } else {
           navigate(redirectUrl);
@@ -116,8 +118,10 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialMode }) => {
       }
 
       const updatedRole = useAuthStore.getState().role;
-      if (updatedRole === 'admin' && redirectUrl === '/') {
-        navigate('/admin');
+      const updatedUser = useAuthStore.getState().user;
+      const isAdminOrManager = updatedRole === 'admin' || (updatedUser?.permissions && updatedUser.permissions.length > 0);
+      if (isAdminOrManager) {
+        navigate('/admin/home');
       } else {
         navigate(redirectUrl);
       }
@@ -134,7 +138,9 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialMode }) => {
         await loginWithGoogle(response.credential);
         showToast('Google арқылы сәтті кірдіңіз!', 'success');
         const updatedRole = useAuthStore.getState().role;
-        if (updatedRole === 'admin' && redirectUrl === '/') {
+        const updatedUser = useAuthStore.getState().user;
+        const isAdminOrManager = updatedRole === 'admin' || (updatedUser?.permissions && updatedUser.permissions.length > 0);
+        if (isAdminOrManager) {
           navigate('/admin/home');
         } else {
           navigate(redirectUrl);
