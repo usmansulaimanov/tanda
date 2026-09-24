@@ -25,6 +25,12 @@ export const Header: React.FC = () => {
     return getUnreadCountForUser(user.id);
   }, [user, messages, getUnreadCountForUser]);
 
+  const isStaffOrAuthor = Boolean(
+    isAuthenticated && user && (role === 'admin' || role === 'author' || user.role === 'admin' || user.role === 'author' || user.isSuperAdmin || user.isAuthor || Boolean(user.duty))
+  );
+  const homeRoute = isStaffOrAuthor ? '/admin/home' : '/';
+  const canViewBooks = hasAdminPermission(user, 'books_view');
+
   // Search state
   const [headerSearch, setHeaderSearch] = useState('');
   const [searchResults, setSearchResults] = useState<Book[]>([]);
@@ -145,7 +151,7 @@ export const Header: React.FC = () => {
 
             {/* Logo */}
             <Link
-              to="/"
+              to={homeRoute}
               className="nav-logo"
               style={{
                 flexShrink: 0,
@@ -300,69 +306,132 @@ export const Header: React.FC = () => {
 
           {/* Middle: Links */}
           <ul className="nav-links">
-            <li>
-              <Link
-                to="/"
-                onClick={() => {
-                  if (location.pathname === '/') {
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }
-                }}
-                className={location.pathname === '/' && !location.hash ? 'active' : ''}
-                style={{ textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}
-              >
-                Басты бет
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/news"
-                className={location.pathname.startsWith('/news') ? 'active' : ''}
-                style={{ textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}
-              >
-                Жаңалықтар
-              </Link>
-            </li>
-            <li>
-              <a
-                href="/#catalog"
-                onClick={(e) => {
-                  if (location.pathname === '/') {
-                    e.preventDefault();
-                    const el = document.getElementById('catalog');
-                    if (el) {
-                      el.scrollIntoView({ behavior: 'smooth' });
-                      window.history.replaceState(null, '', '/#catalog');
-                    }
-                  }
-                }}
-                className={location.pathname === '/' && location.hash === '#catalog' ? 'active' : ''}
-                style={{ textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}
-              >
-                Кітаптар қоры
-              </a>
-            </li>
-            {isAuthenticated && role !== 'admin' && (
-              <li>
-                <Link
-                  to="/my-books"
-                  className={location.pathname === '/my-books' ? 'active' : ''}
-                  style={{ textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}
-                >
-                  Менің сөрем
-                </Link>
-              </li>
-            )}
-            {role === 'admin' && (
-              <li>
-                <Link
-                  to="/admin/home"
-                  className={location.pathname.startsWith('/admin') ? 'active' : ''}
-                  style={{ textDecoration: 'none', fontSize: '14px', fontWeight: 700, color: 'var(--blue)' }}
-                >
-                  Жеке кабинет
-                </Link>
-              </li>
+            {isStaffOrAuthor ? (
+              <>
+                <li>
+                  <Link
+                    to="/admin/home"
+                    className={location.pathname === '/admin/home' ? 'active' : ''}
+                    style={{ textDecoration: 'none', fontSize: '14px', fontWeight: 700, color: 'var(--blue)' }}
+                  >
+                    Жеке кабинет
+                  </Link>
+                </li>
+                {(role === 'author' || user?.isAuthor) ? (
+                  <>
+                    <li>
+                      <Link
+                        to="/author/stats"
+                        className={location.pathname.startsWith('/author') ? 'active' : ''}
+                        style={{ textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}
+                      >
+                        Авторлық статистика
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        to="/admin"
+                        className={location.pathname === '/admin' || location.pathname.startsWith('/admin/books') ? 'active' : ''}
+                        style={{ textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}
+                      >
+                        Кітаптарым
+                      </Link>
+                    </li>
+                  </>
+                ) : (
+                  <>
+                    {canViewBooks && (
+                      <li>
+                        <Link
+                          to="/admin"
+                          className={location.pathname === '/admin' || location.pathname.startsWith('/admin/books') ? 'active' : ''}
+                          style={{ textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}
+                        >
+                          Кітаптар қоры
+                        </Link>
+                      </li>
+                    )}
+                    {hasAdminPermission(user, 'analytics_view') && (
+                      <li>
+                        <Link
+                          to="/admin/stats"
+                          className={location.pathname.startsWith('/admin/stats') ? 'active' : ''}
+                          style={{ textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}
+                        >
+                          Статистика
+                        </Link>
+                      </li>
+                    )}
+                    {hasAdminPermission(user, 'news_manage') && (
+                      <li>
+                        <Link
+                          to="/admin/news"
+                          className={location.pathname.startsWith('/admin/news') ? 'active' : ''}
+                          style={{ textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}
+                        >
+                          Жаңалықтар
+                        </Link>
+                      </li>
+                    )}
+                  </>
+                )}
+              </>
+            ) : (
+              <>
+                <li>
+                  <Link
+                    to="/"
+                    onClick={() => {
+                      if (location.pathname === '/') {
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }
+                    }}
+                    className={location.pathname === '/' && !location.hash ? 'active' : ''}
+                    style={{ textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}
+                  >
+                    Басты бет
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/news"
+                    className={location.pathname.startsWith('/news') ? 'active' : ''}
+                    style={{ textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}
+                  >
+                    Жаңалықтар
+                  </Link>
+                </li>
+                <li>
+                  <a
+                    href="/#catalog"
+                    onClick={(e) => {
+                      if (location.pathname === '/') {
+                        e.preventDefault();
+                        const el = document.getElementById('catalog');
+                        if (el) {
+                          el.scrollIntoView({ behavior: 'smooth' });
+                          window.history.replaceState(null, '', '/#catalog');
+                        }
+                      }
+                    }}
+                    className={location.pathname === '/' && location.hash === '#catalog' ? 'active' : ''}
+                    style={{ textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}
+                  >
+                    Кітаптар қоры
+                  </a>
+                </li>
+                {isAuthenticated && (
+                  <li>
+                    <Link
+                      to="/my-books"
+                      className={location.pathname === '/my-books' ? 'active' : ''}
+                      style={{ textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}
+                    >
+                      Менің сөрем
+                    </Link>
+                  </li>
+                )}
+              </>
             )}
           </ul>
 
@@ -538,6 +607,20 @@ export const Header: React.FC = () => {
 
                       {user.role === 'author' || user.isAuthor ? (
                         <>
+                          <Link
+                            to="/admin/home"
+                            className="profile-menu-item"
+                            onClick={() => setProfileOpen(false)}
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <rect x="3" y="3" width="7" height="7"></rect>
+                              <rect x="14" y="3" width="7" height="7"></rect>
+                              <rect x="14" y="14" width="7" height="7"></rect>
+                              <rect x="3" y="14" width="7" height="7"></rect>
+                            </svg>
+                            <span>Жеке кабинет</span>
+                          </Link>
+
                           <Link
                             to="/author/stats"
                             className="profile-menu-item"

@@ -16,22 +16,27 @@ export const AdminHomePage: React.FC = () => {
   const { articles } = useNewsStore();
   const { showToast } = useToastStore();
 
+  const isAuthor = Boolean(role === 'author' || user?.isAuthor || user?.role === 'author');
+  const isSuperAdmin = Boolean(!isAuthor && (user?.isSuperAdmin || (role === 'admin' && !user?.duty)));
+  const isManager = Boolean(!isAuthor && !isSuperAdmin && (user?.duty || role === 'admin' || user?.role === 'admin'));
+
   // Auth protection guard
   React.useEffect(() => {
     if (!isAuthInitialized) return;
-    if (!user || (role !== 'admin' && !user.isSuperAdmin)) {
-      showToast('Бұл бетке кіру үшін әкімші рұқсаты қажет', 'error');
+    const isAllowed = user && (role === 'admin' || role === 'author' || user.isSuperAdmin || user.isAuthor || Boolean(user.duty));
+    if (!isAllowed) {
+      showToast('Бұл бетке кіру үшін арнайы рұқсат қажет', 'error');
       navigate('/login?redirect=/admin/home', { replace: true });
     }
   }, [isAuthInitialized, user, role, navigate, showToast]);
 
-  // Determine user title and duty
-  const isSuperAdmin = Boolean(user?.isSuperAdmin || (role === 'admin' && !user?.duty));
   const displayRoleTitle = isSuperAdmin
     ? 'Админ'
+    : isAuthor
+    ? 'Автор'
     : user?.duty?.trim() || 'Әкімші көмекшісі';
 
-  const userDisplayName = user?.name || (isSuperAdmin ? 'Әкімші' : 'Көмекші');
+  const userDisplayName = user?.name || (isSuperAdmin ? 'Әкімші' : isAuthor ? 'Автор' : 'Көмекші');
 
   // Permissions check for quick access tiles
   const canViewBooks = hasAdminPermission(user, 'books_view');
@@ -176,62 +181,120 @@ export const AdminHomePage: React.FC = () => {
             >
               {isSuperAdmin
                 ? 'Tanda платформасын толық басқару орталығы. Төмендегі бөлімдер арқылы кітаптар қорын, оқырмандарды және жүйелік параметрлерді басқара аласыз.'
+                : isAuthor
+                ? 'Сіздің авторлық кабинетіңізге қош келдіңіз! Авторлық статистикаңыз бен кітаптарыңызды осы жерден бақылай аласыз.'
                 : 'Сіздің көмекші кабинетіңізге қош келдіңіз! Өзіңізге жүктелген міндеттер мен бөлімдерді төмендегі батырмалар арқылы басқарыңыз.'}
             </p>
 
             {/* Quick Action Buttons */}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
-              {canViewBooks && (
-                <Link
-                  to="/admin"
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    padding: '12px 22px',
-                    borderRadius: '12px',
-                    background: '#FFFFFF',
-                    color: 'var(--blue)',
-                    fontWeight: 700,
-                    fontSize: '14px',
-                    textDecoration: 'none',
-                    boxShadow: '0 6px 20px rgba(0, 0, 0, 0.15)',
-                    transition: 'transform 0.15s ease, box-shadow 0.15s ease',
-                  }}
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path>
-                    <path d="M6 6h10"></path>
-                    <path d="M6 10h10"></path>
-                  </svg>
-                  <span>Кітаптар қоры</span>
-                </Link>
-              )}
+              {isAuthor ? (
+                <>
+                  <Link
+                    to="/author/stats"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '12px 22px',
+                      borderRadius: '12px',
+                      background: 'var(--orange)',
+                      color: '#FFFFFF',
+                      fontWeight: 700,
+                      fontSize: '14px',
+                      textDecoration: 'none',
+                      boxShadow: '0 6px 20px rgba(239, 126, 0, 0.35)',
+                      transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+                    }}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="18" y1="20" x2="18" y2="10"></line>
+                      <line x1="12" y1="20" x2="12" y2="4"></line>
+                      <line x1="6" y1="20" x2="6" y2="14"></line>
+                    </svg>
+                    <span>Авторлық статистика</span>
+                  </Link>
 
-              {canCreateBooks && (
-                <Link
-                  to="/admin/books/new"
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    padding: '12px 22px',
-                    borderRadius: '12px',
-                    background: 'var(--orange)',
-                    color: '#FFFFFF',
-                    fontWeight: 700,
-                    fontSize: '14px',
-                    textDecoration: 'none',
-                    boxShadow: '0 6px 20px rgba(239, 126, 0, 0.35)',
-                    transition: 'transform 0.15s ease, box-shadow 0.15s ease',
-                  }}
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="12" y1="5" x2="12" y2="19"></line>
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                  </svg>
-                  <span>Жаңа кітап қосу</span>
-                </Link>
+                  <Link
+                    to="/admin"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '12px 22px',
+                      borderRadius: '12px',
+                      background: '#FFFFFF',
+                      color: 'var(--blue)',
+                      fontWeight: 700,
+                      fontSize: '14px',
+                      textDecoration: 'none',
+                      boxShadow: '0 6px 20px rgba(0, 0, 0, 0.15)',
+                      transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+                    }}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path>
+                      <path d="M6 6h10"></path>
+                      <path d="M6 10h10"></path>
+                    </svg>
+                    <span>Кітаптарым</span>
+                  </Link>
+                </>
+              ) : (
+                <>
+                  {canViewBooks && (
+                    <Link
+                      to="/admin"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '12px 22px',
+                        borderRadius: '12px',
+                        background: '#FFFFFF',
+                        color: 'var(--blue)',
+                        fontWeight: 700,
+                        fontSize: '14px',
+                        textDecoration: 'none',
+                        boxShadow: '0 6px 20px rgba(0, 0, 0, 0.15)',
+                        transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+                      }}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path>
+                        <path d="M6 6h10"></path>
+                        <path d="M6 10h10"></path>
+                      </svg>
+                      <span>Кітаптар қоры</span>
+                    </Link>
+                  )}
+
+                  {canCreateBooks && (
+                    <Link
+                      to="/admin/books/new"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '12px 22px',
+                        borderRadius: '12px',
+                        background: 'var(--orange)',
+                        color: '#FFFFFF',
+                        fontWeight: 700,
+                        fontSize: '14px',
+                        textDecoration: 'none',
+                        boxShadow: '0 6px 20px rgba(239, 126, 0, 0.35)',
+                        transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+                      }}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                      </svg>
+                      <span>Жаңа кітап қосу</span>
+                    </Link>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -256,9 +319,147 @@ export const AdminHomePage: React.FC = () => {
             gap: '16px',
           }}
         >
-          {canViewBooks && (
-            <Link
-              to="/admin"
+          {isAuthor ? (
+            <>
+              <Link
+                to="/author/stats"
+                style={{
+                  textDecoration: 'none',
+                  background: '#FFFFFF',
+                  borderRadius: '16px',
+                  padding: '20px',
+                  border: '1px solid #E2E8F0',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div
+                    style={{
+                      width: '42px',
+                      height: '42px',
+                      borderRadius: '12px',
+                      background: '#FFF7ED',
+                      color: 'var(--orange)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="18" y1="20" x2="18" y2="10"></line>
+                      <line x1="12" y1="20" x2="12" y2="4"></line>
+                      <line x1="6" y1="20" x2="6" y2="14"></line>
+                    </svg>
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '16px', fontWeight: 700, color: '#1E293B', marginBottom: '4px' }}>
+                    Авторлық статистика
+                  </div>
+                  <div style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.4 }}>
+                    Тыңдалымдар, оқырмандар саны және роялти табысы
+                  </div>
+                </div>
+              </Link>
+
+              <Link
+                to="/admin"
+                style={{
+                  textDecoration: 'none',
+                  background: '#FFFFFF',
+                  borderRadius: '16px',
+                  padding: '20px',
+                  border: '1px solid #E2E8F0',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div
+                    style={{
+                      width: '42px',
+                      height: '42px',
+                      borderRadius: '12px',
+                      background: '#EFF6FF',
+                      color: 'var(--blue)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path>
+                      <path d="M6 6h10"></path>
+                      <path d="M6 10h10"></path>
+                    </svg>
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '16px', fontWeight: 700, color: '#1E293B', marginBottom: '4px' }}>
+                    Кітаптарым
+                  </div>
+                  <div style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.4 }}>
+                    Сізге бекітілген кітаптар тізімі
+                  </div>
+                </div>
+              </Link>
+
+              <Link
+                to="/settings"
+                style={{
+                  textDecoration: 'none',
+                  background: '#FFFFFF',
+                  borderRadius: '16px',
+                  padding: '20px',
+                  border: '1px solid #E2E8F0',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div
+                    style={{
+                      width: '42px',
+                      height: '42px',
+                      borderRadius: '12px',
+                      background: '#F1F5F9',
+                      color: '#475569',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '16px', fontWeight: 700, color: '#1E293B', marginBottom: '4px' }}>
+                    Баптаулар
+                  </div>
+                  <div style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.4 }}>
+                    Профиль және қауіпсіздік баптаулары
+                  </div>
+                </div>
+              </Link>
+            </>
+          ) : (
+            <>
+              {canViewBooks && (
+                <Link
+                  to="/admin"
               style={{
                 textDecoration: 'none',
                 background: '#FFFFFF',
@@ -686,6 +887,8 @@ export const AdminHomePage: React.FC = () => {
                 </div>
               </div>
             </Link>
+          )}
+            </>
           )}
         </div>
       </section>
