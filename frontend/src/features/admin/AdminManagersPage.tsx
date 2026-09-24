@@ -183,13 +183,27 @@ export const AdminManagersPage: React.FC = () => {
     }
   }, [isAuthInitialized, role, currentUser, navigate, showToast]);
 
+  const isSuperAdminAccount = (m?: User | null): boolean => {
+    if (!m) return false;
+    if (m.isSuperAdmin) return true;
+    if (m.id === '001007' || m.id === 'admin-001') return true;
+    if (m.email?.toLowerCase() === 'admin@tanda.kz' || m.email?.toLowerCase() === 'usmansulaimanovv@gmail.com') return true;
+    if (m.idNumber === '0000 0001') return true;
+    if (currentUser) {
+      if (m.id === currentUser.id) return true;
+      if (m.email && currentUser.email && m.email.toLowerCase() === currentUser.email.toLowerCase()) return true;
+    }
+    if (!m.duty && (!m.permissions || m.permissions.length === 0)) return true;
+    return false;
+  };
+
   const superAdmin = useMemo(() => {
-    return managers.find((m) => m.isSuperAdmin || m.id === '001007' || m.email === 'admin@tanda.kz') || managers[0];
-  }, [managers]);
+    return managers.find(isSuperAdminAccount) || currentUser || managers[0];
+  }, [managers, currentUser]);
 
   const assistants = useMemo(() => {
-    return managers.filter((m) => !(m.isSuperAdmin || m.id === '001007' || m.email === 'admin@tanda.kz'));
-  }, [managers]);
+    return managers.filter((m) => !isSuperAdminAccount(m));
+  }, [managers, currentUser]);
 
   const filteredAssistants = useMemo(() => {
     if (!searchQuery.trim()) return assistants;
