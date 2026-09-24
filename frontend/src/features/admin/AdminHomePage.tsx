@@ -7,7 +7,6 @@ import { useNewsStore } from '../../store/useNewsStore';
 import { useToastStore } from '../../store/useToastStore';
 import { hasAdminPermission } from '../../utils/permissions';
 import heroReadingImg from '../../assets/hero-reading.jpg';
-import tandaLogoWhite from '../../assets/tanda-logo-white.png';
 
 export const AdminHomePage: React.FC = () => {
   const navigate = useNavigate();
@@ -29,7 +28,7 @@ export const AdminHomePage: React.FC = () => {
   // Determine user title and duty
   const isSuperAdmin = Boolean(user?.isSuperAdmin || (role === 'admin' && !user?.duty));
   const displayRoleTitle = isSuperAdmin
-    ? 'Бас әкімші'
+    ? 'Админ'
     : user?.duty?.trim() || 'Әкімші көмекшісі';
 
   const userDisplayName = user?.name || (isSuperAdmin ? 'Әкімші' : 'Көмекші');
@@ -48,18 +47,13 @@ export const AdminHomePage: React.FC = () => {
   const canViewStats = hasAdminPermission(user, 'analytics_view');
   const canManageManagers = hasAdminPermission(user, 'managers_manage');
 
-  // Current formatted date in Kazakh
+  // Current formatted date as DD.MM.YYYY.
   const todayFormatted = useMemo(() => {
-    try {
-      const now = new Date();
-      return new Intl.DateTimeFormat('kk-KZ', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-      }).format(now);
-    } catch {
-      return '';
-    }
+    const now = new Date();
+    const day = String(now.getDate()).padStart(2, '0');
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const year = now.getFullYear();
+    return `${day}.${month}.${year}.`;
   }, []);
 
   if (!isAuthInitialized || !user) {
@@ -102,27 +96,12 @@ export const AdminHomePage: React.FC = () => {
           }}
         >
           <div style={{ maxWidth: '720px' }}>
-            {/* Tanda Logo */}
-            <div style={{ marginBottom: '18px', display: 'inline-flex', alignItems: 'center' }}>
-              <img
-                src={tandaLogoWhite}
-                alt="Tanda"
-                style={{
-                  height: '42px',
-                  width: 'auto',
-                  display: 'block',
-                  objectFit: 'contain',
-                }}
-              />
-            </div>
-
             {/* Role / Duty Badge */}
-            <div style={{ marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+            <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
               <div
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '8px',
                   padding: '6px 16px',
                   borderRadius: '999px',
                   background: 'linear-gradient(135deg, var(--orange) 0%, #D96B00 100%)',
@@ -134,9 +113,6 @@ export const AdminHomePage: React.FC = () => {
                   boxShadow: '0 4px 14px rgba(239, 126, 0, 0.4)',
                 }}
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
-                </svg>
                 <span>{displayRoleTitle}</span>
               </div>
 
@@ -154,7 +130,7 @@ export const AdminHomePage: React.FC = () => {
                     fontWeight: 600,
                   }}
                 >
-                  📅 {todayFormatted}
+                  {todayFormatted}
                 </div>
               )}
             </div>
