@@ -126,6 +126,27 @@ const AdminRouteGuard: React.FC<{ children: React.ReactNode }> = ({ children }) 
   return <>{children}</>;
 };
 
+const ReaderOnlyRouteGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user, role, isAuthenticated, isAuthInitialized } = useAuthStore();
+
+  if (!isAuthInitialized) {
+    return <PageLoader />;
+  }
+
+  const isAuthor = Boolean(isAuthenticated && user && (role === 'author' || user.role === 'author' || user.isAuthor));
+  const isStaff = Boolean(isAuthenticated && user && !isAuthor && (role === 'admin' || user.role === 'admin' || user.isSuperAdmin || Boolean(user.duty)));
+
+  if (isAuthor) {
+    return <Navigate to="/author/home" replace />;
+  }
+
+  if (isStaff) {
+    return <Navigate to="/admin/home" replace />;
+  }
+
+  return <>{children}</>;
+};
+
 export const router = createBrowserRouter([
   {
     path: '/login',
@@ -166,49 +187,61 @@ export const router = createBrowserRouter([
       {
         path: 'book/:id',
         element: (
-          <Suspense fallback={<PageLoader />}>
-            <BookDetailPage />
-          </Suspense>
+          <ReaderOnlyRouteGuard>
+            <Suspense fallback={<PageLoader />}>
+              <BookDetailPage />
+            </Suspense>
+          </ReaderOnlyRouteGuard>
         ),
       },
       {
         path: 'listen/:id',
         element: (
-          <Suspense fallback={<PageLoader />}>
-            <AudioPlayerPage />
-          </Suspense>
+          <ReaderOnlyRouteGuard>
+            <Suspense fallback={<PageLoader />}>
+              <AudioPlayerPage />
+            </Suspense>
+          </ReaderOnlyRouteGuard>
         ),
       },
       {
         path: 'profile',
         element: (
-          <Suspense fallback={<PageLoader />}>
-            <ProfilePage />
-          </Suspense>
+          <ReaderOnlyRouteGuard>
+            <Suspense fallback={<PageLoader />}>
+              <ProfilePage />
+            </Suspense>
+          </ReaderOnlyRouteGuard>
         ),
       },
       {
         path: 'my-books',
         element: (
-          <Suspense fallback={<PageLoader />}>
-            <MyBooksPage />
-          </Suspense>
+          <ReaderOnlyRouteGuard>
+            <Suspense fallback={<PageLoader />}>
+              <MyBooksPage />
+            </Suspense>
+          </ReaderOnlyRouteGuard>
         ),
       },
       {
         path: 'quotes',
         element: (
-          <Suspense fallback={<PageLoader />}>
-            <ReaderQuotesPage />
-          </Suspense>
+          <ReaderOnlyRouteGuard>
+            <Suspense fallback={<PageLoader />}>
+              <ReaderQuotesPage />
+            </Suspense>
+          </ReaderOnlyRouteGuard>
         ),
       },
       {
         path: 'messages',
         element: (
-          <Suspense fallback={<PageLoader />}>
-            <ReaderMessagesPage />
-          </Suspense>
+          <ReaderOnlyRouteGuard>
+            <Suspense fallback={<PageLoader />}>
+              <ReaderMessagesPage />
+            </Suspense>
+          </ReaderOnlyRouteGuard>
         ),
       },
       {
@@ -238,9 +271,11 @@ export const router = createBrowserRouter([
       {
         path: 'promocode',
         element: (
-          <Suspense fallback={<PageLoader />}>
-            <PromoCodePage />
-          </Suspense>
+          <ReaderOnlyRouteGuard>
+            <Suspense fallback={<PageLoader />}>
+              <PromoCodePage />
+            </Suspense>
+          </ReaderOnlyRouteGuard>
         ),
       },
       {
@@ -478,9 +513,11 @@ export const router = createBrowserRouter([
   {
     path: '/read/:id',
     element: (
-      <Suspense fallback={<PageLoader />}>
-        <ReaderPage />
-      </Suspense>
+      <ReaderOnlyRouteGuard>
+        <Suspense fallback={<PageLoader />}>
+          <ReaderPage />
+        </Suspense>
+      </ReaderOnlyRouteGuard>
     ),
   },
 ]);

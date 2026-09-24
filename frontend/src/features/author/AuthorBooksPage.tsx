@@ -245,8 +245,7 @@ export const AuthorBooksPage: React.FC = () => {
                     <th>Беттер саны</th>
                     <th>Аудио</th>
                     <th>Қолжетімділік</th>
-                    <th>Көрінуі</th>
-                    <th style={{ textAlign: 'right' }}>Әрекеттер</th>
+                    <th style={{ textAlign: 'right' }}>Көрінуі</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -328,7 +327,7 @@ export const AuthorBooksPage: React.FC = () => {
                       </td>
 
                       {/* Visibility */}
-                      <td>
+                      <td style={{ textAlign: 'right' }}>
                         {book.isArchived ? (
                           <span
                             style={{
@@ -364,50 +363,6 @@ export const AuthorBooksPage: React.FC = () => {
                             Белсенді
                           </span>
                         )}
-                      </td>
-
-                      {/* Actions for Author */}
-                      <td style={{ textAlign: 'right' }}>
-                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                          <Link
-                            to={`/book/${book.id}`}
-                            style={{
-                              padding: '6px 12px',
-                              fontSize: '12px',
-                              fontWeight: 700,
-                              background: '#EFF6FF',
-                              color: 'var(--blue)',
-                              borderRadius: '6px',
-                              border: '1px solid #BFDBFE',
-                              textDecoration: 'none',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                            }}
-                          >
-                            Көру ↗
-                          </Link>
-                          {book.hasAudio && (
-                            <Link
-                              to={`/listen/${book.id}`}
-                              style={{
-                                padding: '6px 12px',
-                                fontSize: '12px',
-                                fontWeight: 700,
-                                background: '#FFF7ED',
-                                color: 'var(--orange)',
-                                borderRadius: '6px',
-                                border: '1px solid #FED7AA',
-                                textDecoration: 'none',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '4px',
-                              }}
-                            >
-                              ▶ Тыңдау
-                            </Link>
-                          )}
-                        </div>
                       </td>
                     </tr>
                   ))}

@@ -104,6 +104,14 @@ export const Header: React.FC = () => {
   const handleSelectBook = (book: Book) => {
     setShowResults(false);
     setHeaderSearch('');
+    if (isAuthor) {
+      navigate('/author/books');
+      return;
+    }
+    if (isStaffOrAuthor) {
+      navigate('/admin');
+      return;
+    }
     navigate(`/book/${book.id}`);
   };
 

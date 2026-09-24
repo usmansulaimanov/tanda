@@ -397,7 +397,7 @@ export const AuthorStatsPage: React.FC = () => {
             Бұл автор жүйеде тіркелмеген немесе өшірілген.
           </p>
           <Link
-            to="/admin/managers"
+            to={isAdmin ? '/admin/managers' : '/author/home'}
             style={{
               display: 'inline-flex',
               padding: '10px 24px',
@@ -409,7 +409,7 @@ export const AuthorStatsPage: React.FC = () => {
               fontSize: '13.5px',
             }}
           >
-            ← Басқару бетіне оралу
+            {isAdmin ? '← Басқару бетіне оралу' : '← Жеке кабинетке оралу'}
           </Link>
         </div>
       </section>
@@ -585,7 +585,7 @@ export const AuthorStatsPage: React.FC = () => {
                   </svg>
                   Профиль баптаулары
                 </Link>
-              ) : (
+              ) : isAdmin ? (
                 <Link
                   to={`/admin/managers?tab=authors&editAuthor=${targetAuthor.id}`}
                   style={{
@@ -604,7 +604,7 @@ export const AuthorStatsPage: React.FC = () => {
                 >
                   Авторды өңдеу ↗
                 </Link>
-              )}
+              ) : null}
             </div>
           </div>
         </div>

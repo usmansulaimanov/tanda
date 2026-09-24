@@ -612,115 +612,70 @@ export const AdminDashboard: React.FC = () => {
                     {/* Action buttons */}
                     <td style={{ textAlign: 'right' }}>
                       <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                        {isAuthor && !isAdminOrStaff ? (
-                          <>
-                            <Link
-                              to={`/book/${book.id}`}
-                              style={{
-                                padding: '6px 12px',
-                                fontSize: '12px',
-                                fontWeight: 700,
-                                background: '#EFF6FF',
-                                color: 'var(--blue)',
-                                borderRadius: '6px',
-                                border: '1px solid #BFDBFE',
-                                textDecoration: 'none',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '4px',
-                              }}
-                            >
-                              Көру ↗
-                            </Link>
-                            {book.hasAudio && (
-                              <Link
-                                to={`/listen/${book.id}`}
-                                style={{
-                                  padding: '6px 12px',
-                                  fontSize: '12px',
-                                  fontWeight: 700,
-                                  background: '#FFF7ED',
-                                  color: 'var(--orange)',
-                                  borderRadius: '6px',
-                                  border: '1px solid #FED7AA',
-                                  textDecoration: 'none',
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: '4px',
-                                }}
-                              >
-                                ▶ Тыңдау
-                              </Link>
-                            )}
-                          </>
-                        ) : (
-                          <>
-                            {/* Edit */}
-                            {canEditBooks && (
-                              <Link
-                                to={`/admin/books/${book.id}/edit`}
-                                style={{
-                                  padding: '6px 12px',
-                                  fontSize: '12px',
-                                  fontWeight: 700,
-                                  background: '#F1F5F9',
-                                  color: 'var(--text-dark)',
-                                  borderRadius: '6px',
-                                  border: '1px solid #CBD5E1',
-                                  textDecoration: 'none',
-                                  cursor: 'pointer',
-                                }}
-                              >
-                                Өңдеу
-                              </Link>
-                            )}
+                        {/* Edit */}
+                        {canEditBooks && (
+                          <Link
+                            to={`/admin/books/${book.id}/edit`}
+                            style={{
+                              padding: '6px 12px',
+                              fontSize: '12px',
+                              fontWeight: 700,
+                              background: '#F1F5F9',
+                              color: 'var(--text-dark)',
+                              borderRadius: '6px',
+                              border: '1px solid #CBD5E1',
+                              textDecoration: 'none',
+                              cursor: 'pointer',
+                            }}
+                          >
+                            Өңдеу
+                          </Link>
+                        )}
 
-                            {/* Archive / Unarchive */}
-                            {canDeleteBooks && (
-                              <button
-                                type="button"
-                                onClick={() => handleToggleArchive(book)}
-                                style={{
-                                  padding: '6px 12px',
-                                  fontSize: '12px',
-                                  fontWeight: 700,
-                                  background: '#F1F5F9',
-                                  color: 'var(--text-dark)',
-                                  borderRadius: '6px',
-                                  border: '1px solid #CBD5E1',
-                                  cursor: 'pointer',
-                                }}
-                              >
-                                {book.isArchived ? 'Шығару' : 'Архивтеу'}
-                              </button>
-                            )}
+                        {/* Archive / Unarchive */}
+                        {canDeleteBooks && (
+                          <button
+                            type="button"
+                            onClick={() => handleToggleArchive(book)}
+                            style={{
+                              padding: '6px 12px',
+                              fontSize: '12px',
+                              fontWeight: 700,
+                              background: '#F1F5F9',
+                              color: 'var(--text-dark)',
+                              borderRadius: '6px',
+                              border: '1px solid #CBD5E1',
+                              cursor: 'pointer',
+                            }}
+                          >
+                            {book.isArchived ? 'Шығару' : 'Архивтеу'}
+                          </button>
+                        )}
 
-                            {/* Delete */}
-                            {canDeleteBooks && (
-                              <button
-                                type="button"
-                                onClick={() => setBookToDelete(book)}
-                                style={{
-                                  padding: '6px 12px',
-                                  fontSize: '12px',
-                                  fontWeight: 700,
-                                  background: '#FEF2F2',
-                                  color: '#B91C1C',
-                                  borderRadius: '6px',
-                                  border: '1px solid #FECACA',
-                                  cursor: 'pointer',
-                                }}
-                              >
-                                Өшіру
-                              </button>
-                            )}
+                        {/* Delete */}
+                        {canDeleteBooks && (
+                          <button
+                            type="button"
+                            onClick={() => setBookToDelete(book)}
+                            style={{
+                              padding: '6px 12px',
+                              fontSize: '12px',
+                              fontWeight: 700,
+                              background: '#FEF2F2',
+                              color: '#B91C1C',
+                              borderRadius: '6px',
+                              border: '1px solid #FECACA',
+                              cursor: 'pointer',
+                            }}
+                          >
+                            Өшіру
+                          </button>
+                        )}
 
-                            {!canEditBooks && !canDeleteBooks && (
-                              <span style={{ fontSize: '11px', color: '#94A3B8', fontStyle: 'italic', padding: '4px 8px' }}>
-                                Тек көру
-                              </span>
-                            )}
-                          </>
+                        {!canEditBooks && !canDeleteBooks && (
+                          <span style={{ fontSize: '11px', color: '#94A3B8', fontStyle: 'italic', padding: '4px 8px' }}>
+                            Тек көру
+                          </span>
                         )}
                       </div>
                     </td>

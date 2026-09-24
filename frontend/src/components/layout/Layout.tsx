@@ -15,9 +15,13 @@ import { useAuthStore } from '../../store/useAuthStore';
 
 export const Layout: React.FC = () => {
   const { currentBook } = useAudioPlayerStore();
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, user, role } = useAuthStore();
   const location = useLocation();
   const isListenPage = location.pathname.startsWith('/listen');
+
+  const isAuthorOrStaff = Boolean(
+    isAuthenticated && user && (role === 'author' || role === 'admin' || user.role === 'author' || user.role === 'admin' || user.isAuthor || user.isSuperAdmin || Boolean(user.duty))
+  );
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
@@ -25,18 +29,18 @@ export const Layout: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <QuoteNotificationRunner />
+      {!isAuthorOrStaff && <QuoteNotificationRunner />}
       <NewsNotificationRunner />
       <Header />
       <AppSidebarDrawer />
-      <main className={`flex-1 flex flex-col ${isListenPage ? 'pb-10' : isAuthenticated && currentBook ? 'pb-24' : ''}`}>
+      <main className={`flex-1 flex flex-col ${isListenPage ? 'pb-10' : !isAuthorOrStaff && isAuthenticated && currentBook ? 'pb-24' : ''}`}>
         <Outlet />
       </main>
       {!isListenPage && <Footer />}
-      <AudioPlayerBar />
-      <DailyLimitModal />
+      {!isAuthorOrStaff && <AudioPlayerBar />}
+      {!isAuthorOrStaff && <DailyLimitModal />}
       <ToastContainer />
-      <QuoteNotificationPopup />
+      {!isAuthorOrStaff && <QuoteNotificationPopup />}
       <MessageNotificationPopup />
     </div>
   );

@@ -57,11 +57,15 @@ export const AudioPlayerBar: React.FC = () => {
     closePlayer,
   } = useAudioPlayerStore();
 
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, user, role } = useAuthStore();
   const { showToast } = useToastStore();
   const navigate = useNavigate();
   const location = useLocation();
   const isListenPage = location.pathname.startsWith('/listen');
+
+  const isAuthorOrStaff = Boolean(
+    isAuthenticated && user && (role === 'author' || role === 'admin' || user.role === 'author' || user.role === 'admin' || user.isAuthor || user.isSuperAdmin || Boolean(user.duty))
+  );
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const ytPlayerRef = useRef<any>(null);
@@ -716,7 +720,21 @@ export const AudioPlayerBar: React.FC = () => {
     closePlayer();
   }, [closePlayer]);
 
-  if (!isAuthenticated || !currentBook) return null;
+  // If author, admin, or staff is logged in, immediately terminate and reset player
+  useEffect(() => {
+    if (isAuthorOrStaff && (currentBook || isPlaying)) {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+      if (ytPlayerRef.current && typeof ytPlayerRef.current.pauseVideo === 'function') {
+        ytPlayerRef.current.pauseVideo();
+      }
+      closePlayer();
+    }
+  }, [isAuthorOrStaff, currentBook, isPlaying, closePlayer]);
+
+  if (!isAuthenticated || !currentBook || isAuthorOrStaff) return null;
 
   const chapters = currentBook.audioChapters && currentBook.audioChapters.length > 0
     ? currentBook.audioChapters
