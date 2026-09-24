@@ -18,6 +18,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -155,6 +156,77 @@ public class TelegramMediaService {
             if (connection != null) {
                 connection.disconnect();
             }
+        }
+    }
+
+    public void handleTelegramWebhook(JsonNode update) {
+        try {
+            JsonNode post = update.has("channel_post") ? update.get("channel_post")
+                    : (update.has("message") ? update.get("message") : null);
+
+            if (post == null) return;
+
+            long chatId = post.path("chat").path("id").asLong();
+            int messageId = post.path("message_id").asInt();
+
+            String fileId = null;
+            String fileName = "Аудио";
+
+            if (post.has("audio")) {
+                JsonNode audio = post.get("audio");
+                fileId = audio.path("file_id").asText();
+                fileName = audio.path("file_name").asText(audio.path("title").asText("Аудио"));
+            } else if (post.has("voice")) {
+                JsonNode voice = post.get("voice");
+                fileId = voice.path("file_id").asText();
+                fileName = "Дауыстық жазба";
+            } else if (post.has("document")) {
+                JsonNode doc = post.get("document");
+                String mime = doc.path("mime_type").asText("");
+                String fn = doc.path("file_name").asText("");
+                if (mime.startsWith("audio/") || fn.endsWith(".mp3") || fn.endsWith(".m4a") || fn.endsWith(".ogg") || fn.endsWith(".m4r")) {
+                    fileId = doc.path("file_id").asText();
+                    fileName = fn.isBlank() ? "Аудио" : fn;
+                }
+            }
+
+            if (fileId != null && !fileId.isBlank()) {
+                String streamUrl = "https://tanda-backend-489q.onrender.com/api/v1/media/telegram/" + fileId;
+                String replyText = "✅ <b>Аудио қабылданды!</b>\n"
+                        + "📁 <b>Файл:</b> " + fileName + "\n\n"
+                        + "🔗 <b>Tanda үшін сілтеме:</b>\n"
+                        + "<code>" + streamUrl + "</code>\n\n"
+                        + "<i>(Сілтемені басып көшіріп алып, Tanda сайтына қойыңыз)</i>";
+
+                sendTelegramMessage(chatId, messageId, replyText);
+            }
+        } catch (Exception e) {
+            log.error("Error processing Telegram webhook: {}", e.getMessage());
+        }
+    }
+
+    public void sendTelegramMessage(long chatId, int replyToMessageId, String htmlText) {
+        try {
+            Map<String, Object> body = new HashMap<>();
+            body.put("chat_id", chatId);
+            body.put("text", htmlText);
+            body.put("parse_mode", "HTML");
+            if (replyToMessageId > 0) {
+                body.put("reply_to_message_id", replyToMessageId);
+            }
+
+            String json = objectMapper.writeValueAsString(body);
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create("https://api.telegram.org/bot" + botToken.trim() + "/sendMessage"))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(json))
+                    .timeout(Duration.ofSeconds(10))
+                    .build();
+
+            httpClient.send(request, HttpResponse.BodyHandlers.discarding());
+        } catch (Exception e) {
+            log.error("Error sending Telegram message: {}", e.getMessage());
         }
     }
 }
