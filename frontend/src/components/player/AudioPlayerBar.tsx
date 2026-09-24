@@ -16,7 +16,7 @@ import {
   ChevronUp,
   Maximize2,
 } from 'lucide-react';
-import { useAudioPlayerStore, getChapterStartTime, parseDurationToSeconds, resetRoyaltyTracking } from '../../store/useAudioPlayerStore';
+import { useAudioPlayerStore, getChapterStartTime, parseDurationToSeconds, resetRoyaltyTracking, flushHeartbeatNow } from '../../store/useAudioPlayerStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useToastStore } from '../../store/useToastStore';
 import { extractYouTubeVideoId, loadYouTubeIFrameApi } from '../../utils/youtube';
@@ -171,10 +171,26 @@ export const AudioPlayerBar: React.FC = () => {
     return () => clearInterval(interval);
   }, [sleepTimerEndTime, cancelSleepTimer, setIsPlaying, showToast]);
 
+  // Flush progress and listening time on page reload or tab close
+  useEffect(() => {
+    const handleUnload = () => {
+      flushHeartbeatNow();
+    };
+    window.addEventListener('beforeunload', handleUnload);
+    window.addEventListener('pagehide', handleUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleUnload);
+      window.removeEventListener('pagehide', handleUnload);
+    };
+  }, []);
+
   // Handle Track End with Repeat Logic & Continuous Auto-play
   const handleTrackEnd = useCallback(() => {
-    const { repeatMode, currentBook, chapterIndex, nextChapter, setProgress, setIsPlaying } = useAudioPlayerStore.getState();
+    const { repeatMode, currentBook, chapterIndex, duration, nextChapter, setProgress, setIsPlaying } = useAudioPlayerStore.getState();
     if (!currentBook) return;
+
+    // Flush current full track duration to backend before resetting or advancing
+    flushHeartbeatNow(duration);
 
     if (repeatMode === 'one') {
       setProgress(0);

@@ -126,6 +126,29 @@ async function startAudioSession(bookId: string, chapterId?: string) {
   }
 }
 
+export async function flushHeartbeatNow(overridePos?: number) {
+  if (!activeSessionId) return;
+  const state = useAudioPlayerStore.getState();
+  const currentSec = overridePos !== undefined ? Math.floor(overridePos) : Math.floor(state.progress || 0);
+  const rate = state.playbackRate || 1.0;
+  try {
+    const { data } = await api.post(`/api/v1/audio/sessions/${activeSessionId}/heartbeat`, {
+      positionSeconds: currentSec,
+      playbackRate: rate,
+    });
+    if (data?.dailyLimitReached) {
+      stopHeartbeatTimer();
+      useAudioPlayerStore.getState().pause();
+      useAudioPlayerStore.setState({
+        isDailyLimitReached: true,
+        showDailyLimitModal: true,
+      });
+    }
+  } catch (err) {
+    console.debug('Flush heartbeat error:', err);
+  }
+}
+
 function startHeartbeatTimer() {
   if (heartbeatInterval) {
     clearInterval(heartbeatInterval);
@@ -160,7 +183,7 @@ function startHeartbeatTimer() {
       }
       console.debug('Heartbeat error:', err);
     }
-  }, 15000);
+  }, 5000);
 }
 
 function stopHeartbeatTimer() {
@@ -170,7 +193,7 @@ function stopHeartbeatTimer() {
   }
 }
 
-async function endAudioSession(finalPosition?: number) {
+export async function endAudioSession(finalPosition?: number) {
   stopHeartbeatTimer();
   if (!activeSessionId) return;
 
@@ -375,6 +398,7 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
         } else {
           stopHeartbeatTimer();
           const state = get();
+          flushHeartbeatNow(state.progress);
           if (state.currentBook) {
             syncProgressNow(state.currentBook.id, state.currentChapter?.id, state.progress);
           }
@@ -397,6 +421,7 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
           }
         } else {
           stopHeartbeatTimer();
+          flushHeartbeatNow(state.progress);
           if (state.currentBook) {
             syncProgressNow(state.currentBook.id, state.currentChapter?.id, state.progress);
           }
@@ -407,6 +432,7 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
       pause: () => {
         stopHeartbeatTimer();
         const state = get();
+        flushHeartbeatNow(state.progress);
         if (state.currentBook) {
           syncProgressNow(state.currentBook.id, state.currentChapter?.id, state.progress);
         }
