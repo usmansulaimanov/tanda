@@ -147,22 +147,22 @@ export const AdminHomePage: React.FC = () => {
               Қош келдіңіз, {userDisplayName}!
             </h1>
 
-            {/* ID & Email Subtitle */}
-            <div
-              style={{
-                fontSize: '15px',
-                color: 'rgba(255, 255, 255, 0.88)',
-                marginBottom: '24px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                fontWeight: 600,
-              }}
-            >
-              {user?.idNumber && <span>ID: {user.idNumber}</span>}
-              {user?.idNumber && user?.email && <span>•</span>}
-              {user?.email && <span style={{ opacity: 0.9, fontWeight: 500 }}>{user.email}</span>}
-            </div>
+            {/* ID Subtitle */}
+            {user?.idNumber && (
+              <div
+                style={{
+                  fontSize: '15px',
+                  color: 'rgba(255, 255, 255, 0.88)',
+                  marginBottom: '24px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  fontWeight: 600,
+                }}
+              >
+                <span>ID: {user.idNumber}</span>
+              </div>
+            )}
 
             <p
               style={{
