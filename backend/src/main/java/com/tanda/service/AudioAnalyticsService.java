@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -33,7 +34,7 @@ public class AudioAnalyticsService {
     public List<TopAudioBookResponseDto> getTopAudioBooks(int limit) {
         int effectiveLimit = Math.max(1, Math.min(limit, 50));
         OffsetDateTime sevenDaysAgo = OffsetDateTime.now().minusDays(7);
-        OffsetDateTime todayStart = LocalDate.now().atStartOfDay().atOffset(ZoneOffset.UTC);
+        OffsetDateTime todayStart = LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toOffsetDateTime();
 
         List<Object[]> rows = audioSessionRepository.findTopAudioSessionsSince(sevenDaysAgo, PageRequest.of(0, effectiveLimit));
         List<TopAudioBookResponseDto> result = new ArrayList<>();
