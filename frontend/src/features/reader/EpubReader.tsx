@@ -319,34 +319,30 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
   }, []);
 
   const handleFontSizeChange = useCallback((delta: number) => {
-    // Save current CFI before font change so we can re-anchor after reflow
+    if (!renditionRef.current) return;
+
+    // Read current size from ref (avoids stale closure)
+    const newSize = Math.max(12, Math.min(32, fontSizeRef.current + delta));
+    if (newSize === fontSizeRef.current) return; // nothing changed
+
+    // Save current position BEFORE any change
     let anchorCfi: string | null = null;
     try {
       const loc = (renditionRef.current as any)?.currentLocation?.();
       anchorCfi = loc?.start?.cfi ?? null;
     } catch {}
 
-    if (anchorCfi && renditionRef.current) {
-      const cfi = anchorCfi;
-      // One-shot listener: fires when epub.js finishes reflowing after fontSize change
-      const onRelocated = () => {
-        renditionRef.current?.off('relocated', onRelocated);
-        renditionRef.current?.display(cfi).catch(() => {});
-      };
-      renditionRef.current.on('relocated', onRelocated);
-      // Safety fallback: remove listener after 3s if relocated never fires
-      setTimeout(() => {
-        renditionRef.current?.off('relocated', onRelocated);
-      }, 3000);
-    }
+    // Apply font size outside the state updater (no side effects in pure updater)
+    setFontSize(newSize);
+    renditionRef.current.themes.fontSize(`${newSize}px`);
 
-    setFontSize((prev) => {
-      const newSize = Math.max(12, Math.min(32, prev + delta));
-      if (renditionRef.current) {
-        renditionRef.current.themes.fontSize(`${newSize}px`);
-      }
-      return newSize;
-    });
+    // Re-anchor after epub.js reflow settles (~300ms is reliable across books)
+    if (anchorCfi) {
+      const cfi = anchorCfi;
+      setTimeout(() => {
+        renditionRef.current?.display(cfi).catch(() => {});
+      }, 300);
+    }
   }, []);
 
   const handleThemeChange = useCallback((newTheme: 'light' | 'sepia' | 'dark') => {
