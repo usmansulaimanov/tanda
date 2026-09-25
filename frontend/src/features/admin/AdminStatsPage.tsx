@@ -4,9 +4,11 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { useBookStore } from '../../store/useBookStore';
 import { usePromoStore, getPromoAccessDurationDays } from '../../store/usePromoStore';
 import { useToastStore } from '../../store/useToastStore';
-import { User } from '../../types';
+import { User, ReaderListeningOverview } from '../../types';
 import { hasAdminPermission } from '../../utils/permissions';
 import { api } from '../../lib/api';
+import { readersApi } from '../../shared/api/readers.api';
+import * as XLSX from 'xlsx';
 
 type StatTab = 'readers' | 'books' | 'authors' | 'subscriptions';
 
@@ -73,6 +75,12 @@ export const AdminStatsPage: React.FC = () => {
 
   const [readers, setReaders] = useState<User[]>([]);
   const [isLoadingReaders, setIsLoadingReaders] = useState(false);
+  const [readersOverview, setReadersOverview] = useState<ReaderListeningOverview[]>([]);
+  const [isLoadingOverview, setIsLoadingOverview] = useState(false);
+  const [readerSearchQuery, setReaderSearchQuery] = useState('');
+  const [readerSortBy, setReaderSortBy] = useState<'all_time' | 'month' | 'today' | 'alpha' | 'newest' | 'oldest'>('all_time');
+  const [readerCurrentPage, setReaderCurrentPage] = useState(1);
+  const [readerItemsPerPage, setReaderItemsPerPage] = useState(10);
   const [authorSearchQuery, setAuthorSearchQuery] = useState('');
   const [bookSearchQuery, setBookSearchQuery] = useState('');
   const [audioStats, setAudioStats] = useState<{
@@ -92,6 +100,21 @@ export const AdminStatsPage: React.FC = () => {
         }
       })
       .catch(() => {});
+  }, []);
+
+  const refreshReadersOverview = React.useCallback(() => {
+    setIsLoadingOverview(true);
+    readersApi
+      .getReadersOverview()
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setReadersOverview(data);
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        setIsLoadingOverview(false);
+      });
   }, []);
 
   useEffect(() => {
@@ -126,21 +149,27 @@ export const AdminStatsPage: React.FC = () => {
 
   useEffect(() => {
     refreshReaders();
+    refreshReadersOverview();
     refreshAudioStats();
-    window.addEventListener('focus', refreshReaders);
-    return () => {
-      window.removeEventListener('focus', refreshReaders);
+    const handleFocus = () => {
+      refreshReaders();
+      refreshReadersOverview();
     };
-  }, [refreshReaders, refreshAudioStats]);
+    window.addEventListener('focus', handleFocus);
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [refreshReaders, refreshReadersOverview, refreshAudioStats]);
 
   useEffect(() => {
     if (activeTab === 'readers') {
       refreshReaders();
+      refreshReadersOverview();
     }
     if (activeTab === 'books') {
       refreshAudioStats();
     }
-  }, [activeTab, refreshReaders, refreshAudioStats]);
+  }, [activeTab, refreshReaders, refreshReadersOverview, refreshAudioStats]);
 
   // 1. READERS STATS
   const totalReaders = readers.length;
@@ -227,6 +256,92 @@ export const AdminStatsPage: React.FC = () => {
 
     return { under18, age18to24, age25to34, age35to44, age45plus, unknownAge };
   }, [readers]);
+
+  // Readers Listening Overview Filtered & Sorted
+  const filteredReadersOverview = useMemo(() => {
+    let list = [...readersOverview];
+    const q = readerSearchQuery.trim().toLowerCase();
+    if (q) {
+      list = list.filter((r) => {
+        const nameMatch = r.name?.toLowerCase().includes(q);
+        const emailMatch = r.email?.toLowerCase().includes(q);
+        const idMatch = r.idNumber?.toLowerCase().replace(/\s+/g, '').includes(q.replace(/\s+/g, ''));
+        const phoneMatch = r.phone?.includes(q);
+        const usernameMatch = r.username?.toLowerCase().includes(q);
+        return nameMatch || emailMatch || idMatch || phoneMatch || usernameMatch;
+      });
+    }
+
+    switch (readerSortBy) {
+      case 'all_time':
+        list.sort((a, b) => b.allTimeSeconds - a.allTimeSeconds);
+        break;
+      case 'month':
+        list.sort((a, b) => b.monthSeconds - a.monthSeconds);
+        break;
+      case 'today':
+        list.sort((a, b) => b.todaySeconds - a.todaySeconds);
+        break;
+      case 'alpha':
+        list.sort((a, b) => a.name.localeCompare(b.name, 'kk'));
+        break;
+      case 'newest':
+        list.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+        break;
+      case 'oldest':
+        list.sort((a, b) => new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime());
+        break;
+    }
+    return list;
+  }, [readersOverview, readerSearchQuery, readerSortBy]);
+
+  const totalReaderPages = Math.ceil(filteredReadersOverview.length / readerItemsPerPage) || 1;
+  const paginatedReaders = useMemo(() => {
+    const start = (readerCurrentPage - 1) * readerItemsPerPage;
+    return filteredReadersOverview.slice(start, start + readerItemsPerPage);
+  }, [filteredReadersOverview, readerCurrentPage, readerItemsPerPage]);
+
+  const handleExportReadersExcel = () => {
+    try {
+      const rows = filteredReadersOverview.map((r, idx) => ({
+        '№': idx + 1,
+        'Оқырман аты-жөні': r.name || 'Аты көрсетілмеген',
+        'ID нөмірі': r.idNumber || '-',
+        'Электрондық поштасы': r.email || '-',
+        'Телефон нөмірі': r.phone || '-',
+        'Мәртебесі': r.isPremium ? 'Премиум' : 'Стандарт',
+        'Бүгінгі тыңдалым': r.todayFormatted,
+        'Осы айдағы тыңдалым': r.monthFormatted,
+        'Жалпы тыңдалым': r.allTimeFormatted,
+        'Тіркелген күні': r.createdAt ? new Date(r.createdAt).toLocaleDateString('ru-RU') : '-',
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(rows);
+      ws['!cols'] = [
+        { wch: 6 },
+        { wch: 25 },
+        { wch: 15 },
+        { wch: 30 },
+        { wch: 18 },
+        { wch: 12 },
+        { wch: 18 },
+        { wch: 20 },
+        { wch: 20 },
+        { wch: 15 },
+      ];
+
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Оқырмандар тыңдалымы');
+
+      const dateStr = new Date().toISOString().split('T')[0];
+      const filename = `Tanda_Oqyrmandar_Tyndalymy_${dateStr}.xlsx`;
+      XLSX.writeFile(wb, filename);
+
+      showToast('Excel файлы сәтті жүктелді', 'success');
+    } catch {
+      showToast('Excel файлын жасау кезінде қате кетті', 'error');
+    }
+  };
 
   // 2. BOOKS STATS (Active books)
   const activeBooks = useMemo(() => books.filter((b) => !b.isArchived), [books]);
@@ -899,6 +1014,395 @@ export const AdminStatsPage: React.FC = () => {
                   <polyline points="9 18 15 12 9 6"></polyline>
                 </svg>
               </Link>
+            </div>
+
+            {/* 5. Readers Listening Performance & Rating Table */}
+            <div
+              className="admin-card"
+              style={{
+                background: '#FFFFFF',
+                borderRadius: '16px',
+                border: '1.5px solid #E2E8F0',
+                padding: '24px',
+                boxShadow: '0 4px 14px rgba(0, 0, 0, 0.03)',
+              }}
+            >
+              {/* Top Controls: Title, Search, Filter & Excel */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: '16px',
+                  marginBottom: '20px',
+                }}
+              >
+                <div>
+                  <h3 style={{ fontSize: '18px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
+                    Оқырмандардың тыңдалым көрсеткіштері
+                  </h3>
+                  <p style={{ fontSize: '13px', color: '#64748B', margin: '4px 0 0 0' }}>
+                    Барлығы: <strong>{filteredReadersOverview.length} оқырман</strong>
+                  </p>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                  {/* Search Input */}
+                  <div style={{ position: 'relative', minWidth: '240px' }}>
+                    <input
+                      type="text"
+                      placeholder="Оқырман аты, ID, пошта..."
+                      value={readerSearchQuery}
+                      onChange={(e) => {
+                        setReaderSearchQuery(e.target.value);
+                        setReaderCurrentPage(1);
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '9px 12px 9px 36px',
+                        fontSize: '13px',
+                        borderRadius: '10px',
+                        border: '1.5px solid #E2E8F0',
+                        outline: 'none',
+                        background: '#F8FAFC',
+                      }}
+                    />
+                    <svg
+                      style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }}
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <circle cx="11" cy="11" r="8"></circle>
+                      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                  </div>
+
+                  {/* Sorter Dropdown */}
+                  <select
+                    value={readerSortBy}
+                    onChange={(e) => {
+                      setReaderSortBy(e.target.value as any);
+                      setReaderCurrentPage(1);
+                    }}
+                    style={{
+                      padding: '9px 14px',
+                      fontSize: '13px',
+                      fontWeight: 700,
+                      borderRadius: '10px',
+                      border: '1.5px solid #E2E8F0',
+                      background: '#F8FAFC',
+                      color: '#0F172A',
+                      cursor: 'pointer',
+                      outline: 'none',
+                    }}
+                  >
+                    <option value="all_time">Көп тыңдағандар (Жалпы)</option>
+                    <option value="month">Көп тыңдағандар (Бұл айда)</option>
+                    <option value="today">Көп тыңдағандар (Бүгін)</option>
+                    <option value="alpha">Алфавит бойынша (А-Я)</option>
+                    <option value="newest">Соңғы тіркелгендер</option>
+                    <option value="oldest">Алғашқы тіркелгендер</option>
+                  </select>
+
+                  {/* Refresh Button */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      refreshReadersOverview();
+                      refreshReaders();
+                    }}
+                    title="Жаңарту"
+                    style={{
+                      padding: '9px 12px',
+                      borderRadius: '10px',
+                      border: '1.5px solid #E2E8F0',
+                      background: '#FFFFFF',
+                      color: '#475569',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      fontSize: '13px',
+                      fontWeight: 700,
+                    }}
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="23 4 23 10 17 10"></polyline>
+                      <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                    </svg>
+                    <span>Жаңарту</span>
+                  </button>
+
+                  {/* Excel Download Button */}
+                  <button
+                    type="button"
+                    onClick={handleExportReadersExcel}
+                    style={{
+                      padding: '9px 16px',
+                      borderRadius: '10px',
+                      border: 'none',
+                      background: '#059669',
+                      color: '#FFFFFF',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      fontSize: '13px',
+                      fontWeight: 800,
+                      boxShadow: '0 2px 8px rgba(5, 150, 105, 0.25)',
+                    }}
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                      <polyline points="7 10 12 15 17 10"></polyline>
+                      <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    <span>Excel жүктеу</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Table */}
+              {isLoadingOverview && readersOverview.length === 0 ? (
+                <div style={{ padding: '30px', textAlign: 'center', color: '#94A3B8' }}>
+                  Жүктелуде...
+                </div>
+              ) : paginatedReaders.length === 0 ? (
+                <div style={{ padding: '30px', textAlign: 'center', color: '#94A3B8' }}>
+                  Оқырман табылмады
+                </div>
+              ) : (
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13.5px' }}>
+                    <thead>
+                      <tr style={{ borderBottom: '1.5px solid #E2E8F0', textAlign: 'left', color: '#64748B' }}>
+                        <th style={{ padding: '12px 14px', fontWeight: 700, width: '50px' }}>№</th>
+                        <th style={{ padding: '12px 14px', fontWeight: 700 }}>Оқырман</th>
+                        <th style={{ padding: '12px 14px', fontWeight: 700 }}>Бүгін</th>
+                        <th style={{ padding: '12px 14px', fontWeight: 700 }}>Бұл айда</th>
+                        <th style={{ padding: '12px 14px', fontWeight: 700 }}>Жалпы</th>
+                        <th style={{ padding: '12px 14px', fontWeight: 700, textAlign: 'right' }}>Әрекет</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {paginatedReaders.map((r, idx) => {
+                        const rowNum = (readerCurrentPage - 1) * readerItemsPerPage + idx + 1;
+                        return (
+                          <tr
+                            key={r.id}
+                            style={{
+                              borderBottom: '1px solid #F1F5F9',
+                              transition: 'background 0.15s ease',
+                            }}
+                          >
+                            <td style={{ padding: '14px', color: '#94A3B8', fontWeight: 700 }}>
+                              {rowNum}
+                            </td>
+                            <td style={{ padding: '14px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                <div
+                                  style={{
+                                    width: '40px',
+                                    height: '40px',
+                                    borderRadius: '12px',
+                                    background: r.avatarUrl ? 'transparent' : '#3B82F6',
+                                    color: '#FFF',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    fontWeight: 800,
+                                    fontSize: '15px',
+                                    overflow: 'hidden',
+                                    flexShrink: 0,
+                                  }}
+                                >
+                                  {r.avatarUrl ? (
+                                    <img
+                                      src={r.avatarUrl}
+                                      alt={r.name}
+                                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                    />
+                                  ) : (
+                                    r.name?.charAt(0)?.toUpperCase() || 'O'
+                                  )}
+                                </div>
+                                <div>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <span style={{ fontWeight: 800, color: '#0F172A', fontSize: '14px' }}>
+                                      {r.name}
+                                    </span>
+                                    {r.isPremium && (
+                                      <span
+                                        style={{
+                                          background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
+                                          color: '#000',
+                                          fontWeight: 800,
+                                          fontSize: '10px',
+                                          padding: '2px 6px',
+                                          borderRadius: '4px',
+                                        }}
+                                      >
+                                        PREMIUM
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div
+                                    style={{
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '8px',
+                                      marginTop: '3px',
+                                      fontSize: '12px',
+                                      color: '#64748B',
+                                      flexWrap: 'wrap',
+                                    }}
+                                  >
+                                    {r.idNumber && (
+                                      <span
+                                        style={{
+                                          fontFamily: 'monospace',
+                                          background: '#F1F5F9',
+                                          color: '#0F172A',
+                                          padding: '1px 5px',
+                                          borderRadius: '4px',
+                                          fontWeight: 700,
+                                          fontSize: '11px',
+                                        }}
+                                      >
+                                        ID: {r.idNumber}
+                                      </span>
+                                    )}
+                                    <span>{r.email}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </td>
+                            <td style={{ padding: '14px', fontWeight: 700, color: r.todaySeconds > 0 ? '#2563EB' : '#94A3B8' }}>
+                              {r.todayFormatted}
+                            </td>
+                            <td style={{ padding: '14px', fontWeight: 700, color: r.monthSeconds > 0 ? '#0F172A' : '#94A3B8' }}>
+                              {r.monthFormatted}
+                            </td>
+                            <td style={{ padding: '14px', fontWeight: 700, color: r.allTimeSeconds > 0 ? '#0F172A' : '#94A3B8' }}>
+                              {r.allTimeFormatted}
+                            </td>
+                            <td style={{ padding: '14px', textAlign: 'right' }}>
+                              <Link
+                                to={`/admin/readers/${r.id}/stats`}
+                                style={{
+                                  background: '#F8FAFC',
+                                  border: '1.5px solid #E2E8F0',
+                                  color: '#2563EB',
+                                  padding: '7px 16px',
+                                  borderRadius: '8px',
+                                  fontSize: '12.5px',
+                                  fontWeight: 700,
+                                  textDecoration: 'none',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                }}
+                              >
+                                <span>Статистика</span>
+                              </Link>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {/* Pagination Footer */}
+              {filteredReadersOverview.length > 0 && (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    marginTop: '20px',
+                    paddingTop: '16px',
+                    borderTop: '1px solid #F1F5F9',
+                    flexWrap: 'wrap',
+                    gap: '12px',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#64748B' }}>
+                    <span>Беттегі оқырман саны:</span>
+                    <select
+                      value={readerItemsPerPage}
+                      onChange={(e) => {
+                        setReaderItemsPerPage(Number(e.target.value));
+                        setReaderCurrentPage(1);
+                      }}
+                      style={{
+                        padding: '5px 10px',
+                        borderRadius: '6px',
+                        border: '1px solid #CBD5E1',
+                        background: '#FFF',
+                        fontWeight: 700,
+                        fontSize: '12px',
+                      }}
+                    >
+                      <option value={10}>10</option>
+                      <option value={20}>20</option>
+                      <option value={50}>50</option>
+                    </select>
+                    <span>
+                      ({(readerCurrentPage - 1) * readerItemsPerPage + 1}-
+                      {Math.min(readerCurrentPage * readerItemsPerPage, filteredReadersOverview.length)} / Барлығы {filteredReadersOverview.length})
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <button
+                      type="button"
+                      disabled={readerCurrentPage <= 1}
+                      onClick={() => setReaderCurrentPage((p) => Math.max(1, p - 1))}
+                      style={{
+                        padding: '6px 14px',
+                        borderRadius: '8px',
+                        border: '1px solid #E2E8F0',
+                        background: readerCurrentPage <= 1 ? '#F8FAFC' : '#FFF',
+                        color: readerCurrentPage <= 1 ? '#CBD5E1' : '#334155',
+                        fontWeight: 700,
+                        fontSize: '12.5px',
+                        cursor: readerCurrentPage <= 1 ? 'not-allowed' : 'pointer',
+                      }}
+                    >
+                      ‹ Алдыңғы
+                    </button>
+                    <span style={{ fontSize: '13px', fontWeight: 800, padding: '0 8px', color: '#0F172A' }}>
+                      {readerCurrentPage} / {totalReaderPages}
+                    </span>
+                    <button
+                      type="button"
+                      disabled={readerCurrentPage >= totalReaderPages}
+                      onClick={() => setReaderCurrentPage((p) => Math.min(totalReaderPages, p + 1))}
+                      style={{
+                        padding: '6px 14px',
+                        borderRadius: '8px',
+                        border: '1px solid #E2E8F0',
+                        background: readerCurrentPage >= totalReaderPages ? '#F8FAFC' : '#FFF',
+                        color: readerCurrentPage >= totalReaderPages ? '#CBD5E1' : '#334155',
+                        fontWeight: 700,
+                        fontSize: '12.5px',
+                        cursor: readerCurrentPage >= totalReaderPages ? 'not-allowed' : 'pointer',
+                      }}
+                    >
+                      Кейінгі ›
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
           </div>

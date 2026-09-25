@@ -42,4 +42,21 @@ public class AudioAnalyticsController {
     public ResponseEntity<AdminAudioStatsResponseDto> getAdminAudioStats() {
         return ResponseEntity.ok(audioAnalyticsService.getAdminAudioStats());
     }
+
+    @GetMapping({"/api/v1/admin/stats/readers-overview", "/api/admin/stats/readers-overview"})
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<com.tanda.dto.user.ReaderListeningOverviewDto>> getReadersOverview(
+            @RequestParam(required = false) String month
+    ) {
+        return ResponseEntity.ok(audioAnalyticsService.getReadersListeningOverview(month));
+    }
+
+    @GetMapping({"/api/v1/admin/stats/readers/{userId}", "/api/admin/stats/readers/{userId}"})
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<com.tanda.dto.user.ReaderDetailedStatsResponseDto> getReaderDetailedStats(
+            @org.springframework.web.bind.annotation.PathVariable String userId,
+            @RequestParam(required = false) String month
+    ) {
+        return ResponseEntity.ok(audioAnalyticsService.getReaderDetailedStats(userId, month));
+    }
 }

@@ -96,6 +96,29 @@ public interface AudioSessionRepository extends JpaRepository<AudioSession, Stri
                                                      @Param("userId") String userId,
                                                      @Param("start") OffsetDateTime start,
                                                      @Param("end") OffsetDateTime end);
+
+    @Query("SELECT s.userId, COALESCE(SUM(s.validSeconds), 0) FROM AudioSession s WHERE s.userId IS NOT NULL AND s.startedAt >= :since GROUP BY s.userId")
+    List<Object[]> sumValidSecondsByUserSince(@Param("since") OffsetDateTime since);
+
+    @Query("SELECT s.userId, COALESCE(SUM(s.validSeconds), 0) FROM AudioSession s WHERE s.userId IS NOT NULL AND s.startedAt >= :start AND s.startedAt < :end GROUP BY s.userId")
+    List<Object[]> sumValidSecondsByUserBetween(@Param("start") OffsetDateTime start, @Param("end") OffsetDateTime end);
+
+    @Query("SELECT s.userId, COALESCE(SUM(s.validSeconds), 0) FROM AudioSession s WHERE s.userId IS NOT NULL GROUP BY s.userId")
+    List<Object[]> sumValidSecondsByUserAllTime();
+
+    @Query("SELECT s FROM AudioSession s WHERE s.userId = :userId AND s.startedAt >= :start AND s.startedAt < :end")
+    List<AudioSession> findUserSessionsBetween(@Param("userId") String userId,
+                                               @Param("start") OffsetDateTime start,
+                                               @Param("end") OffsetDateTime end);
+
+    @Query("SELECT s.book.id, COALESCE(SUM(s.validSeconds), 0) FROM AudioSession s WHERE s.userId = :userId AND s.startedAt >= :since GROUP BY s.book.id")
+    List<Object[]> getUserListeningSumsPerBookSince(@Param("userId") String userId, @Param("since") OffsetDateTime since);
+
+    @Query("SELECT s.book.id, COALESCE(SUM(s.validSeconds), 0) FROM AudioSession s WHERE s.userId = :userId AND s.startedAt >= :start AND s.startedAt < :end GROUP BY s.book.id")
+    List<Object[]> getUserListeningSumsPerBookBetween(@Param("userId") String userId, @Param("start") OffsetDateTime start, @Param("end") OffsetDateTime end);
+
+    @Query("SELECT s.book.id, COALESCE(SUM(s.validSeconds), 0) FROM AudioSession s WHERE s.userId = :userId GROUP BY s.book.id")
+    List<Object[]> getUserListeningSumsPerBookAllTime(@Param("userId") String userId);
 }
 
 

@@ -235,3 +235,86 @@ export interface UserBookListeningStatsResponse {
   totalListenedDays: number;
   averageDailyMinutes: number;
 }
+
+export interface ReaderListeningOverview {
+  id: string;
+  idNumber?: string;
+  name: string;
+  email: string;
+  phone?: string;
+  username?: string;
+  avatarUrl?: string;
+  birthDate?: string;
+  gender?: string;
+  isActive?: boolean;
+  isBlocked?: boolean;
+  isPremium?: boolean;
+  createdAt?: string;
+
+  todaySeconds: number;
+  todayMinutes: number;
+  todayFormatted: string;
+
+  monthSeconds: number;
+  monthMinutes: number;
+  monthFormatted: string;
+
+  allTimeSeconds: number;
+  allTimeMinutes: number;
+  allTimeFormatted: string;
+}
+
+export interface ReaderBookListening {
+  bookId: string;
+  bookTitle: string;
+  bookAuthor: string;
+  coverImage?: string;
+  category?: string;
+  todaySeconds: number;
+  todayFormatted: string;
+  monthSeconds: number;
+  monthFormatted: string;
+  allTimeSeconds: number;
+  allTimeFormatted: string;
+}
+
+export interface ReaderDetailedStatsResponse {
+  userId: string;
+  idNumber?: string;
+  name: string;
+  email: string;
+  phone?: string;
+  username?: string;
+  avatarUrl?: string;
+  birthDate?: string;
+  gender?: string;
+  isActive?: boolean;
+  isBlocked?: boolean;
+  isPremium?: boolean;
+  createdAt?: string;
+
+  selectedMonth: string;
+  selectedMonthLabel: string;
+
+  todaySeconds: number;
+  todayMinutes: number;
+  todayFormatted: string;
+
+  monthSeconds: number;
+  monthMinutes: number;
+  monthHours: number;
+  monthFormatted: string;
+
+  allTimeSeconds: number;
+  allTimeMinutes: number;
+  allTimeHours: number;
+  allTimeFormatted: string;
+
+  peakDay?: BookPeakDay | null;
+  dailyList: BookDailyStat[];
+  totalListenedDays: number;
+  averageDailyMinutes: number;
+
+  books: ReaderBookListening[];
+}
+
