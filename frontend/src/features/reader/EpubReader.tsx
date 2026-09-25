@@ -397,6 +397,8 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
     }
   }, [applyDirectThemeStyleToDoc, onColorTemperatureChange]);
 
+  const lastKeyTimeRef = useRef<number>(0);
+
   const processKeyAction = useCallback((e: KeyboardEvent) => {
     if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
 
@@ -405,6 +407,20 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
       return;
     }
 
+    // Always prevent native browser / iframe scrolling
+    e.preventDefault();
+    e.stopPropagation();
+
+    // Ignore key repeat events (holding down a key)
+    if (e.repeat) return;
+
+    // Debounce rapid keyboard presses
+    const now = Date.now();
+    if (now - lastKeyTimeRef.current < 250) {
+      return;
+    }
+    lastKeyTimeRef.current = now;
+
     const isRight = e.key === 'ArrowRight';
     const isShift = e.shiftKey;
     const isCtrl = e.ctrlKey || e.metaKey;
@@ -412,7 +428,6 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
 
     // 1. Shift + Arrow: Color temperature / white balance (warm / cool)
     if (isShift && !isCtrl && !isAlt) {
-      e.preventDefault();
       const currentTemp = colorTempRef.current;
       const nextTemp = isRight ? Math.min(50, currentTemp + 10) : Math.max(-50, currentTemp - 10);
       handleColorTempChange(nextTemp);
@@ -421,7 +436,6 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
 
     // 2. Control / Command + Arrow: Switch theme (light -> sepia -> dark)
     if (isCtrl && !isShift && !isAlt) {
-      e.preventDefault();
       const themes: ('light' | 'sepia' | 'dark')[] = ['light', 'sepia', 'dark'];
       const curIdx = themes.indexOf(themeRef.current);
       const nextIdx = isRight
@@ -433,14 +447,12 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
 
     // 3. Option / Alt + Arrow: Font size (increase / decrease)
     if (isAlt && !isCtrl && !isShift) {
-      e.preventDefault();
       handleFontSizeChange(isRight ? 2 : -2);
       return;
     }
 
     // 4. Plain Arrow: Page navigation
     if (!isShift && !isCtrl && !isAlt) {
-      e.preventDefault();
       if (isRight) {
         handleNextPage();
       } else {
