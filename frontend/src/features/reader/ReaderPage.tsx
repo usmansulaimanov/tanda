@@ -5,6 +5,7 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { useMyBooksStore } from '../../store/useMyBooksStore';
 import { api } from '../../lib/api';
 import { Book } from '../../types';
+import { EpubReader } from './EpubReader';
 
 export const ReaderPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -145,11 +146,18 @@ export const ReaderPage: React.FC = () => {
     dark: 'reader-mode-dark',
   };
 
+  const isEpub = Boolean(
+    book?.ebookUrl &&
+      (book.ebookFormat?.toUpperCase() === 'EPUB' ||
+        book.ebookUrl.toLowerCase().includes('.epub') ||
+        (!book.ebookFormat?.toUpperCase().includes('PDF') && !book.ebookUrl.toLowerCase().includes('.pdf')))
+  );
+
   return (
     <div className={themeClasses[theme]} style={{ minHeight: '100vh', transition: 'background 0.2s, color 0.2s' }}>
       {/* Top Bar */}
       <div
-        className="border-b border-black/10 px-3 sm:px-6 py-2.5 sm:py-4 max-w-4xl mx-auto flex flex-wrap items-center justify-between gap-2.5"
+        className="border-b border-black/10 px-3 sm:px-6 py-2.5 sm:py-4 max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-2.5"
       >
         <button
           onClick={() => navigate(-1)}
@@ -167,112 +175,132 @@ export const ReaderPage: React.FC = () => {
 
         <div className="text-center order-first sm:order-none w-full sm:w-auto">
           <h3 style={{ fontSize: '15px', fontWeight: 800, margin: 0 }}>{book.title}</h3>
-          <span style={{ fontSize: '12px', opacity: 0.75 }}>{book.author} (Бет: {currentPage})</span>
-        </div>
-
-        {/* Controls */}
-        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-center">
-          <button
-            className="reader-theme-btn"
-            onClick={() => setFontSize((f) => Math.max(13, f - 2))}
-          >
-            A -
-          </button>
-          <span style={{ fontSize: '12px', fontWeight: 700, width: '32px', textAlign: 'center' }}>
-            {fontSize}px
+          <span style={{ fontSize: '12px', opacity: 0.75 }}>
+            {book.author} {isEpub ? '' : `(Бет: ${currentPage})`}
           </span>
-          <button
-            className="reader-theme-btn"
-            onClick={() => setFontSize((f) => Math.min(26, f + 2))}
-          >
-            A +
-          </button>
-
-          {/* Theme buttons */}
-          <button
-            className={`reader-theme-btn ${theme === 'light' ? 'active' : ''}`}
-            onClick={() => setTheme('light')}
-          >
-            Ашық
-          </button>
-          <button
-            className={`reader-theme-btn ${theme === 'sepia' ? 'active' : ''}`}
-            onClick={() => setTheme('sepia')}
-          >
-            Сепия
-          </button>
-          <button
-            className={`reader-theme-btn ${theme === 'dark' ? 'active' : ''}`}
-            onClick={() => setTheme('dark')}
-          >
-            Түнгі
-          </button>
         </div>
+
+        {/* Controls - shown for standard text mode or PDF */}
+        {!isEpub && (
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-center">
+            <button
+              className="reader-theme-btn"
+              onClick={() => setFontSize((f) => Math.max(13, f - 2))}
+            >
+              A -
+            </button>
+            <span style={{ fontSize: '12px', fontWeight: 700, width: '32px', textAlign: 'center' }}>
+              {fontSize}px
+            </span>
+            <button
+              className="reader-theme-btn"
+              onClick={() => setFontSize((f) => Math.min(26, f + 2))}
+            >
+              A +
+            </button>
+
+            {/* Theme buttons */}
+            <button
+              className={`reader-theme-btn ${theme === 'light' ? 'active' : ''}`}
+              onClick={() => setTheme('light')}
+            >
+              Ашық
+            </button>
+            <button
+              className={`reader-theme-btn ${theme === 'sepia' ? 'active' : ''}`}
+              onClick={() => setTheme('sepia')}
+            >
+              Сепия
+            </button>
+            <button
+              className={`reader-theme-btn ${theme === 'dark' ? 'active' : ''}`}
+              onClick={() => setTheme('dark')}
+            >
+              Түнгі
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Reader Body */}
-      <main className="max-w-4xl mx-auto my-4 sm:my-8 px-3 sm:px-6 mb-20">
+      <main className="max-w-5xl mx-auto my-3 sm:my-6 px-3 sm:px-6 mb-20">
         {book.ebookUrl ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span
+          isEpub ? (
+            <EpubReader
+              url={book.ebookUrl}
+              bookTitle={book.title}
+              bookAuthor={book.author}
+              onProgressChange={(pct) => {
+                const totPages = book.pages ? parseInt(String(book.pages)) : 100;
+                const calculatedPage = Math.max(1, Math.round((pct / 100) * totPages));
+                setCurrentPage(calculatedPage);
+                if (isAuthenticated) {
+                  updateReadingProgress(book.id, calculatedPage, totPages);
+                }
+              }}
+            />
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span
+                    style={{
+                      display: 'inline-block',
+                      padding: '4px 10px',
+                      borderRadius: '6px',
+                      background: 'rgba(0, 84, 148, 0.1)',
+                      color: '#005494',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                    }}
+                  >
+                    {book.ebookFormat || 'PDF'}
+                  </span>
+                  <span style={{ fontSize: '13px', opacity: 0.8 }}>Электронды құжат</span>
+                </div>
+
+                <a
+                  href={book.ebookUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-primary"
                   style={{
-                    display: 'inline-block',
-                    padding: '4px 10px',
-                    borderRadius: '6px',
-                    background: 'rgba(0, 84, 148, 0.1)',
-                    color: '#005494',
-                    fontSize: '12px',
-                    fontWeight: 700,
+                    padding: '8px 16px',
+                    fontSize: '13px',
+                    textDecoration: 'none',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
                   }}
                 >
-                  {book.ebookFormat || 'PDF / Эл. нұсқа'}
-                </span>
-                <span style={{ fontSize: '13px', opacity: 0.8 }}>Электронды нұсқа жүктелді</span>
+                  Толық экранда ашу ↗
+                </a>
               </div>
 
-              <a
-                href={book.ebookUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn-primary"
-                style={{
-                  padding: '8px 16px',
-                  fontSize: '13px',
-                  textDecoration: 'none',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                }}
-              >
-                Толық экранда ашу ↗
-              </a>
-            </div>
-
-            <div
-              style={{
-                width: '100%',
-                height: 'calc(100vh - 180px)',
-                minHeight: '600px',
-                borderRadius: '16px',
-                overflow: 'hidden',
-                border: '1.5px solid rgba(0,0,0,0.1)',
-                background: '#FFFFFF',
-                boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
-              }}
-            >
-              <iframe
-                src={book.ebookUrl}
-                title={book.title}
+              <div
                 style={{
                   width: '100%',
-                  height: '100%',
-                  border: 'none',
+                  height: 'calc(100vh - 180px)',
+                  minHeight: '600px',
+                  borderRadius: '16px',
+                  overflow: 'hidden',
+                  border: '1.5px solid rgba(0,0,0,0.1)',
+                  background: '#FFFFFF',
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
                 }}
-              />
+              >
+                <iframe
+                  src={book.ebookUrl}
+                  title={book.title}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    border: 'none',
+                  }}
+                />
+              </div>
             </div>
-          </div>
+          )
         ) : (
           <article className="reader-content" style={{ fontSize: `${fontSize}px` }}>
             <div style={{ textAlign: 'center', marginBottom: '40px', borderBottom: '1px solid rgba(0,0,0,0.1)', paddingBottom: '24px' }}>
