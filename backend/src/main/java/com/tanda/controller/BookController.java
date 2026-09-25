@@ -93,6 +93,15 @@ public class BookController {
         return ResponseEntity.ok(audioAnalyticsService.getBookAudience(id, tier, scope, month));
     }
 
+    @GetMapping("/{bookId}/readers/{userId}/stats")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<com.tanda.dto.book.UserBookListeningStatsResponseDto> getUserBookListeningStats(
+            @PathVariable String bookId,
+            @PathVariable String userId,
+            @RequestParam(required = false) String month) {
+        return ResponseEntity.ok(audioAnalyticsService.getUserBookListeningStats(bookId, userId, month));
+    }
+
 
     @PostMapping
 

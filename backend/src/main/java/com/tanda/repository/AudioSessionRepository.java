@@ -81,6 +81,21 @@ public interface AudioSessionRepository extends JpaRepository<AudioSession, Stri
            "ORDER BY COALESCE(SUM(s.validSeconds), 0) DESC")
     List<Object[]> getAudienceForBookAllTime(@Param("bookId") String bookId,
                                             @Param("minSeconds") int minSeconds);
+
+    @Query("SELECT COALESCE(SUM(s.validSeconds), 0) FROM AudioSession s WHERE s.userId = :userId AND s.startedAt >= :since")
+    long getUserTotalListeningSince(@Param("userId") String userId, @Param("since") OffsetDateTime since);
+
+    @Query("SELECT COALESCE(SUM(s.validSeconds), 0) FROM AudioSession s WHERE s.book.id = :bookId AND s.userId = :userId AND s.startedAt >= :since")
+    long getUserBookListeningSince(@Param("bookId") String bookId, @Param("userId") String userId, @Param("since") OffsetDateTime since);
+
+    @Query("SELECT COALESCE(SUM(s.validSeconds), 0) FROM AudioSession s WHERE s.book.id = :bookId AND s.userId = :userId")
+    long getUserBookListeningAllTime(@Param("bookId") String bookId, @Param("userId") String userId);
+
+    @Query("SELECT s FROM AudioSession s WHERE s.book.id = :bookId AND s.userId = :userId AND s.startedAt >= :start AND s.startedAt < :end")
+    List<AudioSession> findUserSessionsForBookBetween(@Param("bookId") String bookId,
+                                                     @Param("userId") String userId,
+                                                     @Param("start") OffsetDateTime start,
+                                                     @Param("end") OffsetDateTime end);
 }
 
 

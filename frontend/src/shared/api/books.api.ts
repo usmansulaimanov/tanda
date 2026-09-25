@@ -51,5 +51,18 @@ export const booksApi = {
     );
     return data;
   },
+
+  getUserBookStats: async (
+    bookId: string,
+    userId: string,
+    month?: string
+  ): Promise<import('../../types').UserBookListeningStatsResponse> => {
+    const params = month ? { month } : undefined;
+    const { data } = await apiClient.get<import('../../types').UserBookListeningStatsResponse>(
+      `/api/v1/books/${bookId}/readers/${userId}/stats`,
+      { params }
+    );
+    return data;
+  },
 };
 

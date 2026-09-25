@@ -3,7 +3,7 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useToastStore } from '../../store/useToastStore';
 import { booksApi } from '../../shared/api/books.api';
-import { BookStatsResponse } from '../../types';
+import { UserBookListeningStatsResponse } from '../../types';
 import { Skeleton } from '../../shared/ui';
 
 export const formatListeningTime = (totalSecInput: number | undefined | null) => {
@@ -18,7 +18,6 @@ export const formatListeningTime = (totalSecInput: number | undefined | null) =>
     secondsFormatted: `${sec.toLocaleString('ru-RU')} сек`,
     minutesFormatted: `${min.toLocaleString('ru-RU')} мин`,
     hoursFormatted: `${hrs} сағ`,
-    compositeFormatted: `${hrs} сағ • ${min.toLocaleString('ru-RU')} мин • ${sec.toLocaleString('ru-RU')} сек`,
   };
 };
 
@@ -46,14 +45,13 @@ const formatMonthLabel = (monthKey: string) => {
   return monthKey;
 };
 
-export const BookStatsPage: React.FC = () => {
-  const { bookId } = useParams<{ bookId: string }>();
+export const UserBookStatsPage: React.FC = () => {
+  const { bookId, userId } = useParams<{ bookId: string; userId: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user, role, isAuthInitialized } = useAuthStore();
   const { showToast } = useToastStore();
 
-  const isAuthor = Boolean(role === 'author' || user?.isAuthor || user?.role === 'author');
   const isAdmin = Boolean(user?.isSuperAdmin || (role === 'admin' && !user?.duty) || role === 'admin');
 
   const [selectedMonthKey, setSelectedMonthKey] = useState<string>(() => {
@@ -65,14 +63,9 @@ export const BookStatsPage: React.FC = () => {
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   });
 
-  const [stats, setStats] = useState<BookStatsResponse | null>(null);
+  const [stats, setStats] = useState<UserBookListeningStatsResponse | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-
-  const handleAudienceClick = (tier: 'LISTENERS' | 'READERS' | 'ACTIVES', scope: 'MONTH' | 'ALL_TIME' = 'MONTH') => {
-    if (!isAdmin || !bookId) return;
-    navigate(`/admin/books/${bookId}/audience?tier=${tier}&scope=${scope}&month=${selectedMonthKey}`);
-  };
 
   // Month list for selector (last 12 months)
   const availableMonths = useMemo(() => {
@@ -86,16 +79,15 @@ export const BookStatsPage: React.FC = () => {
     return list;
   }, []);
 
-  const loadStats = async (monthKey: string) => {
-    if (!bookId) return;
+  const loadStats = async (bId: string, uId: string, monthKey: string) => {
     setIsLoading(true);
     setErrorMsg(null);
     try {
-      const data = await booksApi.getStats(bookId, monthKey);
+      const data = await booksApi.getUserBookStats(bId, uId, monthKey);
       setStats(data);
     } catch (err: any) {
-      console.error('Failed to load book stats:', err);
-      const msg = err?.response?.data?.message || 'Кітап статистикасын жүктеу мүмкін болмады';
+      console.error('Failed to load user book stats:', err);
+      const msg = err?.response?.data?.message || 'Оқырманның кітап статистикасын жүктеу мүмкін болмады';
       setErrorMsg(msg);
       showToast(msg, 'error');
     } finally {
@@ -104,10 +96,16 @@ export const BookStatsPage: React.FC = () => {
   };
 
   useEffect(() => {
-    if (isAuthInitialized && bookId) {
-      loadStats(selectedMonthKey);
+    if (isAuthInitialized) {
+      if (!isAdmin) {
+        navigate('/');
+        return;
+      }
+      if (bookId && userId) {
+        loadStats(bookId, userId, selectedMonthKey);
+      }
     }
-  }, [isAuthInitialized, bookId, selectedMonthKey]);
+  }, [isAuthInitialized, isAdmin, bookId, userId, selectedMonthKey]);
 
   const handleMonthChange = (newMonth: string) => {
     setSelectedMonthKey(newMonth);
@@ -118,52 +116,42 @@ export const BookStatsPage: React.FC = () => {
     });
   };
 
-  // Back Navigation handler
   const handleBack = () => {
-    const fromParam = searchParams.get('from');
-    if (fromParam) {
-      navigate(fromParam);
-      return;
-    }
-    if (isAdmin && stats?.assignedAuthorId) {
-      navigate(`/admin/authors/${stats.assignedAuthorId}`);
-    } else if (isAuthor) {
-      navigate('/author/books');
-    } else if (isAdmin) {
-      navigate('/admin/home');
-    } else {
-      navigate(-1);
-    }
+    const fromScope = searchParams.get('scope') || 'MONTH';
+    const fromTier = searchParams.get('tier') || 'LISTENERS';
+    navigate(`/admin/books/${bookId}/audience?month=${selectedMonthKey}&scope=${fromScope}&tier=${fromTier}`);
   };
 
-  const todayTime = formatListeningTime(stats?.todaySeconds);
-  const monthTime = formatListeningTime(stats?.monthSeconds);
-  const allTime = formatListeningTime(stats?.allTimeSeconds);
+  const todayBookTime = formatListeningTime(stats?.todayBookSeconds);
+  const todayTotalTime = formatListeningTime(stats?.userTodayTotalSeconds);
+  const monthBookTime = formatListeningTime(stats?.monthBookSeconds);
+  const allTimeBookTime = formatListeningTime(stats?.allTimeBookSeconds);
   const peakTime = formatListeningTime(stats?.peakDay?.seconds);
 
   const maxSecInPeriod = useMemo(() => {
     if (!stats?.dailyList?.length) return 0;
-    return Math.max(...stats.dailyList.map((d) => d.seconds), 0);
-  }, [stats]);
+    return Math.max(...stats.dailyList.map((d) => d.seconds));
+  }, [stats?.dailyList]);
 
-  if (!isAuthInitialized) {
+  if (!isAuthInitialized || (isLoading && !stats)) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-8 flex flex-col gap-6">
-        <Skeleton className="h-48 w-full rounded-2xl" />
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '32px 16px' }}>
+        <Skeleton className="h-28 rounded-2xl mb-6" />
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           <Skeleton className="h-32 rounded-xl" />
           <Skeleton className="h-32 rounded-xl" />
           <Skeleton className="h-32 rounded-xl" />
           <Skeleton className="h-32 rounded-xl" />
         </div>
+        <Skeleton className="h-64 rounded-2xl" />
       </div>
     );
   }
 
   return (
-    <section className="book-stats-section" style={{ minHeight: '85vh', padding: '32px 16px', background: '#F8FAFC' }}>
+    <section style={{ minHeight: '85vh', padding: '32px 16px', background: '#F8FAFC' }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        
+
         {/* Top Header Card */}
         <div
           style={{
@@ -176,9 +164,9 @@ export const BookStatsPage: React.FC = () => {
           }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '18px', flex: 1, minWidth: '280px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '18px', flex: 1, minWidth: '320px' }}>
               
-              {/* Back Button */}
+              {/* Back button */}
               <button
                 type="button"
                 onClick={handleBack}
@@ -209,73 +197,82 @@ export const BookStatsPage: React.FC = () => {
                   <line x1="19" y1="12" x2="5" y2="12"></line>
                   <polyline points="12 19 5 12 12 5"></polyline>
                 </svg>
-                Артқа қайту
+                Тізімге қайту
               </button>
 
-              {/* Book Info Block */}
+              {/* Reader + Book Info Block */}
               {stats && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+                  {/* Reader Avatar */}
                   <div
                     style={{
-                      width: '46px',
-                      height: '62px',
-                      borderRadius: '8px',
+                      width: '48px',
+                      height: '48px',
+                      borderRadius: '50%',
                       overflow: 'hidden',
-                      background: '#005494',
+                      background: '#F1F5F9',
+                      border: '2px solid #E2E8F0',
                       flexShrink: 0,
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: 900,
+                      color: '#475569',
+                      fontSize: '16px',
                     }}
                   >
-                    {stats.coverImage && (
-                      <img
-                        src={stats.coverImage}
-                        alt={stats.title}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      />
+                    {stats.userAvatarUrl ? (
+                      <img src={stats.userAvatarUrl} alt={stats.userName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      stats.userName?.charAt(0)?.toUpperCase() || 'U'
                     )}
                   </div>
+
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                      <h1 style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
-                        {stats.title}
+                      <h1 style={{ fontSize: '19px', fontWeight: 900, color: '#0F172A', margin: 0 }}>
+                        {stats.userName}
                       </h1>
-                      {stats.category && (
-                        <span
-                          style={{
-                            fontSize: '11px',
-                            fontWeight: 700,
-                            color: 'var(--blue)',
-                            background: 'rgba(0, 84, 148, 0.08)',
-                            padding: '3px 8px',
-                            borderRadius: '6px',
-                          }}
-                        >
-                          {stats.category}
+                      {stats.userIdNumber && (
+                        <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748B', background: '#F1F5F9', padding: '2px 8px', borderRadius: '6px' }}>
+                          ID: {stats.userIdNumber}
                         </span>
                       )}
+                      <span
+                        style={{
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          color: 'var(--blue)',
+                          background: 'rgba(0, 84, 148, 0.08)',
+                          padding: '2px 8px',
+                          borderRadius: '6px',
+                        }}
+                      >
+                        «{stats.bookTitle}» кітабын тыңдау статистикасы
+                      </span>
                     </div>
-                    <div style={{ fontSize: '13px', color: '#64748B', marginTop: '3px', fontWeight: 600 }}>
-                      Авторы: <strong style={{ color: '#334155' }}>{stats.author || 'Белгісіз'}</strong>
-                      {stats.pages ? ` • ${stats.pages} бет` : ''}
-                      {stats.hasAudio ? ' • Аудио' : ''}
+
+                    <div style={{ fontSize: '12px', color: '#64748B', marginTop: '3px', fontWeight: 600 }}>
+                      Пошта: <strong style={{ color: '#0F172A' }}>{stats.userEmail}</strong>
+                      {stats.userPhone && <> • Тел: <strong style={{ color: '#0F172A' }}>{stats.userPhone}</strong></>}
                     </div>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Month Selector Filter */}
+            {/* Month selector */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span style={{ fontSize: '13px', fontWeight: 700, color: '#64748B' }}>Айды таңдау:</span>
+              <span style={{ fontSize: '13px', fontWeight: 700, color: '#64748B' }}>Ай:</span>
               <select
                 value={selectedMonthKey}
                 onChange={(e) => handleMonthChange(e.target.value)}
                 style={{
-                  padding: '9px 16px',
+                  background: '#F8FAFC',
+                  border: '1.5px solid #E2E8F0',
                   borderRadius: '12px',
-                  border: '1.5px solid #CBD5E1',
-                  background: '#FFFFFF',
-                  fontSize: '13.5px',
+                  padding: '10px 16px',
+                  fontSize: '13px',
                   fontWeight: 800,
                   color: 'var(--text-dark)',
                   cursor: 'pointer',
@@ -305,11 +302,11 @@ export const BookStatsPage: React.FC = () => {
               marginBottom: '24px',
             }}
           >
-            <div style={{ fontSize: '20px', fontWeight: 800, marginBottom: '6px' }}>Қате орын алды</div>
-            <p style={{ fontSize: '14px', margin: '0 0 14px 0' }}>{errorMsg}</p>
+            <div style={{ fontSize: '18px', fontWeight: 800, marginBottom: '6px' }}>Қате орын алды</div>
+            <p style={{ fontSize: '13.5px', margin: '0 0 14px 0' }}>{errorMsg}</p>
             <button
               type="button"
-              onClick={() => loadStats(selectedMonthKey)}
+              onClick={() => bookId && userId && loadStats(bookId, userId, selectedMonthKey)}
               style={{
                 background: '#DC2626',
                 color: '#FFF',
@@ -325,26 +322,17 @@ export const BookStatsPage: React.FC = () => {
           </div>
         )}
 
-        {/* Loading state */}
-        {isLoading && !stats && (
-          <div className="flex flex-col gap-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-[1fr_1fr_1fr_1fr_1.45fr] gap-4">
-              <Skeleton className="h-32 rounded-2xl" />
-              <Skeleton className="h-32 rounded-2xl" />
-              <Skeleton className="h-32 rounded-2xl" />
-              <Skeleton className="h-32 rounded-2xl" />
-              <Skeleton className="h-32 rounded-2xl" />
-            </div>
-            <Skeleton className="h-64 rounded-2xl" />
-          </div>
-        )}
-
         {/* Main Content */}
         {stats && (
           <>
-            {/* 5 Metric Summary Cards */}
+            {/* 4 Metric Summary Cards */}
             <div
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-[1fr_1fr_1fr_1fr_1.45fr] gap-4 mb-6"
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+                gap: '16px',
+                marginBottom: '24px',
+              }}
             >
               {/* 1. Today Listening */}
               <div
@@ -354,18 +342,19 @@ export const BookStatsPage: React.FC = () => {
                   border: '1.5px solid #E2E8F0',
                   padding: '20px',
                   boxShadow: '0 4px 16px rgba(0, 0, 0, 0.03)',
-                  position: 'relative',
-                  overflow: 'hidden',
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                   <span style={{ fontSize: '13px', fontWeight: 700, color: '#64748B' }}>Бүгін</span>
                 </div>
                 <div style={{ fontSize: '24px', fontWeight: 900, color: '#2563EB' }}>
-                  {todayTime.minutesFormatted}
+                  {todayBookTime.minutesFormatted}
                 </div>
                 <div style={{ fontSize: '12px', fontWeight: 600, color: '#64748B', marginTop: '4px' }}>
-                  {todayTime.secondsFormatted}
+                  Осы кітаптан: <strong>{todayBookTime.secondsFormatted}</strong>
+                </div>
+                <div style={{ fontSize: '11.5px', fontWeight: 600, color: '#94A3B8', marginTop: '3px' }}>
+                  Бүгін сайтта жалпы: <strong style={{ color: '#475569' }}>{todayTotalTime.minutesFormatted}</strong>
                 </div>
               </div>
 
@@ -382,12 +371,11 @@ export const BookStatsPage: React.FC = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                   <span style={{ fontSize: '13px', fontWeight: 700, color: '#64748B' }}>Бұл айда</span>
                 </div>
-
                 <div style={{ fontSize: '24px', fontWeight: 900, color: 'var(--blue)' }}>
-                  {monthTime.minutesFormatted}
+                  {monthBookTime.minutesFormatted}
                 </div>
                 <div style={{ fontSize: '12px', fontWeight: 600, color: '#64748B', marginTop: '4px' }}>
-                  {monthTime.hoursFormatted} • {monthTime.secondsFormatted}
+                  {monthBookTime.hoursFormatted} • {monthBookTime.secondsFormatted}
                 </div>
               </div>
 
@@ -404,12 +392,11 @@ export const BookStatsPage: React.FC = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                   <span style={{ fontSize: '13px', fontWeight: 700, color: '#64748B' }}>Жалпы</span>
                 </div>
-
                 <div style={{ fontSize: '24px', fontWeight: 900, color: '#0F172A' }}>
-                  {allTime.hoursFormatted}
+                  {allTimeBookTime.hoursFormatted}
                 </div>
                 <div style={{ fontSize: '12px', fontWeight: 600, color: '#64748B', marginTop: '4px' }}>
-                  {allTime.minutesFormatted} • {allTime.secondsFormatted}
+                  {allTimeBookTime.minutesFormatted} • {allTimeBookTime.secondsFormatted}
                 </div>
               </div>
 
@@ -443,180 +430,6 @@ export const BookStatsPage: React.FC = () => {
                   </div>
                 )}
               </div>
-
-              {/* 5. Audience Engagement Tiers */}
-              <div
-                style={{
-                  background: '#FFFFFF',
-                  borderRadius: '20px',
-                  border: '1.5px solid #E2E8F0',
-                  padding: '16px 18px',
-                  boxShadow: '0 4px 16px rgba(0, 0, 0, 0.03)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'center',
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <div style={{ fontSize: '13px', fontWeight: 800, color: '#475569' }}>
-                    Аудитория белсенділігі
-                  </div>
-                  {isAdmin && (
-                    <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--blue)', background: 'rgba(0, 84, 148, 0.08)', padding: '2px 6px', borderRadius: '4px' }}>
-                      Админ
-                    </span>
-                  )}
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  {/* Listeners Tier */}
-                  <div
-                    onClick={() => isAdmin && handleAudienceClick('LISTENERS', 'MONTH')}
-                    style={{
-                      cursor: isAdmin ? 'pointer' : 'default',
-                      padding: '4px 6px',
-                      margin: '0 -6px',
-                      borderRadius: '8px',
-                      transition: 'all 0.15s ease',
-                    }}
-                    onMouseEnter={(e) => { if (isAdmin) e.currentTarget.style.background = '#F8FAFC'; }}
-                    onMouseLeave={(e) => { if (isAdmin) e.currentTarget.style.background = 'transparent'; }}
-                    title={isAdmin ? 'Тыңдармандар тізімін көру' : undefined}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div style={{ fontSize: '11.5px', fontWeight: 700, color: '#0F172A' }}>
-                        Тыңдармандар:
-                      </div>
-                      {isAdmin && <span style={{ fontSize: '11px', color: '#94A3B8' }}>›</span>}
-                    </div>
-                    <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600, marginTop: '1px' }}>
-                      Бұл айда:{' '}
-                      <strong
-                        onClick={(e) => {
-                          if (isAdmin) {
-                            e.stopPropagation();
-                            handleAudienceClick('LISTENERS', 'MONTH');
-                          }
-                        }}
-                        style={{ color: '#2563EB', textDecoration: isAdmin ? 'underline' : 'none' }}
-                      >
-                        {(stats.monthListeners ?? stats.monthUniqueListeners).toLocaleString('ru-RU')} адам
-                      </strong>{' '}
-                      • Жалпы:{' '}
-                      <strong
-                        onClick={(e) => {
-                          if (isAdmin) {
-                            e.stopPropagation();
-                            handleAudienceClick('LISTENERS', 'ALL_TIME');
-                          }
-                        }}
-                        style={{ color: '#0F172A', textDecoration: isAdmin ? 'underline' : 'none' }}
-                      >
-                        {(stats.allTimeListeners ?? stats.allTimeUniqueListeners).toLocaleString('ru-RU')} адам
-                      </strong>
-                    </div>
-                  </div>
-
-                  {/* Readers Tier */}
-                  <div
-                    onClick={() => isAdmin && handleAudienceClick('READERS', 'MONTH')}
-                    style={{
-                      borderTop: '1px dashed #E2E8F0',
-                      paddingTop: '5px',
-                      cursor: isAdmin ? 'pointer' : 'default',
-                      padding: '5px 6px 4px',
-                      margin: '0 -6px',
-                      borderRadius: '8px',
-                      transition: 'all 0.15s ease',
-                    }}
-                    onMouseEnter={(e) => { if (isAdmin) e.currentTarget.style.background = '#F8FAFC'; }}
-                    onMouseLeave={(e) => { if (isAdmin) e.currentTarget.style.background = 'transparent'; }}
-                    title={isAdmin ? 'Оқырмандар тізімін көру' : undefined}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div style={{ fontSize: '11.5px', fontWeight: 700, color: '#0F172A' }}>
-                        Оқырмандар:
-                      </div>
-                      {isAdmin && <span style={{ fontSize: '11px', color: '#94A3B8' }}>›</span>}
-                    </div>
-                    <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600, marginTop: '1px' }}>
-                      Бұл айда:{' '}
-                      <strong
-                        onClick={(e) => {
-                          if (isAdmin) {
-                            e.stopPropagation();
-                            handleAudienceClick('READERS', 'MONTH');
-                          }
-                        }}
-                        style={{ color: '#059669', textDecoration: isAdmin ? 'underline' : 'none' }}
-                      >
-                        {(stats.monthReaders ?? 0).toLocaleString('ru-RU')} адам
-                      </strong>{' '}
-                      • Жалпы:{' '}
-                      <strong
-                        onClick={(e) => {
-                          if (isAdmin) {
-                            e.stopPropagation();
-                            handleAudienceClick('READERS', 'ALL_TIME');
-                          }
-                        }}
-                        style={{ color: '#047857', textDecoration: isAdmin ? 'underline' : 'none' }}
-                      >
-                        {(stats.allTimeReaders ?? 0).toLocaleString('ru-RU')} адам
-                      </strong>
-                    </div>
-                  </div>
-
-                  {/* Actives Tier */}
-                  <div
-                    onClick={() => isAdmin && handleAudienceClick('ACTIVES', 'MONTH')}
-                    style={{
-                      borderTop: '1px dashed #E2E8F0',
-                      paddingTop: '5px',
-                      cursor: isAdmin ? 'pointer' : 'default',
-                      padding: '5px 6px 4px',
-                      margin: '0 -6px',
-                      borderRadius: '8px',
-                      transition: 'all 0.15s ease',
-                    }}
-                    onMouseEnter={(e) => { if (isAdmin) e.currentTarget.style.background = '#F8FAFC'; }}
-                    onMouseLeave={(e) => { if (isAdmin) e.currentTarget.style.background = 'transparent'; }}
-                    title={isAdmin ? 'Белсенділер тізімін көру' : undefined}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div style={{ fontSize: '11.5px', fontWeight: 700, color: '#0F172A' }}>
-                        Белсенділер:
-                      </div>
-                      {isAdmin && <span style={{ fontSize: '11px', color: '#94A3B8' }}>›</span>}
-                    </div>
-                    <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600, marginTop: '1px' }}>
-                      Бұл айда:{' '}
-                      <strong
-                        onClick={(e) => {
-                          if (isAdmin) {
-                            e.stopPropagation();
-                            handleAudienceClick('ACTIVES', 'MONTH');
-                          }
-                        }}
-                        style={{ color: '#D97706', textDecoration: isAdmin ? 'underline' : 'none' }}
-                      >
-                        {(stats.monthActives ?? 0).toLocaleString('ru-RU')} адам
-                      </strong>{' '}
-                      • Жалпы:{' '}
-                      <strong
-                        onClick={(e) => {
-                          if (isAdmin) {
-                            e.stopPropagation();
-                            handleAudienceClick('ACTIVES', 'ALL_TIME');
-                          }
-                        }}
-                        style={{ color: '#B45309', textDecoration: isAdmin ? 'underline' : 'none' }}
-                      >
-                        {(stats.allTimeActives ?? 0).toLocaleString('ru-RU')} адам
-                      </strong>
-                    </div>
-                  </div>
-                </div>
-              </div>
             </div>
 
             {/* Daily Listening Graph */}
@@ -633,7 +446,7 @@ export const BookStatsPage: React.FC = () => {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
                 <div>
                   <h3 style={{ fontSize: '17px', fontWeight: 800, color: 'var(--text-dark)', margin: 0 }}>
-                    {formatMonthLabel(selectedMonthKey)} — күнделікті тыңдалым бағандары:
+                    {formatMonthLabel(selectedMonthKey)} — {stats.userName} күнделікті тыңдалымы:
                   </h3>
                   <p style={{ fontSize: '12.5px', color: '#64748B', margin: '4px 0 0 0' }}>
                     Белсенді күндер: <strong style={{ color: 'var(--text-dark)' }}>{stats.totalListenedDays} күн</strong> • Орташа күнделікті уақыт:{' '}
@@ -713,7 +526,6 @@ export const BookStatsPage: React.FC = () => {
                           )}
                         </div>
 
-
                         {/* Date label */}
                         <span
                           style={{
@@ -739,4 +551,3 @@ export const BookStatsPage: React.FC = () => {
     </section>
   );
 };
-

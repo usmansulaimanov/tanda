@@ -194,3 +194,42 @@ export interface BookAudienceMember {
   formattedDuration: string;
   lastListenedAt?: string;
 }
+
+export interface UserBookListeningStatsResponse {
+  userId: string;
+  userName: string;
+  userEmail: string;
+  userPhone?: string;
+  userAvatarUrl?: string;
+  userIdNumber?: string;
+  userUsername?: string;
+
+  bookId: string;
+  bookTitle: string;
+  bookAuthor: string;
+  bookCoverImage?: string;
+  bookCategory?: string;
+
+  selectedMonth: string;
+  selectedMonthLabel: string;
+
+  userTodayTotalSeconds: number;
+  userTodayTotalMinutes: number;
+
+  todayBookSeconds: number;
+  todayBookMinutes: number;
+
+  monthBookSeconds: number;
+  monthBookMinutes: number;
+  monthBookHours: number;
+
+  allTimeBookSeconds: number;
+  allTimeBookMinutes: number;
+  allTimeBookHours: number;
+
+  peakDay?: BookPeakDay | null;
+  dailyList: BookDailyStat[];
+
+  totalListenedDays: number;
+  averageDailyMinutes: number;
+}

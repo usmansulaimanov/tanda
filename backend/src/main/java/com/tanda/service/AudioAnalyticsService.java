@@ -6,10 +6,12 @@ import com.tanda.dto.audio.AdminAudioStatsResponseDto;
 import com.tanda.dto.audio.TopAudioBookResponseDto;
 import com.tanda.dto.book.BookAudienceMemberDto;
 import com.tanda.dto.book.BookStatsResponseDto;
+import com.tanda.dto.book.UserBookListeningStatsResponseDto;
 import com.tanda.dto.royalty.AuthorDailyStatDto;
 import com.tanda.dto.royalty.PeakDayDto;
 
 import com.tanda.entity.AudioDailyStats;
+import com.tanda.entity.AudioSession;
 import com.tanda.entity.Author;
 import com.tanda.entity.AuthorBook;
 import com.tanda.entity.AuthorDailyBookStats;
@@ -598,6 +600,135 @@ public class AudioAnalyticsService {
         }
 
         return result;
+    }
+
+    @Transactional(readOnly = true)
+    public UserBookListeningStatsResponseDto getUserBookListeningStats(String bookId, String userId, String monthKey) {
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new ResourceNotFoundException("Кітап табылмады"));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Оқырман табылмады"));
+
+        String targetMonth = (monthKey != null && !monthKey.isBlank())
+                ? monthKey
+                : LocalDate.now(KZ_ZONE).format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM"));
+
+        YearMonth ym;
+        try {
+            ym = YearMonth.parse(targetMonth);
+        } catch (Exception e) {
+            ym = YearMonth.now(KZ_ZONE);
+            targetMonth = ym.format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM"));
+        }
+
+        LocalDate startDate = ym.atDay(1);
+        LocalDate endDate = ym.atEndOfMonth();
+        OffsetDateTime monthStart = startDate.atStartOfDay(KZ_ZONE).toOffsetDateTime();
+        OffsetDateTime monthEnd = endDate.plusDays(1).atStartOfDay(KZ_ZONE).toOffsetDateTime();
+
+        LocalDate today = LocalDate.now(KZ_ZONE);
+        OffsetDateTime todayStart = today.atStartOfDay(KZ_ZONE).toOffsetDateTime();
+
+        // 1. User's total listening across all books today
+        long userTodayTotalSec = audioSessionRepository.getUserTotalListeningSince(userId, todayStart);
+
+        // 2. User's listening for THIS book today
+        long todayBookSec = audioSessionRepository.getUserBookListeningSince(bookId, userId, todayStart);
+
+        // 3. User's listening for THIS book all-time
+        long allTimeBookSec = audioSessionRepository.getUserBookListeningAllTime(bookId, userId);
+
+        // 4. Daily breakdown for this month
+        List<AudioSession> monthSessions = audioSessionRepository.findUserSessionsForBookBetween(bookId, userId, monthStart, monthEnd);
+        Map<LocalDate, Long> daySums = new HashMap<>();
+        for (AudioSession s : monthSessions) {
+            if (s.getStartedAt() != null && s.getValidSeconds() != null) {
+                LocalDate d = s.getStartedAt().atZoneSameInstant(KZ_ZONE).toLocalDate();
+                daySums.put(d, daySums.getOrDefault(d, 0L) + s.getValidSeconds());
+            }
+        }
+
+        List<AuthorDailyStatDto> dailyList = new ArrayList<>();
+        long monthTotalSec = 0L;
+        LocalDate peakDay = null;
+        long peakSeconds = 0L;
+
+        for (LocalDate d = startDate; !d.isAfter(endDate); d = d.plusDays(1)) {
+            long sec = daySums.getOrDefault(d, 0L);
+            monthTotalSec += sec;
+
+            if (sec > peakSeconds) {
+                peakSeconds = sec;
+                peakDay = d;
+            }
+
+            dailyList.add(AuthorDailyStatDto.builder()
+                    .date(d.toString())
+                    .label(d.format(java.time.format.DateTimeFormatter.ofPattern("d MMMM", new java.util.Locale("kk", "KZ"))))
+                    .shortLabel(d.format(java.time.format.DateTimeFormatter.ofPattern("d MMM", new java.util.Locale("kk", "KZ"))))
+                    .seconds(sec)
+                    .minutes(Math.round((sec / 60.0) * 10.0) / 10.0)
+                    .isToday(d.equals(today))
+                    .isPeak(false)
+                    .build());
+        }
+
+        if (monthTotalSec > allTimeBookSec) {
+            allTimeBookSec = monthTotalSec;
+        }
+
+        PeakDayDto peakDayDto = null;
+        if (peakDay != null && peakSeconds > 0) {
+            final LocalDate finalPeakDay = peakDay;
+            for (AuthorDailyStatDto ds : dailyList) {
+                if (ds.getDate().equals(finalPeakDay.toString())) {
+                    ds.setIsPeak(true);
+                }
+            }
+            peakDayDto = PeakDayDto.builder()
+                    .date(peakDay.toString())
+                    .label(peakDay.format(java.time.format.DateTimeFormatter.ofPattern("d MMMM", new java.util.Locale("kk", "KZ"))))
+                    .seconds(peakSeconds)
+                    .minutes(Math.round((peakSeconds / 60.0) * 10.0) / 10.0)
+                    .build();
+        }
+
+        int totalListenedDays = (int) dailyList.stream().filter(d -> d.getSeconds() > 0).count();
+        double avgDailyMin = totalListenedDays > 0
+                ? Math.round(((monthTotalSec / 60.0) / totalListenedDays) * 10.0) / 10.0
+                : 0.0;
+
+        return UserBookListeningStatsResponseDto.builder()
+                .userId(user.getId())
+                .userName(user.getName())
+                .userEmail(user.getEmail())
+                .userPhone(user.getPhone())
+                .userAvatarUrl(user.getAvatarUrl())
+                .userIdNumber(user.getIdNumber())
+                .userUsername(user.getUsername())
+                .bookId(book.getId())
+                .bookTitle(book.getTitle())
+                .bookAuthor(book.getAuthor())
+                .bookCoverImage(book.getCoverImage())
+                .bookCategory(book.getCategory())
+                .selectedMonth(targetMonth)
+                .selectedMonthLabel(RoyaltyService.getMonthLabel(targetMonth))
+                .userTodayTotalSeconds(userTodayTotalSec)
+                .userTodayTotalMinutes(Math.round((userTodayTotalSec / 60.0) * 10.0) / 10.0)
+                .todayBookSeconds(todayBookSec)
+                .todayBookMinutes(Math.round((todayBookSec / 60.0) * 10.0) / 10.0)
+                .monthBookSeconds(monthTotalSec)
+                .monthBookMinutes(Math.round((monthTotalSec / 60.0) * 10.0) / 10.0)
+                .monthBookHours(Math.round((monthTotalSec / 3600.0) * 10.0) / 10.0)
+                .allTimeBookSeconds(allTimeBookSec)
+                .allTimeBookMinutes(Math.round((allTimeBookSec / 60.0) * 10.0) / 10.0)
+                .allTimeBookHours(Math.round((allTimeBookSec / 3600.0) * 10.0) / 10.0)
+                .peakDay(peakDayDto)
+                .dailyList(dailyList)
+                .totalListenedDays(totalListenedDays)
+                .averageDailyMinutes(avgDailyMin)
+                .build();
     }
 
 
