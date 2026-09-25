@@ -212,61 +212,53 @@ export const UserBookStatsPage: React.FC = () => {
                 Артқа қайту
               </button>
 
-              {/* Reader + Book Info Block */}
+              {/* Book Info Block (matching Image 2) */}
               {stats && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-                  {/* Reader Avatar */}
+                  {/* Book Cover */}
                   <div
                     style={{
-                      width: '48px',
-                      height: '48px',
-                      borderRadius: '50%',
+                      width: '56px',
+                      height: '56px',
+                      borderRadius: '12px',
                       overflow: 'hidden',
-                      background: '#F1F5F9',
-                      border: '2px solid #E2E8F0',
+                      background: '#E2E8F0',
+                      border: '1.5px solid #CBD5E1',
                       flexShrink: 0,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       fontWeight: 900,
-                      color: '#475569',
-                      fontSize: '16px',
+                      color: '#64748B',
                     }}
                   >
-                    {stats.userAvatarUrl ? (
-                      <img src={stats.userAvatarUrl} alt={stats.userName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    {stats.bookCoverImage ? (
+                      <img
+                        src={stats.bookCoverImage}
+                        alt={stats.bookTitle}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
                     ) : (
-                      stats.userName?.charAt(0)?.toUpperCase() || 'U'
+                      <span style={{ fontSize: '20px' }}>📖</span>
                     )}
                   </div>
 
                   <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                      <h1 style={{ fontSize: '19px', fontWeight: 900, color: '#0F172A', margin: 0 }}>
-                        {stats.userName}
-                      </h1>
+                    <h1 style={{ fontSize: '20px', fontWeight: 900, color: '#0F172A', margin: 0 }}>
+                      {stats.bookTitle}
+                    </h1>
+
+                    <div style={{ fontSize: '13px', color: '#64748B', marginTop: '3px', fontWeight: 600 }}>
+                      Авторы: <strong style={{ color: '#0F172A' }}>{stats.bookAuthor}</strong>
+                      <span style={{ margin: '0 8px', color: '#CBD5E1' }}>•</span>
+                      Оқырман: <strong style={{ color: '#0F172A' }}>{stats.userName}</strong>
                       {stats.userIdNumber && (
-                        <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748B', background: '#F1F5F9', padding: '2px 8px', borderRadius: '6px' }}>
+                        <span style={{ marginLeft: '6px', fontSize: '11px', fontWeight: 800, color: 'var(--blue)', background: 'rgba(0, 84, 148, 0.08)', padding: '2px 6px', borderRadius: '4px' }}>
                           ID: {stats.userIdNumber}
                         </span>
                       )}
-                      <span
-                        style={{
-                          fontSize: '11px',
-                          fontWeight: 700,
-                          color: 'var(--blue)',
-                          background: 'rgba(0, 84, 148, 0.08)',
-                          padding: '2px 8px',
-                          borderRadius: '6px',
-                        }}
-                      >
-                        «{stats.bookTitle}» кітабын тыңдау статистикасы
-                      </span>
-                    </div>
-
-                    <div style={{ fontSize: '12px', color: '#64748B', marginTop: '3px', fontWeight: 600 }}>
+                      <span style={{ margin: '0 8px', color: '#CBD5E1' }}>•</span>
                       <strong style={{ color: '#0F172A' }}>{stats.userEmail}</strong>
-                      {stats.userPhone && <> • Тел: <strong style={{ color: '#0F172A' }}>{stats.userPhone}</strong></>}
                     </div>
                   </div>
                 </div>
