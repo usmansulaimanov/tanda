@@ -558,19 +558,29 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         const cfi = start.cfi;
 
         let pct = 0;
-        const dispPage = start.displayed?.page;
-        const dispTotal = start.displayed?.total;
+        let totalLocs = 0;
+        let curPage = 1;
 
-        if (typeof dispTotal === 'number' && dispTotal > 0) {
-          setTotalBookPages(dispTotal);
+        if (book.locations && book.locations.length() > 0) {
+          totalLocs = (book.locations as any).total || book.locations.length();
         }
 
-        // 1. Calculate true book-wide percentage
+        if (totalLocs > 0) {
+          setTotalBookPages(totalLocs);
+        }
+
+        // 1. Calculate true book-wide percentage and page number
         if (book.locations && book.locations.length() > 0 && cfi) {
           try {
             const rawPct = book.locations.percentageFromCfi(cfi);
             if (typeof rawPct === 'number' && !isNaN(rawPct)) {
               pct = Math.max(0, Math.min(100, Math.round(rawPct * 100)));
+            }
+            const locIdx = book.locations.locationFromCfi(cfi) as any;
+            if (typeof locIdx === 'number' && locIdx >= 0 && totalLocs > 0) {
+              curPage = Math.max(1, Math.min(totalLocs, locIdx + 1));
+            } else if (totalLocs > 0) {
+              curPage = Math.max(1, Math.min(totalLocs, Math.round((pct / 100) * totalLocs) || 1));
             }
           } catch (e) {
             console.warn('Error computing location percentage:', e);
@@ -581,12 +591,6 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
           const spineLen = (book.spine as any).length;
           const spineIdx = typeof start.index === 'number' ? start.index : 0;
           pct = Math.max(0, Math.min(100, Math.round((spineIdx / (spineLen - 1)) * 100)));
-        } else if (typeof dispPage === 'number' && typeof dispTotal === 'number' && dispTotal > 0) {
-          if (dispPage >= dispTotal) {
-            pct = 100;
-          } else if (dispTotal > 1) {
-            pct = Math.max(1, Math.min(99, Math.round(((dispPage - 1) / (dispTotal - 1)) * 100)));
-          }
         }
 
         // Accurate boundary detection (never use rounded integer pct === 0)
@@ -594,8 +598,8 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         if (location.atStart) {
           atStart = true;
         } else if (start.index === 0) {
-          if (typeof dispPage === 'number') {
-            atStart = dispPage <= 1;
+          if (totalLocs > 0 && curPage <= 1) {
+            atStart = true;
           } else if (book.locations && book.locations.length() > 0 && cfi) {
             const locIdx = book.locations.locationFromCfi(cfi) as any;
             atStart = typeof locIdx === 'number' && locIdx <= 0;
@@ -609,12 +613,11 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         if (location.atEnd) {
           atEnd = true;
         } else if (spineLen > 0 && typeof start.index === 'number' && start.index >= spineLen - 1) {
-          if (typeof dispPage === 'number' && typeof dispTotal === 'number') {
-            atEnd = dispPage >= dispTotal;
+          if (totalLocs > 0 && curPage >= totalLocs) {
+            atEnd = true;
           } else if (book.locations && book.locations.length() > 0 && cfi) {
             const locIdx = book.locations.locationFromCfi(cfi) as any;
-            const totLoc = (book.locations as any).total || book.locations.length();
-            atEnd = typeof locIdx === 'number' && typeof totLoc === 'number' && locIdx >= totLoc - 1;
+            atEnd = typeof locIdx === 'number' && locIdx >= totalLocs - 1;
           }
         }
 
@@ -625,8 +628,8 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
 
         // Compute page text info
         let pageText = '';
-        if (dispPage && dispTotal && dispTotal > 1) {
-          pageText = `${dispPage} / ${dispTotal} бет`;
+        if (totalLocs > 0) {
+          pageText = `${curPage} / ${totalLocs} бет`;
         } else if (book.spine && (book.spine as any).length > 1) {
           const curSpine = (start.index ?? 0) + 1;
           const totSpine = (book.spine as any).length;
