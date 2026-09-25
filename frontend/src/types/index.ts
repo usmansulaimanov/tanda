@@ -181,4 +181,16 @@ export interface BookStatsResponse {
   averageDailyMinutes: number;
 }
 
-
+export interface BookAudienceMember {
+  userId: string;
+  idNumber?: string;
+  name: string;
+  email: string;
+  phone?: string;
+  username?: string;
+  avatarUrl?: string;
+  totalSeconds: number;
+  totalMinutes: number;
+  formattedDuration: string;
+  lastListenedAt?: string;
+}

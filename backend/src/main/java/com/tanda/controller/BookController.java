@@ -5,12 +5,14 @@ import com.tanda.dto.BookDetailResponseDto;
 import com.tanda.dto.BookResponseDto;
 import com.tanda.dto.CreateBookRequestDto;
 import com.tanda.dto.UpdateBookRequestDto;
+import com.tanda.dto.book.BookAudienceMemberDto;
 import com.tanda.dto.book.BookStatsResponseDto;
 import com.tanda.security.UserPrincipal;
 import com.tanda.service.AudioAnalyticsService;
 import com.tanda.service.BookService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -79,6 +81,16 @@ public class BookController {
                 .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
         String userId = principal != null ? principal.getId() : authentication.getName();
         return ResponseEntity.ok(audioAnalyticsService.getBookStats(id, month, userId, isAdmin));
+    }
+
+    @GetMapping("/{id}/audience")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<com.tanda.dto.book.BookAudienceMemberDto>> getBookAudience(
+            @PathVariable String id,
+            @RequestParam(defaultValue = "LISTENERS") String tier,
+            @RequestParam(defaultValue = "MONTH") String scope,
+            @RequestParam(required = false) String month) {
+        return ResponseEntity.ok(audioAnalyticsService.getBookAudience(id, tier, scope, month));
     }
 
 

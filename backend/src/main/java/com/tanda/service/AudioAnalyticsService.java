@@ -4,6 +4,7 @@ import com.tanda.dto.audio.AdminAudioBookStatDto;
 
 import com.tanda.dto.audio.AdminAudioStatsResponseDto;
 import com.tanda.dto.audio.TopAudioBookResponseDto;
+import com.tanda.dto.book.BookAudienceMemberDto;
 import com.tanda.dto.book.BookStatsResponseDto;
 import com.tanda.dto.royalty.AuthorDailyStatDto;
 import com.tanda.dto.royalty.PeakDayDto;
@@ -526,6 +527,77 @@ public class AudioAnalyticsService {
                 .totalListenedDays(totalListenedDays)
                 .averageDailyMinutes(avgDailyMin)
                 .build();
+    }
+
+    @Transactional(readOnly = true)
+    public List<BookAudienceMemberDto> getBookAudience(String bookId, String tier, String scope, String monthKey) {
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new ResourceNotFoundException("Кітап табылмады"));
+
+        int minSeconds = 60;
+        if ("READERS".equalsIgnoreCase(tier)) {
+            minSeconds = 900;
+        } else if ("ACTIVES".equalsIgnoreCase(tier)) {
+            minSeconds = 3600;
+        }
+
+        List<Object[]> rawList;
+        if ("ALL_TIME".equalsIgnoreCase(scope)) {
+            rawList = audioSessionRepository.getAudienceForBookAllTime(bookId, minSeconds);
+        } else {
+            String targetMonth = (monthKey != null && !monthKey.isBlank())
+                    ? monthKey
+                    : LocalDate.now(KZ_ZONE).format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM"));
+
+            YearMonth ym;
+            try {
+                ym = YearMonth.parse(targetMonth);
+            } catch (Exception e) {
+                ym = YearMonth.now(KZ_ZONE);
+            }
+            LocalDate startDate = ym.atDay(1);
+            LocalDate endDate = ym.atEndOfMonth();
+            OffsetDateTime monthStart = startDate.atStartOfDay(KZ_ZONE).toOffsetDateTime();
+            OffsetDateTime monthEnd = endDate.plusDays(1).atStartOfDay(KZ_ZONE).toOffsetDateTime();
+            rawList = audioSessionRepository.getAudienceForBookBetween(bookId, monthStart, monthEnd, minSeconds);
+        }
+
+        List<BookAudienceMemberDto> result = new ArrayList<>();
+        for (Object[] row : rawList) {
+            User u = (User) row[0];
+            long sec = ((Number) row[1]).longValue();
+            OffsetDateTime lastListened = row[2] != null ? (OffsetDateTime) row[2] : null;
+
+            long minutes = sec / 60;
+            long hours = sec / 3600;
+            long remMin = minutes % 60;
+            long remSec = sec % 60;
+
+            String formattedDuration;
+            if (hours > 0) {
+                formattedDuration = hours + " сағ" + (remMin > 0 ? " " + remMin + " мин" : "");
+            } else if (minutes > 0) {
+                formattedDuration = minutes + " мин" + (remSec > 0 ? " " + remSec + " сек" : "");
+            } else {
+                formattedDuration = sec + " сек";
+            }
+
+            result.add(BookAudienceMemberDto.builder()
+                    .userId(u.getId())
+                    .idNumber(u.getIdNumber())
+                    .name(u.getName())
+                    .email(u.getEmail())
+                    .phone(u.getPhone())
+                    .username(u.getUsername())
+                    .avatarUrl(u.getAvatarUrl())
+                    .totalSeconds(sec)
+                    .totalMinutes(minutes)
+                    .formattedDuration(formattedDuration.trim())
+                    .lastListenedAt(lastListened)
+                    .build());
+        }
+
+        return result;
     }
 
 

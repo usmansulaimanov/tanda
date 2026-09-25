@@ -40,5 +40,16 @@ export const booksApi = {
     const { data } = await apiClient.get<import('../../types').BookStatsResponse>(`/api/v1/books/${id}/stats`, { params });
     return data;
   },
+
+  getAudience: async (
+    id: string,
+    params?: { tier?: string; scope?: string; month?: string }
+  ): Promise<import('../../types').BookAudienceMember[]> => {
+    const { data } = await apiClient.get<import('../../types').BookAudienceMember[]>(
+      `/api/v1/books/${id}/audience`,
+      { params }
+    );
+    return data;
+  },
 };
 

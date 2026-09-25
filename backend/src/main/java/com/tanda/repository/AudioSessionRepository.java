@@ -61,6 +61,26 @@ public interface AudioSessionRepository extends JpaRepository<AudioSession, Stri
            "WHERE s.book.id = :bookId " +
            "GROUP BY s.userId")
     List<Object[]> getUserListeningSumsForBookAllTime(@Param("bookId") String bookId);
+
+    @Query("SELECT u, COALESCE(SUM(s.validSeconds), 0), MAX(s.lastHeartbeatAt) " +
+           "FROM AudioSession s, User u " +
+           "WHERE s.userId = u.id AND s.book.id = :bookId AND s.startedAt >= :start AND s.startedAt < :end " +
+           "GROUP BY u " +
+           "HAVING COALESCE(SUM(s.validSeconds), 0) >= :minSeconds " +
+           "ORDER BY COALESCE(SUM(s.validSeconds), 0) DESC")
+    List<Object[]> getAudienceForBookBetween(@Param("bookId") String bookId,
+                                            @Param("start") OffsetDateTime start,
+                                            @Param("end") OffsetDateTime end,
+                                            @Param("minSeconds") int minSeconds);
+
+    @Query("SELECT u, COALESCE(SUM(s.validSeconds), 0), MAX(s.lastHeartbeatAt) " +
+           "FROM AudioSession s, User u " +
+           "WHERE s.userId = u.id AND s.book.id = :bookId " +
+           "GROUP BY u " +
+           "HAVING COALESCE(SUM(s.validSeconds), 0) >= :minSeconds " +
+           "ORDER BY COALESCE(SUM(s.validSeconds), 0) DESC")
+    List<Object[]> getAudienceForBookAllTime(@Param("bookId") String bookId,
+                                            @Param("minSeconds") int minSeconds);
 }
 
 

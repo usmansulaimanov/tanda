@@ -3,7 +3,7 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useToastStore } from '../../store/useToastStore';
 import { booksApi } from '../../shared/api/books.api';
-import { BookStatsResponse } from '../../types';
+import { BookStatsResponse, BookAudienceMember } from '../../types';
 import { Skeleton } from '../../shared/ui';
 
 export const formatListeningTime = (totalSecInput: number | undefined | null) => {
@@ -68,6 +68,66 @@ export const BookStatsPage: React.FC = () => {
   const [stats, setStats] = useState<BookStatsResponse | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // Audience Drilldown Modal state (Admin only)
+  const [audienceModalOpen, setAudienceModalOpen] = useState(false);
+  const [audienceTier, setAudienceTier] = useState<'LISTENERS' | 'READERS' | 'ACTIVES'>('LISTENERS');
+  const [audienceScope, setAudienceScope] = useState<'MONTH' | 'ALL_TIME'>('MONTH');
+  const [audienceMembers, setAudienceMembers] = useState<BookAudienceMember[]>([]);
+  const [isAudienceLoading, setIsAudienceLoading] = useState(false);
+  const [audienceSearch, setAudienceSearch] = useState('');
+
+  const openAudienceModal = async (tier: 'LISTENERS' | 'READERS' | 'ACTIVES', scope: 'MONTH' | 'ALL_TIME' = 'MONTH') => {
+    if (!isAdmin || !bookId) return;
+    setAudienceTier(tier);
+    setAudienceScope(scope);
+    setAudienceSearch('');
+    setAudienceModalOpen(true);
+    setIsAudienceLoading(true);
+    try {
+      const data = await booksApi.getAudience(bookId, {
+        tier,
+        scope,
+        month: selectedMonthKey,
+      });
+      setAudienceMembers(Array.isArray(data) ? data : []);
+    } catch (err: any) {
+      console.error('Failed to load audience:', err);
+      showToast('Аудитория тізімін жүктеу сәтсіз аяқталды', 'error');
+    } finally {
+      setIsAudienceLoading(false);
+    }
+  };
+
+  const handleAudienceScopeChange = async (newScope: 'MONTH' | 'ALL_TIME') => {
+    if (!bookId) return;
+    setAudienceScope(newScope);
+    setIsAudienceLoading(true);
+    try {
+      const data = await booksApi.getAudience(bookId, {
+        tier: audienceTier,
+        scope: newScope,
+        month: selectedMonthKey,
+      });
+      setAudienceMembers(Array.isArray(data) ? data : []);
+    } catch (err: any) {
+      console.error('Failed to load audience:', err);
+    } finally {
+      setIsAudienceLoading(false);
+    }
+  };
+
+  const filteredAudienceMembers = useMemo(() => {
+    if (!audienceSearch.trim()) return audienceMembers;
+    const q = audienceSearch.toLowerCase().trim();
+    return audienceMembers.filter((m) =>
+      m.name?.toLowerCase().includes(q) ||
+      m.email?.toLowerCase().includes(q) ||
+      m.phone?.toLowerCase().includes(q) ||
+      m.idNumber?.toLowerCase().includes(q) ||
+      m.username?.toLowerCase().includes(q)
+    );
+  }, [audienceMembers, audienceSearch]);
 
   // Month list for selector (last 12 months)
   const availableMonths = useMemo(() => {
@@ -452,32 +512,162 @@ export const BookStatsPage: React.FC = () => {
                   justifyContent: 'center',
                 }}
               >
-                <div style={{ fontSize: '13px', fontWeight: 800, color: '#475569', marginBottom: '8px' }}>
-                  Аудитория белсенділігі
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 800, color: '#475569' }}>
+                    Аудитория белсенділігі
+                  </div>
+                  {isAdmin && (
+                    <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--blue)', background: 'rgba(0, 84, 148, 0.08)', padding: '2px 6px', borderRadius: '4px' }}>
+                      Админ
+                    </span>
+                  )}
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
-                  <div>
-                    <div style={{ fontSize: '11.5px', fontWeight: 700, color: '#0F172A' }}>
-                      Тыңдармандар:
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {/* Listeners Tier */}
+                  <div
+                    onClick={() => isAdmin && openAudienceModal('LISTENERS', 'MONTH')}
+                    style={{
+                      cursor: isAdmin ? 'pointer' : 'default',
+                      padding: '4px 6px',
+                      margin: '0 -6px',
+                      borderRadius: '8px',
+                      transition: 'all 0.15s ease',
+                    }}
+                    onMouseEnter={(e) => { if (isAdmin) e.currentTarget.style.background = '#F8FAFC'; }}
+                    onMouseLeave={(e) => { if (isAdmin) e.currentTarget.style.background = 'transparent'; }}
+                    title={isAdmin ? 'Тыңдармандар тізімін көру' : undefined}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ fontSize: '11.5px', fontWeight: 700, color: '#0F172A' }}>
+                        Тыңдармандар:
+                      </div>
+                      {isAdmin && <span style={{ fontSize: '11px', color: '#94A3B8' }}>›</span>}
                     </div>
                     <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600, marginTop: '1px' }}>
-                      Бұл айда: <strong style={{ color: '#2563EB' }}>{(stats.monthListeners ?? stats.monthUniqueListeners).toLocaleString('ru-RU')} адам</strong> • Жалпы: <strong style={{ color: '#0F172A' }}>{(stats.allTimeListeners ?? stats.allTimeUniqueListeners).toLocaleString('ru-RU')} адам</strong>
+                      Бұл айда:{' '}
+                      <strong
+                        onClick={(e) => {
+                          if (isAdmin) {
+                            e.stopPropagation();
+                            openAudienceModal('LISTENERS', 'MONTH');
+                          }
+                        }}
+                        style={{ color: '#2563EB', textDecoration: isAdmin ? 'underline' : 'none' }}
+                      >
+                        {(stats.monthListeners ?? stats.monthUniqueListeners).toLocaleString('ru-RU')} адам
+                      </strong>{' '}
+                      • Жалпы:{' '}
+                      <strong
+                        onClick={(e) => {
+                          if (isAdmin) {
+                            e.stopPropagation();
+                            openAudienceModal('LISTENERS', 'ALL_TIME');
+                          }
+                        }}
+                        style={{ color: '#0F172A', textDecoration: isAdmin ? 'underline' : 'none' }}
+                      >
+                        {(stats.allTimeListeners ?? stats.allTimeUniqueListeners).toLocaleString('ru-RU')} адам
+                      </strong>
                     </div>
                   </div>
-                  <div style={{ borderTop: '1px dashed #E2E8F0', paddingTop: '5px' }}>
-                    <div style={{ fontSize: '11.5px', fontWeight: 700, color: '#0F172A' }}>
-                      Оқырмандар:
+
+                  {/* Readers Tier */}
+                  <div
+                    onClick={() => isAdmin && openAudienceModal('READERS', 'MONTH')}
+                    style={{
+                      borderTop: '1px dashed #E2E8F0',
+                      paddingTop: '5px',
+                      cursor: isAdmin ? 'pointer' : 'default',
+                      padding: '5px 6px 4px',
+                      margin: '0 -6px',
+                      borderRadius: '8px',
+                      transition: 'all 0.15s ease',
+                    }}
+                    onMouseEnter={(e) => { if (isAdmin) e.currentTarget.style.background = '#F8FAFC'; }}
+                    onMouseLeave={(e) => { if (isAdmin) e.currentTarget.style.background = 'transparent'; }}
+                    title={isAdmin ? 'Оқырмандар тізімін көру' : undefined}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ fontSize: '11.5px', fontWeight: 700, color: '#0F172A' }}>
+                        Оқырмандар:
+                      </div>
+                      {isAdmin && <span style={{ fontSize: '11px', color: '#94A3B8' }}>›</span>}
                     </div>
                     <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600, marginTop: '1px' }}>
-                      Бұл айда: <strong style={{ color: '#059669' }}>{(stats.monthReaders ?? 0).toLocaleString('ru-RU')} адам</strong> • Жалпы: <strong style={{ color: '#047857' }}>{(stats.allTimeReaders ?? 0).toLocaleString('ru-RU')} адам</strong>
+                      Бұл айда:{' '}
+                      <strong
+                        onClick={(e) => {
+                          if (isAdmin) {
+                            e.stopPropagation();
+                            openAudienceModal('READERS', 'MONTH');
+                          }
+                        }}
+                        style={{ color: '#059669', textDecoration: isAdmin ? 'underline' : 'none' }}
+                      >
+                        {(stats.monthReaders ?? 0).toLocaleString('ru-RU')} адам
+                      </strong>{' '}
+                      • Жалпы:{' '}
+                      <strong
+                        onClick={(e) => {
+                          if (isAdmin) {
+                            e.stopPropagation();
+                            openAudienceModal('READERS', 'ALL_TIME');
+                          }
+                        }}
+                        style={{ color: '#047857', textDecoration: isAdmin ? 'underline' : 'none' }}
+                      >
+                        {(stats.allTimeReaders ?? 0).toLocaleString('ru-RU')} адам
+                      </strong>
                     </div>
                   </div>
-                  <div style={{ borderTop: '1px dashed #E2E8F0', paddingTop: '5px' }}>
-                    <div style={{ fontSize: '11.5px', fontWeight: 700, color: '#0F172A' }}>
-                      Белсенділер:
+
+                  {/* Actives Tier */}
+                  <div
+                    onClick={() => isAdmin && openAudienceModal('ACTIVES', 'MONTH')}
+                    style={{
+                      borderTop: '1px dashed #E2E8F0',
+                      paddingTop: '5px',
+                      cursor: isAdmin ? 'pointer' : 'default',
+                      padding: '5px 6px 4px',
+                      margin: '0 -6px',
+                      borderRadius: '8px',
+                      transition: 'all 0.15s ease',
+                    }}
+                    onMouseEnter={(e) => { if (isAdmin) e.currentTarget.style.background = '#F8FAFC'; }}
+                    onMouseLeave={(e) => { if (isAdmin) e.currentTarget.style.background = 'transparent'; }}
+                    title={isAdmin ? 'Белсенділер тізімін көру' : undefined}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ fontSize: '11.5px', fontWeight: 700, color: '#0F172A' }}>
+                        Белсенділер:
+                      </div>
+                      {isAdmin && <span style={{ fontSize: '11px', color: '#94A3B8' }}>›</span>}
                     </div>
                     <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600, marginTop: '1px' }}>
-                      Бұл айда: <strong style={{ color: '#D97706' }}>{(stats.monthActives ?? 0).toLocaleString('ru-RU')} адам</strong> • Жалпы: <strong style={{ color: '#B45309' }}>{(stats.allTimeActives ?? 0).toLocaleString('ru-RU')} адам</strong>
+                      Бұл айда:{' '}
+                      <strong
+                        onClick={(e) => {
+                          if (isAdmin) {
+                            e.stopPropagation();
+                            openAudienceModal('ACTIVES', 'MONTH');
+                          }
+                        }}
+                        style={{ color: '#D97706', textDecoration: isAdmin ? 'underline' : 'none' }}
+                      >
+                        {(stats.monthActives ?? 0).toLocaleString('ru-RU')} адам
+                      </strong>{' '}
+                      • Жалпы:{' '}
+                      <strong
+                        onClick={(e) => {
+                          if (isAdmin) {
+                            e.stopPropagation();
+                            openAudienceModal('ACTIVES', 'ALL_TIME');
+                          }
+                        }}
+                        style={{ color: '#B45309', textDecoration: isAdmin ? 'underline' : 'none' }}
+                      >
+                        {(stats.allTimeActives ?? 0).toLocaleString('ru-RU')} адам
+                      </strong>
                     </div>
                   </div>
                 </div>
@@ -601,6 +791,376 @@ export const BookStatsPage: React.FC = () => {
           </>
         )}
       </div>
+
+      {/* Admin Audience Drilldown Modal */}
+      {isAdmin && audienceModalOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setAudienceModalOpen(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(15, 23, 42, 0.6)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            padding: '16px',
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: '#FFFFFF',
+              borderRadius: '24px',
+              width: '100%',
+              maxWidth: '620px',
+              maxHeight: '85vh',
+              display: 'flex',
+              flexDirection: 'column',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              overflow: 'hidden',
+              border: '1.5px solid #E2E8F0',
+            }}
+          >
+            {/* Modal Header */}
+            <div
+              style={{
+                padding: '20px 24px 16px',
+                borderBottom: '1.5px solid #F1F5F9',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                background: '#FFFFFF',
+              }}
+            >
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <h3 style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A', margin: 0 }}>
+                    {audienceTier === 'LISTENERS'
+                      ? 'Тыңдармандар тізімі'
+                      : audienceTier === 'READERS'
+                      ? 'Оқырмандар тізімі'
+                      : 'Белсенділер тізімі'}
+                  </h3>
+                  <span
+                    style={{
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      padding: '3px 8px',
+                      borderRadius: '12px',
+                      background:
+                        audienceTier === 'LISTENERS'
+                          ? '#EFF6FF'
+                          : audienceTier === 'READERS'
+                          ? '#ECFDF5'
+                          : '#FFFBEB',
+                      color:
+                        audienceTier === 'LISTENERS'
+                          ? '#2563EB'
+                          : audienceTier === 'READERS'
+                          ? '#059669'
+                          : '#D97706',
+                    }}
+                  >
+                    {filteredAudienceMembers.length} адам
+                  </span>
+                </div>
+                <p style={{ fontSize: '12px', color: '#64748B', margin: '3px 0 0 0' }}>
+                  {stats?.title} • {audienceScope === 'MONTH' ? formatMonthLabel(selectedMonthKey) : 'Барлық уақытта'}
+                </p>
+              </div>
+
+              {/* Close button */}
+              <button
+                type="button"
+                onClick={() => setAudienceModalOpen(false)}
+                style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '10px',
+                  background: '#F1F5F9',
+                  border: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  color: '#64748B',
+                  transition: 'all 0.15s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = '#E2E8F0';
+                  e.currentTarget.style.color = '#0F172A';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = '#F1F5F9';
+                  e.currentTarget.style.color = '#64748B';
+                }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+
+            {/* Scope Switcher & Search Bar */}
+            <div style={{ padding: '14px 24px', background: '#F8FAFC', borderBottom: '1.5px solid #F1F5F9', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {/* Scope Switcher pills */}
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => handleAudienceScopeChange('MONTH')}
+                  style={{
+                    flex: 1,
+                    padding: '7px 12px',
+                    borderRadius: '10px',
+                    fontSize: '12px',
+                    fontWeight: 800,
+                    border: '1.5px solid',
+                    borderColor: audienceScope === 'MONTH' ? 'var(--blue)' : '#E2E8F0',
+                    background: audienceScope === 'MONTH' ? 'rgba(0, 84, 148, 0.08)' : '#FFFFFF',
+                    color: audienceScope === 'MONTH' ? 'var(--blue)' : '#64748B',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  Бұл айда ({formatMonthLabel(selectedMonthKey)})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleAudienceScopeChange('ALL_TIME')}
+                  style={{
+                    flex: 1,
+                    padding: '7px 12px',
+                    borderRadius: '10px',
+                    fontSize: '12px',
+                    fontWeight: 800,
+                    border: '1.5px solid',
+                    borderColor: audienceScope === 'ALL_TIME' ? 'var(--blue)' : '#E2E8F0',
+                    background: audienceScope === 'ALL_TIME' ? 'rgba(0, 84, 148, 0.08)' : '#FFFFFF',
+                    color: audienceScope === 'ALL_TIME' ? 'var(--blue)' : '#64748B',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  Жалпы (барлық уақытта)
+                </button>
+              </div>
+
+              {/* Search input */}
+              <div style={{ position: 'relative' }}>
+                <input
+                  type="text"
+                  placeholder="Аты-жөні, поштасы немесе ID бойынша іздеу..."
+                  value={audienceSearch}
+                  onChange={(e) => setAudienceSearch(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px 8px 34px',
+                    borderRadius: '10px',
+                    border: '1.5px solid #E2E8F0',
+                    fontSize: '12.5px',
+                    outline: 'none',
+                    background: '#FFFFFF',
+                    boxSizing: 'border-box',
+                  }}
+                />
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#94A3B8"
+                  strokeWidth="2.5"
+                  style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }}
+                >
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                {audienceSearch && (
+                  <button
+                    type="button"
+                    onClick={() => setAudienceSearch('')}
+                    style={{
+                      position: 'absolute',
+                      right: '8px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      border: 'none',
+                      background: 'none',
+                      color: '#94A3B8',
+                      cursor: 'pointer',
+                      fontSize: '12px',
+                    }}
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Modal Body - User List */}
+            <div style={{ flex: 1, overflowY: 'auto', padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: '10px' }} className="custom-scrollbar">
+              {isAudienceLoading ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <Skeleton className="h-16 rounded-xl" />
+                  <Skeleton className="h-16 rounded-xl" />
+                  <Skeleton className="h-16 rounded-xl" />
+                </div>
+              ) : filteredAudienceMembers.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '40px 20px', color: '#94A3B8' }}>
+                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>👤</div>
+                  <div style={{ fontSize: '14px', fontWeight: 700, color: '#475569' }}>
+                    {audienceSearch ? 'Іздеу бойынша ешкім табылмады' : 'Бұл санатта әзірге оқырман жоқ'}
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '4px' }}>
+                    {audienceTier === 'LISTENERS'
+                      ? 'Кемінде 1 минут тыңдаған қолданушылар'
+                      : audienceTier === 'READERS'
+                      ? 'Кемінде 15 минут тыңдаған қолданушылар'
+                      : 'Кемінде 1 сағат тыңдаған белсенді оқырмандар'}
+                  </div>
+                </div>
+              ) : (
+                filteredAudienceMembers.map((member, idx) => (
+                  <div
+                    key={member.userId || idx}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '12px 14px',
+                      borderRadius: '14px',
+                      border: '1.5px solid #F1F5F9',
+                      background: '#FFFFFF',
+                      transition: 'all 0.15s ease',
+                      gap: '12px',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = '#CBD5E1';
+                      e.currentTarget.style.background = '#F8FAFC';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = '#F1F5F9';
+                      e.currentTarget.style.background = '#FFFFFF';
+                    }}
+                  >
+                    {/* User info */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0, flex: 1 }}>
+                      <div
+                        style={{
+                          width: '40px',
+                          height: '40px',
+                          borderRadius: '50%',
+                          overflow: 'hidden',
+                          background: '#E2E8F0',
+                          flexShrink: 0,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontWeight: 800,
+                          color: '#475569',
+                          fontSize: '14px',
+                        }}
+                      >
+                        {member.avatarUrl ? (
+                          <img src={member.avatarUrl} alt={member.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ) : (
+                          member.name?.charAt(0)?.toUpperCase() || 'U'
+                        )}
+                      </div>
+
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                          <span style={{ fontSize: '13.5px', fontWeight: 800, color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {member.name}
+                          </span>
+                          {member.idNumber && (
+                            <span style={{ fontSize: '10px', fontWeight: 700, color: '#64748B', background: '#F1F5F9', padding: '1px 6px', borderRadius: '4px' }}>
+                              ID: {member.idNumber}
+                            </span>
+                          )}
+                          {member.username && (
+                            <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--blue)' }}>
+                              @{member.username}
+                            </span>
+                          )}
+                        </div>
+                        <div style={{ fontSize: '11.5px', color: '#64748B', marginTop: '2px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                          <span>{member.email}</span>
+                          {member.phone && <span>• {member.phone}</span>}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Duration badge */}
+                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                      <div
+                        style={{
+                          fontSize: '13px',
+                          fontWeight: 900,
+                          color:
+                            audienceTier === 'LISTENERS'
+                              ? '#2563EB'
+                              : audienceTier === 'READERS'
+                              ? '#059669'
+                              : '#D97706',
+                          background:
+                            audienceTier === 'LISTENERS'
+                              ? '#EFF6FF'
+                              : audienceTier === 'READERS'
+                              ? '#ECFDF5'
+                              : '#FFFBEB',
+                          padding: '4px 10px',
+                          borderRadius: '8px',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {member.formattedDuration}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div
+              style={{
+                padding: '14px 24px',
+                borderTop: '1.5px solid #F1F5F9',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                background: '#F8FAFC',
+              }}
+            >
+              <div style={{ fontSize: '12px', color: '#64748B', fontWeight: 600 }}>
+                Барлығы: <strong style={{ color: '#0F172A' }}>{filteredAudienceMembers.length} адам</strong>
+              </div>
+              <button
+                type="button"
+                onClick={() => setAudienceModalOpen(false)}
+                style={{
+                  background: '#0F172A',
+                  color: '#FFFFFF',
+                  padding: '8px 18px',
+                  borderRadius: '10px',
+                  border: 'none',
+                  fontSize: '12.5px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                }}
+              >
+                Жабу
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 };
