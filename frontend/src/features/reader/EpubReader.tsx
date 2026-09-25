@@ -172,12 +172,27 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         margin: 0 !important;
         padding: 0 !important;
         box-sizing: border-box !important;
+        height: 100% !important;
       }
       p, div, span, h1, h2, h3, h4, h5, h6, li {
         color: ${current.text} !important;
         -webkit-text-fill-color: ${current.text} !important;
         max-width: 100% !important;
         word-break: break-word !important;
+        orphans: 1 !important;
+        widows: 1 !important;
+        break-inside: auto !important;
+        page-break-inside: auto !important;
+      }
+      p {
+        margin-top: 0 !important;
+        margin-bottom: 0.75em !important;
+        line-height: 1.6 !important;
+      }
+      h1, h2, h3, h4, h5, h6 {
+        margin-top: 0.8em !important;
+        margin-bottom: 0.4em !important;
+        line-height: 1.3 !important;
       }
       *, *::before, *::after {
         color: ${current.text} !important;
