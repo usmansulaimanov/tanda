@@ -5,7 +5,7 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { useMyBooksStore } from '../../store/useMyBooksStore';
 import { api } from '../../lib/api';
 import { Book } from '../../types';
-import { EpubReader } from './EpubReader';
+import { EpubReader, getLightBgByTemp } from './EpubReader';
 
 export const ReaderPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -19,6 +19,7 @@ export const ReaderPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [fontSize, setFontSize] = useState<number>(17);
   const [theme, setTheme] = useState<'light' | 'sepia' | 'dark'>('light');
+  const [colorTemperature, setColorTemperature] = useState<number>(0);
 
   const handleProgressChange = React.useCallback(
     (pct: number) => {
@@ -185,11 +186,11 @@ export const ReaderPage: React.FC = () => {
     );
   }
 
-  const themeClasses = {
-    light: 'reader-mode-light',
-    sepia: 'reader-mode-sepia',
-    dark: 'reader-mode-dark',
-  };
+  const lightBgInfo = getLightBgByTemp(colorTemperature);
+  const pageBg = theme === 'dark' ? '#020617' : theme === 'sepia' ? '#F4E8CD' : lightBgInfo.containerBg;
+  const pageTextColor = theme === 'dark' ? '#F1F5F9' : theme === 'sepia' ? '#433422' : '#0F172A';
+  const pageBorderColor = theme === 'dark' ? '#1E293B' : theme === 'sepia' ? '#EAD7B5' : lightBgInfo.border;
+  const topBarBg = theme === 'dark' ? '#0F172A' : theme === 'sepia' ? '#FBF0D9' : lightBgInfo.headerBg;
 
   const isEpub = Boolean(
     book?.ebookUrl &&
@@ -199,72 +200,86 @@ export const ReaderPage: React.FC = () => {
   );
 
   return (
-    <div className={themeClasses[theme]} style={{ minHeight: '100vh', transition: 'background 0.2s, color 0.2s' }}>
+    <div
+      style={{
+        minHeight: '100vh',
+        backgroundColor: pageBg,
+        color: pageTextColor,
+        transition: 'background-color 0.25s ease, color 0.25s ease',
+      }}
+    >
       {/* Top Bar */}
       <div
-        className="border-b border-black/10 px-3 sm:px-6 py-2.5 sm:py-4 max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-2.5"
+        style={{
+          backgroundColor: topBarBg,
+          borderBottom: `1px solid ${pageBorderColor}`,
+          color: pageTextColor,
+          transition: 'background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease',
+        }}
       >
-        <button
-          onClick={() => navigate(-1)}
-          style={{
-            background: 'none',
-            border: 'none',
-            color: 'inherit',
-            fontWeight: 700,
-            cursor: 'pointer',
-            fontSize: '14px',
-          }}
-        >
-          ← Артқа
-        </button>
+        <div className="px-3 sm:px-6 py-2.5 sm:py-4 max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-2.5">
+          <button
+            onClick={() => navigate(-1)}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: pageTextColor,
+              fontWeight: 700,
+              cursor: 'pointer',
+              fontSize: '14px',
+            }}
+          >
+            ← Артқа
+          </button>
 
-        <div className="text-center order-first sm:order-none w-full sm:w-auto">
-          <h3 style={{ fontSize: '15px', fontWeight: 800, margin: 0 }}>{book.title}</h3>
-          <span style={{ fontSize: '12px', opacity: 0.75 }}>
-            {book.author} {isEpub ? '' : `(Бет: ${currentPage})`}
-          </span>
-        </div>
-
-        {/* Controls - shown for standard text mode or PDF */}
-        {!isEpub && (
-          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-center">
-            <button
-              className="reader-theme-btn"
-              onClick={() => setFontSize((f) => Math.max(13, f - 2))}
-            >
-              A -
-            </button>
-            <span style={{ fontSize: '12px', fontWeight: 700, width: '32px', textAlign: 'center' }}>
-              {fontSize}px
+          <div className="text-center order-first sm:order-none w-full sm:w-auto">
+            <h3 style={{ fontSize: '15px', fontWeight: 800, margin: 0, color: pageTextColor }}>{book.title}</h3>
+            <span style={{ fontSize: '12px', opacity: 0.75, color: pageTextColor }}>
+              {book.author} {isEpub ? '' : `(Бет: ${currentPage})`}
             </span>
-            <button
-              className="reader-theme-btn"
-              onClick={() => setFontSize((f) => Math.min(26, f + 2))}
-            >
-              A +
-            </button>
-
-            {/* Theme buttons */}
-            <button
-              className={`reader-theme-btn ${theme === 'light' ? 'active' : ''}`}
-              onClick={() => setTheme('light')}
-            >
-              Ашық
-            </button>
-            <button
-              className={`reader-theme-btn ${theme === 'sepia' ? 'active' : ''}`}
-              onClick={() => setTheme('sepia')}
-            >
-              Сепия
-            </button>
-            <button
-              className={`reader-theme-btn ${theme === 'dark' ? 'active' : ''}`}
-              onClick={() => setTheme('dark')}
-            >
-              Түнгі
-            </button>
           </div>
-        )}
+
+          {/* Controls - shown for standard text mode or PDF */}
+          {!isEpub && (
+            <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-center">
+              <button
+                className="reader-theme-btn"
+                onClick={() => setFontSize((f) => Math.max(13, f - 2))}
+              >
+                A -
+              </button>
+              <span style={{ fontSize: '12px', fontWeight: 700, width: '32px', textAlign: 'center' }}>
+                {fontSize}px
+              </span>
+              <button
+                className="reader-theme-btn"
+                onClick={() => setFontSize((f) => Math.min(26, f + 2))}
+              >
+                A +
+              </button>
+
+              {/* Theme buttons */}
+              <button
+                className={`reader-theme-btn ${theme === 'light' ? 'active' : ''}`}
+                onClick={() => setTheme('light')}
+              >
+                Ашық
+              </button>
+              <button
+                className={`reader-theme-btn ${theme === 'sepia' ? 'active' : ''}`}
+                onClick={() => setTheme('sepia')}
+              >
+                Сепия
+              </button>
+              <button
+                className={`reader-theme-btn ${theme === 'dark' ? 'active' : ''}`}
+                onClick={() => setTheme('dark')}
+              >
+                Түнгі
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Reader Body */}
@@ -275,6 +290,10 @@ export const ReaderPage: React.FC = () => {
               url={book.ebookUrl}
               bookTitle={book.title}
               bookAuthor={book.author}
+              theme={theme}
+              onThemeChange={setTheme}
+              colorTemperature={colorTemperature}
+              onColorTemperatureChange={setColorTemperature}
               onProgressChange={handleProgressChange}
             />
           ) : (

@@ -2,12 +2,58 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import ePub, { Book as EpubBookInstance, Rendition } from 'epubjs';
 import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Sun, Moon, BookOpen, AlertCircle, RefreshCw } from 'lucide-react';
 
-interface EpubReaderProps {
+export interface EpubReaderProps {
   url: string;
   bookTitle?: string;
   bookAuthor?: string;
   onProgressChange?: (progressPercent: number, locationCfi: string) => void;
   initialLocation?: string;
+  theme?: 'light' | 'sepia' | 'dark';
+  onThemeChange?: (theme: 'light' | 'sepia' | 'dark') => void;
+  colorTemperature?: number;
+  onColorTemperatureChange?: (temp: number) => void;
+}
+
+export function getLightBgByTemp(temp: number): { bg: string; containerBg: string; border: string; headerBg: string } {
+  if (!temp || temp === 0) {
+    return {
+      bg: '#FFFFFF',
+      containerBg: '#F8FAFC',
+      border: '#E2E8F0',
+      headerBg: '#FFFFFF',
+    };
+  }
+  if (temp > 0) {
+    // Warm: soft warm ivory/cream (0 to +50)
+    const r = Math.min(1, Math.max(0, temp / 50));
+    const red = Math.round(255 - r * 3);
+    const green = Math.round(255 - r * 11);
+    const blue = Math.round(255 - r * 32);
+    const bg = `rgb(${red}, ${green}, ${blue})`;
+    const contBg = `rgb(${red - 8}, ${green - 10}, ${blue - 13})`;
+    const border = `rgb(${red - 20}, ${green - 24}, ${blue - 28})`;
+    return {
+      bg,
+      containerBg: contBg,
+      border,
+      headerBg: bg,
+    };
+  } else {
+    // Cool: soft crisp cool blue-white (0 to -50)
+    const r = Math.min(1, Math.max(0, Math.abs(temp) / 50));
+    const red = Math.round(255 - r * 16);
+    const green = Math.round(255 - r * 8);
+    const blue = 255;
+    const bg = `rgb(${red}, ${green}, ${blue})`;
+    const contBg = `rgb(${red - 8}, ${green - 6}, ${blue - 3})`;
+    const border = `rgb(${red - 22}, ${green - 18}, ${blue - 14})`;
+    return {
+      bg,
+      containerBg: contBg,
+      border,
+      headerBg: bg,
+    };
+  }
 }
 
 export const EpubReader: React.FC<EpubReaderProps> = ({
@@ -16,6 +62,10 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
   bookAuthor,
   onProgressChange,
   initialLocation,
+  theme: propTheme,
+  onThemeChange,
+  colorTemperature: propColorTemperature,
+  onColorTemperatureChange,
 }) => {
   const viewerRef = useRef<HTMLDivElement>(null);
   const bookRef = useRef<EpubBookInstance | null>(null);
@@ -24,17 +74,24 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [fontSize, setFontSize] = useState<number>(18);
-  const [theme, setTheme] = useState<'light' | 'sepia' | 'dark'>('light');
+  const [internalTheme, setInternalTheme] = useState<'light' | 'sepia' | 'dark'>('light');
+  const theme = propTheme !== undefined ? propTheme : internalTheme;
+
+  const [internalColorTemperature, setInternalColorTemperature] = useState<number>(0);
+  const colorTemperature = propColorTemperature !== undefined ? propColorTemperature : internalColorTemperature;
+
   const [currentLocationText, setCurrentLocationText] = useState<string>('');
   const [progressPercent, setProgressPercent] = useState<number>(0);
 
+  const lightBgInfo = getLightBgByTemp(colorTemperature);
+
   const themeStyles = {
     light: {
-      bg: '#FFFFFF',
+      bg: lightBgInfo.bg,
       text: '#0F172A',
-      containerBg: '#F8FAFC',
-      border: '#E2E8F0',
-      headerBg: '#FFFFFF',
+      containerBg: lightBgInfo.containerBg,
+      border: lightBgInfo.border,
+      headerBg: lightBgInfo.headerBg,
     },
     sepia: {
       bg: '#FBF0D9',
@@ -58,8 +115,14 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
     themeRef.current = theme;
   }, [theme]);
 
-  const getThemeCss = (selectedTheme: 'light' | 'sepia' | 'dark') => {
-    const current = themeStyles[selectedTheme];
+  const colorTempRef = useRef(colorTemperature);
+  useEffect(() => {
+    colorTempRef.current = colorTemperature;
+  }, [colorTemperature]);
+
+  const getThemeCss = (selectedTheme: 'light' | 'sepia' | 'dark', temp: number) => {
+    const lightDynamic = getLightBgByTemp(temp);
+    const current = selectedTheme === 'light' ? { ...themeStyles.light, ...lightDynamic } : themeStyles[selectedTheme];
     return `
       html, body {
         background-color: ${current.bg} !important;
@@ -87,15 +150,17 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
     `;
   };
 
-  const applyDirectThemeStyleToDoc = useCallback((doc: Document | null | undefined, selectedTheme: 'light' | 'sepia' | 'dark') => {
+  const applyDirectThemeStyleToDoc = useCallback((doc: Document | null | undefined, selectedTheme: 'light' | 'sepia' | 'dark', temp: number) => {
     if (!doc) return;
     try {
+      const lightDynamic = getLightBgByTemp(temp);
+      const current = selectedTheme === 'light' ? { ...themeStyles.light, ...lightDynamic } : themeStyles[selectedTheme];
       let style = doc.getElementById('tanda-reader-theme-style') as HTMLStyleElement | null;
       if (!style) {
         style = doc.createElement('style');
         style.id = 'tanda-reader-theme-style';
       }
-      style.textContent = getThemeCss(selectedTheme);
+      style.textContent = getThemeCss(selectedTheme, temp);
       if (doc.head) {
         doc.head.appendChild(style);
       } else if (doc.body) {
@@ -103,14 +168,14 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
       }
 
       if (doc.body) {
-        doc.body.style.setProperty('background-color', themeStyles[selectedTheme].bg, 'important');
-        doc.body.style.setProperty('color', themeStyles[selectedTheme].text, 'important');
-        doc.body.style.setProperty('-webkit-text-fill-color', themeStyles[selectedTheme].text, 'important');
+        doc.body.style.setProperty('background-color', current.bg, 'important');
+        doc.body.style.setProperty('color', current.text, 'important');
+        doc.body.style.setProperty('-webkit-text-fill-color', current.text, 'important');
       }
       if (doc.documentElement) {
-        doc.documentElement.style.setProperty('background-color', themeStyles[selectedTheme].bg, 'important');
-        doc.documentElement.style.setProperty('color', themeStyles[selectedTheme].text, 'important');
-        doc.documentElement.style.setProperty('-webkit-text-fill-color', themeStyles[selectedTheme].text, 'important');
+        doc.documentElement.style.setProperty('background-color', current.bg, 'important');
+        doc.documentElement.style.setProperty('color', current.text, 'important');
+        doc.documentElement.style.setProperty('-webkit-text-fill-color', current.text, 'important');
       }
     } catch (e) {
       console.warn('Error applying direct theme style to doc:', e);
@@ -214,7 +279,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
           if (doc) {
             const parserErrors = doc.querySelectorAll('parsererror');
             parserErrors.forEach((el: Element) => el.remove());
-            applyDirectThemeStyleToDoc(doc, themeRef.current);
+            applyDirectThemeStyleToDoc(doc, themeRef.current, colorTempRef.current);
           }
         } catch {}
       });
@@ -225,7 +290,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
           if (doc) {
             const parserErrors = doc.querySelectorAll('parsererror');
             parserErrors.forEach((el: Element) => el.remove());
-            applyDirectThemeStyleToDoc(doc, themeRef.current);
+            applyDirectThemeStyleToDoc(doc, themeRef.current, colorTempRef.current);
           }
         } catch {}
       });
@@ -316,7 +381,8 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
   };
 
   const handleThemeChange = (newTheme: 'light' | 'sepia' | 'dark') => {
-    setTheme(newTheme);
+    setInternalTheme(newTheme);
+    onThemeChange?.(newTheme);
     themeRef.current = newTheme;
     if (renditionRef.current) {
       applyThemeToRendition(renditionRef.current, newTheme, fontSize);
@@ -325,7 +391,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         contents.forEach((content: any) => {
           const doc = content.document || content.window?.document;
           if (doc) {
-            applyDirectThemeStyleToDoc(doc, newTheme);
+            applyDirectThemeStyleToDoc(doc, newTheme, colorTempRef.current);
           }
         });
         if (viewerRef.current) {
@@ -333,13 +399,42 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
           iframes.forEach((iframe) => {
             try {
               if (iframe.contentDocument) {
-                applyDirectThemeStyleToDoc(iframe.contentDocument, newTheme);
+                applyDirectThemeStyleToDoc(iframe.contentDocument, newTheme, colorTempRef.current);
               }
             } catch {}
           });
         }
       } catch (err) {
         console.warn('Failed to update open iframe themes:', err);
+      }
+    }
+  };
+
+  const handleColorTempChange = (temp: number) => {
+    setInternalColorTemperature(temp);
+    onColorTemperatureChange?.(temp);
+    colorTempRef.current = temp;
+    if (renditionRef.current && themeRef.current === 'light') {
+      try {
+        const contents = (renditionRef.current as any).getContents?.() || [];
+        contents.forEach((content: any) => {
+          const doc = content.document || content.window?.document;
+          if (doc) {
+            applyDirectThemeStyleToDoc(doc, 'light', temp);
+          }
+        });
+        if (viewerRef.current) {
+          const iframes = viewerRef.current.querySelectorAll('iframe');
+          iframes.forEach((iframe) => {
+            try {
+              if (iframe.contentDocument) {
+                applyDirectThemeStyleToDoc(iframe.contentDocument, 'light', temp);
+              }
+            } catch {}
+          });
+        }
+      } catch (err) {
+        console.warn('Failed to update color temperature in iframe:', err);
       }
     }
   };
@@ -365,6 +460,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         overflow: 'hidden',
         position: 'relative',
         boxShadow: '0 8px 30px rgba(0, 0, 0, 0.06)',
+        transition: 'background-color 0.25s ease, border-color 0.25s ease',
       }}
     >
       {/* Top Controls Bar */}
@@ -379,6 +475,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
           zIndex: 10,
           flexWrap: 'wrap',
           gap: '12px',
+          transition: 'background-color 0.25s ease, border-color 0.25s ease',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -394,8 +491,8 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
           </div>
         </div>
 
-        {/* Right side controls: font, theme, progress */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        {/* Right side controls: font, theme, color temperature, progress */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
           {/* Font Size Controls */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: activeTheme.containerBg, padding: '3px', borderRadius: '8px', border: `1px solid ${activeTheme.border}` }}>
             <button
@@ -436,6 +533,64 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
               A+
             </button>
           </div>
+
+          {/* White Balance / Color Temperature Slider (Only in Light mode) */}
+          {theme === 'light' && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                background: activeTheme.containerBg,
+                padding: '3px 10px',
+                borderRadius: '8px',
+                border: `1px solid ${activeTheme.border}`,
+                transition: 'all 0.2s',
+              }}
+              title="Ақ түс балансы: солға қарай — салқын, оңға қарай — жылы"
+            >
+              <span style={{ fontSize: '11px', fontWeight: 600, color: '#2563EB', userSelect: 'none' }}>
+                Салқын
+              </span>
+              <div style={{ position: 'relative', display: 'flex', alignItems: 'center', width: '90px' }}>
+                <input
+                  type="range"
+                  min="-50"
+                  max="50"
+                  step="1"
+                  value={colorTemperature}
+                  onChange={(e) => handleColorTempChange(parseInt(e.target.value, 10))}
+                  style={{
+                    width: '100%',
+                    height: '5px',
+                    borderRadius: '3px',
+                    background: 'linear-gradient(to right, #93C5FD 0%, #CBD5E1 50%, #FDE047 100%)',
+                    appearance: 'none',
+                    outline: 'none',
+                    cursor: 'pointer',
+                  }}
+                />
+                {/* Center marker dot */}
+                <div
+                  style={{
+                    position: 'absolute',
+                    left: '50%',
+                    top: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    width: '3px',
+                    height: '9px',
+                    backgroundColor: '#64748B',
+                    borderRadius: '2px',
+                    pointerEvents: 'none',
+                    zIndex: 1,
+                  }}
+                />
+              </div>
+              <span style={{ fontSize: '11px', fontWeight: 600, color: '#D97706', userSelect: 'none' }}>
+                Жылы
+              </span>
+            </div>
+          )}
 
           {/* Theme Switcher */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: activeTheme.containerBg, padding: '3px', borderRadius: '8px', border: `1px solid ${activeTheme.border}` }}>
