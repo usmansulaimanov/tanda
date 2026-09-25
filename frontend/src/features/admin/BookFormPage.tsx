@@ -318,6 +318,13 @@ export const BookFormPage: React.FC = () => {
     if (!author.trim()) {
       newErrors.author = 'Автордың аты-жөнін енгізіңіз';
     }
+    if (categories.length === 0) {
+      newErrors.categories = 'Кітаптың жанрын таңдаңыз';
+    }
+    const pagesNum = parseInt(pages, 10);
+    if (!pages.trim() || isNaN(pagesNum) || pagesNum <= 0) {
+      newErrors.pages = 'Кітаптың бет санын енгізіңіз (кемінде 1 бет)';
+    }
 
     const finalAudioUrl = audioChapters.find((ch) => ch.audioUrl?.trim())?.audioUrl || audioUrl.trim() || '';
     let finalChapters = [...audioChapters];

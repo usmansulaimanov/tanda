@@ -29,6 +29,7 @@ public class CreateBookRequestDto {
     @NotBlank(message = "Category is required")
     private String category;
 
+    @NotNull(message = "Pages is required")
     @Min(value = 1, message = "Pages must be at least 1")
     private Integer pages;
 
