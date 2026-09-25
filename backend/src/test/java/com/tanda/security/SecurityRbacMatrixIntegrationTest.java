@@ -550,6 +550,8 @@ public class SecurityRbacMatrixIntegrationTest {
                     .author("Автор 1")
                     .category("Бизнес")
                     .pages(120)
+                    .hasEbook(true)
+                    .ebookUrl("https://example.com/book1.epub")
                     .build();
 
             mockMvc.perform(post("/api/books")
@@ -566,6 +568,8 @@ public class SecurityRbacMatrixIntegrationTest {
                     .author("Автор 2")
                     .category("Тарих")
                     .pages(180)
+                    .hasEbook(true)
+                    .ebookUrl("https://example.com/book2.pdf")
                     .build();
 
             mockMvc.perform(post("/api/v1/books")
@@ -584,6 +588,8 @@ public class SecurityRbacMatrixIntegrationTest {
                     .author("Автор")
                     .category("Классика")
                     .pages(110)
+                    .hasEbook(true)
+                    .ebookUrl("https://example.com/updated.pdf")
                     .build();
 
             mockMvc.perform(put("/api/v1/books/" + RBAC_BOOK_ID)

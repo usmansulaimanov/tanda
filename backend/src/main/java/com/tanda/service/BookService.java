@@ -7,6 +7,7 @@ import com.tanda.dto.CreateBookRequestDto;
 import com.tanda.dto.UpdateBookRequestDto;
 import com.tanda.entity.AudioChapter;
 import com.tanda.entity.Book;
+import com.tanda.exception.BadRequestException;
 import com.tanda.exception.ResourceNotFoundException;
 import com.tanda.repository.BookRepository;
 import lombok.RequiredArgsConstructor;
@@ -107,14 +108,19 @@ public class BookService {
                 || (dto.getAudioUrl() != null && !dto.getAudioUrl().isBlank())
                 || (dto.getAudioChapters() != null && !dto.getAudioChapters().isEmpty());
 
+        boolean hasEbook = Boolean.TRUE.equals(dto.getHasEbook())
+                || (dto.getEbookUrl() != null && !dto.getEbookUrl().isBlank());
+
+        if (!hasAudio && !hasEbook) {
+            throw new BadRequestException("Кітапты тіркеу үшін кемінде электронды кітап (PDF/EPUB) немесе аудио нұсқасы болуы қажет.");
+        }
+
         String effectiveAudioUrl = (dto.getAudioUrl() != null && !dto.getAudioUrl().isBlank())
                 ? dto.getAudioUrl().trim()
                 : (dto.getAudioChapters() != null && !dto.getAudioChapters().isEmpty() && dto.getAudioChapters().get(0).getAudioUrl() != null
                     ? dto.getAudioChapters().get(0).getAudioUrl().trim()
                     : null);
 
-        boolean hasEbook = Boolean.TRUE.equals(dto.getHasEbook())
-                || (dto.getEbookUrl() != null && !dto.getEbookUrl().isBlank());
         String effectiveEbookUrl = (dto.getEbookUrl() != null && !dto.getEbookUrl().isBlank())
                 ? dto.getEbookUrl().trim()
                 : null;
@@ -178,14 +184,19 @@ public class BookService {
                 || (dto.getAudioUrl() != null && !dto.getAudioUrl().isBlank())
                 || (dto.getAudioChapters() != null && !dto.getAudioChapters().isEmpty());
 
+        boolean hasEbook = Boolean.TRUE.equals(dto.getHasEbook())
+                || (dto.getEbookUrl() != null && !dto.getEbookUrl().isBlank());
+
+        if (!hasAudio && !hasEbook) {
+            throw new BadRequestException("Кітапты тіркеу үшін кемінде электронды кітап (PDF/EPUB) немесе аудио нұсқасы болуы қажет.");
+        }
+
         String effectiveAudioUrl = (dto.getAudioUrl() != null && !dto.getAudioUrl().isBlank())
                 ? dto.getAudioUrl().trim()
                 : (dto.getAudioChapters() != null && !dto.getAudioChapters().isEmpty() && dto.getAudioChapters().get(0).getAudioUrl() != null
                     ? dto.getAudioChapters().get(0).getAudioUrl().trim()
                     : null);
 
-        boolean hasEbook = Boolean.TRUE.equals(dto.getHasEbook())
-                || (dto.getEbookUrl() != null && !dto.getEbookUrl().isBlank());
         String effectiveEbookUrl = (dto.getEbookUrl() != null && !dto.getEbookUrl().isBlank())
                 ? dto.getEbookUrl().trim()
                 : null;

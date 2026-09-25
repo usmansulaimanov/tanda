@@ -4,6 +4,7 @@ import { useBookStore } from '../../store/useBookStore';
 import { useToastStore } from '../../store/useToastStore';
 import { AudioChapter } from '../../types';
 import { isYouTubeUrl, getYouTubeEmbedUrl } from '../../utils/youtube';
+import { mediaApi } from '../../shared/api/media.api';
 
 const CATEGORIES = [
   'Көркем әдебиет',
@@ -42,6 +43,7 @@ export const BookFormPage: React.FC = () => {
   const { books, addBook, updateBook } = useBookStore();
   const { showToast } = useToastStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const ebookFileInputRef = useRef<HTMLInputElement>(null);
 
   const isEditing = Boolean(id);
   const existingBook = isEditing ? books.find((b) => b.id === id) : null;
@@ -61,6 +63,8 @@ export const BookFormPage: React.FC = () => {
   const [hasEbook, setHasEbook] = useState(false);
   const [ebookUrl, setEbookUrl] = useState('');
   const [ebookFormat, setEbookFormat] = useState('PDF');
+  const [isUploadingEbook, setIsUploadingEbook] = useState(false);
+  const [uploadedEbookFileName, setUploadedEbookFileName] = useState('');
 
   // Audio settings
   const [hasAudio, setHasAudio] = useState(false);
@@ -156,6 +160,52 @@ export const BookFormPage: React.FC = () => {
     setCoverImage('');
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
+    }
+  };
+
+  const handleEbookFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const fileNameLower = file.name.toLowerCase();
+    const isEpub = fileNameLower.endsWith('.epub');
+    const isPdf = fileNameLower.endsWith('.pdf');
+
+    if (!isEpub && !isPdf && file.type !== 'application/pdf' && file.type !== 'application/epub+zip') {
+      showToast('Тек PDF немесе EPUB форматындағы электронды кітапты жүктей аласыз', 'error');
+      return;
+    }
+
+    if (file.size > 100 * 1024 * 1024) {
+      showToast('Кітап файлының өлшемі 100MB-тан аспауы керек', 'error');
+      return;
+    }
+
+    try {
+      setIsUploadingEbook(true);
+      const res = await mediaApi.uploadFile(file, 'books');
+      setEbookUrl(res.url);
+      setUploadedEbookFileName(file.name);
+      setHasEbook(true);
+      if (isEpub) {
+        setEbookFormat('EPUB');
+      } else if (isPdf) {
+        setEbookFormat('PDF');
+      }
+      showToast('Электронды кітап сәтті жүктелді', 'success');
+    } catch (err: any) {
+      console.error('Ebook upload error:', err);
+      showToast(err.response?.data?.message || 'Файлды жүктеу кезінде қате орын алды', 'error');
+    } finally {
+      setIsUploadingEbook(false);
+    }
+  };
+
+  const removeEbookFile = () => {
+    setEbookUrl('');
+    setUploadedEbookFileName('');
+    if (ebookFileInputRef.current) {
+      ebookFileInputRef.current.value = '';
     }
   };
 
@@ -269,6 +319,28 @@ export const BookFormPage: React.FC = () => {
       newErrors.author = 'Автордың аты-жөнін енгізіңіз';
     }
 
+    const finalAudioUrl = audioChapters.find((ch) => ch.audioUrl?.trim())?.audioUrl || audioUrl.trim() || '';
+    let finalChapters = [...audioChapters];
+    if (finalChapters.length === 0 && finalAudioUrl) {
+      finalChapters = [
+        {
+          id: `ch-${Date.now()}`,
+          title: '1-бөлім',
+          duration: audioDuration.trim() || '00:00',
+          audioUrl: finalAudioUrl,
+        },
+      ];
+    } else if (finalChapters.length > 0 && finalAudioUrl && !finalChapters[0].audioUrl?.trim()) {
+      finalChapters[0] = { ...finalChapters[0], audioUrl: finalAudioUrl };
+    }
+
+    const effectiveHasAudio = Boolean((hasAudio || finalAudioUrl) && (finalAudioUrl || (finalChapters.length > 0 && finalChapters.some((c) => Boolean(c.audioUrl?.trim())))));
+    const effectiveHasEbook = Boolean((hasEbook || ebookUrl.trim()) && ebookUrl.trim());
+
+    if (!effectiveHasAudio && !effectiveHasEbook) {
+      newErrors.content = 'Кітапты қосу үшін кемінде электронды кітап (PDF/EPUB) немесе аудио нұсқасын енгізу қажет';
+    }
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       const firstKey = Object.keys(newErrors)[0];
@@ -293,24 +365,6 @@ export const BookFormPage: React.FC = () => {
     const validPages = !isNaN(pagesNum) && pagesNum > 0 ? pagesNum : (existingBook?.pages || 1);
     const finalCategories = categories.length > 0 ? categories : (existingBook?.categories || ['Көркем әдебиет']);
     const categoryString = finalCategories.join(', ');
-
-    const finalAudioUrl = audioChapters.find((ch) => ch.audioUrl?.trim())?.audioUrl || audioUrl.trim() || '';
-    let finalChapters = [...audioChapters];
-    if (finalChapters.length === 0 && finalAudioUrl) {
-      finalChapters = [
-        {
-          id: `ch-${Date.now()}`,
-          title: '1-бөлім',
-          duration: audioDuration.trim() || '00:00',
-          audioUrl: finalAudioUrl,
-        },
-      ];
-    } else if (finalChapters.length > 0 && finalAudioUrl && !finalChapters[0].audioUrl?.trim()) {
-      finalChapters[0] = { ...finalChapters[0], audioUrl: finalAudioUrl };
-    }
-
-    const effectiveHasAudio = Boolean(finalAudioUrl) || hasAudio || (finalChapters.length > 0 && finalChapters.some((c) => Boolean(c.audioUrl?.trim())));
-    const effectiveHasEbook = Boolean(hasEbook || ebookUrl.trim());
 
     const bookData = {
       title: title.trim(),
@@ -1042,6 +1096,106 @@ export const BookFormPage: React.FC = () => {
                         <option value="TXT">Мәтіндік (TXT / FB2)</option>
                       </select>
                     </div>
+                  </div>
+
+                  {/* E-book File Upload from Computer */}
+                  <div style={{ marginBottom: '16px' }}>
+                    <label className="form-label" style={{ fontSize: '12px', color: '#475569' }}>
+                      Электронды кітапты компьютерден жүктеу:
+                    </label>
+
+                    <input
+                      type="file"
+                      ref={ebookFileInputRef}
+                      accept=".pdf,.epub,application/pdf,application/epub+zip"
+                      onChange={handleEbookFileChange}
+                      style={{ display: 'none' }}
+                      id="ebook-file-upload"
+                    />
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                      <label
+                        htmlFor="ebook-file-upload"
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          padding: '10px 18px',
+                          background: isUploadingEbook ? '#E2E8F0' : '#FFFFFF',
+                          border: '1.5px solid #005494',
+                          color: '#005494',
+                          borderRadius: '8px',
+                          fontSize: '13px',
+                          fontWeight: 700,
+                          cursor: isUploadingEbook ? 'not-allowed' : 'pointer',
+                          transition: 'all 0.2s',
+                          boxShadow: '0 1px 2px rgba(0, 84, 148, 0.08)',
+                        }}
+                      >
+                        {isUploadingEbook ? (
+                          <>
+                            <div
+                              style={{
+                                width: '16px',
+                                height: '16px',
+                                borderRadius: '50%',
+                                border: '2px solid #005494',
+                                borderTopColor: 'transparent',
+                                animation: 'spin 0.8s linear infinite',
+                              }}
+                            />
+                            Жүктелуде...
+                          </>
+                        ) : (
+                          <>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                              <polyline points="17 8 12 3 7 8"></polyline>
+                              <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                            Файлды таңдау
+                          </>
+                        )}
+                      </label>
+
+                      {ebookUrl && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ fontSize: '13px', fontWeight: 600, color: '#047857', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            ✓ {uploadedEbookFileName || (ebookUrl.startsWith('/uploads/') ? ebookUrl.split('/').pop() : 'Файл тіркелді')}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={removeEbookFile}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              padding: '5px 10px',
+                              background: '#FEE2E2',
+                              border: 'none',
+                              borderRadius: '6px',
+                              color: '#DC2626',
+                              fontSize: '12px',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                            }}
+                          >
+                            Өшіру
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    <span className="form-hint" style={{ marginTop: '6px', display: 'block' }}>
+                      PDF, EPUB форматы (100MB-қа дейін)
+                    </span>
+                  </div>
+
+                  {/* Divider */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '16px 0' }}>
+                    <div style={{ flex: 1, height: '1px', background: '#E2E8F0' }} />
+                    <span style={{ fontSize: '11px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase' }}>немесе</span>
+                    <div style={{ flex: 1, height: '1px', background: '#E2E8F0' }} />
                   </div>
 
                   {/* Ebook URL input */}

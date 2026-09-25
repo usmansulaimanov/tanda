@@ -187,6 +187,26 @@ class BookControllerIntegrationTest {
 
     @Test
     @org.springframework.security.test.context.support.WithMockUser(roles = "ADMIN")
+    @DisplayName("POST /api/v1/books returns 400 BAD_REQUEST when neither ebook nor audio is provided")
+    void testCreateBookWithoutEbookOrAudioFails() throws Exception {
+        CreateBookRequestDto request = CreateBookRequestDto.builder()
+                .title("Құжатсыз кітап")
+                .author("Белгісіз автор")
+                .category("Классика")
+                .pages(100)
+                .hasAudio(false)
+                .hasEbook(false)
+                .build();
+
+        mockMvc.perform(post("/api/v1/books")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status", is(400)));
+    }
+
+    @Test
+    @org.springframework.security.test.context.support.WithMockUser(roles = "ADMIN")
     @DisplayName("PUT /api/v1/books/{id} updates book and returns 200 OK")
     void testUpdateBookSuccess() throws Exception {
         String updateTargetId = "book-to-update-" + System.currentTimeMillis();
