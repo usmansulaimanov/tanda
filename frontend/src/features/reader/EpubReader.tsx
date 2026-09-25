@@ -250,8 +250,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         width: '100%',
         height: '100%',
         flow: 'paginated',
-        spread: 'auto',
-        minSpreadWidth: 800,
+        spread: 'none',
       });
       renditionRef.current = rendition;
 
