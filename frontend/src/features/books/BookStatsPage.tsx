@@ -402,8 +402,9 @@ export const BookStatsPage: React.FC = () => {
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                  <span style={{ fontSize: '13px', fontWeight: 700, color: '#64748B' }}>Жалпы (барлық уақытта)</span>
+                  <span style={{ fontSize: '13px', fontWeight: 700, color: '#64748B' }}>Жалпы</span>
                 </div>
+
                 <div style={{ fontSize: '24px', fontWeight: 900, color: '#0F172A' }}>
                   {allTime.hoursFormatted}
                 </div>
