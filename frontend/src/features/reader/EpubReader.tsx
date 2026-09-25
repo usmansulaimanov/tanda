@@ -65,6 +65,20 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
   // Apply themes to rendition
   const applyThemeToRendition = useCallback((rendition: Rendition, selectedTheme: 'light' | 'sepia' | 'dark', size: number) => {
     try {
+      const errorSuppression = {
+        display: 'none !important',
+        visibility: 'hidden !important',
+        opacity: '0 !important',
+        height: '0 !important',
+        width: '0 !important',
+        margin: '0 !important',
+        padding: '0 !important',
+        border: 'none !important',
+        overflow: 'hidden !important',
+        position: 'absolute !important',
+        'pointer-events': 'none !important',
+      };
+
       const themes = rendition.themes;
       themes.register('light', {
         body: {
@@ -77,6 +91,8 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         'p, div, span, h1, h2, h3, h4, h5, h6, li': {
           color: '#0F172A !important',
         },
+        parsererror: errorSuppression,
+        'parsererror *': errorSuppression,
       });
 
       themes.register('sepia', {
@@ -90,6 +106,8 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         'p, div, span, h1, h2, h3, h4, h5, h6, li': {
           color: '#433422 !important',
         },
+        parsererror: errorSuppression,
+        'parsererror *': errorSuppression,
       });
 
       themes.register('dark', {
@@ -103,6 +121,8 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         'p, div, span, h1, h2, h3, h4, h5, h6, li': {
           color: '#F1F5F9 !important',
         },
+        parsererror: errorSuppression,
+        'parsererror *': errorSuppression,
       });
 
       themes.select(selectedTheme);
@@ -147,6 +167,16 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
       const book = ePub(arrayBuffer);
       bookRef.current = book;
 
+      // Intercept and auto-fix unescaped XML entities before parsing
+      if (book.spine && book.spine.hooks) {
+        book.spine.hooks.serialize.register((output: string) => {
+          if (typeof output === 'string') {
+            return output.replace(/&(?!(?:[a-zA-Z]+|#\d+|#x[0-9a-fA-F]+);)/g, '&amp;');
+          }
+          return output;
+        });
+      }
+
       // Load table of contents
       book.loaded.navigation.then((nav) => {
         if (nav.toc) {
@@ -183,6 +213,41 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
       renditionRef.current = rendition;
 
       applyThemeToRendition(rendition, theme, fontSize);
+
+      // Clean up any browser parsererror elements from DOM and inject CSS overrides
+      rendition.hooks.content.register((contents: any) => {
+        try {
+          const doc = contents.document || contents.window?.document;
+          if (doc) {
+            const parserErrors = doc.querySelectorAll('parsererror');
+            parserErrors.forEach((el: Element) => el.remove());
+
+            const style = doc.createElement('style');
+            style.textContent = `
+              parsererror, parsererror * {
+                display: none !important;
+                visibility: hidden !important;
+                opacity: 0 !important;
+                height: 0 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                border: none !important;
+              }
+            `;
+            doc.head?.appendChild(style);
+          }
+        } catch {}
+      });
+
+      rendition.hooks.render.register((view: any) => {
+        try {
+          const doc = view.document || view.iframe?.contentDocument;
+          if (doc) {
+            const parserErrors = doc.querySelectorAll('parsererror');
+            parserErrors.forEach((el: Element) => el.remove());
+          }
+        } catch {}
+      });
 
       rendition.on('relocated', (location: any) => {
         if (location && location.start) {
