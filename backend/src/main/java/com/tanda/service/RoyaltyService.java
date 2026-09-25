@@ -12,6 +12,7 @@ import com.tanda.dto.royalty.RoyaltyCalculateRequestDto;
 import com.tanda.dto.royalty.RoyaltyEarningResponseDto;
 import com.tanda.dto.royalty.RoyaltyPeriodResponseDto;
 import com.tanda.entity.AudioDailyStats;
+import com.tanda.entity.AudioSession;
 import com.tanda.entity.Author;
 import com.tanda.entity.AuthorBook;
 import com.tanda.entity.AuthorDailyBookStats;
@@ -25,6 +26,7 @@ import com.tanda.exception.BadRequestException;
 import com.tanda.exception.ConflictException;
 import com.tanda.exception.ResourceNotFoundException;
 import com.tanda.repository.AudioDailyStatsRepository;
+import com.tanda.repository.AudioSessionRepository;
 import com.tanda.repository.AuthorBookRepository;
 import com.tanda.repository.AuthorDailyBookStatsRepository;
 import com.tanda.repository.AuthorRepository;
@@ -36,6 +38,7 @@ import com.tanda.repository.RoyaltyPeriodRepository;
 import com.tanda.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,6 +47,7 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.YearMonth;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -68,6 +72,7 @@ public class RoyaltyService {
     private final BookRepository bookRepository;
     private final AudioDailyStatsRepository audioDailyStatsRepository;
     private final AuthorDailyBookStatsRepository authorDailyBookStatsRepository;
+    private final AudioSessionRepository audioSessionRepository;
     private final UserRepository userRepository;
 
     private static final Map<String, String> MONTH_NAMES_KZ = Map.ofEntries(
@@ -139,13 +144,23 @@ public class RoyaltyService {
         YearMonth ym = YearMonth.parse(month);
         LocalDate startDate = ym.atDay(1);
         LocalDate endDate = ym.atEndOfMonth();
+        ZoneId almatyZone = ZoneId.of("Asia/Almaty");
+        OffsetDateTime monthStart = ym.atDay(1).atStartOfDay(almatyZone).toOffsetDateTime();
+        OffsetDateTime monthEnd = ym.plusMonths(1).atDay(1).atStartOfDay(almatyZone).toOffsetDateTime();
 
-        // 1. Audio statistics for this month
+        // 1. Audio statistics for this month from daily snapshots and live audio sessions
         List<AudioDailyStats> dailyStats = audioDailyStatsRepository.findByStatDateBetween(startDate, endDate);
         Map<String, Long> bookSecondsMap = new HashMap<>();
         for (AudioDailyStats s : dailyStats) {
             String bId = s.getBook().getId();
             bookSecondsMap.put(bId, bookSecondsMap.getOrDefault(bId, 0L) + s.getTotalSeconds());
+        }
+
+        List<Object[]> liveBookStats = audioSessionRepository.findTopAudioSessionsBetween(monthStart, monthEnd, Pageable.unpaged());
+        for (Object[] row : liveBookStats) {
+            String bId = (String) row[0];
+            long sec = ((Number) row[2]).longValue();
+            bookSecondsMap.put(bId, Math.max(bookSecondsMap.getOrDefault(bId, 0L), sec));
         }
 
         // 2. Authors and book assignments
@@ -213,12 +228,11 @@ public class RoyaltyService {
 
             Map<String, Long> authorBooksResult = new HashMap<>();
             for (String bookId : assignedBookIds) {
-                long sec;
-                if (authorBookSecFromDaily.containsKey(authorId) && authorBookSecFromDaily.get(authorId).containsKey(bookId)) {
-                    sec = authorBookSecFromDaily.get(authorId).get(bookId);
-                } else {
-                    sec = bookSecondsMap.getOrDefault(bookId, 0L);
-                }
+                long liveBookSec = bookSecondsMap.getOrDefault(bookId, 0L);
+                long dailyAuthorSec = (authorBookSecFromDaily.containsKey(authorId) && authorBookSecFromDaily.get(authorId).containsKey(bookId))
+                        ? authorBookSecFromDaily.get(authorId).get(bookId)
+                        : 0L;
+                long sec = Math.max(liveBookSec, dailyAuthorSec);
                 long min = sec / 60;
                 BigDecimal share = shareMap.getOrDefault(bookId, new BigDecimal("100.00"));
                 long authorMin = (long) Math.floor(min * (share.doubleValue() / 100.0));
@@ -349,6 +363,9 @@ public class RoyaltyService {
         YearMonth ym = YearMonth.parse(targetMonth);
         LocalDate startDate = ym.atDay(1);
         LocalDate endDate = ym.atEndOfMonth();
+        ZoneId almatyZone = ZoneId.of("Asia/Almaty");
+        OffsetDateTime monthStart = ym.atDay(1).atStartOfDay(almatyZone).toOffsetDateTime();
+        OffsetDateTime monthEnd = ym.plusMonths(1).atDay(1).atStartOfDay(almatyZone).toOffsetDateTime();
 
         // 1. Author's books (active + historical for target month)
         List<AuthorBook> activeAssignments = authorBookRepository.findByAuthorIdAndIsActiveTrue(author.getId());
@@ -372,17 +389,37 @@ public class RoyaltyService {
         Set<String> coveredBookDates = new HashSet<>();
         OffsetDateTime latestListenedAt = null;
 
+        if (!matchedIds.isEmpty()) {
+            List<AudioSession> liveSessions = audioSessionRepository.findSessionsForBooksBetween(matchedIds, monthStart, monthEnd);
+            for (AudioSession s : liveSessions) {
+                String bId = s.getBook().getId();
+                LocalDate sessionDate = s.getStartedAt().atZoneSameInstant(almatyZone).toLocalDate();
+                String dateStr = sessionDate.toString();
+                long sec = s.getValidSeconds() != null ? s.getValidSeconds() : 0L;
+
+                dateSecondsMap.put(dateStr, dateSecondsMap.getOrDefault(dateStr, 0L) + sec);
+                bookSecondsMap.put(bId, bookSecondsMap.getOrDefault(bId, 0L) + sec);
+                coveredBookDates.add(bId + "_" + dateStr);
+
+                OffsetDateTime sessionTime = s.getLastHeartbeatAt() != null ? s.getLastHeartbeatAt() : s.getStartedAt();
+                if (sessionTime != null && (latestListenedAt == null || sessionTime.isAfter(latestListenedAt))) {
+                    latestListenedAt = sessionTime;
+                }
+            }
+        }
+
         for (AuthorDailyBookStats s : authorSpecificStats) {
-            String dateStr = s.getStatDate().toString();
-            long sec = s.getTotalSeconds() != null ? s.getTotalSeconds() : 0L;
-            dateSecondsMap.put(dateStr, dateSecondsMap.getOrDefault(dateStr, 0L) + sec);
-
             String bId = s.getBookId();
-            bookSecondsMap.put(bId, bookSecondsMap.getOrDefault(bId, 0L) + sec);
-            coveredBookDates.add(bId + "_" + dateStr);
+            String dateStr = s.getStatDate().toString();
+            if (!coveredBookDates.contains(bId + "_" + dateStr)) {
+                long sec = s.getTotalSeconds() != null ? s.getTotalSeconds() : 0L;
+                dateSecondsMap.put(dateStr, dateSecondsMap.getOrDefault(dateStr, 0L) + sec);
+                bookSecondsMap.put(bId, bookSecondsMap.getOrDefault(bId, 0L) + sec);
+                coveredBookDates.add(bId + "_" + dateStr);
 
-            if (s.getUpdatedAt() != null && (latestListenedAt == null || s.getUpdatedAt().isAfter(latestListenedAt))) {
-                latestListenedAt = s.getUpdatedAt();
+                if (s.getUpdatedAt() != null && (latestListenedAt == null || s.getUpdatedAt().isAfter(latestListenedAt))) {
+                    latestListenedAt = s.getUpdatedAt();
+                }
             }
         }
 
@@ -707,11 +744,11 @@ public class RoyaltyService {
             long liveSec = authorLiveSecondsSum.getOrDefault(author.getId(), 0L);
             long liveMin = liveSec / 60;
 
-            // If finalized, use stored earnings; otherwise use live minutes from author_daily_book_stats
-            long mins = "FINALIZED".equalsIgnoreCase(p.getStatus())
-                    ? authorMinutesSum.getOrDefault(author.getId(), liveMin)
+            // If earnings exist (period was calculated or finalized), use authorMinutesSum; otherwise use live minutes
+            long mins = (!earnings.isEmpty() || "FINALIZED".equalsIgnoreCase(p.getStatus()))
+                    ? authorMinutesSum.getOrDefault(author.getId(), 0L)
                     : (liveMin > 0 ? liveMin : authorMinutesSum.getOrDefault(author.getId(), 0L));
-            long totalSec = "FINALIZED".equalsIgnoreCase(p.getStatus()) ? (mins * 60) : liveSec;
+            long totalSec = mins * 60;
 
             totalPlatformLiveMinutes += mins;
 
