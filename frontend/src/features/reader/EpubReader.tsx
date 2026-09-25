@@ -265,50 +265,41 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         const dispPage = start.displayed?.page;
         const dispTotal = start.displayed?.total;
 
-        // 1. If displayed page and total are available (e.g. 4 of 7)
-        if (typeof dispPage === 'number' && typeof dispTotal === 'number' && dispTotal > 0) {
-          pct = Math.max(1, Math.min(100, Math.round((dispPage / dispTotal) * 100)));
-        }
-
-        // 2. If locations are generated in book.locations
-        if (pct === 0 && book.locations && book.locations.length() > 0 && cfi) {
+        if (dispPage === 1) {
+          pct = 0;
+        } else if (typeof dispPage === 'number' && typeof dispTotal === 'number' && dispTotal > 0) {
+          // Progress based on completed pages: on page 2 of 7, 1 page is completed = 14%
+          pct = Math.max(1, Math.min(100, Math.round(((dispPage - 1) / dispTotal) * 100)));
+        } else if (book.locations && book.locations.length() > 0 && cfi) {
           try {
             const locIdx = book.locations.locationFromCfi(cfi);
             const totLocs = (book.locations as any).total || book.locations.length();
             if (typeof locIdx === 'number' && locIdx >= 0 && totLocs > 0) {
-              pct = Math.max(1, Math.min(100, Math.round(((locIdx + 1) / totLocs) * 100)));
+              pct = Math.max(0, Math.min(100, Math.round((locIdx / totLocs) * 100)));
             } else {
               const rawPct = book.locations.percentageFromCfi(cfi);
               if (typeof rawPct === 'number' && !isNaN(rawPct) && rawPct > 0) {
-                pct = Math.max(1, Math.min(100, Math.round(rawPct * 100)));
+                pct = Math.max(0, Math.min(100, Math.round(rawPct * 100)));
               }
             }
           } catch (e) {
             console.warn('Error computing location percentage:', e);
           }
-        }
-
-        // 3. If location has start.percentage
-        if (pct === 0 && typeof start.percentage === 'number' && !isNaN(start.percentage) && start.percentage > 0) {
-          pct = Math.max(1, Math.min(100, Math.round(start.percentage * 100)));
-        }
-
-        // 4. If spine has multiple chapters
-        if (pct === 0 && book.spine && (book.spine as any).length > 1) {
+        } else if (typeof start.percentage === 'number' && !isNaN(start.percentage) && start.percentage > 0) {
+          pct = Math.max(0, Math.min(100, Math.round(start.percentage * 100)));
+        } else if (book.spine && (book.spine as any).length > 1) {
           const spineLen = (book.spine as any).length;
           const spineIdx = typeof start.index === 'number' ? start.index : 0;
-          pct = Math.max(1, Math.min(100, Math.round(((spineIdx + 1) / spineLen) * 100)));
-        }
-
-        // 5. Fallback for displayed page (e.g. page 4 with estimated total)
-        if (pct === 0 && typeof dispPage === 'number' && dispPage > 1) {
+          pct = Math.max(0, Math.min(100, Math.round((spineIdx / spineLen) * 100)));
+        } else if (typeof dispPage === 'number' && dispPage > 1) {
           const tot = dispTotal || (book.locations?.length() > 0 ? book.locations.length() : undefined);
           if (tot && tot >= dispPage) {
-            pct = Math.max(1, Math.min(100, Math.round((dispPage / tot) * 100)));
+            pct = Math.max(1, Math.min(100, Math.round(((dispPage - 1) / tot) * 100)));
           }
         }
 
-        if (dispPage === 1 && pct === 0) {
+        // Guarantee 0% on first page
+        if (dispPage === 1 || start.index === 0 && (!dispPage || dispPage <= 1)) {
           pct = 0;
         }
 
