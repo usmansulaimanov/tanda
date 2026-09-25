@@ -22,12 +22,12 @@ export const TopAudioSection: React.FC = () => {
     fetchTopAudio();
   }, [fetchTopAudio]);
 
-  const activeBooks = useMemo(() => books.filter((b) => !b.isArchived), [books]);
+  const activeBooks = useMemo(() => books.filter((b) => Boolean(b && !b.isArchived)), [books]);
   const top10 = useMemo(() => {
     if (topAudioBooks.length > 0) {
-      return topAudioBooks.slice(0, 10);
+      return topAudioBooks.filter((item) => Boolean(item && item.book && item.book.id)).slice(0, 10);
     }
-    return getTop10AudioBooks(activeBooks);
+    return getTop10AudioBooks(activeBooks).filter((item) => Boolean(item && item.book && item.book.id));
   }, [topAudioBooks, getTop10AudioBooks, activeBooks]);
 
   const scroll = (direction: 'left' | 'right') => {

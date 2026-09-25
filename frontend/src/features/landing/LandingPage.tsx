@@ -116,7 +116,7 @@ export const LandingPage: React.FC = () => {
 
   // Active, non-archived books for catalog
   const activeBooks = useMemo(() => {
-    return books.filter((b) => !b.isArchived);
+    return (Array.isArray(books) ? books : []).filter((b) => Boolean(b && !b.isArchived));
   }, [books]);
 
   // Dynamic statistics matching the active database exactly
@@ -125,7 +125,7 @@ export const LandingPage: React.FC = () => {
   const authorsCount = useMemo(() => {
     return new Set(
       activeBooks
-        .map((b) => b.author?.trim())
+        .map((b) => b?.author?.trim())
         .filter((author): author is string => Boolean(author))
     ).size;
   }, [activeBooks]);
@@ -139,6 +139,7 @@ export const LandingPage: React.FC = () => {
   // Filtered books for catalog grid
   const filteredBooks = useMemo(() => {
     return activeBooks.filter((book) => {
+      if (!book) return false;
       if (selectedCat !== 'Бәрі') {
         const bookCats = book.categories && book.categories.length > 0
           ? book.categories
@@ -150,9 +151,9 @@ export const LandingPage: React.FC = () => {
       if (search.trim()) {
         const q = search.toLowerCase();
         return (
-          book.title.toLowerCase().includes(q) ||
-          book.author.toLowerCase().includes(q) ||
-          book.category.toLowerCase().includes(q)
+          (book.title || '').toLowerCase().includes(q) ||
+          (book.author || '').toLowerCase().includes(q) ||
+          (book.category || '').toLowerCase().includes(q)
         );
       }
       return true;
@@ -165,6 +166,7 @@ export const LandingPage: React.FC = () => {
     CATEGORIES.forEach((cat) => {
       if (cat !== 'Бәрі') {
         counts[cat] = activeBooks.filter((b) => {
+          if (!b) return false;
           const bookCats = b.categories && b.categories.length > 0
             ? b.categories
             : (b.category ? b.category.split(',').map((c) => c.trim()) : []);

@@ -13,6 +13,7 @@ import { MessageNotificationPopup } from '../messages/MessageNotificationPopup';
 import { useAudioPlayerStore } from '../../store/useAudioPlayerStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useBookStore } from '../../store/useBookStore';
+import { ErrorBoundary } from '../common/ErrorBoundary';
 
 export const Layout: React.FC = () => {
   const { currentBook } = useAudioPlayerStore();
@@ -39,7 +40,9 @@ export const Layout: React.FC = () => {
       <Header />
       <AppSidebarDrawer />
       <main className={`flex-1 flex flex-col ${isListenPage ? 'pb-10' : !isAuthorOrStaff && isAuthenticated && currentBook ? 'pb-24' : ''}`}>
-        <Outlet />
+        <ErrorBoundary>
+          <Outlet />
+        </ErrorBoundary>
       </main>
       {!isListenPage && <Footer />}
       {!isAuthorOrStaff && <AudioPlayerBar />}
