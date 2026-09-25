@@ -39,10 +39,15 @@ export const ReaderPage: React.FC = () => {
     return 0;
   });
   // ─── Reading position persistence ───────────────────────────────────
-  const [savedCfi, setSavedCfi] = useState<string | undefined>(undefined);
+  const [savedCfi, setSavedCfi] = useState<string | undefined>(() => {
+    if (typeof window !== 'undefined' && id) {
+      return localStorage.getItem(`tanda_progress_cfi_${id}`) || undefined;
+    }
+    return undefined;
+  });
   // Gate: don't render EpubReader until we know the saved position (avoids reload when CFI arrives)
   const [progressLoaded, setProgressLoaded] = useState<boolean>(false);
-  // Debounce timer for backend save (4s after last navigation)
+  // Debounce timer for backend save (800ms after last navigation)
   const progressSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Last known CFI — updated on every relocated event, used when saving on settings change
   const lastCfiRef = useRef<string | undefined>(undefined);
@@ -121,18 +126,56 @@ export const ReaderPage: React.FC = () => {
     }
   };
 
+  // Flush pending save immediately
+  const flushPendingSave = React.useCallback(() => {
+    if (progressSaveTimerRef.current) {
+      clearTimeout(progressSaveTimerRef.current);
+      progressSaveTimerRef.current = null;
+    }
+    if (isAuthenticated && book && lastCfiRef.current) {
+      const totPages = book.pages ? parseInt(String(book.pages)) : 100;
+      progressApi.saveProgress(book.id, {
+        epubCfi: lastCfiRef.current,
+        readerTheme: theme,
+        colorTemperature,
+        fontSize: getStoredFontSize(),
+        currentPage,
+      }).catch(() => {});
+      updateReadingProgress(book.id, currentPage, totPages);
+    }
+  }, [isAuthenticated, book, theme, colorTemperature, currentPage, updateReadingProgress]);
+
+  // Flush on page unload or route change
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      flushPendingSave();
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('pagehide', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('pagehide', handleBeforeUnload);
+      flushPendingSave();
+    };
+  }, [flushPendingSave]);
+
   const handleProgressChange = React.useCallback(
     (pct: number, locationCfi: string) => {
       if (!book) return;
       // Track latest CFI for settings-change saves
       lastCfiRef.current = locationCfi;
 
+      // Instant local persistence for zero-delay page refresh survival
+      try {
+        localStorage.setItem(`tanda_progress_cfi_${book.id}`, locationCfi);
+      } catch {}
+
       const totPages = book.pages ? parseInt(String(book.pages)) : 100;
       const calculatedPage = Math.max(1, Math.round((pct / 100) * totPages));
       setCurrentPage((prev) => (prev !== calculatedPage ? calculatedPage : prev));
 
       if (isAuthenticated) {
-        // Debounce: save position 4 seconds after last navigation
+        // Debounce: save to backend after 800ms of inactivity
         if (progressSaveTimerRef.current) clearTimeout(progressSaveTimerRef.current);
         progressSaveTimerRef.current = setTimeout(() => {
           progressApi.saveProgress(book.id, {
@@ -143,7 +186,7 @@ export const ReaderPage: React.FC = () => {
             currentPage: calculatedPage,
           }).catch(() => {});
           updateReadingProgress(book.id, calculatedPage, totPages);
-        }, 4000);
+        }, 800);
       }
     },
     [book, isAuthenticated, theme, colorTemperature, updateReadingProgress]
