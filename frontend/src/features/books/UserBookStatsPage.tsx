@@ -212,53 +212,66 @@ export const UserBookStatsPage: React.FC = () => {
                 Артқа қайту
               </button>
 
-              {/* Book Info Block (matching Image 2) */}
+              {/* Reader + Book Info Block (Reader FIRST) */}
               {stats && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-                  {/* Book Cover */}
+                  {/* Reader Avatar */}
                   <div
                     style={{
-                      width: '56px',
-                      height: '56px',
-                      borderRadius: '12px',
+                      width: '52px',
+                      height: '52px',
+                      borderRadius: '50%',
                       overflow: 'hidden',
-                      background: '#E2E8F0',
-                      border: '1.5px solid #CBD5E1',
+                      background: '#F1F5F9',
+                      border: '2px solid #CBD5E1',
                       flexShrink: 0,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       fontWeight: 900,
-                      color: '#64748B',
+                      color: '#475569',
+                      fontSize: '18px',
                     }}
                   >
-                    {stats.bookCoverImage ? (
-                      <img
-                        src={stats.bookCoverImage}
-                        alt={stats.bookTitle}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      />
+                    {stats.userAvatarUrl ? (
+                      <img src={stats.userAvatarUrl} alt={stats.userName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     ) : (
-                      <span style={{ fontSize: '20px' }}>📖</span>
+                      stats.userName?.charAt(0)?.toUpperCase() || 'U'
                     )}
                   </div>
 
                   <div>
-                    <h1 style={{ fontSize: '20px', fontWeight: 900, color: '#0F172A', margin: 0 }}>
-                      {stats.bookTitle}
-                    </h1>
-
-                    <div style={{ fontSize: '13px', color: '#64748B', marginTop: '3px', fontWeight: 600 }}>
-                      Авторы: <strong style={{ color: '#0F172A' }}>{stats.bookAuthor}</strong>
-                      <span style={{ margin: '0 8px', color: '#CBD5E1' }}>•</span>
-                      Оқырман: <strong style={{ color: '#0F172A' }}>{stats.userName}</strong>
+                    {/* Line 1: Reader Name & ID & Email (First!) */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                      <h1 style={{ fontSize: '20px', fontWeight: 900, color: '#0F172A', margin: 0 }}>
+                        {stats.userName}
+                      </h1>
                       {stats.userIdNumber && (
-                        <span style={{ marginLeft: '6px', fontSize: '11px', fontWeight: 800, color: 'var(--blue)', background: 'rgba(0, 84, 148, 0.08)', padding: '2px 6px', borderRadius: '4px' }}>
+                        <span
+                          style={{
+                            fontSize: '12px',
+                            fontWeight: 800,
+                            fontFamily: 'monospace',
+                            color: 'var(--blue)',
+                            background: 'rgba(0, 84, 148, 0.08)',
+                            padding: '3px 8px',
+                            borderRadius: '5px',
+                          }}
+                        >
                           ID: {stats.userIdNumber}
                         </span>
                       )}
-                      <span style={{ margin: '0 8px', color: '#CBD5E1' }}>•</span>
-                      <strong style={{ color: '#0F172A' }}>{stats.userEmail}</strong>
+                      <span style={{ fontSize: '13px', fontWeight: 600, color: '#94A3B8' }}>•</span>
+                      <span style={{ fontSize: '13px', fontWeight: 700, color: '#475569' }}>
+                        {stats.userEmail}
+                      </span>
+                    </div>
+
+                    {/* Line 2: Book Title and Author */}
+                    <div style={{ fontSize: '13px', color: '#64748B', marginTop: '4px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                      <span>Кітап: <strong style={{ color: '#0F172A', fontSize: '13.5px' }}>«{stats.bookTitle}»</strong></span>
+                      <span>•</span>
+                      <span>Авторы: <strong style={{ color: '#0F172A' }}>{stats.bookAuthor}</strong></span>
                     </div>
                   </div>
                 </div>
