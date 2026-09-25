@@ -494,27 +494,12 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         const dispPage = start.displayed?.page;
         const dispTotal = start.displayed?.total;
 
-        if (dispPage === 1) {
-          pct = 0;
-        } else if (typeof dispPage === 'number' && typeof dispTotal === 'number' && dispTotal > 0) {
-          if (dispPage >= dispTotal) {
-            pct = 100;
-          } else if (dispTotal > 1) {
-            pct = Math.max(1, Math.min(99, Math.round(((dispPage - 1) / (dispTotal - 1)) * 100)));
-          } else {
-            pct = 100;
-          }
-        } else if (book.locations && book.locations.length() > 0 && cfi) {
+        // 1. Calculate true book-wide percentage
+        if (book.locations && book.locations.length() > 0 && cfi) {
           try {
-            const locIdx = book.locations.locationFromCfi(cfi);
-            const totLocs = (book.locations as any).total || book.locations.length();
-            if (typeof locIdx === 'number' && locIdx >= 0 && totLocs > 1) {
-              pct = Math.max(0, Math.min(100, Math.round((locIdx / (totLocs - 1)) * 100)));
-            } else {
-              const rawPct = book.locations.percentageFromCfi(cfi);
-              if (typeof rawPct === 'number' && !isNaN(rawPct) && rawPct > 0) {
-                pct = Math.max(0, Math.min(100, Math.round(rawPct * 100)));
-              }
+            const rawPct = book.locations.percentageFromCfi(cfi);
+            if (typeof rawPct === 'number' && !isNaN(rawPct)) {
+              pct = Math.max(0, Math.min(100, Math.round(rawPct * 100)));
             }
           } catch (e) {
             console.warn('Error computing location percentage:', e);
@@ -525,27 +510,43 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
           const spineLen = (book.spine as any).length;
           const spineIdx = typeof start.index === 'number' ? start.index : 0;
           pct = Math.max(0, Math.min(100, Math.round((spineIdx / (spineLen - 1)) * 100)));
-        } else if (typeof dispPage === 'number' && dispPage > 1) {
-          const tot = dispTotal || (book.locations?.length() > 0 ? book.locations.length() : undefined);
-          if (tot && tot >= dispPage) {
-            pct = tot > 1 ? Math.max(1, Math.min(100, Math.round(((dispPage - 1) / (tot - 1)) * 100))) : 100;
+        } else if (typeof dispPage === 'number' && typeof dispTotal === 'number' && dispTotal > 0) {
+          if (dispPage >= dispTotal) {
+            pct = 100;
+          } else if (dispTotal > 1) {
+            pct = Math.max(1, Math.min(99, Math.round(((dispPage - 1) / (dispTotal - 1)) * 100)));
           }
         }
 
-        // Guarantee 0% on first page and 100% on last page
-        if (dispPage === 1 || (start.index === 0 && (!dispPage || dispPage <= 1))) {
+        // Guarantee 0% at book start and 100% at book end
+        if (start.index === 0 && (!dispPage || dispPage <= 1) && pct < 5) {
           pct = 0;
-        } else if (dispPage && dispTotal && dispPage >= dispTotal) {
+        } else if (location.atEnd || (dispPage && dispTotal && dispPage >= dispTotal && (!book.spine || start.index >= (book.spine as any).length - 1))) {
           pct = 100;
         }
 
-        const atStart = Boolean(location.atStart || dispPage === 1 || (start.index === 0 && (!dispPage || dispPage <= 1)) || pct === 0);
-        const atEnd = Boolean(location.atEnd || (dispPage && dispTotal && dispPage >= dispTotal) || pct >= 100);
+        const atStart = Boolean(location.atStart || (start.index === 0 && (!dispPage || dispPage <= 1)) || pct === 0);
+        const atEnd = Boolean(location.atEnd || pct >= 100);
         setIsAtStart(atStart);
         setIsAtEnd(atEnd);
 
         setProgressPercent(pct);
-        const pageText = dispPage ? ` • Бет ${dispPage}${dispTotal ? ` / ${dispTotal}` : ''}` : '';
+
+        // Compute page text info
+        let pageText = '';
+        if (book.locations && book.locations.length() > 0 && cfi) {
+          try {
+            const curLoc = book.locations.locationFromCfi(cfi);
+            const totLoc = (book.locations as any).total || book.locations.length();
+            if (typeof curLoc === 'number' && curLoc >= 0 && totLoc > 0) {
+              pageText = ` • Бет ${curLoc + 1} / ${totLoc}`;
+            }
+          } catch {}
+        }
+        if (!pageText && dispPage && dispTotal) {
+          pageText = ` • Бет ${dispPage} / ${dispTotal}`;
+        }
+
         setCurrentLocationText(`${pct}% оқылды${pageText}`);
         onProgressChangeRef.current?.(pct, cfi);
       };
@@ -1081,22 +1082,21 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
           color: activeTheme.text,
           opacity: 0.9,
           fontWeight: 600,
+          gap: '12px',
         }}
       >
-        <div style={{ minWidth: '70px', userSelect: 'none' }}>
-          {sliderDragPercent !== null
-            ? `${sliderDragPercent}% оқылды`
-            : currentLocationText || (progressPercent > 0 ? `${progressPercent}%` : 'Басы')}
+        <div style={{ flex: '1 1 0', minWidth: 0, textAlign: 'left', userSelect: 'none', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          {currentLocationText || (progressPercent > 0 ? `${progressPercent}% оқылды` : 'Басы')}
         </div>
 
         {/* Interactive Seek Slider */}
         <div
           style={{
-            flex: '0 1 240px',
-            minWidth: '120px',
-            margin: '0 16px',
+            flex: '0 0 280px',
+            maxWidth: '45vw',
             display: 'flex',
             alignItems: 'center',
+            justifyContent: 'center',
           }}
         >
           <input
@@ -1149,7 +1149,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
           />
         </div>
 
-        <div style={{ fontSize: '11px', opacity: 0.7, userSelect: 'none' }}>
+        <div style={{ flex: '1 1 0', minWidth: 0, textAlign: 'right', fontSize: '11px', opacity: 0.7, userSelect: 'none', whiteSpace: 'nowrap' }}>
           Парақтау: ⬅ ➡
         </div>
       </div>
