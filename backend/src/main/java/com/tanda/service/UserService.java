@@ -406,6 +406,8 @@ public class UserService {
                 .savedBooksCount(savedBooksCount)
                 .phone(user.getPhone())
                 .username(isClient ? user.getUsername() : null)
+                .birthDate(isClient ? user.getBirthDate() : null)
+                .gender(isClient ? user.getGender() : null)
                 .isBlocked(user.getIsBlocked())
                 .avatarUrl(user.getAvatarUrl())
                 .duty(user.getDuty())

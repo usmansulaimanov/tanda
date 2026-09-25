@@ -25,6 +25,8 @@ public class UserListResponseDto {
     private Integer savedBooksCount;
     private String phone;
     private String username;
+    private String birthDate;
+    private String gender;
     private Boolean isBlocked;
     private String avatarUrl;
     private String duty;
