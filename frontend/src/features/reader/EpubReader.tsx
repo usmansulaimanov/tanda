@@ -234,17 +234,33 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
     fontSizeRef.current = fontSize;
   }, [fontSize]);
 
+  const isNavigatingRef = useRef(false);
+
   const handleNextPage = useCallback(() => {
-    if (isAtEndRef.current) return;
+    if (isAtEndRef.current || isNavigatingRef.current) return;
     if (renditionRef.current) {
-      renditionRef.current.next();
+      isNavigatingRef.current = true;
+      renditionRef.current.next().then(() => {
+        setTimeout(() => {
+          isNavigatingRef.current = false;
+        }, 120);
+      }).catch(() => {
+        isNavigatingRef.current = false;
+      });
     }
   }, []);
 
   const handlePrevPage = useCallback(() => {
-    if (isAtStartRef.current) return;
+    if (isAtStartRef.current || isNavigatingRef.current) return;
     if (renditionRef.current) {
-      renditionRef.current.prev();
+      isNavigatingRef.current = true;
+      renditionRef.current.prev().then(() => {
+        setTimeout(() => {
+          isNavigatingRef.current = false;
+        }, 120);
+      }).catch(() => {
+        isNavigatingRef.current = false;
+      });
     }
   }, []);
 
@@ -535,23 +551,12 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
 
         // Compute page text info
         let pageText = '';
-        if (book.locations && book.locations.length() > 0 && cfi) {
-          try {
-            const curLoc = book.locations.locationFromCfi(cfi);
-            const totLoc = (book.locations as any).total || book.locations.length();
-            if (typeof totLoc === 'number' && totLoc > 0) {
-              setTotalBookPages(totLoc);
-            }
-            if (typeof curLoc === 'number' && curLoc >= 0 && totLoc > 0) {
-              pageText = ` • Бет ${curLoc + 1} / ${totLoc}`;
-            }
-          } catch {}
-        }
-        if (!pageText && dispPage && dispTotal) {
-          if (typeof dispTotal === 'number' && dispTotal > 0) {
-            setTotalBookPages(dispTotal);
-          }
+        if (dispPage && dispTotal && dispTotal > 1) {
           pageText = ` • Бет ${dispPage} / ${dispTotal}`;
+        } else if (book.spine && (book.spine as any).length > 1) {
+          const curSpine = (start.index ?? 0) + 1;
+          const totSpine = (book.spine as any).length;
+          pageText = ` • Бөлім ${curSpine} / ${totSpine}`;
         }
 
         setCurrentLocationText(`${pct}% оқылды${pageText}`);
@@ -562,10 +567,6 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
       book.ready.then(async () => {
         try {
           await book.locations.generate(600);
-          const tot = (book.locations as any)?.total || book.locations?.length?.();
-          if (typeof tot === 'number' && tot > 0) {
-            setTotalBookPages(tot);
-          }
           if (renditionRef.current) {
             const loc = (renditionRef.current as any).currentLocation();
             if (loc) {
@@ -595,11 +596,6 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
             const parserErrors = doc.querySelectorAll('parsererror');
             parserErrors.forEach((el: Element) => el.remove());
             applyDirectThemeStyleToDoc(doc, themeRef.current, colorTempRef.current);
-
-            // Register key listeners directly inside iframe document
-            doc.addEventListener('keydown', (e: KeyboardEvent) => {
-              processKeyActionRef.current(e);
-            });
           }
         } catch {}
       });
@@ -611,10 +607,6 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
             const parserErrors = doc.querySelectorAll('parsererror');
             parserErrors.forEach((el: Element) => el.remove());
             applyDirectThemeStyleToDoc(doc, themeRef.current, colorTempRef.current);
-
-            doc.addEventListener('keydown', (e: KeyboardEvent) => {
-              processKeyActionRef.current(e);
-            });
           }
         } catch {}
       });
@@ -623,7 +615,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         updateProgressFromLocation(location);
       });
 
-      // Keyboard listeners inside rendition iframe
+      // Single centralized keyboard listener for rendition iframe
       rendition.on('keydown', (e: KeyboardEvent) => {
         processKeyActionRef.current(e);
       });
