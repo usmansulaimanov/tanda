@@ -447,11 +447,12 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
                 border: 'none',
                 borderRadius: '4px',
                 background: theme === 'light' ? '#FFFFFF' : 'transparent',
-                color: '#0F172A',
-                fontWeight: theme === 'light' ? 700 : 500,
+                color: theme === 'light' ? '#0F172A' : activeTheme.text,
+                fontWeight: theme === 'light' ? 700 : 600,
                 fontSize: '11px',
                 cursor: 'pointer',
                 boxShadow: theme === 'light' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                opacity: theme === 'light' ? 1 : 0.85,
               }}
             >
               Ашық
@@ -464,11 +465,12 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
                 border: 'none',
                 borderRadius: '4px',
                 background: theme === 'sepia' ? '#FBF0D9' : 'transparent',
-                color: '#5F4B32',
-                fontWeight: theme === 'sepia' ? 700 : 500,
+                color: theme === 'sepia' ? '#433422' : activeTheme.text,
+                fontWeight: theme === 'sepia' ? 700 : 600,
                 fontSize: '11px',
                 cursor: 'pointer',
                 boxShadow: theme === 'sepia' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                opacity: theme === 'sepia' ? 1 : 0.85,
               }}
             >
               Сепия
@@ -481,11 +483,12 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
                 border: 'none',
                 borderRadius: '4px',
                 background: theme === 'dark' ? '#1E293B' : 'transparent',
-                color: '#F1F5F9',
-                fontWeight: theme === 'dark' ? 700 : 500,
+                color: theme === 'dark' ? '#F1F5F9' : activeTheme.text,
+                fontWeight: theme === 'dark' ? 700 : 600,
                 fontSize: '11px',
                 cursor: 'pointer',
                 boxShadow: theme === 'dark' ? '0 1px 3px rgba(0,0,0,0.2)' : 'none',
+                opacity: theme === 'dark' ? 1 : 0.85,
               }}
             >
               Түнгі
