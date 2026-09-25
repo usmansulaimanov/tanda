@@ -160,11 +160,13 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         background: ${current.bg} !important;
         color: ${current.text} !important;
         -webkit-text-fill-color: ${current.text} !important;
-        padding-left: 20px !important;
-        padding-right: 20px !important;
+        margin: 0 !important;
+        padding: 0 !important;
         box-sizing: border-box !important;
       }
       p, div, span, h1, h2, h3, h4, h5, h6, li {
+        color: ${current.text} !important;
+        -webkit-text-fill-color: ${current.text} !important;
         max-width: 100% !important;
         word-break: break-word !important;
       }
@@ -175,6 +177,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
       }
       img, svg, video, audio {
         background-color: transparent !important;
+        max-width: 100% !important;
       }
       parsererror, parsererror * {
         display: none !important;
@@ -928,11 +931,14 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         <div
           ref={viewerRef}
           style={{
-            width: '100%',
-            height: '100%',
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            left: '44px',
+            right: '44px',
             backgroundColor: activeTheme.bg,
-            paddingLeft: '44px',
-            paddingRight: '44px',
+            padding: 0,
+            margin: 0,
             boxSizing: 'border-box',
           }}
         />
