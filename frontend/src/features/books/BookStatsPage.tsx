@@ -458,7 +458,7 @@ export const BookStatsPage: React.FC = () => {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
                   <div>
                     <div style={{ fontSize: '11.5px', fontWeight: 700, color: '#0F172A' }}>
-                      Тыңдармандар (≥ 1 мин):
+                      Тыңдармандар:
                     </div>
                     <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600, marginTop: '1px' }}>
                       Бұл айда: <strong style={{ color: '#2563EB' }}>{(stats.monthListeners ?? stats.monthUniqueListeners).toLocaleString('ru-RU')} адам</strong> • Жалпы: <strong style={{ color: '#0F172A' }}>{(stats.allTimeListeners ?? stats.allTimeUniqueListeners).toLocaleString('ru-RU')} адам</strong>
@@ -466,7 +466,7 @@ export const BookStatsPage: React.FC = () => {
                   </div>
                   <div style={{ borderTop: '1px dashed #E2E8F0', paddingTop: '5px' }}>
                     <div style={{ fontSize: '11.5px', fontWeight: 700, color: '#0F172A' }}>
-                      Оқырмандар (≥ 15 мин):
+                      Оқырмандар:
                     </div>
                     <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600, marginTop: '1px' }}>
                       Бұл айда: <strong style={{ color: '#059669' }}>{(stats.monthReaders ?? 0).toLocaleString('ru-RU')} адам</strong> • Жалпы: <strong style={{ color: '#047857' }}>{(stats.allTimeReaders ?? 0).toLocaleString('ru-RU')} адам</strong>
@@ -474,7 +474,7 @@ export const BookStatsPage: React.FC = () => {
                   </div>
                   <div style={{ borderTop: '1px dashed #E2E8F0', paddingTop: '5px' }}>
                     <div style={{ fontSize: '11.5px', fontWeight: 700, color: '#0F172A' }}>
-                      Белсенділер (≥ 1 сағ):
+                      Белсенділер:
                     </div>
                     <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600, marginTop: '1px' }}>
                       Бұл айда: <strong style={{ color: '#D97706' }}>{(stats.monthActives ?? 0).toLocaleString('ru-RU')} адам</strong> • Жалпы: <strong style={{ color: '#B45309' }}>{(stats.allTimeActives ?? 0).toLocaleString('ru-RU')} адам</strong>
