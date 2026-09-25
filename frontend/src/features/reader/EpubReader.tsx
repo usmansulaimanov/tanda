@@ -561,6 +561,10 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         const dispPage = start.displayed?.page;
         const dispTotal = start.displayed?.total;
 
+        if (typeof dispTotal === 'number' && dispTotal > 0) {
+          setTotalBookPages(dispTotal);
+        }
+
         // 1. Calculate true book-wide percentage
         if (book.locations && book.locations.length() > 0 && cfi) {
           try {
@@ -637,6 +641,10 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
       book.ready.then(async () => {
         try {
           await book.locations.generate(600);
+          const totalLocs = (book.locations as any).total || book.locations.length();
+          if (typeof totalLocs === 'number' && totalLocs > 0) {
+            setTotalBookPages(totalLocs);
+          }
           if (renditionRef.current) {
             const loc = (renditionRef.current as any).currentLocation();
             if (loc) {
@@ -1162,9 +1170,21 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         }}
       >
         <div style={{ flex: '1 1 0', minWidth: 0, textAlign: 'left', userSelect: 'none', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-          {sliderDragPercent !== null
-            ? `${sliderDragPercent}%`
-            : currentLocationText || (progressPercent > 0 ? `${progressPercent}%` : 'Басы')}
+          {(() => {
+            if (sliderDragPercent !== null) {
+              if (totalBookPages > 0) {
+                const draggedPage = Math.max(1, Math.min(totalBookPages, Math.round((sliderDragPercent / 100) * totalBookPages) || 1));
+                return `${draggedPage} / ${totalBookPages} бет`;
+              }
+              const spineLen = (bookRef.current?.spine as any)?.length || 0;
+              if (spineLen > 1) {
+                const curSpine = Math.max(1, Math.min(spineLen, Math.round((sliderDragPercent / 100) * spineLen) || 1));
+                return `${curSpine} / ${spineLen} бөлім`;
+              }
+              return 'Оқу барысы';
+            }
+            return currentLocationText || (totalBookPages > 0 ? `${Math.max(1, Math.min(totalBookPages, Math.round((progressPercent / 100) * totalBookPages) || 1))} / ${totalBookPages} бет` : 'Басы');
+          })()}
         </div>
 
         {/* Interactive Seek Slider */}
@@ -1228,7 +1248,9 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
                 processKeyActionRef.current(e.nativeEvent);
               }
             }}
-            title={`Кітаптың ${sliderDragPercent !== null ? sliderDragPercent : progressPercent}% бөлігіндесіз`}
+            title={totalBookPages > 0
+              ? `${Math.max(1, Math.min(totalBookPages, Math.round(((sliderDragPercent !== null ? sliderDragPercent : progressPercent) / 100) * totalBookPages) || 1))} / ${totalBookPages} бет`
+              : 'Оқу барысы'}
             aria-label="Оқу барысын жылжыту"
             style={{
               background: `linear-gradient(to right, var(--blue, #2563EB) 0%, var(--blue, #2563EB) ${sliderDragPercent !== null ? sliderDragPercent : progressPercent}%, ${activeTheme.border} ${sliderDragPercent !== null ? sliderDragPercent : progressPercent}%, ${activeTheme.border} 100%)`,
