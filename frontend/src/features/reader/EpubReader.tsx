@@ -640,10 +640,10 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         onProgressChangeRef.current?.(pct, cfi);
       };
 
-      // Generate locations for accurate progress calculation
+      // Generate locations for accurate progress calculation (2400 chars per standard book page)
       book.ready.then(async () => {
         try {
-          await book.locations.generate(600);
+          await book.locations.generate(2400);
           const totalLocs = (book.locations as any).total || book.locations.length();
           if (typeof totalLocs === 'number' && totalLocs > 0) {
             setTotalBookPages(totalLocs);
