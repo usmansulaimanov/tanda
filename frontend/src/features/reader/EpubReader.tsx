@@ -1089,17 +1089,9 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         }}
       >
         <div style={{ flex: '1 1 0', minWidth: 0, textAlign: 'left', userSelect: 'none', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-          {(() => {
-            if (sliderDragPercent !== null) {
-              let pagePart = '';
-              if (totalBookPages > 0) {
-                const estimatedPage = sliderDragPercent === 0 ? 1 : Math.max(1, Math.min(totalBookPages, Math.round((sliderDragPercent / 100) * totalBookPages)));
-                pagePart = ` • Бет ${estimatedPage} / ${totalBookPages}`;
-              }
-              return `${sliderDragPercent}% оқылды${pagePart}`;
-            }
-            return currentLocationText || (progressPercent > 0 ? `${progressPercent}% оқылды` : 'Басы');
-          })()}
+          {sliderDragPercent !== null
+            ? `${sliderDragPercent}% оқылды`
+            : currentLocationText || (progressPercent > 0 ? `${progressPercent}% оқылды` : 'Басы')}
         </div>
 
         {/* Interactive Seek Slider */}
@@ -1154,14 +1146,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
                 executeSeek(!isNaN(val) ? val : (sliderDragPercent ?? progressPercent));
               }
             }}
-            title={(() => {
-              const curPct = sliderDragPercent !== null ? sliderDragPercent : progressPercent;
-              if (totalBookPages > 0) {
-                const estimatedPage = curPct === 0 ? 1 : Math.max(1, Math.min(totalBookPages, Math.round((curPct / 100) * totalBookPages)));
-                return `Кітаптың ${curPct}% бөлігі (Бет ${estimatedPage} / ${totalBookPages})`;
-              }
-              return `Кітаптың ${curPct}% бөлігі`;
-            })()}
+            title={`Кітаптың ${sliderDragPercent !== null ? sliderDragPercent : progressPercent}% бөлігіндесіз`}
             aria-label="Оқу барысын жылжыту"
             style={{
               background: `linear-gradient(to right, var(--blue, #2563EB) 0%, var(--blue, #2563EB) ${sliderDragPercent !== null ? sliderDragPercent : progressPercent}%, ${activeTheme.border} ${sliderDragPercent !== null ? sliderDragPercent : progressPercent}%, ${activeTheme.border} 100%)`,
