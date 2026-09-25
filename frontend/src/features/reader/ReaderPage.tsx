@@ -18,8 +18,41 @@ export const ReaderPage: React.FC = () => {
   const [isBookLoading, setIsBookLoading] = useState<boolean>(!books.find((b) => b.id === id));
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [fontSize, setFontSize] = useState<number>(17);
-  const [theme, setTheme] = useState<'light' | 'sepia' | 'dark'>('light');
-  const [colorTemperature, setColorTemperature] = useState<number>(0);
+  const [theme, setTheme] = useState<'light' | 'sepia' | 'dark'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('tanda_reader_theme');
+      if (saved === 'sepia' || saved === 'dark' || saved === 'light') return saved;
+    }
+    return 'light';
+  });
+  const [colorTemperature, setColorTemperature] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('tanda_reader_temp');
+      if (saved !== null) {
+        const parsed = parseInt(saved, 10);
+        if (!isNaN(parsed) && parsed >= -50 && parsed <= 50) return parsed;
+      }
+    }
+    return 0;
+  });
+
+  const handleThemeChange = (newTheme: 'light' | 'sepia' | 'dark') => {
+    setTheme(newTheme);
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('tanda_reader_theme', newTheme);
+      } catch {}
+    }
+  };
+
+  const handleColorTempChange = (temp: number) => {
+    setColorTemperature(temp);
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('tanda_reader_temp', String(temp));
+      } catch {}
+    }
+  };
 
   const handleProgressChange = React.useCallback(
     (pct: number) => {
@@ -291,9 +324,9 @@ export const ReaderPage: React.FC = () => {
               bookTitle={book.title}
               bookAuthor={book.author}
               theme={theme}
-              onThemeChange={setTheme}
+              onThemeChange={handleThemeChange}
               colorTemperature={colorTemperature}
-              onColorTemperatureChange={setColorTemperature}
+              onColorTemperatureChange={handleColorTempChange}
               onProgressChange={handleProgressChange}
             />
           ) : (

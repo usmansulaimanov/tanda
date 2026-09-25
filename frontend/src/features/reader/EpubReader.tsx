@@ -74,10 +74,25 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [fontSize, setFontSize] = useState<number>(18);
-  const [internalTheme, setInternalTheme] = useState<'light' | 'sepia' | 'dark'>('light');
+  const [internalTheme, setInternalTheme] = useState<'light' | 'sepia' | 'dark'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('tanda_reader_theme');
+      if (saved === 'sepia' || saved === 'dark' || saved === 'light') return saved;
+    }
+    return 'light';
+  });
   const theme = propTheme !== undefined ? propTheme : internalTheme;
 
-  const [internalColorTemperature, setInternalColorTemperature] = useState<number>(0);
+  const [internalColorTemperature, setInternalColorTemperature] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('tanda_reader_temp');
+      if (saved !== null) {
+        const parsed = parseInt(saved, 10);
+        if (!isNaN(parsed) && parsed >= -50 && parsed <= 50) return parsed;
+      }
+    }
+    return 0;
+  });
   const colorTemperature = propColorTemperature !== undefined ? propColorTemperature : internalColorTemperature;
 
   const [currentLocationText, setCurrentLocationText] = useState<string>('');
@@ -384,6 +399,11 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
     setInternalTheme(newTheme);
     onThemeChange?.(newTheme);
     themeRef.current = newTheme;
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('tanda_reader_theme', newTheme);
+      } catch {}
+    }
     if (renditionRef.current) {
       applyThemeToRendition(renditionRef.current, newTheme, fontSize);
       try {
@@ -414,6 +434,11 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
     setInternalColorTemperature(temp);
     onColorTemperatureChange?.(temp);
     colorTempRef.current = temp;
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('tanda_reader_temp', String(temp));
+      } catch {}
+    }
     if (renditionRef.current && themeRef.current === 'light') {
       try {
         const contents = (renditionRef.current as any).getContents?.() || [];
