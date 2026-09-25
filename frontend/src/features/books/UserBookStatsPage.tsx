@@ -502,7 +502,7 @@ export const UserBookStatsPage: React.FC = () => {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
                 <div>
                   <h3 style={{ fontSize: '17px', fontWeight: 800, color: 'var(--text-dark)', margin: 0 }}>
-                    {formatMonthLabel(selectedMonthKey)} — {stats.userName} күнделікті тыңдалымы:
+                    {formatMonthLabel(selectedMonthKey)}
                   </h3>
                   <p style={{ fontSize: '12.5px', color: '#64748B', margin: '4px 0 0 0' }}>
                     Белсенді күндер: <strong style={{ color: 'var(--text-dark)' }}>{stats.totalListenedDays} күн</strong> • Орташа күнделікті уақыт:{' '}
