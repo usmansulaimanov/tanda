@@ -137,6 +137,55 @@ export const ReaderPage: React.FC = () => {
     }
   }, [id, isAuthenticated, book, updateReadingProgress]);
 
+  const rawEbookUrl = book?.ebookUrl || (book as any)?.pdfUrl || (book as any)?.epubUrl;
+  const resolvedEbookUrl = resolveMediaUrl(rawEbookUrl);
+  const isTg = isTelegramLink(resolvedEbookUrl);
+  const isEpub = Boolean(
+    resolvedEbookUrl &&
+      !isTg &&
+      (book?.ebookFormat?.toUpperCase() === 'EPUB' ||
+        resolvedEbookUrl.toLowerCase().includes('.epub') ||
+        (!book?.ebookFormat?.toUpperCase().includes('PDF') && !resolvedEbookUrl.toLowerCase().includes('.pdf')))
+  );
+
+  useEffect(() => {
+    if (!resolvedEbookUrl || isEpub || isTg) {
+      setPdfBlobUrl(null);
+      setIsPdfLoading(false);
+      return;
+    }
+
+    let active = true;
+    let createdUrl: string | null = null;
+    setIsPdfLoading(true);
+
+    fetch(resolvedEbookUrl)
+      .then(async (res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.blob();
+      })
+      .then((blob) => {
+        if (!active) return;
+        const pdfBlob = new Blob([blob], { type: 'application/pdf' });
+        createdUrl = URL.createObjectURL(pdfBlob);
+        setPdfBlobUrl(createdUrl);
+        setIsPdfLoading(false);
+      })
+      .catch((err) => {
+        if (!active) return;
+        console.warn('PDF blob load failed, falling back to direct URL:', err);
+        setPdfBlobUrl(resolvedEbookUrl);
+        setIsPdfLoading(false);
+      });
+
+    return () => {
+      active = false;
+      if (createdUrl) {
+        URL.revokeObjectURL(createdUrl);
+      }
+    };
+  }, [resolvedEbookUrl, isEpub, isTg]);
+
   if (isBookLoading) {
     return (
       <div style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -255,55 +304,6 @@ export const ReaderPage: React.FC = () => {
   const pageTextColor = theme === 'dark' ? '#F1F5F9' : theme === 'sepia' ? '#433422' : '#0F172A';
   const pageBorderColor = theme === 'dark' ? '#1E293B' : theme === 'sepia' ? '#EAD7B5' : lightBgInfo.border;
   const topBarBg = theme === 'dark' ? '#0F172A' : theme === 'sepia' ? '#FBF0D9' : lightBgInfo.headerBg;
-
-  const rawEbookUrl = book?.ebookUrl || (book as any)?.pdfUrl || (book as any)?.epubUrl;
-  const resolvedEbookUrl = resolveMediaUrl(rawEbookUrl);
-  const isTg = isTelegramLink(resolvedEbookUrl);
-  const isEpub = Boolean(
-    resolvedEbookUrl &&
-      !isTg &&
-      (book?.ebookFormat?.toUpperCase() === 'EPUB' ||
-        resolvedEbookUrl.toLowerCase().includes('.epub') ||
-        (!book?.ebookFormat?.toUpperCase().includes('PDF') && !resolvedEbookUrl.toLowerCase().includes('.pdf')))
-  );
-
-  useEffect(() => {
-    if (!resolvedEbookUrl || isEpub || isTg) {
-      setPdfBlobUrl(null);
-      setIsPdfLoading(false);
-      return;
-    }
-
-    let active = true;
-    let createdUrl: string | null = null;
-    setIsPdfLoading(true);
-
-    fetch(resolvedEbookUrl)
-      .then(async (res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.blob();
-      })
-      .then((blob) => {
-        if (!active) return;
-        const pdfBlob = new Blob([blob], { type: 'application/pdf' });
-        createdUrl = URL.createObjectURL(pdfBlob);
-        setPdfBlobUrl(createdUrl);
-        setIsPdfLoading(false);
-      })
-      .catch((err) => {
-        if (!active) return;
-        console.warn('PDF blob load failed, falling back to direct URL:', err);
-        setPdfBlobUrl(resolvedEbookUrl);
-        setIsPdfLoading(false);
-      });
-
-    return () => {
-      active = false;
-      if (createdUrl) {
-        URL.revokeObjectURL(createdUrl);
-      }
-    };
-  }, [resolvedEbookUrl, isEpub, isTg]);
 
   return (
     <div
