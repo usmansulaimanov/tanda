@@ -129,3 +129,50 @@ export interface User {
   password?: string;
   personalMessage?: UserPersonalMessage;
 }
+
+export interface BookDailyStat {
+  date: string;
+  label: string;
+  shortLabel: string;
+  seconds: number;
+  minutes: number;
+  isToday: boolean;
+  isPeak: boolean;
+}
+
+export interface BookPeakDay {
+  date: string;
+  label: string;
+  seconds: number;
+  minutes: number;
+}
+
+export interface BookStatsResponse {
+  bookId: string;
+  title: string;
+  author: string;
+  coverImage?: string;
+  category?: string;
+  pages?: number;
+  hasAudio?: boolean;
+  hasEbook?: boolean;
+  audioDuration?: string;
+  assignedAuthorId?: string;
+  selectedMonth: string;
+  selectedMonthLabel: string;
+  todaySeconds: number;
+  todayMinutes: number;
+  monthSeconds: number;
+  monthMinutes: number;
+  monthHours: number;
+  allTimeSeconds: number;
+  allTimeMinutes: number;
+  allTimeHours: number;
+  monthUniqueListeners: number;
+  allTimeUniqueListeners: number;
+  peakDay?: BookPeakDay | null;
+  dailyList: BookDailyStat[];
+  totalListenedDays: number;
+  averageDailyMinutes: number;
+}
+

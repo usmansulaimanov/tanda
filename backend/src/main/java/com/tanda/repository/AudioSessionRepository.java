@@ -43,4 +43,11 @@ public interface AudioSessionRepository extends JpaRepository<AudioSession, Stri
            "GROUP BY s.book.id " +
            "ORDER BY COUNT(s.id) DESC, COALESCE(SUM(s.validSeconds), 0) DESC")
     List<Object[]> getAudioStatsPerBook(Pageable pageable);
+
+    @Query("SELECT COUNT(DISTINCT s.userId) FROM AudioSession s WHERE s.book.id = :bookId")
+    long countUniqueListenersByBookId(@Param("bookId") String bookId);
+
+    @Query("SELECT COUNT(DISTINCT s.userId) FROM AudioSession s WHERE s.book.id = :bookId AND s.startedAt >= :start AND s.startedAt < :end")
+    long countUniqueListenersByBookIdBetween(@Param("bookId") String bookId, @Param("start") OffsetDateTime start, @Param("end") OffsetDateTime end);
 }
+

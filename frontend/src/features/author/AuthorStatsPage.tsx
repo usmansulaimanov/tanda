@@ -73,12 +73,14 @@ export const AuthorStatsPage: React.FC = () => {
 
   const {
     user: currentUser,
+    role,
     isAuthenticated,
     isAuthInitialized,
     authors,
     fetchAuthors,
     getAllAuthors,
   } = useAuthStore();
+
   const { books } = useBookStore();
   const { showToast } = useToastStore();
   const { fetchAuthorStats, authorStatsCache, authorBalances } = useRoyaltyStore();
@@ -979,6 +981,7 @@ export const AuthorStatsPage: React.FC = () => {
                     <th style={{ padding: '12px 14px' }}>Санаты</th>
                     <th style={{ padding: '12px 14px' }}>Тыңдалған уақыт</th>
                     <th style={{ padding: '12px 14px' }}>Үлесі (%)</th>
+                    <th style={{ padding: '12px 14px', textAlign: 'right' }}>Әрекет</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -987,6 +990,9 @@ export const AuthorStatsPage: React.FC = () => {
                     const trackedSec = authorBookStat?.totalSeconds ?? ((authorBookStat?.totalMinutes ?? 0) * 60);
                     const bookTime = formatListeningTime(trackedSec);
                     const share = royalty.totalMinutes > 0 ? Math.round((bookTime.minutes / royalty.totalMinutes) * 100) : 0;
+                    const statsPath = (role === 'author' || currentUser?.isAuthor || currentUser?.role === 'author')
+                      ? `/author/books/${book.id}/stats`
+                      : `/admin/books/${book.id}/stats`;
 
                     return (
                       <tr key={book.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
@@ -1045,10 +1051,34 @@ export const AuthorStatsPage: React.FC = () => {
                             </span>
                           </div>
                         </td>
+
+                        <td style={{ padding: '14px', textAlign: 'right' }}>
+                          <Link
+                            to={`${statsPath}?month=${selectedMonthKey}`}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              background: '#EFF6FF',
+                              color: 'var(--blue)',
+                              border: '1px solid #BFDBFE',
+                              padding: '6px 12px',
+                              borderRadius: '8px',
+                              fontSize: '12px',
+                              fontWeight: 800,
+                              textDecoration: 'none',
+                              transition: 'all 0.15s ease',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            📊 Статистика
+                          </Link>
+                        </td>
                       </tr>
                     );
                   })}
                 </tbody>
+
               </table>
             </div>
           )}

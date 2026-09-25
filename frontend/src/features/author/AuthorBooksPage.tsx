@@ -236,7 +236,8 @@ export const AuthorBooksPage: React.FC = () => {
                     <th>Беттер саны</th>
                     <th>Аудио</th>
                     <th>Қолжетімділік</th>
-                    <th style={{ textAlign: 'right' }}>Көрінуі</th>
+                    <th>Көрінуі</th>
+                    <th style={{ textAlign: 'right' }}>Әрекет</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -318,7 +319,7 @@ export const AuthorBooksPage: React.FC = () => {
                       </td>
 
                       {/* Visibility */}
-                      <td style={{ textAlign: 'right' }}>
+                      <td>
                         {book.isArchived ? (
                           <span
                             style={{
@@ -355,9 +356,34 @@ export const AuthorBooksPage: React.FC = () => {
                           </span>
                         )}
                       </td>
+
+                      {/* Action: Stats button */}
+                      <td style={{ textAlign: 'right' }}>
+                        <Link
+                          to={`/author/books/${book.id}/stats`}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            background: '#EFF6FF',
+                            color: 'var(--blue)',
+                            border: '1px solid #BFDBFE',
+                            padding: '6px 12px',
+                            borderRadius: '8px',
+                            fontSize: '12px',
+                            fontWeight: 800,
+                            textDecoration: 'none',
+                            transition: 'all 0.15s ease',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          📊 Статистика
+                        </Link>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
+
               </table>
             </div>
           </div>

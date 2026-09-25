@@ -1,9 +1,13 @@
 package com.tanda.controller;
 
 import com.tanda.dto.BookDetailResponseDto;
+
 import com.tanda.dto.BookResponseDto;
 import com.tanda.dto.CreateBookRequestDto;
 import com.tanda.dto.UpdateBookRequestDto;
+import com.tanda.dto.book.BookStatsResponseDto;
+import com.tanda.security.UserPrincipal;
+import com.tanda.service.AudioAnalyticsService;
 import com.tanda.service.BookService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +18,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -34,6 +39,7 @@ import java.util.Map;
 public class BookController {
 
     private final BookService bookService;
+    private final AudioAnalyticsService audioAnalyticsService;
 
     @GetMapping
     public ResponseEntity<Page<BookResponseDto>> getAllBooks(
@@ -60,7 +66,24 @@ public class BookController {
         return ResponseEntity.ok(book);
     }
 
+    @GetMapping("/{id}/stats")
+    public ResponseEntity<BookStatsResponseDto> getBookStats(
+            @PathVariable String id,
+            @RequestParam(required = false) String month,
+            org.springframework.security.core.Authentication authentication,
+            @AuthenticationPrincipal UserPrincipal principal) {
+        if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        boolean isAdmin = authentication.getAuthorities() != null && authentication.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
+        String userId = principal != null ? principal.getId() : authentication.getName();
+        return ResponseEntity.ok(audioAnalyticsService.getBookStats(id, month, userId, isAdmin));
+    }
+
+
     @PostMapping
+
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<BookResponseDto> createBook(@Valid @RequestBody CreateBookRequestDto request) {
         BookResponseDto created = bookService.createBook(request);

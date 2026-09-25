@@ -329,4 +329,24 @@ class BookControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[?(@.id == 'archived-test-book-1')]").exists());
     }
+
+    @Test
+    @DisplayName("GET /api/v1/books/test-book-1/stats unauthenticated returns 401")
+    void testGetBookStatsUnauthenticated() throws Exception {
+        mockMvc.perform(get("/api/v1/books/test-book-1/stats"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @org.springframework.security.test.context.support.WithMockUser(username = "admin-test", roles = "ADMIN")
+    @DisplayName("GET /api/v1/books/test-book-1/stats as ADMIN returns 200 and stats payload")
+    void testGetBookStatsAdmin() throws Exception {
+        mockMvc.perform(get("/api/v1/books/test-book-1/stats"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.bookId", is("test-book-1")))
+                .andExpect(jsonPath("$.title", is("Тест кітап")))
+                .andExpect(jsonPath("$.dailyList", notNullValue()))
+                .andExpect(jsonPath("$.selectedMonth", notNullValue()));
+    }
 }
+

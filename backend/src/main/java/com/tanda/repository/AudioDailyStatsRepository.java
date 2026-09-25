@@ -20,4 +20,7 @@ public interface AudioDailyStatsRepository extends JpaRepository<AudioDailyStats
     List<AudioDailyStats> findByBookIdInAndStatDateBetween(List<String> bookIds, LocalDate startDate, LocalDate endDate);
 
     List<AudioDailyStats> findByBookIdAndStatDateBetween(String bookId, LocalDate startDate, LocalDate endDate);
+
+    List<AudioDailyStats> findByBookId(String bookId);
 }
+

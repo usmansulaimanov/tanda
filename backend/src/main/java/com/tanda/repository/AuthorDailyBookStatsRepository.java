@@ -14,4 +14,7 @@ public interface AuthorDailyBookStatsRepository extends JpaRepository<AuthorDail
     List<AuthorDailyBookStats> findByAuthorIdAndStatDateBetween(String authorId, LocalDate startDate, LocalDate endDate);
     List<AuthorDailyBookStats> findByStatDateBetween(LocalDate startDate, LocalDate endDate);
     List<AuthorDailyBookStats> findByAuthorId(String authorId);
+    List<AuthorDailyBookStats> findByBookIdAndStatDateBetween(String bookId, LocalDate startDate, LocalDate endDate);
+    List<AuthorDailyBookStats> findByBookId(String bookId);
 }
+

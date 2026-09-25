@@ -65,6 +65,8 @@ const AdminUsernamesPage = lazyWithRetry(() => import('../features/admin/AdminUs
 const AuthorHomePage = lazyWithRetry(() => import('../features/author/AuthorHomePage').then((m) => ({ default: m.AuthorHomePage })));
 const AuthorBooksPage = lazyWithRetry(() => import('../features/author/AuthorBooksPage').then((m) => ({ default: m.AuthorBooksPage })));
 const AuthorStatsPage = lazyWithRetry(() => import('../features/author/AuthorStatsPage').then((m) => ({ default: m.AuthorStatsPage })));
+const BookStatsPage = lazyWithRetry(() => import('../features/books/BookStatsPage').then((m) => ({ default: m.BookStatsPage })));
+
 
 const PageLoader = () => (
   <div className="max-w-7xl mx-auto px-4 py-8 flex flex-col gap-6">
@@ -471,6 +473,26 @@ export const router = createBrowserRouter([
         ),
       },
       {
+        path: 'author/books/:bookId/stats',
+        element: (
+          <AuthorRouteGuard>
+            <Suspense fallback={<PageLoader />}>
+              <BookStatsPage />
+            </Suspense>
+          </AuthorRouteGuard>
+        ),
+      },
+      {
+        path: 'admin/books/:bookId/stats',
+        element: (
+          <AdminRouteGuard>
+            <Suspense fallback={<PageLoader />}>
+              <BookStatsPage />
+            </Suspense>
+          </AdminRouteGuard>
+        ),
+      },
+      {
         path: 'admin/authors/:authorId',
         element: (
           <AdminRouteGuard>
@@ -480,6 +502,7 @@ export const router = createBrowserRouter([
           </AdminRouteGuard>
         ),
       },
+
       {
         path: 'admin/readers',
         element: (
