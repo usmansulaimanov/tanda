@@ -681,22 +681,23 @@ export const BookStatsPage: React.FC = () => {
               <div style={{ overflowX: 'auto', paddingBottom: '8px' }} className="custom-scrollbar">
                 <div
                   style={{
-                    minWidth: '680px',
-                    display: 'grid',
-                    gridTemplateColumns: `repeat(${stats.dailyList.length}, 1fr)`,
-                    gap: '5px',
-                    alignItems: 'flex-end',
-                    height: '160px',
+                    minWidth: `${Math.max(stats.dailyList.length * 30, 720)}px`,
+                    width: '100%',
                     background: '#F8FAFC',
-                    padding: '28px 14px 10px',
+                    padding: '32px 16px 16px',
                     borderRadius: '16px',
-                    border: '1px solid #E2E8F0',
+                    border: '1.5px solid #E2E8F0',
+                    display: 'grid',
+                    gridTemplateColumns: `repeat(${stats.dailyList.length}, minmax(0, 1fr))`,
+                    gap: '4px',
+                    alignItems: 'end',
+                    boxSizing: 'border-box',
                   }}
                 >
                   {stats.dailyList.map((day) => {
                     const heightPercent = maxSecInPeriod > 0
-                      ? Math.max(6, Math.round((day.seconds / maxSecInPeriod) * 75))
-                      : 6;
+                      ? Math.max(8, Math.round((day.seconds / maxSecInPeriod) * 100))
+                      : 8;
                     const dayTime = formatListeningTime(day.seconds);
 
                     return (
@@ -706,27 +707,19 @@ export const BookStatsPage: React.FC = () => {
                           display: 'flex',
                           flexDirection: 'column',
                           alignItems: 'center',
-                          height: '100%',
-                          justifyContent: 'flex-end',
+                          gap: '8px',
                           position: 'relative',
                         }}
                         title={`${day.label}: ${dayTime.hoursFormatted} | ${dayTime.minutesFormatted} | ${dayTime.secondsFormatted}`}
                       >
-                        {/* Bar */}
+                        {/* Bar Container */}
                         <div
                           style={{
                             width: '100%',
-                            maxWidth: '28px',
-                            height: `${heightPercent}%`,
-                            borderRadius: '6px 6px 3px 3px',
-                            background: day.isPeak
-                              ? 'linear-gradient(180deg, #EF4444 0%, #EA580C 100%)'
-                              : day.seconds > 0
-                              ? 'linear-gradient(180deg, #3B82F6 0%, #005494 100%)'
-                              : '#E2E8F0',
-                            boxShadow: day.isPeak ? '0 4px 12px rgba(239, 68, 68, 0.4)' : 'none',
-                            transition: 'all 0.2s',
-                            cursor: 'pointer',
+                            height: '110px',
+                            display: 'flex',
+                            alignItems: 'flex-end',
+                            justifyContent: 'center',
                             position: 'relative',
                           }}
                         >
@@ -734,7 +727,7 @@ export const BookStatsPage: React.FC = () => {
                             <span
                               style={{
                                 position: 'absolute',
-                                top: '-20px',
+                                top: '-22px',
                                 left: '50%',
                                 transform: 'translateX(-50%)',
                                 fontSize: '10px',
@@ -746,8 +739,25 @@ export const BookStatsPage: React.FC = () => {
                               Пик
                             </span>
                           )}
-                        </div>
 
+                          {/* Bar Pillar */}
+                          <div
+                            style={{
+                              width: '100%',
+                              maxWidth: '26px',
+                              height: `${heightPercent}%`,
+                              borderRadius: '6px 6px 3px 3px',
+                              background: day.isPeak
+                                ? 'linear-gradient(180deg, #EF4444 0%, #EA580C 100%)'
+                                : day.seconds > 0
+                                ? 'linear-gradient(180deg, #3B82F6 0%, #005494 100%)'
+                                : '#E2E8F0',
+                              boxShadow: day.isPeak ? '0 4px 12px rgba(239, 68, 68, 0.4)' : 'none',
+                              transition: 'all 0.2s',
+                              cursor: 'pointer',
+                            }}
+                          />
+                        </div>
 
                         {/* Date label */}
                         <span
@@ -755,9 +765,9 @@ export const BookStatsPage: React.FC = () => {
                             fontSize: '10.5px',
                             fontWeight: day.isToday || day.isPeak ? 800 : 600,
                             color: day.isToday ? 'var(--blue)' : day.isPeak ? '#EA580C' : '#64748B',
-                            marginTop: '6px',
                             textAlign: 'center',
                             whiteSpace: 'nowrap',
+                            lineHeight: 1.2,
                           }}
                         >
                           {day.shortLabel}
