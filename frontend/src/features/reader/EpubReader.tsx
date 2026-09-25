@@ -402,9 +402,17 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
   const processKeyAction = useCallback((e: KeyboardEvent) => {
     if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
 
-    const target = e.target as HTMLElement | null;
-    if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || (target as any).isContentEditable)) {
-      return;
+    const target = e.target as HTMLInputElement | null;
+    if (target) {
+      if (target.tagName === 'TEXTAREA' || (target as any).isContentEditable) {
+        return;
+      }
+      if (target.tagName === 'INPUT' && target.type !== 'range') {
+        return;
+      }
+      if (target.tagName === 'INPUT' && target.type === 'range') {
+        target.blur();
+      }
     }
 
     // Always prevent native browser / iframe scrolling
@@ -1125,6 +1133,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
           <input
             type="range"
             className="epub-progress-slider"
+            tabIndex={-1}
             min="0"
             max="100"
             value={sliderDragPercent !== null ? sliderDragPercent : progressPercent}
@@ -1147,21 +1156,29 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
               }
             }}
             onPointerUp={(e) => {
-              const val = parseInt((e.target as HTMLInputElement).value, 10);
+              const el = e.target as HTMLInputElement;
+              el.blur();
+              const val = parseInt(el.value, 10);
               executeSeek(!isNaN(val) ? val : (sliderDragPercent ?? progressPercent));
             }}
             onMouseUp={(e) => {
-              const val = parseInt((e.target as HTMLInputElement).value, 10);
+              const el = e.target as HTMLInputElement;
+              el.blur();
+              const val = parseInt(el.value, 10);
               executeSeek(!isNaN(val) ? val : (sliderDragPercent ?? progressPercent));
             }}
             onTouchEnd={(e) => {
-              const val = parseInt((e.target as HTMLInputElement).value, 10);
+              const el = e.target as HTMLInputElement;
+              el.blur();
+              const val = parseInt(el.value, 10);
               executeSeek(!isNaN(val) ? val : (sliderDragPercent ?? progressPercent));
             }}
-            onKeyUp={(e) => {
-              if (['ArrowLeft', 'ArrowRight', 'Home', 'End', 'PageUp', 'PageDown'].includes(e.key)) {
-                const val = parseInt((e.target as HTMLInputElement).value, 10);
-                executeSeek(!isNaN(val) ? val : (sliderDragPercent ?? progressPercent));
+            onKeyDown={(e) => {
+              if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+                e.preventDefault();
+                e.stopPropagation();
+                (e.target as HTMLElement).blur();
+                processKeyActionRef.current(e.nativeEvent);
               }
             }}
             title={`Кітаптың ${sliderDragPercent !== null ? sliderDragPercent : progressPercent}% бөлігіндесіз`}
