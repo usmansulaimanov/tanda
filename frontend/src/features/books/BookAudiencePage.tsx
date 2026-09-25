@@ -638,7 +638,7 @@ export const BookAudiencePage: React.FC = () => {
                   <th style={{ width: '50px', textAlign: 'center' }}>№</th>
                   <th style={{ width: '150px', whiteSpace: 'nowrap' }}>ID нөмірі</th>
                   <th>Аты-жөні</th>
-                  <th>Электрондық поштасы / Телефон</th>
+                  <th>Электрондық поштасы</th>
                   <th style={{ width: '180px', whiteSpace: 'nowrap' }}>Тыңдаған уақыты</th>
                   <th style={{ width: '180px', textAlign: 'right', whiteSpace: 'nowrap' }}>Әрекеттер</th>
                 </tr>
@@ -716,17 +716,10 @@ export const BookAudiencePage: React.FC = () => {
                         </div>
                       </td>
 
-                      {/* Email & Phone */}
+                      {/* Email */}
                       <td>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                          <div style={{ color: 'var(--text-dark)', fontSize: '13px', fontWeight: 600 }}>
-                            {member.email}
-                          </div>
-                          {member.phone && (
-                            <div style={{ color: '#64748B', fontSize: '12px' }}>
-                              {member.phone}
-                            </div>
-                          )}
+                        <div style={{ color: 'var(--text-mid)', fontSize: '13px' }}>
+                          {member.email}
                         </div>
                       </td>
 
