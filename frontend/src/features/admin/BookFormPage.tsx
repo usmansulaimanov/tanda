@@ -368,7 +368,6 @@ export const BookFormPage: React.FC = () => {
 
     setErrors({});
 
-    const pagesNum = parseInt(pages, 10);
     const validPages = !isNaN(pagesNum) && pagesNum > 0 ? pagesNum : (existingBook?.pages || 1);
     const finalCategories = categories.length > 0 ? categories : (existingBook?.categories || ['Көркем әдебиет']);
     const categoryString = finalCategories.join(', ');
