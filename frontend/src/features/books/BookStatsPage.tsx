@@ -252,7 +252,7 @@ export const BookStatsPage: React.FC = () => {
                     <div style={{ fontSize: '13px', color: '#64748B', marginTop: '3px', fontWeight: 600 }}>
                       Авторы: <strong style={{ color: '#334155' }}>{stats.author || 'Белгісіз'}</strong>
                       {stats.pages ? ` • ${stats.pages} бет` : ''}
-                      {stats.hasAudio ? ' • 🎧 Аудио' : ''}
+                      {stats.hasAudio ? ' • Аудио' : ''}
                     </div>
                   </div>
                 </div>
@@ -359,7 +359,6 @@ export const BookStatsPage: React.FC = () => {
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                  <span style={{ fontSize: '18px' }}>⚡</span>
                   <span style={{ fontSize: '13px', fontWeight: 700, color: '#64748B' }}>Бүгін тыңдалды</span>
                 </div>
                 <div style={{ fontSize: '24px', fontWeight: 900, color: '#2563EB' }}>
@@ -381,7 +380,6 @@ export const BookStatsPage: React.FC = () => {
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                  <span style={{ fontSize: '18px' }}>📅</span>
                   <span style={{ fontSize: '13px', fontWeight: 700, color: '#64748B' }}>Бұл айда ({formatMonthLabel(selectedMonthKey)})</span>
                 </div>
                 <div style={{ fontSize: '24px', fontWeight: 900, color: 'var(--blue)' }}>
@@ -403,7 +401,6 @@ export const BookStatsPage: React.FC = () => {
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                  <span style={{ fontSize: '18px' }}>⏳</span>
                   <span style={{ fontSize: '13px', fontWeight: 700, color: '#64748B' }}>Жалпы (барлық уақытта)</span>
                 </div>
                 <div style={{ fontSize: '24px', fontWeight: 900, color: '#0F172A' }}>
@@ -425,7 +422,6 @@ export const BookStatsPage: React.FC = () => {
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                  <span style={{ fontSize: '18px' }}>🔥</span>
                   <span style={{ fontSize: '13px', fontWeight: 700, color: stats.peakDay ? '#C2410C' : '#64748B' }}>
                     Ең көп тыңдалған күн (Пик)
                   </span>
@@ -457,7 +453,6 @@ export const BookStatsPage: React.FC = () => {
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                  <span style={{ fontSize: '18px' }}>👥</span>
                   <span style={{ fontSize: '13px', fontWeight: 700, color: '#64748B' }}>Тыңдармандар саны</span>
                 </div>
                 <div style={{ fontSize: '24px', fontWeight: 900, color: '#059669' }}>
@@ -558,10 +553,11 @@ export const BookStatsPage: React.FC = () => {
                                 whiteSpace: 'nowrap',
                               }}
                             >
-                              🔥 Пик
+                              Пик
                             </span>
                           )}
                         </div>
+
 
                         {/* Date label */}
                         <span

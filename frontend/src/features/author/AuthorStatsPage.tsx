@@ -1071,8 +1071,9 @@ export const AuthorStatsPage: React.FC = () => {
                               whiteSpace: 'nowrap',
                             }}
                           >
-                            📊 Статистика
+                            Статистика
                           </Link>
+
                         </td>
                       </tr>
                     );
