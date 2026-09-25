@@ -49,6 +49,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -564,6 +565,16 @@ public class AudioAnalyticsService {
             rawList = audioSessionRepository.getAudienceForBookBetween(bookId, monthStart, monthEnd, minSeconds);
         }
 
+        OffsetDateTime todayStart = LocalDate.now(KZ_ZONE).atStartOfDay(KZ_ZONE).toOffsetDateTime();
+        OffsetDateTime todayEnd = todayStart.plusDays(1);
+        Map<String, Long> todayUserSecondsMap = audioSessionRepository.getUserListeningSumsForBookBetween(bookId, todayStart, todayEnd)
+                .stream()
+                .collect(Collectors.toMap(
+                        row -> (String) row[0],
+                        row -> ((Number) row[1]).longValue(),
+                        (a, b) -> a
+                ));
+
         List<BookAudienceMemberDto> result = new ArrayList<>();
         for (Object[] row : rawList) {
             User u = (User) row[0];
@@ -584,6 +595,23 @@ public class AudioAnalyticsService {
                 formattedDuration = sec + " сек";
             }
 
+            long todaySec = todayUserSecondsMap.getOrDefault(u.getId(), 0L);
+            long todayMin = todaySec / 60;
+            long todayHrs = todaySec / 3600;
+            long todayRemMin = todayMin % 60;
+            long todayRemSec = todaySec % 60;
+
+            String todayFormattedDuration;
+            if (todayHrs > 0) {
+                todayFormattedDuration = todayHrs + " сағ" + (todayRemMin > 0 ? " " + todayRemMin + " мин" : "");
+            } else if (todayMin > 0) {
+                todayFormattedDuration = todayMin + " мин" + (todayRemSec > 0 ? " " + todayRemSec + " сек" : "");
+            } else if (todaySec > 0) {
+                todayFormattedDuration = todaySec + " сек";
+            } else {
+                todayFormattedDuration = "0 мин";
+            }
+
             result.add(BookAudienceMemberDto.builder()
                     .userId(u.getId())
                     .idNumber(u.getIdNumber())
@@ -595,6 +623,8 @@ public class AudioAnalyticsService {
                     .totalSeconds(sec)
                     .totalMinutes(minutes)
                     .formattedDuration(formattedDuration.trim())
+                    .todaySeconds(todaySec)
+                    .todayFormattedDuration(todayFormattedDuration.trim())
                     .lastListenedAt(lastListened)
                     .build());
         }

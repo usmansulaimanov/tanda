@@ -192,6 +192,8 @@ export interface BookAudienceMember {
   totalSeconds: number;
   totalMinutes: number;
   formattedDuration: string;
+  todaySeconds?: number;
+  todayFormattedDuration?: string;
   lastListenedAt?: string;
 }
 

@@ -25,5 +25,7 @@ public class BookAudienceMemberDto {
     private long totalSeconds;
     private long totalMinutes;
     private String formattedDuration;
+    private long todaySeconds;
+    private String todayFormattedDuration;
     private OffsetDateTime lastListenedAt;
 }

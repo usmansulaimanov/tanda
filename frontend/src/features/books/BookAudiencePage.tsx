@@ -177,6 +177,7 @@ export const BookAudiencePage: React.FC = () => {
         'Юзернейм': member.username ? `@${member.username}` : '—',
         'Электронды поштасы (Email)': member.email || '—',
         'Телефон нөмірі': member.phone || '—',
+        'Бүгін тыңдағаны': member.todayFormattedDuration || '0 мин',
         'Тыңдаған уақыты': member.formattedDuration || '0 сек',
         'Кітап атауы': book?.title || '—',
         'Уақыт ауқымы': scope === 'MONTH' ? formatMonthLabel(selectedMonthKey) : 'Барлық уақытта',
@@ -711,15 +712,14 @@ export const BookAudiencePage: React.FC = () => {
 
                       {/* Duration */}
                       <td style={{ whiteSpace: 'nowrap' }}>
-                        <span
-                          style={{
-                            fontSize: '13px',
-                            fontWeight: 800,
-                            color: '#0F172A',
-                          }}
-                        >
-                          {member.formattedDuration}
-                        </span>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                          <div style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>
+                            Бүгін: {member.todayFormattedDuration || '0 мин'}
+                          </div>
+                          <div style={{ fontSize: '12px', color: '#64748B', fontWeight: 600 }}>
+                            {scope === 'MONTH' ? 'Бұл айда' : 'Жалпы'}: {member.formattedDuration}
+                          </div>
+                        </div>
                       </td>
 
                       {/* Actions */}
