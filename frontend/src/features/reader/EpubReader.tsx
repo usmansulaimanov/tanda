@@ -53,6 +53,57 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
   };
 
   const activeTheme = themeStyles[theme];
+  const themeRef = useRef(theme);
+  useEffect(() => {
+    themeRef.current = theme;
+  }, [theme]);
+
+  const getThemeCss = (selectedTheme: 'light' | 'sepia' | 'dark') => {
+    const current = themeStyles[selectedTheme];
+    return `
+      html, body {
+        background-color: ${current.bg} !important;
+        background: ${current.bg} !important;
+        color: ${current.text} !important;
+      }
+      p, div, span, h1, h2, h3, h4, h5, h6, li, a, em, strong, b, i, blockquote, section, article {
+        color: ${current.text} !important;
+        background-color: transparent !important;
+      }
+      parsererror, parsererror * {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+      }
+    `;
+  };
+
+  const applyDirectThemeStyleToDoc = useCallback((doc: Document | null | undefined, selectedTheme: 'light' | 'sepia' | 'dark') => {
+    if (!doc) return;
+    try {
+      let style = doc.getElementById('tanda-reader-theme-style') as HTMLStyleElement | null;
+      if (!style) {
+        style = doc.createElement('style');
+        style.id = 'tanda-reader-theme-style';
+        doc.head?.appendChild(style);
+      }
+      style.textContent = getThemeCss(selectedTheme);
+      if (doc.body) {
+        doc.body.style.setProperty('background-color', themeStyles[selectedTheme].bg, 'important');
+        doc.body.style.setProperty('color', themeStyles[selectedTheme].text, 'important');
+      }
+      if (doc.documentElement) {
+        doc.documentElement.style.setProperty('background-color', themeStyles[selectedTheme].bg, 'important');
+        doc.documentElement.style.setProperty('color', themeStyles[selectedTheme].text, 'important');
+      }
+    } catch (e) {
+      console.warn('Error applying direct theme style to doc:', e);
+    }
+  }, []);
 
   // Apply themes to rendition
   const applyThemeToRendition = useCallback((rendition: Rendition, selectedTheme: 'light' | 'sepia' | 'dark', size: number) => {
@@ -204,7 +255,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
       });
       renditionRef.current = rendition;
 
-      applyThemeToRendition(rendition, theme, fontSize);
+      applyThemeToRendition(rendition, themeRef.current, fontSize);
 
       // Clean up any browser parsererror elements from DOM and inject CSS overrides
       rendition.hooks.content.register((contents: any) => {
@@ -213,20 +264,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
           if (doc) {
             const parserErrors = doc.querySelectorAll('parsererror');
             parserErrors.forEach((el: Element) => el.remove());
-
-            const style = doc.createElement('style');
-            style.textContent = `
-              parsererror, parsererror * {
-                display: none !important;
-                visibility: hidden !important;
-                opacity: 0 !important;
-                height: 0 !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                border: none !important;
-              }
-            `;
-            doc.head?.appendChild(style);
+            applyDirectThemeStyleToDoc(doc, themeRef.current);
           }
         } catch {}
       });
@@ -237,6 +275,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
           if (doc) {
             const parserErrors = doc.querySelectorAll('parsererror');
             parserErrors.forEach((el: Element) => el.remove());
+            applyDirectThemeStyleToDoc(doc, themeRef.current);
           }
         } catch {}
       });
@@ -328,8 +367,30 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
 
   const handleThemeChange = (newTheme: 'light' | 'sepia' | 'dark') => {
     setTheme(newTheme);
+    themeRef.current = newTheme;
     if (renditionRef.current) {
       applyThemeToRendition(renditionRef.current, newTheme, fontSize);
+      try {
+        const contents = (renditionRef.current as any).getContents?.() || [];
+        contents.forEach((content: any) => {
+          const doc = content.document || content.window?.document;
+          if (doc) {
+            applyDirectThemeStyleToDoc(doc, newTheme);
+          }
+        });
+        if (viewerRef.current) {
+          const iframes = viewerRef.current.querySelectorAll('iframe');
+          iframes.forEach((iframe) => {
+            try {
+              if (iframe.contentDocument) {
+                applyDirectThemeStyleToDoc(iframe.contentDocument, newTheme);
+              }
+            } catch {}
+          });
+        }
+      } catch (err) {
+        console.warn('Failed to update open iframe themes:', err);
+      }
     }
   };
 
