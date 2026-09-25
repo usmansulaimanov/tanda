@@ -15,15 +15,37 @@ export const ReaderPage: React.FC = () => {
   const { markAsReading, updateReadingProgress } = useMyBooksStore();
 
   const [book, setBook] = useState<Book | null>(books.find((b) => b.id === id) || null);
+  const [isBookLoading, setIsBookLoading] = useState<boolean>(!books.find((b) => b.id === id));
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [fontSize, setFontSize] = useState<number>(17);
   const [theme, setTheme] = useState<'light' | 'sepia' | 'dark'>('light');
 
+  const handleProgressChange = React.useCallback(
+    (pct: number) => {
+      if (!book) return;
+      const totPages = book.pages ? parseInt(String(book.pages)) : 100;
+      const calculatedPage = Math.max(1, Math.round((pct / 100) * totPages));
+      setCurrentPage((prev) => (prev !== calculatedPage ? calculatedPage : prev));
+      if (isAuthenticated) {
+        updateReadingProgress(book.id, calculatedPage, totPages);
+      }
+    },
+    [book, isAuthenticated, updateReadingProgress]
+  );
+
   useEffect(() => {
     if (!book && id) {
+      setIsBookLoading(true);
       fetchBookById(id)
-        .then((b) => setBook(b || null))
-        .catch(() => {});
+        .then((b) => {
+          setBook(b || null);
+          setIsBookLoading(false);
+        })
+        .catch(() => {
+          setIsBookLoading(false);
+        });
+    } else {
+      setIsBookLoading(false);
     }
   }, [book, id, fetchBookById]);
 
@@ -49,6 +71,29 @@ export const ReaderPage: React.FC = () => {
         .catch(() => {});
     }
   }, [id, isAuthenticated, book, updateReadingProgress]);
+
+  if (isBookLoading) {
+    return (
+      <div style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div
+            style={{
+              width: '44px',
+              height: '44px',
+              borderRadius: '50%',
+              border: '3.5px solid #CBD5E1',
+              borderTopColor: 'var(--blue)',
+              animation: 'spin 0.8s linear infinite',
+              margin: '0 auto 16px',
+            }}
+          />
+          <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-dark)' }}>
+            Кітап жүктелуде...
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return (
@@ -151,19 +196,6 @@ export const ReaderPage: React.FC = () => {
       (book.ebookFormat?.toUpperCase() === 'EPUB' ||
         book.ebookUrl.toLowerCase().includes('.epub') ||
         (!book.ebookFormat?.toUpperCase().includes('PDF') && !book.ebookUrl.toLowerCase().includes('.pdf')))
-  );
-
-  const handleProgressChange = React.useCallback(
-    (pct: number) => {
-      if (!book) return;
-      const totPages = book.pages ? parseInt(String(book.pages)) : 100;
-      const calculatedPage = Math.max(1, Math.round((pct / 100) * totPages));
-      setCurrentPage((prev) => (prev !== calculatedPage ? calculatedPage : prev));
-      if (isAuthenticated) {
-        updateReadingProgress(book.id, calculatedPage, totPages);
-      }
-    },
-    [book, isAuthenticated, updateReadingProgress]
   );
 
   return (
