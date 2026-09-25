@@ -414,11 +414,12 @@ public class AudioAnalyticsService {
 
             String dayNum = String.format("%02d", day);
             String monthNum = String.format("%02d", ym.getMonthValue());
+            String shortDateStr = dayNum + "." + monthNum + ".";
 
             dailyList.add(AuthorDailyStatDto.builder()
                     .date(iso)
-                    .label(dayNum + "." + monthNum)
-                    .shortLabel(dayNum + "." + monthNum)
+                    .label(shortDateStr)
+                    .shortLabel(shortDateStr)
                     .seconds(sec)
                     .minutes(Math.round((sec / 60.0) * 10.0) / 10.0)
                     .isToday(date.equals(today))
@@ -693,10 +694,14 @@ public class AudioAnalyticsService {
                 peakDay = d;
             }
 
+            String dayNum = String.format("%02d", d.getDayOfMonth());
+            String monthNum = String.format("%02d", d.getMonthValue());
+            String shortDateStr = dayNum + "." + monthNum + ".";
+
             dailyList.add(AuthorDailyStatDto.builder()
                     .date(d.toString())
-                    .label(d.format(java.time.format.DateTimeFormatter.ofPattern("d MMMM", new java.util.Locale("kk", "KZ"))))
-                    .shortLabel(d.format(java.time.format.DateTimeFormatter.ofPattern("d MMM", new java.util.Locale("kk", "KZ"))))
+                    .label(shortDateStr)
+                    .shortLabel(shortDateStr)
                     .seconds(sec)
                     .minutes(Math.round((sec / 60.0) * 10.0) / 10.0)
                     .isToday(d.equals(today))

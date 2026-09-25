@@ -62,6 +62,17 @@ const formatMonthLabel = (monthKey: string) => {
   return monthKey;
 };
 
+const formatDayShortLabel = (day: { date?: string; shortLabel?: string }) => {
+  if (day.date && /^\d{4}-\d{2}-\d{2}$/.test(day.date)) {
+    const parts = day.date.split('-');
+    return `${parts[2]}.${parts[1]}.`;
+  }
+  if (day.shortLabel) {
+    return day.shortLabel.endsWith('.') ? day.shortLabel : `${day.shortLabel}.`;
+  }
+  return '';
+};
+
 export const UserBookStatsPage: React.FC = () => {
   const { bookId, userId } = useParams<{ bookId: string; userId: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -588,7 +599,7 @@ export const UserBookStatsPage: React.FC = () => {
                             lineHeight: 1.2,
                           }}
                         >
-                          {day.shortLabel}
+                          {formatDayShortLabel(day)}
                         </span>
                       </div>
                     );
