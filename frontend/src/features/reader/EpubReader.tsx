@@ -268,14 +268,19 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         if (dispPage === 1) {
           pct = 0;
         } else if (typeof dispPage === 'number' && typeof dispTotal === 'number' && dispTotal > 0) {
-          // Progress based on completed pages: on page 2 of 7, 1 page is completed = 14%
-          pct = Math.max(1, Math.min(100, Math.round(((dispPage - 1) / dispTotal) * 100)));
+          if (dispPage >= dispTotal) {
+            pct = 100;
+          } else if (dispTotal > 1) {
+            pct = Math.max(1, Math.min(99, Math.round(((dispPage - 1) / (dispTotal - 1)) * 100)));
+          } else {
+            pct = 100;
+          }
         } else if (book.locations && book.locations.length() > 0 && cfi) {
           try {
             const locIdx = book.locations.locationFromCfi(cfi);
             const totLocs = (book.locations as any).total || book.locations.length();
-            if (typeof locIdx === 'number' && locIdx >= 0 && totLocs > 0) {
-              pct = Math.max(0, Math.min(100, Math.round((locIdx / totLocs) * 100)));
+            if (typeof locIdx === 'number' && locIdx >= 0 && totLocs > 1) {
+              pct = Math.max(0, Math.min(100, Math.round((locIdx / (totLocs - 1)) * 100)));
             } else {
               const rawPct = book.locations.percentageFromCfi(cfi);
               if (typeof rawPct === 'number' && !isNaN(rawPct) && rawPct > 0) {
@@ -290,17 +295,19 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         } else if (book.spine && (book.spine as any).length > 1) {
           const spineLen = (book.spine as any).length;
           const spineIdx = typeof start.index === 'number' ? start.index : 0;
-          pct = Math.max(0, Math.min(100, Math.round((spineIdx / spineLen) * 100)));
+          pct = Math.max(0, Math.min(100, Math.round((spineIdx / (spineLen - 1)) * 100)));
         } else if (typeof dispPage === 'number' && dispPage > 1) {
           const tot = dispTotal || (book.locations?.length() > 0 ? book.locations.length() : undefined);
           if (tot && tot >= dispPage) {
-            pct = Math.max(1, Math.min(100, Math.round(((dispPage - 1) / tot) * 100)));
+            pct = tot > 1 ? Math.max(1, Math.min(100, Math.round(((dispPage - 1) / (tot - 1)) * 100))) : 100;
           }
         }
 
-        // Guarantee 0% on first page
-        if (dispPage === 1 || start.index === 0 && (!dispPage || dispPage <= 1)) {
+        // Guarantee 0% on first page and 100% on last page
+        if (dispPage === 1 || (start.index === 0 && (!dispPage || dispPage <= 1))) {
           pct = 0;
+        } else if (dispPage && dispTotal && dispPage >= dispTotal) {
+          pct = 100;
         }
 
         setProgressPercent(pct);
