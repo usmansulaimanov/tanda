@@ -723,32 +723,16 @@ export const BookAudiencePage: React.FC = () => {
                         </div>
                       </td>
 
-                      {/* Duration badge */}
+                      {/* Duration */}
                       <td style={{ whiteSpace: 'nowrap' }}>
                         <span
                           style={{
                             fontSize: '13px',
                             fontWeight: 800,
-                            padding: '4px 10px',
-                            borderRadius: '8px',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '5px',
-                            background:
-                              tierFilter === 'LISTENERS'
-                                ? '#EFF6FF'
-                                : tierFilter === 'READERS'
-                                ? '#ECFDF5'
-                                : '#FFFBEB',
-                            color:
-                              tierFilter === 'LISTENERS'
-                                ? '#2563EB'
-                                : tierFilter === 'READERS'
-                                ? '#059669'
-                                : '#D97706',
+                            color: '#0F172A',
                           }}
                         >
-                          🎧 {member.formattedDuration}
+                          {member.formattedDuration}
                         </span>
                       </td>
 
