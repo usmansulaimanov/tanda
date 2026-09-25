@@ -65,9 +65,14 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         background-color: ${current.bg} !important;
         background: ${current.bg} !important;
         color: ${current.text} !important;
+        -webkit-text-fill-color: ${current.text} !important;
       }
-      p, div, span, h1, h2, h3, h4, h5, h6, li, a, em, strong, b, i, blockquote, section, article {
+      *, *::before, *::after {
         color: ${current.text} !important;
+        -webkit-text-fill-color: ${current.text} !important;
+        background-color: transparent !important;
+      }
+      img, svg, video, audio {
         background-color: transparent !important;
       }
       parsererror, parsererror * {
@@ -89,16 +94,23 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
       if (!style) {
         style = doc.createElement('style');
         style.id = 'tanda-reader-theme-style';
-        doc.head?.appendChild(style);
       }
       style.textContent = getThemeCss(selectedTheme);
+      if (doc.head) {
+        doc.head.appendChild(style);
+      } else if (doc.body) {
+        doc.body.appendChild(style);
+      }
+
       if (doc.body) {
         doc.body.style.setProperty('background-color', themeStyles[selectedTheme].bg, 'important');
         doc.body.style.setProperty('color', themeStyles[selectedTheme].text, 'important');
+        doc.body.style.setProperty('-webkit-text-fill-color', themeStyles[selectedTheme].text, 'important');
       }
       if (doc.documentElement) {
         doc.documentElement.style.setProperty('background-color', themeStyles[selectedTheme].bg, 'important');
         doc.documentElement.style.setProperty('color', themeStyles[selectedTheme].text, 'important');
+        doc.documentElement.style.setProperty('-webkit-text-fill-color', themeStyles[selectedTheme].text, 'important');
       }
     } catch (e) {
       console.warn('Error applying direct theme style to doc:', e);
@@ -106,70 +118,9 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
   }, []);
 
   // Apply themes to rendition
-  const applyThemeToRendition = useCallback((rendition: Rendition, selectedTheme: 'light' | 'sepia' | 'dark', size: number) => {
+  const applyThemeToRendition = useCallback((rendition: Rendition, _selectedTheme: 'light' | 'sepia' | 'dark', size: number) => {
     try {
-      const errorSuppression = {
-        display: 'none !important',
-        visibility: 'hidden !important',
-        opacity: '0 !important',
-        height: '0 !important',
-        width: '0 !important',
-        margin: '0 !important',
-        padding: '0 !important',
-        border: 'none !important',
-        overflow: 'hidden !important',
-        position: 'absolute !important',
-        'pointer-events': 'none !important',
-      };
-
-      const themes = rendition.themes;
-      themes.register('light', {
-        body: {
-          background: '#FFFFFF !important',
-          color: '#0F172A !important',
-          'font-family': 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important',
-          'line-height': '1.7 !important',
-          padding: '0 16px !important',
-        },
-        'p, div, span, h1, h2, h3, h4, h5, h6, li': {
-          color: '#0F172A !important',
-        },
-        parsererror: errorSuppression,
-        'parsererror *': errorSuppression,
-      });
-
-      themes.register('sepia', {
-        body: {
-          background: '#FBF0D9 !important',
-          color: '#433422 !important',
-          'font-family': 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important',
-          'line-height': '1.7 !important',
-          padding: '0 16px !important',
-        },
-        'p, div, span, h1, h2, h3, h4, h5, h6, li': {
-          color: '#433422 !important',
-        },
-        parsererror: errorSuppression,
-        'parsererror *': errorSuppression,
-      });
-
-      themes.register('dark', {
-        body: {
-          background: '#0F172A !important',
-          color: '#F1F5F9 !important',
-          'font-family': 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important',
-          'line-height': '1.7 !important',
-          padding: '0 16px !important',
-        },
-        'p, div, span, h1, h2, h3, h4, h5, h6, li': {
-          color: '#F1F5F9 !important',
-        },
-        parsererror: errorSuppression,
-        'parsererror *': errorSuppression,
-      });
-
-      themes.select(selectedTheme);
-      themes.fontSize(`${size}px`);
+      rendition.themes.fontSize(`${size}px`);
     } catch (e) {
       console.warn('Error applying theme:', e);
     }
