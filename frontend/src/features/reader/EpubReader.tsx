@@ -98,6 +98,8 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
 
   const [currentLocationText, setCurrentLocationText] = useState<string>('');
   const [progressPercent, setProgressPercent] = useState<number>(0);
+  const [sliderDragPercent, setSliderDragPercent] = useState<number | null>(null);
+  const isDraggingSliderRef = useRef(false);
   const [isAtStart, setIsAtStart] = useState<boolean>(true);
   const [isAtEnd, setIsAtEnd] = useState<boolean>(false);
 
@@ -245,31 +247,54 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
     }
   }, []);
 
-  const handleSeek = useCallback((targetPercent: number) => {
+  const executeSeek = useCallback(async (targetPercent: number) => {
     const clamped = Math.max(0, Math.min(100, targetPercent));
     setProgressPercent(clamped);
 
-    if (!bookRef.current || !renditionRef.current) return;
+    if (!bookRef.current || !renditionRef.current) {
+      setSliderDragPercent(null);
+      isDraggingSliderRef.current = false;
+      return;
+    }
     const book = bookRef.current;
+    const rendition = renditionRef.current;
 
     try {
-      if (book.locations && book.locations.length() > 0) {
+      if (clamped === 0) {
+        const firstSpine = (book.spine as any)?.get?.(0);
+        if (firstSpine && (firstSpine.cfiBase || firstSpine.href)) {
+          await rendition.display(firstSpine.cfiBase || firstSpine.href);
+        } else {
+          await rendition.display(0);
+        }
+      } else if (clamped === 100) {
+        const spineLen = (book.spine as any)?.length || 0;
+        if (spineLen > 0) {
+          const lastSpine = (book.spine as any).get(spineLen - 1);
+          if (lastSpine && (lastSpine.cfiBase || lastSpine.href)) {
+            await rendition.display(lastSpine.cfiBase || lastSpine.href);
+          }
+        }
+      } else if (book.locations && book.locations.length() > 0) {
         const cfi = book.locations.cfiFromPercentage(clamped / 100);
         if (cfi) {
-          renditionRef.current.display(cfi);
-          return;
+          await rendition.display(cfi);
         }
-      }
-      if (book.spine && (book.spine as any).length > 0) {
+      } else if (book.spine && (book.spine as any).length > 0) {
         const spineLen = (book.spine as any).length;
-        const targetSpineIdx = Math.min(spineLen - 1, Math.floor((clamped / 100) * spineLen));
+        const targetSpineIdx = Math.min(spineLen - 1, Math.max(0, Math.floor((clamped / 100) * spineLen)));
         const spineItem = (book.spine as any).get(targetSpineIdx);
         if (spineItem && (spineItem.cfiBase || spineItem.href)) {
-          renditionRef.current.display(spineItem.cfiBase || spineItem.href);
+          await rendition.display(spineItem.cfiBase || spineItem.href);
         }
       }
     } catch (e) {
       console.warn('Seek error:', e);
+    } finally {
+      setTimeout(() => {
+        setSliderDragPercent(null);
+        isDraggingSliderRef.current = false;
+      }, 50);
     }
   }, []);
 
@@ -1059,7 +1084,9 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         }}
       >
         <div style={{ minWidth: '70px', userSelect: 'none' }}>
-          {currentLocationText || (progressPercent > 0 ? `${progressPercent}%` : 'Басы')}
+          {sliderDragPercent !== null
+            ? `${sliderDragPercent}% оқылды`
+            : currentLocationText || (progressPercent > 0 ? `${progressPercent}%` : 'Басы')}
         </div>
 
         {/* Interactive Seek Slider */}
@@ -1077,12 +1104,47 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
             className="epub-progress-slider"
             min="0"
             max="100"
-            value={progressPercent}
-            onChange={(e) => handleSeek(parseInt(e.target.value, 10))}
-            title={`Кітаптың ${progressPercent}% бөлігіндесіз`}
+            value={sliderDragPercent !== null ? sliderDragPercent : progressPercent}
+            onPointerDown={() => {
+              isDraggingSliderRef.current = true;
+              setSliderDragPercent(progressPercent);
+            }}
+            onMouseDown={() => {
+              isDraggingSliderRef.current = true;
+              setSliderDragPercent(progressPercent);
+            }}
+            onTouchStart={() => {
+              isDraggingSliderRef.current = true;
+              setSliderDragPercent(progressPercent);
+            }}
+            onChange={(e) => {
+              const val = parseInt(e.target.value, 10);
+              if (!isNaN(val)) {
+                setSliderDragPercent(val);
+              }
+            }}
+            onPointerUp={(e) => {
+              const val = parseInt((e.target as HTMLInputElement).value, 10);
+              executeSeek(!isNaN(val) ? val : (sliderDragPercent ?? progressPercent));
+            }}
+            onMouseUp={(e) => {
+              const val = parseInt((e.target as HTMLInputElement).value, 10);
+              executeSeek(!isNaN(val) ? val : (sliderDragPercent ?? progressPercent));
+            }}
+            onTouchEnd={(e) => {
+              const val = parseInt((e.target as HTMLInputElement).value, 10);
+              executeSeek(!isNaN(val) ? val : (sliderDragPercent ?? progressPercent));
+            }}
+            onKeyUp={(e) => {
+              if (['ArrowLeft', 'ArrowRight', 'Home', 'End', 'PageUp', 'PageDown'].includes(e.key)) {
+                const val = parseInt((e.target as HTMLInputElement).value, 10);
+                executeSeek(!isNaN(val) ? val : (sliderDragPercent ?? progressPercent));
+              }
+            }}
+            title={`Кітаптың ${sliderDragPercent !== null ? sliderDragPercent : progressPercent}% бөлігіндесіз`}
             aria-label="Оқу барысын жылжыту"
             style={{
-              background: `linear-gradient(to right, var(--blue, #2563EB) 0%, var(--blue, #2563EB) ${progressPercent}%, ${activeTheme.border} ${progressPercent}%, ${activeTheme.border} 100%)`,
+              background: `linear-gradient(to right, var(--blue, #2563EB) 0%, var(--blue, #2563EB) ${sliderDragPercent !== null ? sliderDragPercent : progressPercent}%, ${activeTheme.border} ${sliderDragPercent !== null ? sliderDragPercent : progressPercent}%, ${activeTheme.border} 100%)`,
             }}
           />
         </div>
