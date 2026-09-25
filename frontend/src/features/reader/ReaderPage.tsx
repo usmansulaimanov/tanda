@@ -153,6 +153,19 @@ export const ReaderPage: React.FC = () => {
         (!book.ebookFormat?.toUpperCase().includes('PDF') && !book.ebookUrl.toLowerCase().includes('.pdf')))
   );
 
+  const handleProgressChange = React.useCallback(
+    (pct: number) => {
+      if (!book) return;
+      const totPages = book.pages ? parseInt(String(book.pages)) : 100;
+      const calculatedPage = Math.max(1, Math.round((pct / 100) * totPages));
+      setCurrentPage((prev) => (prev !== calculatedPage ? calculatedPage : prev));
+      if (isAuthenticated) {
+        updateReadingProgress(book.id, calculatedPage, totPages);
+      }
+    },
+    [book, isAuthenticated, updateReadingProgress]
+  );
+
   return (
     <div className={themeClasses[theme]} style={{ minHeight: '100vh', transition: 'background 0.2s, color 0.2s' }}>
       {/* Top Bar */}
@@ -230,14 +243,7 @@ export const ReaderPage: React.FC = () => {
               url={book.ebookUrl}
               bookTitle={book.title}
               bookAuthor={book.author}
-              onProgressChange={(pct) => {
-                const totPages = book.pages ? parseInt(String(book.pages)) : 100;
-                const calculatedPage = Math.max(1, Math.round((pct / 100) * totPages));
-                setCurrentPage(calculatedPage);
-                if (isAuthenticated) {
-                  updateReadingProgress(book.id, calculatedPage, totPages);
-                }
-              }}
+              onProgressChange={handleProgressChange}
             />
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>

@@ -132,6 +132,11 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
     }
   }, []);
 
+  const onProgressChangeRef = useRef(onProgressChange);
+  useEffect(() => {
+    onProgressChangeRef.current = onProgressChange;
+  }, [onProgressChange]);
+
   const loadBook = useCallback(async () => {
     if (!viewerRef.current || !url) return;
 
@@ -257,9 +262,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
             const pct = Math.round(progress * 100);
             setProgressPercent(pct);
             setCurrentLocationText(`${pct}% оқылды`);
-            if (onProgressChange) {
-              onProgressChange(pct, cfi);
-            }
+            onProgressChangeRef.current?.(pct, cfi);
           } else {
             setCurrentLocationText(location.start.displayed?.page ? `Бет ${location.start.displayed.page}` : '');
           }
@@ -282,7 +285,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
       setLoadError(err.message || 'Электронды кітапты ашу кезінде қате орын алды');
       setIsLoading(false);
     }
-  }, [url, initialLocation, applyThemeToRendition, theme, fontSize, onProgressChange]);
+  }, [url, initialLocation]);
 
   useEffect(() => {
     loadBook();
