@@ -319,23 +319,9 @@ export const BookAudiencePage: React.FC = () => {
                   )}
                 </div>
                 <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                    <h1 style={{ fontSize: '20px', fontWeight: 900, color: '#0F172A', margin: 0 }}>
-                      {book.title}
-                    </h1>
-                    <span
-                      style={{
-                        fontSize: '11px',
-                        fontWeight: 700,
-                        color: 'var(--blue)',
-                        background: 'rgba(0, 84, 148, 0.08)',
-                        padding: '3px 8px',
-                        borderRadius: '6px',
-                      }}
-                    >
-                      Оқырмандар аудиториясы
-                    </span>
-                  </div>
+                  <h1 style={{ fontSize: '20px', fontWeight: 900, color: '#0F172A', margin: 0 }}>
+                    {book.title}
+                  </h1>
                   <div style={{ fontSize: '13px', color: '#64748B', marginTop: '3px', fontWeight: 600 }}>
                     Авторы: <strong style={{ color: '#0F172A' }}>{book.author}</strong>
                   </div>
