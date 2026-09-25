@@ -109,7 +109,10 @@ export const LandingPage: React.FC = () => {
     if (window.location.hash) {
       window.history.replaceState(null, '', window.location.pathname + window.location.search);
     }
-  }, []);
+    if (books.length === 0) {
+      useBookStore.getState().fetchBooks().catch(() => {});
+    }
+  }, [books.length]);
 
   // Active, non-archived books for catalog
   const activeBooks = useMemo(() => {

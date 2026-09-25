@@ -8,14 +8,17 @@ import { useMyBooksStore } from '../../store/useMyBooksStore';
 import { useToastStore } from '../../store/useToastStore';
 import { TandaPremiumBadge } from '../../components/ui/TandaPremiumBadge';
 
+import { Book } from '../../types';
+
 export const BookDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { books } = useBookStore();
+  const { books, fetchBookById } = useBookStore();
   const { role, isAuthenticated, openAuthModal } = useAuthStore();
   const { playBook, playChapter, togglePlay, currentBook, currentChapter, isPlaying } = useAudioPlayerStore();
 
-  const book = books.find((b) => b.id === id);
+  const [book, setBook] = React.useState<Book | null>(() => (id ? books.find((b) => b.id === id) || null : null));
+  const [isLoading, setIsLoading] = React.useState<boolean>(!book);
   const { isBookSaved, toggleSavedBook } = useSavedBooksStore();
   const { markAsReading, markAsWantToRead, markAsCompleted, removeBookFromShelf, getBookStatus, currentShelf } = useMyBooksStore();
   const { showToast } = useToastStore();
@@ -23,6 +26,46 @@ export const BookDetailPage: React.FC = () => {
   React.useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
   }, [id]);
+
+  React.useEffect(() => {
+    if (id) {
+      const existing = books.find((b) => b.id === id);
+      if (existing) {
+        setBook(existing);
+        setIsLoading(false);
+      } else {
+        setIsLoading(true);
+        fetchBookById(id)
+          .then((b) => {
+            if (b) setBook(b);
+          })
+          .catch(() => {})
+          .finally(() => {
+            setIsLoading(false);
+          });
+      }
+    }
+  }, [id, books, fetchBookById]);
+
+  if (isLoading) {
+    return (
+      <div className="max-w-5xl mx-auto my-4 sm:my-8 px-3 sm:px-6">
+        <div className="bg-white border border-slate-200/80 rounded-2xl sm:rounded-3xl p-6 md:p-10 shadow-sm grid grid-cols-1 md:grid-cols-[280px_1fr] gap-6 md:gap-10 animate-pulse">
+          <div className="w-full max-w-[280px] aspect-[3/4] rounded-2xl bg-slate-200 mx-auto md:mx-0" />
+          <div className="flex flex-col gap-4">
+            <div className="h-6 bg-slate-200 rounded w-1/4" />
+            <div className="h-10 bg-slate-200 rounded w-3/4" />
+            <div className="h-5 bg-slate-200 rounded w-1/2" />
+            <div className="h-24 bg-slate-200 rounded w-full mt-4" />
+            <div className="flex gap-4 mt-6">
+              <div className="h-12 bg-slate-200 rounded-full w-36" />
+              <div className="h-12 bg-slate-200 rounded-full w-36" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!book || (book.isArchived && role !== 'admin')) {
     return (

@@ -12,6 +12,7 @@ import { NewsNotificationRunner } from '../news/NewsNotificationRunner';
 import { MessageNotificationPopup } from '../messages/MessageNotificationPopup';
 import { useAudioPlayerStore } from '../../store/useAudioPlayerStore';
 import { useAuthStore } from '../../store/useAuthStore';
+import { useBookStore } from '../../store/useBookStore';
 
 export const Layout: React.FC = () => {
   const { currentBook } = useAudioPlayerStore();
@@ -22,6 +23,10 @@ export const Layout: React.FC = () => {
   const isAuthorOrStaff = Boolean(
     isAuthenticated && user && (role === 'author' || role === 'admin' || user.role === 'author' || user.role === 'admin' || user.isAuthor || user.isSuperAdmin || Boolean(user.duty))
   );
+
+  useEffect(() => {
+    useBookStore.getState().fetchBooks().catch(() => {});
+  }, []);
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
