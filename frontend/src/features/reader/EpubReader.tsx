@@ -326,17 +326,24 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
       anchorCfi = loc?.start?.cfi ?? null;
     } catch {}
 
+    if (anchorCfi && renditionRef.current) {
+      const cfi = anchorCfi;
+      // One-shot listener: fires when epub.js finishes reflowing after fontSize change
+      const onRelocated = () => {
+        renditionRef.current?.off('relocated', onRelocated);
+        renditionRef.current?.display(cfi).catch(() => {});
+      };
+      renditionRef.current.on('relocated', onRelocated);
+      // Safety fallback: remove listener after 3s if relocated never fires
+      setTimeout(() => {
+        renditionRef.current?.off('relocated', onRelocated);
+      }, 3000);
+    }
+
     setFontSize((prev) => {
       const newSize = Math.max(12, Math.min(32, prev + delta));
       if (renditionRef.current) {
         renditionRef.current.themes.fontSize(`${newSize}px`);
-        // Re-display the same CFI after font reflow settles
-        if (anchorCfi) {
-          const cfi = anchorCfi;
-          setTimeout(() => {
-            renditionRef.current?.display(cfi).catch(() => {});
-          }, 80);
-        }
       }
       return newSize;
     });
