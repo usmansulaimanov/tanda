@@ -44,7 +44,17 @@ public class BookStatsResponseDto {
     private Long monthUniqueListeners;
     private Long allTimeUniqueListeners;
 
+    private Long monthListeners;
+    private Long allTimeListeners;
+
+    private Long monthReaders;
+    private Long allTimeReaders;
+
+    private Long monthActives;
+    private Long allTimeActives;
+
     private PeakDayDto peakDay;
+
 
     @Builder.Default
     private List<AuthorDailyStatDto> dailyList = new ArrayList<>();

@@ -457,14 +457,35 @@ public class AudioAnalyticsService {
             allTimeSec = monthTotalSec;
         }
 
-        // Unique listeners
+        // Unique listeners (3 engagement tiers: >=1m, >=15m, >=1h)
         OffsetDateTime monthStart = startDate.atStartOfDay(KZ_ZONE).toOffsetDateTime();
         OffsetDateTime monthEnd = endDate.plusDays(1).atStartOfDay(KZ_ZONE).toOffsetDateTime();
-        long monthUnique = audioSessionRepository.countUniqueListenersByBookIdBetween(bookId, monthStart, monthEnd);
-        long allTimeUnique = audioSessionRepository.countUniqueListenersByBookId(bookId);
-        if (monthUnique > allTimeUnique) {
-            allTimeUnique = monthUnique;
+
+        List<Object[]> monthUserSums = audioSessionRepository.getUserListeningSumsForBookBetween(bookId, monthStart, monthEnd);
+        long monthListeners = 0;
+        long monthReaders = 0;
+        long monthActives = 0;
+        for (Object[] row : monthUserSums) {
+            long sec = ((Number) row[1]).longValue();
+            if (sec >= 60) monthListeners++;
+            if (sec >= 900) monthReaders++;
+            if (sec >= 3600) monthActives++;
         }
+
+        List<Object[]> allTimeUserSums = audioSessionRepository.getUserListeningSumsForBookAllTime(bookId);
+        long allTimeListeners = 0;
+        long allTimeReaders = 0;
+        long allTimeActives = 0;
+        for (Object[] row : allTimeUserSums) {
+            long sec = ((Number) row[1]).longValue();
+            if (sec >= 60) allTimeListeners++;
+            if (sec >= 900) allTimeReaders++;
+            if (sec >= 3600) allTimeActives++;
+        }
+
+        if (monthListeners > allTimeListeners) allTimeListeners = monthListeners;
+        if (monthReaders > allTimeReaders) allTimeReaders = monthReaders;
+        if (monthActives > allTimeActives) allTimeActives = monthActives;
 
         int totalListenedDays = (int) dailyList.stream().filter(d -> d.getSeconds() > 0).count();
         double avgDailyMin = totalListenedDays > 0
@@ -492,14 +513,21 @@ public class AudioAnalyticsService {
                 .allTimeSeconds(allTimeSec)
                 .allTimeMinutes(Math.round((allTimeSec / 60.0) * 10.0) / 10.0)
                 .allTimeHours(Math.round((allTimeSec / 3600.0) * 10.0) / 10.0)
-                .monthUniqueListeners(monthUnique)
-                .allTimeUniqueListeners(allTimeUnique)
+                .monthUniqueListeners(monthListeners)
+                .allTimeUniqueListeners(allTimeListeners)
+                .monthListeners(monthListeners)
+                .allTimeListeners(allTimeListeners)
+                .monthReaders(monthReaders)
+                .allTimeReaders(allTimeReaders)
+                .monthActives(monthActives)
+                .allTimeActives(allTimeActives)
                 .peakDay(peakDayDto)
                 .dailyList(dailyList)
                 .totalListenedDays(totalListenedDays)
                 .averageDailyMinutes(avgDailyMin)
                 .build();
     }
+
 
     private boolean isAudioBook(Book b) {
 

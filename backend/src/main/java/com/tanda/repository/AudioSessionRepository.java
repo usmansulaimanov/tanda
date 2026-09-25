@@ -49,5 +49,18 @@ public interface AudioSessionRepository extends JpaRepository<AudioSession, Stri
 
     @Query("SELECT COUNT(DISTINCT s.userId) FROM AudioSession s WHERE s.book.id = :bookId AND s.startedAt >= :start AND s.startedAt < :end")
     long countUniqueListenersByBookIdBetween(@Param("bookId") String bookId, @Param("start") OffsetDateTime start, @Param("end") OffsetDateTime end);
+
+    @Query("SELECT s.userId, COALESCE(SUM(s.validSeconds), 0) " +
+           "FROM AudioSession s " +
+           "WHERE s.book.id = :bookId AND s.startedAt >= :start AND s.startedAt < :end " +
+           "GROUP BY s.userId")
+    List<Object[]> getUserListeningSumsForBookBetween(@Param("bookId") String bookId, @Param("start") OffsetDateTime start, @Param("end") OffsetDateTime end);
+
+    @Query("SELECT s.userId, COALESCE(SUM(s.validSeconds), 0) " +
+           "FROM AudioSession s " +
+           "WHERE s.book.id = :bookId " +
+           "GROUP BY s.userId")
+    List<Object[]> getUserListeningSumsForBookAllTime(@Param("bookId") String bookId);
 }
+
 

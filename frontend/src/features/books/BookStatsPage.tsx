@@ -444,24 +444,47 @@ export const BookStatsPage: React.FC = () => {
                 )}
               </div>
 
-              {/* 5. Unique Listeners */}
+              {/* 5. Audience Engagement Tiers */}
               <div
                 style={{
                   background: '#FFFFFF',
                   borderRadius: '20px',
                   border: '1.5px solid #E2E8F0',
-                  padding: '20px',
+                  padding: '16px 18px',
                   boxShadow: '0 4px 16px rgba(0, 0, 0, 0.03)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                  <span style={{ fontSize: '13px', fontWeight: 700, color: '#64748B' }}>Тыңдармандар саны</span>
+                <div style={{ fontSize: '13px', fontWeight: 800, color: '#475569', marginBottom: '8px' }}>
+                  Аудитория белсенділігі
                 </div>
-                <div style={{ fontSize: '24px', fontWeight: 900, color: '#059669' }}>
-                  {stats.monthUniqueListeners.toLocaleString('ru-RU')} адам
-                </div>
-                <div style={{ fontSize: '12px', fontWeight: 600, color: '#64748B', marginTop: '4px' }}>
-                  Барлығы: <strong style={{ color: '#047857' }}>{stats.allTimeUniqueListeners.toLocaleString('ru-RU')} адам</strong>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
+                  <div>
+                    <div style={{ fontSize: '11.5px', fontWeight: 700, color: '#0F172A' }}>
+                      Тыңдармандар (≥ 1 мин):
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600, marginTop: '1px' }}>
+                      Бұл айда: <strong style={{ color: '#2563EB' }}>{(stats.monthListeners ?? stats.monthUniqueListeners).toLocaleString('ru-RU')} адам</strong> • Жалпы: <strong style={{ color: '#0F172A' }}>{(stats.allTimeListeners ?? stats.allTimeUniqueListeners).toLocaleString('ru-RU')} адам</strong>
+                    </div>
+                  </div>
+                  <div style={{ borderTop: '1px dashed #E2E8F0', paddingTop: '5px' }}>
+                    <div style={{ fontSize: '11.5px', fontWeight: 700, color: '#0F172A' }}>
+                      Оқырмандар (≥ 15 мин):
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600, marginTop: '1px' }}>
+                      Бұл айда: <strong style={{ color: '#059669' }}>{(stats.monthReaders ?? 0).toLocaleString('ru-RU')} адам</strong> • Жалпы: <strong style={{ color: '#047857' }}>{(stats.allTimeReaders ?? 0).toLocaleString('ru-RU')} адам</strong>
+                    </div>
+                  </div>
+                  <div style={{ borderTop: '1px dashed #E2E8F0', paddingTop: '5px' }}>
+                    <div style={{ fontSize: '11.5px', fontWeight: 700, color: '#0F172A' }}>
+                      Белсенділер (≥ 1 сағ):
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600, marginTop: '1px' }}>
+                      Бұл айда: <strong style={{ color: '#D97706' }}>{(stats.monthActives ?? 0).toLocaleString('ru-RU')} адам</strong> • Жалпы: <strong style={{ color: '#B45309' }}>{(stats.allTimeActives ?? 0).toLocaleString('ru-RU')} адам</strong>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

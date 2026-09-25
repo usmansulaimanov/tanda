@@ -167,12 +167,18 @@ export interface BookStatsResponse {
   monthHours: number;
   allTimeSeconds: number;
   allTimeMinutes: number;
-  allTimeHours: number;
   monthUniqueListeners: number;
   allTimeUniqueListeners: number;
+  monthListeners?: number;
+  allTimeListeners?: number;
+  monthReaders?: number;
+  allTimeReaders?: number;
+  monthActives?: number;
+  allTimeActives?: number;
   peakDay?: BookPeakDay | null;
   dailyList: BookDailyStat[];
   totalListenedDays: number;
   averageDailyMinutes: number;
 }
+
 
