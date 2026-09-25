@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import ePub, { Book as EpubBookInstance, Rendition } from 'epubjs';
 import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Sun, Moon, BookOpen, AlertCircle, RefreshCw } from 'lucide-react';
+import { resolveMediaUrl } from '../../utils/mediaUtils';
 
 export interface EpubReaderProps {
   url: string;
@@ -397,7 +398,8 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
 
     try {
       // Fetch binary ArrayBuffer to avoid any internal URL resolution / streaming quirks
-      const response = await fetch(url);
+      const resolvedUrl = resolveMediaUrl(url);
+      const response = await fetch(resolvedUrl);
       if (!response.ok) {
         throw new Error(`Файлды жүктеу мүмкін болмады (HTTP ${response.status})`);
       }

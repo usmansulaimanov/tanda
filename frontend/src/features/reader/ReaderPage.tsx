@@ -6,6 +6,7 @@ import { useMyBooksStore } from '../../store/useMyBooksStore';
 import { api } from '../../lib/api';
 import { Book } from '../../types';
 import { EpubReader, getLightBgByTemp } from './EpubReader';
+import { resolveMediaUrl, isTelegramLink } from '../../utils/mediaUtils';
 
 export const ReaderPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -35,6 +36,34 @@ export const ReaderPage: React.FC = () => {
     }
     return 0;
   });
+
+  const pdfContainerRef = React.useRef<HTMLDivElement>(null);
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(Boolean(document.fullscreenElement));
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
+  const toggleFullscreen = () => {
+    if (!pdfContainerRef.current) return;
+    if (!document.fullscreenElement) {
+      if (pdfContainerRef.current.requestFullscreen) {
+        pdfContainerRef.current.requestFullscreen().catch(() => {});
+      } else if ((pdfContainerRef.current as any).webkitRequestFullscreen) {
+        (pdfContainerRef.current as any).webkitRequestFullscreen();
+      }
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
+      } else if ((document as any).webkitExitFullscreen) {
+        (document as any).webkitExitFullscreen();
+      }
+    }
+  };
 
   const handleThemeChange = (newTheme: 'light' | 'sepia' | 'dark') => {
     setTheme(newTheme);
@@ -225,11 +254,15 @@ export const ReaderPage: React.FC = () => {
   const pageBorderColor = theme === 'dark' ? '#1E293B' : theme === 'sepia' ? '#EAD7B5' : lightBgInfo.border;
   const topBarBg = theme === 'dark' ? '#0F172A' : theme === 'sepia' ? '#FBF0D9' : lightBgInfo.headerBg;
 
+  const rawEbookUrl = book?.ebookUrl || (book as any)?.pdfUrl || (book as any)?.epubUrl;
+  const resolvedEbookUrl = resolveMediaUrl(rawEbookUrl);
+  const isTg = isTelegramLink(resolvedEbookUrl);
   const isEpub = Boolean(
-    book?.ebookUrl &&
-      (book.ebookFormat?.toUpperCase() === 'EPUB' ||
-        book.ebookUrl.toLowerCase().includes('.epub') ||
-        (!book.ebookFormat?.toUpperCase().includes('PDF') && !book.ebookUrl.toLowerCase().includes('.pdf')))
+    resolvedEbookUrl &&
+      !isTg &&
+      (book?.ebookFormat?.toUpperCase() === 'EPUB' ||
+        resolvedEbookUrl.toLowerCase().includes('.epub') ||
+        (!book?.ebookFormat?.toUpperCase().includes('PDF') && !resolvedEbookUrl.toLowerCase().includes('.pdf')))
   );
 
   return (
@@ -273,7 +306,7 @@ export const ReaderPage: React.FC = () => {
           </div>
 
           {/* Controls - shown for standard text mode or PDF */}
-          {!isEpub && (
+          {!isEpub && !isTg && (
             <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-center">
               <button
                 className="reader-theme-btn"
@@ -317,10 +350,64 @@ export const ReaderPage: React.FC = () => {
 
       {/* Reader Body */}
       <main className="max-w-5xl mx-auto my-3 sm:my-6 px-3 sm:px-6 mb-20">
-        {book.ebookUrl ? (
-          isEpub ? (
+        {resolvedEbookUrl ? (
+          isTg ? (
+            <div
+              style={{
+                padding: '48px 24px',
+                background: '#FFFFFF',
+                borderRadius: '16px',
+                textAlign: 'center',
+                border: '1.5px solid #E2E8F0',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
+                maxWidth: '560px',
+                margin: '40px auto',
+              }}
+            >
+              <div
+                style={{
+                  width: '64px',
+                  height: '64px',
+                  borderRadius: '50%',
+                  background: 'rgba(34, 158, 217, 0.12)',
+                  color: '#229ED9',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 20px',
+                }}
+              >
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.75-.55 2.92-1.27 4.86-2.11 5.83-2.52 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .39z" />
+                </svg>
+              </div>
+              <h3 style={{ fontSize: '20px', fontWeight: 800, color: '#0F172A', marginBottom: '8px' }}>
+                Telegram арқылы оқу
+              </h3>
+              <p style={{ fontSize: '14px', color: '#64748B', lineHeight: 1.6, marginBottom: '24px' }}>
+                Бұл кітаптың электронды нұсқасы Telegram каналында немесе ботында қолжетімді. Оқу үшін батырманы басыңыз:
+              </p>
+              <a
+                href={resolvedEbookUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-primary"
+                style={{
+                  padding: '12px 28px',
+                  fontSize: '15px',
+                  textDecoration: 'none',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  backgroundColor: '#229ED9',
+                }}
+              >
+                Telegram-да ашу ↗
+              </a>
+            </div>
+          ) : isEpub ? (
             <EpubReader
-              url={book.ebookUrl}
+              url={resolvedEbookUrl}
               bookTitle={book.title}
               bookAuthor={book.author}
               theme={theme}
@@ -349,45 +436,70 @@ export const ReaderPage: React.FC = () => {
                   <span style={{ fontSize: '13px', opacity: 0.8 }}>Электронды құжат</span>
                 </div>
 
-                <a
-                  href={book.ebookUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button
+                  type="button"
+                  onClick={toggleFullscreen}
                   className="btn-primary"
                   style={{
                     padding: '8px 16px',
                     fontSize: '13px',
-                    textDecoration: 'none',
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '6px',
+                    cursor: 'pointer',
                   }}
                 >
-                  Толық экранда ашу ↗
-                </a>
+                  {isFullscreen ? (
+                    <>
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path>
+                      </svg>
+                      <span>Толық экраннан шығу</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+                      </svg>
+                      <span>Толық экранда оқу</span>
+                    </>
+                  )}
+                </button>
               </div>
 
               <div
+                ref={pdfContainerRef}
+                onContextMenu={(e) => e.preventDefault()}
                 style={{
                   width: '100%',
-                  height: 'calc(100vh - 180px)',
-                  minHeight: '600px',
-                  borderRadius: '16px',
+                  height: isFullscreen ? '100vh' : 'calc(100vh - 180px)',
+                  minHeight: isFullscreen ? '100vh' : '600px',
+                  borderRadius: isFullscreen ? '0' : '16px',
                   overflow: 'hidden',
-                  border: '1.5px solid rgba(0,0,0,0.1)',
+                  border: isFullscreen ? 'none' : '1.5px solid rgba(0,0,0,0.1)',
                   background: '#FFFFFF',
-                  boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
+                  boxShadow: isFullscreen ? 'none' : '0 4px 16px rgba(0,0,0,0.06)',
                 }}
               >
-                <iframe
-                  src={book.ebookUrl}
-                  title={book.title}
+                <object
+                  data={resolvedEbookUrl.includes('#') ? resolvedEbookUrl : `${resolvedEbookUrl}#toolbar=0&navpanes=0&scrollbar=1`}
+                  type="application/pdf"
                   style={{
                     width: '100%',
                     height: '100%',
                     border: 'none',
                   }}
-                />
+                >
+                  <iframe
+                    src={resolvedEbookUrl.includes('#') ? resolvedEbookUrl : `${resolvedEbookUrl}#toolbar=0&navpanes=0&scrollbar=1`}
+                    title={book.title}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      border: 'none',
+                    }}
+                  />
+                </object>
               </div>
             </div>
           )
