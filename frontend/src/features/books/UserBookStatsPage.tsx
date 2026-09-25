@@ -21,6 +21,23 @@ export const formatListeningTime = (totalSecInput: number | undefined | null) =>
   };
 };
 
+const MONTHS_KZ_LIST = [
+  { value: '01', label: 'Қаңтар' },
+  { value: '02', label: 'Ақпан' },
+  { value: '03', label: 'Наурыз' },
+  { value: '04', label: 'Сәуір' },
+  { value: '05', label: 'Мамыр' },
+  { value: '06', label: 'Маусым' },
+  { value: '07', label: 'Шілде' },
+  { value: '08', label: 'Тамыз' },
+  { value: '09', label: 'Қыркүйек' },
+  { value: '10', label: 'Қазан' },
+  { value: '11', label: 'Қараша' },
+  { value: '12', label: 'Желтоқсан' },
+];
+
+const AVAILABLE_YEARS = ['2027', '2026', '2025', '2024'];
+
 const MONTH_NAMES_KZ: Record<string, string> = {
   '01': 'Қаңтар',
   '02': 'Ақпан',
@@ -67,17 +84,12 @@ export const UserBookStatsPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // Month list for selector (last 12 months)
-  const availableMonths = useMemo(() => {
-    const list: Array<{ key: string; label: string }> = [];
-    const now = new Date();
-    for (let i = 0; i < 12; i++) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-      list.push({ key, label: formatMonthLabel(key) });
-    }
-    return list;
-  }, []);
+  const [selectedYear, selectedMonth] = useMemo(() => {
+    const parts = selectedMonthKey.split('-');
+    const y = parts[0] || String(new Date().getFullYear());
+    const m = parts[1] || '01';
+    return [y, m];
+  }, [selectedMonthKey]);
 
   const loadStats = async (bId: string, uId: string, monthKey: string) => {
     setIsLoading(true);
@@ -261,30 +273,59 @@ export const UserBookStatsPage: React.FC = () => {
               )}
             </div>
 
-            {/* Month selector */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span style={{ fontSize: '13px', fontWeight: 700, color: '#64748B' }}>Ай:</span>
-              <select
-                value={selectedMonthKey}
-                onChange={(e) => handleMonthChange(e.target.value)}
-                style={{
-                  background: '#F8FAFC',
-                  border: '1.5px solid #E2E8F0',
-                  borderRadius: '12px',
-                  padding: '10px 16px',
-                  fontSize: '13px',
-                  fontWeight: 800,
-                  color: 'var(--text-dark)',
-                  cursor: 'pointer',
-                  outline: 'none',
-                }}
-              >
-                {availableMonths.map((m) => (
-                  <option key={m.key} value={m.key}>
-                    {m.label}
-                  </option>
-                ))}
-              </select>
+            {/* Year & Month selectors */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+              {/* Year */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '13px', fontWeight: 700, color: '#64748B' }}>Жыл:</span>
+                <select
+                  value={selectedYear}
+                  onChange={(e) => handleMonthChange(`${e.target.value}-${selectedMonth}`)}
+                  style={{
+                    background: '#F8FAFC',
+                    border: '1.5px solid #E2E8F0',
+                    borderRadius: '12px',
+                    padding: '10px 14px',
+                    fontSize: '13px',
+                    fontWeight: 800,
+                    color: 'var(--text-dark)',
+                    cursor: 'pointer',
+                    outline: 'none',
+                  }}
+                >
+                  {AVAILABLE_YEARS.map((y) => (
+                    <option key={y} value={y}>
+                      {y}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Month */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '13px', fontWeight: 700, color: '#64748B' }}>Ай:</span>
+                <select
+                  value={selectedMonth}
+                  onChange={(e) => handleMonthChange(`${selectedYear}-${e.target.value}`)}
+                  style={{
+                    background: '#F8FAFC',
+                    border: '1.5px solid #E2E8F0',
+                    borderRadius: '12px',
+                    padding: '10px 16px',
+                    fontSize: '13px',
+                    fontWeight: 800,
+                    color: 'var(--text-dark)',
+                    cursor: 'pointer',
+                    outline: 'none',
+                  }}
+                >
+                  {MONTHS_KZ_LIST.map((m) => (
+                    <option key={m.value} value={m.value}>
+                      {m.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
         </div>
