@@ -213,6 +213,159 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
     }
   }, []);
 
+  const fontSizeRef = useRef(fontSize);
+  useEffect(() => {
+    fontSizeRef.current = fontSize;
+  }, [fontSize]);
+
+  const handleNextPage = useCallback(() => {
+    if (renditionRef.current) {
+      renditionRef.current.next();
+    }
+  }, []);
+
+  const handlePrevPage = useCallback(() => {
+    if (renditionRef.current) {
+      renditionRef.current.prev();
+    }
+  }, []);
+
+  const handleFontSizeChange = useCallback((delta: number) => {
+    setFontSize((prev) => {
+      const newSize = Math.max(12, Math.min(32, prev + delta));
+      if (renditionRef.current) {
+        renditionRef.current.themes.fontSize(`${newSize}px`);
+      }
+      return newSize;
+    });
+  }, []);
+
+  const handleThemeChange = useCallback((newTheme: 'light' | 'sepia' | 'dark') => {
+    setInternalTheme(newTheme);
+    onThemeChange?.(newTheme);
+    themeRef.current = newTheme;
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('tanda_reader_theme', newTheme);
+      } catch {}
+    }
+    if (renditionRef.current) {
+      applyThemeToRendition(renditionRef.current, newTheme, fontSizeRef.current);
+      try {
+        const contents = (renditionRef.current as any).getContents?.() || [];
+        contents.forEach((content: any) => {
+          const doc = content.document || content.window?.document;
+          if (doc) {
+            applyDirectThemeStyleToDoc(doc, newTheme, colorTempRef.current);
+          }
+        });
+        if (viewerRef.current) {
+          const iframes = viewerRef.current.querySelectorAll('iframe');
+          iframes.forEach((iframe) => {
+            try {
+              if (iframe.contentDocument) {
+                applyDirectThemeStyleToDoc(iframe.contentDocument, newTheme, colorTempRef.current);
+              }
+            } catch {}
+          });
+        }
+      } catch (err) {
+        console.warn('Failed to update open iframe themes:', err);
+      }
+    }
+  }, [applyDirectThemeStyleToDoc, applyThemeToRendition, onThemeChange]);
+
+  const handleColorTempChange = useCallback((temp: number) => {
+    setInternalColorTemperature(temp);
+    onColorTemperatureChange?.(temp);
+    colorTempRef.current = temp;
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('tanda_reader_temp', String(temp));
+      } catch {}
+    }
+    if (renditionRef.current && themeRef.current === 'light') {
+      try {
+        const contents = (renditionRef.current as any).getContents?.() || [];
+        contents.forEach((content: any) => {
+          const doc = content.document || content.window?.document;
+          if (doc) {
+            applyDirectThemeStyleToDoc(doc, 'light', temp);
+          }
+        });
+        if (viewerRef.current) {
+          const iframes = viewerRef.current.querySelectorAll('iframe');
+          iframes.forEach((iframe) => {
+            try {
+              if (iframe.contentDocument) {
+                applyDirectThemeStyleToDoc(iframe.contentDocument, 'light', temp);
+              }
+            } catch {}
+          });
+        }
+      } catch (err) {
+        console.warn('Failed to update color temperature in iframe:', err);
+      }
+    }
+  }, [applyDirectThemeStyleToDoc, onColorTemperatureChange]);
+
+  const processKeyAction = useCallback((e: KeyboardEvent) => {
+    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+
+    const target = e.target as HTMLElement | null;
+    if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || (target as any).isContentEditable)) {
+      return;
+    }
+
+    const isRight = e.key === 'ArrowRight';
+    const isShift = e.shiftKey;
+    const isCtrl = e.ctrlKey || e.metaKey;
+    const isAlt = e.altKey;
+
+    // 1. Shift + Arrow: Color temperature / white balance (warm / cool)
+    if (isShift && !isCtrl && !isAlt) {
+      e.preventDefault();
+      const currentTemp = colorTempRef.current;
+      const nextTemp = isRight ? Math.min(50, currentTemp + 10) : Math.max(-50, currentTemp - 10);
+      handleColorTempChange(nextTemp);
+      return;
+    }
+
+    // 2. Control / Command + Arrow: Switch theme (light -> sepia -> dark)
+    if (isCtrl && !isShift && !isAlt) {
+      e.preventDefault();
+      const themes: ('light' | 'sepia' | 'dark')[] = ['light', 'sepia', 'dark'];
+      const curIdx = themes.indexOf(themeRef.current);
+      const nextIdx = isRight
+        ? (curIdx + 1) % themes.length
+        : (curIdx - 1 + themes.length) % themes.length;
+      handleThemeChange(themes[nextIdx]);
+      return;
+    }
+
+    // 3. Option / Alt + Arrow: Font size (increase / decrease)
+    if (isAlt && !isCtrl && !isShift) {
+      e.preventDefault();
+      handleFontSizeChange(isRight ? 2 : -2);
+      return;
+    }
+
+    // 4. Plain Arrow: Page navigation
+    if (!isShift && !isCtrl && !isAlt) {
+      e.preventDefault();
+      if (isRight) {
+        handleNextPage();
+      } else {
+        handlePrevPage();
+      }
+    }
+  }, [handleColorTempChange, handleThemeChange, handleFontSizeChange, handleNextPage, handlePrevPage]);
+
+  const processKeyActionRef = useRef(processKeyAction);
+  useEffect(() => {
+    processKeyActionRef.current = processKeyAction;
+  }, [processKeyAction]);
+
   const onProgressChangeRef = useRef(onProgressChange);
   useEffect(() => {
     onProgressChangeRef.current = onProgressChange;
@@ -346,7 +499,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
       });
       renditionRef.current = rendition;
 
-      applyThemeToRendition(rendition, themeRef.current, fontSize);
+      applyThemeToRendition(rendition, themeRef.current, fontSizeRef.current);
 
       // Clean up any browser parsererror elements from DOM and inject CSS overrides
       rendition.hooks.content.register((contents: any) => {
@@ -356,6 +509,11 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
             const parserErrors = doc.querySelectorAll('parsererror');
             parserErrors.forEach((el: Element) => el.remove());
             applyDirectThemeStyleToDoc(doc, themeRef.current, colorTempRef.current);
+
+            // Register key listeners directly inside iframe document
+            doc.addEventListener('keydown', (e: KeyboardEvent) => {
+              processKeyActionRef.current(e);
+            });
           }
         } catch {}
       });
@@ -367,6 +525,10 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
             const parserErrors = doc.querySelectorAll('parsererror');
             parserErrors.forEach((el: Element) => el.remove());
             applyDirectThemeStyleToDoc(doc, themeRef.current, colorTempRef.current);
+
+            doc.addEventListener('keydown', (e: KeyboardEvent) => {
+              processKeyActionRef.current(e);
+            });
           }
         } catch {}
       });
@@ -376,12 +538,8 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
       });
 
       // Keyboard listeners inside rendition iframe
-      rendition.on('keyup', (e: KeyboardEvent) => {
-        if (e.key === 'ArrowRight' || e.key === ' ') {
-          rendition.next();
-        } else if (e.key === 'ArrowLeft') {
-          rendition.prev();
-        }
+      rendition.on('keydown', (e: KeyboardEvent) => {
+        processKeyActionRef.current(e);
       });
 
       await rendition.display(initialLocation || undefined);
@@ -391,7 +549,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
       setLoadError(err.message || 'Электронды кітапты ашу кезінде қате орын алды');
       setIsLoading(false);
     }
-  }, [url, initialLocation]);
+  }, [url, initialLocation, applyDirectThemeStyleToDoc, applyThemeToRendition]);
 
   useEffect(() => {
     loadBook();
@@ -413,106 +571,12 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
   // Global window keyboard handler
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!renditionRef.current) return;
-      if (e.key === 'ArrowRight') {
-        renditionRef.current.next();
-      } else if (e.key === 'ArrowLeft') {
-        renditionRef.current.prev();
-      }
+      processKeyActionRef.current(e);
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
-
-  const handleNextPage = () => {
-    if (renditionRef.current) {
-      renditionRef.current.next();
-    }
-  };
-
-  const handlePrevPage = () => {
-    if (renditionRef.current) {
-      renditionRef.current.prev();
-    }
-  };
-
-  const handleThemeChange = (newTheme: 'light' | 'sepia' | 'dark') => {
-    setInternalTheme(newTheme);
-    onThemeChange?.(newTheme);
-    themeRef.current = newTheme;
-    if (typeof window !== 'undefined') {
-      try {
-        localStorage.setItem('tanda_reader_theme', newTheme);
-      } catch {}
-    }
-    if (renditionRef.current) {
-      applyThemeToRendition(renditionRef.current, newTheme, fontSize);
-      try {
-        const contents = (renditionRef.current as any).getContents?.() || [];
-        contents.forEach((content: any) => {
-          const doc = content.document || content.window?.document;
-          if (doc) {
-            applyDirectThemeStyleToDoc(doc, newTheme, colorTempRef.current);
-          }
-        });
-        if (viewerRef.current) {
-          const iframes = viewerRef.current.querySelectorAll('iframe');
-          iframes.forEach((iframe) => {
-            try {
-              if (iframe.contentDocument) {
-                applyDirectThemeStyleToDoc(iframe.contentDocument, newTheme, colorTempRef.current);
-              }
-            } catch {}
-          });
-        }
-      } catch (err) {
-        console.warn('Failed to update open iframe themes:', err);
-      }
-    }
-  };
-
-  const handleColorTempChange = (temp: number) => {
-    setInternalColorTemperature(temp);
-    onColorTemperatureChange?.(temp);
-    colorTempRef.current = temp;
-    if (typeof window !== 'undefined') {
-      try {
-        localStorage.setItem('tanda_reader_temp', String(temp));
-      } catch {}
-    }
-    if (renditionRef.current && themeRef.current === 'light') {
-      try {
-        const contents = (renditionRef.current as any).getContents?.() || [];
-        contents.forEach((content: any) => {
-          const doc = content.document || content.window?.document;
-          if (doc) {
-            applyDirectThemeStyleToDoc(doc, 'light', temp);
-          }
-        });
-        if (viewerRef.current) {
-          const iframes = viewerRef.current.querySelectorAll('iframe');
-          iframes.forEach((iframe) => {
-            try {
-              if (iframe.contentDocument) {
-                applyDirectThemeStyleToDoc(iframe.contentDocument, 'light', temp);
-              }
-            } catch {}
-          });
-        }
-      } catch (err) {
-        console.warn('Failed to update color temperature in iframe:', err);
-      }
-    }
-  };
-
-  const handleFontSizeChange = (delta: number) => {
-    const newSize = Math.max(12, Math.min(32, fontSize + delta));
-    setFontSize(newSize);
-    if (renditionRef.current) {
-      renditionRef.current.themes.fontSize(`${newSize}px`);
-    }
-  };
 
   return (
     <div
