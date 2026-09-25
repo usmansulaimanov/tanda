@@ -41,6 +41,13 @@ export const ReaderPage: React.FC = () => {
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null);
   const [isPdfLoading, setIsPdfLoading] = useState<boolean>(false);
+  const [detectedFormat, setDetectedFormat] = useState<'EPUB' | 'PDF' | null>(() => {
+    if (!book?.ebookUrl) return null;
+    const lower = book.ebookUrl.toLowerCase();
+    if (lower.endsWith('.epub') || lower.includes('.epub?') || lower.includes('.epub#')) return 'EPUB';
+    if (lower.endsWith('.pdf') || lower.includes('.pdf?') || lower.includes('.pdf#')) return 'PDF';
+    return null;
+  });
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -143,13 +150,16 @@ export const ReaderPage: React.FC = () => {
   const isEpub = Boolean(
     resolvedEbookUrl &&
       !isTg &&
-      (book?.ebookFormat?.toUpperCase() === 'EPUB' ||
-        resolvedEbookUrl.toLowerCase().includes('.epub') ||
-        (!book?.ebookFormat?.toUpperCase().includes('PDF') && !resolvedEbookUrl.toLowerCase().includes('.pdf')))
+      (detectedFormat === 'EPUB' ||
+        (!detectedFormat && (
+          book?.ebookFormat?.toUpperCase() === 'EPUB' ||
+          resolvedEbookUrl.toLowerCase().includes('.epub') ||
+          (!book?.ebookFormat?.toUpperCase().includes('PDF') && !resolvedEbookUrl.toLowerCase().includes('.pdf'))
+        )))
   );
 
   useEffect(() => {
-    if (!resolvedEbookUrl || isEpub || isTg) {
+    if (!resolvedEbookUrl || isTg) {
       setPdfBlobUrl(null);
       setIsPdfLoading(false);
       return;
@@ -164,8 +174,29 @@ export const ReaderPage: React.FC = () => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.blob();
       })
-      .then((blob) => {
+      .then(async (blob) => {
         if (!active) return;
+
+        // Auto-detect magic bytes for format inspection
+        try {
+          const headBuffer = await blob.slice(0, 8).arrayBuffer();
+          const bytes = new Uint8Array(headBuffer);
+          // Check for %PDF (0x25 0x50 0x44 0x46)
+          const isPdfMagic = bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46;
+          // Check for PK (ZIP/EPUB container) (0x50 0x4B)
+          const isZipMagic = bytes[0] === 0x50 && bytes[1] === 0x4B;
+
+          if (isZipMagic && !isPdfMagic) {
+            setDetectedFormat('EPUB');
+            setIsPdfLoading(false);
+            return;
+          } else if (isPdfMagic) {
+            setDetectedFormat('PDF');
+          }
+        } catch (e) {
+          console.warn('Error reading magic bytes:', e);
+        }
+
         const pdfBlob = new Blob([blob], { type: 'application/pdf' });
         createdUrl = URL.createObjectURL(pdfBlob);
         setPdfBlobUrl(createdUrl);
@@ -184,7 +215,7 @@ export const ReaderPage: React.FC = () => {
         URL.revokeObjectURL(createdUrl);
       }
     };
-  }, [resolvedEbookUrl, isEpub, isTg]);
+  }, [resolvedEbookUrl, isTg]);
 
   if (isBookLoading) {
     return (

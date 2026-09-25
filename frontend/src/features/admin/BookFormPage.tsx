@@ -1231,7 +1231,16 @@ export const BookFormPage: React.FC = () => {
                       id="field-ebookUrl"
                       type="url"
                       value={ebookUrl}
-                      onChange={(e) => setEbookUrl(e.target.value)}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setEbookUrl(val);
+                        const lower = val.toLowerCase();
+                        if (lower.includes('.epub')) {
+                          setEbookFormat('EPUB');
+                        } else if (lower.includes('.pdf')) {
+                          setEbookFormat('PDF');
+                        }
+                      }}
                       placeholder="https://t.me/... немесе https://.../book.pdf"
                       className="form-input"
                       style={{
