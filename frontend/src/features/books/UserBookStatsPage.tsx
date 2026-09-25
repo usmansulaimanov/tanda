@@ -274,58 +274,52 @@ export const UserBookStatsPage: React.FC = () => {
             </div>
 
             {/* Year & Month selectors */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
               {/* Year */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '13px', fontWeight: 700, color: '#64748B' }}>Жыл:</span>
-                <select
-                  value={selectedYear}
-                  onChange={(e) => handleMonthChange(`${e.target.value}-${selectedMonth}`)}
-                  style={{
-                    background: '#F8FAFC',
-                    border: '1.5px solid #E2E8F0',
-                    borderRadius: '12px',
-                    padding: '10px 14px',
-                    fontSize: '13px',
-                    fontWeight: 800,
-                    color: 'var(--text-dark)',
-                    cursor: 'pointer',
-                    outline: 'none',
-                  }}
-                >
-                  {AVAILABLE_YEARS.map((y) => (
-                    <option key={y} value={y}>
-                      {y}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <select
+                value={selectedYear}
+                onChange={(e) => handleMonthChange(`${e.target.value}-${selectedMonth}`)}
+                style={{
+                  background: '#F8FAFC',
+                  border: '1.5px solid #E2E8F0',
+                  borderRadius: '12px',
+                  padding: '10px 14px',
+                  fontSize: '13px',
+                  fontWeight: 800,
+                  color: 'var(--text-dark)',
+                  cursor: 'pointer',
+                  outline: 'none',
+                }}
+              >
+                {AVAILABLE_YEARS.map((y) => (
+                  <option key={y} value={y}>
+                    {y}
+                  </option>
+                ))}
+              </select>
 
               {/* Month */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '13px', fontWeight: 700, color: '#64748B' }}>Ай:</span>
-                <select
-                  value={selectedMonth}
-                  onChange={(e) => handleMonthChange(`${selectedYear}-${e.target.value}`)}
-                  style={{
-                    background: '#F8FAFC',
-                    border: '1.5px solid #E2E8F0',
-                    borderRadius: '12px',
-                    padding: '10px 16px',
-                    fontSize: '13px',
-                    fontWeight: 800,
-                    color: 'var(--text-dark)',
-                    cursor: 'pointer',
-                    outline: 'none',
-                  }}
-                >
-                  {MONTHS_KZ_LIST.map((m) => (
-                    <option key={m.value} value={m.value}>
-                      {m.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <select
+                value={selectedMonth}
+                onChange={(e) => handleMonthChange(`${selectedYear}-${e.target.value}`)}
+                style={{
+                  background: '#F8FAFC',
+                  border: '1.5px solid #E2E8F0',
+                  borderRadius: '12px',
+                  padding: '10px 16px',
+                  fontSize: '13px',
+                  fontWeight: 800,
+                  color: 'var(--text-dark)',
+                  cursor: 'pointer',
+                  outline: 'none',
+                }}
+              >
+                {MONTHS_KZ_LIST.map((m) => (
+                  <option key={m.value} value={m.value}>
+                    {m.label}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
         </div>
