@@ -144,6 +144,13 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         background: ${current.bg} !important;
         color: ${current.text} !important;
         -webkit-text-fill-color: ${current.text} !important;
+        padding-left: 20px !important;
+        padding-right: 20px !important;
+        box-sizing: border-box !important;
+      }
+      p, div, span, h1, h2, h3, h4, h5, h6, li {
+        max-width: 100% !important;
+        word-break: break-word !important;
       }
       *, *::before, *::after {
         color: ${current.text} !important;
@@ -782,6 +789,9 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
             width: '100%',
             height: '100%',
             backgroundColor: activeTheme.bg,
+            paddingLeft: '44px',
+            paddingRight: '44px',
+            boxSizing: 'border-box',
           }}
         />
 
@@ -795,10 +805,10 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
               style={{
                 position: 'absolute',
                 top: '50%',
-                left: '12px',
+                left: '8px',
                 transform: 'translateY(-50%)',
-                width: '42px',
-                height: '42px',
+                width: '36px',
+                height: '36px',
                 borderRadius: '50%',
                 backgroundColor: activeTheme.headerBg,
                 border: `1.5px solid ${activeTheme.border}`,
@@ -807,7 +817,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
                 zIndex: 15,
                 transition: 'all 0.2s',
                 opacity: 0.85,
@@ -821,7 +831,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
                 e.currentTarget.style.transform = 'translateY(-50%) scale(1)';
               }}
             >
-              <ChevronLeft size={22} />
+              <ChevronLeft size={20} />
             </button>
 
             <button
@@ -831,10 +841,10 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
               style={{
                 position: 'absolute',
                 top: '50%',
-                right: '12px',
+                right: '8px',
                 transform: 'translateY(-50%)',
-                width: '42px',
-                height: '42px',
+                width: '36px',
+                height: '36px',
                 borderRadius: '50%',
                 backgroundColor: activeTheme.headerBg,
                 border: `1.5px solid ${activeTheme.border}`,
@@ -843,7 +853,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
                 zIndex: 15,
                 transition: 'all 0.2s',
                 opacity: 0.85,
@@ -857,7 +867,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
                 e.currentTarget.style.transform = 'translateY(-50%) scale(1)';
               }}
             >
-              <ChevronRight size={22} />
+              <ChevronRight size={20} />
             </button>
           </>
         )}
