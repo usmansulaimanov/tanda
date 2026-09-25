@@ -516,9 +516,62 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
           </div>
         </div>
 
-        {/* Right side controls: font, theme, color temperature, progress */}
+        {/* Right side controls: White balance slider, font size, theme switcher */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-          {/* Font Size Controls */}
+          {/* 1. White Balance / Color Temperature Slider (Only in Light mode) */}
+          {theme === 'light' && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                background: activeTheme.containerBg,
+                padding: '6px 12px',
+                borderRadius: '8px',
+                border: `1px solid ${activeTheme.border}`,
+                transition: 'all 0.2s',
+              }}
+              title="Ақ түс балансы: солға — салқын, оңға — жылы"
+            >
+              <div style={{ position: 'relative', display: 'flex', alignItems: 'center', width: '80px' }}>
+                <input
+                  type="range"
+                  min="-50"
+                  max="50"
+                  step="1"
+                  value={colorTemperature}
+                  onChange={(e) => handleColorTempChange(parseInt(e.target.value, 10))}
+                  style={{
+                    width: '100%',
+                    height: '4px',
+                    borderRadius: '2px',
+                    background: '#CBD5E1',
+                    accentColor: '#0F172A',
+                    appearance: 'auto',
+                    outline: 'none',
+                    cursor: 'pointer',
+                  }}
+                />
+                {/* Center marker dot */}
+                <div
+                  style={{
+                    position: 'absolute',
+                    left: '50%',
+                    top: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    width: '2px',
+                    height: '8px',
+                    backgroundColor: '#0F172A',
+                    borderRadius: '1px',
+                    pointerEvents: 'none',
+                    opacity: 0.5,
+                    zIndex: 0,
+                  }}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* 2. Font Size Controls */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: activeTheme.containerBg, padding: '3px', borderRadius: '8px', border: `1px solid ${activeTheme.border}` }}>
             <button
               onClick={() => handleFontSizeChange(-2)}
@@ -559,65 +612,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
             </button>
           </div>
 
-          {/* White Balance / Color Temperature Slider (Only in Light mode) */}
-          {theme === 'light' && (
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                background: activeTheme.containerBg,
-                padding: '3px 10px',
-                borderRadius: '8px',
-                border: `1px solid ${activeTheme.border}`,
-                transition: 'all 0.2s',
-              }}
-              title="Ақ түс балансы: солға қарай — салқын, оңға қарай — жылы"
-            >
-              <span style={{ fontSize: '11px', fontWeight: 600, color: '#2563EB', userSelect: 'none' }}>
-                Салқын
-              </span>
-              <div style={{ position: 'relative', display: 'flex', alignItems: 'center', width: '90px' }}>
-                <input
-                  type="range"
-                  min="-50"
-                  max="50"
-                  step="1"
-                  value={colorTemperature}
-                  onChange={(e) => handleColorTempChange(parseInt(e.target.value, 10))}
-                  style={{
-                    width: '100%',
-                    height: '5px',
-                    borderRadius: '3px',
-                    background: 'linear-gradient(to right, #93C5FD 0%, #CBD5E1 50%, #FDE047 100%)',
-                    appearance: 'none',
-                    outline: 'none',
-                    cursor: 'pointer',
-                  }}
-                />
-                {/* Center marker dot */}
-                <div
-                  style={{
-                    position: 'absolute',
-                    left: '50%',
-                    top: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    width: '3px',
-                    height: '9px',
-                    backgroundColor: '#64748B',
-                    borderRadius: '2px',
-                    pointerEvents: 'none',
-                    zIndex: 1,
-                  }}
-                />
-              </div>
-              <span style={{ fontSize: '11px', fontWeight: 600, color: '#D97706', userSelect: 'none' }}>
-                Жылы
-              </span>
-            </div>
-          )}
-
-          {/* Theme Switcher */}
+          {/* 3. Theme Switcher */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: activeTheme.containerBg, padding: '3px', borderRadius: '8px', border: `1px solid ${activeTheme.border}` }}>
             <button
               onClick={() => handleThemeChange('light')}
