@@ -265,7 +265,7 @@ export const UserBookStatsPage: React.FC = () => {
                     </div>
 
                     <div style={{ fontSize: '12px', color: '#64748B', marginTop: '3px', fontWeight: 600 }}>
-                      Пошта: <strong style={{ color: '#0F172A' }}>{stats.userEmail}</strong>
+                      <strong style={{ color: '#0F172A' }}>{stats.userEmail}</strong>
                       {stats.userPhone && <> • Тел: <strong style={{ color: '#0F172A' }}>{stats.userPhone}</strong></>}
                     </div>
                   </div>
