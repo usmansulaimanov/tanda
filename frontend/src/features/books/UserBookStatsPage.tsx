@@ -284,7 +284,7 @@ export const UserBookStatsPage: React.FC = () => {
                   {/* 2. Book & Author Details */}
                   <div>
                     <div style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A' }}>
-                      «{stats.bookTitle}»
+                      {stats.bookTitle}
                     </div>
                     <div style={{ fontSize: '12.5px', color: '#64748B', marginTop: '3px', fontWeight: 600 }}>
                       Авторы: <strong style={{ color: '#0F172A' }}>{stats.bookAuthor}</strong>
