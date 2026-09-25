@@ -31,6 +31,14 @@ const formatMonthLabel = (monthKey: string) => {
   return monthKey;
 };
 
+const formatMonthOnly = (monthKey: string) => {
+  const parts = monthKey.split('-');
+  if (parts.length === 2) {
+    return MONTH_NAMES_KZ[parts[1]] || parts[1];
+  }
+  return monthKey;
+};
+
 export const BookAudiencePage: React.FC = () => {
   const { bookId } = useParams<{ bookId: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -406,7 +414,7 @@ export const BookAudiencePage: React.FC = () => {
                     transition: 'all 0.15s ease',
                   }}
                 >
-                  Бұл айда ({formatMonthLabel(selectedMonthKey)})
+                  {formatMonthOnly(selectedMonthKey)}
                 </button>
                 <button
                   type="button"
@@ -424,7 +432,7 @@ export const BookAudiencePage: React.FC = () => {
                     transition: 'all 0.15s ease',
                   }}
                 >
-                  Жалпы (барлық уақытта)
+                  Жалпы
                 </button>
               </div>
 
