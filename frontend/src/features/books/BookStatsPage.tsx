@@ -323,7 +323,7 @@ export const BookStatsPage: React.FC = () => {
         {/* Loading state */}
         {isLoading && !stats && (
           <div className="flex flex-col gap-6">
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-[1fr_1fr_1fr_1fr_1.45fr] gap-4">
               <Skeleton className="h-32 rounded-2xl" />
               <Skeleton className="h-32 rounded-2xl" />
               <Skeleton className="h-32 rounded-2xl" />
@@ -339,12 +339,7 @@ export const BookStatsPage: React.FC = () => {
           <>
             {/* 5 Metric Summary Cards */}
             <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))',
-                gap: '16px',
-                marginBottom: '24px',
-              }}
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-[1fr_1fr_1fr_1fr_1.45fr] gap-4 mb-6"
             >
               {/* 1. Today Listening */}
               <div
