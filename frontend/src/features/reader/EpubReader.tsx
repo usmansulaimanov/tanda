@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import ePub, { Book as EpubBookInstance, Rendition } from 'epubjs';
-import { ChevronLeft, ChevronRight, List, ZoomIn, ZoomOut, Sun, Moon, BookOpen, AlertCircle, RefreshCw } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Sun, Moon, BookOpen, AlertCircle, RefreshCw } from 'lucide-react';
 
 interface EpubReaderProps {
   url: string;
@@ -8,12 +8,6 @@ interface EpubReaderProps {
   bookAuthor?: string;
   onProgressChange?: (progressPercent: number, locationCfi: string) => void;
   initialLocation?: string;
-}
-
-interface TocItem {
-  id: string;
-  label: string;
-  href: string;
 }
 
 export const EpubReader: React.FC<EpubReaderProps> = ({
@@ -29,8 +23,6 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
 
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [toc, setToc] = useState<TocItem[]>([]);
-  const [isTocOpen, setIsTocOpen] = useState(false);
   const [fontSize, setFontSize] = useState<number>(18);
   const [theme, setTheme] = useState<'light' | 'sepia' | 'dark'>('light');
   const [currentLocationText, setCurrentLocationText] = useState<string>('');
@@ -181,19 +173,6 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
           return output;
         });
       }
-
-      // Load table of contents
-      book.loaded.navigation.then((nav) => {
-        if (nav.toc) {
-          setToc(
-            nav.toc.map((item, idx) => ({
-              id: item.id || `toc-${idx}`,
-              label: item.label ? item.label.trim() : `Тарау ${idx + 1}`,
-              href: item.href,
-            }))
-          );
-        }
-      });
 
       // Generate locations for accurate progress calculation
       book.ready.then(() => {
@@ -346,13 +325,6 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
     }
   };
 
-  const handleTocSelect = (href: string) => {
-    if (renditionRef.current) {
-      renditionRef.current.display(href);
-      setIsTocOpen(false);
-    }
-  };
-
   return (
     <div
       style={{
@@ -383,31 +355,6 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          {/* Table of Contents Button */}
-          {toc.length > 0 && (
-            <button
-              onClick={() => setIsTocOpen(!isTocOpen)}
-              title="Тараулар мазмұны"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '6px 12px',
-                borderRadius: '8px',
-                border: `1px solid ${activeTheme.border}`,
-                backgroundColor: isTocOpen ? 'var(--blue)' : 'transparent',
-                color: isTocOpen ? '#FFFFFF' : activeTheme.text,
-                fontSize: '13px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-              }}
-            >
-              <List size={16} />
-              <span className="hidden sm:inline">Тараулар</span>
-            </button>
-          )}
-
           <div>
             <div style={{ fontSize: '14px', fontWeight: 800, color: activeTheme.text, lineHeight: 1.2 }}>
               {bookTitle || 'Электронды кітап'}
@@ -597,83 +544,6 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
             backgroundColor: activeTheme.bg,
           }}
         />
-
-        {/* Table of Contents Drawer */}
-        {isTocOpen && (
-          <div
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              bottom: 0,
-              width: '300px',
-              maxWidth: '80%',
-              backgroundColor: activeTheme.headerBg,
-              borderRight: `1.5px solid ${activeTheme.border}`,
-              zIndex: 30,
-              display: 'flex',
-              flexDirection: 'column',
-              boxShadow: '4px 0 20px rgba(0,0,0,0.12)',
-            }}
-          >
-            <div
-              style={{
-                padding: '16px',
-                borderBottom: `1px solid ${activeTheme.border}`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}
-            >
-              <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: activeTheme.text }}>
-                Тараулар мазмұны
-              </h4>
-              <button
-                onClick={() => setIsTocOpen(false)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  fontSize: '18px',
-                  fontWeight: 700,
-                  color: activeTheme.text,
-                  cursor: 'pointer',
-                }}
-              >
-                ✕
-              </button>
-            </div>
-            <div style={{ flex: 1, overflowY: 'auto', padding: '8px' }}>
-              {toc.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => handleTocSelect(item.href)}
-                  style={{
-                    width: '100%',
-                    textAlign: 'left',
-                    padding: '10px 12px',
-                    borderRadius: '8px',
-                    border: 'none',
-                    background: 'transparent',
-                    color: activeTheme.text,
-                    fontSize: '13px',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    transition: 'background 0.15s',
-                    marginBottom: '4px',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = activeTheme.containerBg;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'transparent';
-                  }}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* Left / Right Page Flip Overlay Controls */}
         {!isLoading && !loadError && (
