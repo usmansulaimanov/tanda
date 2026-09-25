@@ -98,6 +98,18 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
 
   const [currentLocationText, setCurrentLocationText] = useState<string>('');
   const [progressPercent, setProgressPercent] = useState<number>(0);
+  const [isAtStart, setIsAtStart] = useState<boolean>(true);
+  const [isAtEnd, setIsAtEnd] = useState<boolean>(false);
+
+  const isAtStartRef = useRef(true);
+  useEffect(() => {
+    isAtStartRef.current = isAtStart;
+  }, [isAtStart]);
+
+  const isAtEndRef = useRef(false);
+  useEffect(() => {
+    isAtEndRef.current = isAtEnd;
+  }, [isAtEnd]);
 
   const lightBgInfo = getLightBgByTemp(colorTemperature);
 
@@ -220,14 +232,44 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
   }, [fontSize]);
 
   const handleNextPage = useCallback(() => {
+    if (isAtEndRef.current) return;
     if (renditionRef.current) {
       renditionRef.current.next();
     }
   }, []);
 
   const handlePrevPage = useCallback(() => {
+    if (isAtStartRef.current) return;
     if (renditionRef.current) {
       renditionRef.current.prev();
+    }
+  }, []);
+
+  const handleSeek = useCallback((targetPercent: number) => {
+    const clamped = Math.max(0, Math.min(100, targetPercent));
+    setProgressPercent(clamped);
+
+    if (!bookRef.current || !renditionRef.current) return;
+    const book = bookRef.current;
+
+    try {
+      if (book.locations && book.locations.length() > 0) {
+        const cfi = book.locations.cfiFromPercentage(clamped / 100);
+        if (cfi) {
+          renditionRef.current.display(cfi);
+          return;
+        }
+      }
+      if (book.spine && (book.spine as any).length > 0) {
+        const spineLen = (book.spine as any).length;
+        const targetSpineIdx = Math.min(spineLen - 1, Math.floor((clamped / 100) * spineLen));
+        const spineItem = (book.spine as any).get(targetSpineIdx);
+        if (spineItem && (spineItem.cfiBase || spineItem.href)) {
+          renditionRef.current.display(spineItem.cfiBase || spineItem.href);
+        }
+      }
+    } catch (e) {
+      console.warn('Seek error:', e);
     }
   }, []);
 
@@ -471,6 +513,11 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         } else if (dispPage && dispTotal && dispPage >= dispTotal) {
           pct = 100;
         }
+
+        const atStart = Boolean(location.atStart || dispPage === 1 || (start.index === 0 && (!dispPage || dispPage <= 1)) || pct === 0);
+        const atEnd = Boolean(location.atEnd || (dispPage && dispTotal && dispPage >= dispTotal) || pct >= 100);
+        setIsAtStart(atStart);
+        setIsAtEnd(atEnd);
 
         setProgressPercent(pct);
         const pageText = dispPage ? ` • Бет ${dispPage}${dispTotal ? ` / ${dispTotal}` : ''}` : '';
@@ -866,7 +913,8 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
           <>
             <button
               onClick={handlePrevPage}
-              title="Алдыңғы бет (←)"
+              disabled={isAtStart}
+              title={isAtStart ? 'Кітаптың басы' : 'Алдыңғы бет (←)'}
               aria-label="Алдыңғы бет"
               style={{
                 position: 'absolute',
@@ -882,19 +930,24 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                cursor: 'pointer',
+                cursor: isAtStart ? 'not-allowed' : 'pointer',
                 boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
                 zIndex: 15,
                 transition: 'all 0.2s',
-                opacity: 0.85,
+                opacity: isAtStart ? 0.3 : 0.85,
+                pointerEvents: isAtStart ? 'none' : 'auto',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.opacity = '1';
-                e.currentTarget.style.transform = 'translateY(-50%) scale(1.08)';
+                if (!isAtStart) {
+                  e.currentTarget.style.opacity = '1';
+                  e.currentTarget.style.transform = 'translateY(-50%) scale(1.08)';
+                }
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.opacity = '0.85';
-                e.currentTarget.style.transform = 'translateY(-50%) scale(1)';
+                if (!isAtStart) {
+                  e.currentTarget.style.opacity = '0.85';
+                  e.currentTarget.style.transform = 'translateY(-50%) scale(1)';
+                }
               }}
             >
               <ChevronLeft size={20} />
@@ -902,7 +955,8 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
 
             <button
               onClick={handleNextPage}
-              title="Келесі бет (→)"
+              disabled={isAtEnd}
+              title={isAtEnd ? 'Кітаптың соңы' : 'Келесі бет (→)'}
               aria-label="Келесі бет"
               style={{
                 position: 'absolute',
@@ -918,19 +972,24 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                cursor: 'pointer',
+                cursor: isAtEnd ? 'not-allowed' : 'pointer',
                 boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
                 zIndex: 15,
                 transition: 'all 0.2s',
-                opacity: 0.85,
+                opacity: isAtEnd ? 0.3 : 0.85,
+                pointerEvents: isAtEnd ? 'none' : 'auto',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.opacity = '1';
-                e.currentTarget.style.transform = 'translateY(-50%) scale(1.08)';
+                if (!isAtEnd) {
+                  e.currentTarget.style.opacity = '1';
+                  e.currentTarget.style.transform = 'translateY(-50%) scale(1.08)';
+                }
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.opacity = '0.85';
-                e.currentTarget.style.transform = 'translateY(-50%) scale(1)';
+                if (!isAtEnd) {
+                  e.currentTarget.style.opacity = '0.85';
+                  e.currentTarget.style.transform = 'translateY(-50%) scale(1)';
+                }
               }}
             >
               <ChevronRight size={20} />
@@ -939,7 +998,52 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         )}
       </div>
 
-      {/* Bottom Progress Bar */}
+      {/* Embedded Slider CSS for custom thumb and track */}
+      <style>{`
+        .epub-progress-slider {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 100%;
+          height: 6px;
+          border-radius: 9999px;
+          outline: none;
+          cursor: pointer;
+          transition: background 0.15s ease;
+        }
+        .epub-progress-slider::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 15px;
+          height: 15px;
+          border-radius: 50%;
+          background: var(--blue, #2563EB);
+          cursor: grab;
+          box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+          transition: transform 0.15s ease;
+        }
+        .epub-progress-slider::-webkit-slider-thumb:hover,
+        .epub-progress-slider:active::-webkit-slider-thumb {
+          transform: scale(1.25);
+          cursor: grabbing;
+        }
+        .epub-progress-slider::-moz-range-thumb {
+          width: 15px;
+          height: 15px;
+          border-radius: 50%;
+          background: var(--blue, #2563EB);
+          cursor: grab;
+          border: none;
+          box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+          transition: transform 0.15s ease;
+        }
+        .epub-progress-slider::-moz-range-thumb:hover,
+        .epub-progress-slider:active::-moz-range-thumb {
+          transform: scale(1.25);
+          cursor: grabbing;
+        }
+      `}</style>
+
+      {/* Bottom Progress Bar & Seek Slider */}
       <div
         style={{
           display: 'flex',
@@ -950,36 +1054,40 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
           borderTop: `1px solid ${activeTheme.border}`,
           fontSize: '12px',
           color: activeTheme.text,
-          opacity: 0.85,
+          opacity: 0.9,
           fontWeight: 600,
         }}
       >
-        <div>
+        <div style={{ minWidth: '70px', userSelect: 'none' }}>
           {currentLocationText || (progressPercent > 0 ? `${progressPercent}%` : 'Басы')}
         </div>
 
-        {/* Linear progress bar */}
+        {/* Interactive Seek Slider */}
         <div
           style={{
-            flex: '0 0 160px',
-            height: '5px',
-            borderRadius: '10px',
-            backgroundColor: activeTheme.border,
-            overflow: 'hidden',
+            flex: '0 1 240px',
+            minWidth: '120px',
             margin: '0 16px',
+            display: 'flex',
+            alignItems: 'center',
           }}
         >
-          <div
+          <input
+            type="range"
+            className="epub-progress-slider"
+            min="0"
+            max="100"
+            value={progressPercent}
+            onChange={(e) => handleSeek(parseInt(e.target.value, 10))}
+            title={`Кітаптың ${progressPercent}% бөлігіндесіз`}
+            aria-label="Оқу барысын жылжыту"
             style={{
-              width: `${Math.max(0, Math.min(100, progressPercent))}%`,
-              height: '100%',
-              backgroundColor: 'var(--blue)',
-              transition: 'width 0.3s ease',
+              background: `linear-gradient(to right, var(--blue, #2563EB) 0%, var(--blue, #2563EB) ${progressPercent}%, ${activeTheme.border} ${progressPercent}%, ${activeTheme.border} 100%)`,
             }}
           />
         </div>
 
-        <div style={{ fontSize: '11px', opacity: 0.7 }}>
+        <div style={{ fontSize: '11px', opacity: 0.7, userSelect: 'none' }}>
           Парақтау: ⬅ ➡
         </div>
       </div>
