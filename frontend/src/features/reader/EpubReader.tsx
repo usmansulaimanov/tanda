@@ -622,14 +622,14 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         // Compute page text info
         let pageText = '';
         if (dispPage && dispTotal && dispTotal > 1) {
-          pageText = ` • Бет ${dispPage} / ${dispTotal}`;
+          pageText = `${dispPage} / ${dispTotal} бет`;
         } else if (book.spine && (book.spine as any).length > 1) {
           const curSpine = (start.index ?? 0) + 1;
           const totSpine = (book.spine as any).length;
-          pageText = ` • Бөлім ${curSpine} / ${totSpine}`;
+          pageText = `${curSpine} / ${totSpine} бөлім`;
         }
 
-        setCurrentLocationText(`${pct}% оқылды${pageText}`);
+        setCurrentLocationText(pageText || (pct > 0 ? `${pct}%` : 'Басы'));
         onProgressChangeRef.current?.(pct, cfi);
       };
 
@@ -1163,8 +1163,8 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
       >
         <div style={{ flex: '1 1 0', minWidth: 0, textAlign: 'left', userSelect: 'none', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {sliderDragPercent !== null
-            ? `${sliderDragPercent}% оқылды`
-            : currentLocationText || (progressPercent > 0 ? `${progressPercent}% оқылды` : 'Басы')}
+            ? `${sliderDragPercent}%`
+            : currentLocationText || (progressPercent > 0 ? `${progressPercent}%` : 'Басы')}
         </div>
 
         {/* Interactive Seek Slider */}

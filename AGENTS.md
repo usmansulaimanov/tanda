@@ -63,10 +63,15 @@
 **Tanda** is a Kazakh-language audiobook and e-book platform.
 It is a monorepo with two independent sub-projects:
 
-| Sub-project | Location | Runtime |
-|-------------|----------|---------|
-| Backend API | `backend/` | Java 17 + Spring Boot 3.3 |
-| Frontend SPA | `frontend/` | React 18 + Vite 6 + TypeScript |
+| Sub-project | Location | Runtime | Deployed URL |
+|-------------|----------|---------|--------------|
+| Backend API | `backend/` | Java 17 + Spring Boot 3.3 | `https://tanda-backend-7lpj.onrender.com` |
+| Frontend SPA | `frontend/` | React 18 + Vite 6 + TypeScript | `https://tanda-xi.vercel.app/` |
+
+### Live Environments & Monitoring
+- **Backend API (Render)**: `https://tanda-backend-7lpj.onrender.com`
+  - Health check endpoint: `https://tanda-backend-7lpj.onrender.com/actuator/health` (Used for UptimeRobot keep-alive)
+- **Frontend SPA (Vercel)**: `https://tanda-xi.vercel.app/`
 
 ---
 
