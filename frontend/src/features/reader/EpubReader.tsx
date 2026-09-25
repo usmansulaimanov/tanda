@@ -175,16 +175,24 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
       }
 
       // Generate locations for accurate progress calculation
-      book.ready.then(() => {
-        book.locations.generate(1024).then(() => {
+      book.ready.then(async () => {
+        try {
+          await book.locations.generate(600);
           if (renditionRef.current) {
-            const loc = renditionRef.current.currentLocation() as any;
+            const loc = (renditionRef.current as any).currentLocation();
             if (loc && loc.start) {
-              const progress = book.locations.percentageFromCfi(loc.start.cfi);
-              setProgressPercent(Math.round(progress * 100));
+              const cfi = loc.start.cfi;
+              const progress = book.locations.percentageFromCfi(cfi);
+              const pct = Math.max(0, Math.min(100, Math.round(progress * 100)));
+              setProgressPercent(pct);
+              const pageText = loc.start.displayed?.page ? ` • Бет ${loc.start.displayed.page}` : '';
+              setCurrentLocationText(`${pct}% оқылды${pageText}`);
+              onProgressChangeRef.current?.(pct, cfi);
             }
           }
-        });
+        } catch (err) {
+          console.warn('Locations generation failed:', err);
+        }
       });
 
       const rendition = book.renderTo(viewerRef.current, {
@@ -236,15 +244,23 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
       rendition.on('relocated', (location: any) => {
         if (location && location.start) {
           const cfi = location.start.cfi;
+          let pct = 0;
+
           if (book.locations && book.locations.length() > 0) {
             const progress = book.locations.percentageFromCfi(cfi);
-            const pct = Math.round(progress * 100);
-            setProgressPercent(pct);
-            setCurrentLocationText(`${pct}% оқылды`);
-            onProgressChangeRef.current?.(pct, cfi);
-          } else {
-            setCurrentLocationText(location.start.displayed?.page ? `Бет ${location.start.displayed.page}` : '');
+            pct = Math.max(0, Math.min(100, Math.round(progress * 100)));
+          } else if (location.start.percentage !== undefined) {
+            pct = Math.max(0, Math.min(100, Math.round(location.start.percentage * 100)));
+          } else if (book.spine && (book.spine as any).length > 0) {
+            const index = location.start.index !== undefined ? location.start.index : 0;
+            const total = (book.spine as any).length;
+            pct = Math.max(0, Math.min(100, Math.round(((index + 1) / total) * 100)));
           }
+
+          setProgressPercent(pct);
+          const pageText = location.start.displayed?.page ? ` • Бет ${location.start.displayed.page}` : '';
+          setCurrentLocationText(`${pct}% оқылды${pageText}`);
+          onProgressChangeRef.current?.(pct, cfi);
         }
       });
 
