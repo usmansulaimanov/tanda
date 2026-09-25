@@ -558,15 +558,35 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
           }
         }
 
-        // Guarantee 0% at book start and 100% at book end
-        if (start.index === 0 && (!dispPage || dispPage <= 1) && pct < 5) {
-          pct = 0;
-        } else if (location.atEnd || (dispPage && dispTotal && dispPage >= dispTotal && (!book.spine || start.index >= (book.spine as any).length - 1))) {
-          pct = 100;
+        // Accurate boundary detection (never use rounded integer pct === 0)
+        let atStart = false;
+        if (location.atStart) {
+          atStart = true;
+        } else if (start.index === 0) {
+          if (typeof dispPage === 'number') {
+            atStart = dispPage <= 1;
+          } else if (book.locations && book.locations.length() > 0 && cfi) {
+            const locIdx = book.locations.locationFromCfi(cfi) as any;
+            atStart = typeof locIdx === 'number' && locIdx <= 0;
+          } else {
+            atStart = true;
+          }
         }
 
-        const atStart = Boolean(location.atStart || (start.index === 0 && (!dispPage || dispPage <= 1)) || pct === 0);
-        const atEnd = Boolean(location.atEnd || pct >= 100);
+        let atEnd = false;
+        const spineLen = (book.spine as any)?.length || 0;
+        if (location.atEnd) {
+          atEnd = true;
+        } else if (spineLen > 0 && typeof start.index === 'number' && start.index >= spineLen - 1) {
+          if (typeof dispPage === 'number' && typeof dispTotal === 'number') {
+            atEnd = dispPage >= dispTotal;
+          } else if (book.locations && book.locations.length() > 0 && cfi) {
+            const locIdx = book.locations.locationFromCfi(cfi) as any;
+            const totLoc = (book.locations as any).total || book.locations.length();
+            atEnd = typeof locIdx === 'number' && typeof totLoc === 'number' && locIdx >= totLoc - 1;
+          }
+        }
+
         setIsAtStart(atStart);
         setIsAtEnd(atEnd);
 
