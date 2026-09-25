@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useBookStore } from '../../store/useBookStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useMyBooksStore } from '../../store/useMyBooksStore';
 import { api } from '../../lib/api';
+import { progressApi } from '../../shared/api/progress.api';
 import { Book } from '../../types';
 import { EpubReader, getLightBgByTemp } from './EpubReader';
 import { resolveMediaUrl, isTelegramLink } from '../../utils/mediaUtils';
+
 
 export const ReaderPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -36,6 +38,15 @@ export const ReaderPage: React.FC = () => {
     }
     return 0;
   });
+  // ─── Reading position persistence ───────────────────────────────────
+  const [savedCfi, setSavedCfi] = useState<string | undefined>(undefined);
+  // Gate: don't render EpubReader until we know the saved position (avoids reload when CFI arrives)
+  const [progressLoaded, setProgressLoaded] = useState<boolean>(false);
+  // Debounce timer for backend save (4s after last navigation)
+  const progressSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Last known CFI — updated on every relocated event, used when saving on settings change
+  const lastCfiRef = useRef<string | undefined>(undefined);
+  // ─────────────────────────────────────────────────────────────────────
 
   const pdfContainerRef = React.useRef<HTMLDivElement>(null);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
@@ -74,35 +85,68 @@ export const ReaderPage: React.FC = () => {
     }
   };
 
+  // Helper: read fontSize from localStorage (EpubReader maintains it there)
+  const getStoredFontSize = () => {
+    try {
+      const saved = localStorage.getItem('tanda_reader_fontSize');
+      if (saved) { const p = parseInt(saved, 10); if (!isNaN(p) && p >= 12 && p <= 32) return p; }
+    } catch {}
+    return 18;
+  };
+
   const handleThemeChange = (newTheme: 'light' | 'sepia' | 'dark') => {
     setTheme(newTheme);
-    if (typeof window !== 'undefined') {
-      try {
-        localStorage.setItem('tanda_reader_theme', newTheme);
-      } catch {}
+    try { localStorage.setItem('tanda_reader_theme', newTheme); } catch {}
+    // Immediately save to backend so settings survive cross-device login
+    if (isAuthenticated && book && lastCfiRef.current) {
+      progressApi.saveProgress(book.id, {
+        epubCfi: lastCfiRef.current,
+        readerTheme: newTheme,
+        colorTemperature,
+        fontSize: getStoredFontSize(),
+      }).catch(() => {});
     }
   };
 
   const handleColorTempChange = (temp: number) => {
     setColorTemperature(temp);
-    if (typeof window !== 'undefined') {
-      try {
-        localStorage.setItem('tanda_reader_temp', String(temp));
-      } catch {}
+    try { localStorage.setItem('tanda_reader_temp', String(temp)); } catch {}
+    if (isAuthenticated && book && lastCfiRef.current) {
+      progressApi.saveProgress(book.id, {
+        epubCfi: lastCfiRef.current,
+        readerTheme: theme,
+        colorTemperature: temp,
+        fontSize: getStoredFontSize(),
+      }).catch(() => {});
     }
   };
 
   const handleProgressChange = React.useCallback(
-    (pct: number) => {
+    (pct: number, locationCfi: string) => {
       if (!book) return;
+      // Track latest CFI for settings-change saves
+      lastCfiRef.current = locationCfi;
+
       const totPages = book.pages ? parseInt(String(book.pages)) : 100;
       const calculatedPage = Math.max(1, Math.round((pct / 100) * totPages));
       setCurrentPage((prev) => (prev !== calculatedPage ? calculatedPage : prev));
+
       if (isAuthenticated) {
-        updateReadingProgress(book.id, calculatedPage, totPages);
+        // Debounce: save position 4 seconds after last navigation
+        if (progressSaveTimerRef.current) clearTimeout(progressSaveTimerRef.current);
+        progressSaveTimerRef.current = setTimeout(() => {
+          progressApi.saveProgress(book.id, {
+            epubCfi: locationCfi,
+            readerTheme: theme,
+            colorTemperature,
+            fontSize: getStoredFontSize(),
+            currentPage: calculatedPage,
+          }).catch(() => {});
+          updateReadingProgress(book.id, calculatedPage, totPages);
+        }, 4000);
       }
     },
-    [book, isAuthenticated, updateReadingProgress]
+    [book, isAuthenticated, theme, colorTemperature, updateReadingProgress]
   );
 
   useEffect(() => {
@@ -128,21 +172,43 @@ export const ReaderPage: React.FC = () => {
     }
   }, [book, isAuthenticated, markAsReading]);
 
+  // Fetch saved reading progress (position + settings) from backend
   useEffect(() => {
-    if (id && isAuthenticated) {
-      api.get(`/api/v1/progress/${id}`)
-        .then(({ data }) => {
-          if (data.currentPage) {
-            setCurrentPage(data.currentPage);
-            if (book) {
-              const totPages = book.pages ? parseInt(String(book.pages)) : undefined;
-              updateReadingProgress(book.id, data.currentPage, totPages);
-            }
-          }
-        })
-        .catch(() => {});
+    if (!id) {
+      setProgressLoaded(true);
+      return;
     }
-  }, [id, isAuthenticated, book, updateReadingProgress]);
+    if (!isAuthenticated) {
+      setProgressLoaded(true);
+      return;
+    }
+    progressApi.getProgress(id)
+      .then((data) => {
+        // Restore epub position
+        if (data.epubCfi) {
+          setSavedCfi(data.epubCfi);
+          lastCfiRef.current = data.epubCfi;
+        }
+        // Restore theme (overrides localStorage if backend has newer value)
+        if (data.readerTheme) {
+          setTheme(data.readerTheme);
+        }
+        // Restore color temperature
+        if (data.colorTemperature != null) {
+          setColorTemperature(data.colorTemperature);
+        }
+        // fontSize bridge: set to localStorage so EpubReader reads it on mount
+        if (data.fontSize && data.fontSize >= 12 && data.fontSize <= 32) {
+          try { localStorage.setItem('tanda_reader_fontSize', String(data.fontSize)); } catch {}
+        }
+        // Restore page counter for shelf display
+        if (data.currentPage) {
+          setCurrentPage(data.currentPage);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setProgressLoaded(true));
+  }, [id, isAuthenticated]);
 
   const rawEbookUrl = book?.ebookUrl || (book as any)?.pdfUrl || (book as any)?.epubUrl;
   const resolvedEbookUrl = resolveMediaUrl(rawEbookUrl);
@@ -477,16 +543,24 @@ export const ReaderPage: React.FC = () => {
               </a>
             </div>
           ) : isEpub ? (
-            <EpubReader
-              url={resolvedEbookUrl}
-              bookTitle={book.title}
-              bookAuthor={book.author}
-              theme={theme}
-              onThemeChange={handleThemeChange}
-              colorTemperature={colorTemperature}
-              onColorTemperatureChange={handleColorTempChange}
-              onProgressChange={handleProgressChange}
-            />
+            // Gate: wait for progress fetch so initialLocation is stable before mount
+            progressLoaded ? (
+              <EpubReader
+                url={resolvedEbookUrl}
+                bookTitle={book.title}
+                bookAuthor={book.author}
+                initialLocation={savedCfi}
+                theme={theme}
+                onThemeChange={handleThemeChange}
+                colorTemperature={colorTemperature}
+                onColorTemperatureChange={handleColorTempChange}
+                onProgressChange={handleProgressChange}
+              />
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '400px' }}>
+                <div style={{ width: 32, height: 32, border: '3px solid #6366f1', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+              </div>
+            )
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>

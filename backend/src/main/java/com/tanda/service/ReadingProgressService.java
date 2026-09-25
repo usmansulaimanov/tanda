@@ -69,6 +69,10 @@ public class ReadingProgressService {
                         .currentPage(dto.getCurrentPage() != null ? dto.getCurrentPage() : 1)
                         .currentAudioChapterId(dto.getCurrentAudioChapterId())
                         .currentAudioTime(dto.getCurrentAudioTime() != null ? dto.getCurrentAudioTime() : 0)
+                        .epubCfi(dto.getEpubCfi())
+                        .fontSize(dto.getFontSize())
+                        .readerTheme(dto.getReaderTheme())
+                        .colorTemperature(dto.getColorTemperature())
                         .updatedAt(OffsetDateTime.now())
                         .build();
                 progress = progressRepository.saveAndFlush(progress);
@@ -97,6 +101,18 @@ public class ReadingProgressService {
         if (dto.getCurrentAudioTime() != null) {
             progress.setCurrentAudioTime(dto.getCurrentAudioTime());
         }
+        if (dto.getEpubCfi() != null) {
+            progress.setEpubCfi(dto.getEpubCfi());
+        }
+        if (dto.getFontSize() != null) {
+            progress.setFontSize(dto.getFontSize());
+        }
+        if (dto.getReaderTheme() != null) {
+            progress.setReaderTheme(dto.getReaderTheme());
+        }
+        if (dto.getColorTemperature() != null) {
+            progress.setColorTemperature(dto.getColorTemperature());
+        }
         progress.setUpdatedAt(OffsetDateTime.now());
     }
 
@@ -109,6 +125,10 @@ public class ReadingProgressService {
                 .currentAudioChapterId(progress.getCurrentAudioChapterId())
                 .currentAudioTime(progress.getCurrentAudioTime())
                 .updatedAt(progress.getUpdatedAt())
+                .epubCfi(progress.getEpubCfi())
+                .fontSize(progress.getFontSize())
+                .readerTheme(progress.getReaderTheme())
+                .colorTemperature(progress.getColorTemperature())
                 .build();
     }
 }

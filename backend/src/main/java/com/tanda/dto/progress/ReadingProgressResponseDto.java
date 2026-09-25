@@ -22,4 +22,11 @@ public class ReadingProgressResponseDto {
     private String currentAudioChapterId;
     private Integer currentAudioTime;
     private OffsetDateTime updatedAt;
+
+    /** EPUB CFI for exact position restore */
+    private String epubCfi;
+    private Integer fontSize;
+    private String readerTheme;
+    private Integer colorTemperature;
 }
+

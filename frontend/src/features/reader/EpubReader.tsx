@@ -74,7 +74,16 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
 
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [fontSize, setFontSize] = useState<number>(18);
+  const [fontSize, setFontSize] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('tanda_reader_fontSize');
+      if (saved !== null) {
+        const parsed = parseInt(saved, 10);
+        if (!isNaN(parsed) && parsed >= 12 && parsed <= 32) return parsed;
+      }
+    }
+    return 18;
+  });
   const [internalTheme, setInternalTheme] = useState<'light' | 'sepia' | 'dark'>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('tanda_reader_theme');
@@ -334,6 +343,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
 
     // Apply font size outside the state updater (no side effects in pure updater)
     setFontSize(newSize);
+    try { localStorage.setItem('tanda_reader_fontSize', String(newSize)); } catch {}
     renditionRef.current.themes.fontSize(`${newSize}px`);
 
     // Re-anchor after epub.js reflow settles (~300ms is reliable across books)

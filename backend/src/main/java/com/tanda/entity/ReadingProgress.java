@@ -49,6 +49,18 @@ public class ReadingProgress {
     @Builder.Default
     private Integer currentAudioTime = 0;
 
+    @Column(name = "epub_cfi", columnDefinition = "TEXT")
+    private String epubCfi;
+
+    @Column(name = "font_size")
+    private Integer fontSize;
+
+    @Column(name = "reader_theme", length = 16)
+    private String readerTheme;
+
+    @Column(name = "color_temperature")
+    private Integer colorTemperature;
+
     @Column(name = "updated_at")
     private OffsetDateTime updatedAt;
 
