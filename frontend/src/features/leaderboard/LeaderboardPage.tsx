@@ -190,9 +190,9 @@ export const LeaderboardPage: React.FC = () => {
                       </div>
                       <p className="text-xs sm:text-sm text-slate-500">
                         {leaderboardData.currentUserEntry.rank > 0 && leaderboardData.currentUserEntry.rank <= 10 ? (
-                          <span className="text-amber-600 font-bold">🔥 Сіз Топ-10 сертификат аймағындасыз!</span>
+                          <span className="text-amber-600 font-bold">Сіз Топ-10-ға кіресіз</span>
                         ) : leaderboardData.currentUserEntry.rank > 0 && leaderboardData.currentUserEntry.rank <= 100 ? (
-                          <span className="text-emerald-700 font-semibold">✨ Сіз Топ-100 үздік оқырмандар қатарындасыз!</span>
+                          <span className="text-emerald-700 font-semibold">Сіз Топ-100 үздік оқырмандар қатарындасыз</span>
                         ) : leaderboardData.currentUserEntry.periodMinutes > 0 ? (
                           <span>Көбірек тыңдап, Топ-100-ге көтеріліңіз!</span>
                         ) : (
