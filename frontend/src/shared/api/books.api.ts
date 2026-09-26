@@ -71,5 +71,10 @@ export const booksApi = {
     );
     return data;
   },
+
+  getPublicStats: async (): Promise<{ readersCount: number }> => {
+    const { data } = await apiClient.get<{ readersCount: number }>('/api/v1/books/public-stats');
+    return data;
+  },
 };
 

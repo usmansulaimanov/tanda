@@ -37,6 +37,10 @@ public interface UserRepository extends JpaRepository<User, String> {
            "ORDER BY u.createdAt DESC")
     List<User> findAllClients();
 
+    @Query("SELECT COUNT(u) FROM User u WHERE " +
+           "(u.role = 'client' OR u.role IS NULL OR LOWER(u.role) IN ('client', 'reader', 'user') OR (LOWER(u.role) NOT IN ('admin', 'author', 'manager')))")
+    long countAllClients();
+
     @Query("SELECT u FROM User u WHERE " +
            "(u.role = 'client' OR u.role IS NULL OR LOWER(u.role) IN ('client', 'reader', 'user') OR (LOWER(u.role) NOT IN ('admin', 'author', 'manager'))) AND " +
            "(LOWER(u.name) LIKE LOWER(CONCAT('%', :search, '%')) OR " +

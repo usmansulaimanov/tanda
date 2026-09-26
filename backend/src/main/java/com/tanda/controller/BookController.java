@@ -42,6 +42,15 @@ public class BookController {
 
     private final BookService bookService;
     private final AudioAnalyticsService audioAnalyticsService;
+    private final com.tanda.repository.UserRepository userRepository;
+
+    @GetMapping("/public-stats")
+    public ResponseEntity<Map<String, Object>> getPublicStats() {
+        long readersCount = userRepository.countAllClients();
+        return ResponseEntity.ok(Map.of(
+                "readersCount", readersCount
+        ));
+    }
 
     @GetMapping
     public ResponseEntity<Page<BookResponseDto>> getAllBooks(

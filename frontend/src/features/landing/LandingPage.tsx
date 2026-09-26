@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useLocation, Navigate } from 'react-router-dom';
 import { useBookStore } from '../../store/useBookStore';
 import { useAuthStore } from '../../store/useAuthStore';
+import { booksApi } from '../../shared/api/books.api';
 import { BookCard } from '../../components/ui/BookCard';
 import { TopAudioSection } from './TopAudioSection';
 import heroReadingImg from '../../assets/hero-reading.jpg';
@@ -121,7 +122,7 @@ export const LandingPage: React.FC = () => {
 
   // Dynamic statistics matching the active database exactly
   const booksCount = activeBooks.length;
-  // 5 books by 1 author = 1 author (unique authors count)
+  // Unique authors count from active books
   const authorsCount = useMemo(() => {
     return new Set(
       activeBooks
@@ -129,12 +130,29 @@ export const LandingPage: React.FC = () => {
         .filter((author): author is string => Boolean(author))
     ).size;
   }, [activeBooks]);
-  const readersCount = 1200 + booksCount;
+
+  const [readersCount, setReadersCount] = useState<number>(() => {
+    try {
+      return useAuthStore.getState().getClientsCount() || 0;
+    } catch {
+      return 0;
+    }
+  });
+
+  useEffect(() => {
+    booksApi.getPublicStats()
+      .then((res) => {
+        if (res && typeof res.readersCount === 'number') {
+          setReadersCount(res.readersCount);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // Animated numbers from 0 up to target values
   const displayedBooks = useCountUp(booksCount, 1600);
   const displayedAuthors = useCountUp(authorsCount, 1600);
-  const displayedReaders = useCountUp(readersCount, 2000);
+  const displayedReaders = useCountUp(readersCount, 1600);
 
   // Filtered books for catalog grid
   const filteredBooks = useMemo(() => {
