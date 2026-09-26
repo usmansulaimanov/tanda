@@ -3,8 +3,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useToastStore } from '../../store/useToastStore';
-import { User } from '../../types';
+import { User, DeletedUserArchive } from '../../types';
 import { hasAdminPermission } from '../../utils/permissions';
+import { readersApi } from '../../shared/api/readers.api';
 
 export const ReadersPage: React.FC = () => {
   const navigate = useNavigate();
@@ -30,6 +31,12 @@ export const ReadersPage: React.FC = () => {
   const [userToBlock, setUserToBlock] = useState<User | null>(null);
   const [previewAvatarUser, setPreviewAvatarUser] = useState<User | null>(null);
 
+  // Tabs state: 'active' | 'archives'
+  const [activeTab, setActiveTab] = useState<'active' | 'archives'>('active');
+  const [archives, setArchives] = useState<DeletedUserArchive[]>([]);
+  const [isLoadingArchives, setIsLoadingArchives] = useState(false);
+  const [selectedArchive, setSelectedArchive] = useState<DeletedUserArchive | null>(null);
+
   // Pagination state
   const [pageSize, setPageSize] = useState<number>(10);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -48,6 +55,27 @@ export const ReadersPage: React.FC = () => {
       setIsLoading(false);
     }
   };
+
+  const fetchArchives = async () => {
+    setIsLoadingArchives(true);
+    try {
+      const list = await readersApi.getDeletedUserArchives();
+      if (Array.isArray(list)) {
+        setArchives(list);
+      }
+    } catch (err) {
+      console.error('Error fetching archives:', err);
+      showToast('Жойылғандар мұрағатын жүктеу мүмкін болмады', 'error');
+    } finally {
+      setIsLoadingArchives(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'archives') {
+      fetchArchives();
+    }
+  }, [activeTab]);
 
   // Sync with store when clients change
   useEffect(() => {
@@ -90,12 +118,27 @@ export const ReadersPage: React.FC = () => {
     });
   }, [readers, searchQuery]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredReaders.length / pageSize));
+  // Apply search query to archives
+  const filteredArchives = useMemo(() => {
+    if (!searchQuery.trim()) return archives;
+    const q = searchQuery.toLowerCase().trim();
+    return archives.filter((a) => {
+      const name = (a.originalName || '').toLowerCase();
+      const email = (a.originalEmail || '').toLowerCase();
+      const idNum = (a.idNumber || '').toLowerCase();
+      const phone = (a.originalPhone || '').toLowerCase();
+      const reason = (a.deleteReason || '').toLowerCase();
+      return name.includes(q) || email.includes(q) || idNum.includes(q) || phone.includes(q) || reason.includes(q);
+    });
+  }, [archives, searchQuery]);
+
+  const activeCount = activeTab === 'active' ? filteredReaders.length : filteredArchives.length;
+  const totalPages = Math.max(1, Math.ceil(activeCount / pageSize));
 
   // Reset to page 1 on search change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery]);
+  }, [searchQuery, activeTab]);
 
   // Ensure current page is within total pages bounds
   useEffect(() => {
@@ -109,6 +152,11 @@ export const ReadersPage: React.FC = () => {
     const start = (currentPage - 1) * pageSize;
     return filteredReaders.slice(start, start + pageSize);
   }, [filteredReaders, currentPage, pageSize]);
+
+  const paginatedArchives = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredArchives.slice(start, start + pageSize);
+  }, [filteredArchives, currentPage, pageSize]);
 
   const confirmDelete = async () => {
     if (userToDelete) {
@@ -405,20 +453,72 @@ export const ReadersPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Readers Table */}
-          <div style={{ overflowX: 'auto' }}>
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  <th style={{ width: '45px', textAlign: 'center' }}>№</th>
-                  <th style={{ width: '140px', whiteSpace: 'nowrap' }}>ID нөмірі</th>
-                  <th>Аты-жөні</th>
-                  <th>Электрондық поштасы</th>
-                  <th style={{ width: '130px', whiteSpace: 'nowrap' }}>Тіркелген күні</th>
-                  <th style={{ width: '120px', whiteSpace: 'nowrap' }}>Мәртебесі</th>
-                  <th style={{ width: '240px', textAlign: 'right', whiteSpace: 'nowrap' }}>Әрекеттер</th>
-                </tr>
-              </thead>
+          {/* Tabs: Active Readers vs Deleted Archives */}
+          <div style={{ display: 'flex', gap: '8px', borderBottom: '1.5px solid #E2E8F0', marginBottom: '20px' }}>
+            <button
+              type="button"
+              onClick={() => setActiveTab('active')}
+              style={{
+                padding: '10px 18px',
+                background: 'none',
+                border: 'none',
+                borderBottom: activeTab === 'active' ? '2.5px solid var(--blue)' : '2.5px solid transparent',
+                color: activeTab === 'active' ? 'var(--blue)' : '#64748B',
+                fontSize: '14px',
+                fontWeight: activeTab === 'active' ? 800 : 600,
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+              }}
+            >
+              <span>Белсенді оқырмандар</span>
+              <span style={{ fontSize: '12px', background: activeTab === 'active' ? 'rgba(0, 84, 148, 0.1)' : '#F1F5F9', color: activeTab === 'active' ? 'var(--blue)' : '#64748B', padding: '2px 8px', borderRadius: '12px', fontWeight: 700 }}>
+                {readers.length}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab('archives')}
+              style={{
+                padding: '10px 18px',
+                background: 'none',
+                border: 'none',
+                borderBottom: activeTab === 'archives' ? '2.5px solid #DC2626' : '2.5px solid transparent',
+                color: activeTab === 'archives' ? '#DC2626' : '#64748B',
+                fontSize: '14px',
+                fontWeight: activeTab === 'archives' ? 800 : 600,
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+              }}
+            >
+              <span>Жойылғандар мұрағаты (Аудит)</span>
+              <span style={{ fontSize: '12px', background: activeTab === 'archives' ? '#FEE2E2' : '#F1F5F9', color: activeTab === 'archives' ? '#DC2626' : '#64748B', padding: '2px 8px', borderRadius: '12px', fontWeight: 700 }}>
+                {archives.length}
+              </span>
+            </button>
+          </div>
+
+          {/* Table Container */}
+          {activeTab === 'active' ? (
+            <div style={{ overflowX: 'auto' }}>
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th style={{ width: '45px', textAlign: 'center' }}>№</th>
+                    <th style={{ width: '140px', whiteSpace: 'nowrap' }}>ID нөмірі</th>
+                    <th>Аты-жөні</th>
+                    <th>Электрондық поштасы</th>
+                    <th style={{ width: '130px', whiteSpace: 'nowrap' }}>Тіркелген күні</th>
+                    <th style={{ width: '120px', whiteSpace: 'nowrap' }}>Мәртебесі</th>
+                    <th style={{ width: '240px', textAlign: 'right', whiteSpace: 'nowrap' }}>Әрекеттер</th>
+                  </tr>
+                </thead>
               <tbody>
                 {paginatedReaders.map((reader, index) => {
                   const itemIndex = (currentPage - 1) * pageSize + index + 1;
@@ -661,8 +761,132 @@ export const ReadersPage: React.FC = () => {
               </tbody>
             </table>
           </div>
+          ) : (
+            <div style={{ overflowX: 'auto' }}>
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th style={{ width: '45px', textAlign: 'center' }}>№</th>
+                    <th style={{ width: '140px', whiteSpace: 'nowrap' }}>ID нөмірі</th>
+                    <th>Бұрынғы аты-жөні</th>
+                    <th>Электрондық поштасы</th>
+                    <th style={{ width: '140px', whiteSpace: 'nowrap' }}>Өшірілген күні</th>
+                    <th style={{ width: '150px', whiteSpace: 'nowrap' }}>Тыңдаған уақыты</th>
+                    <th style={{ width: '120px', whiteSpace: 'nowrap' }}>Мәртебесі</th>
+                    <th style={{ width: '140px', textAlign: 'right', whiteSpace: 'nowrap' }}>Толық мәлімет</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {paginatedArchives.map((archive, index) => {
+                    const itemIndex = (currentPage - 1) * pageSize + index + 1;
+                    const dateStr = archive.deletedAt ? new Date(archive.deletedAt).toLocaleDateString('kk-KZ', { hour: '2-digit', minute: '2-digit' }) : '—';
+                    const mins = archive.totalListenMinutes || Math.floor((archive.totalListenSeconds || 0) / 60);
+                    const hours = Math.floor(mins / 60);
+                    const remMins = mins % 60;
+                    const formattedListen = hours > 0 ? `${hours} сағ ${remMins} мин` : `${mins} мин`;
 
-          {isLoading && (
+                    return (
+                      <tr key={archive.id}>
+                        <td style={{ textAlign: 'center', fontWeight: 700, color: '#64748B', fontSize: '12px' }}>
+                          {itemIndex}
+                        </td>
+                        <td style={{ whiteSpace: 'nowrap' }}>
+                          <span
+                            style={{
+                              fontSize: '12px',
+                              fontWeight: 800,
+                              fontFamily: 'monospace',
+                              background: 'rgba(220, 38, 38, 0.08)',
+                              color: '#DC2626',
+                              padding: '3px 10px',
+                              borderRadius: '4px',
+                              letterSpacing: '0.04em',
+                            }}
+                          >
+                            ID: {archive.idNumber || '—'}
+                          </span>
+                        </td>
+                        <td>
+                          <div style={{ fontWeight: 800, color: '#0F172A', fontSize: '14px' }}>
+                            {archive.originalName || 'Аноним'}
+                          </div>
+                          {archive.originalPhone && (
+                            <div style={{ fontSize: '12px', color: '#64748B', marginTop: '2px' }}>
+                              {archive.originalPhone}
+                            </div>
+                          )}
+                        </td>
+                        <td>
+                          <div style={{ color: 'var(--text-mid)', fontSize: '13px', fontFamily: 'monospace' }}>
+                            {archive.originalEmail}
+                          </div>
+                        </td>
+                        <td>
+                          <div style={{ color: '#DC2626', fontSize: '12.5px', fontWeight: 700 }}>
+                            {dateStr}
+                          </div>
+                        </td>
+                        <td>
+                          <div style={{ color: 'var(--blue)', fontSize: '13px', fontWeight: 800 }}>
+                            {formattedListen}
+                          </div>
+                          <div style={{ fontSize: '11px', color: '#64748B' }}>
+                            {archive.booksListenedCount || 0} кітап тыңдаған
+                          </div>
+                        </td>
+                        <td>
+                          <span
+                            style={{
+                              fontSize: '11px',
+                              fontWeight: 700,
+                              padding: '3px 8px',
+                              borderRadius: '20px',
+                              background: '#FEE2E2',
+                              color: '#991B1B',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                            }}
+                          >
+                            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#EF4444' }}></span>
+                            Өшірілген
+                          </span>
+                        </td>
+                        <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedArchive(archive)}
+                            style={{
+                              padding: '6px 12px',
+                              fontSize: '12px',
+                              fontWeight: 700,
+                              background: '#F1F5F9',
+                              color: 'var(--blue)',
+                              borderRadius: '6px',
+                              border: '1px solid #CBD5E1',
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                            }}
+                          >
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <circle cx="12" cy="12" r="10"></circle>
+                              <line x1="12" y1="16" x2="12" y2="12"></line>
+                              <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                            </svg>
+                            Ақпарат
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {(isLoading || isLoadingArchives) && (
             <div style={{ textAlign: 'center', padding: '48px 20px', color: 'var(--text-mid)' }}>
               <div
                 style={{
@@ -675,23 +899,27 @@ export const ReadersPage: React.FC = () => {
                   animation: 'spin 0.8s linear infinite',
                 }}
               />
-              <div style={{ fontSize: '14px', fontWeight: 600 }}>Оқырмандар тізімі жүктелуде...</div>
+              <div style={{ fontSize: '14px', fontWeight: 600 }}>Деректер жүктелуде...</div>
             </div>
           )}
 
-          {!isLoading && filteredReaders.length === 0 && (
+          {!isLoading && !isLoadingArchives && (activeTab === 'active' ? filteredReaders.length === 0 : filteredArchives.length === 0) && (
             <div style={{ textAlign: 'center', padding: '48px 20px', color: 'var(--text-mid)' }}>
               <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '6px' }}>
-                {searchQuery.trim() ? 'Іздеу бойынша оқырман табылмады' : 'Оқырмандар табылмады немесе тізім бос'}
+                {activeTab === 'active'
+                  ? (searchQuery.trim() ? 'Іздеу бойынша оқырман табылмады' : 'Оқырмандар табылмады немесе тізім бос')
+                  : (searchQuery.trim() ? 'Іздеу бойынша мұрағаттан табылмады' : 'Әзірге өшірілген оқырмандар мұрағаты бос')}
               </div>
               <p style={{ fontSize: '13px', margin: '0 0 16px 0', maxWidth: '400px', marginLeft: 'auto', marginRight: 'auto' }}>
                 {searchQuery.trim()
-                  ? `«${searchQuery}» сұранысы бойынша ешқандай оқырман табылмады. Іздеу сөзін өзгертіп көріңіз.`
-                  : 'Жүйеде әлі тіркелген оқырмандар жоқ немесе желідегі деректерді жаңарту қажет.'}
+                  ? `«${searchQuery}» сұранысы бойынша ешқандай жазба табылмады. Іздеу сөзін өзгертіп көріңіз.`
+                  : activeTab === 'active'
+                    ? 'Жүйеде әлі тіркелген оқырмандар жоқ немесе желідегі деректерді жаңарту қажет.'
+                    : 'Пайдаланушылар өз аккаунтын өшірген кезде олардың барлық аудит мәліметтері осы жерде сақталады.'}
               </p>
               <button
                 type="button"
-                onClick={fetchReaders}
+                onClick={activeTab === 'active' ? fetchReaders : fetchArchives}
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -1215,6 +1443,140 @@ export const ReadersPage: React.FC = () => {
                   Түпнұсқасын ашу
                 </a>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Selected Archive Details Modal */}
+      {selectedArchive && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(15, 23, 42, 0.65)',
+            backdropFilter: 'blur(4px)',
+            zIndex: 99999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px',
+          }}
+          onClick={() => setSelectedArchive(null)}
+        >
+          <div
+            style={{
+              background: '#FFFFFF',
+              borderRadius: '24px',
+              maxWidth: '520px',
+              width: '100%',
+              padding: '28px',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.25)',
+              color: '#0F172A',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '18px' }}>
+              <div>
+                <span style={{ fontSize: '12px', fontWeight: 800, padding: '2px 8px', borderRadius: '6px', background: '#FEE2E2', color: '#DC2626' }}>
+                  Өшірілген аккаунт аудиті
+                </span>
+                <h3 style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A', margin: '8px 0 0 0' }}>
+                  {selectedArchive.originalName || 'Аноним оқырман'}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedArchive(null)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748B', padding: '4px' }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '13.5px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #F1F5F9' }}>
+                <span style={{ color: '#64748B' }}>ID нөмірі:</span>
+                <span style={{ fontWeight: 800, fontFamily: 'monospace' }}>ID: {selectedArchive.idNumber || '—'}</span>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #F1F5F9' }}>
+                <span style={{ color: '#64748B' }}>Бұрынғы поштасы:</span>
+                <span style={{ fontWeight: 700 }}>{selectedArchive.originalEmail}</span>
+              </div>
+
+              {selectedArchive.originalPhone && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #F1F5F9' }}>
+                  <span style={{ color: '#64748B' }}>Телефон:</span>
+                  <span style={{ fontWeight: 700 }}>{selectedArchive.originalPhone}</span>
+                </div>
+              )}
+
+              {selectedArchive.originalUsername && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #F1F5F9' }}>
+                  <span style={{ color: '#64748B' }}>Юзернейм:</span>
+                  <span style={{ fontWeight: 700 }}>@{selectedArchive.originalUsername.replace(/^@/, '')}</span>
+                </div>
+              )}
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #F1F5F9' }}>
+                <span style={{ color: '#64748B' }}>Тіркелген күні:</span>
+                <span style={{ fontWeight: 600 }}>{selectedArchive.registeredAt ? new Date(selectedArchive.registeredAt).toLocaleDateString('kk-KZ') : '—'}</span>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #F1F5F9' }}>
+                <span style={{ color: '#64748B' }}>Өшірілген уақыты:</span>
+                <span style={{ fontWeight: 700, color: '#DC2626' }}>{selectedArchive.deletedAt ? new Date(selectedArchive.deletedAt).toLocaleString('kk-KZ') : '—'}</span>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #F1F5F9' }}>
+                <span style={{ color: '#64748B' }}>Жалпы тыңдалған уақыт:</span>
+                <span style={{ fontWeight: 800, color: 'var(--blue)' }}>
+                  {Math.floor((selectedArchive.totalListenSeconds || 0) / 60)} минут ({((selectedArchive.totalListenSeconds || 0) / 3600).toFixed(1)} сағат)
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #F1F5F9' }}>
+                <span style={{ color: '#64748B' }}>Тыңдаған кітаптар саны:</span>
+                <span style={{ fontWeight: 800 }}>{selectedArchive.booksListenedCount || 0} кітап</span>
+              </div>
+
+              {selectedArchive.ipAddress && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #F1F5F9' }}>
+                  <span style={{ color: '#64748B' }}>Өшірілген IP мекенжайы:</span>
+                  <span style={{ fontWeight: 600, fontFamily: 'monospace' }}>{selectedArchive.ipAddress}</span>
+                </div>
+              )}
+
+              {selectedArchive.deleteReason && (
+                <div style={{ padding: '12px', background: '#F8FAFC', borderRadius: '10px', marginTop: '4px' }}>
+                  <span style={{ display: 'block', color: '#64748B', fontSize: '12px', marginBottom: '4px', fontWeight: 700 }}>Көрсеткен себебі:</span>
+                  <span style={{ color: '#0F172A', fontStyle: 'italic' }}>«{selectedArchive.deleteReason}»</span>
+                </div>
+              )}
+            </div>
+
+            <div style={{ marginTop: '24px' }}>
+              <button
+                type="button"
+                onClick={() => setSelectedArchive(null)}
+                style={{
+                  width: '100%',
+                  padding: '11px',
+                  borderRadius: '12px',
+                  border: '1.5px solid #CBD5E1',
+                  background: '#F1F5F9',
+                  color: '#0F172A',
+                  fontSize: '13.5px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                }}
+              >
+                Жабу
+              </button>
             </div>
           </div>
         </div>

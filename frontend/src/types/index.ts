@@ -319,3 +319,22 @@ export interface ReaderDetailedStatsResponse {
   books: ReaderBookListening[];
 }
 
+export interface DeletedUserArchive {
+  id: string;
+  userId: string;
+  idNumber?: string;
+  originalName?: string;
+  originalEmail?: string;
+  originalPhone?: string;
+  originalUsername?: string;
+  originalRole: string;
+  authProvider?: string;
+  registeredAt?: string;
+  deletedAt: string;
+  totalListenSeconds: number;
+  totalListenMinutes: number;
+  booksListenedCount: number;
+  ipAddress?: string;
+  deleteReason?: string;
+}
+

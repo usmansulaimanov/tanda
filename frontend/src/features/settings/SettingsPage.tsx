@@ -5,6 +5,7 @@ import { useAuthStore, validatePasswordComplexity } from '../../store/useAuthSto
 import { useToastStore } from '../../store/useToastStore';
 import { resizeAndCompressImage } from '../../utils/imageUtils';
 import { hasAdminPermission } from '../../utils/permissions';
+import { authApi } from '../../shared/api/auth.api';
 
 const formatPhoneNumber = (val: string): string => {
   if (!val) return '';
@@ -77,7 +78,7 @@ const formatDisplayDate = (raw?: string): string => {
 export const SettingsPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { user, isAuthenticated, updateProfile, updateAvatar, changePassword, verifyGoogleReauth, checkUsernameAvailable, fetchReservedUsernames, getReservedUsernames, addReservedUsername, addReservedUsernames, removeReservedUsername } = useAuthStore();
+  const { user, isAuthenticated, updateProfile, updateAvatar, changePassword, verifyGoogleReauth, checkUsernameAvailable, fetchReservedUsernames, getReservedUsernames, addReservedUsername, addReservedUsernames, removeReservedUsername, logout } = useAuthStore();
   const { showToast } = useToastStore();
 
   const isClient = !user?.role || user.role === 'client';
@@ -89,6 +90,13 @@ export const SettingsPage: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const datePickerInputRef = useRef<HTMLInputElement>(null);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+
+  // Delete Account Modal State
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleteReason, setDeleteReason] = useState('');
+  const [deleteError, setDeleteError] = useState('');
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
 
   // Navigation mode: 'menu' | 'profile' | 'password' | 'usernames'
   const rawMode = searchParams.get('mode') as 'profile' | 'password' | 'usernames' | null;
@@ -262,6 +270,26 @@ export const SettingsPage: React.FC = () => {
     await removeReservedUsername(u);
     setReservedList(getReservedUsernames());
     showToast(`@${u} тізімнен өшірілді`, 'info');
+  };
+
+  const handleDeleteAccount = async () => {
+    setIsDeletingAccount(true);
+    setDeleteError('');
+    try {
+      await authApi.deleteAccount({
+        password: deletePassword.trim() || undefined,
+        reason: deleteReason.trim() || undefined,
+      });
+      showToast('Аккаунтыңыз сәтті өшірілді', 'success');
+      setIsDeleteModalOpen(false);
+      logout();
+      navigate('/', { replace: true });
+    } catch (err: any) {
+      const msg = err.response?.data?.message || err.message || 'Аккаунтты өшіру кезінде қате орын алды';
+      setDeleteError(msg);
+    } finally {
+      setIsDeletingAccount(false);
+    }
   };
 
   if (!isAuthenticated || !user) {
@@ -842,6 +870,81 @@ export const SettingsPage: React.FC = () => {
                   </svg>
                 </div>
               </button>
+
+              {/* Button 3: Аккаунтты өшіру (Only for Readers / Clients) */}
+              {isClient && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDeletePassword('');
+                    setDeleteReason('');
+                    setDeleteError('');
+                    setIsDeleteModalOpen(true);
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '22px 24px',
+                    borderRadius: '16px',
+                    background: '#FFFFFF',
+                    border: '1.5px solid #FEE2E2',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                    boxShadow: '0 2px 8px rgba(220, 38, 38, 0.04)',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = '#EF4444';
+                    e.currentTarget.style.background = '#FEF2F2';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 8px 24px rgba(239, 68, 68, 0.12)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = '#FEE2E2';
+                    e.currentTarget.style.background = '#FFFFFF';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 2px 8px rgba(220, 38, 38, 0.04)';
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <div
+                      style={{
+                        width: '48px',
+                        height: '48px',
+                        borderRadius: '12px',
+                        background: '#FEE2E2',
+                        color: '#DC2626',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M3 6h18"></path>
+                        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                        <line x1="10" y1="11" x2="10" y2="17"></line>
+                        <line x1="14" y1="11" x2="14" y2="17"></line>
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#DC2626', margin: '0 0 4px 0' }}>
+                        Аккаунтты өшіру
+                      </h3>
+                      <p style={{ fontSize: '13px', color: '#991B1B', margin: 0, lineHeight: 1.4 }}>
+                        Профиль, жеке сөре және оқу тарихын біржола жою
+                      </p>
+                    </div>
+                  </div>
+                  <div style={{ color: '#DC2626', paddingLeft: '12px' }}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                  </div>
+                </button>
+              )}
             </div>
           </div>
         )}
@@ -2004,6 +2107,165 @@ export const SettingsPage: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Account Confirmation Modal */}
+      {isDeleteModalOpen && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(15, 23, 42, 0.7)',
+            backdropFilter: 'blur(5px)',
+            zIndex: 999999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px',
+          }}
+          onClick={() => !isDeletingAccount && setIsDeleteModalOpen(false)}
+        >
+          <div
+            style={{
+              background: '#FFFFFF',
+              borderRadius: '24px',
+              maxWidth: '460px',
+              width: '100%',
+              padding: '32px 28px',
+              boxShadow: '0 25px 60px rgba(0, 0, 0, 0.3)',
+              color: '#0F172A',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              style={{
+                width: '60px',
+                height: '60px',
+                borderRadius: '50%',
+                background: '#FEE2E2',
+                color: '#DC2626',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 16px',
+              }}
+            >
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                <line x1="12" y1="9" x2="12" y2="13"></line>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+              </svg>
+            </div>
+
+            <h3 style={{ fontSize: '20px', fontWeight: 900, color: '#0F172A', margin: '0 0 10px', textAlign: 'center' }}>
+              Аккаунтты өшіруді растау
+            </h3>
+
+            <div style={{ background: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: '12px', padding: '14px', marginBottom: '20px', fontSize: '13px', color: '#991B1B', lineHeight: '1.5' }}>
+              <p style={{ margin: '0 0 8px', fontWeight: 800 }}>⚠️ Назар аударыңыз:</p>
+              <ul style={{ margin: 0, paddingLeft: '18px' }}>
+                <li>«Менің сөрем», сақталған кітаптар мен оқу тарихыңыз толық жойылады.</li>
+                <li>Бұл аккаунтпен қайта кіре алмайсыз.</li>
+                <li>Кейін кіру үшін осы поштамен жаңадан тіркелу қажет болады.</li>
+              </ul>
+            </div>
+
+            {hasPassword && !isGoogleUser && (
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+                  Растау үшін құпиясөзіңізді енгізіңіз:
+                </label>
+                <input
+                  type="password"
+                  value={deletePassword}
+                  onChange={(e) => setDeletePassword(e.target.value)}
+                  placeholder="Қазіргі құпиясөз"
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px',
+                    borderRadius: '10px',
+                    border: '1.5px solid #CBD5E1',
+                    fontSize: '14px',
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                  }}
+                />
+              </div>
+            )}
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+                Өшіру себебі (міндетті емес):
+              </label>
+              <textarea
+                value={deleteReason}
+                onChange={(e) => setDeleteReason(e.target.value)}
+                placeholder="Мысалы: Басқа аккаунт аштым, қолданбайтын болдым т.б."
+                rows={2}
+                style={{
+                  width: '100%',
+                  padding: '10px 14px',
+                  borderRadius: '10px',
+                  border: '1.5px solid #CBD5E1',
+                  fontSize: '13px',
+                  outline: 'none',
+                  boxSizing: 'border-box',
+                  resize: 'none',
+                }}
+              />
+            </div>
+
+            {deleteError && (
+              <div style={{ color: '#DC2626', fontSize: '13px', fontWeight: 700, marginBottom: '16px', textAlign: 'center' }}>
+                {deleteError}
+              </div>
+            )}
+
+            <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
+              <button
+                type="button"
+                disabled={isDeletingAccount}
+                onClick={() => setIsDeleteModalOpen(false)}
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  borderRadius: '12px',
+                  border: '1.5px solid #CBD5E1',
+                  background: '#FFFFFF',
+                  color: '#475569',
+                  fontSize: '14px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                }}
+              >
+                Бас тарту
+              </button>
+              <button
+                type="button"
+                disabled={isDeletingAccount}
+                onClick={handleDeleteAccount}
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  borderRadius: '12px',
+                  border: 'none',
+                  background: '#DC2626',
+                  color: '#FFFFFF',
+                  fontSize: '14px',
+                  fontWeight: 800,
+                  cursor: isDeletingAccount ? 'not-allowed' : 'pointer',
+                  boxShadow: '0 4px 14px rgba(220, 38, 38, 0.3)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                }}
+              >
+                {isDeletingAccount ? 'Өшірілуде...' : 'Аккаунтты өшіру'}
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -20,6 +20,8 @@ public interface SavedBookRepository extends JpaRepository<SavedBook, String> {
 
     void deleteByUserIdAndBookId(String userId, String bookId);
 
+    void deleteByUser(com.tanda.entity.User user);
+
     @Query("SELECT s.book.id FROM SavedBook s WHERE s.user.id = :userId")
     List<String> findBookIdsByUserId(@Param("userId") String userId);
 

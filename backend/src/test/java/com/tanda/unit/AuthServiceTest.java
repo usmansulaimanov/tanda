@@ -66,6 +66,24 @@ class AuthServiceTest {
     @Mock
     private IdNumberService idNumberService;
 
+    @Mock
+    private com.tanda.repository.DeletedUserArchiveRepository deletedUserArchiveRepository;
+
+    @Mock
+    private com.tanda.repository.AudioSessionRepository audioSessionRepository;
+
+    @Mock
+    private com.tanda.repository.UserBookRepository userBookRepository;
+
+    @Mock
+    private com.tanda.repository.SavedBookRepository savedBookRepository;
+
+    @Mock
+    private com.tanda.repository.ReadingProgressRepository readingProgressRepository;
+
+    @Mock
+    private com.tanda.repository.UserDailyAudioLimitRepository userDailyAudioLimitRepository;
+
     private PasswordEncoder passwordEncoder;
     private JwtTokenProvider jwtTokenProvider;
 
@@ -92,7 +110,13 @@ class AuthServiceTest {
                 managerPermissionRepository,
                 premiumEntitlementRepository,
                 birthdayGiftRepository,
-                idNumberService
+                idNumberService,
+                deletedUserArchiveRepository,
+                audioSessionRepository,
+                userBookRepository,
+                savedBookRepository,
+                readingProgressRepository,
+                userDailyAudioLimitRepository
         );
     }
 

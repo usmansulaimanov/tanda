@@ -10,4 +10,6 @@ import java.util.Optional;
 @Repository
 public interface UserDailyAudioLimitRepository extends JpaRepository<UserDailyAudioLimit, String> {
     Optional<UserDailyAudioLimit> findByUserIdAndStatDate(String userId, LocalDate statDate);
+
+    void deleteByUserId(String userId);
 }

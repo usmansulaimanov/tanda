@@ -13,4 +13,9 @@ export const readersApi = {
     const { data } = await apiClient.get<ReaderDetailedStatsResponse>(`/api/v1/admin/stats/readers/${userId}`, { params });
     return data;
   },
+
+  getDeletedUserArchives: async (): Promise<import('../../types').DeletedUserArchive[]> => {
+    const { data } = await apiClient.get<import('../../types').DeletedUserArchive[]>('/api/v1/admin/users/deleted-archives');
+    return data;
+  },
 };

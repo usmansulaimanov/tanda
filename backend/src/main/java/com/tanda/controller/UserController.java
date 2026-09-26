@@ -25,6 +25,12 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
+    private final com.tanda.service.AuthService authService;
+
+    @GetMapping("/deleted-archives")
+    public ResponseEntity<List<com.tanda.dto.admin.DeletedUserArchiveResponseDto>> getDeletedUserArchives() {
+        return ResponseEntity.ok(authService.getDeletedUserArchives());
+    }
 
     @GetMapping
     public ResponseEntity<List<UserListResponseDto>> getAllUsers(

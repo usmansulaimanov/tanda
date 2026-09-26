@@ -177,6 +177,24 @@ public class AuthController {
         return ResponseEntity.ok(Map.of("success", true, "message", "Google аккаунты сәтті расталды"));
     }
 
+    @PostMapping("/delete-account")
+    public ResponseEntity<Map<String, Object>> deleteAccount(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @RequestBody(required = false) com.tanda.dto.auth.DeleteAccountRequestDto request,
+            HttpServletRequest httpRequest) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        String ip = getClientIp(httpRequest);
+        String userAgent = httpRequest.getHeader(HttpHeaders.USER_AGENT);
+        authService.deleteAccount(principal.getId(), request, ip, userAgent);
+
+        ResponseCookie clearCookie = createRefreshTokenCookie("", 0);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, clearCookie.toString())
+                .body(Map.of("success", true, "message", "Аккаунтыңыз сәтті өшірілді"));
+    }
+
     private ResponseCookie createRefreshTokenCookie(String token, long maxAge) {
         return ResponseCookie.from(REFRESH_COOKIE_NAME, token)
                 .httpOnly(true)

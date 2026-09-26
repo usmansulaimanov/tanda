@@ -38,6 +38,12 @@ public class AuthService {
     private final com.tanda.repository.PremiumEntitlementRepository premiumEntitlementRepository;
     private final com.tanda.repository.BirthdayGiftRepository birthdayGiftRepository;
     private final IdNumberService idNumberService;
+    private final com.tanda.repository.DeletedUserArchiveRepository deletedUserArchiveRepository;
+    private final com.tanda.repository.AudioSessionRepository audioSessionRepository;
+    private final com.tanda.repository.UserBookRepository userBookRepository;
+    private final com.tanda.repository.SavedBookRepository savedBookRepository;
+    private final com.tanda.repository.ReadingProgressRepository readingProgressRepository;
+    private final com.tanda.repository.UserDailyAudioLimitRepository userDailyAudioLimitRepository;
 
     public record AuthResult(AuthResponseDto responseDto, String rawRefreshToken) {}
 
@@ -484,5 +490,133 @@ public class AuthService {
         if (!password.matches("^[\\x21-\\x7E]+$")) {
             throw new BadRequestException("Құпиясөз тек ағылшын әріптері, сандар және арнайы таңбалардан тұруы керек");
         }
+    }
+
+    @Transactional
+    public void deleteAccount(String userId, com.tanda.dto.auth.DeleteAccountRequestDto request, String ipAddress, String userAgent) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Пайдаланушы табылмады"));
+
+        // Strict role verification: ONLY 'client' / reader can delete their account
+        if (user.getRole() != null && !"client".equalsIgnoreCase(user.getRole())) {
+            throw new BadRequestException("Авторлар мен әкімшілер аккаунтты өздігінен өшіре алмайды");
+        }
+        if (user.getDuty() != null && !user.getDuty().isBlank()) {
+            throw new BadRequestException("Қызметкерлер мен менеджерлер аккаунтты өздігінен өшіре алмайды");
+        }
+
+        // Optional password check if local account with password and request provides password
+        if ("LOCAL".equalsIgnoreCase(user.getAuthProvider()) && user.getPasswordHash() != null) {
+            if (request != null && request.getPassword() != null && !request.getPassword().isBlank()) {
+                if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
+                    throw new BadRequestException("Енгізілген құпиясөз қате");
+                }
+            }
+        }
+
+        // 1. Calculate stats before deletion
+        long totalListenSeconds = 0L;
+        try {
+            totalListenSeconds = audioSessionRepository.getUserTotalSecondsAllTime(user.getId());
+        } catch (Exception e) {
+            log.warn("Could not calculate total listen seconds for deleted user: {}", e.getMessage());
+        }
+
+        int booksListenedCount = 0;
+        try {
+            booksListenedCount = audioSessionRepository.getUserListeningSumsPerBookAllTime(user.getId()).size();
+        } catch (Exception e) {
+            log.warn("Could not calculate books listened count for deleted user: {}", e.getMessage());
+        }
+
+        // 2. Save snapshot in DeletedUserArchive
+        com.tanda.entity.DeletedUserArchive archive = com.tanda.entity.DeletedUserArchive.builder()
+                .userId(user.getId())
+                .idNumber(user.getIdNumber())
+                .originalName(user.getName())
+                .originalEmail(user.getEmail())
+                .originalPhone(user.getPhone())
+                .originalUsername(user.getUsername())
+                .originalRole(user.getRole() != null ? user.getRole() : "client")
+                .authProvider(user.getAuthProvider())
+                .registeredAt(user.getCreatedAt())
+                .deletedAt(java.time.OffsetDateTime.now())
+                .totalListenSeconds(totalListenSeconds)
+                .booksListenedCount(booksListenedCount)
+                .ipAddress(ipAddress)
+                .userAgent(userAgent)
+                .deleteReason(request != null ? request.getReason() : null)
+                .build();
+        deletedUserArchiveRepository.save(archive);
+        log.info("Saved deleted user archive for userId={}, email={}", user.getId(), user.getEmail());
+
+        // 3. Clear personal reading shelf and saved books
+        try {
+            userBookRepository.deleteByUserId(user.getId());
+        } catch (Exception e) {
+            log.warn("Error deleting user_books: {}", e.getMessage());
+        }
+        try {
+            savedBookRepository.deleteByUser(user);
+        } catch (Exception e) {
+            log.warn("Error deleting saved_books: {}", e.getMessage());
+        }
+        try {
+            readingProgressRepository.deleteByUserId(user.getId());
+        } catch (Exception e) {
+            log.warn("Error deleting reading_progress: {}", e.getMessage());
+        }
+        try {
+            userDailyAudioLimitRepository.deleteByUserId(user.getId());
+        } catch (Exception e) {
+            log.warn("Error deleting user_daily_audio_limits: {}", e.getMessage());
+        }
+
+        // 4. Invalidate all refresh tokens
+        try {
+            refreshTokenService.revokeAllUserTokens(user.getId());
+        } catch (Exception e) {
+            log.warn("Error revoking tokens: {}", e.getMessage());
+        }
+
+        // 5. Anonymize user record to free email & username for new registration and preserve audio sessions for royalty
+        long timestamp = System.currentTimeMillis();
+        user.setName("Өшірілген оқырман");
+        user.setEmail("deleted_" + user.getId() + "_" + timestamp + "@deleted.tanda.local");
+        user.setUsername(null);
+        user.setPhone(null);
+        user.setPasswordHash(null);
+        user.setGoogleId(null);
+        user.setAvatarUrl(null);
+        user.setBirthDate(null);
+        user.setGender(null);
+        user.setIsActive(false);
+        user.setIsBlocked(true);
+
+        userRepository.save(user);
+        log.info("User id={} successfully anonymized and deactivated.", user.getId());
+    }
+
+    public List<com.tanda.dto.admin.DeletedUserArchiveResponseDto> getDeletedUserArchives() {
+        return deletedUserArchiveRepository.findAllByOrderByDeletedAtDesc().stream()
+                .map(a -> com.tanda.dto.admin.DeletedUserArchiveResponseDto.builder()
+                        .id(a.getId())
+                        .userId(a.getUserId())
+                        .idNumber(a.getIdNumber())
+                        .originalName(a.getOriginalName())
+                        .originalEmail(a.getOriginalEmail())
+                        .originalPhone(a.getOriginalPhone())
+                        .originalUsername(a.getOriginalUsername())
+                        .originalRole(a.getOriginalRole())
+                        .authProvider(a.getAuthProvider())
+                        .registeredAt(a.getRegisteredAt())
+                        .deletedAt(a.getDeletedAt())
+                        .totalListenSeconds(a.getTotalListenSeconds())
+                        .totalListenMinutes(a.getTotalListenSeconds() != null ? a.getTotalListenSeconds() / 60 : 0L)
+                        .booksListenedCount(a.getBooksListenedCount())
+                        .ipAddress(a.getIpAddress())
+                        .deleteReason(a.getDeleteReason())
+                        .build())
+                .toList();
     }
 }

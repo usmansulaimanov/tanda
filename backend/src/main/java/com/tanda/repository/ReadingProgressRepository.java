@@ -10,4 +10,6 @@ import java.util.Optional;
 public interface ReadingProgressRepository extends JpaRepository<ReadingProgress, String> {
 
     Optional<ReadingProgress> findByUserIdAndBookId(String userId, String bookId);
+
+    void deleteByUserId(String userId);
 }
