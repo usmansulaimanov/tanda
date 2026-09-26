@@ -99,8 +99,8 @@ public class LeaderboardIntegrationTest {
                 .id(UUID.randomUUID().toString())
                 .userId(user1.getId())
                 .book(testBook)
-                .startedAt(OffsetDateTime.now().minusHours(2))
-                .lastHeartbeatAt(OffsetDateTime.now().minusHours(1))
+                .startedAt(OffsetDateTime.now().minusMinutes(20))
+                .lastHeartbeatAt(OffsetDateTime.now().minusMinutes(5))
                 .validSeconds(1800)
                 .build());
 
@@ -109,8 +109,8 @@ public class LeaderboardIntegrationTest {
                 .id(UUID.randomUUID().toString())
                 .userId(user2.getId())
                 .book(testBook)
-                .startedAt(OffsetDateTime.now().minusHours(3))
-                .lastHeartbeatAt(OffsetDateTime.now().minusHours(2))
+                .startedAt(OffsetDateTime.now().minusMinutes(40))
+                .lastHeartbeatAt(OffsetDateTime.now().minusMinutes(10))
                 .validSeconds(3600)
                 .build());
     }

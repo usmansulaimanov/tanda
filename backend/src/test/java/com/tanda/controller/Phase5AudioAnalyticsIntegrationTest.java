@@ -211,4 +211,32 @@ public class Phase5AudioAnalyticsIntegrationTest {
                         .header("Authorization", "Bearer " + reader1Token))
                 .andExpect(status().isForbidden());
     }
+
+    @Test
+    @DisplayName("Phase 5: Soft-deleted books excluded from top audio even with sessions")
+    void testDeletedBooksExcludedFromTopAudio() throws Exception {
+        Book deletedBook = bookRepository.save(Book.builder()
+                .id("bk-deleted-" + UUID.randomUUID().toString().substring(0, 6))
+                .title("Deleted Audio Book")
+                .author("Author Deleted")
+                .category("Roman")
+                .hasAudio(true)
+                .isDeleted(true)
+                .audioDuration("10:00")
+                .audioUrl("https://example.com/audio/deleted.mp3")
+                .createdAt(OffsetDateTime.now())
+                .build());
+
+        // Reader starts session on deleted book
+        mockMvc.perform(post("/api/v1/audio/sessions")
+                        .header("Authorization", "Bearer " + reader1Token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(StartAudioSessionRequestDto.builder().bookId(deletedBook.getId()).build())))
+                .andExpect(status().isCreated());
+
+        // Call top audio
+        mockMvc.perform(get("/api/v1/books/top-audio?limit=10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.book.id == '" + deletedBook.getId() + "')]").doesNotExist());
+    }
 }

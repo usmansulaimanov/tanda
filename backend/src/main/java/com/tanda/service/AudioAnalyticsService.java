@@ -149,7 +149,7 @@ public class AudioAnalyticsService {
         for (BookActivity act : rankedActivities) {
             if (candidates.size() >= TOP_DAILY_COUNT) break;
             Book b = bookRepository.findById(act.bookId).orElse(null);
-            if (b == null || Boolean.TRUE.equals(b.getIsArchived())) continue;
+            if (b == null || Boolean.TRUE.equals(b.getIsArchived()) || Boolean.TRUE.equals(b.getIsDeleted())) continue;
             if (!isAudioBook(b)) continue;
 
             candidates.add(new DailyTopCandidate(b, act.seconds, act.listens));
@@ -158,7 +158,7 @@ public class AudioAnalyticsService {
 
         // 4. Fallback (Option Ә): If < 10 books have activity, pad with other active audiobooks
         if (candidates.size() < TOP_DAILY_COUNT) {
-            List<Book> activeBooks = bookRepository.findByIsArchivedFalse();
+            List<Book> activeBooks = bookRepository.findByIsDeletedFalseAndIsArchivedFalse();
             activeBooks.sort(Comparator.comparing(Book::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder())));
 
             for (Book b : activeBooks) {
@@ -214,7 +214,7 @@ public class AudioAnalyticsService {
 
         for (DailyTopBook dtb : snapshot) {
             Book book = dtb.getBook();
-            if (book == null || Boolean.TRUE.equals(book.getIsArchived())) {
+            if (book == null || Boolean.TRUE.equals(book.getIsArchived()) || Boolean.TRUE.equals(book.getIsDeleted())) {
                 continue;
             }
             if (result.size() >= effectiveLimit) {
@@ -238,7 +238,7 @@ public class AudioAnalyticsService {
 
         // Dynamic fallback padding if snapshot returned fewer than effectiveLimit active books
         if (result.size() < effectiveLimit) {
-            List<Book> activeBooks = bookRepository.findByIsArchivedFalse();
+            List<Book> activeBooks = bookRepository.findByIsDeletedFalseAndIsArchivedFalse();
             activeBooks.sort(Comparator.comparing(Book::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder())));
 
             for (Book b : activeBooks) {
