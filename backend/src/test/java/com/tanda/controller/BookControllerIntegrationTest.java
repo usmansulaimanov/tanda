@@ -48,12 +48,6 @@ class BookControllerIntegrationTest {
     @Autowired
     private BookRepository bookRepository;
 
-    @Autowired
-    private com.tanda.repository.AudioSessionRepository audioSessionRepository;
-
-    @Autowired
-    private com.tanda.repository.UserRepository userRepository;
-
     @BeforeEach
     void setUp() {
         if (!bookRepository.existsById("test-book-1")) {
@@ -291,95 +285,6 @@ class BookControllerIntegrationTest {
         Book deleted = bookRepository.findById(deleteTargetId).orElse(null);
         assertNotNull(deleted);
         assertTrue(deleted.getIsDeleted());
-    }
-
-    @Test
-    @org.springframework.security.test.context.support.WithMockUser(roles = "ADMIN")
-    @DisplayName("DELETE /api/v1/books/{id}/permanent removes book permanently and returns 204 NO_CONTENT")
-    void testHardDeleteBookSuccess() throws Exception {
-        String permanentDeleteTargetId = "book-to-perm-delete-" + System.currentTimeMillis();
-        Book book = Book.builder()
-                .id(permanentDeleteTargetId)
-                .title("Мүлдем өшірілетін кітап")
-                .author("Автор")
-                .category("Психология")
-                .pages(80)
-                .hasAudio(false)
-                .isFree(true)
-                .isArchived(false)
-                .isDeleted(true)
-                .createdAt(OffsetDateTime.now())
-                .build();
-        bookRepository.save(book);
-
-        mockMvc.perform(delete("/api/v1/books/" + permanentDeleteTargetId + "/permanent"))
-                .andExpect(status().isNoContent());
-
-        assertFalse(bookRepository.findById(permanentDeleteTargetId).isPresent());
-    }
-
-    @Test
-    @org.springframework.security.test.context.support.WithMockUser(roles = "USER")
-    @DisplayName("DELETE /api/v1/books/{id}/permanent returns 403 FORBIDDEN for regular USER")
-    void testHardDeleteBookForbiddenForUser() throws Exception {
-        mockMvc.perform(delete("/api/v1/books/some-id/permanent"))
-                .andExpect(status().isForbidden());
-    }
-
-    @Test
-    @org.springframework.security.test.context.support.WithMockUser(roles = "ADMIN")
-    @DisplayName("DELETE /api/v1/books/{id}/permanent fails with 400 BAD_REQUEST if book has listening minutes")
-    void testHardDeleteBookWithListeningHistoryFailsWithBadRequest() throws Exception {
-        String bookId = "book-with-history-" + System.currentTimeMillis();
-        Book book = Book.builder()
-                .id(bookId)
-                .title("Тыңдалған кітап")
-                .author("Автор")
-                .category("Психология")
-                .pages(80)
-                .hasAudio(true)
-                .isFree(true)
-                .isArchived(false)
-                .isDeleted(true)
-                .createdAt(OffsetDateTime.now())
-                .build();
-        bookRepository.save(book);
-
-        String uid = "u-test-" + System.currentTimeMillis();
-        com.tanda.entity.User user = com.tanda.entity.User.builder()
-                .id(uid)
-                .idNumber("ID-" + System.currentTimeMillis())
-                .email("listener" + System.currentTimeMillis() + "@tanda.kz")
-                .name("Оқырман")
-                .role("client")
-                .authProvider("LOCAL")
-                .isActive(true)
-                .isBlocked(false)
-                .createdAt(OffsetDateTime.now())
-                .build();
-        userRepository.save(user);
-
-        com.tanda.entity.AudioSession session = com.tanda.entity.AudioSession.builder()
-                .id("session-" + System.currentTimeMillis())
-                .book(book)
-                .userId(user.getId())
-                .validSeconds(300)
-                .startedAt(OffsetDateTime.now())
-                .lastHeartbeatAt(OffsetDateTime.now())
-                .build();
-        audioSessionRepository.save(session);
-
-        try {
-            mockMvc.perform(delete("/api/v1/books/" + bookId + "/permanent"))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.message", org.hamcrest.Matchers.containsString("тыңдау тарихы бар")));
-
-            assertTrue(bookRepository.findById(bookId).isPresent());
-        } finally {
-            audioSessionRepository.delete(session);
-            bookRepository.delete(book);
-            userRepository.delete(user);
-        }
     }
 
     @Test

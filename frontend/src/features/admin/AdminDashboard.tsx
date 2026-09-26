@@ -9,7 +9,7 @@ import { hasAdminPermission } from '../../utils/permissions';
 export const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
   const { user, role, isAuthInitialized } = useAuthStore();
-  const { books, toggleArchive, deleteBook, deleteBooks, hardDeleteBook, hardDeleteBooks, restoreBook, fetchBooks } = useBookStore();
+  const { books, toggleArchive, deleteBook, deleteBooks, restoreBook, fetchBooks } = useBookStore();
   const { showToast } = useToastStore();
 
   const isAuthor = Boolean(role === 'author' || user?.isAuthor || user?.role === 'author');
@@ -25,10 +25,8 @@ export const AdminDashboard: React.FC = () => {
   const [pageSize, setPageSize] = useState<number>(10);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [bookToDelete, setBookToDelete] = useState<Book | null>(null);
-  const [bookToPermanentDelete, setBookToPermanentDelete] = useState<Book | null>(null);
   const [selectedBookIds, setSelectedBookIds] = useState<string[]>([]);
   const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false);
-  const [isBulkPermanentDeleteModalOpen, setIsBulkPermanentDeleteModalOpen] = useState(false);
 
   React.useEffect(() => {
     if (!isAuthInitialized) return;
@@ -134,40 +132,6 @@ export const AdminDashboard: React.FC = () => {
       showToast(`Таңдалған ${count} кітап өшірілгендер тізіміне ауыстырылды`, 'info');
       setSelectedBookIds([]);
       setIsBulkDeleteModalOpen(false);
-    }
-  };
-
-  const confirmPermanentDelete = async () => {
-    if (bookToPermanentDelete) {
-      try {
-        await hardDeleteBook(bookToPermanentDelete.id);
-        showToast(`«${bookToPermanentDelete.title}» кітабы базадан мүлдем өшірілді`, 'success');
-      } catch (err: unknown) {
-        const errorMsg =
-          (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-          'Кітапты өшіру кезінде қате орын алды';
-        showToast(errorMsg, 'error');
-      } finally {
-        setBookToPermanentDelete(null);
-      }
-    }
-  };
-
-  const confirmBulkPermanentDelete = async () => {
-    if (selectedBookIds.length > 0) {
-      const count = selectedBookIds.length;
-      try {
-        await hardDeleteBooks(selectedBookIds);
-        showToast(`Таңдалған ${count} кітап базадан мүлдем өшірілді`, 'success');
-      } catch (err: unknown) {
-        const errorMsg =
-          (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-          'Кітаптарды өшіру кезінде қате орын алды (кейбір кітаптарда тыңдау тарихы болуы мүмкін)';
-        showToast(errorMsg, 'error');
-      } finally {
-        setSelectedBookIds([]);
-        setIsBulkPermanentDeleteModalOpen(false);
-      }
     }
   };
 
@@ -455,62 +419,32 @@ export const AdminDashboard: React.FC = () => {
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 {filterStatus === 'deleted' ? (
-                  <>
-                    {canDeleteBooks && (
-                      <button
-                        type="button"
-                        onClick={handleBulkRestore}
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          padding: '8px 16px',
-                          background: '#ECFDF5',
-                          color: '#047857',
-                          border: '1.5px solid #A7F3D0',
-                          borderRadius: '8px',
-                          fontSize: '13px',
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                          boxShadow: '0 2px 4px rgba(0,0,0,0.04)',
-                        }}
-                      >
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                          <polyline points="1 4 1 10 7 10"></polyline>
-                          <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
-                        </svg>
-                        Қалпына келтіру: {selectedBookIds.length}
-                      </button>
-                    )}
-
-                    {canDeleteBooks && (
-                      <button
-                        type="button"
-                        onClick={() => setIsBulkPermanentDeleteModalOpen(true)}
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          padding: '8px 18px',
-                          background: '#DC2626',
-                          color: '#FFFFFF',
-                          border: 'none',
-                          borderRadius: '8px',
-                          fontSize: '13px',
-                          fontWeight: 800,
-                          cursor: 'pointer',
-                          boxShadow: '0 4px 12px rgba(220, 38, 38, 0.25)',
-                          transition: 'all 0.15s ease',
-                        }}
-                      >
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                          <polyline points="3 6 5 6 21 6"></polyline>
-                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                        </svg>
-                        Мүлдем өшіру: {selectedBookIds.length}
-                      </button>
-                    )}
-                  </>
+                  canDeleteBooks && (
+                    <button
+                      type="button"
+                      onClick={handleBulkRestore}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '8px 16px',
+                        background: '#ECFDF5',
+                        color: '#047857',
+                        border: '1.5px solid #A7F3D0',
+                        borderRadius: '8px',
+                        fontSize: '13px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.04)',
+                      }}
+                    >
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <polyline points="1 4 1 10 7 10"></polyline>
+                        <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+                      </svg>
+                      Қалпына келтіру: {selectedBookIds.length}
+                    </button>
+                  )
                 ) : (
                   <>
                     {canDeleteBooks && (
@@ -776,41 +710,22 @@ export const AdminDashboard: React.FC = () => {
                       <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
                         {book.isDeleted ? (
                           canDeleteBooks && (
-                            <>
-                              <button
-                                type="button"
-                                onClick={() => handleRestore(book)}
-                                style={{
-                                  padding: '6px 12px',
-                                  fontSize: '12px',
-                                  fontWeight: 700,
-                                  background: '#ECFDF5',
-                                  color: '#047857',
-                                  borderRadius: '6px',
-                                  border: '1px solid #A7F3D0',
-                                  cursor: 'pointer',
-                                }}
-                              >
-                                Қалпына келтіру
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setBookToPermanentDelete(book)}
-                                style={{
-                                  padding: '6px 12px',
-                                  fontSize: '12px',
-                                  fontWeight: 700,
-                                  background: '#FEF2F2',
-                                  color: '#DC2626',
-                                  borderRadius: '6px',
-                                  border: '1px solid #FECACA',
-                                  cursor: 'pointer',
-                                }}
-                                title="Кітапты базадан біржола өшіру"
-                              >
-                                Мүлдем өшіру
-                              </button>
-                            </>
+                            <button
+                              type="button"
+                              onClick={() => handleRestore(book)}
+                              style={{
+                                padding: '6px 12px',
+                                fontSize: '12px',
+                                fontWeight: 700,
+                                background: '#ECFDF5',
+                                color: '#047857',
+                                borderRadius: '6px',
+                                border: '1px solid #A7F3D0',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              Қалпына келтіру
+                            </button>
                           )
                         ) : (
                           <>
@@ -1121,109 +1036,6 @@ export const AdminDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* Permanent Delete Single Modal (Hard delete -> removes from DB) */}
-      {bookToPermanentDelete && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(13,27,42,0.7)',
-            backdropFilter: 'blur(6px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-            padding: '20px',
-          }}
-        >
-          <div
-            style={{
-              background: '#FFFFFF',
-              borderRadius: '16px',
-              maxWidth: '480px',
-              width: '100%',
-              padding: '32px',
-              boxShadow: '0 20px 60px rgba(0,0,0,0.25)',
-            }}
-          >
-            <div
-              style={{
-                width: '50px',
-                height: '50px',
-                borderRadius: '50%',
-                background: '#FEE2E2',
-                color: '#DC2626',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: '16px',
-              }}
-            >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <polyline points="3 6 5 6 21 6"></polyline>
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                <line x1="10" y1="11" x2="10" y2="17"></line>
-                <line x1="14" y1="11" x2="14" y2="17"></line>
-              </svg>
-            </div>
-            <h3 style={{ fontSize: '20px', fontWeight: 800, color: '#991B1B', marginBottom: '12px' }}>
-              Кітапты базадан мүлдем өшіру
-            </h3>
-            <p style={{ fontSize: '14px', color: 'var(--text-mid)', lineHeight: 1.6, marginBottom: '16px' }}>
-              Сіз шынымен <strong style={{ color: 'var(--text-dark)' }}>«{bookToPermanentDelete.title}»</strong> кітабын деректер қорынан <strong>МҮЛДЕМ</strong> өшіргіңіз келе ме?
-            </p>
-            <div
-              style={{
-                background: '#FFFBEB',
-                border: '1px solid #FDE68A',
-                borderRadius: '10px',
-                padding: '12px 16px',
-                fontSize: '13px',
-                color: '#92400E',
-                marginBottom: '24px',
-                lineHeight: 1.5,
-              }}
-            >
-              ⚠️ <strong>Қайтарылмайтын әрекет:</strong> Кітаптың барлық тараулары, аудио файлдары мен сөрелердегі мәліметтері толығымен жойылады. Бұл кітапты кейін қайта қалпына келтіру <strong>мүмкін емес</strong>.
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-              <button
-                type="button"
-                onClick={() => setBookToPermanentDelete(null)}
-                style={{
-                  padding: '10px 20px',
-                  borderRadius: '50px',
-                  border: '1px solid #CBD5E1',
-                  background: '#FFF',
-                  fontWeight: 600,
-                  fontSize: '14px',
-                  cursor: 'pointer',
-                }}
-              >
-                Болдырмау
-              </button>
-              <button
-                type="button"
-                onClick={confirmPermanentDelete}
-                style={{
-                  padding: '10px 24px',
-                  borderRadius: '50px',
-                  border: 'none',
-                  background: '#DC2626',
-                  color: '#FFF',
-                  fontWeight: 800,
-                  fontSize: '14px',
-                  cursor: 'pointer',
-                  boxShadow: '0 4px 14px rgba(220, 38, 38, 0.3)',
-                }}
-              >
-                Мүлдем өшіру
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Bulk Delete Confirmation Modal (Soft delete) */}
       {isBulkDeleteModalOpen && (
         <div
@@ -1305,109 +1117,6 @@ export const AdminDashboard: React.FC = () => {
                 }}
               >
                 Иә, барлығын өшіру: {selectedBookIds.length}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Bulk Permanent Delete Confirmation Modal (Hard delete) */}
-      {isBulkPermanentDeleteModalOpen && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(13,27,42,0.7)',
-            backdropFilter: 'blur(6px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-            padding: '20px',
-          }}
-        >
-          <div
-            style={{
-              background: '#FFFFFF',
-              borderRadius: '16px',
-              maxWidth: '480px',
-              width: '100%',
-              padding: '32px',
-              boxShadow: '0 20px 60px rgba(0,0,0,0.25)',
-            }}
-          >
-            <div
-              style={{
-                width: '50px',
-                height: '50px',
-                borderRadius: '50%',
-                background: '#FEE2E2',
-                color: '#DC2626',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: '16px',
-              }}
-            >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <polyline points="3 6 5 6 21 6"></polyline>
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                <line x1="10" y1="11" x2="10" y2="17"></line>
-                <line x1="14" y1="11" x2="14" y2="17"></line>
-              </svg>
-            </div>
-            <h3 style={{ fontSize: '20px', fontWeight: 800, color: '#991B1B', marginBottom: '12px' }}>
-              Кітаптарды базадан мүлдем өшіру
-            </h3>
-            <p style={{ fontSize: '14px', color: 'var(--text-mid)', lineHeight: 1.6, marginBottom: '16px' }}>
-              Сіз шынымен таңдалған <strong style={{ color: '#DC2626' }}>{selectedBookIds.length} кітапты</strong> деректер қорынан <strong>МҮЛДЕМ</strong> өшіргіңіз келе ме?
-            </p>
-            <div
-              style={{
-                background: '#FFFBEB',
-                border: '1px solid #FDE68A',
-                borderRadius: '10px',
-                padding: '12px 16px',
-                fontSize: '13px',
-                color: '#92400E',
-                marginBottom: '24px',
-                lineHeight: 1.5,
-              }}
-            >
-              ⚠️ <strong>Ескерту:</strong> Бұл кітаптардың барлық аудио файлдары, тараулары және жазбалары толығымен жойылады. Бұл әрекетті кейін қайтару мүмкін емес.
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-              <button
-                type="button"
-                onClick={() => setIsBulkPermanentDeleteModalOpen(false)}
-                style={{
-                  padding: '10px 20px',
-                  borderRadius: '50px',
-                  border: '1px solid #CBD5E1',
-                  background: '#FFF',
-                  fontWeight: 600,
-                  fontSize: '14px',
-                  cursor: 'pointer',
-                }}
-              >
-                Болдырмау
-              </button>
-              <button
-                type="button"
-                onClick={confirmBulkPermanentDelete}
-                style={{
-                  padding: '10px 24px',
-                  borderRadius: '50px',
-                  border: 'none',
-                  background: '#DC2626',
-                  color: '#FFF',
-                  fontWeight: 800,
-                  fontSize: '14px',
-                  cursor: 'pointer',
-                  boxShadow: '0 4px 14px rgba(220, 38, 38, 0.3)',
-                }}
-              >
-                Иә, мүлдем өшіру: {selectedBookIds.length}
               </button>
             </div>
           </div>
