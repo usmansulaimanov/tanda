@@ -207,15 +207,19 @@ export const ReaderEditPage: React.FC = () => {
         setIdNumber(found.idNumber || '');
         setPhone(found.phone ? formatPhoneNumber(found.phone) : '');
         setUsername(found.username ? (found.username.startsWith('@') ? found.username : `@${found.username}`) : '');
-        setRole(found.role || 'client');
-        setIsActive(found.isActive !== false);
+        const rawPm = found.personalMessage;
+        const pmText = typeof rawPm === 'string' ? rawPm : (rawPm?.text || '');
+        const pmDays = typeof rawPm === 'object' && rawPm?.days
+          ? rawPm.days
+          : ((found as any).personalMessageDays || 7);
+        const pmActive = typeof rawPm === 'object' && typeof rawPm?.isActive === 'boolean'
+          ? rawPm.isActive
+          : ((found as any).personalMessageActive !== false);
 
-        if (found.personalMessage) {
-          setMessageText(found.personalMessage.text || '');
-          setMessageDays(found.personalMessage.days || 7);
-          setIsMessageActive(found.personalMessage.isActive !== false);
-          setExistingExpiresAt(found.personalMessage.expiresAt || null);
-        }
+        setMessageText(pmText || '');
+        setMessageDays(pmDays || 7);
+        setIsMessageActive(pmActive);
+        setExistingExpiresAt(typeof rawPm === 'object' ? rawPm?.expiresAt || null : null);
       }
       setIsLoading(false);
     };
@@ -423,13 +427,11 @@ export const ReaderEditPage: React.FC = () => {
         idNumber: idNumber.trim() || undefined,
         role,
         isActive,
-        personalMessage: messageText.trim()
-          ? {
-              text: messageText.trim(),
-              days: messageDays,
-              isActive: isMessageActive,
-            }
-          : null,
+        personalMessage: {
+          text: messageText.trim(),
+          days: messageDays,
+          isActive: isMessageActive,
+        },
       });
 
       if (res.success) {

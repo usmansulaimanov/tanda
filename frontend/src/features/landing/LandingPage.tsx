@@ -73,22 +73,29 @@ export const LandingPage: React.FC = () => {
   const [search, setSearch] = useState('');
 
   const personalMsg = user?.personalMessage;
+  const messageText = typeof personalMsg === 'string' ? personalMsg : personalMsg?.text;
+  const isMsgActive = typeof personalMsg === 'string'
+    ? (user as any)?.personalMessageActive !== false
+    : personalMsg?.isActive !== false;
+
   const isMessageValid = useMemo(() => {
-    if (!personalMsg || !personalMsg.text?.trim() || personalMsg.isActive === false) {
+    if (!messageText || !messageText.trim() || !isMsgActive) {
       return false;
     }
-    if (personalMsg.expiresAt) {
+    if (typeof personalMsg === 'object' && personalMsg?.expiresAt) {
       const exp = new Date(personalMsg.expiresAt).getTime();
       if (exp < Date.now()) return false;
     }
     return true;
-  }, [personalMsg]);
+  }, [messageText, isMsgActive, personalMsg]);
 
   const remainingDays = useMemo(() => {
-    if (!personalMsg?.expiresAt) return null;
-    const diffMs = new Date(personalMsg.expiresAt).getTime() - Date.now();
-    if (diffMs <= 0) return 0;
-    return Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+    if (typeof personalMsg === 'object' && personalMsg?.expiresAt) {
+      const diffMs = new Date(personalMsg.expiresAt).getTime() - Date.now();
+      if (diffMs <= 0) return 0;
+      return Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+    }
+    return null;
   }, [personalMsg]);
 
   const scrollToCatalog = (e?: React.MouseEvent) => {
@@ -239,7 +246,7 @@ export const LandingPage: React.FC = () => {
         <div className="hero-container">
           <div className="hero-text">
             {/* Personal Message placed directly above the "Оқы. Тыңда." headline */}
-            {isAuthenticated && isMessageValid && personalMsg && (
+            {isAuthenticated && isMessageValid && messageText && (
               <div
                 className="hero-floating-message"
                 style={{
@@ -286,7 +293,7 @@ export const LandingPage: React.FC = () => {
                     )}
                   </div>
                   <p style={{ margin: 0, fontSize: '13.5px', lineHeight: 1.5, color: '#1E293B', fontWeight: 600 }}>
-                    {personalMsg.text}
+                    {messageText}
                   </p>
                 </div>
               </div>

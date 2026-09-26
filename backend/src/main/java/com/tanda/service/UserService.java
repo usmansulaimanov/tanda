@@ -264,7 +264,7 @@ public class UserService {
             user.setPasswordHash(passwordEncoder.encode(dto.getPassword().trim()));
         }
         if (dto.getPersonalMessage() != null) {
-            user.setPersonalMessage(dto.getPersonalMessage());
+            user.setPersonalMessage(dto.getPersonalMessage().isBlank() ? null : dto.getPersonalMessage().trim());
         }
         if (dto.getPersonalMessageDays() != null) {
             user.setPersonalMessageDays(dto.getPersonalMessageDays());

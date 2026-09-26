@@ -75,6 +75,40 @@ interface AuthState {
 export const DEFAULT_READER_AVATAR = '/default-reader-avatar.jpg';
 export const DEFAULT_MANAGER_AVATAR = '/default-manager-avatar.jpg';
 
+export function normalizeUser(u: any): User {
+  if (!u) return u;
+
+  let pm: any = u.personalMessage;
+  if (pm && typeof pm === 'object') {
+    pm = {
+      text: pm.text || '',
+      days: pm.days ?? 7,
+      isActive: pm.isActive !== false,
+      expiresAt: pm.expiresAt,
+      createdAt: pm.createdAt,
+    };
+  } else if (typeof pm === 'string' && pm.trim()) {
+    pm = {
+      text: pm.trim(),
+      days: u.personalMessageDays ?? 7,
+      isActive: u.personalMessageActive !== false,
+    };
+  } else if (u.personalMessageText && typeof u.personalMessageText === 'string' && u.personalMessageText.trim()) {
+    pm = {
+      text: u.personalMessageText.trim(),
+      days: u.personalMessageDays ?? 7,
+      isActive: u.personalMessageActive !== false,
+    };
+  } else {
+    pm = undefined;
+  }
+
+  return {
+    ...u,
+    personalMessage: pm,
+  };
+}
+
 function toAuthorUser(a: any): User {
   return {
     id: a.userId || a.id,
@@ -168,7 +202,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
           const params: any = { role: 'client' };
           if (search) params.search = search;
           const { data } = await api.get('/api/v1/admin/users', { params });
-          const list: User[] = Array.isArray(data) ? data : [];
+          const list: User[] = Array.isArray(data) ? data.map(normalizeUser) : [];
           set({ clients: list });
           return list;
         } catch (err) {
@@ -490,7 +524,8 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
 
       getUserById: (userId: string): User | undefined => {
         const allKnown = [...get().clients, ...get().managers, ...get().authors];
-        return allKnown.find((u) => u.id === userId || (u as any).authorId === userId);
+        const found = allKnown.find((u) => u.id === userId || (u as any).authorId === userId);
+        return found ? normalizeUser(found) : undefined;
       },
 
       createManagerByAdmin: async (data: {
@@ -696,14 +731,16 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
             birthDate: data.birthDate?.trim() || null,
             role: data.role,
             isActive: data.isActive,
-            personalMessage: data.personalMessage?.text || null,
-            personalMessageDays: data.personalMessage?.days || null,
-            personalMessageActive: data.personalMessage?.isActive,
+            personalMessage: data.personalMessage ? data.personalMessage.text : '',
+            personalMessageDays: data.personalMessage?.days ?? 7,
+            personalMessageActive: data.personalMessage ? data.personalMessage.isActive : false,
           });
 
+          const normalized = normalizeUser(updatedData);
+
           set((state) => ({
-            clients: state.clients.map((u) => (u.id === userId ? { ...u, ...updatedData } : u)),
-            user: state.user?.id === userId ? { ...state.user, ...updatedData } : state.user,
+            clients: state.clients.map((u) => (u.id === userId ? { ...u, ...normalized } : u)),
+            user: state.user?.id === userId ? { ...state.user, ...normalized } : state.user,
           }));
 
           const currentUser = get().user;
@@ -719,7 +756,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
             );
           }
 
-          return { success: true, user: updatedData };
+          return { success: true, user: normalized };
         } catch (err: any) {
           return {
             success: false,
@@ -831,16 +868,18 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
             idNumber: data.idNumber?.trim() || null,
             birthDate: data.birthDate?.trim() || null,
             role: data.role || 'client',
-            personalMessage: data.personalMessage?.text || null,
-            personalMessageDays: data.personalMessage?.days || null,
-            personalMessageActive: data.personalMessage?.isActive,
+            personalMessage: data.personalMessage ? data.personalMessage.text : '',
+            personalMessageDays: data.personalMessage?.days ?? 7,
+            personalMessageActive: data.personalMessage ? data.personalMessage.isActive : false,
           });
 
+          const normalized = normalizeUser(newUser);
+
           set((state) => ({
-            clients: [newUser, ...state.clients.filter((u) => u.id !== newUser.id)],
+            clients: [normalized, ...state.clients.filter((u) => u.id !== newUser.id)],
           }));
 
-          return { success: true, user: newUser };
+          return { success: true, user: normalized };
         } catch (err: any) {
           return {
             success: false,
@@ -1033,8 +1072,9 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
           if (data.refreshToken) {
             localStorage.setItem('tanda_refresh_token', data.refreshToken);
           }
+          const normalized = normalizeUser(data.user);
           set({
-            user: data.user,
+            user: normalized,
             role: data.user.role as 'admin' | 'client' | 'author',
             isAuthenticated: true,
             authModalOpen: false,
@@ -1075,8 +1115,9 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
           if (data.refreshToken) {
             localStorage.setItem('tanda_refresh_token', data.refreshToken);
           }
+          const normalized = normalizeUser(data.user);
           set({
-            user: data.user,
+            user: normalized,
             role: data.user.role as 'admin' | 'client' | 'author',
             isAuthenticated: true,
             authModalOpen: false,
@@ -1130,8 +1171,9 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
           if (data.refreshToken) {
             localStorage.setItem('tanda_refresh_token', data.refreshToken);
           }
+          const normalized = normalizeUser(data.user);
           set({
-            user: data.user,
+            user: normalized,
             role: data.user.role as 'admin' | 'client' | 'author',
             isAuthenticated: true,
             authModalOpen: false,
@@ -1199,8 +1241,9 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
 
         try {
           const { data } = await api.get('/api/v1/auth/me');
+          const normalized = normalizeUser(data);
           set({
-            user: data,
+            user: normalized,
             role: data.role as 'admin' | 'client' | 'author',
             isAuthenticated: true,
             isAuthInitialized: true,
@@ -1218,8 +1261,9 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
             if (newToken) {
               try {
                 const { data } = await api.get('/api/v1/auth/me');
+                const normalized = normalizeUser(data);
                 set({
-                  user: data,
+                  user: normalized,
                   role: data.role as 'admin' | 'client' | 'author',
                   isAuthenticated: true,
                   isAuthInitialized: true,
