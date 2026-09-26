@@ -62,10 +62,6 @@ export const LeaderboardPage: React.FC = () => {
         
         {/* Header Title & Description */}
         <div className="text-center space-y-2.5">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold tracking-wide uppercase shadow-sm">
-            <span>🏆</span>
-            <span>Оқырмандар жарысы және статистика</span>
-          </div>
           <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900">
             Рейтинг және Белсенділік
           </h1>
