@@ -336,7 +336,6 @@ export const AdminCertificatesPage: React.FC = () => {
         >
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span style={{ fontSize: '24px' }}>🏆</span>
               <h1 style={{ fontSize: '22px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
                 Сертификаттарды басқару
               </h1>
@@ -353,9 +352,6 @@ export const AdminCertificatesPage: React.FC = () => {
                 Барлығы: {certificates.length}
               </span>
             </div>
-            <p style={{ margin: '6px 0 0', fontSize: '13.5px', color: '#64748B' }}>
-              Оқырмандарға ресми сертификат жасау, бірегей нөмір беру, QR-код арқылы растау және PDF жүктеу
-            </p>
           </div>
 
           <button
