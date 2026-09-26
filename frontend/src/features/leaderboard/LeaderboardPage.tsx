@@ -204,7 +204,7 @@ export const LeaderboardPage: React.FC = () => {
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div className="flex items-center gap-3.5">
                     <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center justify-center font-black text-lg shadow-sm">
-                      #{leaderboardData.currentUserEntry.rank}
+                      {leaderboardData.currentUserEntry.rank > 0 ? `#${leaderboardData.currentUserEntry.rank}` : '—'}
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
@@ -216,12 +216,14 @@ export const LeaderboardPage: React.FC = () => {
                         </span>
                       </div>
                       <p className="text-xs sm:text-sm text-slate-500">
-                        {leaderboardData.currentUserEntry.rank <= 10 ? (
+                        {leaderboardData.currentUserEntry.rank > 0 && leaderboardData.currentUserEntry.rank <= 10 ? (
                           <span className="text-amber-600 font-bold">🔥 Сіз Топ-10 сертификат аймағындасыз!</span>
-                        ) : leaderboardData.currentUserEntry.rank <= 100 ? (
+                        ) : leaderboardData.currentUserEntry.rank > 0 && leaderboardData.currentUserEntry.rank <= 100 ? (
                           <span className="text-emerald-700 font-semibold">✨ Сіз Топ-100 үздік оқырмандар қатарындасыз!</span>
-                        ) : (
+                        ) : leaderboardData.currentUserEntry.periodMinutes > 0 ? (
                           <span>Көбірек тыңдап, Топ-100-ге көтеріліңіз!</span>
+                        ) : (
+                          <span>Бұл мерзімде әзірге тыңдамадыңыз. Кітап тыңдап, рейтингке қосылыңыз!</span>
                         )}
                       </p>
                     </div>

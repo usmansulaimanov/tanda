@@ -128,11 +128,21 @@ public interface AudioSessionRepository extends JpaRepository<AudioSession, Stri
     @Query("SELECT u.id, u.name, u.email, u.avatarUrl, COALESCE(SUM(s.validSeconds), 0), MAX(s.lastHeartbeatAt) " +
            "FROM AudioSession s JOIN User u ON s.userId = u.id " +
            "WHERE s.startedAt >= :start AND s.startedAt < :end " +
+           "  AND (u.role = 'client' OR u.role IS NULL OR LOWER(u.role) IN ('client', 'reader', 'user') OR (LOWER(u.role) NOT IN ('admin', 'author', 'manager'))) " +
+           "  AND (u.duty IS NULL OR u.duty = '') " +
+           "  AND (u.isBlocked = false) " +
            "GROUP BY u.id, u.name, u.email, u.avatarUrl " +
+           "HAVING COALESCE(SUM(s.validSeconds), 0) > 0 " +
            "ORDER BY COALESCE(SUM(s.validSeconds), 0) DESC, MAX(s.lastHeartbeatAt) ASC")
     List<Object[]> findTopUsersBetween(@Param("start") OffsetDateTime start, @Param("end") OffsetDateTime end, Pageable pageable);
 
-    @Query("SELECT COUNT(DISTINCT s.userId) FROM AudioSession s WHERE s.startedAt >= :start AND s.startedAt < :end")
+    @Query("SELECT COUNT(DISTINCT s.userId) " +
+           "FROM AudioSession s JOIN User u ON s.userId = u.id " +
+           "WHERE s.startedAt >= :start AND s.startedAt < :end " +
+           "  AND s.validSeconds > 0 " +
+           "  AND (u.role = 'client' OR u.role IS NULL OR LOWER(u.role) IN ('client', 'reader', 'user') OR (LOWER(u.role) NOT IN ('admin', 'author', 'manager'))) " +
+           "  AND (u.duty IS NULL OR u.duty = '') " +
+           "  AND (u.isBlocked = false)")
     long countParticipantsBetween(@Param("start") OffsetDateTime start, @Param("end") OffsetDateTime end);
 
     @Query("SELECT COALESCE(SUM(s.validSeconds), 0) FROM AudioSession s WHERE s.userId = :userId AND s.startedAt >= :start AND s.startedAt < :end")
@@ -141,7 +151,11 @@ public interface AudioSessionRepository extends JpaRepository<AudioSession, Stri
     @Query(value = "SELECT COUNT(*) FROM (" +
                    "  SELECT s.user_id " +
                    "  FROM audio_sessions s " +
+                   "  JOIN users u ON s.user_id = u.id " +
                    "  WHERE s.started_at >= :start AND s.started_at < :end " +
+                   "    AND (u.role = 'client' OR u.role IS NULL OR LOWER(u.role) IN ('client', 'reader', 'user') OR (LOWER(u.role) NOT IN ('admin', 'author', 'manager'))) " +
+                   "    AND (u.duty IS NULL OR u.duty = '') " +
+                   "    AND (u.is_blocked = false) " +
                    "  GROUP BY s.user_id " +
                    "  HAVING COALESCE(SUM(s.valid_seconds), 0) > :seconds" +
                    ") sub", nativeQuery = true)

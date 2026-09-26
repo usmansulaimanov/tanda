@@ -181,13 +181,16 @@ public class LeaderboardService {
         }
         User user = userOpt.get();
 
+        // Admins, authors and staff members with duty do not participate in the leaderboard competition
+        if (isStaffOrAuthor(user)) {
+            return null;
+        }
+
         long userPeriodSeconds = audioSessionRepository.getUserSecondsBetween(userId, startDateTime, endDateTime);
         long allTimeSeconds = audioSessionRepository.getUserTotalSecondsAllTime(userId);
 
-        int rank;
-        if (userPeriodSeconds <= 0) {
-            rank = (int) audioSessionRepository.countParticipantsBetween(startDateTime, endDateTime) + 1;
-        } else {
+        int rank = 0;
+        if (userPeriodSeconds > 0) {
             long higherCount = audioSessionRepository.countUsersWithMoreSecondsBetween(startDateTime, endDateTime, userPeriodSeconds);
             rank = (int) higherCount + 1;
         }
@@ -203,6 +206,15 @@ public class LeaderboardService {
                 .allTimeMinutes(allTimeSeconds / 60)
                 .email(isAdmin ? user.getEmail() : null)
                 .build();
+    }
+
+    private boolean isStaffOrAuthor(User user) {
+        if (user == null) return false;
+        String role = user.getRole() != null ? user.getRole().toLowerCase().trim() : "";
+        if ("admin".equals(role) || "author".equals(role) || "manager".equals(role)) {
+            return true;
+        }
+        return user.getDuty() != null && !user.getDuty().isBlank();
     }
 
     public PersonalStatsResponseDto getPersonalStats(String userId) {
