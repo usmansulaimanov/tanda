@@ -286,7 +286,7 @@ export const Footer: React.FC = () => {
           }}
         >
           <div style={{ color: '#64748B' }}>
-            &copy; {new Date().getFullYear()} <strong style={{ color: '#94A3B8' }}>tanda.kz</strong>. Барлық құқықтар қорғалған.
+            &copy; {new Date().getFullYear()} <strong style={{ color: '#94A3B8' }}>tandamen.kz</strong>. Барлық құқықтар қорғалған.
           </div>
           <div style={{ color: '#64748B', fontSize: '12px' }}>
             Қазақстанның кітап сүйер қауымына арналған

@@ -352,7 +352,7 @@ export const CertificateVerifyPage: React.FC = () => {
               </div>
 
               <div style={{ textAlign: 'right', fontSize: '11.5px', color: '#94A3B8' }}>
-                <div>tanda.kz</div>
+                <div>tandamen.kz</div>
                 <div>Қазақша аудио және электронды кітаптар</div>
               </div>
             </div>
