@@ -183,25 +183,17 @@ export const CertificateVerifyPage: React.FC = () => {
               }}
             />
 
-            {/* Header: Organization & Number */}
+            {/* Header: Certificate Number */}
             <div
               style={{
                 display: 'flex',
-                justifyContent: 'space-between',
                 alignItems: 'center',
-                flexWrap: 'wrap',
-                gap: '12px',
+                justifyContent: 'flex-start',
                 marginBottom: '24px',
                 paddingBottom: '16px',
                 borderBottom: '1px solid #F1F5F9',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '13px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  {cert.issuerName || 'Tanda Platform'}
-                </span>
-              </div>
-
               <div
                 style={{
                   color: '#0F172A',
