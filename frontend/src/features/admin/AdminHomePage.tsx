@@ -773,6 +773,50 @@ export const AdminHomePage: React.FC = () => {
             </Link>
           )}
 
+          <Link
+            to="/admin/certificates"
+            style={{
+              textDecoration: 'none',
+              background: '#FFFFFF',
+              borderRadius: '16px',
+              padding: '20px',
+              border: '1px solid #E2E8F0',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div
+                style={{
+                  width: '42px',
+                  height: '42px',
+                  borderRadius: '12px',
+                  background: '#FEF3C7',
+                  color: '#D97706',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="8" r="7"></circle>
+                  <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
+                </svg>
+              </div>
+            </div>
+            <div>
+              <div style={{ fontSize: '16px', fontWeight: 700, color: '#1E293B', marginBottom: '4px' }}>
+                Сертификаттар
+              </div>
+              <div style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.4 }}>
+                Оқырмандарға ресми сертификат жасау, QR-код беру және PDF жүктеу
+              </div>
+            </div>
+          </Link>
+
           {canManageUsernames && (
             <Link
               to="/admin/usernames"

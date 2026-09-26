@@ -71,6 +71,8 @@ const UserBookStatsPage = lazyWithRetry(() => import('../features/books/UserBook
 const AdminReaderStatsPage = lazyWithRetry(() => import('../features/admin/AdminReaderStatsPage').then((m) => ({ default: m.AdminReaderStatsPage })));
 const LeaderboardPage = lazyWithRetry(() => import('../features/leaderboard/LeaderboardPage').then((m) => ({ default: m.LeaderboardPage })));
 const AdminLeaderboardPage = lazyWithRetry(() => import('../features/admin/AdminLeaderboardPage').then((m) => ({ default: m.AdminLeaderboardPage })));
+const AdminCertificatesPage = lazyWithRetry(() => import('../features/admin/AdminCertificatesPage').then((m) => ({ default: m.AdminCertificatesPage })));
+const CertificateVerifyPage = lazyWithRetry(() => import('../features/certificates/CertificateVerifyPage').then((m) => ({ default: m.CertificateVerifyPage })));
 
 
 const PageLoader = () => (
@@ -316,6 +318,14 @@ export const router = createBrowserRouter([
         element: <Navigate to="/rating" replace />,
       },
       {
+        path: 'verify/cert/:certNumber',
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <CertificateVerifyPage />
+          </Suspense>
+        ),
+      },
+      {
         path: 'promocode',
         element: (
           <ReaderOnlyRouteGuard>
@@ -435,6 +445,16 @@ export const router = createBrowserRouter([
           <AdminRouteGuard>
             <Suspense fallback={<PageLoader />}>
               <AdminManagersPage />
+            </Suspense>
+          </AdminRouteGuard>
+        ),
+      },
+      {
+        path: 'admin/certificates',
+        element: (
+          <AdminRouteGuard>
+            <Suspense fallback={<PageLoader />}>
+              <AdminCertificatesPage />
             </Suspense>
           </AdminRouteGuard>
         ),
