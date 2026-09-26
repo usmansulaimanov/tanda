@@ -412,7 +412,7 @@ export const AdminCertificatesPage: React.FC = () => {
             </svg>
             <input
               type="text"
-              placeholder="Сертификат нөмірі (TND-...), аты-жөні немесе атауы..."
+              placeholder="Сертификаттарды іздеу..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               style={{
