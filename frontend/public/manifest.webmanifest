@@ -1,0 +1,24 @@
+{
+  "name": "Tanda - Қазақша кітаптар әлемі",
+  "short_name": "Tanda",
+  "description": "Қазақ тіліндегі электронды кітаптар мен аудиокітаптар платформасы",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F8FAFC",
+  "theme_color": "#0284C7",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tanda.dto.content.MessageRequestDto;
 import com.tanda.dto.content.MessageResponseDto;
+import com.tanda.dto.push.PushPayloadDto;
 import com.tanda.entity.Message;
 import com.tanda.exception.ResourceNotFoundException;
 import com.tanda.repository.MessageRepository;
@@ -17,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -28,6 +30,7 @@ public class MessageService {
 
     private final MessageRepository messageRepository;
     private final ObjectMapper objectMapper;
+    private final PushNotificationService pushNotificationService;
 
     @Transactional(readOnly = true)
     public List<MessageResponseDto> getMessagesForUser(String userId) {
@@ -148,6 +151,29 @@ public class MessageService {
 
         Message saved = messageRepository.save(message);
         log.info("Sent message: id='{}', title='{}', targetType='{}'", saved.getId(), saved.getTitle(), saved.getTargetType());
+
+        // Trigger Push Notifications
+        try {
+            PushPayloadDto payload = PushPayloadDto.builder()
+                    .title(saved.getTitle())
+                    .body(saved.getContent().length() > 150 ? saved.getContent().substring(0, 150) + "..." : saved.getContent())
+                    .icon("/favicon-192x192.png")
+                    .badge("/favicon-32x32.png")
+                    .tag("message-" + saved.getId())
+                    .data(Map.of("url", "/messages", "messageId", saved.getId()))
+                    .build();
+
+            if ("single".equalsIgnoreCase(saved.getTargetType()) && saved.getRecipientId() != null) {
+                pushNotificationService.sendToUserAsync(saved.getRecipientId(), payload);
+            } else if ("multiple".equalsIgnoreCase(saved.getTargetType()) && dto.getTargetUserIds() != null) {
+                pushNotificationService.sendToUsersAsync(dto.getTargetUserIds(), payload);
+            } else if ("all".equalsIgnoreCase(saved.getTargetType())) {
+                pushNotificationService.sendToAllAsync(payload);
+            }
+        } catch (Exception e) {
+            log.warn("Failed to trigger push notification for message '{}': {}", saved.getId(), e.getMessage());
+        }
+
         return toDto(saved, senderId);
     }
 
@@ -177,6 +203,16 @@ public class MessageService {
                     .deletedByUserIds("")
                     .build();
             messageRepository.save(welcome);
+
+            PushPayloadDto payload = PushPayloadDto.builder()
+                    .title(welcome.getTitle())
+                    .body(welcome.getContent())
+                    .icon("/favicon-192x192.png")
+                    .badge("/favicon-32x32.png")
+                    .tag("welcome-" + recipientId)
+                    .data(Map.of("url", "/messages", "messageId", welcome.getId()))
+                    .build();
+            pushNotificationService.sendToUserAsync(recipientId, payload);
         } catch (Exception e) {
             log.warn("Could not create welcome message for user '{}': {}", recipientId, e.getMessage());
         }
@@ -202,6 +238,16 @@ public class MessageService {
                     .deletedByUserIds("")
                     .build();
             messageRepository.save(bday);
+
+            PushPayloadDto payload = PushPayloadDto.builder()
+                    .title(bday.getTitle())
+                    .body(bday.getContent())
+                    .icon("/favicon-192x192.png")
+                    .badge("/favicon-32x32.png")
+                    .tag("bday-" + recipientId)
+                    .data(Map.of("url", "/messages", "messageId", bday.getId()))
+                    .build();
+            pushNotificationService.sendToUserAsync(recipientId, payload);
         } catch (Exception e) {
             log.warn("Could not create birthday message for user '{}': {}", recipientId, e.getMessage());
         }
@@ -271,5 +317,19 @@ public class MessageService {
                 .build();
         messageRepository.save(message);
         log.info("Created quote broadcast message: id='{}', quoteId='{}'", message.getId(), quote.getId());
+
+        try {
+            PushPayloadDto payload = PushPayloadDto.builder()
+                    .title("📖 " + title)
+                    .body(quote.getText())
+                    .icon("/favicon-192x192.png")
+                    .badge("/favicon-32x32.png")
+                    .tag("quote-" + (quote.getId() != null ? quote.getId() : "daily"))
+                    .data(Map.of("url", "/messages", "messageId", message.getId(), "bookId", quote.getBookId() != null ? quote.getBookId() : ""))
+                    .build();
+            pushNotificationService.sendToAllAsync(payload);
+        } catch (Exception e) {
+            log.warn("Failed to trigger push notification for quote broadcast: {}", e.getMessage());
+        }
     }
 }

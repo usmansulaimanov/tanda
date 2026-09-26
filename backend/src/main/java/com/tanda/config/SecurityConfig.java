@@ -68,6 +68,9 @@ public class SecurityConfig {
                                  "/api/v1/auth/login", "/api/v1/auth/register", "/api/v1/auth/logout", "/api/v1/auth/google", "/api/v1/auth/refresh", "/api/v1/auth/send-verification-code").permitAll()
                 .requestMatchers("/uploads/covers/**", "/uploads/books/**").permitAll()
                 .requestMatchers("/api/v1/media/telegram/**", "/api/media/telegram/**").permitAll()
+                .requestMatchers("/api/push/public-key", "/api/v1/push/public-key",
+                                 "/api/push/subscribe", "/api/v1/push/subscribe",
+                                 "/api/push/unsubscribe", "/api/v1/push/unsubscribe").permitAll()
                 .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                 .requestMatchers("/api-docs", "/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
                 

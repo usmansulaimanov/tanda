@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tanda.dto.content.NewsRequestDto;
 import com.tanda.dto.content.NewsResponseDto;
+import com.tanda.dto.push.PushPayloadDto;
 import com.tanda.entity.News;
 import com.tanda.exception.ResourceNotFoundException;
 import com.tanda.repository.NewsRepository;
@@ -15,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -25,6 +27,7 @@ public class NewsService {
 
     private final NewsRepository newsRepository;
     private final ObjectMapper objectMapper;
+    private final PushNotificationService pushNotificationService;
 
     @Transactional(readOnly = true)
     public List<NewsResponseDto> getPublishedNews() {
@@ -97,6 +100,23 @@ public class NewsService {
 
         News saved = newsRepository.save(news);
         log.info("Created news article: id='{}', title='{}'", saved.getId(), saved.getTitle());
+
+        if (Boolean.TRUE.equals(saved.getIsPublished())) {
+            try {
+                PushPayloadDto payload = PushPayloadDto.builder()
+                        .title("📰 " + saved.getTitle())
+                        .body(saved.getSummary())
+                        .icon(saved.getImageUrl() != null && !saved.getImageUrl().isBlank() ? saved.getImageUrl() : "/favicon-192x192.png")
+                        .badge("/favicon-32x32.png")
+                        .tag("news-" + saved.getId())
+                        .data(Map.of("url", "/news/" + saved.getId(), "newsId", saved.getId()))
+                        .build();
+                pushNotificationService.sendToAllAsync(payload);
+            } catch (Exception e) {
+                log.warn("Failed to trigger push notification for news '{}': {}", saved.getId(), e.getMessage());
+            }
+        }
+
         return toDto(saved);
     }
 

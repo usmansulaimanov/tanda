@@ -5,6 +5,7 @@ import { useMessageStore, AdminMessage } from '../../store/useMessageStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useBookStore } from '../../store/useBookStore';
 import { useToastStore } from '../../store/useToastStore';
+import { PushNotificationPrompt } from './components/PushNotificationPrompt';
 
 export const ReaderMessagesPage: React.FC = () => {
   const navigate = useNavigate();
@@ -86,6 +87,9 @@ export const ReaderMessagesPage: React.FC = () => {
           </p>
         </div>
       </div>
+
+      {/* Push Notification Banner */}
+      <PushNotificationPrompt />
 
       {/* Toolbar (Search & Mark All Read) */}
       <div
