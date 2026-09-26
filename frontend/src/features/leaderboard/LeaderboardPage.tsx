@@ -80,25 +80,23 @@ export const LeaderboardPage: React.FC = () => {
             <button
               type="button"
               onClick={() => setActiveMainTab('leaderboard')}
-              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-200 ${
+              className={`flex items-center px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-200 ${
                 activeMainTab === 'leaderboard'
                   ? 'bg-white text-emerald-700 shadow-sm'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <span>🏆</span>
               <span>Топ 100 оқырман</span>
             </button>
             <button
               type="button"
               onClick={() => setActiveMainTab('personal')}
-              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-200 ${
+              className={`flex items-center px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-200 ${
                 activeMainTab === 'personal'
                   ? 'bg-white text-emerald-700 shadow-sm'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <span>📊</span>
               <span>Менің статистикам</span>
             </button>
           </div>
