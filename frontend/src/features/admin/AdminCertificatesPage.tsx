@@ -785,19 +785,21 @@ export const AdminCertificatesPage: React.FC = () => {
                       type="button"
                       onClick={handleAutoGenerateNumber}
                       style={{
-                        background: 'none',
-                        border: 'none',
-                        color: 'var(--blue)',
+                        background: '#EFF6FF',
+                        border: '1px solid #DBEAFE',
+                        borderRadius: '8px',
+                        padding: '4px 10px',
+                        color: 'var(--blue, #005494)',
                         fontSize: '12px',
                         fontWeight: 800,
                         cursor: 'pointer',
-                        padding: 0,
                         display: 'inline-flex',
                         alignItems: 'center',
-                        gap: '5px',
+                        gap: '6px',
+                        transition: 'all 0.15s ease',
                       }}
                     >
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
                       </svg>
                       Автоматты нөмір қою
