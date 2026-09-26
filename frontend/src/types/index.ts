@@ -22,6 +22,7 @@ export interface Book {
   description: string;
   isFree: boolean;
   isArchived: boolean;
+  isDeleted?: boolean;
   hasEbook?: boolean;
   ebookUrl?: string;
   ebookFormat?: string;

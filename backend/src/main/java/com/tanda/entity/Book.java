@@ -70,6 +70,10 @@ public class Book {
     @Builder.Default
     private Boolean isArchived = false;
 
+    @Column(name = "is_deleted", nullable = false)
+    @Builder.Default
+    private Boolean isDeleted = false;
+
     @Column(name = "has_ebook", nullable = false)
     @Builder.Default
     private Boolean hasEbook = false;
@@ -107,6 +111,9 @@ public class Book {
         }
         if (isArchived == null) {
             isArchived = false;
+        }
+        if (isDeleted == null) {
+            isDeleted = false;
         }
     }
 

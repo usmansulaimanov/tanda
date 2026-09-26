@@ -38,7 +38,7 @@ public class BookService {
     }
 
     @Transactional(readOnly = true)
-    public Page<BookResponseDto> getBooks(String category, String search, boolean includeArchived, boolean isAdmin, Pageable pageable) {
+    public Page<BookResponseDto> getBooks(String category, String search, boolean includeArchived, boolean includeDeleted, boolean isAdmin, Pageable pageable) {
         String cat = (category != null && !category.trim().isEmpty() && !category.equalsIgnoreCase("Барлығы"))
                 ? category.trim()
                 : null;
@@ -47,17 +47,23 @@ public class BookService {
                 : null;
 
         boolean effectiveIncludeArchived = includeArchived && isAdmin;
-        Page<Book> books = bookRepository.searchBooks(cat, q, effectiveIncludeArchived, pageable);
+        boolean effectiveIncludeDeleted = includeDeleted && isAdmin;
+        Page<Book> books = bookRepository.searchBooks(cat, q, effectiveIncludeArchived, effectiveIncludeDeleted, pageable);
         return books.map(this::toResponseDto);
     }
 
     @Transactional(readOnly = true)
-    public Page<BookResponseDto> getBooks(String category, String search, boolean includeArchived, Pageable pageable) {
-        return getBooks(category, search, includeArchived, isSecurityContextAdmin(), pageable);
+    public Page<BookResponseDto> getBooks(String category, String search, boolean includeArchived, boolean isAdmin, Pageable pageable) {
+        return getBooks(category, search, includeArchived, false, isAdmin, pageable);
     }
 
     @Transactional(readOnly = true)
-    public List<BookResponseDto> getBooks(String category, String search, boolean includeArchived, boolean isAdmin) {
+    public Page<BookResponseDto> getBooks(String category, String search, boolean includeArchived, Pageable pageable) {
+        return getBooks(category, search, includeArchived, false, isSecurityContextAdmin(), pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public List<BookResponseDto> getBooks(String category, String search, boolean includeArchived, boolean includeDeleted, boolean isAdmin) {
         String cat = (category != null && !category.trim().isEmpty() && !category.equalsIgnoreCase("Барлығы"))
                 ? category.trim()
                 : null;
@@ -66,15 +72,21 @@ public class BookService {
                 : null;
 
         boolean effectiveIncludeArchived = includeArchived && isAdmin;
-        List<Book> books = bookRepository.searchBooks(cat, q, effectiveIncludeArchived);
+        boolean effectiveIncludeDeleted = includeDeleted && isAdmin;
+        List<Book> books = bookRepository.searchBooks(cat, q, effectiveIncludeArchived, effectiveIncludeDeleted);
         return books.stream()
                 .map(this::toResponseDto)
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
+    public List<BookResponseDto> getBooks(String category, String search, boolean includeArchived, boolean isAdmin) {
+        return getBooks(category, search, includeArchived, false, isAdmin);
+    }
+
+    @Transactional(readOnly = true)
     public List<BookResponseDto> getBooks(String category, String search, boolean includeArchived) {
-        return getBooks(category, search, includeArchived, isSecurityContextAdmin());
+        return getBooks(category, search, includeArchived, false, isSecurityContextAdmin());
     }
 
     @Transactional(readOnly = true)
@@ -82,7 +94,7 @@ public class BookService {
         Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Book", "id", id));
 
-        if (Boolean.TRUE.equals(book.getIsArchived()) && !isAdmin) {
+        if ((Boolean.TRUE.equals(book.getIsArchived()) || Boolean.TRUE.equals(book.getIsDeleted())) && !isAdmin) {
             throw new ResourceNotFoundException("Book", "id", id);
         }
 
@@ -258,12 +270,23 @@ public class BookService {
     }
 
     @Transactional
-    public void deleteBook(String id) {
+    public BookResponseDto deleteBook(String id) {
         Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Book", "id", id));
-        book.setIsArchived(true);
-        bookRepository.save(book);
-        log.info("Book soft-deleted (archived): id={}, title='{}'", id, book.getTitle());
+        book.setIsDeleted(true);
+        Book saved = bookRepository.save(book);
+        log.info("Book soft-deleted (moved to trash): id={}, title='{}'", id, book.getTitle());
+        return toResponseDto(saved);
+    }
+
+    @Transactional
+    public BookResponseDto restoreBook(String id) {
+        Book book = bookRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Book", "id", id));
+        book.setIsDeleted(false);
+        Book saved = bookRepository.save(book);
+        log.info("Book restored from trash: id={}, title='{}'", id, book.getTitle());
+        return toResponseDto(saved);
     }
 
     /**
@@ -319,6 +342,7 @@ public class BookService {
                 .coverImage(book.getCoverImage())
                 .isFree(book.getIsFree())
                 .isArchived(book.getIsArchived())
+                .isDeleted(book.getIsDeleted())
                 .hasEbook(book.getHasEbook())
                 .ebookUrl(book.getEbookUrl())
                 .ebookFormat(book.getEbookFormat())
@@ -354,6 +378,7 @@ public class BookService {
                 .coverImage(book.getCoverImage())
                 .isFree(book.getIsFree())
                 .isArchived(book.getIsArchived())
+                .isDeleted(book.getIsDeleted())
                 .hasEbook(book.getHasEbook())
                 .ebookUrl(book.getEbookUrl())
                 .ebookFormat(book.getEbookFormat())

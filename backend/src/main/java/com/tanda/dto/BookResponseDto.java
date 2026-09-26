@@ -29,6 +29,7 @@ public class BookResponseDto {
     private String coverImage;
     private Boolean isFree;
     private Boolean isArchived;
+    private Boolean isDeleted;
     private Boolean hasEbook;
     private String ebookUrl;
     private String ebookFormat;

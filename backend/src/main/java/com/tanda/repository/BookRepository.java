@@ -17,7 +17,10 @@ public interface BookRepository extends JpaRepository<Book, String> {
 
     List<Book> findByIsArchivedFalse();
 
+    List<Book> findByIsDeletedFalseAndIsArchivedFalse();
+
     @Query("SELECT b FROM Book b WHERE " +
+           "(:includeDeleted = true OR b.isDeleted = false) AND " +
            "(:includeArchived = true OR b.isArchived = false) AND " +
            "(:category IS NULL OR :category = '' OR :category = 'Барлығы' OR LOWER(b.category) = LOWER(:category)) AND " +
            "(:search IS NULL OR :search = '' OR " +
@@ -26,9 +29,15 @@ public interface BookRepository extends JpaRepository<Book, String> {
            "ORDER BY b.createdAt DESC")
     List<Book> searchBooks(@Param("category") String category,
                            @Param("search") String search,
-                           @Param("includeArchived") boolean includeArchived);
+                           @Param("includeArchived") boolean includeArchived,
+                           @Param("includeDeleted") boolean includeDeleted);
+
+    default List<Book> searchBooks(String category, String search, boolean includeArchived) {
+        return searchBooks(category, search, includeArchived, false);
+    }
 
     @Query("SELECT b FROM Book b WHERE " +
+           "(:includeDeleted = true OR b.isDeleted = false) AND " +
            "(:includeArchived = true OR b.isArchived = false) AND " +
            "(:category IS NULL OR :category = '' OR :category = 'Барлығы' OR LOWER(b.category) = LOWER(:category)) AND " +
            "(:search IS NULL OR :search = '' OR " +
@@ -37,5 +46,10 @@ public interface BookRepository extends JpaRepository<Book, String> {
     Page<Book> searchBooks(@Param("category") String category,
                            @Param("search") String search,
                            @Param("includeArchived") boolean includeArchived,
+                           @Param("includeDeleted") boolean includeDeleted,
                            Pageable pageable);
+
+    default Page<Book> searchBooks(String category, String search, boolean includeArchived, Pageable pageable) {
+        return searchBooks(category, search, includeArchived, false, pageable);
+    }
 }

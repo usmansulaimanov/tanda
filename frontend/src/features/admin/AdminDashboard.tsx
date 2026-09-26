@@ -9,7 +9,7 @@ import { hasAdminPermission } from '../../utils/permissions';
 export const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
   const { user, role, isAuthInitialized } = useAuthStore();
-  const { books, toggleArchive, deleteBook, deleteBooks, fetchBooks } = useBookStore();
+  const { books, toggleArchive, deleteBook, deleteBooks, restoreBook, fetchBooks } = useBookStore();
   const { showToast } = useToastStore();
 
   const isAuthor = Boolean(role === 'author' || user?.isAuthor || user?.role === 'author');
@@ -20,7 +20,7 @@ export const AdminDashboard: React.FC = () => {
   const canEditBooks = isAdminOrStaff && hasAdminPermission(user, 'books_edit');
   const canDeleteBooks = isAdminOrStaff && hasAdminPermission(user, 'books_delete');
 
-  const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'archived'>('all');
+  const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'archived' | 'deleted'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [pageSize, setPageSize] = useState<number>(10);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -38,7 +38,7 @@ export const AdminDashboard: React.FC = () => {
 
   React.useEffect(() => {
     if (isAuthInitialized && user && isAllowed) {
-      fetchBooks({ includeArchived: true });
+      fetchBooks({ includeArchived: true, includeDeleted: true });
     }
   }, [isAuthInitialized, user, isAllowed, fetchBooks]);
 
@@ -57,13 +57,16 @@ export const AdminDashboard: React.FC = () => {
     return books;
   }, [books, isAuthor, isAdminOrStaff, assignedIds, authorName]);
 
-  const activeCount = useMemo(() => baseBooks.filter((b) => !b.isArchived).length, [baseBooks]);
-  const archivedCount = useMemo(() => baseBooks.filter((b) => b.isArchived).length, [baseBooks]);
+  const activeCount = useMemo(() => baseBooks.filter((b) => !b.isDeleted && !b.isArchived).length, [baseBooks]);
+  const archivedCount = useMemo(() => baseBooks.filter((b) => !b.isDeleted && b.isArchived).length, [baseBooks]);
+  const deletedCount = useMemo(() => baseBooks.filter((b) => b.isDeleted).length, [baseBooks]);
 
   const filteredBooks = useMemo(() => {
     return baseBooks.filter((b) => {
-      if (filterStatus === 'active' && b.isArchived) return false;
-      if (filterStatus === 'archived' && !b.isArchived) return false;
+      if (filterStatus === 'all' && b.isDeleted) return false;
+      if (filterStatus === 'active' && (b.isArchived || b.isDeleted)) return false;
+      if (filterStatus === 'archived' && (!b.isArchived || b.isDeleted)) return false;
+      if (filterStatus === 'deleted' && !b.isDeleted) return false;
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         const matchTitle = b.title.toLowerCase().includes(q);
@@ -141,10 +144,15 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
+  const handleRestore = (book: Book) => {
+    restoreBook(book.id);
+    showToast(`"${book.title}" кітабы қайта қалпына келтірілді`, 'success');
+  };
+
   const confirmDelete = () => {
     if (bookToDelete) {
       deleteBook(bookToDelete.id);
-      showToast(`"${bookToDelete.title}" кітабы біржола өшірілді`, 'info');
+      showToast(`"${bookToDelete.title}" кітабы өшірілгендер тізіміне ауыстырылды`, 'info');
       setBookToDelete(null);
     }
   };
@@ -177,10 +185,11 @@ export const AdminDashboard: React.FC = () => {
                 {isAuthor && !isAdminOrStaff ? 'Кітаптарым' : 'Кітаптарды басқару панелі'}
               </h2>
               <p style={{ fontSize: '13px', color: 'var(--text-mid)', marginTop: '4px' }}>
-                Барлығы: <span style={{ fontWeight: 700, color: 'var(--blue)' }}>{baseBooks.length}</span> кітап
+                Барлығы: <span style={{ fontWeight: 700, color: 'var(--blue)' }}>{activeCount + archivedCount}</span> кітап
                 {isAdminOrStaff && (
                   <>
                     {' '}| Архивте: <span style={{ fontWeight: 700, color: '#64748B' }}>{archivedCount}</span> кітап
+                    {' '}| Өшірілгендер: <span style={{ fontWeight: 700, color: '#DC2626' }}>{deletedCount}</span> кітап
                   </>
                 )}
               </p>
@@ -220,7 +229,7 @@ export const AdminDashboard: React.FC = () => {
                 </svg>
               </div>
 
-              <div style={{ display: 'flex', gap: '8px' }}>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 <button
                   type="button"
                   onClick={() => setFilterStatus('all')}
@@ -239,7 +248,7 @@ export const AdminDashboard: React.FC = () => {
                     transition: 'all 0.15s',
                   }}
                 >
-                  Барлығы
+                  Барлығы: {activeCount + archivedCount}
                 </button>
 
                 <button
@@ -285,6 +294,30 @@ export const AdminDashboard: React.FC = () => {
                   >
                     <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#94A3B8' }}></span>
                     Архивте: {archivedCount}
+                  </button>
+                )}
+
+                {isAdminOrStaff && (
+                  <button
+                    type="button"
+                    onClick={() => setFilterStatus('deleted')}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      color: filterStatus === 'deleted' ? '#B91C1C' : '#991B1B',
+                      background: filterStatus === 'deleted' ? '#FEE2E2' : '#FEF2F2',
+                      padding: '6px 14px',
+                      borderRadius: '6px',
+                      border: `1.5px solid ${filterStatus === 'deleted' ? '#F87171' : '#FECACA'}`,
+                      cursor: 'pointer',
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#EF4444' }}></span>
+                    Өшірілгендер: {deletedCount}
                   </button>
                 )}
               </div>
@@ -572,7 +605,25 @@ export const AdminDashboard: React.FC = () => {
 
                     {/* Visibility / Status */}
                     <td>
-                      {book.isArchived ? (
+                      {book.isDeleted ? (
+                        <span
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            color: '#B91C1C',
+                            background: '#FEF2F2',
+                            padding: '4px 10px',
+                            borderRadius: '50px',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            border: '1px solid #FECACA',
+                          }}
+                        >
+                          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#EF4444' }}></span>
+                          Өшірілген
+                        </span>
+                      ) : book.isArchived ? (
                         <span
                           style={{
                             display: 'inline-flex',
@@ -612,64 +663,87 @@ export const AdminDashboard: React.FC = () => {
                     {/* Action buttons */}
                     <td style={{ textAlign: 'right' }}>
                       <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                        {/* Edit */}
-                        {canEditBooks && (
-                          <Link
-                            to={`/admin/books/${book.id}/edit`}
-                            style={{
-                              padding: '6px 12px',
-                              fontSize: '12px',
-                              fontWeight: 700,
-                              background: '#F1F5F9',
-                              color: 'var(--text-dark)',
-                              borderRadius: '6px',
-                              border: '1px solid #CBD5E1',
-                              textDecoration: 'none',
-                              cursor: 'pointer',
-                            }}
-                          >
-                            Өңдеу
-                          </Link>
-                        )}
+                        {book.isDeleted ? (
+                          canDeleteBooks && (
+                            <button
+                              type="button"
+                              onClick={() => handleRestore(book)}
+                              style={{
+                                padding: '6px 12px',
+                                fontSize: '12px',
+                                fontWeight: 700,
+                                background: '#ECFDF5',
+                                color: '#047857',
+                                borderRadius: '6px',
+                                border: '1px solid #A7F3D0',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              Қалпына келтіру
+                            </button>
+                          )
+                        ) : (
+                          <>
+                            {/* Edit */}
+                            {canEditBooks && (
+                              <Link
+                                to={`/admin/books/${book.id}/edit`}
+                                style={{
+                                  padding: '6px 12px',
+                                  fontSize: '12px',
+                                  fontWeight: 700,
+                                  background: '#F1F5F9',
+                                  color: 'var(--text-dark)',
+                                  borderRadius: '6px',
+                                  border: '1px solid #CBD5E1',
+                                  textDecoration: 'none',
+                                  cursor: 'pointer',
+                                }}
+                              >
+                                Өңдеу
+                              </Link>
+                            )}
 
-                        {/* Archive / Unarchive */}
-                        {canDeleteBooks && (
-                          <button
-                            type="button"
-                            onClick={() => handleToggleArchive(book)}
-                            style={{
-                              padding: '6px 12px',
-                              fontSize: '12px',
-                              fontWeight: 700,
-                              background: '#F1F5F9',
-                              color: 'var(--text-dark)',
-                              borderRadius: '6px',
-                              border: '1px solid #CBD5E1',
-                              cursor: 'pointer',
-                            }}
-                          >
-                            {book.isArchived ? 'Шығару' : 'Архивтеу'}
-                          </button>
-                        )}
+                            {/* Archive / Unarchive */}
+                            {canDeleteBooks && (
+                              <button
+                                type="button"
+                                onClick={() => handleToggleArchive(book)}
+                                style={{
+                                  padding: '6px 12px',
+                                  fontSize: '12px',
+                                  fontWeight: 700,
+                                  background: '#F1F5F9',
+                                  color: 'var(--text-dark)',
+                                  borderRadius: '6px',
+                                  border: '1px solid #CBD5E1',
+                                  cursor: 'pointer',
+                                }}
+                              >
+                                {book.isArchived ? 'Шығару' : 'Архивтеу'}
+                              </button>
+                            )}
 
-                        {/* Delete */}
-                        {canDeleteBooks && (
-                          <button
-                            type="button"
-                            onClick={() => setBookToDelete(book)}
-                            style={{
-                              padding: '6px 12px',
-                              fontSize: '12px',
-                              fontWeight: 700,
-                              background: '#FEF2F2',
-                              color: '#B91C1C',
-                              borderRadius: '6px',
-                              border: '1px solid #FECACA',
-                              cursor: 'pointer',
-                            }}
-                          >
-                            Өшіру
-                          </button>
+                            {/* Delete */}
+                            {canDeleteBooks && (
+                              <button
+                                type="button"
+                                onClick={() => setBookToDelete(book)}
+                                style={{
+                                  padding: '6px 12px',
+                                  fontSize: '12px',
+                                  fontWeight: 700,
+                                  background: '#FEF2F2',
+                                  color: '#B91C1C',
+                                  borderRadius: '6px',
+                                  border: '1px solid #FECACA',
+                                  cursor: 'pointer',
+                                }}
+                              >
+                                Өшіру
+                              </button>
+                            )}
+                          </>
                         )}
 
                         {!canEditBooks && !canDeleteBooks && (

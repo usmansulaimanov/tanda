@@ -635,7 +635,7 @@ public class SecurityRbacMatrixIntegrationTest {
                             .header("Authorization", "Bearer " + adminToken))
                     .andExpect(status().isNoContent());
 
-            assertThat(bookRepository.findById(bookToDeleteId).orElseThrow().getIsArchived()).isTrue();
+            assertThat(bookRepository.findById(bookToDeleteId).orElseThrow().getIsDeleted()).isTrue();
         }
 
         @Test

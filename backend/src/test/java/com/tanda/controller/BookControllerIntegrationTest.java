@@ -284,7 +284,7 @@ class BookControllerIntegrationTest {
 
         Book deleted = bookRepository.findById(deleteTargetId).orElse(null);
         assertNotNull(deleted);
-        assertTrue(deleted.getIsArchived());
+        assertTrue(deleted.getIsDeleted());
     }
 
     @Test

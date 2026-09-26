@@ -19,13 +19,14 @@ interface BookState {
   setFreeFilter: (free: 'all' | 'free' | 'paid') => void;
 
   // API operations
-  fetchBooks: (params?: { category?: string; search?: string; includeArchived?: boolean }) => Promise<void>;
+  fetchBooks: (params?: { category?: string; search?: string; includeArchived?: boolean; includeDeleted?: boolean }) => Promise<void>;
   fetchFromBackend: () => Promise<void>;
   fetchBookById: (id: string) => Promise<Book | undefined>;
   addBook: (newBook: Omit<Book, 'id'>, customId?: string) => Promise<Book>;
   updateBook: (id: string, updates: Partial<Book>) => Promise<void>;
   deleteBook: (id: string) => Promise<void>;
   deleteBooks: (ids: string[]) => Promise<void>;
+  restoreBook: (id: string) => Promise<void>;
   toggleArchive: (id: string) => Promise<void>;
 }
 
@@ -59,7 +60,7 @@ export const useBookStore = create<BookState>((set, get) => ({
   },
 
   fetchFromBackend: async () => {
-    await get().fetchBooks({ includeArchived: true });
+    await get().fetchBooks({ includeArchived: true, includeDeleted: true });
   },
 
   fetchBookById: async (id: string) => {
@@ -140,7 +141,7 @@ export const useBookStore = create<BookState>((set, get) => ({
     try {
       await api.delete(`/api/v1/books/${strId}`);
       set((state) => ({
-        books: state.books.filter((b) => String(b.id) !== strId),
+        books: state.books.map((b) => (String(b.id) === strId ? { ...b, isDeleted: true } : b)),
       }));
     } finally {
       set({ isLoading: false });
@@ -155,7 +156,21 @@ export const useBookStore = create<BookState>((set, get) => ({
     try {
       await Promise.all(stringIds.map((id) => api.delete(`/api/v1/books/${id}`)));
       set((state) => ({
-        books: state.books.filter((b) => !idSet.has(String(b.id))),
+        books: state.books.map((b) => (idSet.has(String(b.id)) ? { ...b, isDeleted: true } : b)),
+      }));
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
+  restoreBook: async (id: string) => {
+    if (!id) return;
+    const strId = String(id);
+    set({ isLoading: true });
+    try {
+      const { data } = await api.patch(`/api/v1/books/${strId}/restore`);
+      set((state) => ({
+        books: state.books.map((b) => (String(b.id) === strId ? { ...b, ...data, isDeleted: false } : b)),
       }));
     } finally {
       set({ isLoading: false });

@@ -49,12 +49,13 @@ public class BookController {
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String search,
             @RequestParam(required = false, defaultValue = "false") boolean includeArchived,
+            @RequestParam(required = false, defaultValue = "false") boolean includeDeleted,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         boolean isAdmin = authentication != null && authentication.getAuthorities() != null &&
                 authentication.getAuthorities().stream().anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        Page<BookResponseDto> books = bookService.getBooks(category, search, includeArchived, isAdmin, pageable);
+        Page<BookResponseDto> books = bookService.getBooks(category, search, includeArchived, includeDeleted, isAdmin, pageable);
         return ResponseEntity.ok(books);
     }
 
@@ -131,6 +132,13 @@ public class BookController {
         }
         BookResponseDto updated = bookService.toggleArchive(id, isArchived);
         return ResponseEntity.ok(updated);
+    }
+
+    @PatchMapping("/{id}/restore")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<BookResponseDto> restoreBook(@PathVariable String id) {
+        BookResponseDto restored = bookService.restoreBook(id);
+        return ResponseEntity.ok(restored);
     }
 
     @DeleteMapping("/{id}")

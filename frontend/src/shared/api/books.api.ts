@@ -8,6 +8,8 @@ export interface BooksFilterParams {
   search?: string;
   page?: number;
   limit?: number;
+  includeArchived?: boolean;
+  includeDeleted?: boolean;
 }
 
 export const booksApi = {
@@ -28,6 +30,11 @@ export const booksApi = {
 
   update: async (id: string, bookData: Partial<Book>): Promise<Book> => {
     const { data } = await apiClient.put<Book>(`/api/v1/books/${id}`, bookData);
+    return data;
+  },
+
+  restore: async (id: string): Promise<Book> => {
+    const { data } = await apiClient.patch<Book>(`/api/v1/books/${id}/restore`);
     return data;
   },
 
