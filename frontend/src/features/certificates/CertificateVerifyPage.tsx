@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useSearchParams, Link } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import { certificatesApi, CertificateItem } from '../../shared/api/certificates.api';
+import tandaLogo from '../../assets/tanda-logo.png';
 
 export const CertificateVerifyPage: React.FC = () => {
   const { certNumber } = useParams<{ certNumber: string }>();
@@ -51,11 +52,12 @@ export const CertificateVerifyPage: React.FC = () => {
       }}
     >
       {/* 1. Brand Logo */}
-      <Link to="/" style={{ textDecoration: 'none', marginBottom: '28px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <img src="/assets/tanda-logo.png" alt="Tanda" style={{ height: '36px', objectFit: 'contain' }} onError={(e) => { (e.currentTarget as HTMLElement).style.display = 'none'; }} />
-        <span style={{ fontSize: '24px', fontWeight: 900, color: 'var(--blue, #005494)', letterSpacing: '-0.5px' }}>
-          tanda
-        </span>
+      <Link to="/" style={{ textDecoration: 'none', marginBottom: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <img
+          src={tandaLogo}
+          alt="Tanda"
+          style={{ height: '42px', width: 'auto', objectFit: 'contain' }}
+        />
       </Link>
 
       {/* 2. Loading State */}
