@@ -171,18 +171,6 @@ export const CertificateVerifyPage: React.FC = () => {
               overflow: 'hidden',
             }}
           >
-            {/* Decorative Top Border Bar */}
-            <div
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                height: '6px',
-                background: 'linear-gradient(90deg, #EF7E00 0%, #005494 50%, #0284C7 100%)',
-              }}
-            />
-
             {/* Header: Certificate Number */}
             <div
               style={{
