@@ -245,54 +245,37 @@ export const LandingPage: React.FC = () => {
 
         <div className="hero-container">
           <div className="hero-text">
-            {/* Personal Message placed directly above the "Оқы. Тыңда." headline */}
+            {/* Personal Message styled seamlessly with the hero theme */}
             {isAuthenticated && isMessageValid && messageText && (
               <div
                 className="hero-floating-message"
                 style={{
                   marginBottom: '20px',
-                  padding: '14px 18px',
-                  borderRadius: '16px',
-                  background: 'rgba(255, 255, 255, 0.96)',
-                  border: '1.5px solid rgba(239, 126, 0, 0.35)',
-                  boxShadow: '0 12px 32px rgba(0, 45, 80, 0.18)',
-                  backdropFilter: 'blur(10px)',
+                  padding: '12px 18px',
+                  borderRadius: '14px',
+                  background: 'rgba(10, 25, 47, 0.75)',
+                  border: '1px solid rgba(239, 126, 0, 0.4)',
+                  boxShadow: '0 8px 24px rgba(0, 0, 0, 0.25)',
+                  backdropFilter: 'blur(12px)',
                   display: 'flex',
-                  alignItems: 'flex-start',
+                  alignItems: 'center',
                   gap: '12px',
                   maxWidth: '520px',
                   width: '100%',
                 }}
               >
-                <div
-                  style={{
-                    width: '36px',
-                    height: '36px',
-                    borderRadius: '10px',
-                    background: 'linear-gradient(135deg, var(--orange) 0%, #D96B00 100%)',
-                    color: '#FFFFFF',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '18px',
-                    flexShrink: 0,
-                    boxShadow: '0 4px 10px rgba(239, 126, 0, 0.3)',
-                  }}
-                >
-                  ✉️
-                </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '4px' }}>
-                    <span style={{ fontSize: '12px', fontWeight: 800, color: 'var(--orange)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                      Жеке хабарлама
+                    <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--orange)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span>✉️</span> Жеке хабарлама
                     </span>
                     {typeof remainingDays === 'number' && (
-                      <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748B', background: '#F1F5F9', padding: '2px 8px', borderRadius: '20px' }}>
+                      <span style={{ fontSize: '11px', fontWeight: 700, color: '#94A3B8', background: 'rgba(255, 255, 255, 0.08)', padding: '2px 8px', borderRadius: '20px' }}>
                         {remainingDays > 0 ? `${remainingDays} күн қалды` : 'Бүгін соңғы күн'}
                       </span>
                     )}
                   </div>
-                  <p style={{ margin: 0, fontSize: '13.5px', lineHeight: 1.5, color: '#1E293B', fontWeight: 600 }}>
+                  <p style={{ margin: 0, fontSize: '14px', lineHeight: 1.5, color: '#FFFFFF', fontWeight: 600 }}>
                     {messageText}
                   </p>
                 </div>
