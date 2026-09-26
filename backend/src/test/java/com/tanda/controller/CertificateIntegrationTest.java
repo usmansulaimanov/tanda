@@ -102,14 +102,20 @@ class CertificateIntegrationTest {
                 .pdfUrl("https://tanda.kz/uploads/cert-1.pdf")
                 .build();
 
-        mockMvc.perform(post("/api/v1/admin/certificates")
+        String createdJson = mockMvc.perform(post("/api/v1/admin/certificates")
                         .header("Authorization", adminToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.certificateNumber", is("TND-2026-000001")))
                 .andExpect(jsonPath("$.recipientName", is("Aidos Nurlanuly")))
-                .andExpect(jsonPath("$.verificationUrl", containsString("TND-2026-000001")));
+                .andExpect(jsonPath("$.verificationToken", notNullValue()))
+                .andExpect(jsonPath("$.verificationUrl", containsString("?key=")))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        String token = objectMapper.readTree(createdJson).get("verificationToken").asText();
 
         // 3. Duplicate creation should fail with 409 Conflict
         mockMvc.perform(post("/api/v1/admin/certificates")
@@ -131,15 +137,25 @@ class CertificateIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.available", is(true)));
 
-        // 5. Public verification endpoint (No Auth required!)
-        mockMvc.perform(get("/api/v1/certificates/verify/TND-2026-000001"))
+        // 5. Public verification endpoint with valid secret key (200 OK)
+        mockMvc.perform(get("/api/v1/certificates/verify/TND-2026-000001")
+                        .param("key", token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.certificateNumber", is("TND-2026-000001")))
                 .andExpect(jsonPath("$.recipientName", is("Aidos Nurlanuly")))
                 .andExpect(jsonPath("$.pdfUrl", is("https://tanda.kz/uploads/cert-1.pdf")));
 
-        // 6. Non-existing cert public verification should return 404
-        mockMvc.perform(get("/api/v1/certificates/verify/NON-EXISTING-999"))
+        // 6. Verification without key or with wrong key should fail with 404 (prevents enumeration)
+        mockMvc.perform(get("/api/v1/certificates/verify/TND-2026-000001"))
+                .andExpect(status().isNotFound());
+
+        mockMvc.perform(get("/api/v1/certificates/verify/TND-2026-000001")
+                        .param("key", "wrong-key-12345"))
+                .andExpect(status().isNotFound());
+
+        // 7. Non-existing cert public verification should return 404
+        mockMvc.perform(get("/api/v1/certificates/verify/NON-EXISTING-999")
+                        .param("key", token))
                 .andExpect(status().isNotFound());
     }
 

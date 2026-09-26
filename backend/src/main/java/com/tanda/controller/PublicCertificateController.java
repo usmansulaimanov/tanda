@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -20,9 +21,10 @@ public class PublicCertificateController {
     private final CertificateService certificateService;
 
     @GetMapping("/verify/{certificateNumber}")
-    @Operation(summary = "Сертификатты нөмірі бойынша тексеру (Public / Ашық)")
+    @Operation(summary = "Сертификатты нөмірі және құпия кілті бойынша тексеру (Public / Ашық)")
     public ResponseEntity<CertificateResponseDto> verifyCertificate(
-            @PathVariable("certificateNumber") String certificateNumber) {
-        return ResponseEntity.ok(certificateService.getCertificateByNumber(certificateNumber));
+            @PathVariable("certificateNumber") String certificateNumber,
+            @RequestParam(value = "key", required = false) String key) {
+        return ResponseEntity.ok(certificateService.verifyCertificate(certificateNumber, key));
     }
 }

@@ -28,6 +28,7 @@ public class CertificateResponseDto {
     private String pdfUrl;
     private String imageUrl;
     private String status;
+    private String verificationToken;
     private String verificationUrl;
     private OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;

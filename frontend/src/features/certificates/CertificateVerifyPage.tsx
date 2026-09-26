@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, useSearchParams, Link } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import { certificatesApi, CertificateItem } from '../../shared/api/certificates.api';
 
 export const CertificateVerifyPage: React.FC = () => {
   const { certNumber } = useParams<{ certNumber: string }>();
+  const [searchParams] = useSearchParams();
+  const key = searchParams.get('key');
 
   const [cert, setCert] = useState<CertificateItem | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -21,17 +23,20 @@ export const CertificateVerifyPage: React.FC = () => {
     setError(null);
 
     certificatesApi
-      .verify(certNumber.trim())
+      .verify(certNumber.trim(), key)
       .then((data) => {
         setCert(data);
       })
       .catch((err) => {
-        setError(err.response?.data?.message || 'Сертификат табылмады немесе нөмірі қате');
+        setError(
+          err.response?.data?.message ||
+          'Сертификат табылмады немесе тексеру кілті қате. Түпнұсқалықты тексеру үшін ресми QR-кодты сканерлеңіз.'
+        );
       })
       .finally(() => {
         setIsLoading(false);
       });
-  }, [certNumber]);
+  }, [certNumber, key]);
 
   return (
     <div
@@ -103,10 +108,10 @@ export const CertificateVerifyPage: React.FC = () => {
             ✕
           </div>
           <h2 style={{ fontSize: '20px', fontWeight: 900, color: '#0F172A', margin: '0 0 8px' }}>
-            Сертификат табылмады
+            Сертификат табылмады немесе қолжетімсіз
           </h2>
           <p style={{ fontSize: '14px', color: '#64748B', lineHeight: '1.5', margin: '0 0 24px' }}>
-            «<strong>{certNumber}</strong>» нөмірлі сертификат жүйеде тіркелмеген немесе нөмірі қате енгізілген.
+            {error || `«${certNumber}» нөмірлі сертификат жүйеде тіркелмеген немесе тексеру кілті көрсетілмеген.`}
           </p>
           <Link
             to="/"

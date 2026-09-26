@@ -58,6 +58,21 @@ public class CertificateService {
     }
 
     @Transactional(readOnly = true)
+    public CertificateResponseDto verifyCertificate(String certNumber, String key) {
+        if (certNumber == null || certNumber.trim().isBlank()) {
+            throw new BadRequestException("Сертификат нөмірі көрсетілмеген");
+        }
+        String cleanNumber = certNumber.trim();
+        Certificate cert = certificateRepository.findByCertificateNumber(cleanNumber)
+                .orElseThrow(() -> new ResourceNotFoundException("Сертификат табылмады немесе нөмірі қате: " + cleanNumber));
+
+        if (key == null || key.trim().isBlank() || !key.trim().equalsIgnoreCase(cert.getVerificationToken())) {
+            throw new ResourceNotFoundException("Сертификат табылмады немесе тексеру кілті қате");
+        }
+        return toDto(cert);
+    }
+
+    @Transactional(readOnly = true)
     public List<CertificateResponseDto> getUserCertificates(String userId) {
         return certificateRepository.findByRecipientUserIdOrderByIssuedAtDesc(userId)
                 .stream()
@@ -117,6 +132,7 @@ public class CertificateService {
         Certificate cert = Certificate.builder()
                 .id("cert-" + UUID.randomUUID().toString().substring(0, 12))
                 .certificateNumber(cleanNumber)
+                .verificationToken(UUID.randomUUID().toString().replace("-", ""))
                 .recipientName(dto.getRecipientName().trim())
                 .recipientUserId(dto.getRecipientUserId())
                 .recipientIdNumber(recipientIdNumber)
@@ -177,7 +193,10 @@ public class CertificateService {
     }
 
     private CertificateResponseDto toDto(Certificate c) {
-        String verificationUrl = "https://tanda-xi.vercel.app/verify/cert/" + c.getCertificateNumber();
+        String tokenSuffix = (c.getVerificationToken() != null && !c.getVerificationToken().isBlank())
+                ? "?key=" + c.getVerificationToken()
+                : "";
+        String verificationUrl = "https://tanda-xi.vercel.app/verify/cert/" + c.getCertificateNumber() + tokenSuffix;
         return CertificateResponseDto.builder()
                 .id(c.getId())
                 .certificateNumber(c.getCertificateNumber())
@@ -192,6 +211,7 @@ public class CertificateService {
                 .pdfUrl(c.getPdfUrl())
                 .imageUrl(c.getImageUrl())
                 .status(c.getStatus())
+                .verificationToken(c.getVerificationToken())
                 .verificationUrl(verificationUrl)
                 .createdAt(c.getCreatedAt())
                 .updatedAt(c.getUpdatedAt())

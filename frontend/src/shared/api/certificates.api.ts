@@ -14,6 +14,7 @@ export interface CertificateItem {
   pdfUrl?: string;
   imageUrl?: string;
   status: 'ACTIVE' | 'REVOKED' | string;
+  verificationToken?: string;
   verificationUrl: string;
   createdAt: string;
   updatedAt: string;
@@ -76,8 +77,13 @@ export const certificatesApi = {
   },
 
   // Public Endpoint
-  verify: async (certificateNumber: string): Promise<CertificateItem> => {
-    const { data } = await apiClient.get<CertificateItem>(`/api/v1/certificates/verify/${certificateNumber}`);
+  verify: async (certificateNumber: string, key?: string | null): Promise<CertificateItem> => {
+    const { data } = await apiClient.get<CertificateItem>(
+      `/api/v1/certificates/verify/${encodeURIComponent(certificateNumber)}`,
+      {
+        params: key ? { key } : undefined,
+      }
+    );
     return data;
   },
 };

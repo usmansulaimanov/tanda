@@ -63,6 +63,9 @@ public class Certificate {
     @Column(name = "image_url", columnDefinition = "TEXT")
     private String imageUrl;
 
+    @Column(name = "verification_token", nullable = false, unique = true, length = 64)
+    private String verificationToken;
+
     @Column(length = 32)
     @Builder.Default
     private String status = "ACTIVE";
