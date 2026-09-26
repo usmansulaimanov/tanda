@@ -799,10 +799,11 @@ public class RoyaltyService {
         }
 
         int daysInMonth = ym.lengthOfMonth();
+        boolean hasLiveSessions = !sessionsInMonth.isEmpty();
         List<DailyActivityDto> dailyActivityList = new ArrayList<>(daysInMonth);
         for (int day = 1; day <= daysInMonth; day++) {
             LocalDate date = ym.atDay(day);
-            long sec = Math.max(liveDailySec.getOrDefault(date, 0L), statsDailySec.getOrDefault(date, 0L));
+            long sec = hasLiveSessions ? liveDailySec.getOrDefault(date, 0L) : statsDailySec.getOrDefault(date, 0L);
             long min = sec / 60;
             String dayLabel = String.format("%02d.%02d", day, ym.getMonthValue());
 
