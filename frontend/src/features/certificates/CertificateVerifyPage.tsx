@@ -207,13 +207,11 @@ export const CertificateVerifyPage: React.FC = () => {
 
               <div
                 style={{
-                  background: '#FEF3C7',
-                  color: '#B45309',
-                  padding: '4px 12px',
-                  borderRadius: '10px',
-                  fontSize: '13px',
+                  color: '#0F172A',
+                  fontSize: '14px',
                   fontWeight: 900,
                   fontFamily: 'monospace',
+                  letterSpacing: '0.5px',
                 }}
               >
                 № {cert.certificateNumber}

@@ -515,14 +515,12 @@ export const AdminCertificatesPage: React.FC = () => {
                         style={{
                           display: 'inline-flex',
                           alignItems: 'center',
-                          gap: '6px',
-                          background: '#FEF3C7',
-                          color: '#B45309',
-                          padding: '4px 10px',
-                          borderRadius: '10px',
-                          fontSize: '12.5px',
+                          gap: '4px',
+                          color: '#0F172A',
+                          fontSize: '13px',
                           fontWeight: 900,
                           fontFamily: 'monospace',
+                          letterSpacing: '0.3px',
                         }}
                       >
                         <span>№</span>
