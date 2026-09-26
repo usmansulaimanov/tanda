@@ -280,6 +280,14 @@ public class BookService {
     }
 
     @Transactional
+    public void hardDeleteBook(String id) {
+        Book book = bookRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Book", "id", id));
+        bookRepository.delete(book);
+        log.info("Book permanently deleted from database (hard delete): id={}, title='{}'", id, book.getTitle());
+    }
+
+    @Transactional
     public BookResponseDto restoreBook(String id) {
         Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Book", "id", id));

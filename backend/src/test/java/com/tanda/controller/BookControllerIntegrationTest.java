@@ -288,6 +288,39 @@ class BookControllerIntegrationTest {
     }
 
     @Test
+    @org.springframework.security.test.context.support.WithMockUser(roles = "ADMIN")
+    @DisplayName("DELETE /api/v1/books/{id}/permanent removes book permanently and returns 204 NO_CONTENT")
+    void testHardDeleteBookSuccess() throws Exception {
+        String permanentDeleteTargetId = "book-to-perm-delete-" + System.currentTimeMillis();
+        Book book = Book.builder()
+                .id(permanentDeleteTargetId)
+                .title("Мүлдем өшірілетін кітап")
+                .author("Автор")
+                .category("Психология")
+                .pages(80)
+                .hasAudio(false)
+                .isFree(true)
+                .isArchived(false)
+                .isDeleted(true)
+                .createdAt(OffsetDateTime.now())
+                .build();
+        bookRepository.save(book);
+
+        mockMvc.perform(delete("/api/v1/books/" + permanentDeleteTargetId + "/permanent"))
+                .andExpect(status().isNoContent());
+
+        assertFalse(bookRepository.findById(permanentDeleteTargetId).isPresent());
+    }
+
+    @Test
+    @org.springframework.security.test.context.support.WithMockUser(roles = "USER")
+    @DisplayName("DELETE /api/v1/books/{id}/permanent returns 403 FORBIDDEN for regular USER")
+    void testHardDeleteBookForbiddenForUser() throws Exception {
+        mockMvc.perform(delete("/api/v1/books/some-id/permanent"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     @DisplayName("GET /api/v1/books?includeArchived=true unauthenticated does not return archived books")
     void testGetBooksIncludeArchivedUnauthenticated() throws Exception {
         if (!bookRepository.existsById("archived-test-book-1")) {

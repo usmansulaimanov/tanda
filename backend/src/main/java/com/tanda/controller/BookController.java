@@ -157,4 +157,12 @@ public class BookController {
         bookService.deleteBook(id);
         return ResponseEntity.noContent().build();
     }
+
+    @DeleteMapping("/{id}/permanent")
+    @PreAuthorize("hasRole('ADMIN')")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public ResponseEntity<Void> hardDeleteBook(@PathVariable String id) {
+        bookService.hardDeleteBook(id);
+        return ResponseEntity.noContent().build();
+    }
 }

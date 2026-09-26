@@ -42,6 +42,10 @@ export const booksApi = {
     await apiClient.delete(`/api/v1/books/${id}`);
   },
 
+  permanentDelete: async (id: string): Promise<void> => {
+    await apiClient.delete(`/api/v1/books/${id}/permanent`);
+  },
+
   getStats: async (id: string, month?: string): Promise<import('../../types').BookStatsResponse> => {
     const params = month ? { month } : undefined;
     const { data } = await apiClient.get<import('../../types').BookStatsResponse>(`/api/v1/books/${id}/stats`, { params });

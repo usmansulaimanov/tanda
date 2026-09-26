@@ -26,6 +26,8 @@ interface BookState {
   updateBook: (id: string, updates: Partial<Book>) => Promise<void>;
   deleteBook: (id: string) => Promise<void>;
   deleteBooks: (ids: string[]) => Promise<void>;
+  hardDeleteBook: (id: string) => Promise<void>;
+  hardDeleteBooks: (ids: string[]) => Promise<void>;
   restoreBook: (id: string) => Promise<void>;
   toggleArchive: (id: string) => Promise<void>;
 }
@@ -157,6 +159,35 @@ export const useBookStore = create<BookState>((set, get) => ({
       await Promise.all(stringIds.map((id) => api.delete(`/api/v1/books/${id}`)));
       set((state) => ({
         books: state.books.map((b) => (idSet.has(String(b.id)) ? { ...b, isDeleted: true } : b)),
+      }));
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
+  hardDeleteBook: async (id: string) => {
+    if (!id) return;
+    const strId = String(id);
+    set({ isLoading: true });
+    try {
+      await api.delete(`/api/v1/books/${strId}/permanent`);
+      set((state) => ({
+        books: state.books.filter((b) => String(b.id) !== strId),
+      }));
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
+  hardDeleteBooks: async (ids: string[]) => {
+    if (!ids || ids.length === 0) return;
+    const stringIds = ids.map(String);
+    const idSet = new Set(stringIds);
+    set({ isLoading: true });
+    try {
+      await Promise.all(stringIds.map((id) => api.delete(`/api/v1/books/${id}/permanent`)));
+      set((state) => ({
+        books: state.books.filter((b) => !idSet.has(String(b.id))),
       }));
     } finally {
       set({ isLoading: false });
