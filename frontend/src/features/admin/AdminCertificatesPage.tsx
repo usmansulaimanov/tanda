@@ -480,13 +480,7 @@ export const AdminCertificatesPage: React.FC = () => {
             </p>
           </div>
         ) : (
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))',
-              gap: '20px',
-            }}
-          >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {filteredCertificates.map((cert) => {
               const verifyUrl = cert.verificationUrl || `https://tanda-xi.vercel.app/verify/cert/${cert.certificateNumber}`;
               return (
