@@ -118,7 +118,7 @@ export const LeaderboardPage: React.FC = () => {
                       : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                   }`}
                 >
-                  🟢 Осы апта
+                  Осы апта
                 </button>
                 <button
                   type="button"
@@ -129,7 +129,7 @@ export const LeaderboardPage: React.FC = () => {
                       : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                   }`}
                 >
-                  🏆 Өткен апта (Жеңімпаздар)
+                  Өткен апта
                 </button>
                 <button
                   type="button"
@@ -140,7 +140,7 @@ export const LeaderboardPage: React.FC = () => {
                       : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                   }`}
                 >
-                  🟢 Осы ай
+                  Осы ай
                 </button>
                 <button
                   type="button"
@@ -151,7 +151,7 @@ export const LeaderboardPage: React.FC = () => {
                       : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                   }`}
                 >
-                  🏆 Өткен ай (Жеңімпаздар)
+                  Өткен ай
                 </button>
               </div>
 
