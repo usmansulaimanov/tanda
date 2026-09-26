@@ -237,7 +237,7 @@ export const CertificateVerifyPage: React.FC = () => {
               }}
             >
               <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748B', display: 'block', marginBottom: '6px' }}>
-                Сертификат табысталады:
+                Сертификат табысталды:
               </span>
               <div style={{ fontSize: '22px', fontWeight: 900, color: '#0F172A' }}>
                 {cert.recipientName}
