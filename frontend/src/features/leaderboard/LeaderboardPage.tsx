@@ -17,8 +17,6 @@ export const LeaderboardPage: React.FC = () => {
   const { user, isAuthenticated } = useAuthStore();
   const [activeMainTab, setActiveMainTab] = useState<'leaderboard' | 'personal'>('leaderboard');
   const [selectedPeriod, setSelectedPeriod] = useState<LeaderboardPeriod>('THIS_WEEK');
-  const [searchQuery, setSearchQuery] = useState('');
-
   // Leaderboard Query
   const {
     data: leaderboardData,
@@ -44,9 +42,7 @@ export const LeaderboardPage: React.FC = () => {
     staleTime: 30 * 1000,
   });
 
-  const filteredEntries = (leaderboardData?.topEntries || []).filter((entry) =>
-    entry.fullName.toLowerCase().includes(searchQuery.toLowerCase().trim())
-  );
+  const filteredEntries = leaderboardData?.topEntries || [];
 
   const isPastPeriod = selectedPeriod === 'LAST_WEEK' || selectedPeriod === 'LAST_MONTH';
 
@@ -224,27 +220,8 @@ export const LeaderboardPage: React.FC = () => {
               </div>
             )}
 
-            {/* Search Input in Table */}
-            <div className="flex items-center justify-between gap-4 pt-1">
-              <div className="relative flex-1 max-w-md">
-                <input
-                  type="text"
-                  placeholder="Оқырман аты бойынша іздеу..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-white border border-slate-300 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 shadow-sm transition-all"
-                />
-                <svg
-                  className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <circle cx="11" cy="11" r="8" strokeWidth="2" />
-                  <line x1="21" y1="21" x2="16.65" y2="16.65" strokeWidth="2" strokeLinecap="round" />
-                </svg>
-              </div>
-
+            {/* Total Participants Info */}
+            <div className="flex items-center justify-end gap-4 pt-1">
               <div className="text-xs sm:text-sm text-slate-500 font-medium">
                 Барлығы: <span className="text-emerald-700 font-bold">{leaderboardData?.totalParticipants || 0}</span> оқырман
               </div>
