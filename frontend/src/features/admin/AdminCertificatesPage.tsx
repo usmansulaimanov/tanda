@@ -566,8 +566,8 @@ export const AdminCertificatesPage: React.FC = () => {
                     </div>
 
                     {/* Meta info: Date & Issuer */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '11.5px', color: '#64748B', marginBottom: '16px' }}>
-                      <span>📅 Берілген күні: <strong>{cert.issuedAt}</strong></span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '12px', color: '#64748B', marginBottom: '16px' }}>
+                      <span>Берілген күні: <strong style={{ color: '#0F172A' }}>{cert.issuedAt}</strong></span>
                     </div>
                   </div>
 
@@ -649,17 +649,22 @@ export const AdminCertificatesPage: React.FC = () => {
                         onClick={() => openEditModal(cert)}
                         title="Сертификатты өңдеу"
                         style={{
-                          padding: '7px 10px',
+                          padding: '8px 10px',
                           borderRadius: '10px',
-                          border: 'none',
-                          background: '#F1F5F9',
+                          border: '1px solid #E2E8F0',
+                          background: '#F8FAFC',
                           color: '#475569',
-                          fontSize: '12px',
-                          fontWeight: 800,
                           cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          transition: 'all 0.15s ease',
                         }}
                       >
-                        ✏️
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
                       </button>
 
                       <button
@@ -667,17 +672,22 @@ export const AdminCertificatesPage: React.FC = () => {
                         onClick={() => setCertToDelete(cert)}
                         title="Өшіру"
                         style={{
-                          padding: '7px 10px',
+                          padding: '8px 10px',
                           borderRadius: '10px',
-                          border: 'none',
-                          background: '#FEE2E2',
+                          border: '1px solid #FECACA',
+                          background: '#FEF2F2',
                           color: '#DC2626',
-                          fontSize: '12px',
-                          fontWeight: 800,
                           cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          transition: 'all 0.15s ease',
                         }}
                       >
-                        🗑️
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="3 6 5 6 21 6"></polyline>
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
                       </button>
                     </div>
                   </div>
