@@ -452,6 +452,7 @@ export const AdminCertificatesPage: React.FC = () => {
             >
               <option value="ALL">Барлық санаттар</option>
               <option value="READER_TOP_10">Үздік оқырман (Топ 10)</option>
+              <option value="SPONSOR">Демеушілерге</option>
               <option value="MONTHLY_MARATHON">Айлық марафон</option>
               <option value="SPECIAL_AWARD">Арнайы марапат</option>
               <option value="HONOR">Құрмет грамотасы</option>
@@ -993,6 +994,7 @@ export const AdminCertificatesPage: React.FC = () => {
                       }}
                     >
                       <option value="READER_TOP_10">Үздік оқырман (Топ 10)</option>
+                      <option value="SPONSOR">Демеушілерге</option>
                       <option value="MONTHLY_MARATHON">Айлық марафон</option>
                       <option value="SPECIAL_AWARD">Арнайы марапат</option>
                       <option value="HONOR">Құрмет грамотасы</option>
