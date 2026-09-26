@@ -467,24 +467,34 @@ export const LeaderboardPage: React.FC = () => {
 
                   {/* SVG/CSS Interactive Bar Graph */}
                   <div className="overflow-x-auto pb-2 -mx-2 px-2">
-                    <div className="h-64 sm:h-72 min-w-[700px] flex items-end justify-between gap-1 sm:gap-2 pt-6 pb-2 px-1 sm:px-2 border-b border-slate-200">
-                      {personalStats.dailyActivity.map((day) => {
-                        const heightPercent = maxChartMinutes > 0 ? (day.minutes / maxChartMinutes) * 100 : 0;
+                    <div className="h-64 sm:h-72 min-w-[760px] sm:min-w-[840px] flex items-end justify-between gap-1 sm:gap-1.5 pt-12 pb-2 px-2 sm:px-3 border-b border-slate-200">
+                      {personalStats.dailyActivity.map((day, idx) => {
+                        const heightPercent = maxChartMinutes > 0 ? (day.minutes / maxChartMinutes) * 72 : 0;
                         const isZero = day.minutes === 0;
+                        const isFirstFew = idx < 2;
+                        const isLastFew = idx > personalStats.dailyActivity.length - 3;
+                        const tooltipPosClass = isFirstFew
+                          ? 'left-0 translate-x-0'
+                          : isLastFew
+                          ? 'right-0 translate-x-0'
+                          : 'left-1/2 -translate-x-1/2';
 
                         return (
                           <div
                             key={day.date}
                             className="flex-1 flex flex-col items-center h-full justify-end group relative min-w-[18px]"
                           >
-                            {/* Tooltip on hover */}
-                            <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute -top-10 bg-slate-900 text-white text-[10px] sm:text-xs py-1 px-2.5 rounded-lg shadow-lg pointer-events-none whitespace-nowrap z-20">
-                              {day.dayLabel}: <span className="text-emerald-400 font-bold">{day.minutes} мин</span>
+                            {/* Tooltip on hover - positioned safely inside chart container header */}
+                            <div
+                              className={`opacity-0 group-hover:opacity-100 transition-all duration-150 absolute top-1 ${tooltipPosClass} bg-slate-900 text-white text-[11px] py-1 px-2.5 rounded-lg shadow-xl pointer-events-none whitespace-nowrap z-30 flex items-center gap-1.5 border border-slate-700`}
+                            >
+                              <span className="text-slate-300">{day.dayLabel}:</span>
+                              <span className="text-emerald-400 font-bold">{day.minutes} мин</span>
                             </div>
 
                             {/* Bar Value above bar */}
                             {day.minutes > 0 && (
-                              <span className="text-[9px] sm:text-[10px] text-slate-500 mb-1 group-hover:text-emerald-700 font-bold transition-colors hidden sm:block">
+                              <span className="text-[9px] sm:text-[10px] text-emerald-800 mb-1 group-hover:text-emerald-600 font-bold transition-colors block">
                                 {day.minutes}
                               </span>
                             )}
@@ -492,7 +502,7 @@ export const LeaderboardPage: React.FC = () => {
                             {/* Bar column */}
                             <div
                               style={{ height: `${Math.max(heightPercent, 4)}%` }}
-                              className={`w-full max-w-[20px] rounded-t transition-all duration-300 ${
+                              className={`w-full max-w-[18px] sm:max-w-[22px] rounded-t-sm transition-all duration-300 ${
                                 isZero
                                   ? 'bg-slate-200 group-hover:bg-slate-300'
                                   : 'bg-emerald-500 group-hover:bg-emerald-600 shadow-sm'
@@ -500,7 +510,7 @@ export const LeaderboardPage: React.FC = () => {
                             ></div>
 
                             {/* Day Label at bottom */}
-                            <span className="text-[9px] sm:text-[10px] text-slate-500 font-medium mt-2 group-hover:text-slate-900 transition-colors truncate max-w-full text-center">
+                            <span className="text-[8.5px] sm:text-[9.5px] text-slate-500 font-medium mt-2 group-hover:text-slate-900 transition-colors truncate max-w-full text-center">
                               {day.dayLabel.split(' ')[0]}
                             </span>
                           </div>

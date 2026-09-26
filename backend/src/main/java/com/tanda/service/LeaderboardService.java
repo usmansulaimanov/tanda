@@ -232,8 +232,8 @@ public class LeaderboardService {
         long thisMonthSeconds = audioSessionRepository.getUserSecondsBetween(userId, thisMonthStart, now);
         long allTimeSeconds = audioSessionRepository.getUserTotalSecondsAllTime(userId);
 
-        // Daily activity for the last 14 days in Kazakhstan Time Zone
-        LocalDate activityStart = today.minusDays(13);
+        // Daily activity for the last 30 days in Kazakhstan Time Zone
+        LocalDate activityStart = today.minusDays(29);
         OffsetDateTime activityStartDt = activityStart.atStartOfDay(KZ_ZONE).toOffsetDateTime();
         List<Object[]> rawSessions = audioSessionRepository.getUserSessionTimesSince(userId, activityStartDt);
 
@@ -248,7 +248,7 @@ public class LeaderboardService {
         }
 
         List<DailyActivityDto> dailyActivity = new ArrayList<>();
-        for (int i = 0; i < 14; i++) {
+        for (int i = 0; i < 30; i++) {
             LocalDate date = activityStart.plusDays(i);
             long sec = daySums.getOrDefault(date, 0L);
             String label = date.format(DATE_FORMATTER) + " (" + getKazakhShortDayOfWeek(date.getDayOfWeek()) + ")";
