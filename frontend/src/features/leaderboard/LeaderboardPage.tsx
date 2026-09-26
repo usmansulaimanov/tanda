@@ -63,7 +63,7 @@ export const LeaderboardPage: React.FC = () => {
         {/* Header Title & Description */}
         <div className="text-center space-y-2.5">
           <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900">
-            Рейтинг және Белсенділік
+            Жеке статистика және рейтинг
           </h1>
           <p className="text-slate-600 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
             Қазақша аудиокітаптарды ең көп тыңдаған оқырмандар рейтингі. Әр апта мен айдың соңында үздік 10 оқырманға арнайы сертификат табысталады!
