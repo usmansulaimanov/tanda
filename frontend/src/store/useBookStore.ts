@@ -30,6 +30,8 @@ interface BookState {
   toggleArchive: (id: string) => Promise<void>;
 }
 
+let latestFetchRequestId = 0;
+
 export const useBookStore = create<BookState>((set, get) => ({
   books: [],
   isLoading: false,
@@ -45,9 +47,13 @@ export const useBookStore = create<BookState>((set, get) => ({
   setFreeFilter: (free) => set({ freeFilter: free }),
 
   fetchBooks: async (params = {}) => {
+    const currentRequestId = ++latestFetchRequestId;
     set({ isSyncing: true });
     try {
       const { data } = await api.get('/api/v1/books', { params });
+      if (currentRequestId !== latestFetchRequestId) {
+        return;
+      }
       const rawList = Array.isArray(data)
         ? data
         : data?.content && Array.isArray(data.content)
@@ -55,7 +61,9 @@ export const useBookStore = create<BookState>((set, get) => ({
         : [];
       set({ books: rawList });
     } finally {
-      set({ isLoading: false, isSyncing: false });
+      if (currentRequestId === latestFetchRequestId) {
+        set({ isLoading: false, isSyncing: false });
+      }
     }
   },
 
@@ -188,8 +196,3 @@ export const useBookStore = create<BookState>((set, get) => ({
     }));
   },
 }));
-
-// Fetch initial books on module load if in browser
-if (typeof window !== 'undefined') {
-  useBookStore.getState().fetchBooks();
-}

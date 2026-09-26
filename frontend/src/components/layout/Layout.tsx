@@ -26,8 +26,10 @@ export const Layout: React.FC = () => {
   );
 
   useEffect(() => {
-    useBookStore.getState().fetchBooks().catch(() => {});
-  }, []);
+    if (!location.pathname.startsWith('/admin') && !location.pathname.startsWith('/author')) {
+      useBookStore.getState().fetchBooks().catch(() => {});
+    }
+  }, [location.pathname]);
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
