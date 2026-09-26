@@ -102,6 +102,28 @@ export const AdminCertificatesPage: React.FC = () => {
 
   const CERT_NUMBER_PATTERN = /^TND-\d{4}-\d{6}$/;
 
+  const formatDateKz = (dateStr?: string) => {
+    if (!dateStr) return '';
+    const match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (match) {
+      return `${match[3]}.${match[2]}.${match[1]}`;
+    }
+    return dateStr;
+  };
+
+  const isValidDate = (dateStr: string) => {
+    if (!dateStr) return false;
+    const match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!match) return false;
+    const year = parseInt(match[1], 10);
+    const month = parseInt(match[2], 10);
+    const day = parseInt(match[3], 10);
+    if (year < 2020 || year > 2099) return false;
+    if (month < 1 || month > 12) return false;
+    const d = new Date(year, month - 1, day);
+    return d.getFullYear() === year && d.getMonth() === month - 1 && d.getDate() === day;
+  };
+
   // Check number availability on blur or change
   const handleNumberChange = async (val: string) => {
     const upper = val.toUpperCase().trim();
@@ -219,6 +241,10 @@ export const AdminCertificatesPage: React.FC = () => {
     }
     if (numberAvailability && !numberAvailability.available) {
       showToast('Бұл сертификат нөмірі бұрыннан тіркелген! Басқа нөмір таңдаңыз', 'error');
+      return;
+    }
+    if (!formIssuedAt || !isValidDate(formIssuedAt)) {
+      showToast('Берілген күні қате! Күнді 12.09.2026 форматында таңдаңыз (жыл 2020 мен 2099 аралығында)', 'error');
       return;
     }
 
@@ -566,7 +592,7 @@ export const AdminCertificatesPage: React.FC = () => {
 
                     {/* Meta info: Date & Issuer */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '12px', color: '#64748B', marginBottom: '16px' }}>
-                      <span>Берілген күні: <strong style={{ color: '#0F172A' }}>{cert.issuedAt}</strong></span>
+                      <span>Берілген күні: <strong style={{ color: '#0F172A' }}>{formatDateKz(cert.issuedAt)}</strong></span>
                     </div>
                   </div>
 
@@ -923,6 +949,8 @@ export const AdminCertificatesPage: React.FC = () => {
                     <input
                       type="date"
                       required
+                      min="2020-01-01"
+                      max="2099-12-31"
                       value={formIssuedAt}
                       onChange={(e) => setFormIssuedAt(e.target.value)}
                       style={{

@@ -130,6 +130,10 @@ public class CertificateService {
             throw new ConflictException("⚠️ Бұл сертификат нөмірі бұрыннан тіркелген: " + cleanNumber);
         }
 
+        if (dto.getIssuedAt() == null || dto.getIssuedAt().getYear() < 2020 || dto.getIssuedAt().getYear() > 2099) {
+            throw new BadRequestException("Берілген күні қате: жыл 2020 мен 2099 аралығында болуы керек (мысалы: 12.09.2026)");
+        }
+
         String recipientIdNumber = dto.getRecipientIdNumber();
         if (dto.getRecipientUserId() != null && !dto.getRecipientUserId().isBlank()) {
             User user = userRepository.findById(dto.getRecipientUserId()).orElse(null);
@@ -148,7 +152,7 @@ public class CertificateService {
                 .title(dto.getTitle().trim())
                 .description(dto.getDescription() != null ? dto.getDescription().trim() : null)
                 .category(dto.getCategory() != null && !dto.getCategory().isBlank() ? dto.getCategory().trim() : "READER_TOP_10")
-                .issuedAt(dto.getIssuedAt() != null ? dto.getIssuedAt() : LocalDate.now())
+                .issuedAt(dto.getIssuedAt())
                 .issuerName(dto.getIssuerName() != null && !dto.getIssuerName().isBlank() ? dto.getIssuerName().trim() : "Tanda Platform")
                 .pdfUrl(dto.getPdfUrl())
                 .imageUrl(dto.getImageUrl())
@@ -175,6 +179,13 @@ public class CertificateService {
                 throw new ConflictException("⚠️ Бұл сертификат нөмірі басқа құжатқа тіркелген: " + cleanNumber);
             }
             cert.setCertificateNumber(cleanNumber);
+        }
+
+        if (dto.getIssuedAt() != null) {
+            if (dto.getIssuedAt().getYear() < 2020 || dto.getIssuedAt().getYear() > 2099) {
+                throw new BadRequestException("Берілген күні қате: жыл 2020 мен 2099 аралығында болуы керек (мысалы: 12.09.2026)");
+            }
+            cert.setIssuedAt(dto.getIssuedAt());
         }
 
         cert.setRecipientName(dto.getRecipientName().trim());

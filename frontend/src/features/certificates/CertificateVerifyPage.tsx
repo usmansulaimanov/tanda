@@ -4,6 +4,15 @@ import { QRCodeSVG } from 'qrcode.react';
 import { certificatesApi, CertificateItem } from '../../shared/api/certificates.api';
 import tandaLogo from '../../assets/tanda-logo.png';
 
+const formatDateKz = (dateStr?: string) => {
+  if (!dateStr) return '';
+  const match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (match) {
+    return `${match[3]}.${match[2]}.${match[1]}`;
+  }
+  return dateStr;
+};
+
 export const CertificateVerifyPage: React.FC = () => {
   const { certNumber } = useParams<{ certNumber: string }>();
   const [searchParams] = useSearchParams();
@@ -273,7 +282,7 @@ export const CertificateVerifyPage: React.FC = () => {
             >
               <div>
                 <span style={{ color: '#64748B', display: 'block', marginBottom: '2px' }}>Берілген күні:</span>
-                <strong style={{ color: '#0F172A' }}>{cert.issuedAt}</strong>
+                <strong style={{ color: '#0F172A' }}>{formatDateKz(cert.issuedAt)}</strong>
               </div>
               <div style={{ textAlign: 'right' }}>
                 <span style={{ color: '#64748B', display: 'block', marginBottom: '2px' }}>Берген ұйым:</span>
