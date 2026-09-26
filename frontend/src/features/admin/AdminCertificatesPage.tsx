@@ -124,8 +124,8 @@ export const AdminCertificatesPage: React.FC = () => {
     setFormRecipientName('');
     setFormRecipientUserId('');
     setFormRecipientIdNumber('');
-    setFormTitle('Үздік оқырман сертификаты');
-    setFormDescription('39-аптадағы белсенді тыңдалымы және жоғары нәтижесі үшін');
+    setFormTitle('');
+    setFormDescription('');
     setFormCategory('READER_TOP_10');
     setFormIssuedAt(new Date().toISOString().split('T')[0]);
     setFormIssuerName('Tanda Platform');
@@ -801,34 +801,14 @@ export const AdminCertificatesPage: React.FC = () => {
                   ) : null}
                 </div>
 
-                {/* 2. Recipient Name + Option to choose from Readers */}
-                <div style={{ position: 'relative' }} ref={readerDropdownRef}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                    <label style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>
-                      Алушының аты-жөні <span style={{ color: '#EF4444' }}>*</span>
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => setShowReaderDropdown(!showReaderDropdown)}
-                      style={{
-                        background: '#EFF6FF',
-                        border: 'none',
-                        borderRadius: '8px',
-                        padding: '3px 8px',
-                        color: 'var(--blue)',
-                        fontSize: '11.5px',
-                        fontWeight: 800,
-                        cursor: 'pointer',
-                      }}
-                    >
-                      👤 Оқырмандар тізімінен таңдау
-                    </button>
-                  </div>
-
+                {/* 2. Recipient Name */}
+                <div>
+                  <label style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A', display: 'block', marginBottom: '6px' }}>
+                    Алушының аты-жөні <span style={{ color: '#EF4444' }}>*</span>
+                  </label>
                   <input
                     type="text"
                     required
-                    placeholder="Мысалы: Айдос Нұрланұлы"
                     value={formRecipientName}
                     onChange={(e) => setFormRecipientName(e.target.value)}
                     style={{
@@ -843,68 +823,6 @@ export const AdminCertificatesPage: React.FC = () => {
                       boxSizing: 'border-box',
                     }}
                   />
-
-                  {/* Reader Dropdown Picker */}
-                  {showReaderDropdown && (
-                    <div
-                      style={{
-                        position: 'absolute',
-                        top: '100%',
-                        left: 0,
-                        right: 0,
-                        zIndex: 20,
-                        background: '#FFFFFF',
-                        borderRadius: '14px',
-                        border: '1.5px solid #CBD5E1',
-                        boxShadow: '0 10px 30px rgba(0,0,0,0.15)',
-                        marginTop: '6px',
-                        padding: '10px',
-                        maxHeight: '220px',
-                        overflowY: 'auto',
-                      }}
-                    >
-                      <input
-                        type="text"
-                        placeholder="Оқырманды іздеу..."
-                        value={readerSearchQuery}
-                        onChange={(e) => setReaderSearchQuery(e.target.value)}
-                        style={{
-                          width: '100%',
-                          padding: '8px 10px',
-                          borderRadius: '8px',
-                          border: '1px solid #E2E8F0',
-                          fontSize: '12.5px',
-                          outline: 'none',
-                          marginBottom: '8px',
-                          boxSizing: 'border-box',
-                        }}
-                      />
-                      {filteredReaders.map((r) => (
-                        <div
-                          key={r.id}
-                          onClick={() => handleSelectReader(r)}
-                          style={{
-                            padding: '8px 10px',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            fontSize: '13px',
-                            fontWeight: 700,
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            transition: 'background 0.15s',
-                          }}
-                          onMouseEnter={(e) => (e.currentTarget.style.background = '#F1F5F9')}
-                          onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-                        >
-                          <span>{r.name}</span>
-                          <span style={{ fontSize: '11px', color: '#64748B', fontFamily: 'monospace' }}>
-                            {r.idNumber || r.email}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
                 </div>
 
                 {/* 3. Title */}
@@ -915,7 +833,6 @@ export const AdminCertificatesPage: React.FC = () => {
                   <input
                     type="text"
                     required
-                    placeholder="Үздік оқырман сертификаты"
                     value={formTitle}
                     onChange={(e) => setFormTitle(e.target.value)}
                     style={{
@@ -935,11 +852,10 @@ export const AdminCertificatesPage: React.FC = () => {
                 {/* 4. Description / Reason */}
                 <div>
                   <label style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A', display: 'block', marginBottom: '6px' }}>
-                    Не үшін берілді (Жетістік сипаттамасы)
+                    Не үшін берілді
                   </label>
                   <textarea
                     rows={3}
-                    placeholder="39-аптадағы белсенді тыңдалымы және 1-орын алған жоғары нәтижесі үшін"
                     value={formDescription}
                     onChange={(e) => setFormDescription(e.target.value)}
                     style={{
@@ -1020,10 +936,7 @@ export const AdminCertificatesPage: React.FC = () => {
                 >
                   <div style={{ marginBottom: '12px' }}>
                     <div style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>
-                      Сертификат құжатын бекіту (PDF, Сурет немесе Telegram сілтемесі)
-                    </div>
-                    <div style={{ fontSize: '12px', color: '#64748B', marginTop: '2px' }}>
-                      Оқырман сканерлегенде түпнұсқаны тікелей жүктей алады немесе Telegram арнадан көре алады
+                      Сертификат құжатын бекіту
                     </div>
                   </div>
 
@@ -1051,11 +964,18 @@ export const AdminCertificatesPage: React.FC = () => {
                         fontSize: '12.5px',
                         fontWeight: 800,
                         cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px',
                         boxShadow: fileSourceTab === 'upload' ? '0 2px 6px rgba(0,0,0,0.06)' : 'none',
                         transition: 'all 0.15s ease',
                       }}
                     >
-                      📁 Файл жүктеу (PDF / Сурет)
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                      </svg>
+                      Файл жүктеу (PDF / Сурет)
                     </button>
                     <button
                       type="button"
@@ -1070,11 +990,19 @@ export const AdminCertificatesPage: React.FC = () => {
                         fontSize: '12.5px',
                         fontWeight: 800,
                         cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px',
                         boxShadow: fileSourceTab === 'link' ? '0 2px 6px rgba(0,0,0,0.06)' : 'none',
                         transition: 'all 0.15s ease',
                       }}
                     >
-                      🔗 Сілтеме қою (Telegram / URL)
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                      </svg>
+                      Сілтеме қою (Telegram / URL)
                     </button>
                   </div>
 
@@ -1108,7 +1036,12 @@ export const AdminCertificatesPage: React.FC = () => {
                             gap: '6px',
                           }}
                         >
-                          {isUploadingFile ? 'Жүктелуде...' : '📁 Компьютерден / Телефоннан таңдау'}
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="17 8 12 3 7 8"></polyline>
+                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                          </svg>
+                          {isUploadingFile ? 'Жүктелуде...' : 'Компьютерден / Телефоннан таңдау'}
                         </button>
                         <span style={{ fontSize: '11.5px', color: '#64748B' }}>
                           PDF, PNG, JPG (макс 50MB)
@@ -1138,7 +1071,7 @@ export const AdminCertificatesPage: React.FC = () => {
                         />
                       </div>
                       <div style={{ fontSize: '11.5px', color: '#64748B', marginTop: '6px' }}>
-                        💡 Телеграм каналдағы посттың сілтемесін немесе Google Drive / бұлттық қоймадағы файл сілтемесін қойыңыз.
+                        Телеграм каналдағы посттың сілтемесін немесе Google Drive / бұлттық қоймадағы файл сілтемесін қойыңыз.
                       </div>
                     </div>
                   )}
