@@ -145,14 +145,14 @@ public class LeaderboardIntegrationTest {
     }
 
     @Test
-    @DisplayName("Personal stats endpoint returns correct aggregations and 30-day activity")
+    @DisplayName("Personal stats endpoint returns correct aggregations and 14-day activity")
     void testPersonalStats() throws Exception {
         mockMvc.perform(get("/api/v1/leaderboard/personal")
                         .header("Authorization", "Bearer " + user1Token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.userId", is(user1.getId())))
                 .andExpect(jsonPath("$.todayMinutes", is(30)))
-                .andExpect(jsonPath("$.dailyActivity", hasSize(30)));
+                .andExpect(jsonPath("$.dailyActivity", hasSize(14)));
     }
 
     @Test
