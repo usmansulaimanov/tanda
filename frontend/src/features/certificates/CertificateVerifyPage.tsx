@@ -299,41 +299,57 @@ export const CertificateVerifyPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Download Certificate PDF / Image Button */}
-            {cert.pdfUrl ? (
-              <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-                <a
-                  href={cert.pdfUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  download
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '10px',
-                    width: '100%',
-                    padding: '15px 24px',
-                    borderRadius: '16px',
-                    background: 'linear-gradient(135deg, #16A34A 0%, #15803D 100%)',
-                    color: '#FFFFFF',
-                    fontSize: '15px',
-                    fontWeight: 800,
-                    textDecoration: 'none',
-                    boxShadow: '0 6px 20px rgba(22, 163, 74, 0.3)',
-                    boxSizing: 'border-box',
-                    transition: 'all 0.15s ease',
-                  }}
-                >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                    <polyline points="7 10 12 15 17 10"></polyline>
-                    <line x1="12" y1="15" x2="12" y2="3"></line>
-                  </svg>
-                  Түпнұсқа сертификатты жүктеп алу (PDF)
-                </a>
-              </div>
-            ) : null}
+            {/* Download Certificate PDF / Image or View in Telegram Button */}
+            {cert.pdfUrl ? (() => {
+              const isTelegram = cert.pdfUrl.includes('t.me') || cert.pdfUrl.includes('telegram');
+              return (
+                <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+                  <a
+                    href={cert.pdfUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    {...(!isTelegram ? { download: true } : {})}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '10px',
+                      width: '100%',
+                      padding: '15px 24px',
+                      borderRadius: '16px',
+                      background: isTelegram
+                        ? 'linear-gradient(135deg, #229ED9 0%, #0088cc 100%)'
+                        : 'linear-gradient(135deg, #16A34A 0%, #15803D 100%)',
+                      color: '#FFFFFF',
+                      fontSize: '15px',
+                      fontWeight: 800,
+                      textDecoration: 'none',
+                      boxShadow: isTelegram
+                        ? '0 6px 20px rgba(34, 158, 217, 0.3)'
+                        : '0 6px 20px rgba(22, 163, 74, 0.3)',
+                      boxSizing: 'border-box',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    {isTelegram ? (
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                      </svg>
+                    ) : (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                      </svg>
+                    )}
+                    {isTelegram
+                      ? 'Сертификатты көру / Жүктеу (Telegram)'
+                      : 'Түпнұсқа сертификатты жүктеп алу (PDF)'}
+                  </a>
+                </div>
+              );
+            })() : null}
 
             {/* Footer QR Code & Security Stamp */}
             <div

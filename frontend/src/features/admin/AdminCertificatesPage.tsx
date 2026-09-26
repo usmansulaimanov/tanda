@@ -52,6 +52,7 @@ export const AdminCertificatesPage: React.FC = () => {
   // File upload state
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploadingFile, setIsUploadingFile] = useState<boolean>(false);
+  const [fileSourceTab, setFileSourceTab] = useState<'upload' | 'link'>('upload');
 
   const loadCertificates = async () => {
     setIsLoading(true);
@@ -132,6 +133,7 @@ export const AdminCertificatesPage: React.FC = () => {
     setFormStatus('ACTIVE');
     setReaderSearchQuery('');
     setShowReaderDropdown(false);
+    setFileSourceTab('upload');
     setIsModalOpen(true);
     await handleAutoGenerateNumber();
   };
@@ -150,6 +152,14 @@ export const AdminCertificatesPage: React.FC = () => {
     setFormPdfUrl(cert.pdfUrl || '');
     setFormStatus(cert.status || 'ACTIVE');
     setNumberAvailability({ available: true, message: '✓ Бұл осы сертификаттың нөмірі' });
+    
+    // Auto detect tab based on URL format
+    if (cert.pdfUrl && (cert.pdfUrl.includes('t.me') || cert.pdfUrl.includes('telegram') || (!cert.pdfUrl.includes('/uploads/') && cert.pdfUrl.startsWith('http')))) {
+      setFileSourceTab('link');
+    } else {
+      setFileSourceTab('upload');
+    }
+
     setIsModalOpen(true);
   };
 
@@ -577,8 +587,19 @@ export const AdminCertificatesPage: React.FC = () => {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '11.5px', color: '#64748B', marginBottom: '16px' }}>
                       <span>📅 Берілген күні: <strong>{cert.issuedAt}</strong></span>
                       {cert.pdfUrl && (
-                        <span style={{ color: '#16A34A', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                          ✓ PDF бар
+                        <span
+                          style={{
+                            color: cert.pdfUrl.includes('t.me') || cert.pdfUrl.includes('telegram') ? '#0284C7' : '#16A34A',
+                            fontWeight: 700,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            background: cert.pdfUrl.includes('t.me') || cert.pdfUrl.includes('telegram') ? '#E0F2FE' : '#DCFCE7',
+                            padding: '2px 8px',
+                            borderRadius: '6px',
+                          }}
+                        >
+                          {cert.pdfUrl.includes('t.me') || cert.pdfUrl.includes('telegram') ? '✈️ Telegram' : '📄 PDF / Файл'}
                         </span>
                       )}
                     </div>
@@ -1021,55 +1042,141 @@ export const AdminCertificatesPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* 6. PDF / File Upload Section */}
+                {/* 6. PDF / File / Telegram Attachment Section */}
                 <div
                   style={{
                     background: '#F8FAFC',
-                    border: '1.5px dashed #CBD5E1',
+                    border: '1.5px solid #CBD5E1',
                     borderRadius: '16px',
                     padding: '16px 20px',
                   }}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                    <div>
-                      <div style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>
-                        Ресми PDF немесе Сурет файлын жүктеу
-                      </div>
-                      <div style={{ fontSize: '12px', color: '#64748B', marginTop: '2px' }}>
-                        Оқырман сканерлегенде дәл осы түпнұсқа PDF сертификатын жүктейді
-                      </div>
+                  <div style={{ marginBottom: '12px' }}>
+                    <div style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>
+                      Сертификат құжатын бекіту (PDF, Сурет немесе Telegram сілтемесі)
                     </div>
+                    <div style={{ fontSize: '12px', color: '#64748B', marginTop: '2px' }}>
+                      Оқырман сканерлегенде түпнұсқаны тікелей жүктей алады немесе Telegram арнадан көре алады
+                    </div>
+                  </div>
 
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      onChange={handleFileUpload}
-                      accept=".pdf,image/png,image/jpeg,image/webp"
-                      style={{ display: 'none' }}
-                    />
-
+                  {/* Mode Tabs */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      background: '#E2E8F0',
+                      borderRadius: '10px',
+                      padding: '3px',
+                      marginBottom: '14px',
+                      gap: '4px',
+                    }}
+                  >
                     <button
                       type="button"
-                      disabled={isUploadingFile}
-                      onClick={() => fileInputRef.current?.click()}
+                      onClick={() => setFileSourceTab('upload')}
                       style={{
-                        padding: '8px 16px',
-                        borderRadius: '10px',
-                        border: '1.5px solid var(--blue)',
-                        background: '#FFFFFF',
-                        color: 'var(--blue)',
+                        flex: 1,
+                        padding: '7px 12px',
+                        borderRadius: '8px',
+                        border: 'none',
+                        background: fileSourceTab === 'upload' ? '#FFFFFF' : 'transparent',
+                        color: fileSourceTab === 'upload' ? 'var(--blue)' : '#64748B',
                         fontSize: '12.5px',
                         fontWeight: 800,
                         cursor: 'pointer',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '6px',
+                        boxShadow: fileSourceTab === 'upload' ? '0 2px 6px rgba(0,0,0,0.06)' : 'none',
+                        transition: 'all 0.15s ease',
                       }}
                     >
-                      {isUploadingFile ? 'Жүктелуде...' : '📁 Файл таңдау'}
+                      📁 Файл жүктеу (PDF / Сурет)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFileSourceTab('link')}
+                      style={{
+                        flex: 1,
+                        padding: '7px 12px',
+                        borderRadius: '8px',
+                        border: 'none',
+                        background: fileSourceTab === 'link' ? '#FFFFFF' : 'transparent',
+                        color: fileSourceTab === 'link' ? 'var(--blue)' : '#64748B',
+                        fontSize: '12.5px',
+                        fontWeight: 800,
+                        cursor: 'pointer',
+                        boxShadow: fileSourceTab === 'link' ? '0 2px 6px rgba(0,0,0,0.06)' : 'none',
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      🔗 Сілтеме қою (Telegram / URL)
                     </button>
                   </div>
 
+                  {/* TAB 1: FILE UPLOAD */}
+                  {fileSourceTab === 'upload' ? (
+                    <div>
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleFileUpload}
+                        accept=".pdf,image/png,image/jpeg,image/webp"
+                        style={{ display: 'none' }}
+                      />
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <button
+                          type="button"
+                          disabled={isUploadingFile}
+                          onClick={() => fileInputRef.current?.click()}
+                          style={{
+                            padding: '9px 18px',
+                            borderRadius: '10px',
+                            border: '1.5px solid var(--blue)',
+                            background: '#FFFFFF',
+                            color: 'var(--blue)',
+                            fontSize: '12.5px',
+                            fontWeight: 800,
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                          }}
+                        >
+                          {isUploadingFile ? 'Жүктелуде...' : '📁 Компьютерден / Телефоннан таңдау'}
+                        </button>
+                        <span style={{ fontSize: '11.5px', color: '#64748B' }}>
+                          PDF, PNG, JPG (макс 50MB)
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    /* TAB 2: DIRECT LINK (TELEGRAM / EXTERNAL) */
+                    <div>
+                      <div style={{ position: 'relative' }}>
+                        <input
+                          type="url"
+                          placeholder="https://t.me/tanda_kz/... немесе кез келген файл сілтемесі"
+                          value={formPdfUrl}
+                          onChange={(e) => setFormPdfUrl(e.target.value)}
+                          style={{
+                            width: '100%',
+                            padding: '10px 14px',
+                            borderRadius: '10px',
+                            border: '1.5px solid #CBD5E1',
+                            background: '#FFFFFF',
+                            fontSize: '13px',
+                            color: '#0F172A',
+                            outline: 'none',
+                            boxSizing: 'border-box',
+                          }}
+                        />
+                      </div>
+                      <div style={{ fontSize: '11.5px', color: '#64748B', marginTop: '6px' }}>
+                        💡 Телеграм каналдағы посттың сілтемесін немесе Google Drive / бұлттық қоймадағы файл сілтемесін қойыңыз.
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Attached URL status indicator */}
                   {formPdfUrl && (
                     <div
                       style={{
@@ -1080,15 +1187,34 @@ export const AdminCertificatesPage: React.FC = () => {
                         padding: '8px 12px',
                         borderRadius: '10px',
                         border: '1px solid #E2E8F0',
+                        marginTop: '12px',
                       }}
                     >
-                      <span style={{ fontSize: '12.5px', color: '#16A34A', fontWeight: 700 }}>
-                        ✓ Файл тіркелді: {formPdfUrl.split('/').pop()}
-                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
+                        <span style={{ fontSize: '12.5px', color: '#16A34A', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                          ✓ Тіркелді:
+                        </span>
+                        <a
+                          href={formPdfUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            fontSize: '12px',
+                            color: 'var(--blue)',
+                            textDecoration: 'underline',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            maxWidth: '320px',
+                          }}
+                        >
+                          {formPdfUrl}
+                        </a>
+                      </div>
                       <button
                         type="button"
                         onClick={() => setFormPdfUrl('')}
-                        style={{ background: 'none', border: 'none', color: '#DC2626', fontSize: '12px', fontWeight: 800, cursor: 'pointer' }}
+                        style={{ background: 'none', border: 'none', color: '#DC2626', fontSize: '12px', fontWeight: 800, cursor: 'pointer', flexShrink: 0 }}
                       >
                         Өшіру
                       </button>
