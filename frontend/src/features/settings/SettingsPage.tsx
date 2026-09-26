@@ -870,9 +870,11 @@ export const SettingsPage: React.FC = () => {
                   </svg>
                 </div>
               </button>
+            </div>
 
-              {/* Button 3: Аккаунтты өшіру (Only for Readers / Clients) */}
-              {isClient && (
+            {/* Discreet Delete Account Button for Readers */}
+            {isClient && (
+              <div style={{ marginTop: '36px', paddingTop: '18px', borderTop: '1px solid #F1F5F9', textAlign: 'center' }}>
                 <button
                   type="button"
                   onClick={() => {
@@ -882,70 +884,37 @@ export const SettingsPage: React.FC = () => {
                     setIsDeleteModalOpen(true);
                   }}
                   style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '22px 24px',
-                    borderRadius: '16px',
-                    background: '#FFFFFF',
-                    border: '1.5px solid #FEE2E2',
+                    background: 'none',
+                    border: 'none',
+                    color: '#94A3B8',
+                    fontSize: '12.5px',
+                    fontWeight: 600,
                     cursor: 'pointer',
-                    textAlign: 'left',
-                    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                    boxShadow: '0 2px 8px rgba(220, 38, 38, 0.04)',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '6px 12px',
+                    borderRadius: '8px',
+                    transition: 'all 0.15s ease',
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = '#EF4444';
+                    e.currentTarget.style.color = '#DC2626';
                     e.currentTarget.style.background = '#FEF2F2';
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                    e.currentTarget.style.boxShadow = '0 8px 24px rgba(239, 68, 68, 0.12)';
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = '#FEE2E2';
-                    e.currentTarget.style.background = '#FFFFFF';
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 2px 8px rgba(220, 38, 38, 0.04)';
+                    e.currentTarget.style.color = '#94A3B8';
+                    e.currentTarget.style.background = 'none';
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <div
-                      style={{
-                        width: '48px',
-                        height: '48px',
-                        borderRadius: '12px',
-                        background: '#FEE2E2',
-                        color: '#DC2626',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                      }}
-                    >
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M3 6h18"></path>
-                        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-                        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
-                        <line x1="10" y1="11" x2="10" y2="17"></line>
-                        <line x1="14" y1="11" x2="14" y2="17"></line>
-                      </svg>
-                    </div>
-                    <div>
-                      <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#DC2626', margin: '0 0 4px 0' }}>
-                        Аккаунтты өшіру
-                      </h3>
-                      <p style={{ fontSize: '13px', color: '#991B1B', margin: 0, lineHeight: 1.4 }}>
-                        Профиль, жеке сөре және оқу тарихын біржола жою
-                      </p>
-                    </div>
-                  </div>
-                  <div style={{ color: '#DC2626', paddingLeft: '12px' }}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="9 18 15 12 9 6"></polyline>
-                    </svg>
-                  </div>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 6h18"></path>
+                    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                  </svg>
+                  Аккаунтты өшіру
                 </button>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         )}
 
