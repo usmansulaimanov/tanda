@@ -1,5 +1,6 @@
 package com.tanda.service;
 
+import com.tanda.dto.leaderboard.DailyActivityDto;
 import com.tanda.dto.royalty.AuthorBookItemDto;
 import com.tanda.dto.royalty.AuthorDailyStatDto;
 import com.tanda.dto.royalty.AuthorEarningSummaryDto;
@@ -773,6 +774,46 @@ public class RoyaltyService {
                 ? (p.getTotalMinutes() != null ? p.getTotalMinutes() : 0L)
                 : (totalPlatformLiveMinutes > 0 ? totalPlatformLiveMinutes : (p.getTotalMinutes() != null ? p.getTotalMinutes() : 0L));
 
+        // 2. Build daily listening activity breakdown for the month
+        ZoneId almatyZone = ZoneId.of("Asia/Almaty");
+        OffsetDateTime monthStart = ym.atDay(1).atStartOfDay(almatyZone).toOffsetDateTime();
+        OffsetDateTime monthEnd = ym.plusMonths(1).atDay(1).atStartOfDay(almatyZone).toOffsetDateTime();
+
+        Map<LocalDate, Long> liveDailySec = new HashMap<>();
+        List<Object[]> sessionsInMonth = audioSessionRepository.findSessionTimesBetween(monthStart, monthEnd);
+        for (Object[] row : sessionsInMonth) {
+            OffsetDateTime startedAt = (OffsetDateTime) row[0];
+            Long sec = row[1] != null ? ((Number) row[1]).longValue() : 0L;
+            if (startedAt != null && sec > 0) {
+                LocalDate d = startedAt.atZoneSameInstant(almatyZone).toLocalDate();
+                liveDailySec.merge(d, sec, Long::sum);
+            }
+        }
+
+        List<AudioDailyStats> monthlyStats = audioDailyStatsRepository.findByStatDateBetween(startDate, endDate);
+        Map<LocalDate, Long> statsDailySec = new HashMap<>();
+        for (AudioDailyStats s : monthlyStats) {
+            if (s.getStatDate() != null) {
+                statsDailySec.merge(s.getStatDate(), s.getTotalSeconds() != null ? s.getTotalSeconds() : 0L, Long::sum);
+            }
+        }
+
+        int daysInMonth = ym.lengthOfMonth();
+        List<DailyActivityDto> dailyActivityList = new ArrayList<>(daysInMonth);
+        for (int day = 1; day <= daysInMonth; day++) {
+            LocalDate date = ym.atDay(day);
+            long sec = Math.max(liveDailySec.getOrDefault(date, 0L), statsDailySec.getOrDefault(date, 0L));
+            long min = sec / 60;
+            String dayLabel = String.format("%02d.%02d", day, ym.getMonthValue());
+
+            dailyActivityList.add(DailyActivityDto.builder()
+                    .date(date)
+                    .dayLabel(dayLabel)
+                    .seconds(sec)
+                    .minutes(min)
+                    .build());
+        }
+
         return RoyaltyPeriodResponseDto.builder()
                 .id(p.getId())
                 .month(p.getMonth())
@@ -791,6 +832,7 @@ public class RoyaltyService {
                 .createdAt(p.getCreatedAt())
                 .earnings(earningDtos)
                 .authorEarnings(summaryList)
+                .dailyActivity(dailyActivityList)
                 .build();
     }
 

@@ -1,5 +1,6 @@
 package com.tanda.dto.royalty;
 
+import com.tanda.dto.leaderboard.DailyActivityDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -33,4 +34,5 @@ public class RoyaltyPeriodResponseDto {
     private OffsetDateTime createdAt;
     private List<RoyaltyEarningResponseDto> earnings;
     private List<AuthorEarningSummaryDto> authorEarnings;
+    private List<DailyActivityDto> dailyActivity;
 }

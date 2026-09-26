@@ -184,6 +184,41 @@ export const AdminRoyaltyTab: React.FC = () => {
     return 0;
   }, [currentPeriod]);
 
+  // Daily activity metrics for selected month
+  const dailyActivityList = useMemo(() => {
+    return currentPeriod?.dailyActivity || [];
+  }, [currentPeriod]);
+
+  const maxMinutesInMonth = useMemo(() => {
+    if (!dailyActivityList.length) return 0;
+    return Math.max(...dailyActivityList.map((d) => d.minutes), 0);
+  }, [dailyActivityList]);
+
+  const peakDay = useMemo(() => {
+    if (!dailyActivityList.length) return null;
+    let max = dailyActivityList[0];
+    for (const d of dailyActivityList) {
+      if (d.minutes > max.minutes) {
+        max = d;
+      }
+    }
+    return max.minutes > 0 ? max : null;
+  }, [dailyActivityList]);
+
+  const totalActiveDays = useMemo(() => {
+    return dailyActivityList.filter((d) => d.minutes > 0 || d.seconds > 0).length;
+  }, [dailyActivityList]);
+
+  const averageDailyMinutes = useMemo(() => {
+    if (totalActiveDays === 0) return 0;
+    return Number((totalPlatformMinutes / totalActiveDays).toFixed(1));
+  }, [totalPlatformMinutes, totalActiveDays]);
+
+  const todayIso = useMemo(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }, []);
+
   const netPool = Math.max(0, revenueInput - expenseInput);
   const companyShare = Math.round(netPool * 0.5);
   const authorRoyaltyPool = netPool - companyShare;
@@ -827,6 +862,218 @@ export const AdminRoyaltyTab: React.FC = () => {
           </div>
           <div style={{ fontSize: '11.5px', color: '#64748B', marginTop: '4px' }}>
             {previewRatePerMinute} ₸ × {totalPlatformMinutes.toLocaleString()} мин
+          </div>
+        </div>
+      </div>
+
+      {/* 3. Monthly Listening Activity Chart */}
+      <div
+        style={{
+          background: '#FFFFFF',
+          borderRadius: '20px',
+          padding: '24px 28px',
+          border: '1.5px solid #E2E8F0',
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '20px',
+            flexWrap: 'wrap',
+            gap: '12px',
+          }}
+        >
+          <div>
+            <h3 style={{ fontSize: '18px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
+              Күнделікті тыңдалым белсенділігі: {getMonthLabel(selectedMonth)}
+            </h3>
+            <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#64748B' }}>
+              Осы айдағы {totalPlatformMinutes.toLocaleString()} минуттың күндер бойынша таралуы
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '12.5px', fontWeight: 700 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: 'linear-gradient(180deg, #3B82F6 0%, #005494 100%)' }} />
+              <span style={{ color: '#475569' }}>Тыңдалған күн</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: 'linear-gradient(180deg, #EF4444 0%, #EA580C 100%)' }} />
+              <span style={{ color: '#EA580C' }}>Пик (ең көп)</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: '#E2E8F0' }} />
+              <span style={{ color: '#94A3B8' }}>0 мин</span>
+            </div>
+          </div>
+        </div>
+
+        {/* 3 Metric Summary Cards */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: '14px',
+            marginBottom: '22px',
+          }}
+        >
+          {/* Peak Day */}
+          <div
+            style={{
+              background: '#F8FAFC',
+              borderRadius: '14px',
+              padding: '14px 18px',
+              border: '1px solid #E2E8F0',
+            }}
+          >
+            <div style={{ fontSize: '12px', fontWeight: 700, color: '#64748B', marginBottom: '4px' }}>
+              Ең көп тыңдалған күн (Пик)
+            </div>
+            <div style={{ fontSize: '18px', fontWeight: 900, color: peakDay ? '#EA580C' : 'var(--text-dark)' }}>
+              {peakDay ? `${peakDay.dayLabel} күні` : '—'}
+            </div>
+            <div style={{ fontSize: '11.5px', fontWeight: 700, color: '#64748B', marginTop: '2px' }}>
+              {peakDay ? `${peakDay.minutes} мин (${peakDay.seconds} сек)` : 'Әлі тыңдалым жоқ'}
+            </div>
+          </div>
+
+          {/* Active Days */}
+          <div
+            style={{
+              background: '#F8FAFC',
+              borderRadius: '14px',
+              padding: '14px 18px',
+              border: '1px solid #E2E8F0',
+            }}
+          >
+            <div style={{ fontSize: '12px', fontWeight: 700, color: '#64748B', marginBottom: '4px' }}>
+              Белсенді күндер саны
+            </div>
+            <div style={{ fontSize: '18px', fontWeight: 900, color: 'var(--text-dark)' }}>
+              {totalActiveDays} күн
+            </div>
+            <div style={{ fontSize: '11.5px', fontWeight: 700, color: '#64748B', marginTop: '2px' }}>
+              {dailyActivityList.length} күннің ішінде
+            </div>
+          </div>
+
+          {/* Average Minutes per Active Day */}
+          <div
+            style={{
+              background: '#F8FAFC',
+              borderRadius: '14px',
+              padding: '14px 18px',
+              border: '1px solid #E2E8F0',
+            }}
+          >
+            <div style={{ fontSize: '12px', fontWeight: 700, color: '#64748B', marginBottom: '4px' }}>
+              Орташа күнделікті уақыт
+            </div>
+            <div style={{ fontSize: '18px', fontWeight: 900, color: 'var(--text-dark)' }}>
+              {averageDailyMinutes} мин / күн
+            </div>
+            <div style={{ fontSize: '11.5px', fontWeight: 700, color: '#64748B', marginTop: '2px' }}>
+              Белсенді күндердің орташасы
+            </div>
+          </div>
+        </div>
+
+        {/* Bar Chart Container */}
+        <div style={{ overflowX: 'auto', paddingBottom: '8px' }} className="custom-scrollbar">
+          <div
+            style={{
+              minWidth: '680px',
+              display: 'grid',
+              gridTemplateColumns: `repeat(${dailyActivityList.length || 30}, 1fr)`,
+              gap: '6px',
+              alignItems: 'flex-end',
+              height: '160px',
+              background: '#F8FAFC',
+              padding: '28px 14px 12px',
+              borderRadius: '16px',
+              border: '1px solid #E2E8F0',
+            }}
+          >
+            {dailyActivityList.map((day) => {
+              const isPeak = peakDay && peakDay.date === day.date && day.minutes > 0;
+              const isToday = day.date === todayIso;
+              const heightPercent = maxMinutesInMonth > 0
+                ? Math.max(6, Math.round((day.minutes / maxMinutesInMonth) * 72))
+                : 6;
+
+              return (
+                <div
+                  key={day.date}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    height: '100%',
+                    justifyContent: 'flex-end',
+                    position: 'relative',
+                  }}
+                  title={`${day.dayLabel} (${day.date}): ${day.minutes} мин (${day.seconds} сек)`}
+                >
+                  {/* Peak label badge */}
+                  {isPeak && (
+                    <span
+                      style={{
+                        position: 'absolute',
+                        top: '-20px',
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        fontSize: '9.5px',
+                        fontWeight: 900,
+                        color: '#EA580C',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      🔥 {day.minutes}м
+                    </span>
+                  )}
+
+                  {/* Bar */}
+                  <div
+                    style={{
+                      width: '100%',
+                      maxWidth: '30px',
+                      height: `${heightPercent}%`,
+                      borderRadius: '6px 6px 3px 3px',
+                      background: isPeak
+                        ? 'linear-gradient(180deg, #EF4444 0%, #EA580C 100%)'
+                        : day.minutes > 0
+                        ? 'linear-gradient(180deg, #3B82F6 0%, #005494 100%)'
+                        : '#E2E8F0',
+                      boxShadow: isPeak
+                        ? '0 4px 12px rgba(239, 68, 68, 0.4)'
+                        : day.minutes > 0
+                        ? '0 2px 6px rgba(0, 84, 148, 0.2)'
+                        : 'none',
+                      transition: 'all 0.2s',
+                      cursor: 'pointer',
+                      position: 'relative',
+                    }}
+                  />
+
+                  {/* Date label */}
+                  <span
+                    style={{
+                      fontSize: '10px',
+                      fontWeight: isToday || isPeak ? 800 : 600,
+                      color: isToday ? 'var(--blue)' : isPeak ? '#EA580C' : '#64748B',
+                      marginTop: '6px',
+                      textAlign: 'center',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {day.dayLabel}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>

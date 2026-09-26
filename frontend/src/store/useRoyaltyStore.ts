@@ -36,6 +36,7 @@ export interface RoyaltyPeriod {
   totalMinutesListened: number;
   ratePerMinute: number;
   authorEarnings: AuthorEarningDetail[];
+  dailyActivity?: { date: string; dayLabel: string; seconds: number; minutes: number }[];
   isFinalized: boolean;
   finalizedAt?: string;
   adminNote?: string;
@@ -192,6 +193,12 @@ const mapBackendPeriod = (dto: any): RoyaltyPeriod => {
       totalSeconds: Number(ae.totalSeconds) || (Number(ae.totalMinutes) || 0) * 60,
       totalEarned: Number(ae.totalEarned) || 0,
       status: ae.status === 'paid' ? 'paid' : 'calculated',
+    })),
+    dailyActivity: (dto.dailyActivity || []).map((da: any) => ({
+      date: typeof da.date === 'string' ? da.date : (da.date ? `${da.date.year}-${String(da.date.monthValue || da.date.month).padStart(2, '0')}-${String(da.date.dayOfMonth || da.date.day).padStart(2, '0')}` : ''),
+      dayLabel: da.dayLabel,
+      seconds: Number(da.seconds) || 0,
+      minutes: Number(da.minutes) || 0,
     })),
     isFinalized: isFinal,
     finalizedAt: dto.finalizedAt,

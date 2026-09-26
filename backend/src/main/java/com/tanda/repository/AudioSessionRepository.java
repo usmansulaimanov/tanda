@@ -172,6 +172,9 @@ public interface AudioSessionRepository extends JpaRepository<AudioSession, Stri
 
     @Query("SELECT s.startedAt, s.validSeconds FROM AudioSession s WHERE s.userId = :userId AND s.startedAt >= :since ORDER BY s.startedAt ASC")
     List<Object[]> getUserSessionTimesSince(@Param("userId") String userId, @Param("since") OffsetDateTime since);
+
+    @Query("SELECT s.startedAt, s.validSeconds FROM AudioSession s WHERE s.startedAt >= :start AND s.startedAt < :end ORDER BY s.startedAt ASC")
+    List<Object[]> findSessionTimesBetween(@Param("start") OffsetDateTime start, @Param("end") OffsetDateTime end);
 }
 
 
