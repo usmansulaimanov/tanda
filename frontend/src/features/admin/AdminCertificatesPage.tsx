@@ -317,7 +317,7 @@ export const AdminCertificatesPage: React.FC = () => {
   }, [readers, readerSearchQuery]);
 
   return (
-    <div style={{ maxWidth: '1380px', width: '100%', margin: '0 auto', padding: '0 40px 60px' }}>
+    <div style={{ maxWidth: '1380px', width: '100%', margin: '0 auto', padding: '32px 40px 80px' }}>
       {/* 1. Header & Create Button */}
         <div
           style={{
