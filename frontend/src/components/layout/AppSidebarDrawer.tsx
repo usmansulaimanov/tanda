@@ -339,18 +339,35 @@ export const AppSidebarDrawer: React.FC = () => {
               )}
 
               {canViewStats && (
-                <Link
-                  to="/admin/stats"
-                  className={`sidebar-nav-link ${location.pathname.startsWith('/admin/stats') ? 'active' : ''}`}
-                  onClick={closeSidebar}
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="18" y1="20" x2="18" y2="10"></line>
-                    <line x1="12" y1="20" x2="12" y2="4"></line>
-                    <line x1="6" y1="20" x2="6" y2="14"></line>
-                  </svg>
-                  <span>Статистика</span>
-                </Link>
+                <>
+                  <Link
+                    to="/admin/rating"
+                    className={`sidebar-nav-link ${location.pathname.startsWith('/admin/rating') ? 'active' : ''}`}
+                    onClick={closeSidebar}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
+                      <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
+                      <path d="M4 22h16"></path>
+                      <path d="M10 14.66V17c0 .55-.45 1-1 1H7v4h10v-4h-2c-.55 0-1-.45-1-1v-2.34"></path>
+                      <path d="M6 4h12v7a6 6 0 0 1-12 0V4z"></path>
+                    </svg>
+                    <span>Рейтинг (Топ 100)</span>
+                  </Link>
+
+                  <Link
+                    to="/admin/stats"
+                    className={`sidebar-nav-link ${location.pathname.startsWith('/admin/stats') ? 'active' : ''}`}
+                    onClick={closeSidebar}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="18" y1="20" x2="18" y2="10"></line>
+                      <line x1="12" y1="20" x2="12" y2="4"></line>
+                      <line x1="6" y1="20" x2="6" y2="14"></line>
+                    </svg>
+                    <span>Статистика</span>
+                  </Link>
+                </>
               )}
 
               {canManageManagers && (
@@ -418,6 +435,21 @@ export const AppSidebarDrawer: React.FC = () => {
                   <path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path>
                 </svg>
                 <span>Жаңалықтар</span>
+              </Link>
+
+              <Link
+                to="/rating"
+                className={`sidebar-nav-link ${location.pathname.startsWith('/rating') || location.pathname.startsWith('/leaderboard') ? 'active' : ''}`}
+                onClick={closeSidebar}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
+                  <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
+                  <path d="M4 22h16"></path>
+                  <path d="M10 14.66V17c0 .55-.45 1-1 1H7v4h10v-4h-2c-.55 0-1-.45-1-1v-2.34"></path>
+                  <path d="M6 4h12v7a6 6 0 0 1-12 0V4z"></path>
+                </svg>
+                <span>Рейтинг (Топ 100)</span>
               </Link>
 
               <a

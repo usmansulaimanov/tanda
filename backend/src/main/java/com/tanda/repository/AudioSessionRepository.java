@@ -124,6 +124,40 @@ public interface AudioSessionRepository extends JpaRepository<AudioSession, Stri
     List<AudioSession> findSessionsForBooksBetween(@Param("bookIds") List<String> bookIds,
                                                   @Param("start") OffsetDateTime start,
                                                   @Param("end") OffsetDateTime end);
+
+    @Query("SELECT u.id, u.name, u.email, u.avatarUrl, COALESCE(SUM(s.validSeconds), 0), MAX(s.lastHeartbeatAt) " +
+           "FROM AudioSession s JOIN User u ON s.userId = u.id " +
+           "WHERE s.startedAt >= :start AND s.startedAt < :end " +
+           "GROUP BY u.id, u.name, u.email, u.avatarUrl " +
+           "ORDER BY COALESCE(SUM(s.validSeconds), 0) DESC, MAX(s.lastHeartbeatAt) ASC")
+    List<Object[]> findTopUsersBetween(@Param("start") OffsetDateTime start, @Param("end") OffsetDateTime end, Pageable pageable);
+
+    @Query("SELECT COUNT(DISTINCT s.userId) FROM AudioSession s WHERE s.startedAt >= :start AND s.startedAt < :end")
+    long countParticipantsBetween(@Param("start") OffsetDateTime start, @Param("end") OffsetDateTime end);
+
+    @Query("SELECT COALESCE(SUM(s.validSeconds), 0) FROM AudioSession s WHERE s.userId = :userId AND s.startedAt >= :start AND s.startedAt < :end")
+    long getUserSecondsBetween(@Param("userId") String userId, @Param("start") OffsetDateTime start, @Param("end") OffsetDateTime end);
+
+    @Query(value = "SELECT COUNT(*) FROM (" +
+                   "  SELECT s.user_id " +
+                   "  FROM audio_sessions s " +
+                   "  WHERE s.started_at >= :start AND s.started_at < :end " +
+                   "  GROUP BY s.user_id " +
+                   "  HAVING COALESCE(SUM(s.valid_seconds), 0) > :seconds" +
+                   ") sub", nativeQuery = true)
+    long countUsersWithMoreSecondsBetween(@Param("start") OffsetDateTime start, @Param("end") OffsetDateTime end, @Param("seconds") long seconds);
+
+    @Query("SELECT s.userId, COALESCE(SUM(s.validSeconds), 0) " +
+           "FROM AudioSession s " +
+           "WHERE s.userId IN :userIds " +
+           "GROUP BY s.userId")
+    List<Object[]> findTotalSecondsByUserIds(@Param("userIds") List<String> userIds);
+
+    @Query("SELECT COALESCE(SUM(s.validSeconds), 0) FROM AudioSession s WHERE s.userId = :userId")
+    long getUserTotalSecondsAllTime(@Param("userId") String userId);
+
+    @Query("SELECT s.startedAt, s.validSeconds FROM AudioSession s WHERE s.userId = :userId AND s.startedAt >= :since ORDER BY s.startedAt ASC")
+    List<Object[]> getUserSessionTimesSince(@Param("userId") String userId, @Param("since") OffsetDateTime since);
 }
 
 

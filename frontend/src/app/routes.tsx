@@ -69,6 +69,8 @@ const BookStatsPage = lazyWithRetry(() => import('../features/books/BookStatsPag
 const BookAudiencePage = lazyWithRetry(() => import('../features/books/BookAudiencePage').then((m) => ({ default: m.BookAudiencePage })));
 const UserBookStatsPage = lazyWithRetry(() => import('../features/books/UserBookStatsPage').then((m) => ({ default: m.UserBookStatsPage })));
 const AdminReaderStatsPage = lazyWithRetry(() => import('../features/admin/AdminReaderStatsPage').then((m) => ({ default: m.AdminReaderStatsPage })));
+const LeaderboardPage = lazyWithRetry(() => import('../features/leaderboard/LeaderboardPage').then((m) => ({ default: m.LeaderboardPage })));
+const AdminLeaderboardPage = lazyWithRetry(() => import('../features/admin/AdminLeaderboardPage').then((m) => ({ default: m.AdminLeaderboardPage })));
 
 
 const PageLoader = () => (
@@ -302,6 +304,18 @@ export const router = createBrowserRouter([
         ),
       },
       {
+        path: 'rating',
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <LeaderboardPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'leaderboard',
+        element: <Navigate to="/rating" replace />,
+      },
+      {
         path: 'promocode',
         element: (
           <ReaderOnlyRouteGuard>
@@ -320,6 +334,20 @@ export const router = createBrowserRouter([
             </Suspense>
           </AdminRouteGuard>
         ),
+      },
+      {
+        path: 'admin/rating',
+        element: (
+          <AdminRouteGuard>
+            <Suspense fallback={<PageLoader />}>
+              <AdminLeaderboardPage />
+            </Suspense>
+          </AdminRouteGuard>
+        ),
+      },
+      {
+        path: 'admin/leaderboard',
+        element: <Navigate to="/admin/rating" replace />,
       },
       {
         path: 'admin',
