@@ -560,26 +560,9 @@ export const AdminCertificatesPage: React.FC = () => {
                     <h3 style={{ fontSize: '18px', fontWeight: 900, color: 'var(--text-dark)', margin: '0 0 4px' }}>
                       {cert.recipientName}
                     </h3>
-                    <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--blue)', marginBottom: '8px' }}>
+                    <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--blue)', marginBottom: '14px' }}>
                       {cert.title}
                     </div>
-
-                    {cert.description && (
-                      <p
-                        style={{
-                          fontSize: '12.5px',
-                          color: '#475569',
-                          margin: '0 0 14px',
-                          lineHeight: '1.4',
-                          display: '-webkit-box',
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: 'vertical',
-                          overflow: 'hidden',
-                        }}
-                      >
-                        {cert.description}
-                      </p>
-                    )}
 
                     {/* Meta info: Date & Issuer */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '11.5px', color: '#64748B', marginBottom: '16px' }}>
