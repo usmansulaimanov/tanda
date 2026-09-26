@@ -568,22 +568,6 @@ export const AdminCertificatesPage: React.FC = () => {
                     {/* Meta info: Date & Issuer */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '11.5px', color: '#64748B', marginBottom: '16px' }}>
                       <span>📅 Берілген күні: <strong>{cert.issuedAt}</strong></span>
-                      {cert.pdfUrl && (
-                        <span
-                          style={{
-                            color: cert.pdfUrl.includes('t.me') || cert.pdfUrl.includes('telegram') ? '#0284C7' : '#16A34A',
-                            fontWeight: 700,
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                            background: cert.pdfUrl.includes('t.me') || cert.pdfUrl.includes('telegram') ? '#E0F2FE' : '#DCFCE7',
-                            padding: '2px 8px',
-                            borderRadius: '6px',
-                          }}
-                        >
-                          {cert.pdfUrl.includes('t.me') || cert.pdfUrl.includes('telegram') ? '✈️ Telegram' : '📄 PDF / Файл'}
-                        </span>
-                      )}
                     </div>
                   </div>
 
