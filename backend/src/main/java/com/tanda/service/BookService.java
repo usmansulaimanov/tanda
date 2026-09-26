@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 public class BookService {
 
     private final BookRepository bookRepository;
+    private final com.tanda.repository.AudioSessionRepository audioSessionRepository;
 
     private boolean isSecurityContextAdmin() {
         org.springframework.security.core.Authentication auth =
@@ -283,6 +284,15 @@ public class BookService {
     public void hardDeleteBook(String id) {
         Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Book", "id", id));
+
+        long totalListeningSeconds = audioSessionRepository.getTotalListeningSecondsByBookId(id);
+        if (totalListeningSeconds > 0) {
+            long totalMinutes = Math.max(1, totalListeningSeconds / 60);
+            throw new BadRequestException(
+                    "Бұл кітапта " + totalMinutes + " минут тыңдау тарихы бар. Автордың роялтиі мен оқырмандардың рейтингін сақтау үшін бұл кітапты базадан мүлдем өшіруге болмайды. Оны тек «Өшірілгендер» бөлімінде сақтауға болады."
+            );
+        }
+
         bookRepository.delete(book);
         log.info("Book permanently deleted from database (hard delete): id={}, title='{}'", id, book.getTitle());
     }

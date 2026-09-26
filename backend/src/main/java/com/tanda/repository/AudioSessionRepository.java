@@ -91,6 +91,9 @@ public interface AudioSessionRepository extends JpaRepository<AudioSession, Stri
     @Query("SELECT COALESCE(SUM(s.validSeconds), 0) FROM AudioSession s WHERE s.book.id = :bookId AND s.userId = :userId")
     long getUserBookListeningAllTime(@Param("bookId") String bookId, @Param("userId") String userId);
 
+    @Query("SELECT COALESCE(SUM(s.validSeconds), 0) FROM AudioSession s WHERE s.book.id = :bookId")
+    long getTotalListeningSecondsByBookId(@Param("bookId") String bookId);
+
     @Query("SELECT s FROM AudioSession s WHERE s.book.id = :bookId AND s.userId = :userId AND s.startedAt >= :start AND s.startedAt < :end")
     List<AudioSession> findUserSessionsForBookBetween(@Param("bookId") String bookId,
                                                      @Param("userId") String userId,

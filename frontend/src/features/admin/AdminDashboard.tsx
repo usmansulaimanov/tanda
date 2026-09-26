@@ -142,8 +142,11 @@ export const AdminDashboard: React.FC = () => {
       try {
         await hardDeleteBook(bookToPermanentDelete.id);
         showToast(`«${bookToPermanentDelete.title}» кітабы базадан мүлдем өшірілді`, 'success');
-      } catch {
-        showToast('Кітапты өшіру кезінде қате орын алды', 'error');
+      } catch (err: unknown) {
+        const errorMsg =
+          (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+          'Кітапты өшіру кезінде қате орын алды';
+        showToast(errorMsg, 'error');
       } finally {
         setBookToPermanentDelete(null);
       }
@@ -156,8 +159,11 @@ export const AdminDashboard: React.FC = () => {
       try {
         await hardDeleteBooks(selectedBookIds);
         showToast(`Таңдалған ${count} кітап базадан мүлдем өшірілді`, 'success');
-      } catch {
-        showToast('Кітаптарды өшіру кезінде қате орын алды', 'error');
+      } catch (err: unknown) {
+        const errorMsg =
+          (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+          'Кітаптарды өшіру кезінде қате орын алды (кейбір кітаптарда тыңдау тарихы болуы мүмкін)';
+        showToast(errorMsg, 'error');
       } finally {
         setSelectedBookIds([]);
         setIsBulkPermanentDeleteModalOpen(false);
