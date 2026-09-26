@@ -143,20 +143,18 @@ export const CertificateVerifyPage: React.FC = () => {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '10px',
               textAlign: 'center',
             }}
           >
-            <span style={{ fontSize: '18px' }}>{cert.status === 'ACTIVE' ? '✓' : '⚠️'}</span>
             <span
               style={{
-                fontSize: '13.5px',
+                fontSize: '14px',
                 fontWeight: 800,
                 color: cert.status === 'ACTIVE' ? '#15803D' : '#DC2626',
               }}
             >
               {cert.status === 'ACTIVE'
-                ? 'Ресми расталған түпнұсқа сертификат (Tanda Platform)'
+                ? 'Сертификаттың түпнұсқа екені расталады'
                 : 'Сертификаттың қолданылу мерзімі тоқтатылған'}
             </span>
           </div>
@@ -199,7 +197,6 @@ export const CertificateVerifyPage: React.FC = () => {
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '20px' }}>🏆</span>
                 <span style={{ fontSize: '13px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                   {cert.issuerName || 'Tanda Platform'}
                 </span>
