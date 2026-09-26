@@ -100,12 +100,21 @@ export const AdminCertificatesPage: React.FC = () => {
     }
   };
 
+  const CERT_NUMBER_PATTERN = /^TND-\d{4}-\d{6}$/;
+
   // Check number availability on blur or change
   const handleNumberChange = async (val: string) => {
-    const upper = val.toUpperCase();
+    const upper = val.toUpperCase().trim();
     setFormNumber(upper);
-    if (!upper.trim()) {
+    if (!upper) {
       setNumberAvailability(null);
+      return;
+    }
+    if (!CERT_NUMBER_PATTERN.test(upper)) {
+      setNumberAvailability({
+        available: false,
+        message: 'Қате формат! Нөмір соңында міндетті түрде 6 сан болуы керек (мысалы: TND-2026-000001)',
+      });
       return;
     }
     setIsCheckingNumber(true);
@@ -757,9 +766,15 @@ export const AdminCertificatesPage: React.FC = () => {
                         fontWeight: 800,
                         cursor: 'pointer',
                         padding: 0,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '5px',
                       }}
                     >
-                      🔄 Автоматты нөмір қою
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
+                      </svg>
+                      Автоматты нөмір қою
                     </button>
                   </div>
 

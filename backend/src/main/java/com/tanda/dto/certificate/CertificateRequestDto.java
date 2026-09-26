@@ -18,6 +18,10 @@ import java.time.LocalDate;
 public class CertificateRequestDto {
 
     @NotBlank(message = "Сертификат нөмірі міндетті")
+    @jakarta.validation.constraints.Pattern(
+            regexp = "^TND-\\d{4}-\\d{6}$",
+            message = "Сертификат нөмірі TND-ЖЖЖЖ-000001 форматында (соңында дәл 6 сан) болуы қажет"
+    )
     private String certificateNumber;
 
     @NotBlank(message = "Алушының аты-жөні міндетті")

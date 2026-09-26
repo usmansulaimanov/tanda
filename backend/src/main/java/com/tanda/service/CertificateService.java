@@ -80,16 +80,21 @@ public class CertificateService {
                 .collect(Collectors.toList());
     }
 
+    private static final java.util.regex.Pattern CERT_NUMBER_PATTERN = java.util.regex.Pattern.compile("^TND-\\d{4}-\\d{6}$");
+
     @Transactional(readOnly = true)
     public Map<String, Object> checkNumberAvailable(String certNumber, String excludeId) {
         if (certNumber == null || certNumber.trim().isBlank()) {
             return Map.of("available", false, "message", "Сертификат нөмірі бос болмауы тиіс");
         }
         String cleanNumber = certNumber.trim().toUpperCase();
+        if (!CERT_NUMBER_PATTERN.matcher(cleanNumber).matches()) {
+            return Map.of("available", false, "message", "Қате формат! Нөмір міндетті түрде 6 санды болуы керек (мысалы: TND-2026-000001)");
+        }
         var existing = certificateRepository.findByCertificateNumber(cleanNumber);
         if (existing.isPresent()) {
             if (excludeId != null && existing.get().getId().equals(excludeId)) {
-                return Map.of("available", true, "message", "Бұл осы сертификаттың өз нөмірі");
+                return Map.of("available", true, "message", "✓ Бұл осы сертификаттың өз нөмірі");
             }
             return Map.of("available", false, "message", "⚠️ Бұл сертификат нөмірі бұрыннан тіркелген!");
         }
@@ -116,6 +121,10 @@ public class CertificateService {
     @Transactional
     public CertificateResponseDto createCertificate(CertificateRequestDto dto) {
         String cleanNumber = dto.getCertificateNumber().trim().toUpperCase();
+
+        if (!CERT_NUMBER_PATTERN.matcher(cleanNumber).matches()) {
+            throw new BadRequestException("Қате формат! Нөмір міндетті түрде 6 санды болуы керек (мысалы: TND-2026-000001)");
+        }
 
         if (certificateRepository.existsByCertificateNumber(cleanNumber)) {
             throw new ConflictException("⚠️ Бұл сертификат нөмірі бұрыннан тіркелген: " + cleanNumber);
@@ -157,6 +166,9 @@ public class CertificateService {
                 .orElseThrow(() -> new ResourceNotFoundException("Сертификат табылмады id: " + id));
 
         String cleanNumber = dto.getCertificateNumber().trim().toUpperCase();
+        if (!CERT_NUMBER_PATTERN.matcher(cleanNumber).matches()) {
+            throw new BadRequestException("Қате формат! Нөмір міндетті түрде 6 санды болуы керек (мысалы: TND-2026-000001)");
+        }
         if (!cleanNumber.equalsIgnoreCase(cert.getCertificateNumber())) {
             var existing = certificateRepository.findByCertificateNumber(cleanNumber);
             if (existing.isPresent() && !existing.get().getId().equals(id)) {
