@@ -25,6 +25,8 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -280,7 +282,9 @@ class BookControllerIntegrationTest {
         mockMvc.perform(delete("/api/v1/books/" + deleteTargetId))
                 .andExpect(status().isNoContent());
 
-        assertFalse(bookRepository.existsById(deleteTargetId));
+        Book deleted = bookRepository.findById(deleteTargetId).orElse(null);
+        assertNotNull(deleted);
+        assertTrue(deleted.getIsArchived());
     }
 
     @Test

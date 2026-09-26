@@ -261,8 +261,9 @@ public class BookService {
     public void deleteBook(String id) {
         Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Book", "id", id));
-        bookRepository.delete(book);
-        log.info("Book deleted: id={}, title='{}'", id, book.getTitle());
+        book.setIsArchived(true);
+        bookRepository.save(book);
+        log.info("Book soft-deleted (archived): id={}, title='{}'", id, book.getTitle());
     }
 
     /**
