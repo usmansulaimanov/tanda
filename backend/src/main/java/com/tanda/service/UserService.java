@@ -414,6 +414,9 @@ public class UserService {
                 .authProvider(user.getAuthProvider())
                 .isPremium(isPremium)
                 .premiumExpiresAt(premiumExpiresAt)
+                .personalMessage(user.getPersonalMessage())
+                .personalMessageDays(user.getPersonalMessageDays())
+                .personalMessageActive(user.getPersonalMessageActive())
                 .build();
     }
 

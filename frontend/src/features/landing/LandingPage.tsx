@@ -67,16 +67,24 @@ function useCountUp(target: number, duration = 1800): number {
 export const LandingPage: React.FC = () => {
   const location = useLocation();
   const { books } = useBookStore();
-  const { user, isAuthenticated } = useAuthStore();
+  const { user, isAuthenticated, restoreSession } = useAuthStore();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      restoreSession();
+    }
+  }, [isAuthenticated, restoreSession]);
 
   const [selectedCat, setSelectedCat] = useState('Бәрі');
   const [search, setSearch] = useState('');
 
   const personalMsg = user?.personalMessage;
-  const messageText = typeof personalMsg === 'string' ? personalMsg : personalMsg?.text;
-  const isMsgActive = typeof personalMsg === 'string'
-    ? (user as any)?.personalMessageActive !== false
-    : personalMsg?.isActive !== false;
+  const messageText = typeof personalMsg === 'string'
+    ? personalMsg
+    : (personalMsg?.text || (user as any)?.personalMessageText || (user as any)?.personal_message);
+  const isMsgActive = typeof personalMsg === 'object' && typeof personalMsg?.isActive === 'boolean'
+    ? personalMsg.isActive
+    : ((user as any)?.personalMessageActive !== false && (user as any)?.personal_message_active !== false);
 
   const isMessageValid = useMemo(() => {
     if (!messageText || !messageText.trim() || !isMsgActive) {

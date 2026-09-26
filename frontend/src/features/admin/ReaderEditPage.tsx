@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useAuthStore, validatePasswordComplexity, generateCompliantPassword, formatIdNumberInput } from '../../store/useAuthStore';
+import { useAuthStore, validatePasswordComplexity, generateCompliantPassword, formatIdNumberInput, normalizeUser } from '../../store/useAuthStore';
 import { useToastStore } from '../../store/useToastStore';
 import { User } from '../../types';
 import { api } from '../../lib/api';
@@ -176,11 +176,13 @@ export const ReaderEditPage: React.FC = () => {
 
     const loadUser = async () => {
       let found = getUserById(id);
-      if (!found) {
-        try {
-          const { data } = await api.get(`/api/v1/admin/users/${id}`);
-          if (data) found = data;
-        } catch {}
+      try {
+        const { data } = await api.get(`/api/v1/admin/users/${id}`);
+        if (data) {
+          found = normalizeUser(data);
+        }
+      } catch (err) {
+        console.warn('Could not fetch user directly by ID:', err);
       }
 
       if (found) {
@@ -207,14 +209,17 @@ export const ReaderEditPage: React.FC = () => {
         setIdNumber(found.idNumber || '');
         setPhone(found.phone ? formatPhoneNumber(found.phone) : '');
         setUsername(found.username ? (found.username.startsWith('@') ? found.username : `@${found.username}`) : '');
+        
         const rawPm = found.personalMessage;
-        const pmText = typeof rawPm === 'string' ? rawPm : (rawPm?.text || '');
+        const pmText = typeof rawPm === 'string'
+          ? rawPm
+          : (rawPm?.text || (found as any).personalMessageText || (found as any).personal_message || '');
         const pmDays = typeof rawPm === 'object' && rawPm?.days
           ? rawPm.days
-          : ((found as any).personalMessageDays || 7);
+          : ((found as any).personalMessageDays || (found as any).personal_message_days || 7);
         const pmActive = typeof rawPm === 'object' && typeof rawPm?.isActive === 'boolean'
           ? rawPm.isActive
-          : ((found as any).personalMessageActive !== false);
+          : ((found as any).personalMessageActive !== false && (found as any).personal_message_active !== false);
 
         setMessageText(pmText || '');
         setMessageDays(pmDays || 7);
