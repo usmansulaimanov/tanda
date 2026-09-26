@@ -19,11 +19,10 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +37,7 @@ public class LeaderboardService {
     private final AudioSessionRepository audioSessionRepository;
     private final UserRepository userRepository;
 
+    public static final ZoneId KZ_ZONE = ZoneId.of("Asia/Almaty");
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM");
     private static final DateTimeFormatter FULL_DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
@@ -46,7 +46,7 @@ public class LeaderboardService {
             period = LeaderboardPeriod.THIS_WEEK;
         }
 
-        LocalDate now = LocalDate.now();
+        LocalDate now = LocalDate.now(KZ_ZONE);
         LocalDate startDate;
         LocalDate endDate;
         String periodLabel;
@@ -84,8 +84,8 @@ public class LeaderboardService {
     }
 
     public LeaderboardResponseDto getCustomLeaderboard(LocalDate startDate, LocalDate endDate, String currentUserId, boolean isAdmin) {
-        if (startDate == null) startDate = LocalDate.now().withDayOfMonth(1);
-        if (endDate == null) endDate = LocalDate.now();
+        if (startDate == null) startDate = LocalDate.now(KZ_ZONE).withDayOfMonth(1);
+        if (endDate == null) endDate = LocalDate.now(KZ_ZONE);
 
         String periodLabel = String.format("%s – %s", startDate.format(FULL_DATE_FORMATTER), endDate.format(FULL_DATE_FORMATTER));
         return buildLeaderboardResponse(LeaderboardPeriod.THIS_MONTH, periodLabel, startDate, endDate, currentUserId, isAdmin);
@@ -99,8 +99,8 @@ public class LeaderboardService {
             String currentUserId,
             boolean isAdmin
     ) {
-        OffsetDateTime startDateTime = startDate.atStartOfDay().atOffset(ZoneOffset.UTC);
-        OffsetDateTime endDateTime = endDate.atTime(LocalTime.MAX).atOffset(ZoneOffset.UTC);
+        OffsetDateTime startDateTime = startDate.atStartOfDay(KZ_ZONE).toOffsetDateTime();
+        OffsetDateTime endDateTime = endDate.atTime(LocalTime.MAX).atZone(KZ_ZONE).toOffsetDateTime();
 
         // 1. Fetch Top 100 users for the period
         List<Object[]> topRaw = audioSessionRepository.findTopUsersBetween(startDateTime, endDateTime, PageRequest.of(0, 100));
@@ -221,28 +221,30 @@ public class LeaderboardService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
 
-        LocalDate today = LocalDate.now();
-        OffsetDateTime todayStart = today.atStartOfDay().atOffset(ZoneOffset.UTC);
-        OffsetDateTime last7DaysStart = today.minusDays(6).atStartOfDay().atOffset(ZoneOffset.UTC);
-        OffsetDateTime thisMonthStart = today.withDayOfMonth(1).atStartOfDay().atOffset(ZoneOffset.UTC);
-        OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
+        LocalDate today = LocalDate.now(KZ_ZONE);
+        OffsetDateTime todayStart = today.atStartOfDay(KZ_ZONE).toOffsetDateTime();
+        OffsetDateTime last7DaysStart = today.minusDays(6).atStartOfDay(KZ_ZONE).toOffsetDateTime();
+        OffsetDateTime thisMonthStart = today.withDayOfMonth(1).atStartOfDay(KZ_ZONE).toOffsetDateTime();
+        OffsetDateTime now = OffsetDateTime.now(KZ_ZONE);
 
         long todaySeconds = audioSessionRepository.getUserSecondsBetween(userId, todayStart, now);
         long last7DaysSeconds = audioSessionRepository.getUserSecondsBetween(userId, last7DaysStart, now);
         long thisMonthSeconds = audioSessionRepository.getUserSecondsBetween(userId, thisMonthStart, now);
         long allTimeSeconds = audioSessionRepository.getUserTotalSecondsAllTime(userId);
 
-        // Daily activity for the last 14 days
+        // Daily activity for the last 14 days in Kazakhstan Time Zone
         LocalDate activityStart = today.minusDays(13);
-        OffsetDateTime activityStartDt = activityStart.atStartOfDay().atOffset(ZoneOffset.UTC);
+        OffsetDateTime activityStartDt = activityStart.atStartOfDay(KZ_ZONE).toOffsetDateTime();
         List<Object[]> rawSessions = audioSessionRepository.getUserSessionTimesSince(userId, activityStartDt);
 
         Map<LocalDate, Long> daySums = new HashMap<>();
         for (Object[] row : rawSessions) {
             OffsetDateTime sessionStart = (OffsetDateTime) row[0];
             int validSec = row[1] != null ? ((Number) row[1]).intValue() : 0;
-            LocalDate day = sessionStart.toLocalDate();
-            daySums.put(day, daySums.getOrDefault(day, 0L) + validSec);
+            if (sessionStart != null) {
+                LocalDate day = sessionStart.atZoneSameInstant(KZ_ZONE).toLocalDate();
+                daySums.put(day, daySums.getOrDefault(day, 0L) + validSec);
+            }
         }
 
         List<DailyActivityDto> dailyActivity = new ArrayList<>();

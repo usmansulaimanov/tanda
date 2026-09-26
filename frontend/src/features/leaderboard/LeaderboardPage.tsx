@@ -449,12 +449,12 @@ export const LeaderboardPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* 14-Day Activity Bar Chart */}
+                {/* 30-Day Activity Bar Chart */}
                 <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-sm space-y-6">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div>
                       <h3 className="text-base sm:text-lg font-bold text-slate-900">
-                        Тыңдау белсенділігі (Соңғы 14 күн)
+                        Тыңдау белсенділігі (Соңғы 30 күн)
                       </h3>
                       <p className="text-xs text-slate-500">
                         Әр күн бойынша тыңдалған аудио минуттарының динамикасы
@@ -466,45 +466,47 @@ export const LeaderboardPage: React.FC = () => {
                   </div>
 
                   {/* SVG/CSS Interactive Bar Graph */}
-                  <div className="h-64 sm:h-72 flex items-end justify-between gap-1.5 sm:gap-3 pt-6 pb-2 px-1 sm:px-2 border-b border-slate-200">
-                    {personalStats.dailyActivity.map((day) => {
-                      const heightPercent = maxChartMinutes > 0 ? (day.minutes / maxChartMinutes) * 100 : 0;
-                      const isZero = day.minutes === 0;
+                  <div className="overflow-x-auto pb-2 -mx-2 px-2">
+                    <div className="h-64 sm:h-72 min-w-[700px] flex items-end justify-between gap-1 sm:gap-2 pt-6 pb-2 px-1 sm:px-2 border-b border-slate-200">
+                      {personalStats.dailyActivity.map((day) => {
+                        const heightPercent = maxChartMinutes > 0 ? (day.minutes / maxChartMinutes) * 100 : 0;
+                        const isZero = day.minutes === 0;
 
-                      return (
-                        <div
-                          key={day.date}
-                          className="flex-1 flex flex-col items-center h-full justify-end group relative"
-                        >
-                          {/* Tooltip on hover */}
-                          <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute -top-10 bg-slate-900 text-white text-[10px] sm:text-xs py-1 px-2.5 rounded-lg shadow-lg pointer-events-none whitespace-nowrap z-20">
-                            {day.dayLabel}: <span className="text-emerald-400 font-bold">{day.minutes} мин</span>
-                          </div>
-
-                          {/* Bar Value above bar */}
-                          {day.minutes > 0 && (
-                            <span className="text-[10px] text-slate-500 mb-1 group-hover:text-emerald-700 font-bold transition-colors hidden sm:block">
-                              {day.minutes}
-                            </span>
-                          )}
-
-                          {/* Bar column */}
+                        return (
                           <div
-                            style={{ height: `${Math.max(heightPercent, 4)}%` }}
-                            className={`w-full max-w-[28px] rounded-t-lg transition-all duration-300 ${
-                              isZero
-                                ? 'bg-slate-200 group-hover:bg-slate-300'
-                                : 'bg-emerald-500 group-hover:bg-emerald-600 shadow-sm'
-                            }`}
-                          ></div>
+                            key={day.date}
+                            className="flex-1 flex flex-col items-center h-full justify-end group relative min-w-[18px]"
+                          >
+                            {/* Tooltip on hover */}
+                            <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute -top-10 bg-slate-900 text-white text-[10px] sm:text-xs py-1 px-2.5 rounded-lg shadow-lg pointer-events-none whitespace-nowrap z-20">
+                              {day.dayLabel}: <span className="text-emerald-400 font-bold">{day.minutes} мин</span>
+                            </div>
 
-                          {/* Day Label at bottom */}
-                          <span className="text-[10px] sm:text-xs text-slate-500 font-medium mt-2 group-hover:text-slate-900 transition-colors truncate max-w-full text-center">
-                            {day.dayLabel.split(' ')[0]}
-                          </span>
-                        </div>
-                      );
-                    })}
+                            {/* Bar Value above bar */}
+                            {day.minutes > 0 && (
+                              <span className="text-[9px] sm:text-[10px] text-slate-500 mb-1 group-hover:text-emerald-700 font-bold transition-colors hidden sm:block">
+                                {day.minutes}
+                              </span>
+                            )}
+
+                            {/* Bar column */}
+                            <div
+                              style={{ height: `${Math.max(heightPercent, 4)}%` }}
+                              className={`w-full max-w-[20px] rounded-t transition-all duration-300 ${
+                                isZero
+                                  ? 'bg-slate-200 group-hover:bg-slate-300'
+                                  : 'bg-emerald-500 group-hover:bg-emerald-600 shadow-sm'
+                              }`}
+                            ></div>
+
+                            {/* Day Label at bottom */}
+                            <span className="text-[9px] sm:text-[10px] text-slate-500 font-medium mt-2 group-hover:text-slate-900 transition-colors truncate max-w-full text-center">
+                              {day.dayLabel.split(' ')[0]}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
 
