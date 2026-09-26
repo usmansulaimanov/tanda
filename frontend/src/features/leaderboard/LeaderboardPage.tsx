@@ -178,23 +178,6 @@ export const LeaderboardPage: React.FC = () => {
               </div>
             )}
 
-            {/* Ongoing Race Notification */}
-            {!isPastPeriod && (
-              <div className="p-3.5 sm:p-4 rounded-2xl bg-emerald-50/80 border border-emerald-200 shadow-sm flex items-center justify-between gap-4 text-xs sm:text-sm text-emerald-900">
-                <div className="flex items-center gap-2.5">
-                  <span className="relative flex h-3 w-3">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-600"></span>
-                  </span>
-                  <span className="font-medium">
-                    Жарыс тікелей эфирде (Real-time) жаңарып отырады. Жексенбі 23:59-да есеп жабылады.
-                  </span>
-                </div>
-                <div className="text-emerald-700 font-bold hidden md:block whitespace-nowrap">
-                  Топ-10 ➡️ Сертификат
-                </div>
-              </div>
-            )}
 
             {/* Current User Result Card (Pinned at top) */}
             {isAuthenticated && leaderboardData?.currentUserEntry && (
