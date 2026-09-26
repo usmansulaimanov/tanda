@@ -271,9 +271,9 @@ export const CertificateVerifyPage: React.FC = () => {
             {/* Details Grid */}
             <div
               style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: '12px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
                 background: '#FAFAFA',
                 padding: '16px 20px',
                 borderRadius: '14px',
@@ -285,7 +285,7 @@ export const CertificateVerifyPage: React.FC = () => {
                 <span style={{ color: '#64748B', display: 'block', marginBottom: '2px' }}>Берілген күні:</span>
                 <strong style={{ color: '#0F172A' }}>{cert.issuedAt}</strong>
               </div>
-              <div>
+              <div style={{ textAlign: 'right' }}>
                 <span style={{ color: '#64748B', display: 'block', marginBottom: '2px' }}>Берген ұйым:</span>
                 <strong style={{ color: '#0F172A' }}>{cert.issuerName || 'Tanda Platform'}</strong>
               </div>
