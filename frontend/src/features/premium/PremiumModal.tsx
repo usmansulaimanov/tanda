@@ -291,39 +291,6 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
             </div>
           </div>
 
-          {/* Value Props */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
-            <div className="p-3.5 rounded-2xl bg-amber-50/60 border border-amber-100/80 flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center font-bold">
-                <Crown className="w-4 h-4" />
-              </div>
-              <div>
-                <p className="text-xs font-bold text-slate-900">Толық қолжетімділік</p>
-                <p className="text-[11px] text-slate-500">100+ премиум кітап</p>
-              </div>
-            </div>
-
-            <div className="p-3.5 rounded-2xl bg-emerald-50/60 border border-emerald-100/80 flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center font-bold">
-                <ShieldCheck className="w-4 h-4" />
-              </div>
-              <div>
-                <p className="text-xs font-bold text-slate-900">0% Жарнама</p>
-                <p className="text-[11px] text-slate-500">Үзіліссіз тыңдау</p>
-              </div>
-            </div>
-
-            <div className="p-3.5 rounded-2xl bg-blue-50/60 border border-blue-100/80 flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center font-bold">
-                <Clock className="w-4 h-4" />
-              </div>
-              <div>
-                <p className="text-xs font-bold text-slate-900">Шектеусіз уақыт</p>
-                <p className="text-[11px] text-slate-500">15-минуттық лимитсіз</p>
-              </div>
-            </div>
-          </div>
-
           {isSubmitted ? (
             <div className="p-8 rounded-2xl bg-emerald-50 border border-emerald-200 text-center my-4">
               <CheckCircle2 className="w-16 h-16 text-emerald-600 mx-auto mb-3" />
