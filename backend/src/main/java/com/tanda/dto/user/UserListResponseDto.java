@@ -32,6 +32,7 @@ public class UserListResponseDto {
     private String duty;
     private String authProvider;
     private Boolean isPremium;
+    private OffsetDateTime premiumStartsAt;
     private OffsetDateTime premiumExpiresAt;
     private String personalMessage;
     private Integer personalMessageDays;

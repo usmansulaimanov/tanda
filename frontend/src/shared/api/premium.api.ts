@@ -12,6 +12,7 @@ export interface CreateSubscriptionPaymentRequestPayload {
 
 export interface PremiumStatusDto {
   isPremium: boolean;
+  startsAt?: string | null;
   expiresAt: string | null;
   source: string | null;
   daysRemaining: number;

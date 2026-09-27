@@ -13,6 +13,7 @@ import java.time.OffsetDateTime;
 @AllArgsConstructor
 public class PremiumStatusResponseDto {
     private Boolean isPremium;
+    private OffsetDateTime startsAt;
     private OffsetDateTime expiresAt;
     private String source;
     private Long daysRemaining;

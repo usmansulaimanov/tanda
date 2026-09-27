@@ -1,12 +1,43 @@
 import React, { useState } from 'react';
-import { Check, ShieldCheck, Sparkles, Clock, Headphones, Gift, BookOpen } from 'lucide-react';
+import { Check, ShieldCheck, Sparkles, Clock, Calendar, Headphones, Gift, BookOpen } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '../../store/useAuthStore';
 import { PremiumModal } from './PremiumModal';
 import { systemApi } from '../../shared/api/system.api';
+import { premiumApi } from '../../shared/api/premium.api';
+
+const formatKazakhDate = (dateStr?: string | null): string => {
+  if (!dateStr) return '—';
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    const day = d.getDate();
+    const months = [
+      'қаңтар', 'ақпан', 'наурыз', 'сәуір', 'мамыр', 'маусым',
+      'шілде', 'тамыз', 'қыркүйек', 'қазан', 'қараша', 'желтоқсан'
+    ];
+    const month = months[d.getMonth()];
+    const year = d.getFullYear();
+    return `${day} ${month} ${year} ж.`;
+  } catch {
+    return dateStr;
+  }
+};
+
+const calculateDaysRemaining = (expiresAtStr?: string | null): number => {
+  if (!expiresAtStr) return 0;
+  try {
+    const exp = new Date(expiresAtStr).getTime();
+    const now = Date.now();
+    const diffMs = exp - now;
+    return Math.max(0, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
+  } catch {
+    return 0;
+  }
+};
 
 export const PremiumPage: React.FC = () => {
-  const { user } = useAuthStore();
+  const { user, isAuthenticated } = useAuthStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const { data: settings } = useQuery({
@@ -16,6 +47,17 @@ export const PremiumPage: React.FC = () => {
   });
 
   const isUserPremium = Boolean(user?.isPremium);
+
+  const { data: premiumStatus } = useQuery({
+    queryKey: ['myPremiumStatus', user?.id],
+    queryFn: premiumApi.getPremiumStatus,
+    enabled: Boolean(isAuthenticated && isUserPremium),
+    staleTime: 60 * 1000,
+  });
+
+  const effectiveStartsAt = premiumStatus?.startsAt || user?.premiumStartsAt || user?.createdAt;
+  const effectiveExpiresAt = premiumStatus?.expiresAt || user?.premiumExpiresAt;
+  const effectiveDaysRemaining = premiumStatus?.daysRemaining ?? calculateDaysRemaining(effectiveExpiresAt);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-orange-50/40 via-white to-slate-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -33,9 +75,61 @@ export const PremiumPage: React.FC = () => {
           </p>
 
           {isUserPremium ? (
-            <div className="mt-8 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 inline-flex items-center gap-3 text-emerald-800 font-bold">
-              <Check className="w-5 h-5 text-emerald-600" />
-              <span>Сізде белсенді Премиум жазылым бар! Барлық кітаптар ашық.</span>
+            <div className="mt-8 max-w-xl mx-auto bg-white/95 backdrop-blur-md rounded-3xl p-5 sm:p-6 border border-emerald-200/90 shadow-xl shadow-emerald-500/5 text-left">
+              <div className="flex items-center gap-3 pb-4 border-b border-emerald-100">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shadow-md shrink-0">
+                  <Check className="w-5 h-5 stroke-[3]" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="text-base sm:text-lg font-black text-slate-900 leading-tight">
+                      Сізде белсенді Премиум жазылым бар!
+                    </h3>
+                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-emerald-100 text-emerald-800 shrink-0">
+                      Белсенді
+                    </span>
+                  </div>
+                  <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+                    Барлық кітаптар, кәсіби аудиолар мен функциялар толық қолжетімді.
+                  </p>
+                </div>
+              </div>
+
+              {/* 3 Detail Metric Blocks */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4">
+                {/* 1. Қосылған күні */}
+                <div className="bg-slate-50/90 rounded-2xl p-3 sm:p-3.5 border border-slate-100">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500 mb-1">
+                    <Calendar className="w-3.5 h-3.5 text-[#F08000]" />
+                    <span>Қосылған күні:</span>
+                  </div>
+                  <div className="text-xs sm:text-sm font-black text-slate-800">
+                    {formatKazakhDate(effectiveStartsAt)}
+                  </div>
+                </div>
+
+                {/* 2. Аяқталу мерзімі */}
+                <div className="bg-slate-50/90 rounded-2xl p-3 sm:p-3.5 border border-slate-100">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500 mb-1">
+                    <Clock className="w-3.5 h-3.5 text-rose-500" />
+                    <span>Аяқталу мерзімі:</span>
+                  </div>
+                  <div className="text-xs sm:text-sm font-black text-slate-800">
+                    {formatKazakhDate(effectiveExpiresAt)}
+                  </div>
+                </div>
+
+                {/* 3. Қалған күндер */}
+                <div className="bg-emerald-50/80 rounded-2xl p-3 sm:p-3.5 border border-emerald-200/70">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-800 mb-1">
+                    <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Қалған уақыт:</span>
+                  </div>
+                  <div className="text-xs sm:text-sm font-black text-emerald-700">
+                    {effectiveDaysRemaining > 0 ? `${effectiveDaysRemaining} күн қалды` : 'Бүгін аяқталады'}
+                  </div>
+                </div>
+              </div>
             </div>
           ) : (
             <div className="mt-8">

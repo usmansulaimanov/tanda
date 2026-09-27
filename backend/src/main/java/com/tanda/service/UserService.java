@@ -347,6 +347,7 @@ public class UserService {
         java.util.Optional<com.tanda.entity.PremiumEntitlement> active = premiumEntitlementRepository
                 .findTopByUserIdAndIsActiveTrueAndExpiresAtAfterOrderByExpiresAtDesc(user.getId(), now);
         boolean isPremium = active.isPresent();
+        java.time.OffsetDateTime premiumStartsAt = active.map(e -> e.getStartsAt() != null ? e.getStartsAt() : e.getCreatedAt()).orElse(null);
         java.time.OffsetDateTime premiumExpiresAt = active.map(com.tanda.entity.PremiumEntitlement::getExpiresAt).orElse(null);
         Integer lastGiftYear = birthdayGiftRepository.findTopByUserIdOrderByGiftYearDesc(user.getId())
                 .map(com.tanda.entity.BirthdayGift::getGiftYear).orElse(null);
@@ -375,6 +376,7 @@ public class UserService {
                 .isBlocked(user.getIsBlocked())
                 .permissions(permissions)
                 .isPremium(isPremium)
+                .premiumStartsAt(premiumStartsAt)
                 .premiumExpiresAt(premiumExpiresAt)
                 .lastBirthdayGiftYear(lastGiftYear)
                 .build();
@@ -382,12 +384,14 @@ public class UserService {
 
     private UserListResponseDto toUserListDto(User user, int savedBooksCount) {
         boolean isPremium = false;
+        java.time.OffsetDateTime premiumStartsAt = null;
         java.time.OffsetDateTime premiumExpiresAt = null;
         try {
             java.time.OffsetDateTime now = java.time.OffsetDateTime.now();
             java.util.Optional<com.tanda.entity.PremiumEntitlement> active = premiumEntitlementRepository
                     .findTopByUserIdAndIsActiveTrueAndExpiresAtAfterOrderByExpiresAtDesc(user.getId(), now);
             isPremium = active.isPresent();
+            premiumStartsAt = active.map(e -> e.getStartsAt() != null ? e.getStartsAt() : e.getCreatedAt()).orElse(null);
             premiumExpiresAt = active.map(com.tanda.entity.PremiumEntitlement::getExpiresAt).orElse(null);
         } catch (Exception e) {
             log.warn("Failed to check premium entitlement for user {}: {}", user.getId(), e.getMessage());
@@ -413,6 +417,7 @@ public class UserService {
                 .duty(user.getDuty())
                 .authProvider(user.getAuthProvider())
                 .isPremium(isPremium)
+                .premiumStartsAt(premiumStartsAt)
                 .premiumExpiresAt(premiumExpiresAt)
                 .personalMessage(user.getPersonalMessage())
                 .personalMessageDays(user.getPersonalMessageDays())

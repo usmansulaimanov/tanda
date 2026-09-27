@@ -37,6 +37,7 @@ public class UserResponseDto {
     private Boolean isBlocked;
     private List<String> permissions;
     private Boolean isPremium;
+    private OffsetDateTime premiumStartsAt;
     private OffsetDateTime premiumExpiresAt;
     private Integer lastBirthdayGiftYear;
     private String token;

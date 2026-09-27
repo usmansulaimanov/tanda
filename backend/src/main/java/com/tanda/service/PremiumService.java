@@ -48,6 +48,7 @@ public class PremiumService {
             long daysRemaining = Math.max(0, Duration.between(now, ent.getExpiresAt()).toDays());
             return PremiumStatusResponseDto.builder()
                     .isPremium(true)
+                    .startsAt(ent.getStartsAt() != null ? ent.getStartsAt() : ent.getCreatedAt())
                     .expiresAt(ent.getExpiresAt())
                     .source(ent.getSource())
                     .daysRemaining(daysRemaining)
@@ -56,6 +57,7 @@ public class PremiumService {
 
         return PremiumStatusResponseDto.builder()
                 .isPremium(false)
+                .startsAt(null)
                 .expiresAt(null)
                 .source(null)
                 .daysRemaining(0L)

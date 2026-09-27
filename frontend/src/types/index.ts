@@ -120,6 +120,7 @@ export interface User {
   permissions?: AdminPermission[]; // For assistants/managers
   isActive?: boolean;
   isPremium?: boolean;
+  premiumStartsAt?: string;
   premiumExpiresAt?: string;
   createdAt?: string;
   savedBooksCount?: number;

@@ -29,7 +29,7 @@ public class PremiumController {
 
     // --- Reader Endpoints ---
 
-    @GetMapping("/api/v1/me/premium")
+    @GetMapping({"/api/v1/me/premium", "/api/v1/premium/status"})
     public ResponseEntity<PremiumStatusResponseDto> getMyPremiumStatus(@AuthenticationPrincipal UserPrincipal principal) {
         if (principal == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
