@@ -136,7 +136,25 @@ export const Header: React.FC = () => {
 
   const isUserPremium = Boolean(user?.isPremium);
   const isPremiumSystemDisabled = systemSettings?.premiumEnabled === false || Boolean(systemSettings?.openAccessMode);
-  const shouldShowBanner = !isUserPremium && !isStaffOrAuthor && !isPremiumSystemDisabled;
+
+  const isReader = Boolean(
+    isAuthenticated &&
+    user &&
+    !isStaffOrAuthor &&
+    !isAuthor &&
+    (role === 'client' || user.role === 'client' || !user.role)
+  );
+
+  // Marketing Promo Banner: STRICTLY for authenticated readers without Premium only
+  const shouldShowBanner = Boolean(
+    isAuthenticated &&
+    user &&
+    isReader &&
+    !isStaffOrAuthor &&
+    !isAuthor &&
+    !isUserPremium &&
+    !isPremiumSystemDisabled
+  );
 
   return (
     <>
