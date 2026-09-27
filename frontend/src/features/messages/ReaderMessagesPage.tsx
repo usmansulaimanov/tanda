@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, X, BookOpen, Clock, Newspaper } from 'lucide-react';
+import { Mail, X, BookOpen, Clock, Newspaper, ArrowRight, Trash2 } from 'lucide-react';
 import { useMessageStore, AdminMessage } from '../../store/useMessageStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useBookStore } from '../../store/useBookStore';
 import { useToastStore } from '../../store/useToastStore';
 import { PushNotificationPrompt } from './components/PushNotificationPrompt';
+import { Modal } from '../../components/ui/Modal';
 
 export const ReaderMessagesPage: React.FC = () => {
   const navigate = useNavigate();
@@ -21,10 +22,7 @@ export const ReaderMessagesPage: React.FC = () => {
   } = useMessageStore();
   const { showToast } = useToastStore();
 
-  useEffect(() => {
-    fetchMyMessages();
-  }, [fetchMyMessages]);
-
+  const [selectedMessage, setSelectedMessage] = useState<AdminMessage | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
   const userMessages = useMemo(() => {

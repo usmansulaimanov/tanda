@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { pushApi } from '../../../shared/api/push.api';
+import { useAuthStore } from '../../../store/useAuthStore';
 
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
@@ -19,7 +20,9 @@ export function usePushNotifications() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Check support and current subscription status on mount
+  const user = useAuthStore((state) => state.user);
+
+  // Check support and current subscription status on mount + auto-sync with backend
   useEffect(() => {
     const supported = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
     setIsSupported(supported);
@@ -27,15 +30,34 @@ export function usePushNotifications() {
     if (supported) {
       setPermission(Notification.permission);
 
-      navigator.serviceWorker.register('/sw.js').then((reg) => {
-        reg.pushManager.getSubscription().then((sub) => {
-          setIsSubscribed(!!sub);
-        });
+      navigator.serviceWorker.register('/sw.js').then(async (reg) => {
+        try {
+          const sub = await reg.pushManager.getSubscription();
+          if (sub) {
+            setIsSubscribed(true);
+            // Ensure subscription is synced with backend for this active user session
+            const json = sub.toJSON();
+            if (json.endpoint && json.keys?.p256dh && json.keys?.auth) {
+              await pushApi.subscribe({
+                endpoint: json.endpoint,
+                keys: {
+                  p256dh: json.keys.p256dh,
+                  auth: json.keys.auth,
+                },
+                userAgent: navigator.userAgent,
+              });
+            }
+          } else {
+            setIsSubscribed(false);
+          }
+        } catch (err) {
+          console.warn('Service Worker subscription sync failed:', err);
+        }
       }).catch((err) => {
         console.warn('Service Worker registration failed:', err);
       });
     }
-  }, []);
+  }, [user?.id]);
 
   const subscribe = useCallback(async () => {
     if (!isSupported) {
@@ -65,12 +87,18 @@ export function usePushNotifications() {
       const reg = await navigator.serviceWorker.ready;
       let subscription = await reg.pushManager.getSubscription();
 
-      if (!subscription) {
-        subscription = await reg.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: applicationServerKey as unknown as BufferSource,
-        });
+      if (subscription) {
+        try {
+          await subscription.unsubscribe();
+        } catch (e) {
+          console.warn('Unsubscribe previous subscription before renewal:', e);
+        }
       }
+
+      subscription = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: applicationServerKey as unknown as BufferSource,
+      });
 
       // 4. Send subscription to backend
       const json = subscription.toJSON();

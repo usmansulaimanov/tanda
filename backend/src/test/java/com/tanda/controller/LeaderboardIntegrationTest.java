@@ -99,8 +99,8 @@ public class LeaderboardIntegrationTest {
                 .id(UUID.randomUUID().toString())
                 .userId(user1.getId())
                 .book(testBook)
-                .startedAt(OffsetDateTime.now().minusMinutes(20))
-                .lastHeartbeatAt(OffsetDateTime.now().minusMinutes(5))
+                .startedAt(OffsetDateTime.now(com.tanda.service.LeaderboardService.KZ_ZONE))
+                .lastHeartbeatAt(OffsetDateTime.now(com.tanda.service.LeaderboardService.KZ_ZONE))
                 .validSeconds(1800)
                 .build());
 
@@ -109,8 +109,8 @@ public class LeaderboardIntegrationTest {
                 .id(UUID.randomUUID().toString())
                 .userId(user2.getId())
                 .book(testBook)
-                .startedAt(OffsetDateTime.now().minusMinutes(40))
-                .lastHeartbeatAt(OffsetDateTime.now().minusMinutes(10))
+                .startedAt(OffsetDateTime.now(com.tanda.service.LeaderboardService.KZ_ZONE))
+                .lastHeartbeatAt(OffsetDateTime.now(com.tanda.service.LeaderboardService.KZ_ZONE))
                 .validSeconds(3600)
                 .build());
     }
