@@ -15,7 +15,7 @@ import { systemApi } from '../../shared/api/system.api';
 import { SystemSettings } from '../../types';
 import { useToastStore } from '../../store/useToastStore';
 import { api } from '../../lib/api';
-import tandaPremiumWhite from '../../assets/tanda-premium-white.png';
+import tandaPremiumBlack from '../../assets/tanda-premium-black.png';
 
 export const AdminSystemSettingsPage: React.FC = () => {
   const [settings, setSettings] = useState<SystemSettings>({
@@ -118,9 +118,7 @@ export const AdminSystemSettingsPage: React.FC = () => {
         <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-black flex items-center justify-center p-1.5 shadow-sm">
-                <img src={tandaPremiumWhite} alt="Tanda Crown" className="w-full h-full object-contain" />
-              </div>
+              <img src={tandaPremiumBlack} alt="Tanda Emblem" className="w-6 h-6 object-contain shrink-0" />
               <span className="text-base font-black text-slate-900">
                 Tanda Premium жүйесін іске қосу
               </span>
