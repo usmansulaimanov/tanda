@@ -114,6 +114,34 @@ export const LandingPage: React.FC = () => {
     return null;
   }, [personalMsg]);
 
+  const [systemSettings, setSystemSettings] = useState<SystemSettings | null>(null);
+
+  useEffect(() => {
+    systemApi.getSettings()
+      .then((data) => {
+        if (data) setSystemSettings(data);
+      })
+      .catch(() => {});
+  }, []);
+
+  const globalHeroMessage = useMemo(() => {
+    if (!systemSettings || !systemSettings.heroMessageEnabled) return null;
+    const text = systemSettings.heroMessageText?.trim();
+    if (!text) return null;
+    if (systemSettings.heroMessageExpiresAt) {
+      const exp = new Date(systemSettings.heroMessageExpiresAt).getTime();
+      if (!isNaN(exp) && exp < Date.now()) return null;
+    }
+    const target = systemSettings.heroMessageTarget || 'all';
+    if (target === 'registered' && !isAuthenticated) return null;
+    if (target === 'unregistered' && isAuthenticated) return null;
+    return text;
+  }, [systemSettings, isAuthenticated]);
+
+  const displayHeroMessage = (isAuthenticated && isMessageValid && messageText)
+    ? messageText
+    : globalHeroMessage;
+
   const scrollToCatalog = (e?: React.MouseEvent) => {
     if (e) e.preventDefault();
     const el = document.getElementById('catalog');
@@ -270,8 +298,8 @@ export const LandingPage: React.FC = () => {
 
         <div className="hero-container">
           <div className="hero-text">
-            {/* Personal Message: Pure clean text directly on hero matching h1 size */}
-            {isAuthenticated && isMessageValid && messageText && (
+            {/* Hero Message: Personal message or global/site message */}
+            {Boolean(displayHeroMessage) && (
               <div
                 className="hero-personal-message"
                 style={{
@@ -291,7 +319,7 @@ export const LandingPage: React.FC = () => {
                     textShadow: '0 4px 16px rgba(0, 0, 0, 0.4)',
                   }}
                 >
-                  {messageText}
+                  {displayHeroMessage}
                 </p>
               </div>
             )}

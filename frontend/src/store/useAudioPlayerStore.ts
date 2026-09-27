@@ -699,8 +699,14 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
       },
     }),
     {
-      name: 'tanda_audio_player_settings_v1',
+      name: 'tanda_audio_player_state_v2',
       partialize: (state) => ({
+        currentBook: state.currentBook,
+        currentChapter: state.currentChapter,
+        chapterIndex: state.chapterIndex,
+        isPlaying: state.isPlaying,
+        progress: state.progress,
+        duration: state.duration,
         volume: state.volume,
         playbackRate: state.playbackRate,
         repeatMode: state.repeatMode,
@@ -709,9 +715,10 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
   )
 );
 
-// Clean up deprecated localStorage key immediately
+// Clean up deprecated localStorage keys
 if (typeof window !== 'undefined') {
   try {
+    localStorage.removeItem('tanda_audio_player_settings_v1');
     localStorage.removeItem('tanda_audio_player_state_v1');
   } catch {}
 

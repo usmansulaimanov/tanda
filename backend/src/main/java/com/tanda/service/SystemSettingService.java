@@ -42,6 +42,14 @@ public class SystemSettingService {
             premiumEnabled = true; // Default is ON (Premium system active)
         }
 
+        OffsetDateTime heroExpiresAt = null;
+        String heroExpiresStr = map.get("hero_message_expires_at");
+        if (heroExpiresStr != null && !heroExpiresStr.trim().isEmpty()) {
+            try {
+                heroExpiresAt = OffsetDateTime.parse(heroExpiresStr.trim());
+            } catch (Exception ignored) {}
+        }
+
         return SystemSettingsResponseDto.builder()
                 .premiumEnabled(premiumEnabled)
                 .openAccessMode(!premiumEnabled)
@@ -63,6 +71,10 @@ public class SystemSettingService {
                 .plan1YearEnabled(!"false".equalsIgnoreCase(map.get("plan_1_year_enabled")))
                 .kaspiPhoneEnabled(!"false".equalsIgnoreCase(map.get("kaspi_phone_enabled")))
                 .kaspiCardEnabled(!"false".equalsIgnoreCase(map.get("kaspi_card_enabled")))
+                .heroMessageEnabled("true".equalsIgnoreCase(map.getOrDefault("hero_message_enabled", "false")))
+                .heroMessageText(map.getOrDefault("hero_message_text", ""))
+                .heroMessageTarget(map.getOrDefault("hero_message_target", "all"))
+                .heroMessageExpiresAt(heroExpiresAt)
                 .updatedAt(lastUpdated)
                 .build();
     }
@@ -143,6 +155,23 @@ public class SystemSettingService {
         }
         if (dto.getKaspiCardEnabled() != null) {
             saveSetting("kaspi_card_enabled", String.valueOf(dto.getKaspiCardEnabled()));
+        }
+        if (dto.getHeroMessageEnabled() != null) {
+            saveSetting("hero_message_enabled", String.valueOf(dto.getHeroMessageEnabled()));
+        }
+        if (dto.getHeroMessageText() != null) {
+            saveSetting("hero_message_text", dto.getHeroMessageText().trim());
+        }
+        if (dto.getHeroMessageTarget() != null) {
+            saveSetting("hero_message_target", dto.getHeroMessageTarget().trim());
+        }
+        if (dto.getHeroMessageExpiresAt() != null) {
+            saveSetting("hero_message_expires_at", dto.getHeroMessageExpiresAt().toString());
+        } else if (Boolean.FALSE.equals(dto.getHeroMessageEnabled()) || (dto.getHeroMessageText() != null && dto.getHeroMessageExpiresAt() == null)) {
+            // If explicitly clearing or updating without expiration
+            if (dto.getHeroMessageExpiresAt() == null && dto.getHeroMessageText() != null) {
+                saveSetting("hero_message_expires_at", "");
+            }
         }
 
         log.info("System settings updated successfully: {}", dto);

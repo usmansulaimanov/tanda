@@ -1,11 +1,12 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Globe, User as UserIcon, Users, Lock, Unlock, Shield, Mail, X } from 'lucide-react';
+import { Globe, User as UserIcon, Users, Lock, Unlock, Shield, Mail, X, Sparkles, Globe2, UserCheck, UserX, Clock, Eye, Check } from 'lucide-react';
 import { useMessageStore, AdminMessage, MessageTargetType, MessagePriority } from '../../store/useMessageStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useToastStore } from '../../store/useToastStore';
 import { hasAdminPermission } from '../../utils/permissions';
-import { User } from '../../types';
+import { User, SystemSettings } from '../../types';
+import { systemApi } from '../../shared/api/system.api';
 
 export const AdminMessagesPage: React.FC = () => {
   const navigate = useNavigate();
@@ -15,9 +16,34 @@ export const AdminMessagesPage: React.FC = () => {
 
   const canManage = hasAdminPermission(user, 'messages_manage') || hasAdminPermission(user, 'quotes_manage');
 
+  // Hero Message Modal state
+  const [showHeroModal, setShowHeroModal] = useState(false);
+  const [systemSettings, setSystemSettings] = useState<SystemSettings | null>(null);
+  const [heroText, setHeroText] = useState('');
+  const [heroEnabled, setHeroEnabled] = useState(false);
+  const [heroTarget, setHeroTarget] = useState<'all' | 'registered' | 'unregistered'>('all');
+  const [heroExpiresInDays, setHeroExpiresInDays] = useState<number | null>(null);
+  const [isSavingHero, setIsSavingHero] = useState(false);
+
   useEffect(() => {
     fetchAdminMessages();
     fetchClients();
+    systemApi.getSettings()
+      .then((res) => {
+        if (res) {
+          setSystemSettings(res);
+          setHeroText(res.heroMessageText || '');
+          setHeroEnabled(Boolean(res.heroMessageEnabled));
+          setHeroTarget(res.heroMessageTarget || 'all');
+          if (res.heroMessageExpiresAt) {
+            const diffMs = new Date(res.heroMessageExpiresAt).getTime() - Date.now();
+            if (diffMs > 0) {
+              setHeroExpiresInDays(Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
+            }
+          }
+        }
+      })
+      .catch(() => {});
   }, [fetchAdminMessages, fetchClients]);
 
   useEffect(() => {
@@ -169,6 +195,34 @@ export const AdminMessagesPage: React.FC = () => {
     });
   }, [messages, filterTarget, searchQuery]);
 
+  const handleSaveHeroMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (heroEnabled && !heroText.trim()) {
+      showToast('Хабарлама мәтінін жазыңыз немесе өшіріп қойыңыз', 'error');
+      return;
+    }
+    setIsSavingHero(true);
+    try {
+      let expiresAt: string | null = null;
+      if (heroExpiresInDays && heroExpiresInDays > 0) {
+        expiresAt = new Date(Date.now() + heroExpiresInDays * 24 * 60 * 60 * 1000).toISOString();
+      }
+      const updated = await systemApi.updateSettingsAdmin({
+        heroMessageEnabled: heroEnabled,
+        heroMessageText: heroText.trim(),
+        heroMessageTarget: heroTarget,
+        heroMessageExpiresAt: expiresAt,
+      });
+      setSystemSettings(updated);
+      showToast('Басты бет хабарламасы сәтті сақталды!', 'success');
+      setShowHeroModal(false);
+    } catch (err: any) {
+      showToast(err?.response?.data?.message || 'Сақтау кезінде қате орын алды', 'error');
+    } finally {
+      setIsSavingHero(false);
+    }
+  };
+
   return (
     <section className="admin-page-section" style={{ padding: '32px 24px 80px', backgroundColor: '#F8FAFC', minHeight: 'calc(100vh - 80px)' }}>
       <div style={{ maxWidth: '1280px', margin: '0 auto', width: '100%' }}>
@@ -189,7 +243,48 @@ export const AdminMessagesPage: React.FC = () => {
             </h1>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              onClick={() => {
+                if (systemSettings) {
+                  setHeroText(systemSettings.heroMessageText || '');
+                  setHeroEnabled(Boolean(systemSettings.heroMessageEnabled));
+                  setHeroTarget(systemSettings.heroMessageTarget || 'all');
+                  if (systemSettings.heroMessageExpiresAt) {
+                    const diffMs = new Date(systemSettings.heroMessageExpiresAt).getTime() - Date.now();
+                    setHeroExpiresInDays(diffMs > 0 ? Math.ceil(diffMs / (1000 * 60 * 60 * 24)) : null);
+                  } else {
+                    setHeroExpiresInDays(null);
+                  }
+                }
+                setShowHeroModal(true);
+              }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontSize: '13px',
+                fontWeight: 800,
+                color: '#FFFFFF',
+                background: heroEnabled ? '#D97706' : '#EA580C',
+                padding: '10px 18px',
+                borderRadius: '10px',
+                border: 'none',
+                cursor: 'pointer',
+                boxShadow: '0 4px 14px rgba(234, 88, 12, 0.25)',
+                transition: 'all 0.2s',
+              }}
+            >
+              <Sparkles style={{ width: '16px', height: '16px' }} />
+              Басты бет хабарламасы
+              {heroEnabled && (
+                <span style={{ fontSize: '10px', padding: '2px 6px', background: 'rgba(255,255,255,0.25)', borderRadius: '12px', fontWeight: 800 }}>
+                  ҚОСУЛЫ
+                </span>
+              )}
+            </button>
+
             <button
               type="button"
               onClick={() => setShowSendModal(true)}
@@ -1370,19 +1465,383 @@ export const AdminMessagesPage: React.FC = () => {
                   padding: '9px 20px',
                   borderRadius: '50px',
                   border: 'none',
-                  background: '#DC2626',
+                  background: '#EF4444',
                   color: '#FFF',
                   fontWeight: 700,
                   fontSize: '13px',
                   cursor: 'pointer',
                 }}
               >
-                Иә, өшіру
+                Өшіру
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* HERO MESSAGE MODAL */}
+      {showHeroModal && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(13,27,42,0.75)',
+            backdropFilter: 'blur(6px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '20px',
+          }}
+          onClick={() => setShowHeroModal(false)}
+        >
+          <div
+            style={{
+              background: '#FFFFFF',
+              borderRadius: '24px',
+              maxWidth: '620px',
+              width: '100%',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              padding: '32px',
+              boxShadow: '0 25px 60px rgba(0,0,0,0.3)',
+              position: 'relative',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
+              <div>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#EA580C', fontWeight: 800, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>
+                  <Sparkles style={{ width: '15px', height: '15px' }} />
+                  Сайтқа кірушілерге арналған
+                </div>
+                <h3 style={{ fontSize: '20px', fontWeight: 900, color: '#0F172A', margin: 0 }}>
+                  Басты бет хабарламасы
+                </h3>
+                <p style={{ fontSize: '13px', color: '#64748B', margin: '4px 0 0', lineHeight: 1.5 }}>
+                  Бұл хабарлама сайтқа кірген кезде Басты беттің ең басында үлкен мәтін болып көрінеді.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowHeroModal(false)}
+                style={{
+                  background: '#F1F5F9',
+                  border: 'none',
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '50%',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#64748B',
+                }}
+              >
+                <X style={{ width: '18px', height: '18px' }} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveHeroMessage} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              {/* Active Toggle Switch */}
+              <div
+                style={{
+                  padding: '16px 20px',
+                  borderRadius: '16px',
+                  background: heroEnabled ? '#FFFBEB' : '#F8FAFC',
+                  border: `1.5px solid ${heroEnabled ? '#FDE68A' : '#E2E8F0'}`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '16px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                }}
+                onClick={() => setHeroEnabled(!heroEnabled)}
+              >
+                <div>
+                  <div style={{ fontSize: '14px', fontWeight: 800, color: heroEnabled ? '#92400E' : '#334155' }}>
+                    {heroEnabled ? 'Хабарлама белсенді (Басты бетте көрінеді)' : 'Хабарлама өшірулі'}
+                  </div>
+                  <div style={{ fontSize: '12px', color: heroEnabled ? '#B45309' : '#64748B', marginTop: '2px' }}>
+                    {heroEnabled ? 'Таңдалған аудитория сайтқа кіргенде мәтінді көреді' : 'Қосу үшін осы батырманы басыңыз'}
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    width: '48px',
+                    height: '26px',
+                    borderRadius: '13px',
+                    background: heroEnabled ? '#EA580C' : '#CBD5E1',
+                    position: 'relative',
+                    transition: 'background 0.2s',
+                    flexShrink: 0,
+                  }}
+                >
+                  <div
+                    style={{
+                      width: '20px',
+                      height: '20px',
+                      borderRadius: '50%',
+                      background: '#FFFFFF',
+                      position: 'absolute',
+                      top: '3px',
+                      left: heroEnabled ? '25px' : '3px',
+                      transition: 'left 0.2s',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Message Text Input */}
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 800, color: '#334155', marginBottom: '8px' }}>
+                  Хабарлама мәтіні:
+                </label>
+                <input
+                  type="text"
+                  value={heroText}
+                  onChange={(e) => setHeroText(e.target.value)}
+                  placeholder="Мысалы: Сәлем немесе Қош келдіңіз!"
+                  maxLength={120}
+                  style={{
+                    width: '100%',
+                    padding: '12px 16px',
+                    borderRadius: '12px',
+                    border: '1.5px solid #CBD5E1',
+                    fontSize: '15px',
+                    fontWeight: 700,
+                    color: '#0F172A',
+                    outline: 'none',
+                    background: '#FFFFFF',
+                    boxSizing: 'border-box',
+                  }}
+                />
+
+                {/* Quick Templates */}
+                <div style={{ display: 'flex', gap: '6px', marginTop: '8px', flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: '11px', color: '#94A3B8', fontWeight: 600, alignSelf: 'center' }}>
+                    Дайын үлгілер:
+                  </span>
+                  {['Сәлем', 'Қош келдіңіздер!', 'Tanda-ға қош келдіңіз!', 'Оқы. Тыңда. Дамы.'].map((tmpl) => (
+                    <button
+                      key={tmpl}
+                      type="button"
+                      onClick={() => setHeroText(tmpl)}
+                      style={{
+                        padding: '4px 10px',
+                        borderRadius: '8px',
+                        background: '#F1F5F9',
+                        border: '1px solid #E2E8F0',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        color: '#475569',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {tmpl}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Audience Target Selection */}
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 800, color: '#334155', marginBottom: '8px' }}>
+                  Кімдерге көрсету (Аудитория):
+                </label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '10px' }}>
+                  {/* All */}
+                  <div
+                    onClick={() => setHeroTarget('all')}
+                    style={{
+                      padding: '12px 14px',
+                      borderRadius: '12px',
+                      border: `1.5px solid ${heroTarget === 'all' ? '#EA580C' : '#E2E8F0'}`,
+                      background: heroTarget === 'all' ? '#FFF7ED' : '#FFFFFF',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '4px',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 800, fontSize: '13px', color: heroTarget === 'all' ? '#C2410C' : '#334155' }}>
+                      <Globe2 style={{ width: '15px', height: '15px' }} />
+                      Барлығына
+                    </div>
+                    <span style={{ fontSize: '11px', color: '#64748B' }}>
+                      Тіркелген & қонақтар
+                    </span>
+                  </div>
+
+                  {/* Registered Only */}
+                  <div
+                    onClick={() => setHeroTarget('registered')}
+                    style={{
+                      padding: '12px 14px',
+                      borderRadius: '12px',
+                      border: `1.5px solid ${heroTarget === 'registered' ? '#EA580C' : '#E2E8F0'}`,
+                      background: heroTarget === 'registered' ? '#FFF7ED' : '#FFFFFF',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '4px',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 800, fontSize: '13px', color: heroTarget === 'registered' ? '#C2410C' : '#334155' }}>
+                      <UserCheck style={{ width: '15px', height: '15px' }} />
+                      Тек тіркелгендерге
+                    </div>
+                    <span style={{ fontSize: '11px', color: '#64748B' }}>
+                      Логин жасағандар
+                    </span>
+                  </div>
+
+                  {/* Unregistered Only */}
+                  <div
+                    onClick={() => setHeroTarget('unregistered')}
+                    style={{
+                      padding: '12px 14px',
+                      borderRadius: '12px',
+                      border: `1.5px solid ${heroTarget === 'unregistered' ? '#EA580C' : '#E2E8F0'}`,
+                      background: heroTarget === 'unregistered' ? '#FFF7ED' : '#FFFFFF',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '4px',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 800, fontSize: '13px', color: heroTarget === 'unregistered' ? '#C2410C' : '#334155' }}>
+                      <UserX style={{ width: '15px', height: '15px' }} />
+                      Тек тіркелмегендерге
+                    </div>
+                    <span style={{ fontSize: '11px', color: '#64748B' }}>
+                      Жаңа қонақтарға
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Expiration Duration */}
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 800, color: '#334155', marginBottom: '8px' }}>
+                  Көрсетілу мерзімі:
+                </label>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  {[
+                    { label: 'Шексіз', days: null },
+                    { label: '1 күн', days: 1 },
+                    { label: '3 күн', days: 3 },
+                    { label: '7 күн', days: 7 },
+                    { label: '30 күн', days: 30 },
+                  ].map((item) => {
+                    const isSelected = heroExpiresInDays === item.days;
+                    return (
+                      <button
+                        key={item.label}
+                        type="button"
+                        onClick={() => setHeroExpiresInDays(item.days)}
+                        style={{
+                          padding: '8px 14px',
+                          borderRadius: '10px',
+                          border: `1.5px solid ${isSelected ? '#EA580C' : '#CBD5E1'}`,
+                          background: isSelected ? '#FFF7ED' : '#FFFFFF',
+                          color: isSelected ? '#C2410C' : '#475569',
+                          fontWeight: 700,
+                          fontSize: '12px',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {item.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Live Preview */}
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 800, color: '#64748B', marginBottom: '8px' }}>
+                  <Eye style={{ width: '14px', height: '14px' }} />
+                  Басты бетте қалай көрінеді (Алдын ала көру):
+                </div>
+                <div
+                  style={{
+                    background: 'linear-gradient(135deg, #071526 0%, #0d2646 100%)',
+                    borderRadius: '16px',
+                    padding: '24px 20px',
+                    border: '1px solid #1E293B',
+                    color: '#FFFFFF',
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: '32px',
+                      fontWeight: 900,
+                      color: '#FFFFFF',
+                      letterSpacing: '-0.02em',
+                      marginBottom: '10px',
+                      minHeight: '40px',
+                      lineHeight: 1.2,
+                    }}
+                  >
+                    {heroText.trim() ? heroText : <span style={{ color: '#475569', fontSize: '20px' }}>Хабарлама мәтіні...</span>}
+                  </div>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '20px', fontWeight: 900, color: '#FFFFFF', marginBottom: '8px' }}>
+                    tandamen<span style={{ color: '#EA580C' }}>.kz</span>
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#94A3B8', fontWeight: 700 }}>
+                    Қазақша кітаптар қоры &bull; Оқы. Тыңда. Дамы.
+                  </div>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px', borderTop: '1px solid #F1F5F9', paddingTop: '16px' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowHeroModal(false)}
+                  style={{
+                    padding: '10px 18px',
+                    borderRadius: '12px',
+                    border: '1px solid #CBD5E1',
+                    background: '#FFFFFF',
+                    color: '#475569',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Болдырмау
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSavingHero}
+                  style={{
+                    padding: '10px 24px',
+                    borderRadius: '12px',
+                    border: 'none',
+                    background: '#EA580C',
+                    color: '#FFFFFF',
+                    fontSize: '13px',
+                    fontWeight: 800,
+                    cursor: isSavingHero ? 'not-allowed' : 'pointer',
+                    boxShadow: '0 4px 14px rgba(234, 88, 12, 0.3)',
+                    opacity: isSavingHero ? 0.7 : 1,
+                  }}
+                >
+                  {isSavingHero ? 'Сақталуда...' : 'Сақтау'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
     </section>
   );
 };
+

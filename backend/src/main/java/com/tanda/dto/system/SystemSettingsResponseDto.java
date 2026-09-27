@@ -32,5 +32,9 @@ public class SystemSettingsResponseDto {
     private boolean plan1YearEnabled;
     private boolean kaspiPhoneEnabled;
     private boolean kaspiCardEnabled;
+    private boolean heroMessageEnabled;
+    private String heroMessageText;
+    private String heroMessageTarget;
+    private OffsetDateTime heroMessageExpiresAt;
     private OffsetDateTime updatedAt;
 }

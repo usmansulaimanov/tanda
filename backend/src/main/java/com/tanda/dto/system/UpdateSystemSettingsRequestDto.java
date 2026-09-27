@@ -30,4 +30,8 @@ public class UpdateSystemSettingsRequestDto {
     private Boolean plan1YearEnabled;
     private Boolean kaspiPhoneEnabled;
     private Boolean kaspiCardEnabled;
+    private Boolean heroMessageEnabled;
+    private String heroMessageText;
+    private String heroMessageTarget;
+    private java.time.OffsetDateTime heroMessageExpiresAt;
 }
