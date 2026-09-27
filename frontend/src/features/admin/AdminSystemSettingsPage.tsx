@@ -15,6 +15,7 @@ import { systemApi } from '../../shared/api/system.api';
 import { SystemSettings } from '../../types';
 import { useToastStore } from '../../store/useToastStore';
 import { api } from '../../lib/api';
+import tandaPremiumWhite from '../../assets/tanda-premium-white.png';
 
 export const AdminSystemSettingsPage: React.FC = () => {
   const [settings, setSettings] = useState<SystemSettings>({
@@ -115,43 +116,34 @@ export const AdminSystemSettingsPage: React.FC = () => {
       </div>
 
       <form onSubmit={handleSave} className="space-y-6">
-        {/* 1. Tanda Premium System Toggle (Kill-switch) */}
-        <div className={`p-6 rounded-3xl border-2 transition-all ${
+        {/* 1. Tanda Premium System Toggle */}
+        <div className={`p-5 rounded-3xl border-2 transition-all ${
           settings.premiumEnabled
             ? 'bg-emerald-50/50 border-emerald-400 shadow-lg shadow-emerald-500/10'
             : 'bg-amber-50/50 border-amber-300 shadow-lg shadow-amber-500/10'
         }`}>
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2 mb-1.5">
-                <Crown className={`w-5 h-5 ${settings.premiumEnabled ? 'text-emerald-600' : 'text-amber-600'}`} />
-                <span className="text-base font-black text-slate-900">
-                  Tanda Premium жүйесі (Премиум жазылымды қосу / тоқтату)
-                </span>
-                {settings.premiumEnabled ? (
-                  <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-emerald-500 text-white animate-pulse">
-                    ҚОСУЛЫ (ПРЕМИУМ ЖҰМЫС ІСТЕП ТҰР)
-                  </span>
-                ) : (
-                  <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-amber-500 text-white">
-                    ӨШІРУЛІ (ПРЕМИУМ ТОҚТАДЫ — БАРЛЫҚ КІТАПТАР АШЫҚ)
-                  </span>
-                )}
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className={`w-8 h-8 rounded-xl flex items-center justify-center p-1.5 shadow-sm transition-colors ${
+                settings.premiumEnabled ? 'bg-emerald-600' : 'bg-slate-800'
+              }`}>
+                <img src={tandaPremiumWhite} alt="Tanda Crown" className="w-full h-full object-contain" />
               </div>
-              <p className="text-xs text-slate-600 max-w-xl leading-relaxed">
-                {settings.premiumEnabled ? (
-                  <>
-                    Бұл қосқыш <strong>қосулы</strong> тұрғанда — Премиум жүйесі толыққанды жұмыс істейді. Премиум кітаптарға 15 минуттық шектеу мен жарнама стандартты оқырмандар үшін іске қосылған болады.
-                  </>
-                ) : (
-                  <>
-                    Бұл қосқыш <strong>өшірулі</strong> тұрғанда — Премиум жүйесі тоқтатылады. Барлық оқырмандар кез келген кітапты тегін, шектеусіз әрі жарнамасыз тыңдай алады (мерекелерде немесе акция кезінде өте ыңғайлы).
-                  </>
-                )}
-              </p>
+              <span className="text-base font-black text-slate-900">
+                Tanda Premium жүйесін іске қосу
+              </span>
+              {settings.premiumEnabled ? (
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-emerald-500 text-white animate-pulse">
+                  ҚОСУЛЫ (ПРЕМИУМ ЖҰМЫС ІСТЕП ТҰР)
+                </span>
+              ) : (
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-amber-500 text-white">
+                  ӨШІРУЛІ (ПРЕМИУМ ТОҚТАДЫ — БАРЛЫҚ КІТАПТАР АШЫҚ)
+                </span>
+              )}
             </div>
 
-            <label className="relative inline-flex items-center cursor-pointer shrink-0 mt-1">
+            <label className="relative inline-flex items-center cursor-pointer shrink-0">
               <input
                 type="checkbox"
                 checked={settings.premiumEnabled}
