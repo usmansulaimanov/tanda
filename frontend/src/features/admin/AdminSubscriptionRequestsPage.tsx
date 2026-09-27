@@ -106,16 +106,13 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-black text-slate-900">Премиум төлемдері (Kaspi Чектер)</h1>
+            <h1 className="text-2xl font-black text-slate-900">Премиум төлемдері</h1>
             {pendingCount > 0 && (
               <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500 text-white animate-pulse">
                 +{pendingCount} күтілуде
               </span>
             )}
           </div>
-          <p className="text-sm text-slate-500 mt-1">
-            Оқырмандар жіберген Kaspi чектерін тексеріп, 1 батырмамен Премиум беру
-          </p>
         </div>
 
         <button
