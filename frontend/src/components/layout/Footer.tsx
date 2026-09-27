@@ -71,9 +71,28 @@ export const Footer: React.FC = () => {
                 tandamen<span style={{ color: 'var(--orange)' }}>.kz</span>
               </span>
             </div>
-            <p style={{ fontSize: '13px', lineHeight: 1.6, color: '#94A3B8', marginBottom: '20px', maxWidth: '300px' }}>
-              Қазақ тіліндегі аудио және электронды кітаптардың заманауи онлайн платформасы. Сүйікті шығармаларыңызды оқып, кез келген жерде тыңдаңыз.
-            </p>
+            {/* Info Pages Navigation */}
+            <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 20px 0', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <li>
+                <Link
+                  to="/about"
+                  style={{
+                    color: '#94A3B8',
+                    fontSize: '13px',
+                    textDecoration: 'none',
+                    fontWeight: 600,
+                    transition: 'color 0.2s ease',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = '#FFFFFF')}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = '#94A3B8')}
+                >
+                  Біз туралы
+                </Link>
+              </li>
+            </ul>
 
             {/* Email Contact Box */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
