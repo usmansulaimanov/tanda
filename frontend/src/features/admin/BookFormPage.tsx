@@ -56,6 +56,7 @@ export const BookFormPage: React.FC = () => {
   const [pages, setPages] = useState<string>('');
   const [description, setDescription] = useState('');
   const [isFree, setIsFree] = useState(true);
+  const [previewDurationMinutes, setPreviewDurationMinutes] = useState<string>('15');
   const [coverImage, setCoverImage] = useState('');
   const [coverImageError, setCoverImageError] = useState(false);
 
@@ -106,6 +107,7 @@ export const BookFormPage: React.FC = () => {
           setPages(book.pages ? String(book.pages) : '');
           setDescription(book.description || '');
           setIsFree(Boolean(book.isFree));
+          setPreviewDurationMinutes(book.previewDurationMinutes ? String(book.previewDurationMinutes) : '15');
           if (book.coverImage) setCoverImage(book.coverImage);
           if (book.hasEbook || book.ebookUrl || book.pdfUrl || book.epubUrl) {
             setHasEbook(true);
@@ -372,6 +374,9 @@ export const BookFormPage: React.FC = () => {
     const finalCategories = categories.length > 0 ? categories : (existingBook?.categories || ['Көркем әдебиет']);
     const categoryString = finalCategories.join(', ');
 
+    const parsedPreviewDuration = previewDurationMinutes.trim() ? parseInt(previewDurationMinutes.trim(), 10) : 15;
+    const effectivePreviewDuration = (!isNaN(parsedPreviewDuration) && parsedPreviewDuration > 0) ? parsedPreviewDuration : 15;
+
     const bookData = {
       title: title.trim(),
       author: author.trim(),
@@ -380,6 +385,7 @@ export const BookFormPage: React.FC = () => {
       pages: validPages,
       description: description.trim(),
       isFree,
+      previewDurationMinutes: effectivePreviewDuration,
       isArchived: existingBook ? existingBook.isArchived : false,
       coverImage: coverImage.trim() || undefined,
       gradient: coverImage ? undefined : (existingBook?.gradient || DEFAULT_COVER_GRADIENT),
@@ -1708,64 +1714,148 @@ export const BookFormPage: React.FC = () => {
               )}
             </div>
 
-            {/* FREE / PAID ACCESS */}
+            {/* FREE / PAID ACCESS & PREVIEW DURATION */}
             <div
               style={{
                 background: !isFree ? '#F0F7FF' : '#F8FAFC',
                 border: !isFree ? '1.5px solid #BAE6FD' : '1.5px solid #E2E8F0',
-                borderRadius: '12px',
-                padding: '16px 20px',
+                borderRadius: '16px',
+                padding: '20px',
                 marginBottom: '32px',
                 display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: '12px',
-                flexWrap: 'wrap',
+                flexDirection: 'column',
+                gap: '16px',
               }}
             >
-              <div>
-                <span
-                  style={{
-                    display: 'inline-block',
-                    fontSize: '11px',
-                    fontWeight: 800,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.05em',
-                    padding: '3px 10px',
-                    borderRadius: '50px',
-                    background: !isFree ? 'var(--blue)' : '#FFFFFF',
-                    color: !isFree ? '#FFFFFF' : 'var(--blue)',
-                    border: '1.5px solid var(--blue)',
-                  }}
-                >
-                  {!isFree ? 'Премиум жазылым' : 'Тегін кітап'}
-                </span>
-              </div>
-
-              <label
+              <div
                 style={{
-                  display: 'inline-flex',
+                  display: 'flex',
                   alignItems: 'center',
-                  gap: '8px',
-                  cursor: 'pointer',
-                  fontSize: '13px',
-                  fontWeight: 700,
-                  color: '#0F172A',
+                  justifyContent: 'space-between',
+                  gap: '12px',
+                  flexWrap: 'wrap',
                 }}
               >
-                <input
-                  type="checkbox"
-                  checked={!isFree}
-                  onChange={(e) => setIsFree(!e.target.checked)}
+                <div>
+                  <span
+                    style={{
+                      display: 'inline-block',
+                      fontSize: '11px',
+                      fontWeight: 800,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.05em',
+                      padding: '3px 10px',
+                      borderRadius: '50px',
+                      background: !isFree ? 'var(--blue)' : '#FFFFFF',
+                      color: !isFree ? '#FFFFFF' : 'var(--blue)',
+                      border: '1.5px solid var(--blue)',
+                    }}
+                  >
+                    {!isFree ? 'Премиум жазылым' : 'Тегін кітап'}
+                  </span>
+                </div>
+
+                <label
                   style={{
-                    accentColor: '#005494',
-                    width: '18px',
-                    height: '18px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
                     cursor: 'pointer',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    color: '#0F172A',
                   }}
-                />
-                Премиум кітап ретінде белгілеу
-              </label>
+                >
+                  <input
+                    type="checkbox"
+                    checked={!isFree}
+                    onChange={(e) => setIsFree(!e.target.checked)}
+                    style={{
+                      accentColor: '#005494',
+                      width: '18px',
+                      height: '18px',
+                      cursor: 'pointer',
+                    }}
+                  />
+                  Премиум кітап ретінде белгілеу
+                </label>
+              </div>
+
+              {/* Preview duration for Premium books */}
+              {!isFree && (
+                <div
+                  style={{
+                    background: '#FFFFFF',
+                    border: '1px solid #BAE6FD',
+                    borderRadius: '12px',
+                    padding: '16px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '10px',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                    <label style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>
+                      ⏱️ Тегін тыңдау ұзақтығы (Демо-лимит):
+                    </label>
+                    <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
+                      Егер бос қалдырсаңыз, автоматты түрде 15 минут беріледі
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <input
+                        type="number"
+                        min="1"
+                        max="300"
+                        value={previewDurationMinutes}
+                        onChange={(e) => setPreviewDurationMinutes(e.target.value)}
+                        placeholder="15"
+                        style={{
+                          width: '90px',
+                          padding: '8px 12px',
+                          borderRadius: '8px',
+                          border: '1.5px solid #CBD5E1',
+                          fontSize: '14px',
+                          fontWeight: 700,
+                          color: '#0F172A',
+                          textAlign: 'center',
+                          outline: 'none',
+                        }}
+                      />
+                      <span style={{ fontSize: '13px', fontWeight: 700, color: '#475569' }}>минут</span>
+                    </div>
+
+                    {/* Quick suggestion buttons */}
+                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                      {[3, 5, 10, 15, 30].map((mins) => (
+                        <button
+                          key={mins}
+                          type="button"
+                          onClick={() => setPreviewDurationMinutes(String(mins))}
+                          style={{
+                            padding: '4px 10px',
+                            borderRadius: '8px',
+                            border: `1px solid ${previewDurationMinutes === String(mins) ? 'var(--blue)' : '#E2E8F0'}`,
+                            background: previewDurationMinutes === String(mins) ? '#E0F2FE' : '#F8FAFC',
+                            color: previewDurationMinutes === String(mins) ? 'var(--blue)' : '#64748B',
+                            fontWeight: 700,
+                            fontSize: '11px',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          {mins} мин
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <p style={{ fontSize: '12px', color: '#64748B', margin: '4px 0 0', lineHeight: 1.4 }}>
+                    Премиумы жоқ оқырмандар бұл кітапты тек осы көрсетілген уақытқа дейін ғана тыңдай алады. Уақыт біткен соң аудио тоқтап, Премиумға жазылу ұсынылады.
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* ACTION BUTTONS */}

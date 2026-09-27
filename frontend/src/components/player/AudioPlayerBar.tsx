@@ -146,6 +146,31 @@ export const AudioPlayerBar: React.FC = () => {
   const ytVideoId = extractYouTubeVideoId(audioSrc);
   const isYouTube = !!ytVideoId;
 
+  const checkPreviewLimit = useCallback((currentSec: number) => {
+    const curBook = useAudioPlayerStore.getState().currentBook;
+    if (!curBook) return false;
+    const isPremiumBook = curBook.isFree === false;
+    const isPremiumSystemDisabled = systemSettings?.premiumEnabled === false || Boolean(systemSettings?.openAccessMode);
+    const isExempt = Boolean(user?.isPremium || isPremiumSystemDisabled || isAuthorOrStaff);
+    const limitMinutes = (curBook.previewDurationMinutes && curBook.previewDurationMinutes > 0)
+      ? curBook.previewDurationMinutes
+      : 15;
+    const limitSec = limitMinutes * 60;
+
+    if (isPremiumBook && !isExempt && currentSec >= limitSec) {
+      useAudioPlayerStore.getState().setIsPlaying(false);
+      if (audioRef.current) audioRef.current.pause();
+      if (ytPlayerRef.current && typeof ytPlayerRef.current.pauseVideo === 'function') {
+        ytPlayerRef.current.pauseVideo();
+      }
+      setProgress(limitSec);
+      setPremiumModalReason(`${limitMinutes} минуттық тегін үзінді аяқталды. Кітаптың жалғасын толық тыңдау үшін Tanda Premium-ге қосылыңыз!`);
+      setShowPremiumModal(true);
+      return true;
+    }
+    return false;
+  }, [user?.isPremium, systemSettings?.premiumEnabled, systemSettings?.openAccessMode, isAuthorOrStaff, setProgress]);
+
   // Media Session API for iOS Safari, Android Chrome & Lock Screen Controls
   useEffect(() => {
     if (!('mediaSession' in navigator) || !currentBook) return;
@@ -213,7 +238,24 @@ export const AudioPlayerBar: React.FC = () => {
   useEffect(() => {
     const handleSeekEvent = (e: any) => {
       resetRoyaltyTracking();
-      const val = Number(e.detail?.time || 0);
+      let val = Number(e.detail?.time || 0);
+      const curBook = useAudioPlayerStore.getState().currentBook;
+      const isPremiumBook = curBook?.isFree === false;
+      const isPremiumSystemDisabled = systemSettings?.premiumEnabled === false || Boolean(systemSettings?.openAccessMode);
+      const isExempt = Boolean(user?.isPremium || isPremiumSystemDisabled || isAuthorOrStaff);
+      const limitMinutes = (curBook?.previewDurationMinutes && curBook.previewDurationMinutes > 0)
+        ? curBook.previewDurationMinutes
+        : 15;
+      const limitSec = limitMinutes * 60;
+
+      if (isPremiumBook && !isExempt && val >= limitSec) {
+        val = limitSec;
+        targetResumeTimeRef.current = limitSec;
+        setProgress(limitSec);
+        checkPreviewLimit(limitSec);
+        return;
+      }
+
       targetResumeTimeRef.current = val;
       setProgress(val);
       if (isYouTube && ytPlayerRef.current && typeof ytPlayerRef.current.seekTo === 'function') {
@@ -228,7 +270,24 @@ export const AudioPlayerBar: React.FC = () => {
       const delta = Number(e.detail?.seconds || 0);
       const currentT = audioRef.current?.currentTime ?? useAudioPlayerStore.getState().progress;
       const dur = audioRef.current?.duration || useAudioPlayerStore.getState().duration || 999999;
-      const newT = Math.max(0, Math.min(dur, currentT + delta));
+      let newT = Math.max(0, Math.min(dur, currentT + delta));
+      const curBook = useAudioPlayerStore.getState().currentBook;
+      const isPremiumBook = curBook?.isFree === false;
+      const isPremiumSystemDisabled = systemSettings?.premiumEnabled === false || Boolean(systemSettings?.openAccessMode);
+      const isExempt = Boolean(user?.isPremium || isPremiumSystemDisabled || isAuthorOrStaff);
+      const limitMinutes = (curBook?.previewDurationMinutes && curBook.previewDurationMinutes > 0)
+        ? curBook.previewDurationMinutes
+        : 15;
+      const limitSec = limitMinutes * 60;
+
+      if (isPremiumBook && !isExempt && newT >= limitSec) {
+        newT = limitSec;
+        targetResumeTimeRef.current = limitSec;
+        setProgress(limitSec);
+        checkPreviewLimit(limitSec);
+        return;
+      }
+
       targetResumeTimeRef.current = newT;
       setProgress(newT);
       if (isYouTube && ytPlayerRef.current && typeof ytPlayerRef.current.seekTo === 'function') {
@@ -244,7 +303,7 @@ export const AudioPlayerBar: React.FC = () => {
       window.removeEventListener('tanda:audio:seek', handleSeekEvent);
       window.removeEventListener('tanda:audio:skip', handleSkipEvent);
     };
-  }, [isYouTube, setProgress]);
+  }, [isYouTube, setProgress, user?.isPremium, systemSettings?.premiumEnabled, systemSettings?.openAccessMode, isAuthorOrStaff, checkPreviewLimit]);
 
   // Auto-close and stop player completely when user logs out or is confirmed unauthenticated after initialization
   useEffect(() => {
@@ -769,7 +828,7 @@ export const AudioPlayerBar: React.FC = () => {
             if (current === 0 && storeProg > 1 && pendingSeekTimeRef.current !== 0) {
               return;
             }
-            if (check15MinuteLimit(current)) return;
+            if (checkPreviewLimit(current)) return;
             setProgress(current);
           }
           if (dur !== undefined && !isNaN(dur) && dur > 0) {
@@ -798,7 +857,7 @@ export const AudioPlayerBar: React.FC = () => {
     }, 400);
 
     return () => clearInterval(interval);
-  }, [isYouTube, isPlaying, setProgress, setDuration, handleTrackEnd]);
+  }, [isYouTube, isPlaying, setProgress, setDuration, handleTrackEnd, checkPreviewLimit]);
 
   const formatTime = (secs: number) => {
     if (!secs || isNaN(secs)) return '0:00';
@@ -822,26 +881,6 @@ export const AudioPlayerBar: React.FC = () => {
     }
     return `${m}:${s < 10 ? '0' : ''}${s}`;
   };
-
-  const check15MinuteLimit = useCallback((currentSec: number) => {
-    const curBook = useAudioPlayerStore.getState().currentBook;
-    if (!curBook) return false;
-    const isPremiumBook = curBook.isFree === false;
-    const isPremiumSystemDisabled = systemSettings?.premiumEnabled === false || Boolean(systemSettings?.openAccessMode);
-    const isExempt = Boolean(user?.isPremium || isPremiumSystemDisabled || isAuthorOrStaff);
-    if (isPremiumBook && !isExempt && currentSec >= 900) {
-      useAudioPlayerStore.getState().setIsPlaying(false);
-      if (audioRef.current) audioRef.current.pause();
-      if (ytPlayerRef.current && typeof ytPlayerRef.current.pauseVideo === 'function') {
-        ytPlayerRef.current.pauseVideo();
-      }
-      setProgress(900);
-      setPremiumModalReason('15 минуттық тегін үзінді аяқталды. Кітаптың жалғасын толық тыңдау үшін Tanda Premium-ге қосылыңыз!');
-      setShowPremiumModal(true);
-      return true;
-    }
-    return false;
-  }, [user?.isPremium, systemSettings?.premiumEnabled, systemSettings?.openAccessMode, isAuthorOrStaff, setProgress]);
 
   // Reset ad played state whenever a different book is loaded
   useEffect(() => {
@@ -898,11 +937,16 @@ export const AudioPlayerBar: React.FC = () => {
     const isPremiumBook = currentBook?.isFree === false;
     const isPremiumSystemDisabled = systemSettings?.premiumEnabled === false || Boolean(systemSettings?.openAccessMode);
     const isExempt = Boolean(user?.isPremium || isPremiumSystemDisabled || isAuthorOrStaff);
-    if (isPremiumBook && !isExempt && val >= 900) {
-      val = 900;
-      targetResumeTimeRef.current = 900;
-      setProgress(900);
-      check15MinuteLimit(900);
+    const limitMinutes = (currentBook?.previewDurationMinutes && currentBook.previewDurationMinutes > 0)
+      ? currentBook.previewDurationMinutes
+      : 15;
+    const limitSec = limitMinutes * 60;
+
+    if (isPremiumBook && !isExempt && val >= limitSec) {
+      val = limitSec;
+      targetResumeTimeRef.current = limitSec;
+      setProgress(limitSec);
+      checkPreviewLimit(limitSec);
       return;
     }
     targetResumeTimeRef.current = val;
@@ -925,11 +969,16 @@ export const AudioPlayerBar: React.FC = () => {
     const isPremiumBook = currentBook?.isFree === false;
     const isPremiumSystemDisabled = systemSettings?.premiumEnabled === false || Boolean(systemSettings?.openAccessMode);
     const isExempt = Boolean(user?.isPremium || isPremiumSystemDisabled || isAuthorOrStaff);
-    if (isPremiumBook && !isExempt && newTime >= 900) {
-      newTime = 900;
-      targetResumeTimeRef.current = 900;
-      setProgress(900);
-      check15MinuteLimit(900);
+    const limitMinutes = (currentBook?.previewDurationMinutes && currentBook.previewDurationMinutes > 0)
+      ? currentBook.previewDurationMinutes
+      : 15;
+    const limitSec = limitMinutes * 60;
+
+    if (isPremiumBook && !isExempt && newTime >= limitSec) {
+      newTime = limitSec;
+      targetResumeTimeRef.current = limitSec;
+      setProgress(limitSec);
+      checkPreviewLimit(limitSec);
       return;
     }
     targetResumeTimeRef.current = newTime;
@@ -1069,7 +1118,7 @@ export const AudioPlayerBar: React.FC = () => {
             if (useAudioPlayerStore.getState().isAdPlaying) return;
             const current = e.currentTarget.currentTime;
             const dur = e.currentTarget.duration || duration;
-            if (check15MinuteLimit(current)) return;
+            if (checkPreviewLimit(current)) return;
 
             // Protect against initial transient 0s clobbering stored progress before seek completes
             const storeProg = useAudioPlayerStore.getState().progress || 0;

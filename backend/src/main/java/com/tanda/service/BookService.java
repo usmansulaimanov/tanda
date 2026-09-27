@@ -163,6 +163,7 @@ public class BookService {
                 .ebookUrl(hasEbook ? effectiveEbookUrl : null)
                 .ebookFormat(hasEbook ? effectiveEbookFormat : null)
                 .gradient(dto.getGradient())
+                .previewDurationMinutes(dto.getPreviewDurationMinutes() != null && dto.getPreviewDurationMinutes() > 0 ? dto.getPreviewDurationMinutes() : 15)
                 .createdAt(OffsetDateTime.now())
                 .audioChapters(new ArrayList<>())
                 .build();
@@ -237,6 +238,7 @@ public class BookService {
         book.setEbookUrl(hasEbook ? effectiveEbookUrl : null);
         book.setEbookFormat(hasEbook ? effectiveEbookFormat : null);
         book.setGradient(dto.getGradient());
+        book.setPreviewDurationMinutes(dto.getPreviewDurationMinutes() != null && dto.getPreviewDurationMinutes() > 0 ? dto.getPreviewDurationMinutes() : 15);
 
         book.getAudioChapters().clear();
         if (hasAudio) {
@@ -347,6 +349,7 @@ public class BookService {
                 .ebookUrl(book.getEbookUrl())
                 .ebookFormat(book.getEbookFormat())
                 .gradient(book.getGradient())
+                .previewDurationMinutes(book.getPreviewDurationMinutes() != null ? book.getPreviewDurationMinutes() : 15)
                 .createdAt(book.getCreatedAt())
                 .audioChapters(chapterDtos)
                 .build();
@@ -383,6 +386,7 @@ public class BookService {
                 .ebookUrl(book.getEbookUrl())
                 .ebookFormat(book.getEbookFormat())
                 .gradient(book.getGradient())
+                .previewDurationMinutes(book.getPreviewDurationMinutes() != null ? book.getPreviewDurationMinutes() : 15)
                 .createdAt(book.getCreatedAt())
                 .audioChapters(chapterDtos)
                 .build();

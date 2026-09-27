@@ -87,6 +87,10 @@ public class Book {
     @Column(name = "gradient", length = 255)
     private String gradient;
 
+    @Column(name = "preview_duration_minutes")
+    @Builder.Default
+    private Integer previewDurationMinutes = 15;
+
     @Column(name = "created_at")
     private OffsetDateTime createdAt;
 
@@ -114,6 +118,9 @@ public class Book {
         }
         if (isDeleted == null) {
             isDeleted = false;
+        }
+        if (previewDurationMinutes == null || previewDurationMinutes <= 0) {
+            previewDurationMinutes = 15;
         }
     }
 

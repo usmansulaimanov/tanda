@@ -54,5 +54,7 @@ public class CreateBookRequestDto {
 
     private String gradient;
 
+    private Integer previewDurationMinutes;
+
     private List<AudioChapterDto> audioChapters;
 }
