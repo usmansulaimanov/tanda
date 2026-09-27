@@ -210,10 +210,7 @@ export const AdminSystemSettingsPage: React.FC = () => {
               <div className="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
                 <Volume2 className="w-5 h-5" />
               </div>
-              <div>
-                <h3 className="text-base font-bold text-slate-900">15-секундтық Аудио-Жарнама (Pre-Roll Ad)</h3>
-                <p className="text-xs text-slate-500">Стандартты оқырмандар тыңдауды бастағанда ойнайтын жарнама</p>
-              </div>
+              <h3 className="text-base font-bold text-slate-900">Аудио-Жарнама</h3>
             </div>
 
             <label className="relative inline-flex items-center cursor-pointer shrink-0">
