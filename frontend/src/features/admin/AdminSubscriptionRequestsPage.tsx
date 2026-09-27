@@ -195,6 +195,11 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
                     <td className="py-3 px-4">
                       <div className="font-bold text-slate-900">{req.userName || 'Аты көрсетілмеген'}</div>
                       <div className="text-xs text-slate-500">{req.userEmail}</div>
+                      {req.phoneOrAccount && req.phoneOrAccount.trim() && req.phoneOrAccount.trim() !== req.userEmail && (
+                        <div className="text-xs text-slate-600 font-medium mt-0.5">
+                          {req.phoneOrAccount}
+                        </div>
+                      )}
                     </td>
                     <td className="py-3 px-4">
                       <span className="inline-flex items-center gap-1.5 font-bold text-slate-800">
