@@ -700,6 +700,12 @@ export const AudioPlayerBar: React.FC = () => {
       return;
     }
 
+    // When not in ad mode, always guarantee ad audio is completely silenced and reset
+    if (adAudioRef.current) {
+      adAudioRef.current.pause();
+      adAudioRef.current.currentTime = 0;
+    }
+
     if (isYouTube) {
       if (audioRef.current) {
         audioRef.current.pause();
@@ -838,8 +844,12 @@ export const AudioPlayerBar: React.FC = () => {
   // Pre-roll ad trigger
   useEffect(() => {
     if (!currentBook || !isPlaying) return;
-    if (isExempt) {
+    if (isExempt || !isAdPlaying) {
       if (isAdPlaying) setIsAdPlaying(false);
+      if (adAudioRef.current) {
+        adAudioRef.current.pause();
+        adAudioRef.current.currentTime = 0;
+      }
       return;
     }
 
@@ -855,6 +865,10 @@ export const AudioPlayerBar: React.FC = () => {
         adAudioRef.current.currentTime = 0;
         adAudioRef.current.play().catch(() => {
           setIsAdPlaying(false);
+          if (adAudioRef.current) {
+            adAudioRef.current.pause();
+            adAudioRef.current.currentTime = 0;
+          }
           if (audioRef.current && useAudioPlayerStore.getState().isPlaying) {
             audioRef.current.play().catch(() => {});
           }
@@ -1075,7 +1089,7 @@ export const AudioPlayerBar: React.FC = () => {
       )}
 
       {/* Pre-Roll Audio Ad Element */}
-      {systemSettings?.audioAdUrl && (
+      {!isExempt && systemSettings?.audioAdUrl && (
         <audio
           ref={adAudioRef}
           src={formatAudioUrl(systemSettings.audioAdUrl)}
@@ -1100,6 +1114,10 @@ export const AudioPlayerBar: React.FC = () => {
             adPlayedForCurrentBookRef.current = true;
             setIsAdPlaying(false);
             setAdProgress(0);
+            if (adAudioRef.current) {
+              adAudioRef.current.pause();
+              adAudioRef.current.currentTime = 0;
+            }
             const currentBookState = useAudioPlayerStore.getState();
             const targetTime = currentBookState.progress > 0
               ? currentBookState.progress
@@ -1134,6 +1152,10 @@ export const AudioPlayerBar: React.FC = () => {
             adPlayedForCurrentBookRef.current = true;
             setIsAdPlaying(false);
             setAdProgress(0);
+            if (adAudioRef.current) {
+              adAudioRef.current.pause();
+              adAudioRef.current.currentTime = 0;
+            }
             const currentBookState = useAudioPlayerStore.getState();
             const targetTime = currentBookState.progress > 0
               ? currentBookState.progress

@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware';
 import { Book, AudioChapter } from '../types';
 import { api } from '../lib/api';
 import { useMyBooksStore } from './useMyBooksStore';
+import { useAuthStore } from './useAuthStore';
 
 interface AudioPlayerState {
   currentBook: Book | null;
@@ -146,11 +147,9 @@ export function isAdRequiredForUser(bookId?: string): boolean {
     }
   }
 
-  const authUserRaw = localStorage.getItem('tanda_user') || localStorage.getItem('user');
-  let authUser: any = null;
-  try {
-    if (authUserRaw) authUser = JSON.parse(authUserRaw);
-  } catch {}
+  // 1. Check in-memory Zustand auth store state
+  const authState = useAuthStore.getState();
+  const authUser = authState.user;
 
   if (authUser?.isPremium) {
     return false;
@@ -163,6 +162,22 @@ export function isAdRequiredForUser(bookId?: string): boolean {
     Boolean(authUser?.duty)
   ) {
     return false;
+  }
+
+  // 2. If token exists and auth is still initializing, do not default to forcing ad
+  if (token && !authState.isAuthInitialized) {
+    return false;
+  }
+
+  // 3. Fallback check for any legacy local storage user
+  const authUserRaw = localStorage.getItem('tanda_user') || localStorage.getItem('user');
+  if (authUserRaw) {
+    try {
+      const parsed = JSON.parse(authUserRaw);
+      if (parsed?.isPremium || parsed?.role === 'admin' || parsed?.role === 'author') {
+        return false;
+      }
+    } catch {}
   }
 
   if (cachedSettings?.audioAdEnabled && cachedSettings?.audioAdUrl) {
