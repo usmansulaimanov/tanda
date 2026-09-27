@@ -182,7 +182,7 @@ export const ReaderCreatePage: React.FC = () => {
 
     const raw = clean.replace(/^@/, '');
     if (raw) {
-      const res = checkUsernameAvailable(raw);
+      const res = checkUsernameAvailable(raw, undefined, true);
       if (!res.available) {
         setUsernameError(res.error || 'Бұл пайдаланушы аты (username) тіркеліп қойған');
       } else {
@@ -261,7 +261,7 @@ export const ReaderCreatePage: React.FC = () => {
     // Username validation
     const rawUser = username.trim().replace(/^@/, '');
     if (rawUser) {
-      const check = checkUsernameAvailable(rawUser);
+      const check = checkUsernameAvailable(rawUser, undefined, true);
       if (!check.available) {
         setUsernameError(check.error || 'Бұл пайдаланушы аты (username) тіркеліп қойған');
         showToast(check.error || 'Бұл пайдаланушы аты (username) тіркеліп қойған', 'error');

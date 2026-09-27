@@ -61,6 +61,16 @@ export const premiumApi = {
     return data;
   },
 
+  uploadReceiptImage: async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('category', 'covers');
+    const { data } = await api.post('/api/v1/premium/receipts/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return data?.url || data?.key || '';
+  },
+
   grantPremiumAdmin: async (
     userId: string,
     days: number,

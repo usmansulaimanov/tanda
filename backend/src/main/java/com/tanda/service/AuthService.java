@@ -390,6 +390,12 @@ public class AuthService {
             if (request.getUsername() != null) {
                 String newUsername = request.getUsername().trim().toLowerCase().replaceAll("^@", "");
                 if (!newUsername.isBlank() && !newUsername.equalsIgnoreCase(user.getUsername())) {
+                    if (newUsername.length() < 5) {
+                        throw new BadRequestException("Юзернейм кемінде 5 таңбадан тұруы керек (3 және 4 таңбалы қысқа юзернеймдерді тек әкімші бере алады)");
+                    }
+                    if (!newUsername.matches("^[a-zA-Z0-9_.]+$")) {
+                        throw new BadRequestException("Юзернейм тек латын әріптерінен, сандардан және _ . таңбаларынан тұруы керек");
+                    }
                     if (reservedUsernameService.isReserved(newUsername)) {
                         throw new BadRequestException("Бұл юзернейм бос емес");
                     }

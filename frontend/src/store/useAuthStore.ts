@@ -38,7 +38,7 @@ interface AuthState {
   fetchClients: (search?: string) => Promise<User[]>;
   getAllClients: () => User[];
   getClientsCount: () => number;
-  checkUsernameAvailable: (username: string, excludeUserId?: string) => { available: boolean; error?: string };
+  checkUsernameAvailable: (username: string, excludeUserId?: string, isAdminContext?: boolean) => { available: boolean; error?: string };
   checkIdNumberAvailable: (idNumber: string, excludeUserId?: string) => { available: boolean; error?: string };
   checkEmailAvailable: (email: string, excludeUserId?: string) => { available: boolean; error?: string };
   getNextAvailableIdNumber: () => string;
@@ -398,13 +398,19 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
         }
       },
 
-      checkUsernameAvailable: (username: string, excludeUserId?: string) => {
+      checkUsernameAvailable: (username: string, excludeUserId?: string, isAdminContext?: boolean) => {
         const trimmed = username.trim().toLowerCase().replace(/^@/, '');
         if (!trimmed) {
           return { available: true };
         }
-        if (trimmed.length < 3) {
-          return { available: false, error: 'Юзернейм кемінде 3 әріптен тұруы керек' };
+        const currentUser = get().user;
+        const isAdmin = isAdminContext ?? (currentUser?.role === 'admin' || currentUser?.isSuperAdmin);
+
+        if (!isAdmin && trimmed.length < 5) {
+          return { available: false, error: 'Оқырмандар үшін юзернейм кемінде 5 таңбадан тұруы керек' };
+        }
+        if (isAdmin && trimmed.length < 1) {
+          return { available: false, error: 'Юзернейм бос болмауы керек' };
         }
         if (!/^[a-zA-Z0-9_.]+$/.test(trimmed)) {
           return { available: false, error: 'Юзернеймде тек латын әріптері, сандар, _ және . рұқсат етілген' };
@@ -413,9 +419,8 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
         // Check if reserved
         const reservedList = get().reservedUsernames;
         if (reservedList.map((r) => r.toLowerCase()).includes(trimmed)) {
-          const currentUser = get().user;
           const isSuperAdminHoldingIt = currentUser?.isSuperAdmin && currentUser?.username?.toLowerCase() === trimmed;
-          if (!isSuperAdminHoldingIt) {
+          if (!isSuperAdminHoldingIt && !isAdmin) {
             return { available: false, error: 'Бұл юзернейм бос емес' };
           }
         }

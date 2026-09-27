@@ -156,6 +156,56 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
     showToast('Карта нөмірі көшірілді: ' + displayCard, 'success');
   };
 
+  const compressImageFile = async (file: File, maxDimension = 1280, quality = 0.82): Promise<File> => {
+    if (!file.type.startsWith('image/')) return file;
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          let { width, height } = img;
+          if (width > maxDimension || height > maxDimension) {
+            if (width > height) {
+              height = Math.round((height * maxDimension) / width);
+              width = maxDimension;
+            } else {
+              width = Math.round((width * maxDimension) / height);
+              height = maxDimension;
+            }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            resolve(file);
+            return;
+          }
+          ctx.drawImage(img, 0, 0, width, height);
+          canvas.toBlob(
+            (blob) => {
+              if (!blob) {
+                resolve(file);
+                return;
+              }
+              const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, '') + '.jpg', {
+                type: 'image/jpeg',
+                lastModified: Date.now(),
+              });
+              resolve(compressedFile);
+            },
+            'image/jpeg',
+            quality
+          );
+        };
+        img.onerror = () => resolve(file);
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = () => resolve(file);
+      reader.readAsDataURL(file);
+    });
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -182,23 +232,19 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
 
     setIsUploading(true);
     try {
-      // 1. Upload receipt image
-      const formData = new FormData();
-      formData.append('file', receiptFile);
-      formData.append('category', 'covers'); // image storage
+      // 1. Instant client-side compression (< 150KB)
+      const compressedFile = await compressImageFile(receiptFile);
 
+      // 2. Upload receipt image to fast authenticated endpoint
       let receiptUrl = '';
       try {
-        const uploadRes = await api.post('/api/v1/admin/upload', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
-        receiptUrl = uploadRes.data?.url || uploadRes.data?.key || '';
-      } catch {
-        // Fallback to base64 preview or client url if upload endpoint requires admin
-        receiptUrl = receiptPreview;
+        receiptUrl = await premiumApi.uploadReceiptImage(compressedFile);
+      } catch (uploadErr) {
+        console.warn('Direct receipt upload failed, fallback', uploadErr);
+        receiptUrl = receiptPreview || 'receipt_attached';
       }
 
-      // 2. Submit payment request
+      // 3. Submit payment request
       await premiumApi.createSubscriptionRequest({
         planName: currentPlan.id,
         planDays: currentPlan.days,

@@ -1,10 +1,10 @@
-package com.tanda.controller;
-
+import com.tanda.dto.media.MediaUploadResponseDto;
 import com.tanda.dto.premium.CreateSubscriptionPaymentRequestDto;
 import com.tanda.dto.premium.ReviewSubscriptionPaymentRequestDto;
 import com.tanda.dto.premium.SubscriptionPaymentRequestResponseDto;
-import com.tanda.service.SubscriptionPaymentService;
 import com.tanda.security.UserPrincipal;
+import com.tanda.service.MediaUploadService;
+import com.tanda.service.SubscriptionPaymentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -31,6 +32,15 @@ import java.util.List;
 public class SubscriptionPaymentController {
 
     private final SubscriptionPaymentService paymentService;
+    private final MediaUploadService mediaUploadService;
+
+    @PostMapping({"/premium/receipts/upload", "/premium/upload-receipt"})
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Upload payment receipt image for subscription (authenticated users)")
+    public ResponseEntity<MediaUploadResponseDto> uploadReceipt(
+            @RequestParam("file") MultipartFile file) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(mediaUploadService.uploadFile(file, "covers"));
+    }
 
     @PostMapping("/premium/subscription-requests")
     @PreAuthorize("isAuthenticated()")

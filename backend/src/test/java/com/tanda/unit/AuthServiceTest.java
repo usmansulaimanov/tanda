@@ -347,6 +347,58 @@ class AuthServiceTest {
     }
 
     @Test
+    @DisplayName("updateProfile() throws BadRequestException if client tries to set 3 or 4 character username")
+    void updateProfileThrowsIfUsernameLessThan5CharactersForClient() {
+        User existingUser = User.builder()
+                .id("user-123")
+                .email("reader@tanda.kz")
+                .role("client")
+                .name("Оқырман")
+                .build();
+
+        when(userRepository.findById("user-123")).thenReturn(Optional.of(existingUser));
+
+        com.tanda.dto.auth.UpdateProfileRequestDto request3Chars = com.tanda.dto.auth.UpdateProfileRequestDto.builder()
+                .username("nur")
+                .build();
+
+        com.tanda.exception.BadRequestException ex3 = assertThrows(com.tanda.exception.BadRequestException.class, () ->
+                authService.updateProfile("user-123", request3Chars)
+        );
+        assertTrue(ex3.getMessage().contains("кемінде 5 таңбадан"));
+
+        com.tanda.dto.auth.UpdateProfileRequestDto request4Chars = com.tanda.dto.auth.UpdateProfileRequestDto.builder()
+                .username("alua")
+                .build();
+
+        com.tanda.exception.BadRequestException ex4 = assertThrows(com.tanda.exception.BadRequestException.class, () ->
+                authService.updateProfile("user-123", request4Chars)
+        );
+        assertTrue(ex4.getMessage().contains("кемінде 5 таңбадан"));
+    }
+
+    @Test
+    @DisplayName("updateProfile() allows 5 character username for client")
+    void updateProfileAllows5CharacterUsernameForClient() {
+        User existingUser = User.builder()
+                .id("user-123")
+                .email("reader@tanda.kz")
+                .role("client")
+                .name("Оқырман")
+                .build();
+
+        when(userRepository.findById("user-123")).thenReturn(Optional.of(existingUser));
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        com.tanda.dto.auth.UpdateProfileRequestDto request5Chars = com.tanda.dto.auth.UpdateProfileRequestDto.builder()
+                .username("almas")
+                .build();
+
+        com.tanda.dto.user.UserResponseDto res = authService.updateProfile("user-123", request5Chars);
+        assertEquals("almas", res.getUsername());
+    }
+
+    @Test
     @DisplayName("getMe() retrieves user by user ID")
     void getMeRetrievesUserById() {
         User user = User.builder()

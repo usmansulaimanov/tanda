@@ -362,7 +362,7 @@ export const SettingsPage: React.FC = () => {
 
     const raw = clean.replace(/^@/, '');
     if (raw) {
-      const res = checkUsernameAvailable(raw);
+      const res = checkUsernameAvailable(raw, undefined, false);
       if (!res.available) {
         setUsernameError(res.error || 'Бұл юзернейм бос емес');
       } else {
@@ -395,7 +395,7 @@ export const SettingsPage: React.FC = () => {
 
     const rawUser = isClient ? username.trim().replace(/^@/, '') : undefined;
     if (isClient && rawUser) {
-      const check = checkUsernameAvailable(rawUser);
+      const check = checkUsernameAvailable(rawUser, undefined, false);
       if (!check.available) {
         setUsernameError(check.error || 'Бұл юзернейм бос емес');
         showToast(check.error || 'Бұл юзернейм бос емес', 'error');
