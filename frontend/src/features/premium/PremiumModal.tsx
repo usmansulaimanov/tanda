@@ -204,7 +204,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
         planDays: currentPlan.days,
         amountKzt: currentPlan.price,
         receiptUrl: receiptUrl || 'receipt_attached',
-        phoneOrAccount: phoneOrAccount.trim() || user?.email || '',
+        phoneOrAccount: phoneOrAccount.trim() || undefined,
         notes: `Пайдаланушы: ${user?.name || user?.email}`,
       });
 

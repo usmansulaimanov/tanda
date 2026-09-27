@@ -187,11 +187,6 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
                     <td className="py-3 px-4">
                       <div className="font-bold text-slate-900">{req.userName || 'Аты көрсетілмеген'}</div>
                       <div className="text-xs text-slate-500">{req.userEmail}</div>
-                      {req.phoneOrAccount && (
-                        <div className="text-[11px] text-amber-700 font-mono mt-0.5">
-                          Kaspi: {req.phoneOrAccount}
-                        </div>
-                      )}
                     </td>
                     <td className="py-3 px-4">
                       <span className="inline-flex items-center gap-1 font-bold text-slate-800">
