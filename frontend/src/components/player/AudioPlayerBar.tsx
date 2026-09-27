@@ -15,8 +15,18 @@ import {
   Check,
   ChevronUp,
   Maximize2,
+  Volume2,
 } from 'lucide-react';
-import { useAudioPlayerStore, getChapterStartTime, parseDurationToSeconds, resetRoyaltyTracking, flushHeartbeatNow } from '../../store/useAudioPlayerStore';
+import {
+  useAudioPlayerStore,
+  getChapterStartTime,
+  parseDurationToSeconds,
+  resetRoyaltyTracking,
+  flushHeartbeatNow,
+  getCachedSystemSettings,
+  saveCachedSystemSettings,
+  startAudioSession,
+} from '../../store/useAudioPlayerStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useToastStore } from '../../store/useToastStore';
 import { extractYouTubeVideoId, loadYouTubeIFrameApi } from '../../utils/youtube';
@@ -92,9 +102,7 @@ export const AudioPlayerBar: React.FC = () => {
   const speedMenuRef = useRef<HTMLDivElement>(null);
 
   // System settings, Pre-Roll ad & Premium limitation
-  const [systemSettings, setSystemSettings] = useState<SystemSettings | null>(null);
-  const [isPreRollAdPlaying, setIsPreRollAdPlaying] = useState(false);
-  const [adSecondsLeft, setAdSecondsLeft] = useState(15);
+  const [systemSettings, setSystemSettings] = useState<SystemSettings | null>(() => getCachedSystemSettings());
   const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [premiumModalReason, setPremiumModalReason] = useState('');
   const lastBookIdRef = useRef<string | null>(null);
@@ -113,7 +121,10 @@ export const AudioPlayerBar: React.FC = () => {
   );
 
   useEffect(() => {
-    systemApi.getSettings().then(setSystemSettings).catch(() => {});
+    systemApi.getSettings().then((data) => {
+      setSystemSettings(data);
+      saveCachedSystemSettings(data);
+    }).catch(() => {});
   }, []);
 
   const formatAudioUrl = (rawUrl?: string): string => {
@@ -1100,16 +1111,19 @@ export const AudioPlayerBar: React.FC = () => {
             if (dur && !isNaN(dur) && dur > 0) {
               setAdDuration(dur);
             }
-            const left = Math.max(0, Math.ceil((dur || 15) - cur));
-            setAdSecondsLeft(left);
           }}
           onEnded={() => {
             isAdEndingTransitionRef.current = true;
             setIsAdPlaying(false);
+            setAdProgress(0);
             const currentBookState = useAudioPlayerStore.getState();
             const targetTime = currentBookState.progress > 0
               ? currentBookState.progress
               : (targetResumeTimeRef.current > 0 ? targetResumeTimeRef.current : 0);
+
+            if (currentBookState.currentBook) {
+              startAudioSession(currentBookState.currentBook.id, currentBookState.currentChapter?.id);
+            }
 
             if (isYouTube && ytPlayerRef.current && typeof ytPlayerRef.current.seekTo === 'function') {
               if (targetTime > 0) {
@@ -1134,10 +1148,15 @@ export const AudioPlayerBar: React.FC = () => {
           onError={() => {
             isAdEndingTransitionRef.current = true;
             setIsAdPlaying(false);
+            setAdProgress(0);
             const currentBookState = useAudioPlayerStore.getState();
             const targetTime = currentBookState.progress > 0
               ? currentBookState.progress
               : (targetResumeTimeRef.current > 0 ? targetResumeTimeRef.current : 0);
+
+            if (currentBookState.currentBook) {
+              startAudioSession(currentBookState.currentBook.id, currentBookState.currentChapter?.id);
+            }
 
             if (isYouTube && ytPlayerRef.current && typeof ytPlayerRef.current.seekTo === 'function') {
               if (targetTime > 0) {
@@ -1449,25 +1468,36 @@ export const AudioPlayerBar: React.FC = () => {
                 </div>
 
                 {/* Progress Slider */}
-                <div className="flex items-center gap-2 w-full text-[10px] sm:text-[11px] text-slate-500 font-mono font-bold">
-                  <span className={`w-8 sm:w-10 text-right shrink-0 ${isAdPlaying ? 'text-amber-600 font-black' : ''}`}>
-                    {formatTime(isAdPlaying ? adProgress : progress)}
-                  </span>
-                  <input
-                    type="range"
-                    min={0}
-                    max={isAdPlaying ? (adDuration || 15) : (duration || 100)}
-                    value={isAdPlaying ? adProgress : progress}
-                    onChange={handleSeek}
-                    disabled={isAdPlaying}
-                    className={`flex-1 h-1.5 sm:h-2 rounded-lg appearance-none transition-all ${
-                      isAdPlaying ? 'bg-amber-100 cursor-not-allowed' : 'bg-slate-200 cursor-pointer accent-[#005494]'
-                    }`}
-                    style={{ accentColor: isAdPlaying ? '#F59E0B' : '#005494' }}
-                  />
-                  <span className={`w-8 sm:w-10 text-left shrink-0 ${isAdPlaying ? 'text-amber-600 font-black' : ''}`}>
-                    {formatTime(isAdPlaying ? (adDuration || 15) : duration)}
-                  </span>
+                <div className="flex flex-col w-full gap-0.5">
+                  {isAdPlaying && (
+                    <div className="flex items-center justify-between text-[10px] font-bold text-amber-600 px-1">
+                      <span className="flex items-center gap-1">
+                        <Volume2 className="w-3 h-3 animate-pulse" />
+                        Аудио-жарнама ойналуда
+                      </span>
+                      <span className="font-mono">{Math.max(0, Math.ceil((adDuration || 15) - adProgress))} сек қалды</span>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2 w-full text-[10px] sm:text-[11px] text-slate-500 font-mono font-bold">
+                    <span className={`w-8 sm:w-10 text-right shrink-0 ${isAdPlaying ? 'text-amber-600 font-black' : ''}`}>
+                      {formatTime(isAdPlaying ? adProgress : progress)}
+                    </span>
+                    <input
+                      type="range"
+                      min={0}
+                      max={isAdPlaying ? (adDuration || 15) : (duration || 100)}
+                      value={isAdPlaying ? adProgress : progress}
+                      onChange={handleSeek}
+                      disabled={isAdPlaying}
+                      className={`flex-1 h-1.5 sm:h-2 rounded-lg appearance-none transition-all ${
+                        isAdPlaying ? 'bg-amber-100 cursor-not-allowed' : 'bg-slate-200 cursor-pointer accent-[#005494]'
+                      }`}
+                      style={{ accentColor: isAdPlaying ? '#F59E0B' : '#005494' }}
+                    />
+                    <span className={`w-8 sm:w-10 text-left shrink-0 ${isAdPlaying ? 'text-amber-600 font-black' : ''}`}>
+                      {formatTime(isAdPlaying ? (adDuration || 15) : duration)}
+                    </span>
+                  </div>
                 </div>
               </div>
 

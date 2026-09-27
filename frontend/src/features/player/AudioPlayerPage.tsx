@@ -492,6 +492,11 @@ export const AudioPlayerPage: React.FC = () => {
                     </h4>
                   </div>
                 </div>
+                {isAdPlaying && (
+                  <span className="text-xs font-black text-amber-600 bg-amber-500/20 px-2.5 py-1 rounded-lg shrink-0 font-mono">
+                    {Math.max(0, Math.ceil((adDuration || 15) - adProgress))} сек қалды
+                  </span>
+                )}
               </div>
 
               {/* 3. Progress Slider & Controls Console */}

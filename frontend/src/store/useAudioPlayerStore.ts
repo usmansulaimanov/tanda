@@ -115,11 +115,68 @@ export function resetRoyaltyTracking() {
   // Server-side AudioSession handles accurate listening tracking
 }
 
+export function getCachedSystemSettings(): any {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem('tanda_system_settings');
+    if (raw) return JSON.parse(raw);
+  } catch {}
+  return null;
+}
+
+export function saveCachedSystemSettings(settings: any) {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem('tanda_system_settings', JSON.stringify(settings));
+  } catch {}
+}
+
+export function isAdRequiredForUser(bookId?: string): boolean {
+  if (typeof window === 'undefined') return false;
+  const token = localStorage.getItem('tanda_token');
+  if (!token) return false;
+
+  const cachedSettings = getCachedSystemSettings();
+  if (cachedSettings) {
+    if (cachedSettings.premiumEnabled === false || Boolean(cachedSettings.openAccessMode)) {
+      return false;
+    }
+    if (!cachedSettings.audioAdEnabled || !cachedSettings.audioAdUrl) {
+      return false;
+    }
+  }
+
+  const authUserRaw = localStorage.getItem('tanda_user') || localStorage.getItem('user');
+  let authUser: any = null;
+  try {
+    if (authUserRaw) authUser = JSON.parse(authUserRaw);
+  } catch {}
+
+  if (authUser?.isPremium) {
+    return false;
+  }
+  if (
+    authUser?.role === 'author' ||
+    authUser?.role === 'admin' ||
+    authUser?.isAuthor ||
+    authUser?.isSuperAdmin ||
+    Boolean(authUser?.duty)
+  ) {
+    return false;
+  }
+
+  if (cachedSettings?.audioAdEnabled && cachedSettings?.audioAdUrl) {
+    return true;
+  }
+
+  return false;
+}
+
 // Backend Audio Session & Heartbeat Management
 let activeSessionId: string | null = null;
 let heartbeatInterval: any = null;
 
-async function startAudioSession(bookId: string, chapterId?: string) {
+export async function startAudioSession(bookId: string, chapterId?: string) {
   if (typeof window === 'undefined') return;
   const token = localStorage.getItem('tanda_token');
   if (!token) return;
@@ -403,6 +460,9 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
           : (!hasOwnAudio && chapters.length > 0 ? getChapterStartTime(chapters, resolvedChapterIndex) : 0);
         const chapterDur = chapter?.duration ? parseDurationToSeconds(chapter.duration) : 180;
 
+        const cachedSettings = getCachedSystemSettings();
+        const needsAd = isAdRequiredForUser(book.id);
+
         set({
           currentBook: book,
           currentChapter: chapter,
@@ -410,12 +470,16 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
           isPlaying: true,
           progress: startProgress,
           duration: chapterDur,
-          isAdPlaying: false,
+          isAdPlaying: needsAd,
           adProgress: 0,
+          adDuration: cachedSettings?.audioAdDuration || 15,
+          adTitle: cachedSettings?.audioAdTitle || 'Tanda Аудио-Жарнама',
         });
 
         useMyBooksStore.getState().markAsReading(book.id);
-        startAudioSession(book.id, chapter?.id);
+        if (!needsAd) {
+          startAudioSession(book.id, chapter?.id);
+        }
         syncProgressNow(book.id, chapter?.id, startProgress);
         window.dispatchEvent(new CustomEvent('tanda:audio:seek', { detail: { time: startProgress } }));
       },
@@ -647,6 +711,13 @@ if (typeof window !== 'undefined') {
       endAudioSession();
     } catch {}
   });
+
+  // Preload system settings on startup
+  api.get('/api/v1/system/settings').then(({ data }) => {
+    if (data) {
+      saveCachedSystemSettings(data);
+    }
+  }).catch(() => {});
 
   // Check daily limit on startup
   setTimeout(() => {
