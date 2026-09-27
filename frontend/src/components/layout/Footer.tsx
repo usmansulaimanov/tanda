@@ -67,8 +67,8 @@ export const Footer: React.FC = () => {
           {/* Column 1: Brand & Description & Email */}
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
-              <span style={{ fontWeight: 900, color: '#FFFFFF', fontSize: '22px', letterSpacing: '-0.02em' }}>
-                tanda<span style={{ color: 'var(--orange)' }}>.</span>
+              <span style={{ fontWeight: 900, color: '#FFFFFF', fontSize: '24px', letterSpacing: '-0.02em' }}>
+                tandamen<span style={{ color: 'var(--orange)' }}>.kz</span>
               </span>
             </div>
             <p style={{ fontSize: '13px', lineHeight: 1.6, color: '#94A3B8', marginBottom: '20px', maxWidth: '300px' }}>
