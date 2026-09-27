@@ -333,9 +333,6 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-2xl font-black text-slate-900">Tanda Premium</h2>
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-orange-50 text-orange-800 border border-orange-200">
-                  ШЕКСЕУСІЗ
-                </span>
               </div>
               {initialReason && (
                 <p className="text-sm text-slate-500">
