@@ -433,9 +433,14 @@ export const AudioPlayerBar: React.FC = () => {
               if (dur && !isNaN(dur) && dur > 0) {
                 setDuration(dur);
               }
-              if (progress > 0) {
-                event.target.seekTo(progress, true);
+              const savedProgress = useAudioPlayerStore.getState().progress || 0;
+              const target = pendingSeekTimeRef.current !== null && pendingSeekTimeRef.current !== undefined
+                ? pendingSeekTimeRef.current
+                : savedProgress;
+              if (target > 0) {
+                event.target.seekTo(target, true);
               }
+              pendingSeekTimeRef.current = null;
               if (isPlaying && !useAudioPlayerStore.getState().isAdPlaying) {
                 event.target.playVideo();
               } else {
@@ -708,11 +713,17 @@ export const AudioPlayerBar: React.FC = () => {
     if (!isYouTube || !isPlaying) return;
 
     const interval = setInterval(() => {
+      if (useAudioPlayerStore.getState().isAdPlaying) return;
       if (ytPlayerRef.current && typeof ytPlayerRef.current.getCurrentTime === 'function') {
         try {
           const current = ytPlayerRef.current.getCurrentTime();
           const dur = ytPlayerRef.current.getDuration();
           if (current !== undefined && !isNaN(current)) {
+            // Guard against transient 0 overriding saved progress before seek finishes
+            const storeProg = useAudioPlayerStore.getState().progress || 0;
+            if (current === 0 && storeProg > 1 && pendingSeekTimeRef.current !== 0) {
+              return;
+            }
             if (check15MinuteLimit(current)) return;
             setProgress(current);
           }
