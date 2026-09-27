@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Check, ShieldCheck, Sparkles, Clock, Calendar, Headphones, Gift, BookOpen } from 'lucide-react';
+import { Calendar, Clock, Sparkles } from 'lucide-react';
+import tandaPremiumWhite from '../../assets/tanda-premium-white.png';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '../../store/useAuthStore';
 import { PremiumModal } from './PremiumModal';
@@ -75,23 +76,19 @@ export const PremiumPage: React.FC = () => {
           </p>
 
           {isUserPremium ? (
-            <div className="mt-8 max-w-xl mx-auto bg-white/95 backdrop-blur-md rounded-3xl p-5 sm:p-6 border border-emerald-200/90 shadow-xl shadow-emerald-500/5 text-left">
-              <div className="flex items-center gap-3 pb-4 border-b border-emerald-100">
-                <div className="w-10 h-10 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shadow-md shrink-0">
-                  <Check className="w-5 h-5 stroke-[3]" />
+            <div className="mt-8 max-w-xl mx-auto bg-white/95 backdrop-blur-md rounded-3xl p-5 sm:p-6 border border-orange-200/80 shadow-xl shadow-orange-500/5 text-left">
+              <div className="flex items-center gap-3.5 pb-4 border-b border-slate-100">
+                <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-[#F08000] to-orange-400 flex items-center justify-center p-2 shadow-md shadow-orange-500/20 shrink-0">
+                  <img
+                    src={tandaPremiumWhite}
+                    alt="Tanda Premium"
+                    className="w-6 h-auto object-contain drop-shadow-sm"
+                  />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="text-base sm:text-lg font-black text-slate-900 leading-tight">
-                      Сізде белсенді Премиум жазылым бар!
-                    </h3>
-                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-emerald-100 text-emerald-800 shrink-0">
-                      Белсенді
-                    </span>
-                  </div>
-                  <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-                    Барлық кітаптар, кәсіби аудиолар мен функциялар толық қолжетімді.
-                  </p>
+                  <h3 className="text-base sm:text-lg font-black text-slate-900 leading-tight">
+                    Сізде белсенді Премиум жазылым бар!
+                  </h3>
                 </div>
               </div>
 
