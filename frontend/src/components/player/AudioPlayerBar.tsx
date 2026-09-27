@@ -1061,10 +1061,18 @@ export const AudioPlayerBar: React.FC = () => {
           onEnded={() => {
             setIsAdPlaying(false);
             setTimeout(() => {
-              if (useAudioPlayerStore.getState().isPlaying) {
+              const state = useAudioPlayerStore.getState();
+              if (state.isPlaying) {
+                const targetTime = state.progress || 0;
                 if (isYouTube && ytPlayerRef.current && typeof ytPlayerRef.current.playVideo === 'function') {
+                  if (targetTime > 0) {
+                    ytPlayerRef.current.seekTo(targetTime, true);
+                  }
                   ytPlayerRef.current.playVideo();
                 } else if (audioRef.current) {
+                  if (targetTime > 0) {
+                    audioRef.current.currentTime = targetTime;
+                  }
                   audioRef.current.play().catch(() => {});
                 }
               }
@@ -1073,10 +1081,18 @@ export const AudioPlayerBar: React.FC = () => {
           onError={() => {
             setIsAdPlaying(false);
             setTimeout(() => {
-              if (useAudioPlayerStore.getState().isPlaying) {
+              const state = useAudioPlayerStore.getState();
+              if (state.isPlaying) {
+                const targetTime = state.progress || 0;
                 if (isYouTube && ytPlayerRef.current && typeof ytPlayerRef.current.playVideo === 'function') {
+                  if (targetTime > 0) {
+                    ytPlayerRef.current.seekTo(targetTime, true);
+                  }
                   ytPlayerRef.current.playVideo();
                 } else if (audioRef.current) {
+                  if (targetTime > 0) {
+                    audioRef.current.currentTime = targetTime;
+                  }
                   audioRef.current.play().catch(() => {});
                 }
               }

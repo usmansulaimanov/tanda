@@ -80,16 +80,19 @@ export const AudioPlayerPage: React.FC = () => {
   const timerMenuRef = useRef<HTMLDivElement>(null);
   const speedMenuRef = useRef<HTMLDivElement>(null);
 
-  // Fetch book if not in memory
+  // Fetch book if not in memory or when route id changes
   useEffect(() => {
-    if (!book && id) {
+    const found = books.find((b) => b.id === id);
+    if (found) {
+      setBook(found);
+    } else if (id) {
       fetchBookById(id)
         .then((b) => {
           if (b) setBook(b);
         })
         .catch(() => {});
     }
-  }, [book, id, fetchBookById]);
+  }, [id, books, fetchBookById]);
 
   // If this book is opened and isn't currently loaded in the player store, start playing it
   useEffect(() => {

@@ -314,7 +314,7 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
         const prevChapter = get().currentChapter;
         const prevProgress = get().progress;
         if (prevBook && prevBook.id !== book.id && prevProgress > 0) {
-          syncProgressNow(prevBook.id, prevChapter?.id, prevProgress);
+          await syncProgressNow(prevBook.id, prevChapter?.id, prevProgress);
         }
 
         let chapters = book.audioChapters || [];
