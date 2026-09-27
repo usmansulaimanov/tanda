@@ -147,17 +147,34 @@ export const AudioPlayerBar: React.FC = () => {
   const isYouTube = !!ytVideoId;
 
   const checkPreviewLimit = useCallback((currentSec: number) => {
-    const curBook = useAudioPlayerStore.getState().currentBook;
+    const curState = useAudioPlayerStore.getState();
+    const curBook = curState.currentBook;
     if (!curBook) return false;
     const isPremiumBook = curBook.isFree === false;
     const isPremiumSystemDisabled = systemSettings?.premiumEnabled === false || Boolean(systemSettings?.openAccessMode);
     const isExempt = Boolean(user?.isPremium || isPremiumSystemDisabled || isAuthorOrStaff);
+
+    if (!isPremiumBook || isExempt) return false;
+
+    const curChapterIndex = curState.chapterIndex || 0;
+    if (curChapterIndex > 0) {
+      useAudioPlayerStore.getState().setIsPlaying(false);
+      if (audioRef.current) audioRef.current.pause();
+      if (ytPlayerRef.current && typeof ytPlayerRef.current.pauseVideo === 'function') {
+        ytPlayerRef.current.pauseVideo();
+      }
+      setProgress(0);
+      setPremiumModalReason('Тегін үзінді тек 1-бөлім үшін беріледі. Барлық бөлімдерді толық тыңдау үшін Tanda Premium-ге қосылыңыз!');
+      setShowPremiumModal(true);
+      return true;
+    }
+
     const limitMinutes = (curBook.previewDurationMinutes && curBook.previewDurationMinutes > 0)
       ? curBook.previewDurationMinutes
       : 15;
     const limitSec = limitMinutes * 60;
 
-    if (isPremiumBook && !isExempt && currentSec >= limitSec) {
+    if (currentSec >= limitSec) {
       useAudioPlayerStore.getState().setIsPlaying(false);
       if (audioRef.current) audioRef.current.pause();
       if (ytPlayerRef.current && typeof ytPlayerRef.current.pauseVideo === 'function') {
@@ -297,11 +314,24 @@ export const AudioPlayerBar: React.FC = () => {
       }
     };
 
+    const handlePremiumModalEvent = (e: any) => {
+      const reason = e.detail?.reason || 'Тегін үзінді тек 1-бөлім үшін беріледі. Барлық бөлімдерді толық тыңдау үшін Tanda Premium-ге қосылыңыз!';
+      useAudioPlayerStore.getState().setIsPlaying(false);
+      if (audioRef.current) audioRef.current.pause();
+      if (ytPlayerRef.current && typeof ytPlayerRef.current.pauseVideo === 'function') {
+        ytPlayerRef.current.pauseVideo();
+      }
+      setPremiumModalReason(reason);
+      setShowPremiumModal(true);
+    };
+
     window.addEventListener('tanda:audio:seek', handleSeekEvent);
     window.addEventListener('tanda:audio:skip', handleSkipEvent);
+    window.addEventListener('tanda:premium:modal', handlePremiumModalEvent);
     return () => {
       window.removeEventListener('tanda:audio:seek', handleSeekEvent);
       window.removeEventListener('tanda:audio:skip', handleSkipEvent);
+      window.removeEventListener('tanda:premium:modal', handlePremiumModalEvent);
     };
   }, [isYouTube, setProgress, user?.isPremium, systemSettings?.premiumEnabled, systemSettings?.openAccessMode, isAuthorOrStaff, checkPreviewLimit]);
 
@@ -423,9 +453,30 @@ export const AudioPlayerBar: React.FC = () => {
     if (chapters.length > 1) {
       if (chapterIndex < chapters.length - 1) {
         // Automatically advance to the next audio chapter
+        if (currentBook.isFree === false && !isExempt) {
+          setIsPlaying(false);
+          setProgress(0);
+          if (audioRef.current) audioRef.current.pause();
+          if (ytPlayerRef.current && typeof ytPlayerRef.current.pauseVideo === 'function') {
+            ytPlayerRef.current.pauseVideo();
+          }
+          setPremiumModalReason('Тегін үзінді тек 1-бөлім үшін беріледі. Барлық бөлімдерді толық тыңдау үшін Tanda Premium-ге қосылыңыз!');
+          setShowPremiumModal(true);
+          return;
+        }
         nextChapter();
       } else if (repeatMode === 'all') {
-        // Loop back to the first chapter
+        if (currentBook.isFree === false && !isExempt) {
+          setIsPlaying(false);
+          setProgress(0);
+          if (audioRef.current) audioRef.current.pause();
+          if (ytPlayerRef.current && typeof ytPlayerRef.current.pauseVideo === 'function') {
+            ytPlayerRef.current.pauseVideo();
+          }
+          setPremiumModalReason('Тегін үзінді тек 1-бөлім үшін беріледі. Барлық бөлімдерді толық тыңдау үшін Tanda Premium-ге қосылыңыз!');
+          setShowPremiumModal(true);
+          return;
+        }
         nextChapter();
       } else {
         // Reached end of book and repeat is off -> stop cleanly
@@ -685,6 +736,18 @@ export const AudioPlayerBar: React.FC = () => {
   // Sync chapter change / new track loading with audio player and YouTube
   useEffect(() => {
     if (!currentBook) return;
+
+    if (currentBook.isFree === false && !isExempt && chapterIndex > 0) {
+      useAudioPlayerStore.getState().setIsPlaying(false);
+      if (audioRef.current) audioRef.current.pause();
+      if (ytPlayerRef.current && typeof ytPlayerRef.current.pauseVideo === 'function') {
+        ytPlayerRef.current.pauseVideo();
+      }
+      setProgress(0);
+      setPremiumModalReason('Тегін үзінді тек 1-бөлім үшін беріледі. Барлық бөлімдерді толық тыңдау үшін Tanda Premium-ге қосылыңыз!');
+      setShowPremiumModal(true);
+      return;
+    }
 
     const chapters = currentBook.audioChapters || [];
     const chapter = currentChapter || chapters[chapterIndex];

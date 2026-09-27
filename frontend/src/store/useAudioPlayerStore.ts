@@ -351,6 +351,18 @@ export function getChapterStartTime(chapters: AudioChapter[], targetIndex: numbe
   return startTime;
 }
 
+export function isUserExemptFromPremium(): boolean {
+  const authState = useAuthStore.getState();
+  const authUser = authState.user;
+  const authRole = authState.role;
+  const isAuthorOrStaff = Boolean(
+    authUser && (authRole === 'author' || authRole === 'admin' || authUser.role === 'author' || authUser.role === 'admin' || authUser.isAuthor || authUser.isSuperAdmin || Boolean(authUser.duty))
+  );
+  const cachedSettings = getCachedSystemSettings();
+  const isPremiumSystemDisabled = cachedSettings?.premiumEnabled === false || Boolean(cachedSettings?.openAccessMode);
+  return Boolean(authUser?.isPremium || isPremiumSystemDisabled || isAuthorOrStaff);
+}
+
 export const useAudioPlayerStore = create<AudioPlayerState>()(
   persist(
     (set, get) => ({
@@ -400,6 +412,17 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
         if (get().isDailyLimitReached) {
           set({ showDailyLimitModal: true, isPlaying: false });
           return;
+        }
+
+        const isExempt = isUserExemptFromPremium();
+        if (book.isFree === false && !isExempt) {
+          if (targetChapterIndex !== undefined && targetChapterIndex > 0) {
+            set({ isPlaying: false });
+            window.dispatchEvent(new CustomEvent('tanda:premium:modal', {
+              detail: { reason: 'Тегін үзінді тек 1-бөлім үшін беріледі. Барлық бөлімдерді толық тыңдау үшін Tanda Premium-ге қосылыңыз!' }
+            }));
+            return;
+          }
         }
 
         // Flush and sync previous book's progress before loading new book
@@ -468,6 +491,12 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
           }
         }
 
+        // If not exempt on premium book, always clamp chapter to 0
+        if (book.isFree === false && !isExempt && resolvedChapterIndex > 0) {
+          resolvedChapterIndex = 0;
+          resolvedProgress = 0;
+        }
+
         const chapter = chapters[resolvedChapterIndex] || chapters[0] || null;
         const hasOwnAudio = Boolean(chapter?.audioUrl && chapter.audioUrl.trim());
         const startProgress = resolvedProgress > 0
@@ -507,6 +536,16 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
 
         const { currentBook } = get();
         if (!currentBook) return;
+
+        const isExempt = isUserExemptFromPremium();
+        if (currentBook.isFree === false && !isExempt && index > 0) {
+          set({ isPlaying: false });
+          window.dispatchEvent(new CustomEvent('tanda:premium:modal', {
+            detail: { reason: 'Тегін үзінді тек 1-бөлім үшін беріледі. Барлық бөлімдерді толық тыңдау үшін Tanda Premium-ге қосылыңыз!' }
+          }));
+          return;
+        }
+
         const chapters = currentBook.audioChapters || [];
         if (chapters.length > 0 && chapters[index]) {
           const chapter = chapters[index];
@@ -601,6 +640,16 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
       nextChapter: () => {
         const { currentBook, chapterIndex, repeatMode } = get();
         if (!currentBook) return;
+
+        const isExempt = isUserExemptFromPremium();
+        if (currentBook.isFree === false && !isExempt) {
+          set({ isPlaying: false });
+          window.dispatchEvent(new CustomEvent('tanda:premium:modal', {
+            detail: { reason: 'Тегін үзінді тек 1-бөлім үшін беріледі. Барлық бөлімдерді толық тыңдау үшін Tanda Premium-ге қосылыңыз!' }
+          }));
+          return;
+        }
+
         const chapters = currentBook.audioChapters || [];
 
         if (repeatMode === 'one') {

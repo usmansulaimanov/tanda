@@ -16,10 +16,11 @@ import {
   Headphones,
   Music,
   Volume2,
+  Lock,
 } from 'lucide-react';
 import { useBookStore } from '../../store/useBookStore';
 import { useAuthStore } from '../../store/useAuthStore';
-import { useAudioPlayerStore, getChapterStartTime } from '../../store/useAudioPlayerStore';
+import { useAudioPlayerStore, getChapterStartTime, isUserExemptFromPremium } from '../../store/useAudioPlayerStore';
 import { useSavedBooksStore } from '../../store/useSavedBooksStore';
 import { useMyBooksStore } from '../../store/useMyBooksStore';
 import { useToastStore } from '../../store/useToastStore';
@@ -285,6 +286,13 @@ export const AudioPlayerPage: React.FC = () => {
   };
 
   const handleChapterSelect = (idx: number) => {
+    const isExempt = isUserExemptFromPremium();
+    if (activeBook.isFree === false && !isExempt && idx > 0) {
+      window.dispatchEvent(new CustomEvent('tanda:premium:modal', {
+        detail: { reason: 'Тегін үзінді тек 1-бөлім үшін беріледі. Барлық бөлімдерді толық тыңдау үшін Tanda Premium-ге қосылыңыз!' }
+      }));
+      return;
+    }
     markAsReading(activeBook.id, 1, activeBook.pages ? parseInt(String(activeBook.pages)) : undefined);
     if (currentBook?.id !== activeBook.id) {
       playBook(activeBook, idx);
@@ -755,6 +763,8 @@ export const AudioPlayerPage: React.FC = () => {
               <div className="max-h-[380px] sm:max-h-[460px] lg:max-h-[500px] overflow-y-auto divide-y divide-slate-100 pr-1">
                 {chapters.map((ch, idx) => {
                   const isActive = chapterIndex === idx && currentBook?.id === activeBook.id;
+                  const isExempt = isUserExemptFromPremium();
+                  const isLocked = activeBook.isFree === false && !isExempt && idx > 0;
 
                   return (
                     <button
@@ -764,19 +774,27 @@ export const AudioPlayerPage: React.FC = () => {
                       className={`w-full text-left py-2.5 sm:py-3 px-2.5 sm:px-3 rounded-xl transition-colors flex items-center justify-between gap-2.5 cursor-pointer ${
                         isActive
                           ? 'bg-[#005494]/6'
+                          : isLocked
+                          ? 'hover:bg-amber-50/40 opacity-85'
                           : 'hover:bg-slate-50/80'
                       }`}
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
                         {/* Title */}
-                        <div className="min-w-0">
+                        <div className="min-w-0 flex items-center gap-2 flex-wrap">
                           <h4 className={`text-xs sm:text-sm truncate ${isActive ? 'font-black text-[#005494]' : 'font-semibold text-slate-800'}`}>
                             {ch.title}
                           </h4>
+                          {isLocked && (
+                            <span className="text-[10px] font-bold text-amber-700 bg-amber-100/80 px-1.5 py-0.5 rounded flex items-center gap-0.5 shrink-0">
+                              <Lock className="w-2.5 h-2.5" />
+                              Премиум
+                            </span>
+                          )}
                         </div>
                       </div>
 
-                      {/* Duration & Play icon */}
+                      {/* Duration & Play / Lock icon */}
                       <div className="flex items-center gap-2.5 shrink-0">
                         {ch.duration && (
                           <span className="text-[11px] font-mono font-medium text-slate-400">
@@ -788,10 +806,14 @@ export const AudioPlayerPage: React.FC = () => {
                           className={`w-6 h-6 rounded-full flex items-center justify-center transition ${
                             isActive
                               ? 'bg-[#EF7E00] text-white shadow-xs'
+                              : isLocked
+                              ? 'bg-amber-100 text-amber-700'
                               : 'bg-slate-100 text-slate-500'
                           }`}
                         >
-                          {isActive && isPlaying ? (
+                          {isLocked ? (
+                            <Lock className="w-3 h-3" />
+                          ) : isActive && isPlaying ? (
                             <Pause className="w-3 h-3 fill-current" />
                           ) : (
                             <Play className="w-3 h-3 fill-current ml-0.5" />

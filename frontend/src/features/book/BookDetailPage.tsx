@@ -2,7 +2,7 @@ import React from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useBookStore } from '../../store/useBookStore';
 import { useAuthStore } from '../../store/useAuthStore';
-import { useAudioPlayerStore } from '../../store/useAudioPlayerStore';
+import { useAudioPlayerStore, isUserExemptFromPremium } from '../../store/useAudioPlayerStore';
 import { useSavedBooksStore } from '../../store/useSavedBooksStore';
 import { useMyBooksStore } from '../../store/useMyBooksStore';
 import { useToastStore } from '../../store/useToastStore';
@@ -118,6 +118,13 @@ export const BookDetailPage: React.FC = () => {
     if (!isAuthenticated) {
       showToast('Аудионы тыңдау үшін тіркеліңіз немесе аккаунтқа кіріңіз', 'info');
       navigate(`/login?redirect=${encodeURIComponent(`/listen/${book.id}`)}`);
+      return;
+    }
+    const isExempt = isUserExemptFromPremium();
+    if (book.isFree === false && !isExempt && idx > 0) {
+      window.dispatchEvent(new CustomEvent('tanda:premium:modal', {
+        detail: { reason: 'Тегін үзінді тек 1-бөлім үшін беріледі. Барлық бөлімдерді толық тыңдау үшін Tanda Premium-ге қосылыңыз!' }
+      }));
       return;
     }
     markAsReading(book.id, 1, book.pages ? parseInt(String(book.pages)) : undefined);
@@ -369,47 +376,56 @@ export const BookDetailPage: React.FC = () => {
             Тараулар: {book.audioChapters.length}
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            {book.audioChapters.map((ch, idx) => (
-              <div
-                key={ch.id || idx}
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  padding: '14px 8px',
-                  borderBottom: idx === book.audioChapters!.length - 1 ? 'none' : '1px solid #F1F5F9',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <button
-                    type="button"
-                    onClick={() => handleChapterClick(idx)}
-                    style={{
-                      width: '28px',
-                      height: '28px',
-                      borderRadius: '50%',
-                      background: 'rgba(0, 84, 148, 0.1)',
-                      color: 'var(--blue)',
-                      border: 'none',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '11px',
-                      paddingLeft: '2px',
-                    }}
-                  >
-                    ▶
-                  </button>
-                  <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-dark)' }}>
-                    {ch.title}
+            {book.audioChapters.map((ch, idx) => {
+              const isExempt = isUserExemptFromPremium();
+              const isLocked = book.isFree === false && !isExempt && idx > 0;
+              return (
+                <div
+                  key={ch.id || idx}
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: '14px 8px',
+                    borderBottom: idx === book.audioChapters!.length - 1 ? 'none' : '1px solid #F1F5F9',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <button
+                      type="button"
+                      onClick={() => handleChapterClick(idx)}
+                      style={{
+                        width: '28px',
+                        height: '28px',
+                        borderRadius: '50%',
+                        background: isLocked ? '#FEF3C7' : 'rgba(0, 84, 148, 0.1)',
+                        color: isLocked ? '#B45309' : 'var(--blue)',
+                        border: 'none',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: isLocked ? '12px' : '11px',
+                        paddingLeft: isLocked ? '0px' : '2px',
+                      }}
+                    >
+                      {isLocked ? '🔒' : '▶'}
+                    </button>
+                    <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-dark)' }}>
+                      {ch.title}
+                    </span>
+                    {isLocked && (
+                      <span className="text-[10px] font-bold text-amber-700 bg-amber-100/80 px-1.5 py-0.5 rounded">
+                        Премиум
+                      </span>
+                    )}
+                  </div>
+                  <span style={{ fontSize: '12px', color: 'var(--text-mid)', fontWeight: 600 }}>
+                    {ch.duration}
                   </span>
                 </div>
-                <span style={{ fontSize: '12px', color: 'var(--text-mid)', fontWeight: 600 }}>
-                  {ch.duration}
-                </span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
