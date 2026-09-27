@@ -88,16 +88,45 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
 
   const currentPlan = plans.find((p) => p.id === selectedPlan) || plans[0];
 
+  const formatKaspiPhone = (input?: string): string => {
+    if (!input) return '+7 777 000 0000';
+    let digits = input.replace(/\D/g, '');
+    if (!digits) return input;
+    if (digits.startsWith('8') || (digits.startsWith('7') && digits.length > 10)) {
+      digits = digits.slice(1);
+    }
+    digits = digits.slice(0, 10);
+    
+    let formatted = '+7';
+    if (digits.length > 0) {
+      formatted += ' ' + digits.slice(0, 3);
+    }
+    if (digits.length > 3) {
+      formatted += ' ' + digits.slice(3, 6);
+    }
+    if (digits.length > 6) {
+      formatted += ' ' + digits.slice(6, 10);
+    }
+    return formatted;
+  };
+
+  const formatKaspiCard = (input?: string): string => {
+    if (!input) return '';
+    const digits = input.replace(/\D/g, '').slice(0, 16);
+    return digits.replace(/(\d{4})(?=\d)/g, '$1 ');
+  };
+
   const handleCopyPhone = () => {
-    const phone = settings?.kaspiPhone || '+7 (777) 000-00-00';
-    navigator.clipboard.writeText(phone.replace(/\D/g, ''));
-    showToast('Kaspi нөмірі көшірілді: ' + phone, 'success');
+    const rawPhone = settings?.kaspiPhone || '+7 777 000 0000';
+    const displayPhone = formatKaspiPhone(rawPhone);
+    navigator.clipboard.writeText(rawPhone.replace(/\D/g, ''));
+    showToast('Kaspi нөмірі көшірілді: ' + displayPhone, 'success');
   };
 
   const handleCopyCard = () => {
     if (settings?.kaspiCard) {
       navigator.clipboard.writeText(settings.kaspiCard.replace(/\s+/g, ''));
-      showToast('Карта нөмірі көшірілді!', 'success');
+      showToast('Карта нөмірі көшірілді: ' + formatKaspiCard(settings.kaspiCard), 'success');
     }
   };
 
@@ -330,8 +359,8 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
                   <div className="bg-white/80 p-2.5 rounded-xl border border-red-100/60 flex items-center justify-between">
                     <div>
                       <span className="text-slate-400 block text-[10px]">Kaspi нөмірі:</span>
-                      <span className="font-black text-slate-900 text-sm">
-                        {settings?.kaspiPhone || '+7 (777) 000-00-00'}
+                      <span className="font-black text-slate-900 text-sm font-mono">
+                        {formatKaspiPhone(settings?.kaspiPhone)}
                       </span>
                     </div>
                     <button
@@ -349,7 +378,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
                       <div>
                         <span className="text-slate-400 block text-[10px]">Kaspi картасы:</span>
                         <span className="font-black text-slate-900 text-sm font-mono">
-                          {settings.kaspiCard}
+                          {formatKaspiCard(settings.kaspiCard)}
                         </span>
                       </div>
                       <button

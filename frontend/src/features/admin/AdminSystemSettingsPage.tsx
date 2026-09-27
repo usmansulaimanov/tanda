@@ -38,10 +38,42 @@ export const AdminSystemSettingsPage: React.FC = () => {
 
   const { showToast } = useToastStore();
 
+  const formatKaspiPhone = (input: string): string => {
+    if (!input) return '';
+    let digits = input.replace(/\D/g, '');
+    if (!digits) return '';
+    if (digits.startsWith('8') || (digits.startsWith('7') && digits.length > 10)) {
+      digits = digits.slice(1);
+    }
+    digits = digits.slice(0, 10);
+    
+    let formatted = '+7';
+    if (digits.length > 0) {
+      formatted += ' ' + digits.slice(0, 3);
+    }
+    if (digits.length > 3) {
+      formatted += ' ' + digits.slice(3, 6);
+    }
+    if (digits.length > 6) {
+      formatted += ' ' + digits.slice(6, 10);
+    }
+    return formatted;
+  };
+
+  const formatKaspiCard = (input: string): string => {
+    if (!input) return '';
+    const digits = input.replace(/\D/g, '').slice(0, 16);
+    return digits.replace(/(\d{4})(?=\d)/g, '$1 ');
+  };
+
   useEffect(() => {
     systemApi.getSettings()
       .then((res) => {
-        setSettings(res);
+        setSettings({
+          ...res,
+          kaspiPhone: formatKaspiPhone(res.kaspiPhone || ''),
+          kaspiCard: formatKaspiCard(res.kaspiCard || ''),
+        });
         setIsLoading(false);
       })
       .catch(() => {
@@ -53,8 +85,17 @@ export const AdminSystemSettingsPage: React.FC = () => {
     if (e) e.preventDefault();
     setIsSaving(true);
     try {
-      const updated = await systemApi.updateSettingsAdmin(settings);
-      setSettings(updated);
+      const payload = {
+        ...settings,
+        kaspiPhone: formatKaspiPhone(settings.kaspiPhone),
+        kaspiCard: formatKaspiCard(settings.kaspiCard || ''),
+      };
+      const updated = await systemApi.updateSettingsAdmin(payload);
+      setSettings({
+        ...updated,
+        kaspiPhone: formatKaspiPhone(updated.kaspiPhone || ''),
+        kaspiCard: formatKaspiCard(updated.kaspiCard || ''),
+      });
       showToast('Жүйелік баптаулар сәтті сақталды!', 'success');
     } catch (err: any) {
       showToast(err?.response?.data?.message || 'Баптауларды сақтау кезінде қате орын алды', 'error');
@@ -231,8 +272,9 @@ export const AdminSystemSettingsPage: React.FC = () => {
               </label>
               <input
                 type="text"
+                placeholder="+7 707 144 1404"
                 value={settings.kaspiPhone}
-                onChange={(e) => setSettings({ ...settings, kaspiPhone: e.target.value })}
+                onChange={(e) => setSettings({ ...settings, kaspiPhone: formatKaspiPhone(e.target.value) })}
                 className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 font-mono"
               />
             </div>
@@ -243,9 +285,9 @@ export const AdminSystemSettingsPage: React.FC = () => {
               </label>
               <input
                 type="text"
-                placeholder="4400 4301 **** ****"
+                placeholder="4400 4301 1234 5678"
                 value={settings.kaspiCard || ''}
-                onChange={(e) => setSettings({ ...settings, kaspiCard: e.target.value })}
+                onChange={(e) => setSettings({ ...settings, kaspiCard: formatKaspiCard(e.target.value) })}
                 className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 font-mono"
               />
             </div>
