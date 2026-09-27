@@ -40,13 +40,25 @@ export const AdminSystemSettingsPage: React.FC = () => {
 
   const formatKaspiPhone = (input: string): string => {
     if (!input) return '';
+    const trimmed = input.trim();
+    if (trimmed === '+' || trimmed === '+7' || trimmed === '7' || trimmed === '8') {
+      return '';
+    }
+
     let digits = input.replace(/\D/g, '');
     if (!digits) return '';
-    if (digits.startsWith('8') || (digits.startsWith('7') && digits.length > 10)) {
+
+    if (digits.length === 11 && (digits.startsWith('7') || digits.startsWith('8'))) {
+      digits = digits.slice(1);
+    } else if (digits.startsWith('7') && (input.includes('+7') || digits.length > 10)) {
+      digits = digits.slice(1);
+    } else if (digits.startsWith('8') && input.startsWith('8')) {
       digits = digits.slice(1);
     }
+
     digits = digits.slice(0, 10);
-    
+    if (!digits) return '';
+
     let formatted = '+7';
     if (digits.length > 0) {
       formatted += ' ' + digits.slice(0, 3);
