@@ -13,6 +13,7 @@ import {
   CheckCircle2,
   AlertCircle
 } from 'lucide-react';
+import tandaPremiumWhite from '../../assets/tanda-premium-white.png';
 import { useAuthStore } from '../../store/useAuthStore';
 import { usePromoStore } from '../../store/usePromoStore';
 import { useToastStore } from '../../store/useToastStore';
@@ -275,8 +276,12 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
 
           {/* Header */}
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 to-amber-300 flex items-center justify-center text-white shadow-lg shadow-amber-500/20">
-              <Crown className="w-6 h-6" />
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 to-amber-300 flex items-center justify-center p-2 text-white shadow-lg shadow-amber-500/20">
+              <img
+                src={tandaPremiumWhite}
+                alt="Tanda Premium"
+                className="w-7 h-auto object-contain drop-shadow-sm"
+              />
             </div>
             <div>
               <div className="flex items-center gap-2">
