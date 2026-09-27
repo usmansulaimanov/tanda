@@ -11,6 +11,7 @@ import { useNewsStore } from '../../store/useNewsStore';
 import { hasAdminPermission } from '../../utils/permissions';
 import { api } from '../../lib/api';
 import tandaLogo from '../../assets/tanda-logo.png';
+import tandaPremiumWhite from '../../assets/tanda-premium-white.png';
 import { Crown, CreditCard, Sliders } from 'lucide-react';
 
 export const AppSidebarDrawer: React.FC = () => {
@@ -453,14 +454,20 @@ export const AppSidebarDrawer: React.FC = () => {
                 className={`sidebar-nav-link ${location.pathname === '/premium' ? 'active' : ''}`}
                 onClick={closeSidebar}
                 style={{
-                  background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(217, 119, 6, 0.06))',
-                  border: '1.5px solid rgba(245, 158, 11, 0.3)',
-                  color: '#B45309',
+                  background: 'linear-gradient(135deg, rgba(240, 128, 0, 0.12), rgba(240, 128, 0, 0.06))',
+                  border: '1.5px solid rgba(240, 128, 0, 0.3)',
+                  color: '#C06800',
                   fontWeight: 800,
                 }}
               >
-                <Crown className="w-[18px] h-[18px] text-amber-500" />
-                <span>Tanda Premium 👑</span>
+                <div className="w-[20px] h-[20px] rounded-lg bg-gradient-to-tr from-[#F08000] to-orange-400 flex items-center justify-center p-0.5 shrink-0 shadow-sm shadow-orange-500/20">
+                  <img
+                    src={tandaPremiumWhite}
+                    alt="Tanda Premium"
+                    className="w-3.5 h-3.5 object-contain"
+                  />
+                </div>
+                <span>Tanda Premium</span>
               </Link>
 
               <Link
