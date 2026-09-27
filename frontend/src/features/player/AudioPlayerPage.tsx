@@ -271,6 +271,7 @@ export const AudioPlayerPage: React.FC = () => {
       return;
     }
     const val = Number(e.target.value);
+    useAudioPlayerStore.getState().setProgress(val);
     window.dispatchEvent(new CustomEvent('tanda:audio:seek', { detail: { time: val } }));
   };
 
@@ -286,14 +287,14 @@ export const AudioPlayerPage: React.FC = () => {
     markAsReading(activeBook.id, 1, activeBook.pages ? parseInt(String(activeBook.pages)) : undefined);
     if (currentBook?.id !== activeBook.id) {
       playBook(activeBook, idx);
-    } else {
+    } else if (chapterIndex !== idx) {
       playChapter(idx);
+      const currentChapters = activeBook.audioChapters || [];
+      const ch = currentChapters[idx];
+      const hasOwnAudio = Boolean(ch?.audioUrl && ch.audioUrl.trim());
+      const targetStartTime = !hasOwnAudio ? getChapterStartTime(currentChapters, idx) : 0;
+      window.dispatchEvent(new CustomEvent('tanda:audio:seek', { detail: { time: targetStartTime } }));
     }
-    const currentChapters = activeBook.audioChapters || [];
-    const ch = currentChapters[idx];
-    const hasOwnAudio = Boolean(ch?.audioUrl && ch.audioUrl.trim());
-    const targetStartTime = !hasOwnAudio ? getChapterStartTime(currentChapters, idx) : 0;
-    window.dispatchEvent(new CustomEvent('tanda:audio:seek', { detail: { time: targetStartTime } }));
   };
 
   const handleToggleBookmark = async () => {

@@ -99,6 +99,7 @@ export const AudioPlayerBar: React.FC = () => {
   const [premiumModalReason, setPremiumModalReason] = useState('');
   const lastBookIdRef = useRef<string | null>(null);
   const adPlayedForCurrentBookRef = useRef<boolean>(false);
+  const isAdEndingTransitionRef = useRef<boolean>(false);
   const adAudioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
@@ -657,13 +658,13 @@ export const AudioPlayerBar: React.FC = () => {
 
   // Sync play/pause with players
   useEffect(() => {
-    if (isAdPlaying) {
+    if (isAdPlaying || isAdEndingTransitionRef.current) {
       if (audioRef.current) audioRef.current.pause();
       if (ytPlayerRef.current && typeof ytPlayerRef.current.pauseVideo === 'function') {
         ytPlayerRef.current.pauseVideo();
       }
       if (adAudioRef.current) {
-        if (isPlaying) {
+        if (isPlaying && isAdPlaying) {
           adAudioRef.current.play().catch(() => {});
         } else {
           adAudioRef.current.pause();
@@ -1070,11 +1071,14 @@ export const AudioPlayerBar: React.FC = () => {
             setAdSecondsLeft(left);
           }}
           onEnded={() => {
+            isAdEndingTransitionRef.current = true;
             setIsAdPlaying(false);
+            const savedBookProgress = useAudioPlayerStore.getState().progress || 0;
             setTimeout(() => {
+              isAdEndingTransitionRef.current = false;
               const state = useAudioPlayerStore.getState();
+              const targetTime = state.progress > 0 ? state.progress : savedBookProgress;
               if (state.isPlaying) {
-                const targetTime = state.progress || 0;
                 if (isYouTube && ytPlayerRef.current && typeof ytPlayerRef.current.playVideo === 'function') {
                   if (targetTime > 0) {
                     ytPlayerRef.current.seekTo(targetTime, true);
@@ -1090,11 +1094,14 @@ export const AudioPlayerBar: React.FC = () => {
             }, 1000);
           }}
           onError={() => {
+            isAdEndingTransitionRef.current = true;
             setIsAdPlaying(false);
+            const savedBookProgress = useAudioPlayerStore.getState().progress || 0;
             setTimeout(() => {
+              isAdEndingTransitionRef.current = false;
               const state = useAudioPlayerStore.getState();
+              const targetTime = state.progress > 0 ? state.progress : savedBookProgress;
               if (state.isPlaying) {
-                const targetTime = state.progress || 0;
                 if (isYouTube && ytPlayerRef.current && typeof ytPlayerRef.current.playVideo === 'function') {
                   if (targetTime > 0) {
                     ytPlayerRef.current.seekTo(targetTime, true);
