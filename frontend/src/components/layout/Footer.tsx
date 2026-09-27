@@ -240,23 +240,26 @@ export const Footer: React.FC = () => {
                     width: '42px',
                     height: '42px',
                     borderRadius: '12px',
-                    background: 'rgba(255, 255, 255, 0.06)',
+                    background: 'rgba(239, 126, 0, 0.12)',
+                    border: '1px solid rgba(239, 126, 0, 0.25)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    color: '#E2E8F0',
+                    color: 'var(--orange)',
                     textDecoration: 'none',
                     transition: 'all 0.25s ease',
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.background = 'var(--orange)';
                     e.currentTarget.style.color = '#FFFFFF';
+                    e.currentTarget.style.borderColor = 'var(--orange)';
                     e.currentTarget.style.transform = 'translateY(-3px)';
-                    e.currentTarget.style.boxShadow = '0 6px 16px rgba(239, 126, 0, 0.35)';
+                    e.currentTarget.style.boxShadow = '0 6px 18px rgba(239, 126, 0, 0.4)';
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)';
-                    e.currentTarget.style.color = '#E2E8F0';
+                    e.currentTarget.style.background = 'rgba(239, 126, 0, 0.12)';
+                    e.currentTarget.style.color = 'var(--orange)';
+                    e.currentTarget.style.borderColor = 'rgba(239, 126, 0, 0.25)';
                     e.currentTarget.style.transform = 'translateY(0)';
                     e.currentTarget.style.boxShadow = 'none';
                   }}
