@@ -1192,6 +1192,9 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
         const refreshToken = localStorage.getItem('tanda_refresh_token');
         localStorage.removeItem('tanda_token');
         localStorage.removeItem('tanda_refresh_token');
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('tanda:logout'));
+        }
         api.post('/api/v1/auth/logout', refreshToken ? { refreshToken } : {}).catch(() => {});
         set({
           user: null,

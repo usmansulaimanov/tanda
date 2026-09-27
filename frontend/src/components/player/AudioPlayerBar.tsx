@@ -78,7 +78,7 @@ export const AudioPlayerBar: React.FC = () => {
     closePlayer,
   } = useAudioPlayerStore();
 
-  const { isAuthenticated, user, role } = useAuthStore();
+  const { isAuthenticated, isAuthInitialized, user, role } = useAuthStore();
   const { showToast } = useToastStore();
   const navigate = useNavigate();
   const location = useLocation();
@@ -246,9 +246,10 @@ export const AudioPlayerBar: React.FC = () => {
     };
   }, [isYouTube, setProgress]);
 
-  // Auto-close and stop player completely when user logs out or is unauthenticated
+  // Auto-close and stop player completely when user logs out or is confirmed unauthenticated after initialization
   useEffect(() => {
-    if (!isAuthenticated) {
+    const hasToken = typeof window !== 'undefined' && Boolean(localStorage.getItem('tanda_token'));
+    if (isAuthInitialized && !isAuthenticated && !hasToken) {
       if (audioRef.current) {
         audioRef.current.pause();
       }
@@ -257,7 +258,7 @@ export const AudioPlayerBar: React.FC = () => {
       }
       closePlayer();
     }
-  }, [isAuthenticated, closePlayer]);
+  }, [isAuthInitialized, isAuthenticated, closePlayer]);
 
   // Close popovers on click outside
   useEffect(() => {
@@ -960,7 +961,9 @@ export const AudioPlayerBar: React.FC = () => {
     }
   }, [isAuthorOrStaff, currentBook, isPlaying, closePlayer]);
 
-  if (!isAuthenticated || !currentBook || isAuthorOrStaff) return null;
+  const hasToken = typeof window !== 'undefined' && Boolean(localStorage.getItem('tanda_token'));
+  if (!currentBook || isAuthorOrStaff) return null;
+  if (isAuthInitialized && !isAuthenticated && !hasToken) return null;
 
   const chapters = currentBook.audioChapters && currentBook.audioChapters.length > 0
     ? currentBook.audioChapters

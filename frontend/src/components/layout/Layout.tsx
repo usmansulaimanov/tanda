@@ -17,13 +17,16 @@ import { ErrorBoundary } from '../common/ErrorBoundary';
 
 export const Layout: React.FC = () => {
   const { currentBook } = useAudioPlayerStore();
-  const { isAuthenticated, user, role } = useAuthStore();
+  const { isAuthenticated, isAuthInitialized, user, role } = useAuthStore();
   const location = useLocation();
   const isListenPage = location.pathname.startsWith('/listen');
 
   const isAuthorOrStaff = Boolean(
     isAuthenticated && user && (role === 'author' || role === 'admin' || user.role === 'author' || user.role === 'admin' || user.isAuthor || user.isSuperAdmin || Boolean(user.duty))
   );
+
+  const hasToken = typeof window !== 'undefined' && Boolean(localStorage.getItem('tanda_token'));
+  const isEligibleForPlayer = !isAuthorOrStaff && (isAuthenticated || (!isAuthInitialized && hasToken));
 
   useEffect(() => {
     if (!location.pathname.startsWith('/admin') && !location.pathname.startsWith('/author')) {
@@ -41,7 +44,7 @@ export const Layout: React.FC = () => {
       <NewsNotificationRunner />
       <Header />
       <AppSidebarDrawer />
-      <main className={`flex-1 flex flex-col ${isListenPage ? 'pb-10' : !isAuthorOrStaff && isAuthenticated && currentBook ? 'pb-24' : ''}`}>
+      <main className={`flex-1 flex flex-col ${isListenPage ? 'pb-10' : isEligibleForPlayer && currentBook ? 'pb-24' : ''}`}>
         <ErrorBoundary>
           <Outlet />
         </ErrorBoundary>
