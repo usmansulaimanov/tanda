@@ -100,9 +100,6 @@ export const AdminSystemSettingsPage: React.FC = () => {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-black text-slate-900">Жүйелік Баптаулар және Премиум</h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Ашық режим (Kill-switch), 15 сек жарнамалық аудио және Kaspi бағалары
-          </p>
         </div>
 
         <button
