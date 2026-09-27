@@ -528,27 +528,37 @@ export const AudioPlayerBar: React.FC = () => {
   useEffect(() => {
     if (!isPlaying) return;
 
-    const handleFirstGesture = () => {
-      if (useAudioPlayerStore.getState().isAdPlaying) {
+    const resumePlayback = () => {
+      const state = useAudioPlayerStore.getState();
+      if (!state.isPlaying) return;
+      if (state.isAdPlaying) {
         if (adAudioRef.current) adAudioRef.current.play().catch(() => {});
       } else if (isYouTube && ytPlayerRef.current && typeof ytPlayerRef.current.playVideo === 'function') {
-        ytPlayerRef.current.playVideo();
+        try { ytPlayerRef.current.playVideo(); } catch {}
       } else if (audioRef.current) {
         audioRef.current.play().catch(() => {});
       }
-      window.removeEventListener('click', handleFirstGesture);
-      window.removeEventListener('touchstart', handleFirstGesture);
-      window.removeEventListener('keydown', handleFirstGesture);
     };
 
-    window.addEventListener('click', handleFirstGesture);
-    window.addEventListener('touchstart', handleFirstGesture);
-    window.addEventListener('keydown', handleFirstGesture);
+    // Try playing immediately
+    resumePlayback();
+
+    const gestureEvents = ['pointerdown', 'mousedown', 'touchstart', 'touchend', 'keydown', 'click', 'scroll'];
+    const handleGesture = () => {
+      resumePlayback();
+      gestureEvents.forEach((evt) => {
+        window.removeEventListener(evt, handleGesture, true);
+      });
+    };
+
+    gestureEvents.forEach((evt) => {
+      window.addEventListener(evt, handleGesture, { once: true, capture: true });
+    });
 
     return () => {
-      window.removeEventListener('click', handleFirstGesture);
-      window.removeEventListener('touchstart', handleFirstGesture);
-      window.removeEventListener('keydown', handleFirstGesture);
+      gestureEvents.forEach((evt) => {
+        window.removeEventListener(evt, handleGesture, true);
+      });
     };
   }, [isPlaying, isYouTube]);
 

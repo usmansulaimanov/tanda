@@ -41,7 +41,7 @@ export const AudioPlayerPage: React.FC = () => {
   const navigate = useNavigate();
 
   const { books, fetchBookById } = useBookStore();
-  const { role, isAuthenticated } = useAuthStore();
+  const { role, isAuthenticated, isAuthInitialized } = useAuthStore();
   const { isBookSaved, toggleSavedBook } = useSavedBooksStore();
   const { markAsReading, markAsWantToRead, markAsCompleted, removeBookFromShelf, getBookStatus } = useMyBooksStore();
   const { showToast } = useToastStore();
@@ -133,7 +133,8 @@ export const AudioPlayerPage: React.FC = () => {
     return () => clearInterval(interval);
   }, [sleepTimerEndTime]);
 
-  if (!isAuthenticated) {
+  const hasToken = typeof window !== 'undefined' && Boolean(localStorage.getItem('tanda_token'));
+  if (isAuthInitialized && !isAuthenticated && !hasToken) {
     return (
       <div style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 20px' }}>
         <div
