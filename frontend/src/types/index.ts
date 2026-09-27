@@ -363,6 +363,7 @@ export interface SystemSettings {
   audioAdUrl: string;
   audioAdTitle: string;
   kaspiPhone: string;
+  kaspiCard?: string;
   kaspiRecipientName: string;
   price1Month: number;
   price3Months: number;

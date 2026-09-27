@@ -16,6 +16,7 @@ public class UpdateSystemSettingsRequestDto {
     private String audioAdUrl;
     private String audioAdTitle;
     private String kaspiPhone;
+    private String kaspiCard;
     private String kaspiRecipientName;
     private Integer price1Month;
     private Integer price3Months;

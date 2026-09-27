@@ -49,6 +49,7 @@ public class SystemSettingService {
                 .audioAdUrl(map.getOrDefault("audio_ad_url", ""))
                 .audioAdTitle(map.getOrDefault("audio_ad_title", "Tanda Premium — Жарнамасыз тыңдаңыз"))
                 .kaspiPhone(map.getOrDefault("kaspi_phone", "+7 (777) 000-00-00"))
+                .kaspiCard(map.getOrDefault("kaspi_card", ""))
                 .kaspiRecipientName(map.getOrDefault("kaspi_recipient_name", "Tanda"))
                 .price1Month(parseIntOrDefault(map.get("price_1_month"), 1490))
                 .price3Months(parseIntOrDefault(map.get("price_3_months"), 3990))
@@ -91,6 +92,9 @@ public class SystemSettingService {
         }
         if (dto.getKaspiPhone() != null) {
             saveSetting("kaspi_phone", dto.getKaspiPhone().trim());
+        }
+        if (dto.getKaspiCard() != null) {
+            saveSetting("kaspi_card", dto.getKaspiCard().trim());
         }
         if (dto.getKaspiRecipientName() != null) {
             saveSetting("kaspi_recipient_name", dto.getKaspiRecipientName().trim());

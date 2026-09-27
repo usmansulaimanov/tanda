@@ -18,6 +18,7 @@ public class SystemSettingsResponseDto {
     private String audioAdUrl;
     private String audioAdTitle;
     private String kaspiPhone;
+    private String kaspiCard;
     private String kaspiRecipientName;
     private int price1Month;
     private int price3Months;

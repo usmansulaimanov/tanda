@@ -94,6 +94,13 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
     showToast('Kaspi нөмірі көшірілді: ' + phone, 'success');
   };
 
+  const handleCopyCard = () => {
+    if (settings?.kaspiCard) {
+      navigator.clipboard.writeText(settings.kaspiCard.replace(/\s+/g, ''));
+      showToast('Карта нөмірі көшірілді!', 'success');
+    }
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -319,13 +326,43 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
                   </button>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-700">
-                  <div className="bg-white/80 p-2.5 rounded-xl border border-red-100/60">
-                    <span className="text-slate-400 block text-[10px]">Kaspi нөмірі:</span>
-                    <span className="font-black text-slate-900 text-sm">
-                      {settings?.kaspiPhone || '+7 (777) 000-00-00'}
-                    </span>
+                <div className={`grid grid-cols-1 ${settings?.kaspiCard ? 'sm:grid-cols-3' : 'sm:grid-cols-2'} gap-2 text-xs text-slate-700`}>
+                  <div className="bg-white/80 p-2.5 rounded-xl border border-red-100/60 flex items-center justify-between">
+                    <div>
+                      <span className="text-slate-400 block text-[10px]">Kaspi нөмірі:</span>
+                      <span className="font-black text-slate-900 text-sm">
+                        {settings?.kaspiPhone || '+7 (777) 000-00-00'}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleCopyPhone}
+                      title="Көшіру"
+                      className="p-1 rounded-lg hover:bg-red-50 text-red-600 transition"
+                    >
+                      <Copy className="w-3.5 h-3.5" />
+                    </button>
                   </div>
+
+                  {settings?.kaspiCard && (
+                    <div className="bg-white/80 p-2.5 rounded-xl border border-red-100/60 flex items-center justify-between">
+                      <div>
+                        <span className="text-slate-400 block text-[10px]">Kaspi картасы:</span>
+                        <span className="font-black text-slate-900 text-sm font-mono">
+                          {settings.kaspiCard}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleCopyCard}
+                        title="Картаны көшіру"
+                        className="p-1 rounded-lg hover:bg-red-50 text-red-600 transition"
+                      >
+                        <Copy className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
+
                   <div className="bg-white/80 p-2.5 rounded-xl border border-red-100/60">
                     <span className="text-slate-400 block text-[10px]">Алушы (Аты-жөні):</span>
                     <span className="font-bold text-slate-900 text-sm">

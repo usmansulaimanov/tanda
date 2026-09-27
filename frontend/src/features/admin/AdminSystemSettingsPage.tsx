@@ -25,6 +25,7 @@ export const AdminSystemSettingsPage: React.FC = () => {
     audioAdUrl: '',
     audioAdTitle: 'Tanda Premium — Жарнамасыз тыңдаңыз',
     kaspiPhone: '+7 (777) 000-00-00',
+    kaspiCard: '',
     kaspiRecipientName: 'Tanda Platform',
     price1Month: 1490,
     price3Months: 3990,
@@ -240,7 +241,7 @@ export const AdminSystemSettingsPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1.5">
                 Kaspi телефон нөмірі:
@@ -249,6 +250,19 @@ export const AdminSystemSettingsPage: React.FC = () => {
                 type="text"
                 value={settings.kaspiPhone}
                 onChange={(e) => setSettings({ ...settings, kaspiPhone: e.target.value })}
+                className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 font-mono"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                Kaspi карта нөмірі:
+              </label>
+              <input
+                type="text"
+                placeholder="4400 4301 **** ****"
+                value={settings.kaspiCard || ''}
+                onChange={(e) => setSettings({ ...settings, kaspiCard: e.target.value })}
                 className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 font-mono"
               />
             </div>
