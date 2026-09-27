@@ -100,6 +100,7 @@ export const AudioPlayerBar: React.FC = () => {
   const lastBookIdRef = useRef<string | null>(null);
   const adPlayedForCurrentBookRef = useRef<boolean>(false);
   const isAdEndingTransitionRef = useRef<boolean>(false);
+  const targetResumeTimeRef = useRef<number>(0);
   const adAudioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
@@ -200,6 +201,7 @@ export const AudioPlayerBar: React.FC = () => {
     const handleSeekEvent = (e: any) => {
       resetRoyaltyTracking();
       const val = Number(e.detail?.time || 0);
+      targetResumeTimeRef.current = val;
       setProgress(val);
       if (isYouTube && ytPlayerRef.current && typeof ytPlayerRef.current.seekTo === 'function') {
         ytPlayerRef.current.seekTo(val, true);
@@ -214,6 +216,7 @@ export const AudioPlayerBar: React.FC = () => {
       const currentT = audioRef.current?.currentTime ?? useAudioPlayerStore.getState().progress;
       const dur = audioRef.current?.duration || useAudioPlayerStore.getState().duration || 999999;
       const newT = Math.max(0, Math.min(dur, currentT + delta));
+      targetResumeTimeRef.current = newT;
       setProgress(newT);
       if (isYouTube && ytPlayerRef.current && typeof ytPlayerRef.current.seekTo === 'function') {
         ytPlayerRef.current.seekTo(newT, true);
@@ -605,6 +608,7 @@ export const AudioPlayerBar: React.FC = () => {
     }
 
     pendingSeekTimeRef.current = targetTime;
+    targetResumeTimeRef.current = targetTime;
 
     if (isYouTube) {
       if (ytPlayerRef.current) {
@@ -714,7 +718,7 @@ export const AudioPlayerBar: React.FC = () => {
     if (!isYouTube || !isPlaying) return;
 
     const interval = setInterval(() => {
-      if (useAudioPlayerStore.getState().isAdPlaying) return;
+      if (useAudioPlayerStore.getState().isAdPlaying || isAdEndingTransitionRef.current) return;
       if (ytPlayerRef.current && typeof ytPlayerRef.current.getCurrentTime === 'function') {
         try {
           const current = ytPlayerRef.current.getCurrentTime();
@@ -856,10 +860,12 @@ export const AudioPlayerBar: React.FC = () => {
     const isExempt = Boolean(user?.isPremium || isPremiumSystemDisabled || isAuthorOrStaff);
     if (isPremiumBook && !isExempt && val >= 900) {
       val = 900;
+      targetResumeTimeRef.current = 900;
       setProgress(900);
       check15MinuteLimit(900);
       return;
     }
+    targetResumeTimeRef.current = val;
     setProgress(val);
     if (isYouTube && ytPlayerRef.current && typeof ytPlayerRef.current.seekTo === 'function') {
       ytPlayerRef.current.seekTo(val, true);
@@ -881,10 +887,12 @@ export const AudioPlayerBar: React.FC = () => {
     const isExempt = Boolean(user?.isPremium || isPremiumSystemDisabled || isAuthorOrStaff);
     if (isPremiumBook && !isExempt && newTime >= 900) {
       newTime = 900;
+      targetResumeTimeRef.current = 900;
       setProgress(900);
       check15MinuteLimit(900);
       return;
     }
+    targetResumeTimeRef.current = newTime;
     setProgress(newTime);
     if (isYouTube && ytPlayerRef.current && typeof ytPlayerRef.current.seekTo === 'function') {
       ytPlayerRef.current.seekTo(newTime, true);
@@ -1012,7 +1020,7 @@ export const AudioPlayerBar: React.FC = () => {
             }
           }}
           onTimeUpdate={(e) => {
-            if (useAudioPlayerStore.getState().isAdPlaying) return;
+            if (useAudioPlayerStore.getState().isAdPlaying || isAdEndingTransitionRef.current) return;
             const current = e.currentTarget.currentTime;
             const dur = e.currentTarget.duration || duration;
             if (check15MinuteLimit(current)) return;
@@ -1023,6 +1031,7 @@ export const AudioPlayerBar: React.FC = () => {
               return;
             }
 
+            targetResumeTimeRef.current = current;
             setProgress(current);
             if (dur && !isNaN(dur)) setDuration(dur);
 
@@ -1073,47 +1082,55 @@ export const AudioPlayerBar: React.FC = () => {
           onEnded={() => {
             isAdEndingTransitionRef.current = true;
             setIsAdPlaying(false);
-            const savedBookProgress = useAudioPlayerStore.getState().progress || 0;
+            const targetTime = targetResumeTimeRef.current > 0
+              ? targetResumeTimeRef.current
+              : (useAudioPlayerStore.getState().progress || 0);
+
+            if (isYouTube && ytPlayerRef.current && typeof ytPlayerRef.current.seekTo === 'function') {
+              if (targetTime > 0) {
+                ytPlayerRef.current.seekTo(targetTime, true);
+              }
+              if (useAudioPlayerStore.getState().isPlaying) {
+                ytPlayerRef.current.playVideo();
+              }
+            } else if (audioRef.current) {
+              if (targetTime > 0) {
+                audioRef.current.currentTime = targetTime;
+              }
+              if (useAudioPlayerStore.getState().isPlaying) {
+                audioRef.current.play().catch(() => {});
+              }
+            }
+
             setTimeout(() => {
               isAdEndingTransitionRef.current = false;
-              const state = useAudioPlayerStore.getState();
-              const targetTime = state.progress > 0 ? state.progress : savedBookProgress;
-              if (state.isPlaying) {
-                if (isYouTube && ytPlayerRef.current && typeof ytPlayerRef.current.playVideo === 'function') {
-                  if (targetTime > 0) {
-                    ytPlayerRef.current.seekTo(targetTime, true);
-                  }
-                  ytPlayerRef.current.playVideo();
-                } else if (audioRef.current) {
-                  if (targetTime > 0) {
-                    audioRef.current.currentTime = targetTime;
-                  }
-                  audioRef.current.play().catch(() => {});
-                }
-              }
             }, 1000);
           }}
           onError={() => {
             isAdEndingTransitionRef.current = true;
             setIsAdPlaying(false);
-            const savedBookProgress = useAudioPlayerStore.getState().progress || 0;
+            const targetTime = targetResumeTimeRef.current > 0
+              ? targetResumeTimeRef.current
+              : (useAudioPlayerStore.getState().progress || 0);
+
+            if (isYouTube && ytPlayerRef.current && typeof ytPlayerRef.current.seekTo === 'function') {
+              if (targetTime > 0) {
+                ytPlayerRef.current.seekTo(targetTime, true);
+              }
+              if (useAudioPlayerStore.getState().isPlaying) {
+                ytPlayerRef.current.playVideo();
+              }
+            } else if (audioRef.current) {
+              if (targetTime > 0) {
+                audioRef.current.currentTime = targetTime;
+              }
+              if (useAudioPlayerStore.getState().isPlaying) {
+                audioRef.current.play().catch(() => {});
+              }
+            }
+
             setTimeout(() => {
               isAdEndingTransitionRef.current = false;
-              const state = useAudioPlayerStore.getState();
-              const targetTime = state.progress > 0 ? state.progress : savedBookProgress;
-              if (state.isPlaying) {
-                if (isYouTube && ytPlayerRef.current && typeof ytPlayerRef.current.playVideo === 'function') {
-                  if (targetTime > 0) {
-                    ytPlayerRef.current.seekTo(targetTime, true);
-                  }
-                  ytPlayerRef.current.playVideo();
-                } else if (audioRef.current) {
-                  if (targetTime > 0) {
-                    audioRef.current.currentTime = targetTime;
-                  }
-                  audioRef.current.play().catch(() => {});
-                }
-              }
             }, 1000);
           }}
         />
