@@ -50,6 +50,9 @@ export const AdminSystemSettingsPage: React.FC = () => {
     price1Month: 1490,
     price3Months: 3990,
     price1Year: 11990,
+    oldPrice1Month: null,
+    oldPrice3Months: null,
+    oldPrice1Year: null,
     plan1MonthEnabled: true,
     plan3MonthsEnabled: true,
     plan1YearEnabled: true,
@@ -414,6 +417,19 @@ export const AdminSystemSettingsPage: React.FC = () => {
                 onChange={(e) => setSettings({ ...settings, price1Month: Number(e.target.value) })}
                 className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none font-bold bg-white disabled:bg-slate-100 disabled:text-slate-400"
               />
+              <div className="mt-2.5 pt-2 border-t border-orange-200/50">
+                <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                  Бұрынғы бағасы (сызылып тұрады):
+                </label>
+                <input
+                  type="number"
+                  placeholder="Мысалы: 2990"
+                  disabled={settings.plan1MonthEnabled === false}
+                  value={settings.oldPrice1Month ?? ''}
+                  onChange={(e) => setSettings({ ...settings, oldPrice1Month: e.target.value ? Number(e.target.value) : null })}
+                  className="w-full px-3 py-1.5 text-xs rounded-xl border border-slate-200 focus:outline-none bg-white text-slate-700 disabled:bg-slate-100 disabled:text-slate-400"
+                />
+              </div>
             </div>
 
             {/* 3 Months */}
@@ -438,6 +454,19 @@ export const AdminSystemSettingsPage: React.FC = () => {
                 onChange={(e) => setSettings({ ...settings, price3Months: Number(e.target.value) })}
                 className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none font-bold bg-white disabled:bg-slate-100 disabled:text-slate-400"
               />
+              <div className="mt-2.5 pt-2 border-t border-orange-200/50">
+                <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                  Бұрынғы бағасы (сызылып тұрады):
+                </label>
+                <input
+                  type="number"
+                  placeholder="Мысалы: 5990"
+                  disabled={settings.plan3MonthsEnabled === false}
+                  value={settings.oldPrice3Months ?? ''}
+                  onChange={(e) => setSettings({ ...settings, oldPrice3Months: e.target.value ? Number(e.target.value) : null })}
+                  className="w-full px-3 py-1.5 text-xs rounded-xl border border-slate-200 focus:outline-none bg-white text-slate-700 disabled:bg-slate-100 disabled:text-slate-400"
+                />
+              </div>
             </div>
 
             {/* 1 Year */}
@@ -462,6 +491,19 @@ export const AdminSystemSettingsPage: React.FC = () => {
                 onChange={(e) => setSettings({ ...settings, price1Year: Number(e.target.value) })}
                 className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none font-bold bg-white disabled:bg-slate-100 disabled:text-slate-400"
               />
+              <div className="mt-2.5 pt-2 border-t border-orange-200/50">
+                <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                  Бұрынғы бағасы (сызылып тұрады):
+                </label>
+                <input
+                  type="number"
+                  placeholder="Мысалы: 17990"
+                  disabled={settings.plan1YearEnabled === false}
+                  value={settings.oldPrice1Year ?? ''}
+                  onChange={(e) => setSettings({ ...settings, oldPrice1Year: e.target.value ? Number(e.target.value) : null })}
+                  className="w-full px-3 py-1.5 text-xs rounded-xl border border-slate-200 focus:outline-none bg-white text-slate-700 disabled:bg-slate-100 disabled:text-slate-400"
+                />
+              </div>
             </div>
           </div>
         </div>

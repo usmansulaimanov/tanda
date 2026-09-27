@@ -24,6 +24,9 @@ public class SystemSettingsResponseDto {
     private int price1Month;
     private int price3Months;
     private int price1Year;
+    private Integer oldPrice1Month;
+    private Integer oldPrice3Months;
+    private Integer oldPrice1Year;
     private boolean plan1MonthEnabled;
     private boolean plan3MonthsEnabled;
     private boolean plan1YearEnabled;

@@ -61,6 +61,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
       name: '1 ай',
       days: 30,
       price: settings?.price1Month || 1490,
+      oldPrice: settings?.oldPrice1Month || null,
       description: 'Ай сайынғы стандартты жазылым',
       badge: null,
       enabled: settings?.plan1MonthEnabled !== false,
@@ -70,6 +71,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
       name: '3 ай',
       days: 90,
       price: settings?.price3Months || 3990,
+      oldPrice: settings?.oldPrice3Months || null,
       description: 'Тоқсандық жазылым (10% үнемдеу)',
       badge: 'ТИІМДІ',
       enabled: settings?.plan3MonthsEnabled !== false,
@@ -79,6 +81,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
       name: '1 жыл',
       days: 365,
       price: settings?.price1Year || 11990,
+      oldPrice: settings?.oldPrice1Year || null,
       description: 'Жылдық толық қолжетімділік (33% үнемдеу)',
       badge: 'ҮЗДІК ТАҢДАУ ⭐',
       enabled: settings?.plan1YearEnabled !== false,
@@ -346,8 +349,15 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
                             {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
                           </div>
                         </div>
-                        <div className="text-xl font-black text-slate-900 mb-1">
-                          {p.price.toLocaleString('kk-KZ')} ₸
+                        <div className="flex items-baseline gap-2 mb-1">
+                          <span className="text-xl font-black text-slate-900">
+                            {p.price.toLocaleString('kk-KZ')} ₸
+                          </span>
+                          {p.oldPrice && p.oldPrice > p.price ? (
+                            <span className="text-xs font-bold text-slate-400 line-through">
+                              {p.oldPrice.toLocaleString('kk-KZ')} ₸
+                            </span>
+                          ) : null}
                         </div>
                         <p className="text-[11px] text-slate-500 leading-snug">{p.description}</p>
                       </div>

@@ -55,6 +55,9 @@ public class SystemSettingService {
                 .price1Month(parseIntOrDefault(map.get("price_1_month"), 1490))
                 .price3Months(parseIntOrDefault(map.get("price_3_months"), 3990))
                 .price1Year(parseIntOrDefault(map.get("price_1_year"), 11990))
+                .oldPrice1Month(parseNullableInt(map.get("old_price_1_month")))
+                .oldPrice3Months(parseNullableInt(map.get("old_price_3_months")))
+                .oldPrice1Year(parseNullableInt(map.get("old_price_1_year")))
                 .plan1MonthEnabled(!"false".equalsIgnoreCase(map.get("plan_1_month_enabled")))
                 .plan3MonthsEnabled(!"false".equalsIgnoreCase(map.get("plan_3_months_enabled")))
                 .plan1YearEnabled(!"false".equalsIgnoreCase(map.get("plan_1_year_enabled")))
@@ -117,6 +120,15 @@ public class SystemSettingService {
         if (dto.getPrice1Year() != null) {
             saveSetting("price_1_year", String.valueOf(dto.getPrice1Year()));
         }
+        if (dto.getOldPrice1Month() != null) {
+            saveSetting("old_price_1_month", dto.getOldPrice1Month() > 0 ? String.valueOf(dto.getOldPrice1Month()) : "");
+        }
+        if (dto.getOldPrice3Months() != null) {
+            saveSetting("old_price_3_months", dto.getOldPrice3Months() > 0 ? String.valueOf(dto.getOldPrice3Months()) : "");
+        }
+        if (dto.getOldPrice1Year() != null) {
+            saveSetting("old_price_1_year", dto.getOldPrice1Year() > 0 ? String.valueOf(dto.getOldPrice1Year()) : "");
+        }
         if (dto.getPlan1MonthEnabled() != null) {
             saveSetting("plan_1_month_enabled", String.valueOf(dto.getPlan1MonthEnabled()));
         }
@@ -151,6 +163,16 @@ public class SystemSettingService {
             return Integer.parseInt(value.trim());
         } catch (NumberFormatException e) {
             return fallback;
+        }
+    }
+
+    private Integer parseNullableInt(String value) {
+        if (value == null || value.trim().isEmpty()) return null;
+        try {
+            int val = Integer.parseInt(value.trim());
+            return val > 0 ? val : null;
+        } catch (NumberFormatException e) {
+            return null;
         }
     }
 }
