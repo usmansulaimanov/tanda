@@ -107,18 +107,11 @@ export const AudioPlayerBar: React.FC = () => {
   const [premiumModalReason, setPremiumModalReason] = useState('');
   const lastBookIdRef = useRef<string | null>(null);
   const adPlayedForCurrentBookRef = useRef<boolean>(false);
-  const isAdEndingTransitionRef = useRef<boolean>(false);
   const targetResumeTimeRef = useRef<number>(0);
   const adAudioRef = useRef<HTMLAudioElement | null>(null);
 
   const isPremiumSystemDisabled = systemSettings?.premiumEnabled === false || Boolean(systemSettings?.openAccessMode);
   const isExempt = Boolean(user?.isPremium || isPremiumSystemDisabled || isAuthorOrStaff);
-  const isAdRequiredForCurrentBook = Boolean(
-    !isExempt &&
-    systemSettings?.audioAdEnabled &&
-    systemSettings?.audioAdUrl &&
-    !adPlayedForCurrentBookRef.current
-  );
 
   useEffect(() => {
     systemApi.getSettings().then((data) => {
@@ -475,7 +468,7 @@ export const AudioPlayerBar: React.FC = () => {
                 event.target.seekTo(target, true);
               }
               pendingSeekTimeRef.current = null;
-              if (isPlaying && !useAudioPlayerStore.getState().isAdPlaying && !isAdRequiredForCurrentBook) {
+              if (isPlaying && !useAudioPlayerStore.getState().isAdPlaying) {
                 event.target.playVideo();
               } else {
                 event.target.pauseVideo();
@@ -485,7 +478,7 @@ export const AudioPlayerBar: React.FC = () => {
               if (!isMounted) return;
               // 1: PLAYING, 2: PAUSED, 0: ENDED, 3: BUFFERING
               if (event.data === 1) {
-                if (useAudioPlayerStore.getState().isAdPlaying || isAdRequiredForCurrentBook) {
+                if (useAudioPlayerStore.getState().isAdPlaying) {
                   try {
                     event.target.pauseVideo();
                   } catch {}
@@ -528,14 +521,14 @@ export const AudioPlayerBar: React.FC = () => {
     return () => {
       isMounted = false;
     };
-  }, [ytVideoId, isYouTube, showToast, handleTrackEnd, isAdRequiredForCurrentBook]);
+  }, [ytVideoId, isYouTube, showToast, handleTrackEnd]);
 
   // Handle browser autoplay policy by auto-resuming on first user interaction
   useEffect(() => {
     if (!isPlaying) return;
 
     const handleFirstGesture = () => {
-      if (useAudioPlayerStore.getState().isAdPlaying || isAdRequiredForCurrentBook) {
+      if (useAudioPlayerStore.getState().isAdPlaying) {
         if (adAudioRef.current) adAudioRef.current.play().catch(() => {});
       } else if (isYouTube && ytPlayerRef.current && typeof ytPlayerRef.current.playVideo === 'function') {
         ytPlayerRef.current.playVideo();
@@ -648,14 +641,14 @@ export const AudioPlayerBar: React.FC = () => {
               videoId: ytVideoId,
               startSeconds: targetTime,
             });
-            if (useAudioPlayerStore.getState().isPlaying && !useAudioPlayerStore.getState().isAdPlaying && !isAdRequiredForCurrentBook) {
+            if (useAudioPlayerStore.getState().isPlaying && !useAudioPlayerStore.getState().isAdPlaying) {
               ytPlayerRef.current.playVideo();
             } else {
               ytPlayerRef.current.pauseVideo();
             }
           } catch {
             ytPlayerRef.current.seekTo(targetTime, true);
-            if (useAudioPlayerStore.getState().isPlaying && !useAudioPlayerStore.getState().isAdPlaying && !isAdRequiredForCurrentBook) {
+            if (useAudioPlayerStore.getState().isPlaying && !useAudioPlayerStore.getState().isAdPlaying) {
               ytPlayerRef.current.playVideo();
             } else {
               ytPlayerRef.current.pauseVideo();
@@ -663,7 +656,7 @@ export const AudioPlayerBar: React.FC = () => {
           }
         } else if (typeof ytPlayerRef.current.seekTo === 'function') {
           ytPlayerRef.current.seekTo(targetTime, true);
-          if (useAudioPlayerStore.getState().isPlaying && !useAudioPlayerStore.getState().isAdPlaying && !isAdRequiredForCurrentBook) {
+          if (useAudioPlayerStore.getState().isPlaying && !useAudioPlayerStore.getState().isAdPlaying) {
             ytPlayerRef.current.playVideo();
           } else {
             ytPlayerRef.current.pauseVideo();
@@ -680,7 +673,7 @@ export const AudioPlayerBar: React.FC = () => {
         } else {
           audioRef.current.currentTime = targetTime;
           pendingSeekTimeRef.current = null;
-          if (useAudioPlayerStore.getState().isPlaying && !useAudioPlayerStore.getState().isAdPlaying && !isAdRequiredForCurrentBook) {
+          if (useAudioPlayerStore.getState().isPlaying && !useAudioPlayerStore.getState().isAdPlaying) {
             audioRef.current.play().catch(() => {});
           } else {
             audioRef.current.pause();
@@ -688,17 +681,17 @@ export const AudioPlayerBar: React.FC = () => {
         }
       }
     }
-  }, [currentChapter?.id, chapterIndex, isYouTube, ytVideoId, currentBook?.id, isAdRequiredForCurrentBook]);
+  }, [currentChapter?.id, chapterIndex, isYouTube, ytVideoId, currentBook?.id]);
 
   // Sync play/pause with players
   useEffect(() => {
-    if (isAdPlaying || isAdEndingTransitionRef.current || isAdRequiredForCurrentBook) {
+    if (isAdPlaying) {
       if (audioRef.current) audioRef.current.pause();
       if (ytPlayerRef.current && typeof ytPlayerRef.current.pauseVideo === 'function') {
         ytPlayerRef.current.pauseVideo();
       }
       if (adAudioRef.current) {
-        if (isPlaying && (isAdPlaying || isAdRequiredForCurrentBook)) {
+        if (isPlaying) {
           adAudioRef.current.play().catch(() => {});
         } else {
           adAudioRef.current.pause();
@@ -730,7 +723,7 @@ export const AudioPlayerBar: React.FC = () => {
         }
       }
     }
-  }, [isPlaying, isYouTube, isAdPlaying, isAdRequiredForCurrentBook]);
+  }, [isPlaying, isYouTube, isAdPlaying]);
 
   // Sync playback rate and loop
   useEffect(() => {
@@ -748,7 +741,7 @@ export const AudioPlayerBar: React.FC = () => {
     if (!isYouTube || !isPlaying) return;
 
     const interval = setInterval(() => {
-      if (useAudioPlayerStore.getState().isAdPlaying || isAdEndingTransitionRef.current) return;
+      if (useAudioPlayerStore.getState().isAdPlaying) return;
       if (ytPlayerRef.current && typeof ytPlayerRef.current.getCurrentTime === 'function') {
         try {
           const current = ytPlayerRef.current.getCurrentTime();
@@ -850,34 +843,25 @@ export const AudioPlayerBar: React.FC = () => {
       return;
     }
 
-    if (systemSettings?.audioAdEnabled && systemSettings?.audioAdUrl) {
-      if (!adPlayedForCurrentBookRef.current) {
-        adPlayedForCurrentBookRef.current = true;
-        setIsAdPlaying(true);
-        setAdProgress(0);
-        setAdTitle(systemSettings.audioAdTitle || 'Tanda Аудио-Жарнама');
-        
-        // Immediately pause book audio
-        if (audioRef.current) {
-          audioRef.current.pause();
-        }
-        if (ytPlayerRef.current && typeof ytPlayerRef.current.pauseVideo === 'function') {
-          ytPlayerRef.current.pauseVideo();
-        }
-
-        // Play ad audio
-        if (adAudioRef.current) {
-          adAudioRef.current.currentTime = 0;
-          adAudioRef.current.play().catch(() => {
-            setIsAdPlaying(false);
-            if (audioRef.current && useAudioPlayerStore.getState().isPlaying) {
-              audioRef.current.play().catch(() => {});
-            }
-          });
-        }
+    if (isAdPlaying) {
+      adPlayedForCurrentBookRef.current = true;
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      if (ytPlayerRef.current && typeof ytPlayerRef.current.pauseVideo === 'function') {
+        ytPlayerRef.current.pauseVideo();
+      }
+      if (adAudioRef.current) {
+        adAudioRef.current.currentTime = 0;
+        adAudioRef.current.play().catch(() => {
+          setIsAdPlaying(false);
+          if (audioRef.current && useAudioPlayerStore.getState().isPlaying) {
+            audioRef.current.play().catch(() => {});
+          }
+        });
       }
     }
-  }, [currentBook?.id, isPlaying, isExempt, systemSettings, isAdPlaying, setIsAdPlaying, setAdProgress, setAdTitle]);
+  }, [currentBook?.id, isPlaying, isExempt, isAdPlaying, setIsAdPlaying]);
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (isAdPlaying) {
@@ -1014,7 +998,7 @@ export const AudioPlayerBar: React.FC = () => {
               e.currentTarget.currentTime = target;
             }
             pendingSeekTimeRef.current = null;
-            if (isPlaying && !useAudioPlayerStore.getState().isAdPlaying && !isAdRequiredForCurrentBook) {
+            if (isPlaying && !useAudioPlayerStore.getState().isAdPlaying) {
               e.currentTarget.play().catch(() => {});
             } else {
               e.currentTarget.pause();
@@ -1031,14 +1015,14 @@ export const AudioPlayerBar: React.FC = () => {
             if (pendingSeekTimeRef.current !== null) {
               pendingSeekTimeRef.current = null;
             }
-            if (isPlaying && !useAudioPlayerStore.getState().isAdPlaying && !isAdRequiredForCurrentBook) {
+            if (isPlaying && !useAudioPlayerStore.getState().isAdPlaying) {
               e.currentTarget.play().catch(() => {});
             } else {
               e.currentTarget.pause();
             }
           }}
           onPlay={() => {
-            if (useAudioPlayerStore.getState().isAdPlaying || isAdRequiredForCurrentBook) {
+            if (useAudioPlayerStore.getState().isAdPlaying) {
               if (audioRef.current) audioRef.current.pause();
               return;
             }
@@ -1049,13 +1033,13 @@ export const AudioPlayerBar: React.FC = () => {
           onPause={(e) => {
             const el = e.currentTarget;
             if (!el.ended && el.currentTime < (el.duration || 0) - 0.5) {
-              if (useAudioPlayerStore.getState().isPlaying && !useAudioPlayerStore.getState().isAdPlaying && !isAdRequiredForCurrentBook) {
+              if (useAudioPlayerStore.getState().isPlaying && !useAudioPlayerStore.getState().isAdPlaying) {
                 useAudioPlayerStore.getState().setIsPlaying(false);
               }
             }
           }}
           onTimeUpdate={(e) => {
-            if (useAudioPlayerStore.getState().isAdPlaying || isAdEndingTransitionRef.current) return;
+            if (useAudioPlayerStore.getState().isAdPlaying) return;
             const current = e.currentTarget.currentTime;
             const dur = e.currentTarget.duration || duration;
             if (check15MinuteLimit(current)) return;
@@ -1113,7 +1097,7 @@ export const AudioPlayerBar: React.FC = () => {
             }
           }}
           onEnded={() => {
-            isAdEndingTransitionRef.current = true;
+            adPlayedForCurrentBookRef.current = true;
             setIsAdPlaying(false);
             setAdProgress(0);
             const currentBookState = useAudioPlayerStore.getState();
@@ -1137,16 +1121,17 @@ export const AudioPlayerBar: React.FC = () => {
                 audioRef.current.currentTime = targetTime;
               }
               if (useAudioPlayerStore.getState().isPlaying) {
-                audioRef.current.play().catch(() => {});
+                const playPromise = audioRef.current.play();
+                if (playPromise !== undefined) {
+                  playPromise.catch((err) => {
+                    console.debug('Autoplay after ad:', err);
+                  });
+                }
               }
             }
-
-            setTimeout(() => {
-              isAdEndingTransitionRef.current = false;
-            }, 1000);
           }}
           onError={() => {
-            isAdEndingTransitionRef.current = true;
+            adPlayedForCurrentBookRef.current = true;
             setIsAdPlaying(false);
             setAdProgress(0);
             const currentBookState = useAudioPlayerStore.getState();
@@ -1170,13 +1155,14 @@ export const AudioPlayerBar: React.FC = () => {
                 audioRef.current.currentTime = targetTime;
               }
               if (useAudioPlayerStore.getState().isPlaying) {
-                audioRef.current.play().catch(() => {});
+                const playPromise = audioRef.current.play();
+                if (playPromise !== undefined) {
+                  playPromise.catch((err) => {
+                    console.debug('Autoplay after ad:', err);
+                  });
+                }
               }
             }
-
-            setTimeout(() => {
-              isAdEndingTransitionRef.current = false;
-            }, 1000);
           }}
         />
       )}
