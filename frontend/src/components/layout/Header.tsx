@@ -149,32 +149,6 @@ export const Header: React.FC = () => {
 
   return (
     <>
-      {/* Top Marketing Promo Banner for Non-Premium users */}
-      {shouldShowBanner && (
-        <div 
-          onClick={() => setShowPremiumModal(true)}
-          className="bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 text-white text-xs font-bold py-1.5 px-4 cursor-pointer hover:opacity-95 transition shadow-sm flex items-center justify-between z-40 relative"
-        >
-          <div className="flex-1 flex items-center justify-center gap-2 text-center">
-            <Crown className="w-3.5 h-3.5 text-amber-200 shrink-0" />
-            <span>
-              <strong>Tanda Premium:</strong> 100+ кітапты шектеусіз әрі 0% жарнамасыз тыңдаңыз!
-            </span>
-            <span className="hidden sm:inline-block underline decoration-amber-200 font-black ml-1 text-amber-100">
-              Премиумға жазылу &rarr;
-            </span>
-          </div>
-          <button
-            type="button"
-            onClick={handleDismissBanner}
-            className="p-1 rounded-md text-amber-100 hover:text-white hover:bg-amber-700/50 transition shrink-0 ml-2"
-            title="Жабу"
-          >
-            <X className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      )}
-
       <nav className="tanda-nav">
         <div style={{ maxWidth: '1280px', width: '100%', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
           
@@ -844,6 +818,31 @@ export const Header: React.FC = () => {
           </div>
         </div>
       </nav>
+      {/* Marketing Promo Banner for Non-Premium users (positioned directly under header) */}
+      {shouldShowBanner && (
+        <div 
+          onClick={() => setShowPremiumModal(true)}
+          className="bg-gradient-to-r from-[#F08000] via-orange-500 to-[#F08000] text-white text-xs font-bold py-2 px-4 cursor-pointer hover:opacity-95 transition shadow-sm flex items-center justify-between z-30 relative"
+        >
+          <div className="flex-1 flex items-center justify-center gap-2 text-center">
+            <Crown className="w-3.5 h-3.5 text-orange-100 shrink-0" />
+            <span>
+              <strong>Tanda Premium:</strong> 100+ кітапты шектеусіз әрі 0% жарнамасыз тыңдаңыз!
+            </span>
+            <span className="hidden sm:inline-block underline decoration-orange-200 font-black ml-1 text-white">
+              Премиумға жазылу &rarr;
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={handleDismissBanner}
+            className="p-1 rounded-md text-orange-100 hover:text-white hover:bg-orange-700/40 transition shrink-0 ml-2"
+            title="Жабу"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
 
       {/* Logout Confirmation Modal */}
       {showLogoutConfirm && (
