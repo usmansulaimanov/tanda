@@ -354,7 +354,7 @@ export const AppSidebarDrawer: React.FC = () => {
                       <path d="M10 14.66V17c0 .55-.45 1-1 1H7v4h10v-4h-2c-.55 0-1-.45-1-1v-2.34"></path>
                       <path d="M6 4h12v7a6 6 0 0 1-12 0V4z"></path>
                     </svg>
-                    <span>Рейтинг (Топ 100)</span>
+                    <span>Рейтинг</span>
                   </Link>
 
                   <Link
@@ -496,7 +496,7 @@ export const AppSidebarDrawer: React.FC = () => {
                   <path d="M10 14.66V17c0 .55-.45 1-1 1H7v4h10v-4h-2c-.55 0-1-.45-1-1v-2.34"></path>
                   <path d="M6 4h12v7a6 6 0 0 1-12 0V4z"></path>
                 </svg>
-                <span>Рейтинг (Топ 100)</span>
+                <span>Рейтинг</span>
               </Link>
 
               <a
@@ -519,7 +519,7 @@ export const AppSidebarDrawer: React.FC = () => {
                   <polyline points="2 17 12 22 22 17"></polyline>
                   <polyline points="2 12 12 17 22 12"></polyline>
                 </svg>
-                <span>Кітаптар қоры (Каталог)</span>
+                <span>Кітаптар қоры</span>
               </a>
 
               {isAuthenticated && (
