@@ -368,6 +368,9 @@ export interface SystemSettings {
   price1Month: number;
   price3Months: number;
   price1Year: number;
+  plan1MonthEnabled?: boolean;
+  plan3MonthsEnabled?: boolean;
+  plan1YearEnabled?: boolean;
   updatedAt?: string;
 }
 

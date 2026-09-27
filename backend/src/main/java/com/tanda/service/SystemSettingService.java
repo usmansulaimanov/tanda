@@ -54,6 +54,9 @@ public class SystemSettingService {
                 .price1Month(parseIntOrDefault(map.get("price_1_month"), 1490))
                 .price3Months(parseIntOrDefault(map.get("price_3_months"), 3990))
                 .price1Year(parseIntOrDefault(map.get("price_1_year"), 11990))
+                .plan1MonthEnabled(!"false".equalsIgnoreCase(map.get("plan_1_month_enabled")))
+                .plan3MonthsEnabled(!"false".equalsIgnoreCase(map.get("plan_3_months_enabled")))
+                .plan1YearEnabled(!"false".equalsIgnoreCase(map.get("plan_1_year_enabled")))
                 .updatedAt(lastUpdated)
                 .build();
     }
@@ -107,6 +110,15 @@ public class SystemSettingService {
         }
         if (dto.getPrice1Year() != null) {
             saveSetting("price_1_year", String.valueOf(dto.getPrice1Year()));
+        }
+        if (dto.getPlan1MonthEnabled() != null) {
+            saveSetting("plan_1_month_enabled", String.valueOf(dto.getPlan1MonthEnabled()));
+        }
+        if (dto.getPlan3MonthsEnabled() != null) {
+            saveSetting("plan_3_months_enabled", String.valueOf(dto.getPlan3MonthsEnabled()));
+        }
+        if (dto.getPlan1YearEnabled() != null) {
+            saveSetting("plan_1_year_enabled", String.valueOf(dto.getPlan1YearEnabled()));
         }
 
         log.info("System settings updated successfully: {}", dto);

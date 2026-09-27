@@ -59,7 +59,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
 
   if (!isOpen) return null;
 
-  const plans = [
+  const allPlans = [
     {
       id: '1_MONTH' as const,
       name: '1 ай',
@@ -67,6 +67,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
       price: settings?.price1Month || 1490,
       description: 'Ай сайынғы стандартты жазылым',
       badge: null,
+      enabled: settings?.plan1MonthEnabled !== false,
     },
     {
       id: '3_MONTHS' as const,
@@ -75,6 +76,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
       price: settings?.price3Months || 3990,
       description: 'Тоқсандық жазылым (10% үнемдеу)',
       badge: 'ТИІМДІ',
+      enabled: settings?.plan3MonthsEnabled !== false,
     },
     {
       id: '1_YEAR' as const,
@@ -83,10 +85,18 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
       price: settings?.price1Year || 11990,
       description: 'Жылдық толық қолжетімділік (33% үнемдеу)',
       badge: 'ҮЗДІК ТАҢДАУ ⭐',
+      enabled: settings?.plan1YearEnabled !== false,
     },
   ];
 
-  const currentPlan = plans.find((p) => p.id === selectedPlan) || plans[0];
+  const plans = allPlans.filter((p) => p.enabled);
+  const currentPlan = plans.find((p) => p.id === selectedPlan) || plans[0] || allPlans[0];
+
+  useEffect(() => {
+    if (plans.length > 0 && !plans.some((p) => p.id === selectedPlan)) {
+      setSelectedPlan(plans[0].id);
+    }
+  }, [plans, selectedPlan]);
 
   const formatKaspiPhone = (input?: string): string => {
     if (!input) return '+7 777 000 0000';
@@ -320,7 +330,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">
                   Тариф жоспарын таңдаңыз:
                 </label>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className={`grid grid-cols-1 ${plans.length === 2 ? 'sm:grid-cols-2' : plans.length === 1 ? 'sm:grid-cols-1 max-w-sm mx-auto' : 'sm:grid-cols-3'} gap-3`}>
                   {plans.map((p) => {
                     const isSelected = selectedPlan === p.id;
                     return (

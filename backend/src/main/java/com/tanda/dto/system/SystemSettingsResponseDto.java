@@ -23,5 +23,8 @@ public class SystemSettingsResponseDto {
     private int price1Month;
     private int price3Months;
     private int price1Year;
+    private boolean plan1MonthEnabled;
+    private boolean plan3MonthsEnabled;
+    private boolean plan1YearEnabled;
     private OffsetDateTime updatedAt;
 }

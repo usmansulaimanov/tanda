@@ -30,6 +30,9 @@ export const AdminSystemSettingsPage: React.FC = () => {
     price1Month: 1490,
     price3Months: 3990,
     price1Year: 11990,
+    plan1MonthEnabled: true,
+    plan3MonthsEnabled: true,
+    plan1YearEnabled: true,
   });
 
   const [isLoading, setIsLoading] = useState(true);
@@ -322,39 +325,75 @@ export const AdminSystemSettingsPage: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-slate-100">
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                1 айлық жазылым (₸):
-              </label>
+            {/* 1 Month */}
+            <div className={`p-3.5 rounded-2xl border transition-all ${
+              settings.plan1MonthEnabled !== false ? 'bg-amber-50/40 border-amber-300 shadow-sm' : 'bg-slate-50 border-slate-200 opacity-60'
+            }`}>
+              <div className="flex items-center justify-between mb-2">
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={settings.plan1MonthEnabled !== false}
+                    onChange={(e) => setSettings({ ...settings, plan1MonthEnabled: e.target.checked })}
+                    className="w-4 h-4 text-amber-600 rounded border-slate-300 focus:ring-amber-500 cursor-pointer"
+                  />
+                  <span className="text-xs font-bold text-slate-800">1 айлық жазылым (₸):</span>
+                </label>
+              </div>
               <input
                 type="number"
+                disabled={settings.plan1MonthEnabled === false}
                 value={settings.price1Month}
                 onChange={(e) => setSettings({ ...settings, price1Month: Number(e.target.value) })}
-                className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none font-bold"
+                className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none font-bold bg-white disabled:bg-slate-100 disabled:text-slate-400"
               />
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                3 айлық жазылым (₸):
-              </label>
+            {/* 3 Months */}
+            <div className={`p-3.5 rounded-2xl border transition-all ${
+              settings.plan3MonthsEnabled !== false ? 'bg-amber-50/40 border-amber-300 shadow-sm' : 'bg-slate-50 border-slate-200 opacity-60'
+            }`}>
+              <div className="flex items-center justify-between mb-2">
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={settings.plan3MonthsEnabled !== false}
+                    onChange={(e) => setSettings({ ...settings, plan3MonthsEnabled: e.target.checked })}
+                    className="w-4 h-4 text-amber-600 rounded border-slate-300 focus:ring-amber-500 cursor-pointer"
+                  />
+                  <span className="text-xs font-bold text-slate-800">3 айлық жазылым (₸):</span>
+                </label>
+              </div>
               <input
                 type="number"
+                disabled={settings.plan3MonthsEnabled === false}
                 value={settings.price3Months}
                 onChange={(e) => setSettings({ ...settings, price3Months: Number(e.target.value) })}
-                className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none font-bold"
+                className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none font-bold bg-white disabled:bg-slate-100 disabled:text-slate-400"
               />
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                1 жылдық жазылым (₸):
-              </label>
+            {/* 1 Year */}
+            <div className={`p-3.5 rounded-2xl border transition-all ${
+              settings.plan1YearEnabled !== false ? 'bg-amber-50/40 border-amber-300 shadow-sm' : 'bg-slate-50 border-slate-200 opacity-60'
+            }`}>
+              <div className="flex items-center justify-between mb-2">
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={settings.plan1YearEnabled !== false}
+                    onChange={(e) => setSettings({ ...settings, plan1YearEnabled: e.target.checked })}
+                    className="w-4 h-4 text-amber-600 rounded border-slate-300 focus:ring-amber-500 cursor-pointer"
+                  />
+                  <span className="text-xs font-bold text-slate-800">1 жылдық жазылым (₸):</span>
+                </label>
+              </div>
               <input
                 type="number"
+                disabled={settings.plan1YearEnabled === false}
                 value={settings.price1Year}
                 onChange={(e) => setSettings({ ...settings, price1Year: Number(e.target.value) })}
-                className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none font-bold"
+                className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none font-bold bg-white disabled:bg-slate-100 disabled:text-slate-400"
               />
             </div>
           </div>

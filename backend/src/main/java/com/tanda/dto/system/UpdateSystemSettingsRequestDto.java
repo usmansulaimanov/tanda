@@ -21,4 +21,7 @@ public class UpdateSystemSettingsRequestDto {
     private Integer price1Month;
     private Integer price3Months;
     private Integer price1Year;
+    private Boolean plan1MonthEnabled;
+    private Boolean plan3MonthsEnabled;
+    private Boolean plan1YearEnabled;
 }
