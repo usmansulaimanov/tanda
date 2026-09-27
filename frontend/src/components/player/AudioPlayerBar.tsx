@@ -288,6 +288,20 @@ export const AudioPlayerBar: React.FC = () => {
   useEffect(() => {
     const handleUnload = () => {
       flushHeartbeatNow();
+      const state = useAudioPlayerStore.getState();
+      if (state.currentBook && state.progress > 0) {
+        const token = localStorage.getItem('tanda_token');
+        if (token && typeof navigator !== 'undefined' && navigator.sendBeacon) {
+          const apiBase = import.meta.env.VITE_API_URL || 'https://tanda-backend-7lpj.onrender.com';
+          navigator.sendBeacon(
+            `${apiBase}/api/v1/progress/${state.currentBook.id}`,
+            new Blob([JSON.stringify({
+              currentAudioChapterId: state.currentChapter?.id,
+              currentAudioTime: Math.floor(state.progress),
+            })], { type: 'application/json' })
+          );
+        }
+      }
     };
     window.addEventListener('beforeunload', handleUnload);
     window.addEventListener('pagehide', handleUnload);
@@ -574,8 +588,11 @@ export const AudioPlayerBar: React.FC = () => {
     const chapter = currentChapter || chapters[chapterIndex];
     const hasOwnAudio = Boolean(chapter?.audioUrl && chapter.audioUrl.trim());
     
+    const storeProgress = useAudioPlayerStore.getState().progress || 0;
     let targetTime = 0;
-    if (hasOwnAudio) {
+    if (storeProgress > 0) {
+      targetTime = storeProgress;
+    } else if (hasOwnAudio) {
       targetTime = 0;
     } else if (chapters.length > 0) {
       targetTime = getChapterStartTime(chapters, chapterIndex);
@@ -939,23 +956,27 @@ export const AudioPlayerBar: React.FC = () => {
             const dur = e.currentTarget.duration;
             if (dur && !isNaN(dur) && dur > 0) setDuration(dur);
             const savedProgress = useAudioPlayerStore.getState().progress || 0;
-            if (pendingSeekTimeRef.current !== null) {
-              e.currentTarget.currentTime = pendingSeekTimeRef.current;
-              pendingSeekTimeRef.current = null;
-            } else if (savedProgress > 0 && Math.abs(e.currentTarget.currentTime - savedProgress) > 1) {
-              e.currentTarget.currentTime = savedProgress;
+            const target = pendingSeekTimeRef.current !== null && pendingSeekTimeRef.current !== undefined
+              ? pendingSeekTimeRef.current
+              : savedProgress;
+            if (target > 0) {
+              e.currentTarget.currentTime = target;
             }
+            pendingSeekTimeRef.current = null;
             if (isPlaying && !useAudioPlayerStore.getState().isAdPlaying) {
               e.currentTarget.play().catch(() => {});
             }
           }}
           onCanPlay={(e) => {
             const savedProgress = useAudioPlayerStore.getState().progress || 0;
+            const target = pendingSeekTimeRef.current !== null && pendingSeekTimeRef.current !== undefined
+              ? pendingSeekTimeRef.current
+              : savedProgress;
+            if (target > 0 && Math.abs(e.currentTarget.currentTime - target) > 0.5) {
+              e.currentTarget.currentTime = target;
+            }
             if (pendingSeekTimeRef.current !== null) {
-              e.currentTarget.currentTime = pendingSeekTimeRef.current;
               pendingSeekTimeRef.current = null;
-            } else if (savedProgress > 0 && Math.abs(e.currentTarget.currentTime - savedProgress) > 1) {
-              e.currentTarget.currentTime = savedProgress;
             }
             if (isPlaying && !useAudioPlayerStore.getState().isAdPlaying) {
               e.currentTarget.play().catch(() => {});
@@ -983,6 +1004,13 @@ export const AudioPlayerBar: React.FC = () => {
             const current = e.currentTarget.currentTime;
             const dur = e.currentTarget.duration || duration;
             if (check15MinuteLimit(current)) return;
+
+            // Protect against initial transient 0s clobbering stored progress before seek completes
+            const storeProg = useAudioPlayerStore.getState().progress || 0;
+            if (current === 0 && storeProg > 1 && pendingSeekTimeRef.current !== 0) {
+              return;
+            }
+
             setProgress(current);
             if (dur && !isNaN(dur)) setDuration(dur);
 

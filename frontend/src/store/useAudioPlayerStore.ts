@@ -309,6 +309,14 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
           return;
         }
 
+        // Flush and sync previous book's progress before loading new book
+        const prevBook = get().currentBook;
+        const prevChapter = get().currentChapter;
+        const prevProgress = get().progress;
+        if (prevBook && prevBook.id !== book.id && prevProgress > 0) {
+          syncProgressNow(prevBook.id, prevChapter?.id, prevProgress);
+        }
+
         let chapters = book.audioChapters || [];
         if (chapters.length === 0 && (book.hasAudio || book.audioUrl)) {
           chapters = [
@@ -553,6 +561,10 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
       },
 
       closePlayer: () => {
+        const state = get();
+        if (state.currentBook && state.progress > 0) {
+          syncProgressNow(state.currentBook.id, state.currentChapter?.id, state.progress);
+        }
         endAudioSession();
         set({
           currentBook: null,
