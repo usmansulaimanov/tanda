@@ -25,4 +25,6 @@ public class UpdateSystemSettingsRequestDto {
     private Boolean plan1MonthEnabled;
     private Boolean plan3MonthsEnabled;
     private Boolean plan1YearEnabled;
+    private Boolean kaspiPhoneEnabled;
+    private Boolean kaspiCardEnabled;
 }

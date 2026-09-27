@@ -58,6 +58,8 @@ public class SystemSettingService {
                 .plan1MonthEnabled(!"false".equalsIgnoreCase(map.get("plan_1_month_enabled")))
                 .plan3MonthsEnabled(!"false".equalsIgnoreCase(map.get("plan_3_months_enabled")))
                 .plan1YearEnabled(!"false".equalsIgnoreCase(map.get("plan_1_year_enabled")))
+                .kaspiPhoneEnabled(!"false".equalsIgnoreCase(map.get("kaspi_phone_enabled")))
+                .kaspiCardEnabled(!"false".equalsIgnoreCase(map.get("kaspi_card_enabled")))
                 .updatedAt(lastUpdated)
                 .build();
     }
@@ -123,6 +125,12 @@ public class SystemSettingService {
         }
         if (dto.getPlan1YearEnabled() != null) {
             saveSetting("plan_1_year_enabled", String.valueOf(dto.getPlan1YearEnabled()));
+        }
+        if (dto.getKaspiPhoneEnabled() != null) {
+            saveSetting("kaspi_phone_enabled", String.valueOf(dto.getKaspiPhoneEnabled()));
+        }
+        if (dto.getKaspiCardEnabled() != null) {
+            saveSetting("kaspi_card_enabled", String.valueOf(dto.getKaspiCardEnabled()));
         }
 
         log.info("System settings updated successfully: {}", dto);

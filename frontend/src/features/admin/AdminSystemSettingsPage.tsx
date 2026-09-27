@@ -52,6 +52,8 @@ export const AdminSystemSettingsPage: React.FC = () => {
     plan1MonthEnabled: true,
     plan3MonthsEnabled: true,
     plan1YearEnabled: true,
+    kaspiPhoneEnabled: true,
+    kaspiCardEnabled: true,
   });
 
   const [isLoading, setIsLoading] = useState(true);
@@ -185,7 +187,7 @@ export const AdminSystemSettingsPage: React.FC = () => {
         <button
           onClick={() => handleSave()}
           disabled={isSaving}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm shadow-md shadow-amber-500/20 transition disabled:opacity-50"
+          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#F08000] hover:bg-[#c06800] text-white font-bold text-sm shadow-md shadow-orange-500/20 transition disabled:opacity-50"
         >
           <Save className="w-4 h-4" />
           <span>{isSaving ? 'Сақталуда...' : 'Барлығын сақтау'}</span>
@@ -305,7 +307,7 @@ export const AdminSystemSettingsPage: React.FC = () => {
               <select
                 value={settings.bankName || 'Kaspi Bank'}
                 onChange={(e) => setSettings({ ...settings, bankName: e.target.value })}
-                className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 font-bold bg-white text-slate-900 cursor-pointer"
+                className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#F08000]/20 focus:border-[#F08000] font-bold bg-white text-slate-900 cursor-pointer"
               >
                 {KAZAKHSTAN_BANKS.map((bank) => (
                   <option key={bank} value={bank}>
@@ -316,28 +318,54 @@ export const AdminSystemSettingsPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                Телефон нөмірі:
+              <label className="flex items-center justify-between text-xs font-bold text-slate-700 mb-1.5 cursor-pointer select-none">
+                <span className="flex items-center gap-1.5">
+                  <input
+                    type="checkbox"
+                    checked={settings.kaspiPhoneEnabled !== false}
+                    onChange={(e) => setSettings({ ...settings, kaspiPhoneEnabled: e.target.checked })}
+                    className="w-3.5 h-3.5 text-[#F08000] rounded border-slate-300 focus:ring-[#F08000] cursor-pointer"
+                  />
+                  <span>Телефон нөмірі:</span>
+                </span>
+                {settings.kaspiPhoneEnabled === false && (
+                  <span className="text-[10px] text-slate-400 font-normal">Сайтта жасырулы</span>
+                )}
               </label>
               <input
                 type="text"
-                placeholder="+7 707 144 1404"
+                placeholder="+7 777 000 0000"
                 value={settings.kaspiPhone}
                 onChange={(e) => setSettings({ ...settings, kaspiPhone: formatKaspiPhone(e.target.value) })}
-                className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 font-mono"
+                className={`w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#F08000]/20 focus:border-[#F08000] font-mono ${
+                  settings.kaspiPhoneEnabled === false ? 'bg-slate-50 text-slate-400' : 'bg-white text-slate-900'
+                }`}
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                Карта нөмірі:
+              <label className="flex items-center justify-between text-xs font-bold text-slate-700 mb-1.5 cursor-pointer select-none">
+                <span className="flex items-center gap-1.5">
+                  <input
+                    type="checkbox"
+                    checked={settings.kaspiCardEnabled !== false}
+                    onChange={(e) => setSettings({ ...settings, kaspiCardEnabled: e.target.checked })}
+                    className="w-3.5 h-3.5 text-[#F08000] rounded border-slate-300 focus:ring-[#F08000] cursor-pointer"
+                  />
+                  <span>Карта нөмірі:</span>
+                </span>
+                {settings.kaspiCardEnabled === false && (
+                  <span className="text-[10px] text-slate-400 font-normal">Сайтта жасырулы</span>
+                )}
               </label>
               <input
                 type="text"
-                placeholder="4400 4301 1234 5678"
+                placeholder="0000 0000 0000 0000"
                 value={settings.kaspiCard || ''}
                 onChange={(e) => setSettings({ ...settings, kaspiCard: formatKaspiCard(e.target.value) })}
-                className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 font-mono"
+                className={`w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#F08000]/20 focus:border-[#F08000] font-mono ${
+                  settings.kaspiCardEnabled === false ? 'bg-slate-50 text-slate-400' : 'bg-white text-slate-900'
+                }`}
               />
             </div>
 
@@ -349,7 +377,7 @@ export const AdminSystemSettingsPage: React.FC = () => {
                 type="text"
                 value={settings.kaspiRecipientName}
                 onChange={(e) => setSettings({ ...settings, kaspiRecipientName: e.target.value })}
-                className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#F08000]/20 focus:border-[#F08000]"
               />
             </div>
           </div>
@@ -357,7 +385,7 @@ export const AdminSystemSettingsPage: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-slate-100">
             {/* 1 Month */}
             <div className={`p-3.5 rounded-2xl border transition-all ${
-              settings.plan1MonthEnabled !== false ? 'bg-amber-50/40 border-amber-300 shadow-sm' : 'bg-slate-50 border-slate-200 opacity-60'
+              settings.plan1MonthEnabled !== false ? 'bg-orange-50/40 border-orange-200 shadow-sm' : 'bg-slate-50 border-slate-200 opacity-60'
             }`}>
               <div className="flex items-center justify-between mb-2">
                 <label className="flex items-center gap-2 cursor-pointer select-none">
@@ -365,7 +393,7 @@ export const AdminSystemSettingsPage: React.FC = () => {
                     type="checkbox"
                     checked={settings.plan1MonthEnabled !== false}
                     onChange={(e) => setSettings({ ...settings, plan1MonthEnabled: e.target.checked })}
-                    className="w-4 h-4 text-amber-600 rounded border-slate-300 focus:ring-amber-500 cursor-pointer"
+                    className="w-4 h-4 text-[#F08000] rounded border-slate-300 focus:ring-[#F08000] cursor-pointer"
                   />
                   <span className="text-xs font-bold text-slate-800">1 айлық жазылым (₸):</span>
                 </label>
@@ -381,7 +409,7 @@ export const AdminSystemSettingsPage: React.FC = () => {
 
             {/* 3 Months */}
             <div className={`p-3.5 rounded-2xl border transition-all ${
-              settings.plan3MonthsEnabled !== false ? 'bg-amber-50/40 border-amber-300 shadow-sm' : 'bg-slate-50 border-slate-200 opacity-60'
+              settings.plan3MonthsEnabled !== false ? 'bg-orange-50/40 border-orange-200 shadow-sm' : 'bg-slate-50 border-slate-200 opacity-60'
             }`}>
               <div className="flex items-center justify-between mb-2">
                 <label className="flex items-center gap-2 cursor-pointer select-none">
@@ -389,7 +417,7 @@ export const AdminSystemSettingsPage: React.FC = () => {
                     type="checkbox"
                     checked={settings.plan3MonthsEnabled !== false}
                     onChange={(e) => setSettings({ ...settings, plan3MonthsEnabled: e.target.checked })}
-                    className="w-4 h-4 text-amber-600 rounded border-slate-300 focus:ring-amber-500 cursor-pointer"
+                    className="w-4 h-4 text-[#F08000] rounded border-slate-300 focus:ring-[#F08000] cursor-pointer"
                   />
                   <span className="text-xs font-bold text-slate-800">3 айлық жазылым (₸):</span>
                 </label>
@@ -405,7 +433,7 @@ export const AdminSystemSettingsPage: React.FC = () => {
 
             {/* 1 Year */}
             <div className={`p-3.5 rounded-2xl border transition-all ${
-              settings.plan1YearEnabled !== false ? 'bg-amber-50/40 border-amber-300 shadow-sm' : 'bg-slate-50 border-slate-200 opacity-60'
+              settings.plan1YearEnabled !== false ? 'bg-orange-50/40 border-orange-200 shadow-sm' : 'bg-slate-50 border-slate-200 opacity-60'
             }`}>
               <div className="flex items-center justify-between mb-2">
                 <label className="flex items-center gap-2 cursor-pointer select-none">
@@ -413,7 +441,7 @@ export const AdminSystemSettingsPage: React.FC = () => {
                     type="checkbox"
                     checked={settings.plan1YearEnabled !== false}
                     onChange={(e) => setSettings({ ...settings, plan1YearEnabled: e.target.checked })}
-                    className="w-4 h-4 text-amber-600 rounded border-slate-300 focus:ring-amber-500 cursor-pointer"
+                    className="w-4 h-4 text-[#F08000] rounded border-slate-300 focus:ring-[#F08000] cursor-pointer"
                   />
                   <span className="text-xs font-bold text-slate-800">1 жылдық жазылым (₸):</span>
                 </label>

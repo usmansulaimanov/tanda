@@ -372,6 +372,8 @@ export interface SystemSettings {
   plan1MonthEnabled?: boolean;
   plan3MonthsEnabled?: boolean;
   plan1YearEnabled?: boolean;
+  kaspiPhoneEnabled?: boolean;
+  kaspiCardEnabled?: boolean;
   updatedAt?: string;
 }
 

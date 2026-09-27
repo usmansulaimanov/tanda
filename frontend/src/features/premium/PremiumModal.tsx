@@ -100,12 +100,12 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
   const formatKaspiPhone = (input?: string): string => {
     if (!input) return '+7 777 000 0000';
     const trimmed = input.trim();
-    if (trimmed === '+' || trimmed === '+7' || trimmed === '7' || trimmed === '8') {
-      return '';
+    if (trimmed === '+' || trimmed === '+7' || trimmed === '7' || trimmed === '8' || !trimmed) {
+      return '+7 777 000 0000';
     }
 
     let digits = input.replace(/\D/g, '');
-    if (!digits) return input;
+    if (!digits) return '+7 777 000 0000';
 
     if (digits.length === 11 && (digits.startsWith('7') || digits.startsWith('8'))) {
       digits = digits.slice(1);
@@ -116,7 +116,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
     }
 
     digits = digits.slice(0, 10);
-    if (!digits) return '';
+    if (!digits) return '+7 777 000 0000';
 
     let formatted = '+7';
     if (digits.length > 0) {
@@ -132,8 +132,9 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
   };
 
   const formatKaspiCard = (input?: string): string => {
-    if (!input) return '';
+    if (!input) return '0000 0000 0000 0000';
     const digits = input.replace(/\D/g, '').slice(0, 16);
+    if (!digits) return '0000 0000 0000 0000';
     const parts = [];
     for (let i = 0; i < digits.length; i += 4) {
       parts.push(digits.slice(i, i + 4));
@@ -144,15 +145,15 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
   const handleCopyPhone = () => {
     const rawPhone = settings?.kaspiPhone || '+7 777 000 0000';
     const displayPhone = formatKaspiPhone(rawPhone);
-    navigator.clipboard.writeText(rawPhone.replace(/\D/g, ''));
-    showToast('Kaspi нөмірі көшірілді: ' + displayPhone, 'success');
+    navigator.clipboard.writeText(rawPhone.replace(/\D/g, '') || '77770000000');
+    showToast(`${settings?.bankName || 'Kaspi'} нөмірі көшірілді: ` + displayPhone, 'success');
   };
 
   const handleCopyCard = () => {
-    if (settings?.kaspiCard) {
-      navigator.clipboard.writeText(settings.kaspiCard.replace(/\s+/g, ''));
-      showToast('Карта нөмірі көшірілді: ' + formatKaspiCard(settings.kaspiCard), 'success');
-    }
+    const rawCard = settings?.kaspiCard || '0000 0000 0000 0000';
+    const displayCard = formatKaspiCard(rawCard);
+    navigator.clipboard.writeText(rawCard.replace(/\s+/g, '') || '0000000000000000');
+    showToast('Карта нөмірі көшірілді: ' + displayCard, 'success');
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -354,79 +355,104 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
               </div>
 
               {/* Payment instructions */}
-              <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-red-50/60 to-orange-50/60 border border-red-100 mb-6">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-bold text-red-900 uppercase tracking-wide flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
-                    {settings?.bankName || 'Kaspi'} аударым бойынша нұсқаулық:
-                  </span>
-                  <button
-                    type="button"
-                    onClick={handleCopyPhone}
-                    className="flex items-center gap-1 text-xs font-bold text-red-600 hover:text-red-700 bg-red-100/80 px-2.5 py-1 rounded-lg transition"
-                  >
-                    <Copy className="w-3.5 h-3.5" />
-                    Нөмірді көшіру
-                  </button>
-                </div>
+              {(() => {
+                const isPhoneVisible = settings?.kaspiPhoneEnabled !== false;
+                const isCardVisible = Boolean(settings?.kaspiCardEnabled);
+                const gridColsClass = isPhoneVisible && isCardVisible
+                  ? 'sm:grid-cols-3'
+                  : (isPhoneVisible || isCardVisible)
+                  ? 'sm:grid-cols-2'
+                  : 'sm:grid-cols-1';
 
-                <div className={`grid grid-cols-1 ${settings?.kaspiCard ? 'sm:grid-cols-3' : 'sm:grid-cols-2'} gap-2 text-xs text-slate-700`}>
-                  <div className="bg-white/80 p-2.5 rounded-xl border border-red-100/60 flex items-center justify-between">
-                    <div>
-                      <span className="text-slate-400 block text-[10px]">{settings?.bankName || 'Kaspi'} нөмірі:</span>
-                      <span className="font-black text-slate-900 text-sm font-mono">
-                        {formatKaspiPhone(settings?.kaspiPhone)}
+                return (
+                  <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-red-50/60 to-orange-50/60 border border-red-100 mb-6">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-xs font-bold text-red-900 uppercase tracking-wide flex items-center gap-1.5">
+                        <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
+                        {settings?.bankName || 'Kaspi'} аударым бойынша нұсқаулық:
                       </span>
+                      {isPhoneVisible ? (
+                        <button
+                          type="button"
+                          onClick={handleCopyPhone}
+                          className="flex items-center gap-1 text-xs font-bold text-red-600 hover:text-red-700 bg-red-100/80 px-2.5 py-1 rounded-lg transition"
+                        >
+                          <Copy className="w-3.5 h-3.5" />
+                          Нөмірді көшіру
+                        </button>
+                      ) : isCardVisible ? (
+                        <button
+                          type="button"
+                          onClick={handleCopyCard}
+                          className="flex items-center gap-1 text-xs font-bold text-red-600 hover:text-red-700 bg-red-100/80 px-2.5 py-1 rounded-lg transition"
+                        >
+                          <Copy className="w-3.5 h-3.5" />
+                          Картаны көшіру
+                        </button>
+                      ) : null}
                     </div>
-                    <button
-                      type="button"
-                      onClick={handleCopyPhone}
-                      title="Көшіру"
-                      className="p-1 rounded-lg hover:bg-red-50 text-red-600 transition"
-                    >
-                      <Copy className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
 
-                  {settings?.kaspiCard && (
-                    <div className="bg-white/80 p-2.5 rounded-xl border border-red-100/60 flex items-center justify-between">
-                      <div>
-                        <span className="text-slate-400 block text-[10px]">{settings?.bankName || 'Банк'} картасы:</span>
-                        <span className="font-black text-slate-900 text-sm font-mono">
-                          {formatKaspiCard(settings.kaspiCard)}
+                    <div className={`grid grid-cols-1 ${gridColsClass} gap-2 text-xs text-slate-700`}>
+                      {isPhoneVisible && (
+                        <div className="bg-white/80 p-2.5 rounded-xl border border-red-100/60 flex items-center justify-between">
+                          <div>
+                            <span className="text-slate-400 block text-[10px]">{settings?.bankName || 'Kaspi'} нөмірі:</span>
+                            <span className="font-black text-slate-900 text-sm font-mono">
+                              {formatKaspiPhone(settings?.kaspiPhone)}
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleCopyPhone}
+                            title="Көшіру"
+                            className="p-1 rounded-lg hover:bg-red-50 text-red-600 transition"
+                          >
+                            <Copy className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      )}
+
+                      {isCardVisible && (
+                        <div className="bg-white/80 p-2.5 rounded-xl border border-red-100/60 flex items-center justify-between">
+                          <div>
+                            <span className="text-slate-400 block text-[10px]">{settings?.bankName || 'Банк'} картасы:</span>
+                            <span className="font-black text-slate-900 text-sm font-mono">
+                              {formatKaspiCard(settings?.kaspiCard)}
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleCopyCard}
+                            title="Картаны көшіру"
+                            className="p-1 rounded-lg hover:bg-red-50 text-red-600 transition"
+                          >
+                            <Copy className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      )}
+
+                      <div className="bg-white/80 p-2.5 rounded-xl border border-red-100/60">
+                        <span className="text-slate-400 block text-[10px]">Алушы (Аты-жөні):</span>
+                        <span className="font-bold text-slate-900 text-sm">
+                          {settings?.kaspiRecipientName || 'Tanda Platform'}
                         </span>
                       </div>
-                      <button
-                        type="button"
-                        onClick={handleCopyCard}
-                        title="Картаны көшіру"
-                        className="p-1 rounded-lg hover:bg-red-50 text-red-600 transition"
-                      >
-                        <Copy className="w-3.5 h-3.5" />
-                      </button>
                     </div>
-                  )}
 
-                  <div className="bg-white/80 p-2.5 rounded-xl border border-red-100/60">
-                    <span className="text-slate-400 block text-[10px]">Алушы (Аты-жөні):</span>
-                    <span className="font-bold text-slate-900 text-sm">
-                      {settings?.kaspiRecipientName || 'Tanda Platform'}
-                    </span>
+                    <div className="mt-3 p-3 rounded-xl bg-orange-500/10 border border-orange-500/20 text-xs text-slate-700 flex items-start gap-2.5">
+                      <AlertCircle className="w-4 h-4 text-[#F08000] shrink-0 mt-0.5" />
+                      <div className="leading-relaxed">
+                        <span className="font-bold text-slate-900 block mb-0.5">
+                          Маңызды ескерту:
+                        </span>
+                        <span>
+                          {settings?.bankName || 'Kaspi'} қосымшасында <strong>дәл осы соманы ({currentPlan.price.toLocaleString('kk-KZ')} ₸)</strong> ғана аударыңыз. Бұдан артық та, кем де салмаңыз, әйтпесе төлем есептелмейді және жазылым іске қосылмайды. Төлем жасалған соң чекті төменде тіркеңіз.
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                </div>
-
-                <div className="mt-3 p-3 rounded-xl bg-orange-500/10 border border-orange-500/20 text-xs text-slate-700 flex items-start gap-2.5">
-                  <AlertCircle className="w-4 h-4 text-[#F08000] shrink-0 mt-0.5" />
-                  <div className="leading-relaxed">
-                    <span className="font-bold text-slate-900 block mb-0.5">
-                      Маңызды ескерту:
-                    </span>
-                    <span>
-                      {settings?.bankName || 'Kaspi'} қосымшасында <strong>дәл осы соманы ({currentPlan.price.toLocaleString('kk-KZ')} ₸)</strong> ғана аударыңыз. Бұдан артық та, кем де салмаңыз, әйтпесе төлем есептелмейді және жазылым іске қосылмайды. Төлем жасалған соң чекті төменде тіркеңіз.
-                    </span>
-                  </div>
-                </div>
-              </div>
+                );
+              })()}
 
               {/* Receipt Upload Form */}
               <form onSubmit={handleSubmitReceipt} className="space-y-4 mb-6">

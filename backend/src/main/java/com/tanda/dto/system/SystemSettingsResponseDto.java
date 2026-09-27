@@ -27,5 +27,7 @@ public class SystemSettingsResponseDto {
     private boolean plan1MonthEnabled;
     private boolean plan3MonthsEnabled;
     private boolean plan1YearEnabled;
+    private boolean kaspiPhoneEnabled;
+    private boolean kaspiCardEnabled;
     private OffsetDateTime updatedAt;
 }
