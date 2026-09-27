@@ -121,7 +121,7 @@ export const AdminSystemSettingsPage: React.FC = () => {
             : 'bg-amber-50/50 border-amber-300 shadow-lg shadow-amber-500/10'
         }`}>
           <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex items-center gap-3">
               <div className={`w-8 h-8 rounded-xl flex items-center justify-center p-1.5 shadow-sm transition-colors ${
                 settings.premiumEnabled ? 'bg-emerald-600' : 'bg-slate-800'
               }`}>
@@ -130,15 +130,6 @@ export const AdminSystemSettingsPage: React.FC = () => {
               <span className="text-base font-black text-slate-900">
                 Tanda Premium жүйесін іске қосу
               </span>
-              {settings.premiumEnabled ? (
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-emerald-500 text-white animate-pulse">
-                  ҚОСУЛЫ (ПРЕМИУМ ЖҰМЫС ІСТЕП ТҰР)
-                </span>
-              ) : (
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-amber-500 text-white">
-                  ӨШІРУЛІ (ПРЕМИУМ ТОҚТАДЫ — БАРЛЫҚ КІТАПТАР АШЫҚ)
-                </span>
-              )}
             </div>
 
             <label className="relative inline-flex items-center cursor-pointer shrink-0">
