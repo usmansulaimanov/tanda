@@ -117,9 +117,10 @@ public class SubscriptionPaymentService {
 
         // 3. Send notification message to user
         try {
+            String readerName = user.getName() != null && !user.getName().isBlank() ? user.getName().trim() : "оқырман";
             messageService.sendMessage(adminId, "Tanda", "admin", MessageRequestDto.builder()
                     .title("Tanda Premium сәтті қосылды! 👑")
-                    .content("Құрметті " + (user.getName() != null ? user.getName() : "оқырман") + "! Сіздің " + days + " күндік Премиум жазылымыңыз сәтті белсендірілді. Барлық кітаптарды шектеусіз әрі жарнамасыз тыңдаңыз!")
+                    .content("Құрметті " + readerName + "! Сіздің " + days + " күндік Tanda Premium жазылымыңыз сәтті белсендірілді. Барлық аудио және электронды кітаптарды шектеусіз әрі жарнамасыз тыңдай аласыз!")
                     .targetType("single")
                     .targetUserIds(List.of(req.getUserId()))
                     .priority("important")
@@ -146,20 +147,29 @@ public class SubscriptionPaymentService {
         User user = userRepository.findById(req.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("Пайдаланушы табылмады: " + req.getUserId()));
 
+        String finalReason = reason != null && !reason.isBlank() ? reason.trim() : "Чек расталмады немесе төлем сомасы сәйкес келмейді";
         req.setStatus("REJECTED");
-        req.setRejectionReason(reason != null ? reason : "Чек расталмады немесе төлем сомасы сәйкес келмейді");
+        req.setRejectionReason(finalReason);
         req.setReviewedBy(adminId);
         req.setReviewedAt(OffsetDateTime.now());
         SubscriptionPaymentRequest saved = requestRepository.save(req);
 
         // Send rejection notification
+        boolean isWarning = finalReason.toLowerCase().contains("соңғы ескерту") || finalReason.toLowerCase().contains("блок");
+        String msgTitle = isWarning ? "⚠️ Төлем сұранысы қабылданбады (Соңғы ескерту)" : "Төлем сұранысы қабылданбады";
+        String msgPriority = isWarning ? "urgent" : "important";
+        String readerName = user.getName() != null && !user.getName().isBlank() ? user.getName().trim() : "оқырман";
+
         try {
             messageService.sendMessage(adminId, "Tanda", "admin", MessageRequestDto.builder()
-                    .title("Төлем сұранысы бойынша хабарлама")
-                    .content("Сіз жіберген Kaspi чегі расталмады. Себебі: " + req.getRejectionReason() + ". Сұрақтарыңыз болса қолдау қызметіне хабарласыңыз.")
+                    .title(msgTitle)
+                    .content("Құрметті " + readerName + "!\n\n"
+                            + "Сіздің Tanda Premium жазылымына жіберген төлем сұранысыңыз қабылданбады.\n\n"
+                            + "Себебі: " + finalReason + "\n\n"
+                            + "Сұрақтарыңыз болса немесе түсінбеушілік орын алса, қолдау қызметіне хабарласа аласыз.")
                     .targetType("single")
                     .targetUserIds(List.of(req.getUserId()))
-                    .priority("normal")
+                    .priority(msgPriority)
                     .build());
         } catch (Exception e) {
             log.warn("Could not send rejection message to user {}: {}", req.getUserId(), e.getMessage());

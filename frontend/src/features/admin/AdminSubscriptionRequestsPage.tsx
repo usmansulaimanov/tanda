@@ -9,12 +9,64 @@ import {
   RefreshCw,
   Crown,
   Eye,
-  AlertCircle
+  AlertCircle,
+  AlertTriangle,
+  FileX,
+  Ban,
+  HelpCircle,
+  Send,
+  MessageSquare
 } from 'lucide-react';
 import { premiumApi } from '../../shared/api/premium.api';
 import { SubscriptionPaymentRequest } from '../../types';
 import { useToastStore } from '../../store/useToastStore';
 import { Modal } from '../../components/ui/Modal';
+
+interface RejectionTemplate {
+  id: string;
+  title: string;
+  description: string;
+  reasonText: string;
+  isWarning: boolean;
+}
+
+const REJECTION_TEMPLATES: RejectionTemplate[] = [
+  {
+    id: 'fake_receipt',
+    title: 'Өтірік / жалған чек',
+    description: 'Жіберілген түбіртек өңделген, фотошоп немесе бөгде төлем',
+    reasonText: 'Жіберілген чек жарамсыз немесе жалған түбіртек деп танылды.',
+    isWarning: false,
+  },
+  {
+    id: 'no_payment',
+    title: 'Төлем сомасы түспеген',
+    description: 'Kaspi шотында көрсетілген сомадағы аударым табылмады',
+    reasonText: 'Kaspi шотында көрсетілген сомадағы төлем табылмады.',
+    isWarning: false,
+  },
+  {
+    id: 'mismatched_data',
+    title: 'Чек деректері сәйкес келмейді',
+    description: 'Төлем күні, уақыты, сомасы немесе деректері сәйкес емес',
+    reasonText: 'Төлем чегіндегі уақыт, сома немесе деректер сәйкес келмейді.',
+    isWarning: false,
+  },
+  {
+    id: 'final_warning',
+    title: 'Соңғы ескерту (Блокқа кету қаупі)',
+    description: 'Жалған чектер қайталанса, аккаунт автоматты түрде бұғатталады',
+    reasonText: 'Соңғы ескерту: Тағы да жалған өтініш немесе жарамсыз чек жіберетін болсаңыз, аккаунтыңыз біржола бұғатталады!',
+    isWarning: true,
+  },
+  {
+    id: 'other',
+    title: 'Басқа себеп',
+    description: 'Төмендегі ескертпеге өз себебіңізді толық жазыңыз',
+    reasonText: '',
+    isWarning: false,
+  },
+];
 
 export const AdminSubscriptionRequestsPage: React.FC = () => {
   const [requests, setRequests] = useState<SubscriptionPaymentRequest[]>([]);
@@ -25,8 +77,9 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
 
   // Reject modal state
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
-  const [rejectingId, setRejectingId] = useState<string | null>(null);
-  const [rejectionReason, setRejectionReason] = useState('');
+  const [rejectingRequest, setRejectingRequest] = useState<SubscriptionPaymentRequest | null>(null);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('fake_receipt');
+  const [customNotes, setCustomNotes] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState(false);
 
   const { showToast } = useToastStore();
@@ -66,20 +119,38 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
     }
   };
 
-  const openRejectModal = (id: string) => {
-    setRejectingId(id);
-    setRejectionReason('Kaspi-де төлем табылмады немесе сомасы сәйкес келмейді');
+  const openRejectModal = (req: SubscriptionPaymentRequest) => {
+    setRejectingRequest(req);
+    setSelectedTemplateId('fake_receipt');
+    setCustomNotes('');
     setRejectModalOpen(true);
   };
 
   const handleConfirmReject = async () => {
-    if (!rejectingId) return;
+    if (!rejectingRequest) return;
+
+    const template = REJECTION_TEMPLATES.find((t) => t.id === selectedTemplateId);
+    let finalReason = template?.reasonText || '';
+
+    if (customNotes.trim()) {
+      if (finalReason) {
+        finalReason = `${finalReason}\n\nҚосымша ескертпе: ${customNotes.trim()}`;
+      } else {
+        finalReason = customNotes.trim();
+      }
+    }
+
+    if (!finalReason.trim()) {
+      showToast('Бас тарту себебін таңдаңыз немесе ескертпе жазыңыз', 'error');
+      return;
+    }
+
     setIsProcessing(true);
     try {
-      await premiumApi.rejectSubscriptionRequestAdmin(rejectingId, rejectionReason);
-      showToast('Төлем сұранысы қабылданбады', 'info');
+      await premiumApi.rejectSubscriptionRequestAdmin(rejectingRequest.id, finalReason);
+      showToast('Төлемнен бас тартылды және оқырманға хабарлама жіберілді', 'info');
       setRejectModalOpen(false);
-      setRejectingId(null);
+      setRejectingRequest(null);
       loadRequests();
     } catch (err: any) {
       showToast(err?.response?.data?.message || 'Қате орын алды', 'error');
@@ -256,7 +327,7 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
                             Мақұлдау
                           </button>
                           <button
-                            onClick={() => openRejectModal(req.id)}
+                            onClick={() => openRejectModal(req)}
                             disabled={isProcessing}
                             className="px-2.5 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 font-bold text-xs transition disabled:opacity-50"
                           >
@@ -305,28 +376,116 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
       )}
 
       {/* Reject Modal */}
-      {rejectModalOpen && (
+      {rejectModalOpen && rejectingRequest && (
         <Modal
           isOpen={rejectModalOpen}
-          onClose={() => setRejectModalOpen(false)}
+          onClose={() => {
+            if (!isProcessing) {
+              setRejectModalOpen(false);
+              setRejectingRequest(null);
+            }
+          }}
           title="Төлемнен бас тарту"
-          maxWidth="md"
+          maxWidth="lg"
         >
-          <div className="space-y-4">
-            <p className="text-xs text-slate-500">
-              Оқырманға түсінікті болу үшін бас тарту себебін көрсетіңіз. Бұл оның хабарламаларына барады:
-            </p>
-            <textarea
-              rows={3}
-              value={rejectionReason}
-              onChange={(e) => setRejectionReason(e.target.value)}
-              className="w-full p-3 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500"
-            />
-            <div className="flex justify-end gap-2 pt-2">
+          <div className="space-y-4 text-left">
+            {/* Target Reader Card */}
+            <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl flex flex-wrap items-center justify-between gap-3 text-xs">
+              <div>
+                <span className="text-slate-400 font-medium block">Оқырман:</span>
+                <span className="font-black text-slate-900 text-sm">
+                  {rejectingRequest.userName || 'Аты көрсетілмеген'}
+                </span>
+                <span className="text-slate-500 block text-[11px]">{rejectingRequest.userEmail}</span>
+              </div>
+              <div className="text-right">
+                <span className="text-slate-400 font-medium block">Тариф және сома:</span>
+                <span className="font-bold text-slate-900">
+                  {formatPlanName(rejectingRequest.planName, rejectingRequest.planDays)}
+                </span>
+                <span className="font-black text-emerald-600 block text-[13px]">
+                  {rejectingRequest.amountKzt.toLocaleString('kk-KZ')} ₸
+                </span>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-2">
+                Бас тарту себебін таңдаңыз (оқырманға хабарлама болып барады):
+              </label>
+
+              <div className="space-y-2">
+                {REJECTION_TEMPLATES.map((tmpl) => {
+                  const isSelected = selectedTemplateId === tmpl.id;
+                  return (
+                    <div
+                      key={tmpl.id}
+                      onClick={() => setSelectedTemplateId(tmpl.id)}
+                      className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-start gap-3 ${
+                        isSelected
+                          ? tmpl.isWarning
+                            ? 'border-red-500 bg-red-50/60 shadow-sm ring-1 ring-red-500'
+                            : 'border-[#EF7E00] bg-orange-50/50 shadow-sm ring-1 ring-[#EF7E00]'
+                          : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/50 bg-white'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        id={`template-${tmpl.id}`}
+                        name="rejectionTemplate"
+                        checked={isSelected}
+                        onChange={() => setSelectedTemplateId(tmpl.id)}
+                        className="mt-1 h-4 w-4 text-[#EF7E00] focus:ring-[#EF7E00] border-slate-300 cursor-pointer"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className={`text-xs font-black ${tmpl.isWarning ? 'text-red-700' : 'text-slate-900'}`}>
+                            {tmpl.title}
+                          </span>
+                          {tmpl.isWarning && (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-red-100 text-red-700 border border-red-200 flex items-center gap-1">
+                              <AlertTriangle className="w-2.5 h-2.5" />
+                              Қатаң ескерту
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
+                          {tmpl.description}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Additional Custom Notes */}
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                Қосымша ескертпе / Заметка (қаласаңыз жазыңыз):
+              </label>
+              <textarea
+                rows={3}
+                value={customNotes}
+                onChange={(e) => setCustomNotes(e.target.value)}
+                placeholder="Мысалы: Төлемді қайта тексеріп, нақты Kaspi түбіртегін қайта жүктеңіз..."
+                className="w-full p-3 text-xs rounded-2xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#EF7E00]/20 focus:border-[#EF7E00] bg-white"
+              />
+              <p className="text-[11px] text-slate-400 mt-1">
+                Ескертпе жазылмаса, оқырманға тек таңдалған негізгі себеп бойынша хат барады.
+              </p>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
               <button
                 type="button"
-                onClick={() => setRejectModalOpen(false)}
-                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100"
+                onClick={() => {
+                  setRejectModalOpen(false);
+                  setRejectingRequest(null);
+                }}
+                disabled={isProcessing}
+                className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition"
               >
                 Болдырмау
               </button>
@@ -334,9 +493,19 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
                 type="button"
                 onClick={handleConfirmReject}
                 disabled={isProcessing}
-                className="px-4 py-2 rounded-xl text-xs font-bold bg-red-600 hover:bg-red-700 text-white transition disabled:opacity-50"
+                className="px-5 py-2.5 rounded-xl text-xs font-black bg-red-600 hover:bg-red-700 text-white shadow-md shadow-red-600/20 transition disabled:opacity-50 flex items-center gap-1.5"
               >
-                Бас тартуды растау
+                {isProcessing ? (
+                  <>
+                    <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Жіберілуде...
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-3.5 h-3.5" />
+                    Бас тарту және хат жіберу
+                  </>
+                )}
               </button>
             </div>
           </div>
