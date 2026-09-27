@@ -151,90 +151,125 @@ export const ProfilePage: React.FC = () => {
         {/* Books Grid */}
         {savedBooks.length > 0 ? (
           <div className="books-grid">
-            {savedBooks.map((book) => (
-              <div
-                key={book.id}
-                className="book-card"
-                onClick={() => navigate(`/book/${book.id}`)}
-                style={{ cursor: 'pointer', position: 'relative' }}
-              >
+            {savedBooks.map((book) => {
+              const hasAudio = Boolean(
+                book.hasAudio ||
+                (book.audioUrl && book.audioUrl.trim()) ||
+                (book.audioChapters && book.audioChapters.length > 0)
+              );
+              const hasText = Boolean(
+                book.hasEbook ||
+                (book.ebookUrl && book.ebookUrl.trim()) ||
+                (book.pdfUrl && book.pdfUrl.trim()) ||
+                (book.epubUrl && book.epubUrl.trim()) ||
+                (book.content && book.content.trim())
+              );
+
+              return (
                 <div
-                  className="book-cover"
-                  style={{
-                    background: book.gradient || 'linear-gradient(135deg, #0057A8, #003d7a)',
-                    position: 'relative',
-                    overflow: 'hidden',
-                  }}
+                  key={book.id}
+                  className="book-card"
+                  onClick={() => navigate(`/book/${book.id}`)}
+                  style={{ cursor: 'pointer', position: 'relative' }}
                 >
-                  {book.coverImage && (
-                    <img
-                      src={book.coverImage}
-                      alt={book.title}
-                      referrerPolicy="no-referrer"
-                      style={{
-                        position: 'absolute',
-                        inset: 0,
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover',
-                        zIndex: 1,
-                      }}
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                      }}
-                    />
-                  )}
-                  {!book.isFree && <TandaPremiumBadge />}
-                  <div style={{ position: 'relative', zIndex: 2 }}>
-                    {!book.coverImage && (
-                      <>
-                        <div className="cover-title">{book.title}</div>
-                        <div className="cover-author-text">{book.author}</div>
-                      </>
-                    )}
-                  </div>
-                </div>
-
-                <div className="book-meta">
-                  <div className="book-title">{book.title}</div>
-                  <div className="book-author">{book.author}</div>
-                  <span className="book-category">{book.category}</span>
-                </div>
-
-                <div className="book-actions" onClick={(e) => e.stopPropagation()}>
-                  <Link to={`/read/${book.id}`} className="btn-book-action btn-read">
-                    Оқу
-                  </Link>
-
-                  {book.hasAudio && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        playBook(book);
-                        navigate(`/listen/${book.id}`);
-                      }}
-                      className="btn-book-action btn-listen"
-                    >
-                      Тыңдау
-                    </button>
-                  )}
-
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveSaved(book.id, book.title)}
-                    className="btn-book-action"
-                    title="Сақталғандардан өшіру"
+                  <div
+                    className="book-cover"
                     style={{
-                      background: '#FEF2F2',
-                      color: '#DC2626',
-                      borderColor: '#FCA5A5',
+                      background: book.gradient || 'linear-gradient(135deg, #0057A8, #003d7a)',
+                      position: 'relative',
+                      overflow: 'hidden',
                     }}
                   >
-                    Өшіру
-                  </button>
+                    {book.coverImage && (
+                      <img
+                        src={book.coverImage}
+                        alt={book.title}
+                        referrerPolicy="no-referrer"
+                        style={{
+                          position: 'absolute',
+                          inset: 0,
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                          zIndex: 1,
+                        }}
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    )}
+                    {!book.isFree && <TandaPremiumBadge />}
+                    <div style={{ position: 'relative', zIndex: 2 }}>
+                      {!book.coverImage && (
+                        <>
+                          <div className="cover-title">{book.title}</div>
+                          <div className="cover-author-text">{book.author}</div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="book-meta">
+                    <div className="book-title">{book.title}</div>
+                    <div className="book-author">{book.author}</div>
+                    <span className="book-category">{book.category}</span>
+                  </div>
+
+                  <div className="book-actions" onClick={(e) => e.stopPropagation()}>
+                    {hasText ? (
+                      <Link to={`/read/${book.id}`} className="btn-book-action btn-read">
+                        Оқу
+                      </Link>
+                    ) : (
+                      <button
+                        type="button"
+                        disabled
+                        className="btn-book-action btn-disabled"
+                        title="Электронды кітап нұсқасы жүктелмеген"
+                      >
+                        Оқу
+                      </button>
+                    )}
+
+                    {hasAudio ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          playBook(book);
+                          navigate(`/listen/${book.id}`);
+                        }}
+                        className="btn-book-action btn-listen"
+                      >
+                        Тыңдау
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        disabled
+                        className="btn-book-action btn-disabled"
+                        title="Аудио нұсқасы жүктелмеген"
+                      >
+                        Тыңдау
+                      </button>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveSaved(book.id, book.title)}
+                      className="btn-book-action"
+                      title="Сақталғандардан өшіру"
+                      style={{
+                        background: '#FEF2F2',
+                        color: '#DC2626',
+                        borderColor: '#FCA5A5',
+                      }}
+                    >
+                      Өшіру
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <div

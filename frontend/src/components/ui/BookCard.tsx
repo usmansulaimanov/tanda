@@ -24,6 +24,20 @@ export const BookCard: React.FC<BookCardProps> = ({ book }) => {
   const bookStatus = getBookStatus(book.id);
   const isCompleted = bookStatus === 'completed';
 
+  const hasAudio = Boolean(
+    book.hasAudio ||
+    (book.audioUrl && book.audioUrl.trim()) ||
+    (book.audioChapters && book.audioChapters.length > 0)
+  );
+
+  const hasText = Boolean(
+    book.hasEbook ||
+    (book.ebookUrl && book.ebookUrl.trim()) ||
+    (book.pdfUrl && book.pdfUrl.trim()) ||
+    (book.epubUrl && book.epubUrl.trim()) ||
+    (book.content && book.content.trim())
+  );
+
   const handleReadClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -224,29 +238,43 @@ export const BookCard: React.FC<BookCardProps> = ({ book }) => {
       </div>
 
       <div className="book-actions" onClick={(e) => e.stopPropagation()}>
-        <button
-          type="button"
-          onClick={handleReadClick}
-          className="btn-book-action btn-read"
-        >
-          Оқу
-        </button>
-        {book.hasAudio ? (
+        {hasText ? (
+          <button
+            type="button"
+            onClick={handleReadClick}
+            className="btn-book-action btn-read"
+            title="Кітапты оқу"
+          >
+            Оқу
+          </button>
+        ) : (
+          <button
+            type="button"
+            disabled
+            className="btn-book-action btn-disabled"
+            title="Электронды кітап нұсқасы жүктелмеген"
+          >
+            Оқу
+          </button>
+        )}
+
+        {hasAudio ? (
           <button
             type="button"
             onClick={handleListenClick}
             className="btn-book-action btn-listen"
+            title="Аудионы тыңдау"
           >
             Тыңдау
           </button>
         ) : (
           <button
             type="button"
-            onClick={() => navigate(`/book/${book.id}`)}
-            className="btn-book-action"
-            style={{ background: '#F1F5F9', color: 'var(--text-mid)' }}
+            disabled
+            className="btn-book-action btn-disabled"
+            title="Аудио нұсқасы жүктелмеген"
           >
-            Қарау
+            Тыңдау
           </button>
         )}
       </div>

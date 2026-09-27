@@ -407,6 +407,18 @@ export const MyBooksPage: React.FC = () => {
         <div className="books-grid">
           {filteredBooks.map(({ book, record }) => {
             const isMenuOpen = activeMenuBookId === book.id;
+            const hasAudio = Boolean(
+              book.hasAudio ||
+              (book.audioUrl && book.audioUrl.trim()) ||
+              (book.audioChapters && book.audioChapters.length > 0)
+            );
+            const hasText = Boolean(
+              book.hasEbook ||
+              (book.ebookUrl && book.ebookUrl.trim()) ||
+              (book.pdfUrl && book.pdfUrl.trim()) ||
+              (book.epubUrl && book.epubUrl.trim()) ||
+              (book.content && book.content.trim())
+            );
 
             return (
               <div
@@ -660,11 +672,22 @@ export const MyBooksPage: React.FC = () => {
 
                 {/* Action buttons */}
                 <div className="book-actions" onClick={(e) => e.stopPropagation()}>
-                  <Link to={`/read/${book.id}`} className="btn-book-action btn-read">
-                    Оқу
-                  </Link>
+                  {hasText ? (
+                    <Link to={`/read/${book.id}`} className="btn-book-action btn-read">
+                      Оқу
+                    </Link>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled
+                      className="btn-book-action btn-disabled"
+                      title="Электронды кітап нұсқасы жүктелмеген"
+                    >
+                      Оқу
+                    </button>
+                  )}
 
-                  {book.hasAudio && (
+                  {hasAudio ? (
                     <button
                       type="button"
                       onClick={() => {
@@ -672,6 +695,15 @@ export const MyBooksPage: React.FC = () => {
                         navigate(`/listen/${book.id}`);
                       }}
                       className="btn-book-action btn-listen"
+                    >
+                      Тыңдау
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled
+                      className="btn-book-action btn-disabled"
+                      title="Аудио нұсқасы жүктелмеген"
                     >
                       Тыңдау
                     </button>
