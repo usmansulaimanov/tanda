@@ -1175,8 +1175,16 @@ body {
   box-shadow: 0 4px 12px rgba(239, 126, 0, 0.35);
 }
 
-.btn-listen:active {
-  transform: translateY(0);
+.btn-disabled,
+.btn-book-action:disabled {
+  background: #F1F5F9 !important;
+  color: #94A3B8 !important;
+  border: 1px solid #E2E8F0 !important;
+  cursor: not-allowed !important;
+  opacity: 0.6 !important;
+  box-shadow: none !important;
+  transform: none !important;
+  pointer-events: auto !important;
 }
 
 /* ADMIN SECTION & SIDEBAR LAYOUT */

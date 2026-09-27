@@ -298,11 +298,6 @@ export const AudioPlayerPage: React.FC = () => {
       playBook(activeBook, idx);
     } else if (chapterIndex !== idx) {
       playChapter(idx);
-      const currentChapters = activeBook.audioChapters || [];
-      const ch = currentChapters[idx];
-      const hasOwnAudio = Boolean(ch?.audioUrl && ch.audioUrl.trim());
-      const targetStartTime = !hasOwnAudio ? getChapterStartTime(currentChapters, idx) : 0;
-      window.dispatchEvent(new CustomEvent('tanda:audio:seek', { detail: { time: targetStartTime } }));
     }
   };
 
