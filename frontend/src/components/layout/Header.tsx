@@ -126,9 +126,6 @@ export const Header: React.FC = () => {
     navigate('/', { replace: true });
   };
 
-  const [showTopBanner, setShowTopBanner] = useState(() => {
-    return sessionStorage.getItem('tanda_hide_top_banner') !== 'true';
-  });
   const [showPremiumModal, setShowPremiumModal] = useState(false);
 
   const { data: systemSettings } = useQuery({
@@ -139,13 +136,7 @@ export const Header: React.FC = () => {
 
   const isUserPremium = Boolean(user?.isPremium);
   const isPremiumSystemDisabled = systemSettings?.premiumEnabled === false || Boolean(systemSettings?.openAccessMode);
-  const shouldShowBanner = showTopBanner && !isUserPremium && !isStaffOrAuthor && !isPremiumSystemDisabled;
-
-  const handleDismissBanner = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setShowTopBanner(false);
-    sessionStorage.setItem('tanda_hide_top_banner', 'true');
-  };
+  const shouldShowBanner = !isUserPremium && !isStaffOrAuthor && !isPremiumSystemDisabled;
 
   return (
     <>
@@ -823,9 +814,9 @@ export const Header: React.FC = () => {
         {shouldShowBanner && (
           <div 
             onClick={() => setShowPremiumModal(true)}
-            className="bg-gradient-to-r from-[#F08000] via-orange-500 to-[#F08000] text-white text-xs font-bold py-2 px-4 cursor-pointer hover:opacity-95 transition shadow-sm flex items-center justify-between z-30 relative"
+            className="bg-gradient-to-r from-[#F08000] via-orange-500 to-[#F08000] text-white text-xs font-bold py-2 px-4 cursor-pointer hover:opacity-95 transition shadow-sm flex items-center justify-center z-30 relative"
           >
-            <div className="flex-1 flex items-center justify-center gap-2 text-center">
+            <div className="flex items-center justify-center gap-2 text-center">
               <Crown className="w-3.5 h-3.5 text-orange-100 shrink-0" />
               <span>
                 <strong>Tanda Premium:</strong> 100+ кітапты шектеусіз әрі 0% жарнамасыз тыңдаңыз!
@@ -834,14 +825,6 @@ export const Header: React.FC = () => {
                 Премиумға жазылу &rarr;
               </span>
             </div>
-            <button
-              type="button"
-              onClick={handleDismissBanner}
-              className="p-1 rounded-md text-orange-100 hover:text-white hover:bg-orange-700/40 transition shrink-0 ml-2"
-              title="Жабу"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
           </div>
         )}
       </header>
