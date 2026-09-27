@@ -10,6 +10,8 @@ import { Book } from '../../types';
 import { hasAdminPermission } from '../../utils/permissions';
 import tandaLogo from '../../assets/tanda-logo.png';
 import { Crown, X } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { systemApi } from '../../shared/api/system.api';
 import { PremiumModal } from '../../features/premium/PremiumModal';
 
 export const Header: React.FC = () => {
@@ -129,8 +131,15 @@ export const Header: React.FC = () => {
   });
   const [showPremiumModal, setShowPremiumModal] = useState(false);
 
+  const { data: systemSettings } = useQuery({
+    queryKey: ['systemSettings'],
+    queryFn: systemApi.getSettings,
+    staleTime: 60_000,
+  });
+
   const isUserPremium = Boolean(user?.isPremium);
-  const shouldShowBanner = showTopBanner && !isUserPremium && !isStaffOrAuthor;
+  const isPremiumSystemDisabled = systemSettings?.premiumEnabled === false || Boolean(systemSettings?.openAccessMode);
+  const shouldShowBanner = showTopBanner && !isUserPremium && !isStaffOrAuthor && !isPremiumSystemDisabled;
 
   const handleDismissBanner = (e: React.MouseEvent) => {
     e.stopPropagation();

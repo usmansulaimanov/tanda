@@ -708,7 +708,8 @@ export const AudioPlayerBar: React.FC = () => {
     const curBook = useAudioPlayerStore.getState().currentBook;
     if (!curBook) return false;
     const isPremiumBook = curBook.isFree === false;
-    const isExempt = Boolean(user?.isPremium || systemSettings?.openAccessMode || isAuthorOrStaff);
+    const isPremiumSystemDisabled = systemSettings?.premiumEnabled === false || Boolean(systemSettings?.openAccessMode);
+    const isExempt = Boolean(user?.isPremium || isPremiumSystemDisabled || isAuthorOrStaff);
     if (isPremiumBook && !isExempt && currentSec >= 900) {
       useAudioPlayerStore.getState().setIsPlaying(false);
       if (audioRef.current) audioRef.current.pause();
@@ -721,12 +722,13 @@ export const AudioPlayerBar: React.FC = () => {
       return true;
     }
     return false;
-  }, [user?.isPremium, systemSettings?.openAccessMode, isAuthorOrStaff, setProgress]);
+  }, [user?.isPremium, systemSettings?.premiumEnabled, systemSettings?.openAccessMode, isAuthorOrStaff, setProgress]);
 
   // Pre-roll ad trigger
   useEffect(() => {
     if (!currentBook || !isPlaying) return;
-    const isExempt = Boolean(user?.isPremium || systemSettings?.openAccessMode || isAuthorOrStaff);
+    const isPremiumSystemDisabled = systemSettings?.premiumEnabled === false || Boolean(systemSettings?.openAccessMode);
+    const isExempt = Boolean(user?.isPremium || isPremiumSystemDisabled || isAuthorOrStaff);
     if (isExempt) {
       setIsPreRollAdPlaying(false);
       return;
@@ -758,7 +760,8 @@ export const AudioPlayerBar: React.FC = () => {
     resetRoyaltyTracking();
     let val = Number(e.target.value);
     const isPremiumBook = currentBook?.isFree === false;
-    const isExempt = Boolean(user?.isPremium || systemSettings?.openAccessMode || isAuthorOrStaff);
+    const isPremiumSystemDisabled = systemSettings?.premiumEnabled === false || Boolean(systemSettings?.openAccessMode);
+    const isExempt = Boolean(user?.isPremium || isPremiumSystemDisabled || isAuthorOrStaff);
     if (isPremiumBook && !isExempt && val >= 900) {
       val = 900;
       setProgress(900);
@@ -782,7 +785,8 @@ export const AudioPlayerBar: React.FC = () => {
     const maxDur = duration || 999999;
     let newTime = Math.max(0, Math.min(maxDur, progress + seconds));
     const isPremiumBook = currentBook?.isFree === false;
-    const isExempt = Boolean(user?.isPremium || systemSettings?.openAccessMode || isAuthorOrStaff);
+    const isPremiumSystemDisabled = systemSettings?.premiumEnabled === false || Boolean(systemSettings?.openAccessMode);
+    const isExempt = Boolean(user?.isPremium || isPremiumSystemDisabled || isAuthorOrStaff);
     if (isPremiumBook && !isExempt && newTime >= 900) {
       newTime = 900;
       setProgress(900);

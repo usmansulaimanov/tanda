@@ -12,6 +12,7 @@ import java.time.OffsetDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SystemSettingsResponseDto {
+    private boolean premiumEnabled;
     private boolean openAccessMode;
     private boolean audioAdEnabled;
     private String audioAdUrl;

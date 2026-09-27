@@ -357,6 +357,7 @@ export interface SubscriptionPaymentRequest {
 }
 
 export interface SystemSettings {
+  premiumEnabled: boolean;
   openAccessMode: boolean;
   audioAdEnabled: boolean;
   audioAdUrl: string;

@@ -33,8 +33,18 @@ public class SystemSettingService {
             }
         }
 
+        boolean premiumEnabled;
+        if (map.containsKey("premium_enabled")) {
+            premiumEnabled = "true".equalsIgnoreCase(map.get("premium_enabled"));
+        } else if (map.containsKey("open_access_mode")) {
+            premiumEnabled = !"true".equalsIgnoreCase(map.get("open_access_mode"));
+        } else {
+            premiumEnabled = true; // Default is ON (Premium system active)
+        }
+
         return SystemSettingsResponseDto.builder()
-                .openAccessMode("true".equalsIgnoreCase(map.getOrDefault("open_access_mode", "false")))
+                .premiumEnabled(premiumEnabled)
+                .openAccessMode(!premiumEnabled)
                 .audioAdEnabled("true".equalsIgnoreCase(map.getOrDefault("audio_ad_enabled", "false")))
                 .audioAdUrl(map.getOrDefault("audio_ad_url", ""))
                 .audioAdTitle(map.getOrDefault("audio_ad_title", "Tanda Premium — Жарнамасыз тыңдаңыз"))
@@ -48,6 +58,13 @@ public class SystemSettingService {
     }
 
     @Transactional(readOnly = true)
+    public boolean isPremiumEnabled() {
+        return systemSettingRepository.findBySettingKey("premium_enabled")
+                .map(s -> "true".equalsIgnoreCase(s.getSettingValue()))
+                .orElseGet(() -> !isOpenAccessMode());
+    }
+
+    @Transactional(readOnly = true)
     public boolean isOpenAccessMode() {
         return systemSettingRepository.findBySettingKey("open_access_mode")
                 .map(s -> "true".equalsIgnoreCase(s.getSettingValue()))
@@ -56,8 +73,12 @@ public class SystemSettingService {
 
     @Transactional
     public SystemSettingsResponseDto updateSettings(UpdateSystemSettingsRequestDto dto) {
-        if (dto.getOpenAccessMode() != null) {
+        if (dto.getPremiumEnabled() != null) {
+            saveSetting("premium_enabled", String.valueOf(dto.getPremiumEnabled()));
+            saveSetting("open_access_mode", String.valueOf(!dto.getPremiumEnabled()));
+        } else if (dto.getOpenAccessMode() != null) {
             saveSetting("open_access_mode", String.valueOf(dto.getOpenAccessMode()));
+            saveSetting("premium_enabled", String.valueOf(!dto.getOpenAccessMode()));
         }
         if (dto.getAudioAdEnabled() != null) {
             saveSetting("audio_ad_enabled", String.valueOf(dto.getAudioAdEnabled()));

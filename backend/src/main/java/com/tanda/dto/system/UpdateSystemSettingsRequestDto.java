@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UpdateSystemSettingsRequestDto {
+    private Boolean premiumEnabled;
     private Boolean openAccessMode;
     private Boolean audioAdEnabled;
     private String audioAdUrl;

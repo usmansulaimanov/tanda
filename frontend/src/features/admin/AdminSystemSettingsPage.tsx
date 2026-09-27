@@ -18,6 +18,7 @@ import { api } from '../../lib/api';
 
 export const AdminSystemSettingsPage: React.FC = () => {
   const [settings, setSettings] = useState<SystemSettings>({
+    premiumEnabled: true,
     openAccessMode: false,
     audioAdEnabled: false,
     audioAdUrl: '',
@@ -114,35 +115,54 @@ export const AdminSystemSettingsPage: React.FC = () => {
       </div>
 
       <form onSubmit={handleSave} className="space-y-6">
-        {/* 1. Open Access Mode Kill-Switch */}
+        {/* 1. Tanda Premium System Toggle (Kill-switch) */}
         <div className={`p-6 rounded-3xl border-2 transition-all ${
-          settings.openAccessMode
+          settings.premiumEnabled
             ? 'bg-emerald-50/50 border-emerald-400 shadow-lg shadow-emerald-500/10'
-            : 'bg-white border-slate-200'
+            : 'bg-amber-50/50 border-amber-300 shadow-lg shadow-amber-500/10'
         }`}>
           <div className="flex items-start justify-between gap-4">
             <div>
               <div className="flex items-center gap-2 mb-1.5">
+                <Crown className={`w-5 h-5 ${settings.premiumEnabled ? 'text-emerald-600' : 'text-amber-600'}`} />
                 <span className="text-base font-black text-slate-900">
-                  Барлық кітаптарды ашық ету (Open Access Mode / Ашық есік күндері)
+                  Tanda Premium жүйесі (Премиум жазылымды қосу / тоқтату)
                 </span>
-                {settings.openAccessMode && (
+                {settings.premiumEnabled ? (
                   <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-emerald-500 text-white animate-pulse">
-                    БЕЛСЕНДІ
+                    ҚОСУЛЫ (ПРЕМИУМ ЖҰМЫС ІСТЕП ТҰР)
+                  </span>
+                ) : (
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-amber-500 text-white">
+                    ӨШІРУЛІ (ПРЕМИУМ ТОҚТАДЫ — БАРЛЫҚ КІТАПТАР АШЫҚ)
                   </span>
                 )}
               </div>
               <p className="text-xs text-slate-600 max-w-xl leading-relaxed">
-                Бұл қосқыш қосулы тұрғанда — сайттағы **барлық премиум шектеулер уақытша тоқтатылады**. 
-                Кез келген тіркелген оқырман барлық кітаптарды тегін әрі толық тыңдай алады (мерекелерде немесе акция кезінде өте ыңғайлы).
+                {settings.premiumEnabled ? (
+                  <>
+                    Бұл қосқыш <strong>қосулы</strong> тұрғанда — Премиум жүйесі толыққанды жұмыс істейді. Премиум кітаптарға 15 минуттық шектеу мен жарнама стандартты оқырмандар үшін іске қосылған болады.
+                  </>
+                ) : (
+                  <>
+                    Бұл қосқыш <strong>өшірулі</strong> тұрғанда — Премиум жүйесі тоқтатылады. Барлық оқырмандар кез келген кітапты тегін, шектеусіз әрі жарнамасыз тыңдай алады (мерекелерде немесе акция кезінде өте ыңғайлы).
+                  </>
+                )}
               </p>
             </div>
 
             <label className="relative inline-flex items-center cursor-pointer shrink-0 mt-1">
               <input
                 type="checkbox"
-                checked={settings.openAccessMode}
-                onChange={(e) => setSettings({ ...settings, openAccessMode: e.target.checked })}
+                checked={settings.premiumEnabled}
+                onChange={(e) => {
+                  const isChecked = e.target.checked;
+                  setSettings({ 
+                    ...settings, 
+                    premiumEnabled: isChecked,
+                    openAccessMode: !isChecked 
+                  });
+                }}
                 className="sr-only peer"
               />
               <div className="w-14 h-8 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-emerald-500" />
