@@ -288,16 +288,18 @@ export const LandingPage: React.FC = () => {
                 alignItems: 'center',
               }}
             >
-              <img
-                src={tandaLogoWhite}
-                alt="Tanda"
+              <span
                 style={{
-                  height: '46px',
-                  width: 'auto',
-                  display: 'block',
-                  objectFit: 'contain',
+                  fontSize: 'clamp(32px, 4vw, 44px)',
+                  fontWeight: 900,
+                  letterSpacing: '-0.03em',
+                  color: '#FFFFFF',
+                  lineHeight: 1,
+                  display: 'inline-block',
                 }}
-              />
+              >
+                tandamen<span style={{ color: 'var(--orange)' }}>.kz</span>
+              </span>
             </div>
 
             <div className="hero-tag">Қазақша кітаптар қоры</div>
