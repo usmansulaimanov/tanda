@@ -411,10 +411,15 @@ export const AdminSystemSettingsPage: React.FC = () => {
                 </label>
               </div>
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
+                placeholder="1490"
                 disabled={settings.plan1MonthEnabled === false}
-                value={settings.price1Month}
-                onChange={(e) => setSettings({ ...settings, price1Month: Number(e.target.value) })}
+                value={settings.price1Month === 0 ? '' : (settings.price1Month ?? '')}
+                onChange={(e) => {
+                  const digits = e.target.value.replace(/\D/g, '');
+                  setSettings({ ...settings, price1Month: digits ? parseInt(digits, 10) : 0 });
+                }}
                 className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none font-bold bg-white disabled:bg-slate-100 disabled:text-slate-400"
               />
               <div className="mt-2.5 pt-2 border-t border-orange-200/50">
@@ -422,11 +427,15 @@ export const AdminSystemSettingsPage: React.FC = () => {
                   Бұрынғы бағасы (сызылып тұрады):
                 </label>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
                   placeholder="Мысалы: 2990"
                   disabled={settings.plan1MonthEnabled === false}
-                  value={settings.oldPrice1Month ?? ''}
-                  onChange={(e) => setSettings({ ...settings, oldPrice1Month: e.target.value ? Number(e.target.value) : null })}
+                  value={settings.oldPrice1Month === null || settings.oldPrice1Month === 0 ? '' : settings.oldPrice1Month}
+                  onChange={(e) => {
+                    const digits = e.target.value.replace(/\D/g, '');
+                    setSettings({ ...settings, oldPrice1Month: digits ? parseInt(digits, 10) : null });
+                  }}
                   className="w-full px-3 py-1.5 text-xs rounded-xl border border-slate-200 focus:outline-none bg-white text-slate-700 disabled:bg-slate-100 disabled:text-slate-400"
                 />
               </div>
@@ -448,10 +457,15 @@ export const AdminSystemSettingsPage: React.FC = () => {
                 </label>
               </div>
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
+                placeholder="3990"
                 disabled={settings.plan3MonthsEnabled === false}
-                value={settings.price3Months}
-                onChange={(e) => setSettings({ ...settings, price3Months: Number(e.target.value) })}
+                value={settings.price3Months === 0 ? '' : (settings.price3Months ?? '')}
+                onChange={(e) => {
+                  const digits = e.target.value.replace(/\D/g, '');
+                  setSettings({ ...settings, price3Months: digits ? parseInt(digits, 10) : 0 });
+                }}
                 className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none font-bold bg-white disabled:bg-slate-100 disabled:text-slate-400"
               />
               <div className="mt-2.5 pt-2 border-t border-orange-200/50">
@@ -459,11 +473,15 @@ export const AdminSystemSettingsPage: React.FC = () => {
                   Бұрынғы бағасы (сызылып тұрады):
                 </label>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
                   placeholder="Мысалы: 5990"
                   disabled={settings.plan3MonthsEnabled === false}
-                  value={settings.oldPrice3Months ?? ''}
-                  onChange={(e) => setSettings({ ...settings, oldPrice3Months: e.target.value ? Number(e.target.value) : null })}
+                  value={settings.oldPrice3Months === null || settings.oldPrice3Months === 0 ? '' : settings.oldPrice3Months}
+                  onChange={(e) => {
+                    const digits = e.target.value.replace(/\D/g, '');
+                    setSettings({ ...settings, oldPrice3Months: digits ? parseInt(digits, 10) : null });
+                  }}
                   className="w-full px-3 py-1.5 text-xs rounded-xl border border-slate-200 focus:outline-none bg-white text-slate-700 disabled:bg-slate-100 disabled:text-slate-400"
                 />
               </div>
@@ -485,10 +503,15 @@ export const AdminSystemSettingsPage: React.FC = () => {
                 </label>
               </div>
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
+                placeholder="11990"
                 disabled={settings.plan1YearEnabled === false}
-                value={settings.price1Year}
-                onChange={(e) => setSettings({ ...settings, price1Year: Number(e.target.value) })}
+                value={settings.price1Year === 0 ? '' : (settings.price1Year ?? '')}
+                onChange={(e) => {
+                  const digits = e.target.value.replace(/\D/g, '');
+                  setSettings({ ...settings, price1Year: digits ? parseInt(digits, 10) : 0 });
+                }}
                 className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none font-bold bg-white disabled:bg-slate-100 disabled:text-slate-400"
               />
               <div className="mt-2.5 pt-2 border-t border-orange-200/50">
@@ -496,11 +519,15 @@ export const AdminSystemSettingsPage: React.FC = () => {
                   Бұрынғы бағасы (сызылып тұрады):
                 </label>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
                   placeholder="Мысалы: 17990"
                   disabled={settings.plan1YearEnabled === false}
-                  value={settings.oldPrice1Year ?? ''}
-                  onChange={(e) => setSettings({ ...settings, oldPrice1Year: e.target.value ? Number(e.target.value) : null })}
+                  value={settings.oldPrice1Year === null || settings.oldPrice1Year === 0 ? '' : settings.oldPrice1Year}
+                  onChange={(e) => {
+                    const digits = e.target.value.replace(/\D/g, '');
+                    setSettings({ ...settings, oldPrice1Year: digits ? parseInt(digits, 10) : null });
+                  }}
                   className="w-full px-3 py-1.5 text-xs rounded-xl border border-slate-200 focus:outline-none bg-white text-slate-700 disabled:bg-slate-100 disabled:text-slate-400"
                 />
               </div>
