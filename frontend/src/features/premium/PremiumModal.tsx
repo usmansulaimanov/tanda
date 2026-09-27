@@ -449,7 +449,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                    Байланыс нөміріңіз немесе Kaspi атыңыз (міндетті емес):
+                    Байланыс нөміріңіз немесе Kaspi атыңыз:
                   </label>
                   <input
                     type="text"
