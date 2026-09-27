@@ -294,10 +294,7 @@ export const AdminSystemSettingsPage: React.FC = () => {
             <div className="w-9 h-9 rounded-xl bg-red-50 text-red-600 flex items-center justify-center">
               <CreditCard className="w-5 h-5" />
             </div>
-            <div>
-              <h3 className="text-base font-bold text-slate-900">Төлем Реквизиттері және Бағалар</h3>
-              <p className="text-xs text-slate-500">Чек жіберу терезесінде көрінетін банк, нөмір және тариф құндары</p>
-            </div>
+            <h3 className="text-base font-bold text-slate-900">Төлем Реквизиттері және Бағалар</h3>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
