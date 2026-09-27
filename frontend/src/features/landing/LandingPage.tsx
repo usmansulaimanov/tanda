@@ -253,40 +253,29 @@ export const LandingPage: React.FC = () => {
 
         <div className="hero-container">
           <div className="hero-text">
-            {/* Personal Message styled seamlessly with the hero theme */}
+            {/* Personal Message: Pure clean text directly on hero */}
             {isAuthenticated && isMessageValid && messageText && (
               <div
-                className="hero-floating-message"
+                className="hero-personal-message"
                 style={{
-                  marginBottom: '20px',
-                  padding: '12px 18px',
-                  borderRadius: '14px',
-                  background: 'rgba(10, 25, 47, 0.75)',
-                  border: '1px solid rgba(239, 126, 0, 0.4)',
-                  boxShadow: '0 8px 24px rgba(0, 0, 0, 0.25)',
-                  backdropFilter: 'blur(12px)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  maxWidth: '520px',
+                  marginBottom: '18px',
+                  maxWidth: '640px',
                   width: '100%',
                 }}
               >
-                <div style={{ flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '4px' }}>
-                    <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--orange)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span>✉️</span> Жеке хабарлама
-                    </span>
-                    {typeof remainingDays === 'number' && (
-                      <span style={{ fontSize: '11px', fontWeight: 700, color: '#94A3B8', background: 'rgba(255, 255, 255, 0.08)', padding: '2px 8px', borderRadius: '20px' }}>
-                        {remainingDays > 0 ? `${remainingDays} күн қалды` : 'Бүгін соңғы күн'}
-                      </span>
-                    )}
-                  </div>
-                  <p style={{ margin: 0, fontSize: '14px', lineHeight: 1.5, color: '#FFFFFF', fontWeight: 600 }}>
-                    {messageText}
-                  </p>
-                </div>
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: 'clamp(22px, 2.6vw, 32px)',
+                    lineHeight: 1.3,
+                    color: '#FFFFFF',
+                    fontWeight: 700,
+                    letterSpacing: '-0.01em',
+                    textShadow: '0 2px 12px rgba(0, 0, 0, 0.35)',
+                  }}
+                >
+                  {messageText}
+                </p>
               </div>
             )}
 
