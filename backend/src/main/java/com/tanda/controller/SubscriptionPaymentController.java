@@ -1,3 +1,5 @@
+package com.tanda.controller;
+
 import com.tanda.dto.media.MediaUploadResponseDto;
 import com.tanda.dto.premium.CreateSubscriptionPaymentRequestDto;
 import com.tanda.dto.premium.ReviewSubscriptionPaymentRequestDto;

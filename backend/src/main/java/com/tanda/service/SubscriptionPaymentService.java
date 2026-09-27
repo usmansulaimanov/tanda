@@ -86,7 +86,9 @@ public class SubscriptionPaymentService {
         }
 
         return list.stream().map(r -> {
-            User u = userRepository.findById(r.getUserId()).orElse(null);
+            User u = (r.getUserId() != null && !r.getUserId().isBlank())
+                    ? userRepository.findById(r.getUserId()).orElse(null)
+                    : null;
             return toDto(r, u != null ? u.getName() : null, u != null ? u.getEmail() : null);
         }).collect(Collectors.toList());
     }
