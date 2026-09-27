@@ -985,7 +985,7 @@ export const SettingsPage: React.FC = () => {
                         type="text"
                         value={username}
                         onChange={(e) => handleUsernameChange(e.target.value)}
-                        placeholder="@azamat_01"
+                        placeholder="@username"
                         className="form-input"
                         style={{
                           borderColor: usernameError ? '#DC2626' : undefined,
