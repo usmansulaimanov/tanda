@@ -143,7 +143,7 @@ export const PremiumPage: React.FC = () => {
         {/* Comparison Grid */}
         <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-xl mb-12">
           <h2 className="text-xl font-bold text-slate-900 mb-6 text-center">
-            Стандартты оқырман vs Премиум оқырман
+            Стандарт vs Премиум
           </h2>
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
