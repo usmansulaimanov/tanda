@@ -370,14 +370,10 @@ public class AudioSessionService {
                     return Math.min(currentPos, (int) Math.round(boundedWallClock * rate));
                 }
             }
-        } else if (currentPos != null && currentPos > 0) {
-            // First heartbeat in session: verify starting delta
-            int maxPlausible = (int) Math.round(boundedWallClock * Math.max(rate, 2.0) * 1.5) + 6;
-            if (currentPos <= maxPlausible) {
-                return currentPos;
-            }
         }
 
+        // On the first heartbeat of a session, we credit the real elapsed wall-clock time * rate (e.g. ~5s),
+        // NEVER the absolute position (currentPos) which could be resumed from 180s or 420s.
         return (int) Math.round(boundedWallClock * rate);
     }
 

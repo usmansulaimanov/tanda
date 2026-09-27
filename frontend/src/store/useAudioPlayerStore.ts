@@ -185,7 +185,7 @@ function startHeartbeatTimer() {
   }
   heartbeatInterval = setInterval(async () => {
     const state = useAudioPlayerStore.getState();
-    if (!state.isPlaying || !activeSessionId) return;
+    if (!state.isPlaying || !activeSessionId || state.isAdPlaying) return;
 
     try {
       const { data } = await api.post(`/api/v1/audio/sessions/${activeSessionId}/heartbeat`, {
@@ -336,6 +336,7 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
         const prevProgress = get().progress;
         if (prevBook && prevBook.id !== book.id && prevProgress > 0) {
           await syncProgressNow(prevBook.id, prevChapter?.id, prevProgress);
+          await endAudioSession(prevProgress);
         }
 
         let chapters = book.audioChapters || [];
@@ -409,6 +410,8 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
           isPlaying: true,
           progress: startProgress,
           duration: chapterDur,
+          isAdPlaying: false,
+          adProgress: 0,
         });
 
         useMyBooksStore.getState().markAsReading(book.id);

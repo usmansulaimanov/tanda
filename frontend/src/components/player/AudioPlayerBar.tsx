@@ -818,6 +818,7 @@ export const AudioPlayerBar: React.FC = () => {
     if (currentBook?.id && currentBook.id !== lastBookIdRef.current) {
       lastBookIdRef.current = currentBook.id;
       adPlayedForCurrentBookRef.current = false;
+      targetResumeTimeRef.current = useAudioPlayerStore.getState().progress || 0;
     }
   }, [currentBook?.id]);
 
@@ -1092,9 +1093,10 @@ export const AudioPlayerBar: React.FC = () => {
           onEnded={() => {
             isAdEndingTransitionRef.current = true;
             setIsAdPlaying(false);
-            const targetTime = targetResumeTimeRef.current > 0
-              ? targetResumeTimeRef.current
-              : (useAudioPlayerStore.getState().progress || 0);
+            const currentBookState = useAudioPlayerStore.getState();
+            const targetTime = currentBookState.progress > 0
+              ? currentBookState.progress
+              : (targetResumeTimeRef.current > 0 ? targetResumeTimeRef.current : 0);
 
             if (isYouTube && ytPlayerRef.current && typeof ytPlayerRef.current.seekTo === 'function') {
               if (targetTime > 0) {
@@ -1119,9 +1121,10 @@ export const AudioPlayerBar: React.FC = () => {
           onError={() => {
             isAdEndingTransitionRef.current = true;
             setIsAdPlaying(false);
-            const targetTime = targetResumeTimeRef.current > 0
-              ? targetResumeTimeRef.current
-              : (useAudioPlayerStore.getState().progress || 0);
+            const currentBookState = useAudioPlayerStore.getState();
+            const targetTime = currentBookState.progress > 0
+              ? currentBookState.progress
+              : (targetResumeTimeRef.current > 0 ? targetResumeTimeRef.current : 0);
 
             if (isYouTube && ytPlayerRef.current && typeof ytPlayerRef.current.seekTo === 'function') {
               if (targetTime > 0) {
