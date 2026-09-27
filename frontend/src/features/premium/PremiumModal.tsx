@@ -260,7 +260,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
+    <div className="fixed inset-0 z-[300] overflow-y-auto">
       <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity" onClick={onClose} />
 
       <div className="flex min-h-full items-start justify-center p-3 sm:p-6 text-center">

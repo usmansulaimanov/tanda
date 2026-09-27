@@ -40,7 +40,7 @@ export const Modal: React.FC<ModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
+    <div className="fixed inset-0 z-[300] overflow-y-auto">
       <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" onClick={onClose} />
 
       <div className="flex min-h-full items-start sm:items-center justify-center p-3 sm:p-4 text-center">
