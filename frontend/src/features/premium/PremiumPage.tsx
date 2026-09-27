@@ -43,7 +43,7 @@ export const PremiumPage: React.FC = () => {
                 onClick={() => setIsModalOpen(true)}
                 className="px-8 py-4 rounded-2xl bg-gradient-to-r from-[#F08000] to-orange-600 hover:from-[#c06800] hover:to-orange-700 text-white font-black text-base shadow-xl shadow-orange-500/25 transition transform hover:-translate-y-0.5"
               >
-                Премиумға жазылу (айына {settings?.price1Month || 1490} ₸ бастап) 👑
+                Премиумға жазылу
               </button>
             </div>
           )}
