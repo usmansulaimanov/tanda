@@ -384,7 +384,7 @@ export const AudioPlayerBar: React.FC = () => {
         try {
           if (typeof ytPlayerRef.current.loadVideoById === 'function') {
             ytPlayerRef.current.loadVideoById(ytVideoId);
-            if (isPlaying) {
+            if (isPlaying && !useAudioPlayerStore.getState().isAdPlaying) {
               ytPlayerRef.current.playVideo();
             } else {
               ytPlayerRef.current.pauseVideo();
@@ -402,7 +402,7 @@ export const AudioPlayerBar: React.FC = () => {
           width: '320',
           videoId: ytVideoId,
           playerVars: {
-            autoplay: 1,
+            autoplay: 0,
             controls: 0,
             enablejsapi: 1,
             playsinline: 1,
@@ -421,14 +421,22 @@ export const AudioPlayerBar: React.FC = () => {
               if (progress > 0) {
                 event.target.seekTo(progress, true);
               }
-              if (isPlaying) {
+              if (isPlaying && !useAudioPlayerStore.getState().isAdPlaying) {
                 event.target.playVideo();
+              } else {
+                event.target.pauseVideo();
               }
             },
             onStateChange: (event: any) => {
               if (!isMounted) return;
               // 1: PLAYING, 2: PAUSED, 0: ENDED, 3: BUFFERING
               if (event.data === 1) {
+                if (useAudioPlayerStore.getState().isAdPlaying) {
+                  try {
+                    event.target.pauseVideo();
+                  } catch {}
+                  return;
+                }
                 setIsPlaying(true);
                 const dur = event.target.getDuration();
                 if (dur && !isNaN(dur) && dur > 0) {
@@ -473,7 +481,9 @@ export const AudioPlayerBar: React.FC = () => {
     if (!isPlaying) return;
 
     const handleFirstGesture = () => {
-      if (isYouTube && ytPlayerRef.current && typeof ytPlayerRef.current.playVideo === 'function') {
+      if (useAudioPlayerStore.getState().isAdPlaying) {
+        if (adAudioRef.current) adAudioRef.current.play().catch(() => {});
+      } else if (isYouTube && ytPlayerRef.current && typeof ytPlayerRef.current.playVideo === 'function') {
         ytPlayerRef.current.playVideo();
       } else if (audioRef.current) {
         audioRef.current.play().catch(() => {});
@@ -580,16 +590,26 @@ export const AudioPlayerBar: React.FC = () => {
               videoId: ytVideoId,
               startSeconds: targetTime,
             });
-            if (useAudioPlayerStore.getState().isPlaying) {
+            if (useAudioPlayerStore.getState().isPlaying && !useAudioPlayerStore.getState().isAdPlaying) {
               ytPlayerRef.current.playVideo();
+            } else {
+              ytPlayerRef.current.pauseVideo();
             }
           } catch {
             ytPlayerRef.current.seekTo(targetTime, true);
-            if (useAudioPlayerStore.getState().isPlaying) ytPlayerRef.current.playVideo();
+            if (useAudioPlayerStore.getState().isPlaying && !useAudioPlayerStore.getState().isAdPlaying) {
+              ytPlayerRef.current.playVideo();
+            } else {
+              ytPlayerRef.current.pauseVideo();
+            }
           }
         } else if (typeof ytPlayerRef.current.seekTo === 'function') {
           ytPlayerRef.current.seekTo(targetTime, true);
-          if (useAudioPlayerStore.getState().isPlaying) ytPlayerRef.current.playVideo();
+          if (useAudioPlayerStore.getState().isPlaying && !useAudioPlayerStore.getState().isAdPlaying) {
+            ytPlayerRef.current.playVideo();
+          } else {
+            ytPlayerRef.current.pauseVideo();
+          }
         }
       }
     } else if (audioRef.current) {
@@ -602,8 +622,10 @@ export const AudioPlayerBar: React.FC = () => {
         } else {
           audioRef.current.currentTime = targetTime;
           pendingSeekTimeRef.current = null;
-          if (useAudioPlayerStore.getState().isPlaying) {
+          if (useAudioPlayerStore.getState().isPlaying && !useAudioPlayerStore.getState().isAdPlaying) {
             audioRef.current.play().catch(() => {});
+          } else {
+            audioRef.current.pause();
           }
         }
       }
