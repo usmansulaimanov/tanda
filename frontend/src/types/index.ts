@@ -362,6 +362,7 @@ export interface SystemSettings {
   audioAdEnabled: boolean;
   audioAdUrl: string;
   audioAdTitle: string;
+  bankName?: string;
   kaspiPhone: string;
   kaspiCard?: string;
   kaspiRecipientName: string;

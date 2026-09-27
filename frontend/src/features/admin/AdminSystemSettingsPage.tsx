@@ -17,6 +17,24 @@ import { useToastStore } from '../../store/useToastStore';
 import { api } from '../../lib/api';
 import tandaPremiumBlack from '../../assets/tanda-premium-black.png';
 
+const KAZAKHSTAN_BANKS = [
+  'Kaspi Bank',
+  'Halyk Bank',
+  'ForteBank',
+  'Банк ЦентрКредит (BCC)',
+  'Freedom Bank',
+  'Jusan Bank',
+  'Bereke Bank',
+  'Еуразиялық Банк (Eurasian Bank)',
+  'Bank RBK',
+  'Home Credit Bank',
+  'Алтын Банк (Altyn Bank)',
+  'Нұрбанк (Nurbank)',
+  'Shinhan Bank Kazakhstan',
+  'ВТБ Банк (Қазақстан)',
+  'Zaman Bank (Ислам банкі)',
+];
+
 export const AdminSystemSettingsPage: React.FC = () => {
   const [settings, setSettings] = useState<SystemSettings>({
     premiumEnabled: true,
@@ -24,6 +42,7 @@ export const AdminSystemSettingsPage: React.FC = () => {
     audioAdEnabled: false,
     audioAdUrl: '',
     audioAdTitle: 'Tanda Premium — Жарнамасыз тыңдаңыз',
+    bankName: 'Kaspi Bank',
     kaspiPhone: '+7 (777) 000-00-00',
     kaspiCard: '',
     kaspiRecipientName: 'Tanda Platform',
@@ -269,22 +288,39 @@ export const AdminSystemSettingsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* 3. Kaspi Payment & Pricing */}
+        {/* 3. Payment & Pricing */}
         <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
           <div className="flex items-center gap-2.5 mb-4 pb-4 border-b border-slate-100">
             <div className="w-9 h-9 rounded-xl bg-red-50 text-red-600 flex items-center justify-center">
               <CreditCard className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-slate-900">Kaspi Төлем Реквизиттері және Бағалар</h3>
-              <p className="text-xs text-slate-500">Чек жіберу терезесінде көрінетін нөмір мен тариф құндары</p>
+              <h3 className="text-base font-bold text-slate-900">Төлем Реквизиттері және Бағалар</h3>
+              <p className="text-xs text-slate-500">Чек жіберу терезесінде көрінетін банк, нөмір және тариф құндары</p>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                Kaspi телефон нөмірі:
+                Банк (Карта қай банктікі):
+              </label>
+              <select
+                value={settings.bankName || 'Kaspi Bank'}
+                onChange={(e) => setSettings({ ...settings, bankName: e.target.value })}
+                className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 font-bold bg-white text-slate-900 cursor-pointer"
+              >
+                {KAZAKHSTAN_BANKS.map((bank) => (
+                  <option key={bank} value={bank}>
+                    {bank}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                Телефон нөмірі (Аударым үшін):
               </label>
               <input
                 type="text"
@@ -297,7 +333,7 @@ export const AdminSystemSettingsPage: React.FC = () => {
 
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                Kaspi карта нөмірі:
+                Банк карта нөмірі:
               </label>
               <input
                 type="text"
@@ -310,7 +346,7 @@ export const AdminSystemSettingsPage: React.FC = () => {
 
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                Алушының аты-жөні (Kaspi-дегі аты):
+                Алушының аты-жөні:
               </label>
               <input
                 type="text"

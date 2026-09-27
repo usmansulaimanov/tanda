@@ -48,6 +48,7 @@ public class SystemSettingService {
                 .audioAdEnabled("true".equalsIgnoreCase(map.getOrDefault("audio_ad_enabled", "false")))
                 .audioAdUrl(map.getOrDefault("audio_ad_url", ""))
                 .audioAdTitle(map.getOrDefault("audio_ad_title", "Tanda Premium — Жарнамасыз тыңдаңыз"))
+                .bankName(map.getOrDefault("bank_name", "Kaspi Bank"))
                 .kaspiPhone(map.getOrDefault("kaspi_phone", "+7 (777) 000-00-00"))
                 .kaspiCard(map.getOrDefault("kaspi_card", ""))
                 .kaspiRecipientName(map.getOrDefault("kaspi_recipient_name", "Tanda"))
@@ -92,6 +93,9 @@ public class SystemSettingService {
         }
         if (dto.getAudioAdTitle() != null) {
             saveSetting("audio_ad_title", dto.getAudioAdTitle().trim());
+        }
+        if (dto.getBankName() != null) {
+            saveSetting("bank_name", dto.getBankName().trim());
         }
         if (dto.getKaspiPhone() != null) {
             saveSetting("kaspi_phone", dto.getKaspiPhone().trim());

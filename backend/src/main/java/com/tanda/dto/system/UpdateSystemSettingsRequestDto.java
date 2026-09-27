@@ -15,6 +15,7 @@ public class UpdateSystemSettingsRequestDto {
     private Boolean audioAdEnabled;
     private String audioAdUrl;
     private String audioAdTitle;
+    private String bankName;
     private String kaspiPhone;
     private String kaspiCard;
     private String kaspiRecipientName;

@@ -176,7 +176,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
       return;
     }
     if (!receiptFile) {
-      showToast('Өтініш, Kaspi чегін немесе түбіртекті жүктеңіз', 'error');
+      showToast('Өтініш, төлем чегін немесе түбіртекті жүктеңіз', 'error');
       return;
     }
 
@@ -364,12 +364,12 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
                 </div>
               </div>
 
-              {/* Kaspi payment instructions */}
+              {/* Payment instructions */}
               <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-red-50/60 to-orange-50/60 border border-red-100 mb-6">
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-xs font-bold text-red-900 uppercase tracking-wide flex items-center gap-1.5">
                     <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
-                    Kaspi аударым бойынша нұсқаулық:
+                    {settings?.bankName || 'Kaspi'} аударым бойынша нұсқаулық:
                   </span>
                   <button
                     type="button"
@@ -384,7 +384,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
                 <div className={`grid grid-cols-1 ${settings?.kaspiCard ? 'sm:grid-cols-3' : 'sm:grid-cols-2'} gap-2 text-xs text-slate-700`}>
                   <div className="bg-white/80 p-2.5 rounded-xl border border-red-100/60 flex items-center justify-between">
                     <div>
-                      <span className="text-slate-400 block text-[10px]">Kaspi нөмірі:</span>
+                      <span className="text-slate-400 block text-[10px]">{settings?.bankName || 'Kaspi'} нөмірі:</span>
                       <span className="font-black text-slate-900 text-sm font-mono">
                         {formatKaspiPhone(settings?.kaspiPhone)}
                       </span>
@@ -402,7 +402,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
                   {settings?.kaspiCard && (
                     <div className="bg-white/80 p-2.5 rounded-xl border border-red-100/60 flex items-center justify-between">
                       <div>
-                        <span className="text-slate-400 block text-[10px]">Kaspi картасы:</span>
+                        <span className="text-slate-400 block text-[10px]">{settings?.bankName || 'Банк'} картасы:</span>
                         <span className="font-black text-slate-900 text-sm font-mono">
                           {formatKaspiCard(settings.kaspiCard)}
                         </span>
@@ -429,7 +429,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
                 <div className="mt-2.5 text-[11px] text-slate-500 flex items-center gap-1.5">
                   <AlertCircle className="w-3.5 h-3.5 text-amber-500 shrink-0" />
                   <span>
-                    Kaspi қосымшасында <strong>{currentPlan.price.toLocaleString('kk-KZ')} ₸</strong> аударып, чегін төменде тіркеңіз.
+                    {settings?.bankName || 'Kaspi'} қосымшасында <strong>{currentPlan.price.toLocaleString('kk-KZ')} ₸</strong> аударып, чегін төменде тіркеңіз.
                   </span>
                 </div>
               </div>
@@ -438,7 +438,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
               <form onSubmit={handleSubmitReceipt} className="space-y-4 mb-6">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                    Kaspi чегінің суреті / скриншоты: <span className="text-red-500">*</span>
+                    Төлем чегінің суреті / скриншоты: <span className="text-red-500">*</span>
                   </label>
                   <label className="flex flex-col items-center justify-center p-4 border-2 border-dashed border-slate-300 hover:border-amber-500 rounded-2xl cursor-pointer bg-slate-50/50 hover:bg-amber-50/30 transition">
                     {receiptPreview ? (
