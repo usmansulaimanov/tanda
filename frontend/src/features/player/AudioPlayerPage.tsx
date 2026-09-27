@@ -456,12 +456,12 @@ export const AudioPlayerPage: React.FC = () => {
               </div>
 
               {/* 2. Active Chapter Indicator Banner */}
-              <div className={`flex items-center justify-between gap-3 border px-3 sm:px-3.5 py-2 rounded-xl transition-all ${
+              <div className={`flex items-center justify-between gap-3 border px-3 sm:px-3.5 py-2.5 rounded-xl transition-all ${
                 isAdPlaying 
                   ? 'bg-amber-500/10 border-amber-500/30' 
                   : 'bg-[#005494]/5 border-[#005494]/15'
               }`}>
-                <div className="flex items-center gap-2.5 min-w-0">
+                <div className="flex items-center gap-2.5 min-w-0 flex-1">
                   <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
                     isAdPlaying
                       ? 'bg-amber-500 text-white shadow-sm'
@@ -477,20 +477,17 @@ export const AudioPlayerPage: React.FC = () => {
                       <Headphones className="w-3.5 h-3.5" />
                     )}
                   </div>
-                  <div className="min-w-0">
-                    <span className={`text-[10px] font-black uppercase tracking-wide block ${isAdPlaying ? 'text-amber-700' : 'text-slate-500'}`}>
-                      {isAdPlaying ? 'ЖАРНАМА ОЙНАЛУДА (PRE-ROLL AD)' : `Қазір ойналуда (${chapterIndex + 1}/${chapters.length})`}
-                    </span>
-                    <h4 className="text-xs sm:text-sm font-black text-slate-900 truncate">
+                  <div className="min-w-0 flex-1">
+                    {!isAdPlaying && (
+                      <span className="text-[10px] font-black uppercase tracking-wide block text-slate-500">
+                        Қазір ойналуда ({chapterIndex + 1}/{chapters.length})
+                      </span>
+                    )}
+                    <h4 className={`text-xs sm:text-sm font-black text-slate-900 ${isAdPlaying ? 'whitespace-normal break-words leading-snug' : 'truncate'}`}>
                       {isAdPlaying ? (adTitle || 'Tanda Аудио-Жарнама') : currentChapterTitle}
                     </h4>
                   </div>
                 </div>
-                {isAdPlaying && (
-                  <span className="text-[10px] sm:text-[11px] font-black bg-amber-500 text-white px-2 py-0.5 rounded-full shrink-0 shadow-sm animate-pulse">
-                    Жарнама
-                  </span>
-                )}
               </div>
 
               {/* 3. Progress Slider & Controls Console */}
