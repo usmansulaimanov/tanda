@@ -1024,13 +1024,27 @@ export const AudioPlayerBar: React.FC = () => {
           }}
           onEnded={() => {
             setIsAdPlaying(false);
-            if (useAudioPlayerStore.getState().isPlaying) {
-              if (isYouTube && ytPlayerRef.current && typeof ytPlayerRef.current.playVideo === 'function') {
-                ytPlayerRef.current.playVideo();
-              } else if (audioRef.current) {
-                audioRef.current.play().catch(() => {});
+            setTimeout(() => {
+              if (useAudioPlayerStore.getState().isPlaying) {
+                if (isYouTube && ytPlayerRef.current && typeof ytPlayerRef.current.playVideo === 'function') {
+                  ytPlayerRef.current.playVideo();
+                } else if (audioRef.current) {
+                  audioRef.current.play().catch(() => {});
+                }
               }
-            }
+            }, 1000);
+          }}
+          onError={() => {
+            setIsAdPlaying(false);
+            setTimeout(() => {
+              if (useAudioPlayerStore.getState().isPlaying) {
+                if (isYouTube && ytPlayerRef.current && typeof ytPlayerRef.current.playVideo === 'function') {
+                  ytPlayerRef.current.playVideo();
+                } else if (audioRef.current) {
+                  audioRef.current.play().catch(() => {});
+                }
+              }
+            }, 1000);
           }}
         />
       )}
