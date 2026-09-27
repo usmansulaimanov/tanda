@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Crown, Check, ShieldCheck, Sparkles, Clock, Headphones, Gift, BookOpen } from 'lucide-react';
+import { Check, ShieldCheck, Sparkles, Clock, Headphones, Gift, BookOpen } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '../../store/useAuthStore';
 import { PremiumModal } from './PremiumModal';
@@ -22,10 +22,6 @@ export const PremiumPage: React.FC = () => {
       <div className="max-w-4xl mx-auto">
         {/* Hero */}
         <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-orange-50 text-orange-900 font-bold text-xs mb-4 border border-orange-200 shadow-sm">
-            <Crown className="w-4 h-4 text-[#F08000]" />
-            <span>TANDA PREMIUM SUBSCRIPTION</span>
-          </div>
           <h1 className="text-4xl sm:text-5xl font-black text-slate-900 tracking-tight mb-4">
             Қазақ тіліндегі үздік кітаптарды <br />
             <span className="bg-gradient-to-r from-[#F08000] via-orange-600 to-orange-700 bg-clip-text text-transparent">
