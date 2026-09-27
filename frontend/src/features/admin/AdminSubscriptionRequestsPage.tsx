@@ -88,6 +88,14 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
     }
   };
 
+  const formatPlanName = (planName?: string, planDays?: number) => {
+    if (planName === '1_MONTH' || planDays === 30) return '1 ай';
+    if (planName === '3_MONTHS' || planDays === 90) return '3 ай';
+    if (planName === '1_YEAR' || planDays === 365) return '1 жыл';
+    if (planDays) return `${planDays} күн`;
+    return planName || '1 ай';
+  };
+
   const filteredRequests = requests.filter((r) => {
     const q = searchQuery.toLowerCase();
     const matchesQuery = 
@@ -189,9 +197,9 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
                       <div className="text-xs text-slate-500">{req.userEmail}</div>
                     </td>
                     <td className="py-3 px-4">
-                      <span className="inline-flex items-center gap-1 font-bold text-slate-800">
+                      <span className="inline-flex items-center gap-1.5 font-bold text-slate-800">
                         <Crown className="w-3.5 h-3.5 text-amber-500" />
-                        {req.planDays} күн ({req.planName})
+                        {formatPlanName(req.planName, req.planDays)}
                       </span>
                     </td>
                     <td className="py-3 px-4 font-black text-slate-900">
