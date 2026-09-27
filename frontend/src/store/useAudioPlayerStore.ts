@@ -66,11 +66,12 @@ export interface StoredBookProgress {
 export async function syncProgressNow(bookId: string, chapterId?: string, timeSec?: number, chapterIndex?: number) {
   if (typeof window === 'undefined') return;
   const sec = Math.floor(timeSec || 0);
+  const uid = useAuthStore.getState().user?.id || 'guest';
 
-  // Fast local backup with chapter map
+  // Fast local backup with chapter map keyed per user
   try {
     let existing: StoredBookProgress = { time: sec, chapterId, chapterIndex, chapterProgress: {}, updatedAt: Date.now() };
-    const raw = localStorage.getItem(`tanda_book_progress_${bookId}`);
+    const raw = localStorage.getItem(`tanda_book_progress_${uid}_${bookId}`) || localStorage.getItem(`tanda_book_progress_${bookId}`);
     if (raw) {
       existing = { ...existing, ...JSON.parse(raw) };
       if (!existing.chapterProgress) existing.chapterProgress = {};
@@ -85,7 +86,7 @@ export async function syncProgressNow(bookId: string, chapterId?: string, timeSe
     existing.chapterId = chapterId;
     existing.chapterIndex = chapterIndex;
     existing.updatedAt = Date.now();
-    localStorage.setItem(`tanda_book_progress_${bookId}`, JSON.stringify(existing));
+    localStorage.setItem(`tanda_book_progress_${uid}_${bookId}`, JSON.stringify(existing));
   } catch {}
 
   const token = localStorage.getItem('tanda_token');
@@ -107,11 +108,12 @@ export async function syncProgressNow(bookId: string, chapterId?: string, timeSe
 export function throttledSyncProgress(bookId: string, chapterId?: string, timeSec?: number, chapterIndex?: number) {
   if (typeof window === 'undefined') return;
   const sec = Math.floor(timeSec || 0);
+  const uid = useAuthStore.getState().user?.id || 'guest';
 
-  // Fast local backup on every second
+  // Fast local backup on every second keyed per user
   try {
     let existing: StoredBookProgress = { time: sec, chapterId, chapterIndex, chapterProgress: {}, updatedAt: Date.now() };
-    const raw = localStorage.getItem(`tanda_book_progress_${bookId}`);
+    const raw = localStorage.getItem(`tanda_book_progress_${uid}_${bookId}`) || localStorage.getItem(`tanda_book_progress_${bookId}`);
     if (raw) {
       existing = { ...existing, ...JSON.parse(raw) };
       if (!existing.chapterProgress) existing.chapterProgress = {};
@@ -126,7 +128,7 @@ export function throttledSyncProgress(bookId: string, chapterId?: string, timeSe
     existing.chapterId = chapterId;
     existing.chapterIndex = chapterIndex;
     existing.updatedAt = Date.now();
-    localStorage.setItem(`tanda_book_progress_${bookId}`, JSON.stringify(existing));
+    localStorage.setItem(`tanda_book_progress_${uid}_${bookId}`, JSON.stringify(existing));
   } catch {}
 
   const now = Date.now();
@@ -146,8 +148,9 @@ export function throttledSyncProgress(bookId: string, chapterId?: string, timeSe
 
 export function getSavedChapterProgress(bookId: string, chapterId?: string, chapterIndex?: number): number | null {
   if (typeof window === 'undefined') return null;
+  const uid = useAuthStore.getState().user?.id || 'guest';
   try {
-    const raw = localStorage.getItem(`tanda_book_progress_${bookId}`);
+    const raw = localStorage.getItem(`tanda_book_progress_${uid}_${bookId}`) || localStorage.getItem(`tanda_book_progress_${bookId}`);
     if (raw) {
       const parsed: StoredBookProgress = JSON.parse(raw);
       if (parsed?.chapterProgress) {
