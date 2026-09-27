@@ -57,7 +57,7 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
     setIsProcessing(true);
     try {
       await premiumApi.approveSubscriptionRequestAdmin(id);
-      showToast('Төлем сәтті мақұлданды! Оқырманға Премиум қосылды 👑', 'success');
+      showToast('Төлем сәтті мақұлданды! Оқырманға Премиум қосылды', 'success');
       loadRequests();
     } catch (err: any) {
       showToast(err?.response?.data?.message || 'Мақұлдау кезінде қате орын алды', 'error');
@@ -202,8 +202,7 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
                       )}
                     </td>
                     <td className="py-3 px-4">
-                      <span className="inline-flex items-center gap-1.5 font-bold text-slate-800">
-                        <Crown className="w-3.5 h-3.5 text-amber-500" />
+                      <span className="font-bold text-slate-800">
                         {formatPlanName(req.planName, req.planDays)}
                       </span>
                     </td>
@@ -254,7 +253,7 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
                             disabled={isProcessing}
                             className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm transition disabled:opacity-50"
                           >
-                            Мақұлдау ✅
+                            Мақұлдау
                           </button>
                           <button
                             onClick={() => openRejectModal(req.id)}
