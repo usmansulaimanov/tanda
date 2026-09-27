@@ -41,10 +41,10 @@ export const Modal: React.FC<ModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex min-h-screen items-center justify-center p-4 text-center">
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" onClick={onClose} />
+      <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" onClick={onClose} />
 
-        <div className={`w-full ${maxWidths[maxWidth]} transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all z-10`}>
+      <div className="flex min-h-full items-start sm:items-center justify-center p-3 sm:p-4 text-center">
+        <div className={`w-full ${maxWidths[maxWidth]} my-6 sm:my-8 transform rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all z-10 relative`}>
           <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
             <h3 className="text-lg font-bold text-slate-900">{title}</h3>
             <button

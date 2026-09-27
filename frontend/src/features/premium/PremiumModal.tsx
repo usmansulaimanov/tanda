@@ -242,14 +242,29 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
     }
   };
 
+  // Prevent background scrolling when modal is open
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex min-h-screen items-center justify-center p-4 text-center">
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity" onClick={onClose} />
+      <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity" onClick={onClose} />
 
-        <div className="w-full max-w-2xl transform overflow-hidden rounded-3xl bg-white p-6 sm:p-8 text-left align-middle shadow-2xl transition-all z-10 border border-amber-100 relative">
+      <div className="flex min-h-full items-start justify-center p-3 sm:p-6 text-center">
+        <div className="w-full max-w-2xl my-6 sm:my-10 transform rounded-3xl bg-white p-6 sm:p-8 text-left shadow-2xl transition-all z-10 border border-amber-100 relative mb-24 sm:mb-28">
           {/* Close button */}
           <button
             onClick={onClose}
