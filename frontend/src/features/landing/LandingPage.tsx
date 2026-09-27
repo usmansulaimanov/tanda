@@ -253,25 +253,25 @@ export const LandingPage: React.FC = () => {
 
         <div className="hero-container">
           <div className="hero-text">
-            {/* Personal Message: Pure clean text directly on hero */}
+            {/* Personal Message: Pure clean text directly on hero matching h1 size */}
             {isAuthenticated && isMessageValid && messageText && (
               <div
                 className="hero-personal-message"
                 style={{
-                  marginBottom: '18px',
-                  maxWidth: '640px',
+                  marginBottom: '20px',
+                  maxWidth: '780px',
                   width: '100%',
                 }}
               >
                 <p
                   style={{
                     margin: 0,
-                    fontSize: 'clamp(22px, 2.6vw, 32px)',
-                    lineHeight: 1.3,
+                    fontSize: 'clamp(38px, 4.5vw, 64px)',
+                    lineHeight: 1.15,
                     color: '#FFFFFF',
-                    fontWeight: 700,
-                    letterSpacing: '-0.01em',
-                    textShadow: '0 2px 12px rgba(0, 0, 0, 0.35)',
+                    fontWeight: 900,
+                    letterSpacing: '-0.02em',
+                    textShadow: '0 4px 16px rgba(0, 0, 0, 0.4)',
                   }}
                 >
                   {messageText}
