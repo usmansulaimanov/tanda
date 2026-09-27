@@ -378,6 +378,10 @@ export interface SystemSettings {
   plan1YearEnabled?: boolean;
   kaspiPhoneEnabled?: boolean;
   kaspiCardEnabled?: boolean;
+  heroMessageEnabled?: boolean;
+  heroMessageText?: string;
+  heroMessageTarget?: 'all' | 'registered' | 'unregistered';
+  heroMessageExpiresAt?: string | null;
   updatedAt?: string;
 }
 

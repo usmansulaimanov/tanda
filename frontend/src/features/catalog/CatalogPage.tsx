@@ -29,6 +29,12 @@ export const CatalogPage: React.FC = () => {
   const [selectedCat, setSelectedCat] = useState('Бәрі');
   const [format, setFormat] = useState<'all' | 'audio' | 'text'>('all');
   const [freeOnly, setFreeOnly] = useState(false);
+  const [pageSize, setPageSize] = useState<number>(16);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCat, format, freeOnly, search]);
 
   const { data: books, isLoading, isError, refetch } = useBooks();
 
@@ -70,6 +76,15 @@ export const CatalogPage: React.FC = () => {
       return true;
     });
   }, [activeBooks, selectedCat, format, freeOnly, search]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredBooks.length / pageSize));
+  const startIndex = filteredBooks.length === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+  const endIndex = Math.min(currentPage * pageSize, filteredBooks.length);
+
+  const paginatedBooks = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredBooks.slice(start, start + pageSize);
+  }, [filteredBooks, currentPage, pageSize]);
 
   return (
     <div className="min-h-screen bg-[#0f0f13] text-white py-10 px-4 sm:px-6 lg:px-8">
@@ -219,11 +234,101 @@ export const CatalogPage: React.FC = () => {
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
-                {filteredBooks.map((book: Book) => (
-                  <BookCard key={book.id} book={book} />
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
+                  {paginatedBooks.map((book: Book) => (
+                    <BookCard key={book.id} book={book} />
+                  ))}
+                </div>
+
+                {filteredBooks.length > 0 && (
+                  <div className="flex flex-wrap items-center justify-between gap-4 bg-[#1a1a24] p-4 rounded-2xl border border-white/5 mt-6">
+                    {/* Page size selector */}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs text-white/60 font-medium">Беттегі кітап саны:</span>
+                      <select
+                        value={pageSize}
+                        onChange={(e) => {
+                          setPageSize(Number(e.target.value));
+                          setCurrentPage(1);
+                        }}
+                        className="bg-[#0f0f13] border border-white/10 text-white rounded-lg px-3 py-1 text-xs font-bold focus:outline-none cursor-pointer"
+                      >
+                        <option value={16}>16</option>
+                        <option value={32}>32</option>
+                        <option value={64}>64</option>
+                        <option value={128}>128</option>
+                      </select>
+                      <span className="text-xs text-white/40 ml-1">
+                        ({startIndex}-{endIndex} / Барлығы {filteredBooks.length})
+                      </span>
+                    </div>
+
+                    {/* Navigation */}
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCurrentPage((prev) => Math.max(1, prev - 1));
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                        disabled={currentPage === 1}
+                        className="px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 text-xs font-bold text-white/80 hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                      >
+                        Алдыңғы
+                      </button>
+
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => {
+                        if (
+                          totalPages > 7 &&
+                          pageNum !== 1 &&
+                          pageNum !== totalPages &&
+                          Math.abs(pageNum - currentPage) > 1
+                        ) {
+                          if (pageNum === 2 && currentPage > 3) {
+                            return <span key="dots-start" className="px-1 text-white/40 text-xs">...</span>;
+                          }
+                          if (pageNum === totalPages - 1 && currentPage < totalPages - 2) {
+                            return <span key="dots-end" className="px-1 text-white/40 text-xs">...</span>;
+                          }
+                          return null;
+                        }
+
+                        const isActive = currentPage === pageNum;
+                        return (
+                          <button
+                            key={pageNum}
+                            type="button"
+                            onClick={() => {
+                              setCurrentPage(pageNum);
+                              window.scrollTo({ top: 0, behavior: 'smooth' });
+                            }}
+                            className={`min-w-[32px] h-8 px-2 rounded-lg text-xs font-bold transition-all ${
+                              isActive
+                                ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
+                                : 'bg-white/5 border border-white/10 text-white/70 hover:bg-white/10 hover:text-white'
+                            }`}
+                          >
+                            {pageNum}
+                          </button>
+                        );
+                      })}
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCurrentPage((prev) => Math.min(totalPages, prev + 1));
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                        disabled={currentPage === totalPages}
+                        className="px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 text-xs font-bold text-white/80 hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                      >
+                        Кейінгі
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>

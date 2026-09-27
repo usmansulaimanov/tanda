@@ -3,6 +3,8 @@ import { Link, useLocation, Navigate } from 'react-router-dom';
 import { useBookStore } from '../../store/useBookStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { booksApi } from '../../shared/api/books.api';
+import { systemApi } from '../../shared/api/system.api';
+import { SystemSettings } from '../../types';
 import { BookCard } from '../../components/ui/BookCard';
 import { TopAudioSection } from './TopAudioSection';
 import heroReadingImg from '../../assets/hero-reading.jpg';
@@ -77,6 +79,12 @@ export const LandingPage: React.FC = () => {
 
   const [selectedCat, setSelectedCat] = useState('Бәрі');
   const [search, setSearch] = useState('');
+  const [pageSize, setPageSize] = useState<number>(16);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCat, search]);
 
   const personalMsg = user?.personalMessage;
   const messageText = typeof personalMsg === 'string'
@@ -192,6 +200,15 @@ export const LandingPage: React.FC = () => {
       return true;
     });
   }, [activeBooks, selectedCat, search]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredBooks.length / pageSize));
+  const startIndex = filteredBooks.length === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+  const endIndex = Math.min(currentPage * pageSize, filteredBooks.length);
+
+  const paginatedBooks = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredBooks.slice(start, start + pageSize);
+  }, [filteredBooks, currentPage, pageSize]);
 
   // Dynamic category book counts
   const categoryCounts = useMemo(() => {
@@ -659,7 +676,7 @@ export const LandingPage: React.FC = () => {
           )}
 
           <div className="books-grid" id="booksGrid">
-            {filteredBooks.map((book) => (
+            {paginatedBooks.map((book) => (
               <BookCard key={book.id} book={book} />
             ))}
           </div>
@@ -667,6 +684,172 @@ export const LandingPage: React.FC = () => {
           {filteredBooks.length === 0 && (
             <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-mid)' }}>
               Кітаптар табылмады.
+            </div>
+          )}
+
+          {filteredBooks.length > 0 && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '16px',
+                marginTop: '32px',
+                padding: '16px 20px',
+                background: '#FFFFFF',
+                borderRadius: '16px',
+                border: '1.5px solid #E2E8F0',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
+              }}
+            >
+              {/* Page size selector */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '13px', color: '#64748B', fontWeight: 600 }}>
+                  Беттегі кітап саны:
+                </span>
+                <select
+                  value={pageSize}
+                  onChange={(e) => {
+                    setPageSize(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: '8px',
+                    border: '1.5px solid #CBD5E1',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    color: 'var(--text-dark)',
+                    background: '#FFFFFF',
+                    outline: 'none',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <option value={16}>16</option>
+                  <option value={32}>32</option>
+                  <option value={64}>64</option>
+                  <option value={128}>128</option>
+                </select>
+                <span style={{ fontSize: '13px', color: '#94A3B8', marginLeft: '4px' }}>
+                  ({startIndex}-{endIndex} / Барлығы {filteredBooks.length})
+                </span>
+              </div>
+
+              {/* Page navigation */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCurrentPage((prev) => Math.max(1, prev - 1));
+                    document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  disabled={currentPage === 1}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    padding: '6px 12px',
+                    borderRadius: '8px',
+                    border: '1.5px solid #CBD5E1',
+                    background: currentPage === 1 ? '#F8FAFC' : '#FFFFFF',
+                    color: currentPage === 1 ? '#94A3B8' : 'var(--text-dark)',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                  </svg>
+                  Алдыңғы
+                </button>
+
+                {/* Number buttons */}
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => {
+                  if (
+                    totalPages > 7 &&
+                    pageNum !== 1 &&
+                    pageNum !== totalPages &&
+                    Math.abs(pageNum - currentPage) > 1
+                  ) {
+                    if (pageNum === 2 && currentPage > 3) {
+                      return (
+                        <span key="dots-start" style={{ padding: '0 4px', color: '#94A3B8', fontSize: '12px' }}>
+                          ...
+                        </span>
+                      );
+                    }
+                    if (pageNum === totalPages - 1 && currentPage < totalPages - 2) {
+                      return (
+                        <span key="dots-end" style={{ padding: '0 4px', color: '#94A3B8', fontSize: '12px' }}>
+                          ...
+                        </span>
+                      );
+                    }
+                    return null;
+                  }
+
+                  const isActive = currentPage === pageNum;
+                  return (
+                    <button
+                      key={pageNum}
+                      type="button"
+                      onClick={() => {
+                        setCurrentPage(pageNum);
+                        document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth' });
+                      }}
+                      style={{
+                        minWidth: '34px',
+                        height: '34px',
+                        padding: '0 8px',
+                        borderRadius: '8px',
+                        border: isActive ? '1.5px solid var(--blue)' : '1.5px solid #CBD5E1',
+                        background: isActive ? 'var(--blue)' : '#FFFFFF',
+                        color: isActive ? '#FFFFFF' : 'var(--text-dark)',
+                        fontSize: '13px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCurrentPage((prev) => Math.min(totalPages, prev + 1));
+                    document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  disabled={currentPage === totalPages}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    padding: '6px 12px',
+                    borderRadius: '8px',
+                    border: '1.5px solid #CBD5E1',
+                    background: currentPage === totalPages ? '#F8FAFC' : '#FFFFFF',
+                    color: currentPage === totalPages ? '#94A3B8' : 'var(--text-dark)',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  Кейінгі
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                  </svg>
+                </button>
+              </div>
             </div>
           )}
         </div>
