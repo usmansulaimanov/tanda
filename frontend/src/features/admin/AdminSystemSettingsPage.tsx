@@ -113,6 +113,8 @@ export const AdminSystemSettingsPage: React.FC = () => {
           ...res,
           kaspiPhone: formatKaspiPhone(res.kaspiPhone || ''),
           kaspiCard: formatKaspiCard(res.kaspiCard || ''),
+          kaspiPhoneEnabled: res.kaspiPhoneEnabled !== false,
+          kaspiCardEnabled: Boolean(res.kaspiCardEnabled),
         });
         setIsLoading(false);
       })
@@ -129,12 +131,16 @@ export const AdminSystemSettingsPage: React.FC = () => {
         ...settings,
         kaspiPhone: formatKaspiPhone(settings.kaspiPhone),
         kaspiCard: formatKaspiCard(settings.kaspiCard || ''),
+        kaspiPhoneEnabled: settings.kaspiPhoneEnabled !== false,
+        kaspiCardEnabled: Boolean(settings.kaspiCardEnabled),
       };
       const updated = await systemApi.updateSettingsAdmin(payload);
       setSettings({
         ...updated,
         kaspiPhone: formatKaspiPhone(updated.kaspiPhone || ''),
         kaspiCard: formatKaspiCard(updated.kaspiCard || ''),
+        kaspiPhoneEnabled: updated.kaspiPhoneEnabled !== false,
+        kaspiCardEnabled: Boolean(updated.kaspiCardEnabled),
       });
       showToast('Жүйелік баптаулар сәтті сақталды!', 'success');
     } catch (err: any) {
