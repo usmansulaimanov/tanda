@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Crown, 
   Check, 
@@ -57,9 +57,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
     }
   }, [isOpen]);
 
-  if (!isOpen) return null;
-
-  const allPlans = [
+  const allPlans = useMemo(() => [
     {
       id: '1_MONTH' as const,
       name: '1 ай',
@@ -87,9 +85,9 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
       badge: 'ҮЗДІК ТАҢДАУ ⭐',
       enabled: settings?.plan1YearEnabled !== false,
     },
-  ];
+  ], [settings]);
 
-  const plans = allPlans.filter((p) => p.enabled);
+  const plans = useMemo(() => allPlans.filter((p) => p.enabled), [allPlans]);
   const currentPlan = plans.find((p) => p.id === selectedPlan) || plans[0] || allPlans[0];
 
   useEffect(() => {
@@ -243,6 +241,8 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
       setIsApplyingPromo(false);
     }
   };
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
