@@ -518,10 +518,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
                   {isUploading ? (
                     <span>Жіберілуде...</span>
                   ) : (
-                    <>
-                      <span>Чекті растауға жіберу ({currentPlan.price.toLocaleString('kk-KZ')} ₸)</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </>
+                    <span>Чекті растауға жіберу</span>
                   )}
                 </button>
               </form>
