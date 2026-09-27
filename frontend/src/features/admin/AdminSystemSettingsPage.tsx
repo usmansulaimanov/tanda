@@ -115,16 +115,10 @@ export const AdminSystemSettingsPage: React.FC = () => {
 
       <form onSubmit={handleSave} className="space-y-6">
         {/* 1. Tanda Premium System Toggle */}
-        <div className={`p-5 rounded-3xl border-2 transition-all ${
-          settings.premiumEnabled
-            ? 'bg-emerald-50/50 border-emerald-400 shadow-lg shadow-emerald-500/10'
-            : 'bg-amber-50/50 border-amber-300 shadow-lg shadow-amber-500/10'
-        }`}>
+        <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className={`w-8 h-8 rounded-xl flex items-center justify-center p-1.5 shadow-sm transition-colors ${
-                settings.premiumEnabled ? 'bg-emerald-600' : 'bg-slate-800'
-              }`}>
+              <div className="w-9 h-9 rounded-xl bg-black flex items-center justify-center p-1.5 shadow-sm">
                 <img src={tandaPremiumWhite} alt="Tanda Crown" className="w-full h-full object-contain" />
               </div>
               <span className="text-base font-black text-slate-900">
@@ -146,7 +140,7 @@ export const AdminSystemSettingsPage: React.FC = () => {
                 }}
                 className="sr-only peer"
               />
-              <div className="w-14 h-8 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-emerald-500" />
+              <div className="w-14 h-8 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-black" />
             </label>
           </div>
         </div>
