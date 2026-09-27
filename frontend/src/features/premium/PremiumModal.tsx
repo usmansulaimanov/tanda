@@ -265,7 +265,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
       <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity" onClick={onClose} />
 
       <div className="flex min-h-full items-start justify-center p-3 sm:p-6 text-center">
-        <div className="w-full max-w-2xl my-6 sm:my-10 transform rounded-3xl bg-white p-6 sm:p-8 text-left shadow-2xl transition-all z-10 border border-amber-100 relative mb-24 sm:mb-28">
+        <div className="w-full max-w-2xl my-6 sm:my-10 transform rounded-3xl bg-white p-6 sm:p-8 text-left shadow-2xl transition-all z-10 border border-orange-100 relative mb-24 sm:mb-28">
           {/* Close button */}
           <button
             onClick={onClose}
@@ -276,7 +276,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
 
           {/* Header */}
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 to-amber-300 flex items-center justify-center p-2 text-white shadow-lg shadow-amber-500/20">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#F08000] to-orange-400 flex items-center justify-center p-2 text-white shadow-lg shadow-orange-500/20">
               <img
                 src={tandaPremiumWhite}
                 alt="Tanda Premium"
@@ -286,7 +286,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-2xl font-black text-slate-900">Tanda Premium</h2>
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-orange-50 text-orange-800 border border-orange-200">
                   ШЕКСЕУСІЗ
                 </span>
               </div>
@@ -328,18 +328,18 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
                         onClick={() => setSelectedPlan(p.id)}
                         className={`relative p-4 rounded-2xl cursor-pointer transition-all border-2 text-left ${
                           isSelected
-                            ? 'border-amber-500 bg-amber-50/40 shadow-md shadow-amber-500/10 ring-2 ring-amber-500/20'
+                            ? 'border-[#F08000] bg-orange-50/40 shadow-md shadow-orange-500/10 ring-2 ring-orange-500/20'
                             : 'border-slate-200 hover:border-slate-300 bg-white'
                         }`}
                       >
                         {p.badge && (
-                          <span className="absolute -top-2.5 right-3 px-2 py-0.5 rounded-full text-[10px] font-black bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow">
+                          <span className="absolute -top-2.5 right-3 px-2 py-0.5 rounded-full text-[10px] font-black bg-gradient-to-r from-[#F08000] to-orange-600 text-white shadow">
                             {p.badge}
                           </span>
                         )}
                         <div className="flex items-center justify-between mb-1">
                           <span className="font-bold text-slate-900 text-base">{p.name}</span>
-                          <div className={`w-5 h-5 rounded-full flex items-center justify-center ${isSelected ? 'bg-amber-500 text-white' : 'border border-slate-300'}`}>
+                          <div className={`w-5 h-5 rounded-full flex items-center justify-center ${isSelected ? 'bg-[#F08000] text-white' : 'border border-slate-300'}`}>
                             {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
                           </div>
                         </div>
@@ -416,7 +416,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
                 </div>
 
                 <div className="mt-2.5 text-[11px] text-slate-500 flex items-center gap-1.5">
-                  <AlertCircle className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                  <AlertCircle className="w-3.5 h-3.5 text-[#F08000] shrink-0" />
                   <span>
                     {settings?.bankName || 'Kaspi'} қосымшасында <strong>{currentPlan.price.toLocaleString('kk-KZ')} ₸</strong> аударып, чегін төменде тіркеңіз.
                   </span>
@@ -429,7 +429,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
                   <label className="block text-xs font-bold text-slate-700 mb-1.5">
                     Төлем чегінің суреті / скриншоты: <span className="text-red-500">*</span>
                   </label>
-                  <label className="flex flex-col items-center justify-center p-4 border-2 border-dashed border-slate-300 hover:border-amber-500 rounded-2xl cursor-pointer bg-slate-50/50 hover:bg-amber-50/30 transition">
+                  <label className="flex flex-col items-center justify-center p-4 border-2 border-dashed border-slate-300 hover:border-[#F08000] rounded-2xl cursor-pointer bg-slate-50/50 hover:bg-orange-50/30 transition">
                     {receiptPreview ? (
                       <div className="flex items-center gap-3">
                         <img src={receiptPreview} alt="Receipt preview" className="w-14 h-14 object-cover rounded-xl border border-slate-200" />
@@ -463,14 +463,14 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
                     placeholder="+7 (707) 123-45-67 немесе Асылбек Т."
                     value={phoneOrAccount}
                     onChange={(e) => setPhoneOrAccount(e.target.value)}
-                    className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                    className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-[#F08000]"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={isUploading || !receiptFile}
-                  className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-black text-sm shadow-lg shadow-amber-500/25 transition disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#F08000] to-orange-600 hover:from-[#c06800] hover:to-orange-700 text-white font-black text-sm shadow-lg shadow-orange-500/25 transition disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {isUploading ? (
                     <span>Жіберілуде...</span>
@@ -491,7 +491,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
                     placeholder="Промокод бар ма? (мысалы: TANDA30)"
                     value={promoCodeInput}
                     onChange={(e) => setPromoCodeInput(e.target.value.toUpperCase())}
-                    className="flex-1 px-3.5 py-2.5 text-xs font-mono uppercase tracking-wider rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                    className="flex-1 px-3.5 py-2.5 text-xs font-mono uppercase tracking-wider rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-[#F08000]"
                   />
                   <button
                     type="submit"

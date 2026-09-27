@@ -17,17 +17,17 @@ export const PremiumPage: React.FC = () => {
   const isUserPremium = Boolean(user?.isPremium);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-amber-50/40 via-white to-slate-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-b from-orange-50/40 via-white to-slate-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         {/* Hero */}
         <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-100 text-amber-900 font-bold text-xs mb-4 border border-amber-200 shadow-sm">
-            <Crown className="w-4 h-4 text-amber-600" />
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-orange-50 text-orange-900 font-bold text-xs mb-4 border border-orange-200 shadow-sm">
+            <Crown className="w-4 h-4 text-[#F08000]" />
             <span>TANDA PREMIUM SUBSCRIPTION</span>
           </div>
           <h1 className="text-4xl sm:text-5xl font-black text-slate-900 tracking-tight mb-4">
             Қазақ тіліндегі үздік кітаптарды <br />
-            <span className="bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-[#F08000] via-orange-600 to-orange-700 bg-clip-text text-transparent">
               шектеусіз тыңдаңыз
             </span>
           </h1>
@@ -44,7 +44,7 @@ export const PremiumPage: React.FC = () => {
             <div className="mt-8">
               <button
                 onClick={() => setIsModalOpen(true)}
-                className="px-8 py-4 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-black text-base shadow-xl shadow-amber-500/25 transition transform hover:-translate-y-0.5"
+                className="px-8 py-4 rounded-2xl bg-gradient-to-r from-[#F08000] to-orange-600 hover:from-[#c06800] hover:to-orange-700 text-white font-black text-base shadow-xl shadow-orange-500/25 transition transform hover:-translate-y-0.5"
               >
                 Премиумға жазылу (айына {settings?.price1Month || 1490} ₸ бастап) 👑
               </button>
@@ -63,34 +63,34 @@ export const PremiumPage: React.FC = () => {
                 <tr className="border-b border-slate-100">
                   <th className="py-3 px-4 text-xs font-bold text-slate-400 uppercase">Мүмкіндік</th>
                   <th className="py-3 px-4 text-xs font-bold text-slate-500 uppercase text-center">Стандартты (Тегін)</th>
-                  <th className="py-3 px-4 text-xs font-bold text-amber-600 uppercase text-center bg-amber-50/50 rounded-t-xl">Tanda Premium 👑</th>
+                  <th className="py-3 px-4 text-xs font-bold text-[#F08000] uppercase text-center bg-orange-50/50 rounded-t-xl">Tanda Premium 👑</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-sm">
                 <tr>
                   <td className="py-4 px-4 font-semibold text-slate-800">Тегін кітаптарды тыңдау</td>
                   <td className="py-4 px-4 text-center text-emerald-600 font-bold">Иә</td>
-                  <td className="py-4 px-4 text-center text-emerald-600 font-bold bg-amber-50/30">Иә</td>
+                  <td className="py-4 px-4 text-center text-emerald-600 font-bold bg-orange-50/30">Иә</td>
                 </tr>
                 <tr>
                   <td className="py-4 px-4 font-semibold text-slate-800">Премиум топтама кітаптары</td>
                   <td className="py-4 px-4 text-center text-slate-400">Тек 15 минуттық үзінді</td>
-                  <td className="py-4 px-4 text-center text-emerald-600 font-bold bg-amber-50/30">Толық шектеусіз</td>
+                  <td className="py-4 px-4 text-center text-emerald-600 font-bold bg-orange-50/30">Толық шектеусіз</td>
                 </tr>
                 <tr>
                   <td className="py-4 px-4 font-semibold text-slate-800">Аудио-жарнамалар</td>
                   <td className="py-4 px-4 text-center text-slate-500">15 сек жарнама бар</td>
-                  <td className="py-4 px-4 text-center text-emerald-600 font-bold bg-amber-50/30">Мүлдем жоқ (0%)</td>
+                  <td className="py-4 px-4 text-center text-emerald-600 font-bold bg-orange-50/30">Мүлдем жоқ (0%)</td>
                 </tr>
                 <tr>
                   <td className="py-4 px-4 font-semibold text-slate-800">Ойнату жылдамдығы (0.75x–2x)</td>
                   <td className="py-4 px-4 text-center text-emerald-600 font-bold">Иә</td>
-                  <td className="py-4 px-4 text-center text-emerald-600 font-bold bg-amber-50/30">Иә</td>
+                  <td className="py-4 px-4 text-center text-emerald-600 font-bold bg-orange-50/30">Иә</td>
                 </tr>
                 <tr>
                   <td className="py-4 px-4 font-semibold text-slate-800">Туған күн сыйлығы (+30 күн)</td>
                   <td className="py-4 px-4 text-center text-emerald-600 font-bold">Иә</td>
-                  <td className="py-4 px-4 text-center text-emerald-600 font-bold bg-amber-50/30">Иә (+30 күн қосылады)</td>
+                  <td className="py-4 px-4 text-center text-emerald-600 font-bold bg-orange-50/30">Иә (+30 күн қосылады)</td>
                 </tr>
               </tbody>
             </table>
