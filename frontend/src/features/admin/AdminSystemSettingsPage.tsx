@@ -63,7 +63,11 @@ export const AdminSystemSettingsPage: React.FC = () => {
   const formatKaspiCard = (input: string): string => {
     if (!input) return '';
     const digits = input.replace(/\D/g, '').slice(0, 16);
-    return digits.replace(/(\d{4})(?=\d)/g, '$1 ');
+    const parts = [];
+    for (let i = 0; i < digits.length; i += 4) {
+      parts.push(digits.slice(i, i + 4));
+    }
+    return parts.join(' ');
   };
 
   useEffect(() => {
