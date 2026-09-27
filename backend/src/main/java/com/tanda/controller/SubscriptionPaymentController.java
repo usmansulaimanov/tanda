@@ -4,6 +4,7 @@ import com.tanda.dto.premium.CreateSubscriptionPaymentRequestDto;
 import com.tanda.dto.premium.ReviewSubscriptionPaymentRequestDto;
 import com.tanda.dto.premium.SubscriptionPaymentRequestResponseDto;
 import com.tanda.service.SubscriptionPaymentService;
+import com.tanda.security.UserPrincipal;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -12,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -35,8 +37,9 @@ public class SubscriptionPaymentController {
     @Operation(summary = "Submit Kaspi receipt for premium subscription approval")
     public ResponseEntity<SubscriptionPaymentRequestResponseDto> createRequest(
             @Valid @RequestBody CreateSubscriptionPaymentRequestDto request,
+            @AuthenticationPrincipal UserPrincipal principal,
             Authentication authentication) {
-        String userId = authentication.getName();
+        String userId = principal != null && principal.getId() != null ? principal.getId() : authentication.getName();
         return ResponseEntity.status(HttpStatus.CREATED).body(paymentService.createRequest(userId, request));
     }
 
@@ -44,8 +47,9 @@ public class SubscriptionPaymentController {
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Get current user's subscription requests history")
     public ResponseEntity<List<SubscriptionPaymentRequestResponseDto>> getMyRequests(
+            @AuthenticationPrincipal UserPrincipal principal,
             Authentication authentication) {
-        String userId = authentication.getName();
+        String userId = principal != null && principal.getId() != null ? principal.getId() : authentication.getName();
         return ResponseEntity.ok(paymentService.getMyRequests(userId));
     }
 
@@ -62,8 +66,9 @@ public class SubscriptionPaymentController {
     @Operation(summary = "Approve subscription request and grant premium (Admin only)")
     public ResponseEntity<SubscriptionPaymentRequestResponseDto> approveRequest(
             @PathVariable String id,
+            @AuthenticationPrincipal UserPrincipal principal,
             Authentication authentication) {
-        String adminId = authentication.getName();
+        String adminId = principal != null && principal.getId() != null ? principal.getId() : authentication.getName();
         return ResponseEntity.ok(paymentService.approveRequest(id, adminId));
     }
 
@@ -73,8 +78,9 @@ public class SubscriptionPaymentController {
     public ResponseEntity<SubscriptionPaymentRequestResponseDto> rejectRequest(
             @PathVariable String id,
             @RequestBody(required = false) ReviewSubscriptionPaymentRequestDto body,
+            @AuthenticationPrincipal UserPrincipal principal,
             Authentication authentication) {
-        String adminId = authentication.getName();
+        String adminId = principal != null && principal.getId() != null ? principal.getId() : authentication.getName();
         String reason = body != null ? body.getRejectionReason() : null;
         return ResponseEntity.ok(paymentService.rejectRequest(id, reason, adminId));
     }

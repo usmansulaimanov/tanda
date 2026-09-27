@@ -29,10 +29,19 @@ public class SubscriptionPaymentService {
     private final PremiumService premiumService;
     private final MessageService messageService;
 
+    private User findUserByIdOrEmail(String identifier) {
+        if (identifier == null || identifier.isBlank()) {
+            throw new ResourceNotFoundException("Пайдаланушы табылмады");
+        }
+        return userRepository.findById(identifier)
+                .or(() -> userRepository.findByEmail(identifier.trim().toLowerCase()))
+                .orElseThrow(() -> new ResourceNotFoundException("Пайдаланушы табылмады: " + identifier));
+    }
+
     @Transactional
-    public SubscriptionPaymentRequestResponseDto createRequest(String userId, CreateSubscriptionPaymentRequestDto dto) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Пайдаланушы табылмады: " + userId));
+    public SubscriptionPaymentRequestResponseDto createRequest(String userIdOrEmail, CreateSubscriptionPaymentRequestDto dto) {
+        User user = findUserByIdOrEmail(userIdOrEmail);
+        String userId = user.getId();
 
         int days = (dto.getPlanDays() != null && dto.getPlanDays() > 0) ? dto.getPlanDays() : 30;
         int amount = (dto.getAmountKzt() != null && dto.getAmountKzt() > 0) ? dto.getAmountKzt() : 1490;
@@ -51,20 +60,19 @@ public class SubscriptionPaymentService {
                 .build();
 
         SubscriptionPaymentRequest saved = requestRepository.save(req);
-        log.info("User {} created subscription payment request {} for plan {} ({} days, {} KZT)",
-                userId, saved.getId(), saved.getPlanName(), days, amount);
+        log.info("User {} ({}) created subscription payment request {} for plan {} ({} days, {} KZT)",
+                userId, user.getEmail(), saved.getId(), saved.getPlanName(), days, amount);
 
         return toDto(saved, user.getName(), user.getEmail());
     }
 
     @Transactional(readOnly = true)
-    public List<SubscriptionPaymentRequestResponseDto> getMyRequests(String userId) {
-        User user = userRepository.findById(userId).orElse(null);
-        String name = user != null ? user.getName() : null;
-        String email = user != null ? user.getEmail() : null;
+    public List<SubscriptionPaymentRequestResponseDto> getMyRequests(String userIdOrEmail) {
+        User user = findUserByIdOrEmail(userIdOrEmail);
+        String userId = user.getId();
 
         return requestRepository.findByUserIdOrderByCreatedAtDesc(userId).stream()
-                .map(r -> toDto(r, name, email))
+                .map(r -> toDto(r, user.getName(), user.getEmail()))
                 .collect(Collectors.toList());
     }
 
