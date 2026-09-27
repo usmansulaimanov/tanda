@@ -47,6 +47,14 @@ export const AudioPlayerBar: React.FC = () => {
     repeatMode,
     sleepTimerMinutes,
     sleepTimerEndTime,
+    isAdPlaying,
+    adProgress,
+    adDuration,
+    adTitle,
+    setIsAdPlaying,
+    setAdProgress,
+    setAdDuration,
+    setAdTitle,
     setIsPlaying,
     togglePlay,
     nextChapter,
@@ -604,6 +612,21 @@ export const AudioPlayerBar: React.FC = () => {
 
   // Sync play/pause with players
   useEffect(() => {
+    if (isAdPlaying) {
+      if (audioRef.current) audioRef.current.pause();
+      if (ytPlayerRef.current && typeof ytPlayerRef.current.pauseVideo === 'function') {
+        ytPlayerRef.current.pauseVideo();
+      }
+      if (adAudioRef.current) {
+        if (isPlaying) {
+          adAudioRef.current.play().catch(() => {});
+        } else {
+          adAudioRef.current.pause();
+        }
+      }
+      return;
+    }
+
     if (isYouTube) {
       if (audioRef.current) {
         audioRef.current.pause();
@@ -627,7 +650,7 @@ export const AudioPlayerBar: React.FC = () => {
         }
       }
     }
-  }, [isPlaying, isYouTube]);
+  }, [isPlaying, isYouTube, isAdPlaying]);
 
   // Sync playback rate and loop
   useEffect(() => {
@@ -730,7 +753,7 @@ export const AudioPlayerBar: React.FC = () => {
     const isPremiumSystemDisabled = systemSettings?.premiumEnabled === false || Boolean(systemSettings?.openAccessMode);
     const isExempt = Boolean(user?.isPremium || isPremiumSystemDisabled || isAuthorOrStaff);
     if (isExempt) {
-      setIsPreRollAdPlaying(false);
+      if (isAdPlaying) setIsAdPlaying(false);
       return;
     }
 
@@ -738,22 +761,32 @@ export const AudioPlayerBar: React.FC = () => {
       const trackKey = `${currentBook.id}-${chapterIndex}`;
       if (!playedAdsMapRef.current[trackKey]) {
         playedAdsMapRef.current[trackKey] = true;
-        setIsPreRollAdPlaying(true);
-        setAdSecondsLeft(15);
-        if (audioRef.current) audioRef.current.pause();
+        setIsAdPlaying(true);
+        setAdProgress(0);
+        setAdTitle(systemSettings.audioAdTitle || 'Tanda Аудио-Жарнама');
+        
+        // Immediately pause book audio
+        if (audioRef.current) {
+          audioRef.current.pause();
+        }
+        if (ytPlayerRef.current && typeof ytPlayerRef.current.pauseVideo === 'function') {
+          ytPlayerRef.current.pauseVideo();
+        }
+
+        // Play ad audio
         if (adAudioRef.current) {
           adAudioRef.current.currentTime = 0;
           adAudioRef.current.play().catch(() => {
-            setIsPreRollAdPlaying(false);
+            setIsAdPlaying(false);
             if (audioRef.current) audioRef.current.play().catch(() => {});
           });
         }
       }
     }
-  }, [currentBook?.id, chapterIndex, isPlaying, user?.isPremium, systemSettings, isAuthorOrStaff]);
+  }, [currentBook?.id, chapterIndex, isPlaying, user?.isPremium, systemSettings, isAuthorOrStaff, isAdPlaying, setIsAdPlaying, setAdProgress, setAdTitle]);
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (isPreRollAdPlaying) {
+    if (isAdPlaying) {
       showToast('Жарнама ойнап тұрғанда өткізіп жіберу мүмкін емес', 'info');
       return;
     }
@@ -777,7 +810,7 @@ export const AudioPlayerBar: React.FC = () => {
   };
 
   const skipTime = (seconds: number) => {
-    if (isPreRollAdPlaying) {
+    if (isAdPlaying) {
       showToast('Жарнама ойнап тұрғанда өткізіп жіберу мүмкін емес', 'info');
       return;
     }
@@ -802,6 +835,9 @@ export const AudioPlayerBar: React.FC = () => {
   };
 
   const handleClose = useCallback(() => {
+    if (adAudioRef.current) {
+      adAudioRef.current.pause();
+    }
     if (audioRef.current) {
       audioRef.current.pause();
     }
@@ -814,6 +850,9 @@ export const AudioPlayerBar: React.FC = () => {
   // If author, admin, or staff is logged in, immediately terminate and reset player
   useEffect(() => {
     if (isAuthorOrStaff && (currentBook || isPlaying)) {
+      if (adAudioRef.current) {
+        adAudioRef.current.pause();
+      }
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current.currentTime = 0;
@@ -876,7 +915,7 @@ export const AudioPlayerBar: React.FC = () => {
             } else if (savedProgress > 0 && Math.abs(e.currentTarget.currentTime - savedProgress) > 1) {
               e.currentTarget.currentTime = savedProgress;
             }
-            if (isPlaying) {
+            if (isPlaying && !useAudioPlayerStore.getState().isAdPlaying) {
               e.currentTarget.play().catch(() => {});
             }
           }}
@@ -888,11 +927,15 @@ export const AudioPlayerBar: React.FC = () => {
             } else if (savedProgress > 0 && Math.abs(e.currentTarget.currentTime - savedProgress) > 1) {
               e.currentTarget.currentTime = savedProgress;
             }
-            if (isPlaying) {
+            if (isPlaying && !useAudioPlayerStore.getState().isAdPlaying) {
               e.currentTarget.play().catch(() => {});
             }
           }}
           onPlay={() => {
+            if (useAudioPlayerStore.getState().isAdPlaying) {
+              if (audioRef.current) audioRef.current.pause();
+              return;
+            }
             if (!useAudioPlayerStore.getState().isPlaying) {
               useAudioPlayerStore.getState().setIsPlaying(true);
             }
@@ -900,12 +943,13 @@ export const AudioPlayerBar: React.FC = () => {
           onPause={(e) => {
             const el = e.currentTarget;
             if (!el.ended && el.currentTime < (el.duration || 0) - 0.5) {
-              if (useAudioPlayerStore.getState().isPlaying) {
+              if (useAudioPlayerStore.getState().isPlaying && !useAudioPlayerStore.getState().isAdPlaying) {
                 useAudioPlayerStore.getState().setIsPlaying(false);
               }
             }
           }}
           onTimeUpdate={(e) => {
+            if (useAudioPlayerStore.getState().isAdPlaying) return;
             const current = e.currentTarget.currentTime;
             const dur = e.currentTarget.duration || duration;
             if (check15MinuteLimit(current)) return;
@@ -940,14 +984,30 @@ export const AudioPlayerBar: React.FC = () => {
           playsInline
           preload="auto"
           controlsList="nodownload"
+          onLoadedMetadata={(e) => {
+            const dur = e.currentTarget.duration;
+            if (dur && !isNaN(dur) && dur > 0) {
+              setAdDuration(dur);
+            }
+          }}
           onTimeUpdate={(e) => {
-            const left = Math.max(0, Math.ceil((e.currentTarget.duration || 15) - e.currentTarget.currentTime));
+            const cur = e.currentTarget.currentTime;
+            const dur = e.currentTarget.duration;
+            setAdProgress(cur);
+            if (dur && !isNaN(dur) && dur > 0) {
+              setAdDuration(dur);
+            }
+            const left = Math.max(0, Math.ceil((dur || 15) - cur));
             setAdSecondsLeft(left);
           }}
           onEnded={() => {
-            setIsPreRollAdPlaying(false);
-            if (audioRef.current) {
-              audioRef.current.play().catch(() => {});
+            setIsAdPlaying(false);
+            if (useAudioPlayerStore.getState().isPlaying) {
+              if (isYouTube && ytPlayerRef.current && typeof ytPlayerRef.current.playVideo === 'function') {
+                ytPlayerRef.current.playVideo();
+              } else if (audioRef.current) {
+                audioRef.current.play().catch(() => {});
+              }
             }
           }}
         />
@@ -988,11 +1048,18 @@ export const AudioPlayerBar: React.FC = () => {
                 </div>
                 <div className="min-w-0 flex-1">
                   <h4 className="text-xs sm:text-sm font-bold text-slate-900 truncate group-hover:text-[#005494] transition-colors flex items-center gap-1.5">
-                    <span>{currentBook.title}</span>
+                    <span>{isAdPlaying ? 'Tanda Аудио-Жарнама' : currentBook.title}</span>
+                    {isAdPlaying && (
+                      <span className="text-[10px] font-black bg-amber-500 text-white px-1.5 py-0.5 rounded-full">
+                        Жарнама
+                      </span>
+                    )}
                     <Maximize2 className="w-3 h-3 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                   </h4>
                   <p className="text-[11px] sm:text-xs text-slate-500 truncate">
-                    {currentBook.author} &bull; <span className="text-[#005494] font-semibold">{currentChapterTitle}</span>
+                    {isAdPlaying ? (adTitle || 'Премиумға қосылып, жарнамасыз тыңдаңыз') : (
+                      <>{currentBook.author} &bull; <span className="text-[#005494] font-semibold">{currentChapterTitle}</span></>
+                    )}
                   </p>
                 </div>
 
@@ -1234,17 +1301,24 @@ export const AudioPlayerBar: React.FC = () => {
 
                 {/* Progress Slider */}
                 <div className="flex items-center gap-2 w-full text-[10px] sm:text-[11px] text-slate-500 font-mono font-bold">
-                  <span className="w-8 sm:w-10 text-right shrink-0">{formatTime(progress)}</span>
+                  <span className={`w-8 sm:w-10 text-right shrink-0 ${isAdPlaying ? 'text-amber-600 font-black' : ''}`}>
+                    {formatTime(isAdPlaying ? adProgress : progress)}
+                  </span>
                   <input
                     type="range"
                     min={0}
-                    max={duration || 100}
-                    value={progress}
+                    max={isAdPlaying ? (adDuration || 15) : (duration || 100)}
+                    value={isAdPlaying ? adProgress : progress}
                     onChange={handleSeek}
-                    className="flex-1 h-1.5 sm:h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[#005494]"
-                    style={{ accentColor: '#005494' }}
+                    disabled={isAdPlaying}
+                    className={`flex-1 h-1.5 sm:h-2 rounded-lg appearance-none transition-all ${
+                      isAdPlaying ? 'bg-amber-100 cursor-not-allowed' : 'bg-slate-200 cursor-pointer accent-[#005494]'
+                    }`}
+                    style={{ accentColor: isAdPlaying ? '#F59E0B' : '#005494' }}
                   />
-                  <span className="w-8 sm:w-10 text-left shrink-0">{formatTime(duration)}</span>
+                  <span className={`w-8 sm:w-10 text-left shrink-0 ${isAdPlaying ? 'text-amber-600 font-black' : ''}`}>
+                    {formatTime(isAdPlaying ? (adDuration || 15) : duration)}
+                  </span>
                 </div>
               </div>
 

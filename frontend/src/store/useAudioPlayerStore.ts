@@ -18,6 +18,15 @@ interface AudioPlayerState {
   sleepTimerEndTime: number | null;
   isDailyLimitReached: boolean;
   showDailyLimitModal: boolean;
+  isAdPlaying: boolean;
+  adProgress: number;
+  adDuration: number;
+  adTitle: string;
+
+  setIsAdPlaying: (isAdPlaying: boolean) => void;
+  setAdProgress: (sec: number) => void;
+  setAdDuration: (sec: number) => void;
+  setAdTitle: (title: string) => void;
 
   openDailyLimitModal: () => void;
   closeDailyLimitModal: () => void;
@@ -265,6 +274,15 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
       sleepTimerEndTime: null,
       isDailyLimitReached: false,
       showDailyLimitModal: false,
+      isAdPlaying: false,
+      adProgress: 0,
+      adDuration: 15,
+      adTitle: '',
+
+      setIsAdPlaying: (isAdPlaying) => set({ isAdPlaying }),
+      setAdProgress: (adProgress) => set({ adProgress }),
+      setAdDuration: (adDuration) => set({ adDuration }),
+      setAdTitle: (adTitle) => set({ adTitle }),
 
       openDailyLimitModal: () => set({ showDailyLimitModal: true }),
       closeDailyLimitModal: () => set({ showDailyLimitModal: false }),
@@ -542,6 +560,8 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
           chapterIndex: 0,
           isPlaying: false,
           progress: 0,
+          isAdPlaying: false,
+          adProgress: 0,
           sleepTimerMinutes: null,
           sleepTimerEndTime: null,
         });

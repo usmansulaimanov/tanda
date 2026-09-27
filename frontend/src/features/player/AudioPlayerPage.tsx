@@ -15,6 +15,7 @@ import {
   Check,
   Headphones,
   Music,
+  Volume2,
 } from 'lucide-react';
 import { useBookStore } from '../../store/useBookStore';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -56,6 +57,10 @@ export const AudioPlayerPage: React.FC = () => {
     repeatMode,
     sleepTimerMinutes,
     sleepTimerEndTime,
+    isAdPlaying,
+    adProgress,
+    adDuration,
+    adTitle,
     playBook,
     playChapter,
     togglePlay,
@@ -258,11 +263,19 @@ export const AudioPlayerPage: React.FC = () => {
   };
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (isAdPlaying) {
+      showToast('Жарнама ойнап тұрғанда өткізіп жіберуге болмайды', 'info');
+      return;
+    }
     const val = Number(e.target.value);
     window.dispatchEvent(new CustomEvent('tanda:audio:seek', { detail: { time: val } }));
   };
 
   const handleSkip = (seconds: number) => {
+    if (isAdPlaying) {
+      showToast('Жарнама ойнап тұрғанда өткізіп жіберуге болмайды', 'info');
+      return;
+    }
     window.dispatchEvent(new CustomEvent('tanda:audio:skip', { detail: { seconds } }));
   };
 
@@ -443,20 +456,41 @@ export const AudioPlayerPage: React.FC = () => {
               </div>
 
               {/* 2. Active Chapter Indicator Banner */}
-              <div className="flex items-center justify-between gap-3 bg-[#005494]/5 border border-[#005494]/15 px-3 sm:px-3.5 py-2 rounded-xl">
+              <div className={`flex items-center justify-between gap-3 border px-3 sm:px-3.5 py-2 rounded-xl transition-all ${
+                isAdPlaying 
+                  ? 'bg-amber-500/10 border-amber-500/30' 
+                  : 'bg-[#005494]/5 border-[#005494]/15'
+              }`}>
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${isPlaying ? 'bg-[#EF7E00] text-white shadow-sm' : 'bg-slate-200 text-slate-700'}`}>
-                    {isPlaying ? <Music className="w-3.5 h-3.5 animate-pulse" /> : <Headphones className="w-3.5 h-3.5" />}
+                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                    isAdPlaying
+                      ? 'bg-amber-500 text-white shadow-sm'
+                      : isPlaying 
+                      ? 'bg-[#EF7E00] text-white shadow-sm' 
+                      : 'bg-slate-200 text-slate-700'
+                  }`}>
+                    {isAdPlaying ? (
+                      <Volume2 className="w-3.5 h-3.5 animate-pulse" />
+                    ) : isPlaying ? (
+                      <Music className="w-3.5 h-3.5 animate-pulse" />
+                    ) : (
+                      <Headphones className="w-3.5 h-3.5" />
+                    )}
                   </div>
                   <div className="min-w-0">
-                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">
-                      Қазір ойналуда ({chapterIndex + 1}/{chapters.length})
+                    <span className={`text-[10px] font-black uppercase tracking-wide block ${isAdPlaying ? 'text-amber-700' : 'text-slate-500'}`}>
+                      {isAdPlaying ? 'ЖАРНАМА ОЙНАЛУДА (PRE-ROLL AD)' : `Қазір ойналуда (${chapterIndex + 1}/${chapters.length})`}
                     </span>
                     <h4 className="text-xs sm:text-sm font-black text-slate-900 truncate">
-                      {currentChapterTitle}
+                      {isAdPlaying ? (adTitle || 'Tanda Аудио-Жарнама') : currentChapterTitle}
                     </h4>
                   </div>
                 </div>
+                {isAdPlaying && (
+                  <span className="text-[10px] sm:text-[11px] font-black bg-amber-500 text-white px-2 py-0.5 rounded-full shrink-0 shadow-sm animate-pulse">
+                    Жарнама
+                  </span>
+                )}
               </div>
 
               {/* 3. Progress Slider & Controls Console */}
@@ -467,15 +501,22 @@ export const AudioPlayerPage: React.FC = () => {
                   <input
                     type="range"
                     min={0}
-                    max={duration || 100}
-                    value={progress}
+                    max={isAdPlaying ? (adDuration || 15) : (duration || 100)}
+                    value={isAdPlaying ? adProgress : progress}
                     onChange={handleSeek}
-                    className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[#EF7E00] transition-all"
-                    style={{ accentColor: '#EF7E00' }}
+                    disabled={isAdPlaying}
+                    className={`w-full h-2 rounded-lg appearance-none transition-all ${
+                      isAdPlaying ? 'bg-amber-100 cursor-not-allowed' : 'bg-slate-200 cursor-pointer accent-[#EF7E00]'
+                    }`}
+                    style={{ accentColor: isAdPlaying ? '#F59E0B' : '#EF7E00' }}
                   />
-                  <div className="flex items-center justify-between text-[11px] font-mono font-bold text-slate-500 px-1">
-                    <span>{formatTime(progress)}</span>
-                    <span>{formatTime(duration)}</span>
+                  <div className="flex items-center justify-between text-[11px] font-mono font-bold px-1">
+                    <span className={isAdPlaying ? 'text-amber-600 font-black' : 'text-slate-500'}>
+                      {formatTime(isAdPlaying ? adProgress : progress)}
+                    </span>
+                    <span className={isAdPlaying ? 'text-amber-600 font-black' : 'text-slate-500'}>
+                      {formatTime(isAdPlaying ? (adDuration || 15) : duration)}
+                    </span>
                   </div>
                 </div>
 
