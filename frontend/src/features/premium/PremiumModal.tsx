@@ -415,11 +415,16 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
                   </div>
                 </div>
 
-                <div className="mt-2.5 text-[11px] text-slate-500 flex items-center gap-1.5">
-                  <AlertCircle className="w-3.5 h-3.5 text-[#F08000] shrink-0" />
-                  <span>
-                    {settings?.bankName || 'Kaspi'} қосымшасында <strong>{currentPlan.price.toLocaleString('kk-KZ')} ₸</strong> аударып, чегін төменде тіркеңіз.
-                  </span>
+                <div className="mt-3 p-3 rounded-xl bg-orange-500/10 border border-orange-500/20 text-xs text-slate-700 flex items-start gap-2.5">
+                  <AlertCircle className="w-4 h-4 text-[#F08000] shrink-0 mt-0.5" />
+                  <div className="leading-relaxed">
+                    <span className="font-bold text-slate-900 block mb-0.5">
+                      Маңызды ескерту:
+                    </span>
+                    <span>
+                      {settings?.bankName || 'Kaspi'} қосымшасында <strong>дәл осы соманы ({currentPlan.price.toLocaleString('kk-KZ')} ₸)</strong> ғана аударыңыз. Бұдан артық та, кем де салмаңыз, әйтпесе төлем есептелмейді және жазылым іске қосылмайды. Төлем жасалған соң чекті төменде тіркеңіз.
+                    </span>
+                  </div>
                 </div>
               </div>
 
