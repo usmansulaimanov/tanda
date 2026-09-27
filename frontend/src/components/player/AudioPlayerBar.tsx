@@ -97,7 +97,8 @@ export const AudioPlayerBar: React.FC = () => {
   const [adSecondsLeft, setAdSecondsLeft] = useState(15);
   const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [premiumModalReason, setPremiumModalReason] = useState('');
-  const playedAdsMapRef = useRef<{ [key: string]: boolean }>({});
+  const lastBookIdRef = useRef<string | null>(null);
+  const adPlayedForCurrentBookRef = useRef<boolean>(false);
   const adAudioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
@@ -769,6 +770,14 @@ export const AudioPlayerBar: React.FC = () => {
     return false;
   }, [user?.isPremium, systemSettings?.premiumEnabled, systemSettings?.openAccessMode, isAuthorOrStaff, setProgress]);
 
+  // Reset ad played state whenever a different book is loaded
+  useEffect(() => {
+    if (currentBook?.id && currentBook.id !== lastBookIdRef.current) {
+      lastBookIdRef.current = currentBook.id;
+      adPlayedForCurrentBookRef.current = false;
+    }
+  }, [currentBook?.id]);
+
   // Pre-roll ad trigger
   useEffect(() => {
     if (!currentBook || !isPlaying) return;
@@ -780,9 +789,8 @@ export const AudioPlayerBar: React.FC = () => {
     }
 
     if (systemSettings?.audioAdEnabled && systemSettings?.audioAdUrl) {
-      const trackKey = `${currentBook.id}-${chapterIndex}`;
-      if (!playedAdsMapRef.current[trackKey]) {
-        playedAdsMapRef.current[trackKey] = true;
+      if (!adPlayedForCurrentBookRef.current) {
+        adPlayedForCurrentBookRef.current = true;
         setIsAdPlaying(true);
         setAdProgress(0);
         setAdTitle(systemSettings.audioAdTitle || 'Tanda Аудио-Жарнама');
@@ -805,7 +813,7 @@ export const AudioPlayerBar: React.FC = () => {
         }
       }
     }
-  }, [currentBook?.id, chapterIndex, isPlaying, user?.isPremium, systemSettings, isAuthorOrStaff, isAdPlaying, setIsAdPlaying, setAdProgress, setAdTitle]);
+  }, [currentBook?.id, isPlaying, user?.isPremium, systemSettings, isAuthorOrStaff, isAdPlaying, setIsAdPlaying, setAdProgress, setAdTitle]);
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (isAdPlaying) {
