@@ -20,6 +20,9 @@ import { useAudioPlayerStore, getChapterStartTime, parseDurationToSeconds, reset
 import { useAuthStore } from '../../store/useAuthStore';
 import { useToastStore } from '../../store/useToastStore';
 import { extractYouTubeVideoId, loadYouTubeIFrameApi } from '../../utils/youtube';
+import { systemApi } from '../../shared/api/system.api';
+import { SystemSettings } from '../../types';
+import { PremiumModal } from '../../features/premium/PremiumModal';
 
 const TIMER_OPTIONS = [
   { label: '5 минут', value: 5 },
@@ -79,6 +82,19 @@ export const AudioPlayerBar: React.FC = () => {
 
   const timerMenuRef = useRef<HTMLDivElement>(null);
   const speedMenuRef = useRef<HTMLDivElement>(null);
+
+  // System settings, Pre-Roll ad & Premium limitation
+  const [systemSettings, setSystemSettings] = useState<SystemSettings | null>(null);
+  const [isPreRollAdPlaying, setIsPreRollAdPlaying] = useState(false);
+  const [adSecondsLeft, setAdSecondsLeft] = useState(15);
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
+  const [premiumModalReason, setPremiumModalReason] = useState('');
+  const playedAdsMapRef = useRef<{ [key: string]: boolean }>({});
+  const adAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    systemApi.getSettings().then(setSystemSettings).catch(() => {});
+  }, []);
 
   const formatAudioUrl = (rawUrl?: string): string => {
     if (!rawUrl) return '';
@@ -634,6 +650,7 @@ export const AudioPlayerBar: React.FC = () => {
           const current = ytPlayerRef.current.getCurrentTime();
           const dur = ytPlayerRef.current.getDuration();
           if (current !== undefined && !isNaN(current)) {
+            if (check15MinuteLimit(current)) return;
             setProgress(current);
           }
           if (dur !== undefined && !isNaN(dur) && dur > 0) {
@@ -687,9 +704,67 @@ export const AudioPlayerBar: React.FC = () => {
     return `${m}:${s < 10 ? '0' : ''}${s}`;
   };
 
+  const check15MinuteLimit = useCallback((currentSec: number) => {
+    const curBook = useAudioPlayerStore.getState().currentBook;
+    if (!curBook) return false;
+    const isPremiumBook = curBook.isFree === false;
+    const isExempt = Boolean(user?.isPremium || systemSettings?.openAccessMode || isAuthorOrStaff);
+    if (isPremiumBook && !isExempt && currentSec >= 900) {
+      useAudioPlayerStore.getState().setIsPlaying(false);
+      if (audioRef.current) audioRef.current.pause();
+      if (ytPlayerRef.current && typeof ytPlayerRef.current.pauseVideo === 'function') {
+        ytPlayerRef.current.pauseVideo();
+      }
+      setProgress(900);
+      setPremiumModalReason('15 минуттық тегін үзінді аяқталды. Кітаптың жалғасын толық тыңдау үшін Tanda Premium-ге қосылыңыз!');
+      setShowPremiumModal(true);
+      return true;
+    }
+    return false;
+  }, [user?.isPremium, systemSettings?.openAccessMode, isAuthorOrStaff, setProgress]);
+
+  // Pre-roll ad trigger
+  useEffect(() => {
+    if (!currentBook || !isPlaying) return;
+    const isExempt = Boolean(user?.isPremium || systemSettings?.openAccessMode || isAuthorOrStaff);
+    if (isExempt) {
+      setIsPreRollAdPlaying(false);
+      return;
+    }
+
+    if (systemSettings?.audioAdEnabled && systemSettings?.audioAdUrl) {
+      const trackKey = `${currentBook.id}-${chapterIndex}`;
+      if (!playedAdsMapRef.current[trackKey]) {
+        playedAdsMapRef.current[trackKey] = true;
+        setIsPreRollAdPlaying(true);
+        setAdSecondsLeft(15);
+        if (audioRef.current) audioRef.current.pause();
+        if (adAudioRef.current) {
+          adAudioRef.current.currentTime = 0;
+          adAudioRef.current.play().catch(() => {
+            setIsPreRollAdPlaying(false);
+            if (audioRef.current) audioRef.current.play().catch(() => {});
+          });
+        }
+      }
+    }
+  }, [currentBook?.id, chapterIndex, isPlaying, user?.isPremium, systemSettings, isAuthorOrStaff]);
+
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (isPreRollAdPlaying) {
+      showToast('Жарнама ойнап тұрғанда өткізіп жіберу мүмкін емес', 'info');
+      return;
+    }
     resetRoyaltyTracking();
-    const val = Number(e.target.value);
+    let val = Number(e.target.value);
+    const isPremiumBook = currentBook?.isFree === false;
+    const isExempt = Boolean(user?.isPremium || systemSettings?.openAccessMode || isAuthorOrStaff);
+    if (isPremiumBook && !isExempt && val >= 900) {
+      val = 900;
+      setProgress(900);
+      check15MinuteLimit(900);
+      return;
+    }
     setProgress(val);
     if (isYouTube && ytPlayerRef.current && typeof ytPlayerRef.current.seekTo === 'function') {
       ytPlayerRef.current.seekTo(val, true);
@@ -699,9 +774,21 @@ export const AudioPlayerBar: React.FC = () => {
   };
 
   const skipTime = (seconds: number) => {
+    if (isPreRollAdPlaying) {
+      showToast('Жарнама ойнап тұрғанда өткізіп жіберу мүмкін емес', 'info');
+      return;
+    }
     resetRoyaltyTracking();
     const maxDur = duration || 999999;
-    const newTime = Math.max(0, Math.min(maxDur, progress + seconds));
+    let newTime = Math.max(0, Math.min(maxDur, progress + seconds));
+    const isPremiumBook = currentBook?.isFree === false;
+    const isExempt = Boolean(user?.isPremium || systemSettings?.openAccessMode || isAuthorOrStaff);
+    if (isPremiumBook && !isExempt && newTime >= 900) {
+      newTime = 900;
+      setProgress(900);
+      check15MinuteLimit(900);
+      return;
+    }
     setProgress(newTime);
     if (isYouTube && ytPlayerRef.current && typeof ytPlayerRef.current.seekTo === 'function') {
       ytPlayerRef.current.seekTo(newTime, true);
@@ -817,6 +904,7 @@ export const AudioPlayerBar: React.FC = () => {
           onTimeUpdate={(e) => {
             const current = e.currentTarget.currentTime;
             const dur = e.currentTarget.duration || duration;
+            if (check15MinuteLimit(current)) return;
             setProgress(current);
             if (dur && !isNaN(dur)) setDuration(dur);
 
@@ -839,6 +927,28 @@ export const AudioPlayerBar: React.FC = () => {
           onEnded={handleTrackEnd}
         />
       )}
+
+      {/* Pre-Roll Audio Ad Element */}
+      {systemSettings?.audioAdUrl && (
+        <audio
+          ref={adAudioRef}
+          src={formatAudioUrl(systemSettings.audioAdUrl)}
+          playsInline
+          preload="auto"
+          controlsList="nodownload"
+          onTimeUpdate={(e) => {
+            const left = Math.max(0, Math.ceil((e.currentTarget.duration || 15) - e.currentTarget.currentTime));
+            setAdSecondsLeft(left);
+          }}
+          onEnded={() => {
+            setIsPreRollAdPlaying(false);
+            if (audioRef.current) {
+              audioRef.current.play().catch(() => {});
+            }
+          }}
+        />
+      )}
+
 
       {/* Main Bottom Audio Player Bar - Only shown when NOT on full player page */}
       {!isListenPage && (
@@ -1156,7 +1266,15 @@ export const AudioPlayerBar: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Premium Paywall Modal */}
+      <PremiumModal
+        isOpen={showPremiumModal}
+        onClose={() => setShowPremiumModal(false)}
+        initialReason={premiumModalReason}
+      />
     </>
   );
 };
+
 

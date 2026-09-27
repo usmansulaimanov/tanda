@@ -73,6 +73,9 @@ const LeaderboardPage = lazyWithRetry(() => import('../features/leaderboard/Lead
 const AdminLeaderboardPage = lazyWithRetry(() => import('../features/admin/AdminLeaderboardPage').then((m) => ({ default: m.AdminLeaderboardPage })));
 const AdminCertificatesPage = lazyWithRetry(() => import('../features/admin/AdminCertificatesPage').then((m) => ({ default: m.AdminCertificatesPage })));
 const CertificateVerifyPage = lazyWithRetry(() => import('../features/certificates/CertificateVerifyPage').then((m) => ({ default: m.CertificateVerifyPage })));
+const PremiumPage = lazyWithRetry(() => import('../features/premium/PremiumPage').then((m) => ({ default: m.PremiumPage })));
+const AdminSubscriptionRequestsPage = lazyWithRetry(() => import('../features/admin/AdminSubscriptionRequestsPage').then((m) => ({ default: m.AdminSubscriptionRequestsPage })));
+const AdminSystemSettingsPage = lazyWithRetry(() => import('../features/admin/AdminSystemSettingsPage').then((m) => ({ default: m.AdminSystemSettingsPage })));
 
 
 const PageLoader = () => (
@@ -239,6 +242,14 @@ export const router = createBrowserRouter([
               <AudioPlayerPage />
             </Suspense>
           </ReaderOnlyRouteGuard>
+        ),
+      },
+      {
+        path: 'premium',
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <PremiumPage />
+          </Suspense>
         ),
       },
       {
@@ -653,6 +664,34 @@ export const router = createBrowserRouter([
             </Suspense>
           </AdminRouteGuard>
         ),
+      },
+      {
+        path: 'admin/subscription-requests',
+        element: (
+          <AdminRouteGuard>
+            <Suspense fallback={<PageLoader />}>
+              <AdminSubscriptionRequestsPage />
+            </Suspense>
+          </AdminRouteGuard>
+        ),
+      },
+      {
+        path: 'admin/premium',
+        element: <Navigate to="/admin/subscription-requests" replace />,
+      },
+      {
+        path: 'admin/system-settings',
+        element: (
+          <AdminRouteGuard>
+            <Suspense fallback={<PageLoader />}>
+              <AdminSystemSettingsPage />
+            </Suspense>
+          </AdminRouteGuard>
+        ),
+      },
+      {
+        path: 'admin/settings',
+        element: <Navigate to="/admin/system-settings" replace />,
       },
       {
         path: '*',

@@ -338,3 +338,34 @@ export interface DeletedUserArchive {
   deleteReason?: string;
 }
 
+export interface SubscriptionPaymentRequest {
+  id: string;
+  userId: string;
+  userName?: string;
+  userEmail?: string;
+  planName: string;
+  planDays: number;
+  amountKzt: number;
+  receiptUrl?: string;
+  phoneOrAccount?: string;
+  notes?: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  rejectionReason?: string;
+  reviewedBy?: string;
+  reviewedAt?: string;
+  createdAt: string;
+}
+
+export interface SystemSettings {
+  openAccessMode: boolean;
+  audioAdEnabled: boolean;
+  audioAdUrl: string;
+  audioAdTitle: string;
+  kaspiPhone: string;
+  kaspiRecipientName: string;
+  price1Month: number;
+  price3Months: number;
+  price1Year: number;
+  updatedAt?: string;
+}
+

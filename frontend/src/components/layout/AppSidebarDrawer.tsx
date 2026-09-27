@@ -11,6 +11,7 @@ import { useNewsStore } from '../../store/useNewsStore';
 import { hasAdminPermission } from '../../utils/permissions';
 import { api } from '../../lib/api';
 import tandaLogo from '../../assets/tanda-logo.png';
+import { Crown, CreditCard, Sliders } from 'lucide-react';
 
 export const AppSidebarDrawer: React.FC = () => {
   const { isOpen, closeSidebar } = useSidebarStore();
@@ -411,6 +412,24 @@ export const AppSidebarDrawer: React.FC = () => {
               )}
 
               <Link
+                to="/admin/subscription-requests"
+                className={`sidebar-nav-link ${location.pathname.startsWith('/admin/subscription-requests') ? 'active' : ''}`}
+                onClick={closeSidebar}
+              >
+                <CreditCard className="w-[18px] h-[18px] text-amber-500" />
+                <span>Премиум төлемдері</span>
+              </Link>
+
+              <Link
+                to="/admin/system-settings"
+                className={`sidebar-nav-link ${location.pathname.startsWith('/admin/system-settings') ? 'active' : ''}`}
+                onClick={closeSidebar}
+              >
+                <Sliders className="w-[18px] h-[18px] text-indigo-500" />
+                <span>Жүйелік баптаулар</span>
+              </Link>
+
+              <Link
                 to="/settings"
                 className={`sidebar-nav-link ${location.pathname === '/settings' ? 'active' : ''}`}
                 onClick={closeSidebar}
@@ -426,6 +445,21 @@ export const AppSidebarDrawer: React.FC = () => {
             /* Reader Navigation Links */
             <div className="sidebar-nav-group">
               <div className="sidebar-nav-group-title">Негізгі мәзір</div>
+
+              <Link
+                to="/premium"
+                className={`sidebar-nav-link ${location.pathname === '/premium' ? 'active' : ''}`}
+                onClick={closeSidebar}
+                style={{
+                  background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(217, 119, 6, 0.06))',
+                  border: '1.5px solid rgba(245, 158, 11, 0.3)',
+                  color: '#B45309',
+                  fontWeight: 800,
+                }}
+              >
+                <Crown className="w-[18px] h-[18px] text-amber-500" />
+                <span>Tanda Premium 👑</span>
+              </Link>
 
               <Link
                 to="/"

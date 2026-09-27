@@ -9,6 +9,8 @@ import { useMessageStore } from '../../store/useMessageStore';
 import { Book } from '../../types';
 import { hasAdminPermission } from '../../utils/permissions';
 import tandaLogo from '../../assets/tanda-logo.png';
+import { Crown, X } from 'lucide-react';
+import { PremiumModal } from '../../features/premium/PremiumModal';
 
 export const Header: React.FC = () => {
   const navigate = useNavigate();
@@ -122,10 +124,48 @@ export const Header: React.FC = () => {
     navigate('/', { replace: true });
   };
 
+  const [showTopBanner, setShowTopBanner] = useState(() => {
+    return sessionStorage.getItem('tanda_hide_top_banner') !== 'true';
+  });
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
 
+  const isUserPremium = Boolean(user?.isPremium);
+  const shouldShowBanner = showTopBanner && !isUserPremium && !isStaffOrAuthor;
+
+  const handleDismissBanner = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowTopBanner(false);
+    sessionStorage.setItem('tanda_hide_top_banner', 'true');
+  };
 
   return (
     <>
+      {/* Top Marketing Promo Banner for Non-Premium users */}
+      {shouldShowBanner && (
+        <div 
+          onClick={() => setShowPremiumModal(true)}
+          className="bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 text-white text-xs font-bold py-1.5 px-4 cursor-pointer hover:opacity-95 transition shadow-sm flex items-center justify-between z-40 relative"
+        >
+          <div className="flex-1 flex items-center justify-center gap-2 text-center">
+            <Crown className="w-3.5 h-3.5 text-amber-200 shrink-0" />
+            <span>
+              <strong>Tanda Premium:</strong> 100+ кітапты шектеусіз әрі 0% жарнамасыз тыңдаңыз!
+            </span>
+            <span className="hidden sm:inline-block underline decoration-amber-200 font-black ml-1 text-amber-100">
+              Премиумға жазылу &rarr;
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={handleDismissBanner}
+            className="p-1 rounded-md text-amber-100 hover:text-white hover:bg-amber-700/50 transition shrink-0 ml-2"
+            title="Жабу"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
       <nav className="tanda-nav">
         <div style={{ maxWidth: '1280px', width: '100%', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
           
@@ -897,6 +937,13 @@ export const Header: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Premium Subscription Modal */}
+      <PremiumModal
+        isOpen={showPremiumModal}
+        onClose={() => setShowPremiumModal(false)}
+      />
     </>
   );
 };
+

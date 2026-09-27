@@ -14,14 +14,14 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 
 @RestController
-@RequestMapping({"/api/v1", "/api"})
+@RequestMapping({"/api/v1", "/api", ""})
 @RequiredArgsConstructor
 @Tag(name = "Media", description = "Media file management and streaming")
 public class MediaController {
 
     private final MediaUploadService mediaUploadService;
 
-    @PostMapping({"/admin/upload", "/admin/media/upload"})
+    @PostMapping({"/admin/upload", "/admin/media/upload", "/api/v1/admin/upload", "/api/admin/upload"})
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Upload media file (admin only)")
     public ResponseEntity<MediaUploadResponseDto> uploadFile(
@@ -30,8 +30,7 @@ public class MediaController {
         return ResponseEntity.status(HttpStatus.CREATED).body(mediaUploadService.uploadFile(file, category));
     }
 
-    @GetMapping("/media/stream/audio/{fileName}")
-    @PreAuthorize("isAuthenticated()")
+    @GetMapping({"/media/stream/audio/{fileName}", "/api/v1/media/stream/audio/{fileName}", "/api/media/stream/audio/{fileName}", "/uploads/audio/{fileName}"})
     @Operation(summary = "Stream audio chapter with byte range support (HTTP 206)")
     public ResponseEntity<ResourceRegion> streamAudio(
             @PathVariable String fileName,

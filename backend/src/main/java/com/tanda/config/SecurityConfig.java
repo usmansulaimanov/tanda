@@ -68,6 +68,7 @@ public class SecurityConfig {
                                  "/api/v1/auth/login", "/api/v1/auth/register", "/api/v1/auth/logout", "/api/v1/auth/google", "/api/v1/auth/refresh", "/api/v1/auth/send-verification-code").permitAll()
                 .requestMatchers("/uploads/covers/**", "/uploads/books/**").permitAll()
                 .requestMatchers("/api/v1/media/telegram/**", "/api/media/telegram/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/system/settings", "/api/v1/system/settings").permitAll()
                 .requestMatchers("/api/push/public-key", "/api/v1/push/public-key",
                                  "/api/push/subscribe", "/api/v1/push/subscribe",
                                  "/api/push/unsubscribe", "/api/v1/push/unsubscribe").permitAll()
@@ -79,6 +80,9 @@ public class SecurityConfig {
                 .requestMatchers("/api/saved-books", "/api/saved-books/**", "/api/v1/saved-books", "/api/v1/saved-books/**").authenticated()
                 .requestMatchers("/api/progress", "/api/progress/**", "/api/v1/progress", "/api/v1/progress/**").authenticated()
                 .requestMatchers("/api/v1/me/**", "/api/v1/audio/**").authenticated()
+                .requestMatchers("/media/stream/audio/**", "/api/media/stream/audio/**", "/api/v1/media/stream/audio/**", "/uploads/audio/**").authenticated()
+                .requestMatchers("/api/premium/subscription-requests/**", "/api/v1/premium/subscription-requests/**").authenticated()
+                .requestMatchers("/api/premium/**", "/api/v1/premium/**").authenticated()
 
                 // Admin-only endpoints
                 .requestMatchers(HttpMethod.POST, "/api/books", "/api/books/**", "/api/v1/books", "/api/v1/books/**").hasRole("ADMIN")
