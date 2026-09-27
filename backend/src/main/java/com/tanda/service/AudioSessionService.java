@@ -183,14 +183,16 @@ public class AudioSessionService {
         session.setLastHeartbeatAt(now);
         audioSessionRepository.save(session);
 
-        // Sync reading progress
-        try {
-            readingProgressService.updateProgress(userId, session.getBook().getId(), ReadingProgressRequestDto.builder()
-                    .currentAudioChapterId(session.getChapterId())
-                    .currentAudioTime(dto.getPositionSeconds())
-                    .build());
-        } catch (Exception e) {
-            log.debug("Reading progress sync during heartbeat skipped: {}", e.getMessage());
+        // Sync reading progress (only when position is positive to prevent overwriting saved progress during init/ad)
+        if (dto.getPositionSeconds() != null && dto.getPositionSeconds() > 0) {
+            try {
+                readingProgressService.updateProgress(userId, session.getBook().getId(), ReadingProgressRequestDto.builder()
+                        .currentAudioChapterId(session.getChapterId())
+                        .currentAudioTime(dto.getPositionSeconds())
+                        .build());
+            } catch (Exception e) {
+                log.debug("Reading progress sync during heartbeat skipped: {}", e.getMessage());
+            }
         }
 
         int finalUsed = dailyLimit.getTotalSeconds() != null ? dailyLimit.getTotalSeconds() : 0;
@@ -263,7 +265,7 @@ public class AudioSessionService {
             audioSessionRepository.save(session);
         }
 
-        if (dto != null && dto.getPositionSeconds() != null) {
+        if (dto != null && dto.getPositionSeconds() != null && dto.getPositionSeconds() > 0) {
             try {
                 readingProgressService.updateProgress(userId, session.getBook().getId(), ReadingProgressRequestDto.builder()
                         .currentAudioChapterId(session.getChapterId())

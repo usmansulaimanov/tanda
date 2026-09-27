@@ -45,4 +45,13 @@ public class ReadingProgressController {
         }
         return ResponseEntity.ok(readingProgressService.updateProgress(principal.getId(), bookId, request));
     }
+
+    @org.springframework.web.bind.annotation.PostMapping("/{bookId}")
+    public ResponseEntity<ReadingProgressResponseDto> updateProgressPost(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @PathVariable String bookId,
+            @Valid @RequestBody ReadingProgressRequestDto request
+    ) {
+        return updateProgress(principal, bookId, request);
+    }
 }

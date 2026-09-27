@@ -295,15 +295,25 @@ export const AudioPlayerBar: React.FC = () => {
       const state = useAudioPlayerStore.getState();
       if (state.currentBook && state.progress > 0) {
         const token = localStorage.getItem('tanda_token');
-        if (token && typeof navigator !== 'undefined' && navigator.sendBeacon) {
+        if (token) {
           const apiBase = import.meta.env.VITE_API_URL || 'https://tanda-backend-7lpj.onrender.com';
-          navigator.sendBeacon(
-            `${apiBase}/api/v1/progress/${state.currentBook.id}`,
-            new Blob([JSON.stringify({
-              currentAudioChapterId: state.currentChapter?.id,
-              currentAudioTime: Math.floor(state.progress),
-            })], { type: 'application/json' })
-          );
+          const payload = JSON.stringify({
+            currentAudioChapterId: state.currentChapter?.id,
+            currentAudioTime: Math.floor(state.progress),
+          });
+
+          // 1. Modern keepalive fetch with Authorization header
+          try {
+            fetch(`${apiBase}/api/v1/progress/${state.currentBook.id}`, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+              },
+              body: payload,
+              keepalive: true,
+            }).catch(() => {});
+          } catch {}
         }
       }
     };
