@@ -351,9 +351,11 @@ class AuthServiceTest {
     void updateProfileThrowsIfUsernameLessThan5CharactersForClient() {
         User existingUser = User.builder()
                 .id("user-123")
+                .idNumber("1001")
                 .email("reader@tanda.kz")
                 .role("client")
                 .name("Оқырман")
+                .isActive(true)
                 .build();
 
         when(userRepository.findById("user-123")).thenReturn(Optional.of(existingUser));
@@ -382,13 +384,17 @@ class AuthServiceTest {
     void updateProfileAllows5CharacterUsernameForClient() {
         User existingUser = User.builder()
                 .id("user-123")
+                .idNumber("1001")
                 .email("reader@tanda.kz")
                 .role("client")
                 .name("Оқырман")
+                .isActive(true)
                 .build();
 
         when(userRepository.findById("user-123")).thenReturn(Optional.of(existingUser));
-        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(reservedUsernameService.isReserved("almas")).thenReturn(false);
+        when(userRepository.existsByUsernameIgnoreCase("almas")).thenReturn(false);
 
         com.tanda.dto.auth.UpdateProfileRequestDto request5Chars = com.tanda.dto.auth.UpdateProfileRequestDto.builder()
                 .username("almas")
