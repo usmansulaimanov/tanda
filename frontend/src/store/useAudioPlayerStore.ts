@@ -51,43 +51,64 @@ interface AudioPlayerState {
   closePlayer: () => void;
 }
 
-let syncTimeout: any = null;
+let lastSyncTimeMs = 0;
+let lastSyncedSec = -1;
 
-async function syncProgressNow(bookId: string, chapterId?: string, timeSec?: number) {
+export async function syncProgressNow(bookId: string, chapterId?: string, timeSec?: number) {
   if (typeof window === 'undefined') return;
+  const sec = Math.floor(timeSec || 0);
+
+  // Fast local backup
+  try {
+    localStorage.setItem(`tanda_book_progress_${bookId}`, JSON.stringify({
+      time: sec,
+      chapterId,
+      updatedAt: Date.now(),
+    }));
+  } catch {}
+
   const token = localStorage.getItem('tanda_token');
   if (!token) return;
 
-  if (syncTimeout) {
-    clearTimeout(syncTimeout);
-    syncTimeout = null;
-  }
+  lastSyncTimeMs = Date.now();
+  lastSyncedSec = sec;
 
   try {
     await api.put(`/api/v1/progress/${bookId}`, {
       currentAudioChapterId: chapterId,
-      currentAudioTime: Math.floor(timeSec || 0),
+      currentAudioTime: sec,
     });
   } catch {
     // ignore
   }
 }
 
-function debouncedSyncProgress(bookId: string, chapterId?: string, timeSec?: number) {
+export function throttledSyncProgress(bookId: string, chapterId?: string, timeSec?: number) {
   if (typeof window === 'undefined') return;
-  const token = localStorage.getItem('tanda_token');
-  if (!token) return;
+  const sec = Math.floor(timeSec || 0);
 
-  if (syncTimeout) {
-    clearTimeout(syncTimeout);
+  // Fast local backup on every second
+  try {
+    localStorage.setItem(`tanda_book_progress_${bookId}`, JSON.stringify({
+      time: sec,
+      chapterId,
+      updatedAt: Date.now(),
+    }));
+  } catch {}
+
+  const now = Date.now();
+  // Sync to backend every 3 seconds or on significant position jump (seek)
+  if (now - lastSyncTimeMs >= 3000 || Math.abs(sec - lastSyncedSec) >= 4) {
+    lastSyncTimeMs = now;
+    lastSyncedSec = sec;
+    const token = localStorage.getItem('tanda_token');
+    if (token) {
+      api.put(`/api/v1/progress/${bookId}`, {
+        currentAudioChapterId: chapterId,
+        currentAudioTime: sec,
+      }).catch(() => {});
+    }
   }
-
-  syncTimeout = setTimeout(() => {
-    api.put(`/api/v1/progress/${bookId}`, {
-      currentAudioChapterId: chapterId,
-      currentAudioTime: Math.floor(timeSec || 0),
-    }).catch(() => {});
-  }, 2500);
 }
 
 export function resetRoyaltyTracking() {
@@ -338,6 +359,22 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
             resolvedProgress = get().progress;
             resolvedChapterIndex = get().chapterIndex;
           } else {
+            // 1. Check local backup first for instant restore
+            try {
+              const localSaved = localStorage.getItem(`tanda_book_progress_${book.id}`);
+              if (localSaved) {
+                const parsed = JSON.parse(localSaved);
+                if (parsed && typeof parsed.time === 'number' && parsed.time > 0) {
+                  resolvedProgress = parsed.time;
+                  if (parsed.chapterId) {
+                    const chIdx = chapters.findIndex((c) => c.id === parsed.chapterId);
+                    if (chIdx >= 0) resolvedChapterIndex = chIdx;
+                  }
+                }
+              }
+            } catch {}
+
+            // 2. Fetch from backend API
             try {
               const token = localStorage.getItem('tanda_token');
               if (token) {
@@ -376,7 +413,7 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
 
         useMyBooksStore.getState().markAsReading(book.id);
         startAudioSession(book.id, chapter?.id);
-        debouncedSyncProgress(book.id, chapter?.id, startProgress);
+        syncProgressNow(book.id, chapter?.id, startProgress);
         window.dispatchEvent(new CustomEvent('tanda:audio:seek', { detail: { time: startProgress } }));
       },
 
@@ -404,7 +441,7 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
           });
 
           startAudioSession(currentBook.id, chapter?.id);
-          debouncedSyncProgress(currentBook.id, chapter?.id, startProgress);
+          syncProgressNow(currentBook.id, chapter?.id, startProgress);
           window.dispatchEvent(new CustomEvent('tanda:audio:seek', { detail: { time: startProgress } }));
         }
       },
@@ -531,7 +568,7 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
         set({ progress });
         const { currentBook, currentChapter } = get();
         if (currentBook) {
-          debouncedSyncProgress(currentBook.id, currentChapter?.id, progress);
+          throttledSyncProgress(currentBook.id, currentChapter?.id, progress);
         }
       },
 
