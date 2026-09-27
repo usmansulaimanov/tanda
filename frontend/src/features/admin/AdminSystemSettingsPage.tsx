@@ -300,10 +300,10 @@ export const AdminSystemSettingsPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                Банк (Карта қай банктікі):
+                Банк:
               </label>
               <select
                 value={settings.bankName || 'Kaspi Bank'}
@@ -320,7 +320,7 @@ export const AdminSystemSettingsPage: React.FC = () => {
 
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                Телефон нөмірі (Аударым үшін):
+                Телефон нөмірі:
               </label>
               <input
                 type="text"
@@ -333,7 +333,7 @@ export const AdminSystemSettingsPage: React.FC = () => {
 
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                Банк карта нөмірі:
+                Карта нөмірі:
               </label>
               <input
                 type="text"
@@ -346,7 +346,7 @@ export const AdminSystemSettingsPage: React.FC = () => {
 
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                Алушының аты-жөні:
+                Аты-жөні:
               </label>
               <input
                 type="text"
