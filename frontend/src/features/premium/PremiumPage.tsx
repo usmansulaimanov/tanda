@@ -162,7 +162,7 @@ export const PremiumPage: React.FC = () => {
                 </tr>
                 <tr>
                   <td className="py-4 px-4 font-semibold text-slate-800">Премиум топтама кітаптары</td>
-                  <td className="py-4 px-4 text-center text-slate-400">Тек 15 минуттық үзінді</td>
+                  <td className="py-4 px-4 text-center text-slate-400">Тек тегін үзінді</td>
                   <td className="py-4 px-4 text-center text-emerald-600 font-bold bg-orange-50/30">Толық шектеусіз</td>
                 </tr>
                 <tr>

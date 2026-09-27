@@ -571,7 +571,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
                 <form onSubmit={handleApplyPromo} className="flex gap-2">
                   <input
                     type="text"
-                    placeholder="Промокод бар ма? (мысалы: TANDA30)"
+                    placeholder="Промокод бар ма?"
                     value={promoCodeInput}
                     onChange={(e) => setPromoCodeInput(e.target.value.toUpperCase())}
                     className="flex-1 px-3.5 py-2.5 text-xs font-mono uppercase tracking-wider rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-[#F08000]"

@@ -164,7 +164,7 @@ export const AudioPlayerBar: React.FC = () => {
         ytPlayerRef.current.pauseVideo();
       }
       setProgress(limitSec);
-      setPremiumModalReason(`${limitMinutes} минуттық тегін үзінді аяқталды. Кітаптың жалғасын толық тыңдау үшін Tanda Premium-ге қосылыңыз!`);
+      setPremiumModalReason('Тегін үзінді аяқталды. Кітаптың жалғасын толық тыңдау үшін Tanda Premium-ге қосылыңыз!');
       setShowPremiumModal(true);
       return true;
     }
