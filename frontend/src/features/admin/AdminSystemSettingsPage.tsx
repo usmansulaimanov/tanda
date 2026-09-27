@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { 
   Settings, 
   Volume2, 
@@ -61,6 +62,7 @@ export const AdminSystemSettingsPage: React.FC = () => {
   const [isUploadingAdAudio, setIsUploadingAdAudio] = useState(false);
 
   const { showToast } = useToastStore();
+  const queryClient = useQueryClient();
 
   const formatKaspiPhone = (input: string): string => {
     if (!input) return '';
@@ -142,6 +144,7 @@ export const AdminSystemSettingsPage: React.FC = () => {
         kaspiPhoneEnabled: updated.kaspiPhoneEnabled !== false,
         kaspiCardEnabled: Boolean(updated.kaspiCardEnabled),
       });
+      queryClient.invalidateQueries({ queryKey: ['systemSettings'] });
       showToast('Жүйелік баптаулар сәтті сақталды!', 'success');
     } catch (err: any) {
       showToast(err?.response?.data?.message || 'Баптауларды сақтау кезінде қате орын алды', 'error');

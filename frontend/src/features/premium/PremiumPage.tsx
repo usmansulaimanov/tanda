@@ -1,18 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Crown, Check, ShieldCheck, Sparkles, Clock, Headphones, Gift, BookOpen } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '../../store/useAuthStore';
 import { PremiumModal } from './PremiumModal';
 import { systemApi } from '../../shared/api/system.api';
-import { SystemSettings } from '../../types';
 
 export const PremiumPage: React.FC = () => {
-  const { user, isAuthenticated } = useAuthStore();
-  const [settings, setSettings] = useState<SystemSettings | null>(null);
+  const { user } = useAuthStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  useEffect(() => {
-    systemApi.getSettings().then(setSettings).catch(() => {});
-  }, []);
+  const { data: settings } = useQuery({
+    queryKey: ['systemSettings'],
+    queryFn: systemApi.getSettings,
+    staleTime: 5 * 60 * 1000,
+  });
 
   const isUserPremium = Boolean(user?.isPremium);
 

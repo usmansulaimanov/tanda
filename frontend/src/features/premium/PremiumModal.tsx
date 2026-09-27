@@ -14,6 +14,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import tandaPremiumWhite from '../../assets/tanda-premium-white.png';
+import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '../../store/useAuthStore';
 import { usePromoStore } from '../../store/usePromoStore';
 import { useToastStore } from '../../store/useToastStore';
@@ -37,7 +38,12 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
   const { activatePromoCode } = usePromoStore();
   const { showToast } = useToastStore();
 
-  const [settings, setSettings] = useState<SystemSettings | null>(null);
+  const { data: settings, isLoading: isSettingsLoading } = useQuery({
+    queryKey: ['systemSettings'],
+    queryFn: systemApi.getSettings,
+    staleTime: 5 * 60 * 1000,
+  });
+
   const [selectedPlan, setSelectedPlan] = useState<'1_MONTH' | '3_MONTHS' | '1_YEAR'>('1_MONTH');
   const [phoneOrAccount, setPhoneOrAccount] = useState('');
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
@@ -48,15 +54,6 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
   // Promo code state
   const [promoCodeInput, setPromoCodeInput] = useState('');
   const [isApplyingPromo, setIsApplyingPromo] = useState(false);
-
-  // Load system settings (prices & kaspi details)
-  useEffect(() => {
-    if (isOpen) {
-      systemApi.getSettings()
-        .then((res) => setSettings(res))
-        .catch(() => {});
-    }
-  }, [isOpen]);
 
   const allPlans = useMemo(() => [
     {
@@ -299,7 +296,12 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
             </div>
           </div>
 
-          {isSubmitted ? (
+          {!settings ? (
+            <div className="py-16 flex flex-col items-center justify-center gap-3">
+              <div className="w-8 h-8 border-3 border-[#F08000] border-t-transparent rounded-full animate-spin" />
+              <p className="text-xs text-slate-400 font-medium">Баптаулар мен тарифтер жүктелуде...</p>
+            </div>
+          ) : isSubmitted ? (
             <div className="p-8 rounded-2xl bg-emerald-50 border border-emerald-200 text-center my-4">
               <CheckCircle2 className="w-16 h-16 text-emerald-600 mx-auto mb-3" />
               <h3 className="text-xl font-bold text-emerald-950 mb-1">Төлем чегіңіз қабылданды!</h3>
