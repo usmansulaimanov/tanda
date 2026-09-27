@@ -156,15 +156,19 @@ export const LandingPage: React.FC = () => {
     }
   };
 
-  // Clean any legacy hash from URL so refreshes stay in current scroll position
+  // Handle smooth scroll when navigating to #catalog
   useEffect(() => {
-    if (window.location.hash) {
-      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    if (location.hash === '#catalog' || window.location.hash === '#catalog') {
+      const timer = setTimeout(() => {
+        scrollToCatalog();
+        window.history.replaceState(null, '', window.location.pathname + window.location.search);
+      }, 120);
+      return () => clearTimeout(timer);
     }
     if (books.length === 0) {
       useBookStore.getState().fetchBooks().catch(() => {});
     }
-  }, [books.length]);
+  }, [location.hash, books.length]);
 
   // Active, non-archived books for catalog
   const activeBooks = useMemo(() => {

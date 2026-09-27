@@ -462,17 +462,22 @@ export const Header: React.FC = () => {
                   <a
                     href="/#catalog"
                     onClick={(e) => {
+                      e.preventDefault();
                       if (location.pathname === '/') {
-                        e.preventDefault();
                         const el = document.getElementById('catalog');
                         if (el) {
-                          el.scrollIntoView({ behavior: 'smooth' });
+                          const headerOffset = 70;
+                          const elementPosition = el.getBoundingClientRect().top;
+                          const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+                          window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
                           window.history.replaceState(null, '', '/#catalog');
                         }
+                      } else {
+                        navigate('/#catalog');
                       }
                     }}
                     className={location.pathname === '/' && location.hash === '#catalog' ? 'active' : ''}
-                    style={{ textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}
+                    style={{ textDecoration: 'none', fontSize: '14px', fontWeight: 600, cursor: 'pointer' }}
                   >
                     Кітаптар қоры
                   </a>

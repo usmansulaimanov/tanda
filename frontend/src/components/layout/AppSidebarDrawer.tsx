@@ -512,14 +512,19 @@ export const AppSidebarDrawer: React.FC = () => {
                 href="/#catalog"
                 className={`sidebar-nav-link ${location.pathname === '/' && location.hash === '#catalog' ? 'active' : ''}`}
                 onClick={(e) => {
+                  e.preventDefault();
                   closeSidebar();
                   if (location.pathname === '/') {
-                    e.preventDefault();
                     const el = document.getElementById('catalog');
                     if (el) {
-                      el.scrollIntoView({ behavior: 'smooth' });
+                      const headerOffset = 70;
+                      const elementPosition = el.getBoundingClientRect().top;
+                      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+                      window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
                       window.history.replaceState(null, '', '/#catalog');
                     }
+                  } else {
+                    navigate('/#catalog');
                   }
                 }}
               >
