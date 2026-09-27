@@ -419,7 +419,7 @@ export const AppSidebarDrawer: React.FC = () => {
                 className={`sidebar-nav-link ${location.pathname.startsWith('/admin/subscription-requests') ? 'active' : ''}`}
                 onClick={closeSidebar}
               >
-                <CreditCard className="w-[18px] h-[18px] text-amber-500" />
+                <CreditCard className="w-[18px] h-[18px]" />
                 <span>Премиум төлемдері</span>
               </Link>
 
@@ -428,7 +428,7 @@ export const AppSidebarDrawer: React.FC = () => {
                 className={`sidebar-nav-link ${location.pathname.startsWith('/admin/system-settings') ? 'active' : ''}`}
                 onClick={closeSidebar}
               >
-                <Sliders className="w-[18px] h-[18px] text-indigo-500" />
+                <Sliders className="w-[18px] h-[18px]" />
                 <span>Жүйелік баптаулар</span>
               </Link>
 
