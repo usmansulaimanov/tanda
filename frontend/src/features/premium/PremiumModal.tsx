@@ -285,9 +285,11 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
                   ШЕКСЕУСІЗ
                 </span>
               </div>
-              <p className="text-sm text-slate-500">
-                {initialReason || 'Барлық кітаптарды шектеусіз, жарнамасыз әрі жоғары сапада тыңдаңыз'}
-              </p>
+              {initialReason && (
+                <p className="text-sm text-slate-500">
+                  {initialReason}
+                </p>
+              )}
             </div>
           </div>
 
