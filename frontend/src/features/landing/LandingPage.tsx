@@ -307,7 +307,7 @@ export const LandingPage: React.FC = () => {
               <div
                 className="hero-personal-message"
                 style={{
-                  marginTop: '-20px',
+                  marginTop: '-70px',
                   marginBottom: '20px',
                   maxWidth: '780px',
                   width: '100%',
