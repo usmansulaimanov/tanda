@@ -18,6 +18,10 @@ app:
     secure: true
   cors:
     allowed-origins:
+      - https://tandamen.kz
+      - https://www.tandamen.kz
+      - http://tandamen.kz
+      - http://www.tandamen.kz
       - https://tanda.kz
       - https://www.tanda.kz
       - https://usmansulaimanov.github.io
