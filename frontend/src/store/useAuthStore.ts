@@ -119,7 +119,7 @@ function toAuthorUser(a: any): User {
     idNumber: a.idNumber || undefined,
     avatarUrl: a.avatarUrl || DEFAULT_MANAGER_AVATAR,
     assignedAuthorName: a.assignedAuthorName || a.name || '',
-    assignedBookIds: a.bookIds || a.assignedBookIds || [],
+    assignedBookIds: Array.isArray(a.assignedBookIds) ? a.assignedBookIds : Array.isArray(a.bookIds) ? a.bookIds : [],
     role: 'author',
     isAuthor: true,
     duty: 'Автор',

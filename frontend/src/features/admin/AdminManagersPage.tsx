@@ -217,22 +217,27 @@ export const AdminManagersPage: React.FC = () => {
     );
   }, [assistants, searchQuery]);
 
+  // Filter out deleted books so they don't count towards author stats or appear in assignment
+  const nonDeletedBooks = useMemo(() => {
+    return books.filter((b) => !b.isDeleted && (b as any).status !== 'deleted');
+  }, [books]);
+
   // Unique author names present in the book catalog
   const catalogAuthorNames = useMemo(() => {
     const set = new Set<string>();
-    books.forEach((b) => {
+    nonDeletedBooks.forEach((b) => {
       if (b.author && b.author.trim()) {
         set.add(b.author.trim());
       }
     });
     return Array.from(set).sort();
-  }, [books]);
+  }, [nonDeletedBooks]);
 
   // Authors with filtered search & calculated stats
   const filteredAuthors = useMemo(() => {
     const list = authors.map((author) => {
       const matchName = (author.assignedAuthorName || author.name).toLowerCase().trim();
-      const authorBooks = books.filter((b) => {
+      const authorBooks = nonDeletedBooks.filter((b) => {
         const matchesName = b.author && b.author.toLowerCase().trim() === matchName;
         const matchesId = author.assignedBookIds && author.assignedBookIds.includes(b.id);
         return matchesName || matchesId;
@@ -261,7 +266,7 @@ export const AdminManagersPage: React.FC = () => {
         (a.assignedAuthorName && a.assignedAuthorName.toLowerCase().includes(q)) ||
         (a.idNumber && a.idNumber.toLowerCase().includes(q))
     );
-  }, [authors, books, authorSearchQuery]);
+  }, [authors, nonDeletedBooks, authorSearchQuery]);
 
   const handleOpenCreateModal = () => {
     setEditingManager(null);
@@ -2456,15 +2461,15 @@ export const AdminManagersPage: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => {
-                          const availableIds = books
+                          const availableIds = nonDeletedBooks
                             .filter((b) => {
-                              const isLocked = authors.some(
-                                (a) =>
-                                  a.id !== editingAuthor?.id &&
-                                  (a as any).authorId !== editingAuthor?.id &&
-                                  (a as any).userId !== editingAuthor?.id &&
-                                  a.assignedBookIds?.includes(b.id)
-                              );
+                              const isLocked = authors.some((a) => {
+                                const isCurrent =
+                                  (editingAuthor && (a.id === editingAuthor.id || (a as any).authorId === editingAuthor.id || (a as any).userId === editingAuthor.id)) ||
+                                  ((editingAuthor as any)?.authorId && (a.id === (editingAuthor as any).authorId || (a as any).authorId === (editingAuthor as any).authorId));
+                                if (isCurrent) return false;
+                                return a.assignedBookIds?.includes(b.id);
+                              });
                               return !isLocked;
                             })
                             .map((b) => b.id);
@@ -2506,14 +2511,14 @@ export const AdminManagersPage: React.FC = () => {
                   {(() => {
                     let availableCount = 0;
                     let lockedCount = 0;
-                    books.forEach((b) => {
-                      const isLocked = authors.some(
-                        (a) =>
-                          a.id !== editingAuthor?.id &&
-                          (a as any).authorId !== editingAuthor?.id &&
-                          (a as any).userId !== editingAuthor?.id &&
-                          a.assignedBookIds?.includes(b.id)
-                      );
+                    nonDeletedBooks.forEach((b) => {
+                      const isLocked = authors.some((a) => {
+                        const isCurrent =
+                          (editingAuthor && (a.id === editingAuthor.id || (a as any).authorId === editingAuthor.id || (a as any).userId === editingAuthor.id)) ||
+                          ((editingAuthor as any)?.authorId && (a.id === (editingAuthor as any).authorId || (a as any).authorId === (editingAuthor as any).authorId));
+                        if (isCurrent) return false;
+                        return a.assignedBookIds?.includes(b.id);
+                      });
                       if (isLocked) {
                         lockedCount++;
                       } else {
@@ -2522,7 +2527,7 @@ export const AdminManagersPage: React.FC = () => {
                     });
 
                     const tabs = [
-                      { id: 'all', label: 'Барлығы', count: books.length },
+                      { id: 'all', label: 'Барлығы', count: nonDeletedBooks.length },
                       { id: 'available', label: 'Бос кітаптар', count: availableCount },
                       { id: 'assigned_here', label: 'Таңдалды', count: authorAssignedBookIds.length },
                       { id: 'locked', label: 'Басқалардікі', count: lockedCount },
@@ -2587,15 +2592,15 @@ export const AdminManagersPage: React.FC = () => {
                     }}
                   >
                     {(() => {
-                      const filteredList = books.filter((b) => {
+                      const filteredList = nonDeletedBooks.filter((b) => {
                         const isSelected = authorAssignedBookIds.includes(b.id);
-                        const otherAuthor = authors.find(
-                          (a) =>
-                            a.id !== editingAuthor?.id &&
-                            (a as any).authorId !== editingAuthor?.id &&
-                            (a as any).userId !== editingAuthor?.id &&
-                            a.assignedBookIds?.includes(b.id)
-                        );
+                        const otherAuthor = authors.find((a) => {
+                          const isCurrent =
+                            (editingAuthor && (a.id === editingAuthor.id || (a as any).authorId === editingAuthor.id || (a as any).userId === editingAuthor.id)) ||
+                            ((editingAuthor as any)?.authorId && (a.id === (editingAuthor as any).authorId || (a as any).authorId === (editingAuthor as any).authorId));
+                          if (isCurrent) return false;
+                          return a.assignedBookIds?.includes(b.id);
+                        });
                         const isAssignedToOther = Boolean(otherAuthor);
 
                         if (bookFilterTabInModal === 'available' && (isAssignedToOther || isSelected)) return false;
@@ -2627,13 +2632,13 @@ export const AdminManagersPage: React.FC = () => {
 
                       return filteredList.map((b) => {
                         const isSelected = authorAssignedBookIds.includes(b.id);
-                        const otherAuthor = authors.find(
-                          (a) =>
-                            a.id !== editingAuthor?.id &&
-                            (a as any).authorId !== editingAuthor?.id &&
-                            (a as any).userId !== editingAuthor?.id &&
-                            a.assignedBookIds?.includes(b.id)
-                        );
+                        const otherAuthor = authors.find((a) => {
+                          const isCurrent =
+                            (editingAuthor && (a.id === editingAuthor.id || (a as any).authorId === editingAuthor.id || (a as any).userId === editingAuthor.id)) ||
+                            ((editingAuthor as any)?.authorId && (a.id === (editingAuthor as any).authorId || (a as any).authorId === (editingAuthor as any).authorId));
+                          if (isCurrent) return false;
+                          return a.assignedBookIds?.includes(b.id);
+                        });
                         const isAssignedToOther = Boolean(otherAuthor);
 
                         return (
