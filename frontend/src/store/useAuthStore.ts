@@ -175,10 +175,36 @@ export const formatIdNumberInput = (val: string): string => {
   return `${digits.slice(0, 4)} ${digits.slice(4)}`;
 };
 
+const getStoredUser = (): User | null => {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem('tanda_user');
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+};
+
+export const saveStoredUser = (user: User | null) => {
+  if (typeof window === 'undefined') return;
+  try {
+    if (user) {
+      localStorage.setItem('tanda_user', JSON.stringify(user));
+    } else {
+      localStorage.removeItem('tanda_user');
+    }
+  } catch {}
+};
+
+const storedUser = getStoredUser();
+const storedToken = typeof window !== 'undefined' ? localStorage.getItem('tanda_token') : null;
+const storedRefreshToken = typeof window !== 'undefined' ? localStorage.getItem('tanda_refresh_token') : null;
+const isInitiallyAuthenticated = Boolean(storedUser && (storedToken || storedRefreshToken));
+
 export const useAuthStore = create<AuthState>()((set, get) => ({
-      user: null,
-      role: 'client',
-      isAuthenticated: false,
+      user: storedUser,
+      role: (storedUser?.role as 'admin' | 'client' | 'author') || 'client',
+      isAuthenticated: isInitiallyAuthenticated,
       isAuthInitialized: false,
       isLoading: false,
       authModalOpen: false,
@@ -973,6 +999,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
             avatarUrl: newAvatarUrl || currentUser.avatarUrl,
           };
 
+          saveStoredUser(updatedUser);
           set((state) => ({
             user: updatedUser,
             clients: state.clients.map((u) => (u.id === currentUser.id ? { ...u, ...updatedUser } : u)),
@@ -1003,6 +1030,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
             avatarUrl: avatarUrl || undefined,
           };
 
+          saveStoredUser(updatedUser);
           set((state) => ({
             user: updatedUser,
             clients: state.clients.map((u) => (u.id === currentUser.id ? { ...u, ...updatedUser } : u)),
@@ -1078,6 +1106,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
             localStorage.setItem('tanda_refresh_token', data.refreshToken);
           }
           const normalized = normalizeUser(data.user);
+          saveStoredUser(normalized);
           set({
             user: normalized,
             role: data.user.role as 'admin' | 'client' | 'author',
@@ -1121,6 +1150,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
             localStorage.setItem('tanda_refresh_token', data.refreshToken);
           }
           const normalized = normalizeUser(data.user);
+          saveStoredUser(normalized);
           set({
             user: normalized,
             role: data.user.role as 'admin' | 'client' | 'author',
@@ -1177,6 +1207,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
             localStorage.setItem('tanda_refresh_token', data.refreshToken);
           }
           const normalized = normalizeUser(data.user);
+          saveStoredUser(normalized);
           set({
             user: normalized,
             role: data.user.role as 'admin' | 'client' | 'author',
@@ -1192,6 +1223,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
         const refreshToken = localStorage.getItem('tanda_refresh_token');
         localStorage.removeItem('tanda_token');
         localStorage.removeItem('tanda_refresh_token');
+        saveStoredUser(null);
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new CustomEvent('tanda:logout'));
         }
@@ -1239,10 +1271,12 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
           if (token?.startsWith('mock-')) {
             localStorage.removeItem('tanda_token');
             localStorage.removeItem('tanda_refresh_token');
+            saveStoredUser(null);
           }
           token = await tryRefresh();
           if (!token) {
-            set({ isAuthInitialized: true });
+            saveStoredUser(null);
+            set({ user: null, role: 'client', isAuthenticated: false, isAuthInitialized: true });
             return;
           }
         }
@@ -1250,6 +1284,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
         try {
           const { data } = await api.get('/api/v1/auth/me');
           const normalized = normalizeUser(data);
+          saveStoredUser(normalized);
           set({
             user: normalized,
             role: data.role as 'admin' | 'client' | 'author',
@@ -1270,6 +1305,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
               try {
                 const { data } = await api.get('/api/v1/auth/me');
                 const normalized = normalizeUser(data);
+                saveStoredUser(normalized);
                 set({
                   user: normalized,
                   role: data.role as 'admin' | 'client' | 'author',
@@ -1289,9 +1325,10 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
             }
             localStorage.removeItem('tanda_token');
             localStorage.removeItem('tanda_refresh_token');
+            saveStoredUser(null);
             set({ user: null, role: 'client', isAuthenticated: false, isAuthInitialized: true });
           } else {
-            // Network error (e.g. Render server waking up) - keep tokens intact
+            // Network error - keep cached user session intact for seamless offline UX
             set({ isAuthInitialized: true });
           }
         }
