@@ -95,12 +95,25 @@ export const AudioPlayerPage: React.FC = () => {
     }
   }, [id, books, fetchBookById]);
 
-  // If this book is opened and isn't currently loaded in the player store, start playing it
+  // If this book is opened, ensure player is loaded and preview limit condition is handled
   useEffect(() => {
-    if (book && isAuthenticated && (!currentBook || currentBook.id !== book.id)) {
-      playBook(book);
+    if (book && isAuthenticated) {
+      if (!currentBook || currentBook.id !== book.id) {
+        playBook(book);
+      } else {
+        const isExempt = isUserExemptFromPremium();
+        if (book.isFree === false && !isExempt) {
+          const limitMinutes = (book.previewDurationMinutes && book.previewDurationMinutes > 0)
+            ? book.previewDurationMinutes
+            : 15;
+          const limitSec = limitMinutes * 60;
+          if (progress >= limitSec) {
+            playBook(book, 0, 0);
+          }
+        }
+      }
     }
-  }, [book, isAuthenticated, currentBook, playBook]);
+  }, [book, isAuthenticated, currentBook?.id]);
 
   // Close menus when clicking outside
   useEffect(() => {

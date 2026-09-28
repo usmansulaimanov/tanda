@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import * as XLSX from 'xlsx';
+import { Crown } from 'lucide-react';
 import { useAuthStore } from '../../store/useAuthStore';
+import { usePromoStore } from '../../store/usePromoStore';
 import { useToastStore } from '../../store/useToastStore';
 import { User, DeletedUserArchive } from '../../types';
 import { hasAdminPermission } from '../../utils/permissions';
@@ -10,6 +12,7 @@ import { readersApi } from '../../shared/api/readers.api';
 export const ReadersPage: React.FC = () => {
   const navigate = useNavigate();
   const { clients, user, role, isAuthInitialized, toggleBlockUser, fetchClients, deleteUser } = useAuthStore();
+  const { promocodes, fetchPromoCodes } = usePromoStore();
   const { showToast } = useToastStore();
 
   const canViewReaders = hasAdminPermission(user, 'readers_view');
@@ -27,6 +30,8 @@ export const ReadersPage: React.FC = () => {
   const [readers, setReaders] = useState<User[]>(() => clients || []);
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [subscriptionFilter, setSubscriptionFilter] = useState<'all' | 'premium' | 'standard' | 'promo'>('all');
+  const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'alphabetical'>('newest');
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [userToBlock, setUserToBlock] = useState<User | null>(null);
   const [previewAvatarUser, setPreviewAvatarUser] = useState<User | null>(null);
@@ -84,39 +89,87 @@ export const ReadersPage: React.FC = () => {
     }
   }, [clients]);
 
-  // Fetch readers once auth is initialized
+  // Fetch readers and promo codes once auth is initialized
   useEffect(() => {
     if (isAuthInitialized && role === 'admin' && canViewReaders) {
       fetchReaders();
+      fetchPromoCodes();
     }
-  }, [isAuthInitialized, role, canViewReaders]);
+  }, [isAuthInitialized, role, canViewReaders, fetchPromoCodes]);
 
-  // Apply search query
+  const promoUserIds = useMemo(() => {
+    const set = new Set<string>();
+    (promocodes || []).forEach((p) => {
+      (p.usedBy || []).forEach((u) => {
+        if (u.userId) set.add(u.userId);
+      });
+    });
+    return set;
+  }, [promocodes]);
+
+  const premiumCount = useMemo(() => readers.filter((r) => Boolean(r.isPremium)).length, [readers]);
+  const standardCount = useMemo(() => readers.filter((r) => !r.isPremium).length, [readers]);
+  const promoCount = useMemo(() => readers.filter((r) => promoUserIds.has(r.id)).length, [readers, promoUserIds]);
+
+  // Apply search query, subscription/promo filters, and sorting
   const filteredReaders = useMemo(() => {
-    if (!searchQuery.trim()) return readers;
-    const q = searchQuery.toLowerCase().trim();
-    const cleanQ = q.replace(/[\s\-_:]+/g, '').replace(/^id/i, '');
+    let list = [...readers];
 
-    return readers.filter((r) => {
-      const name = (r.name || '').toLowerCase();
-      const email = (r.email || '').toLowerCase();
-      const rawIdNum = (r.idNumber || '').toLowerCase();
-      const cleanIdNum = rawIdNum.replace(/[\s\-_:]+/g, '').replace(/^id/i, '');
-      const rawUserId = (r.id || '').toLowerCase();
+    // 1. Text Search Filter
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      const cleanQ = q.replace(/[\s\-_:]+/g, '').replace(/^id/i, '');
 
-      if (name.includes(q) || email.includes(q) || rawIdNum.includes(q) || rawUserId.includes(q)) {
-        return true;
-      }
+      list = list.filter((r) => {
+        const name = (r.name || '').toLowerCase();
+        const email = (r.email || '').toLowerCase();
+        const rawIdNum = (r.idNumber || '').toLowerCase();
+        const cleanIdNum = rawIdNum.replace(/[\s\-_:]+/g, '').replace(/^id/i, '');
+        const rawUserId = (r.id || '').toLowerCase();
 
-      if (cleanQ.length > 0 && cleanIdNum.length > 0) {
-        if (cleanIdNum.includes(cleanQ) || cleanQ.includes(cleanIdNum)) {
+        if (name.includes(q) || email.includes(q) || rawIdNum.includes(q) || rawUserId.includes(q)) {
           return true;
         }
-      }
 
-      return false;
-    });
-  }, [readers, searchQuery]);
+        if (cleanQ.length > 0 && cleanIdNum.length > 0) {
+          if (cleanIdNum.includes(cleanQ) || cleanQ.includes(cleanIdNum)) {
+            return true;
+          }
+        }
+
+        return false;
+      });
+    }
+
+    // 2. Subscription / Promo Status Filter
+    if (subscriptionFilter === 'premium') {
+      list = list.filter((r) => Boolean(r.isPremium));
+    } else if (subscriptionFilter === 'standard') {
+      list = list.filter((r) => !r.isPremium);
+    } else if (subscriptionFilter === 'promo') {
+      list = list.filter((r) => promoUserIds.has(r.id));
+    }
+
+    // 3. Sorting
+    if (sortBy === 'alphabetical') {
+      list.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'kk'));
+    } else if (sortBy === 'oldest') {
+      list.sort((a, b) => {
+        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return dateA - dateB;
+      });
+    } else {
+      // 'newest' (default)
+      list.sort((a, b) => {
+        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return dateB - dateA;
+      });
+    }
+
+    return list;
+  }, [readers, searchQuery, subscriptionFilter, sortBy, promoUserIds]);
 
   // Apply search query to archives
   const filteredArchives = useMemo(() => {
@@ -135,10 +188,10 @@ export const ReadersPage: React.FC = () => {
   const activeCount = activeTab === 'active' ? filteredReaders.length : filteredArchives.length;
   const totalPages = Math.max(1, Math.ceil(activeCount / pageSize));
 
-  // Reset to page 1 on search change
+  // Reset to page 1 on search, tab, filter, or sort change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, activeTab]);
+  }, [searchQuery, activeTab, subscriptionFilter, sortBy]);
 
   // Ensure current page is within total pages bounds
   useEffect(() => {
@@ -454,7 +507,7 @@ export const ReadersPage: React.FC = () => {
           </div>
 
           {/* Tabs: Active Readers vs Deleted Archives */}
-          <div style={{ display: 'flex', gap: '8px', borderBottom: '1.5px solid #E2E8F0', marginBottom: '20px' }}>
+          <div style={{ display: 'flex', gap: '8px', borderBottom: '1.5px solid #E2E8F0', marginBottom: '16px' }}>
             <button
               type="button"
               onClick={() => setActiveTab('active')}
@@ -475,7 +528,7 @@ export const ReadersPage: React.FC = () => {
             >
               <span>Белсенді оқырмандар</span>
               <span style={{ fontSize: '12px', background: activeTab === 'active' ? 'rgba(0, 84, 148, 0.1)' : '#F1F5F9', color: activeTab === 'active' ? 'var(--blue)' : '#64748B', padding: '2px 8px', borderRadius: '12px', fontWeight: 700 }}>
-                {readers.length}
+                {filteredReaders.length}
               </span>
             </button>
 
@@ -504,6 +557,133 @@ export const ReadersPage: React.FC = () => {
             </button>
           </div>
 
+          {/* Quick Filter & Sort Controls for Active Readers */}
+          {activeTab === 'active' && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '12px',
+                marginBottom: '18px',
+                flexWrap: 'wrap',
+                background: '#F8FAFC',
+                padding: '12px 16px',
+                borderRadius: '14px',
+                border: '1.5px solid #E2E8F0',
+              }}
+            >
+              {/* Category Filter Pills */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '12px', fontWeight: 800, color: '#64748B', marginRight: '4px' }}>
+                  Сүзгі:
+                </span>
+
+                <button
+                  type="button"
+                  onClick={() => setSubscriptionFilter('all')}
+                  style={{
+                    padding: '5px 12px',
+                    borderRadius: '20px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    border: subscriptionFilter === 'all' ? '1.5px solid var(--blue)' : '1px solid #CBD5E1',
+                    background: subscriptionFilter === 'all' ? 'var(--blue)' : '#FFFFFF',
+                    color: subscriptionFilter === 'all' ? '#FFFFFF' : '#475569',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  Барлығы: {readers.length}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setSubscriptionFilter('premium')}
+                  style={{
+                    padding: '5px 12px',
+                    borderRadius: '20px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    border: subscriptionFilter === 'premium' ? '1.5px solid #F08000' : '1px solid #CBD5E1',
+                    background: subscriptionFilter === 'premium' ? '#F08000' : '#FFFFFF',
+                    color: subscriptionFilter === 'premium' ? '#FFFFFF' : '#475569',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                  }}
+                >
+                  <Crown style={{ width: '12px', height: '12px' }} />
+                  <span>Премиумы барлар: {premiumCount}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setSubscriptionFilter('standard')}
+                  style={{
+                    padding: '5px 12px',
+                    borderRadius: '20px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    border: subscriptionFilter === 'standard' ? '1.5px solid #0284C7' : '1px solid #CBD5E1',
+                    background: subscriptionFilter === 'standard' ? '#0284C7' : '#FFFFFF',
+                    color: subscriptionFilter === 'standard' ? '#FFFFFF' : '#475569',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  Стандарт: {standardCount}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setSubscriptionFilter('promo')}
+                  style={{
+                    padding: '5px 12px',
+                    borderRadius: '20px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    border: subscriptionFilter === 'promo' ? '1.5px solid #7C3AED' : '1px solid #CBD5E1',
+                    background: subscriptionFilter === 'promo' ? '#7C3AED' : '#FFFFFF',
+                    color: subscriptionFilter === 'promo' ? '#FFFFFF' : '#475569',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  Промокод арқылы: {promoCount}
+                </button>
+              </div>
+
+              {/* Sort Selector */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '12px', fontWeight: 800, color: '#64748B' }}>
+                  Сұрыптау:
+                </span>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as 'newest' | 'oldest' | 'alphabetical')}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: '8px',
+                    border: '1.5px solid #CBD5E1',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    color: '#0F172A',
+                    background: '#FFFFFF',
+                    outline: 'none',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <option value="newest">Соңғы тіркелгендер</option>
+                  <option value="oldest">Кім бірінші тіркелді</option>
+                  <option value="alphabetical">Алфавит бойынша (А-Я)</option>
+                </select>
+              </div>
+            </div>
+          )}
+
           {/* Table Container */}
           {activeTab === 'active' ? (
             <div style={{ overflowX: 'auto' }}>
@@ -515,7 +695,7 @@ export const ReadersPage: React.FC = () => {
                     <th>Аты-жөні</th>
                     <th>Электрондық поштасы</th>
                     <th style={{ width: '130px', whiteSpace: 'nowrap' }}>Тіркелген күні</th>
-                    <th style={{ width: '120px', whiteSpace: 'nowrap' }}>Мәртебесі</th>
+                    <th style={{ width: '130px', whiteSpace: 'nowrap' }}>Мәртебесі</th>
                     <th style={{ width: '240px', textAlign: 'right', whiteSpace: 'nowrap' }}>Әрекеттер</th>
                   </tr>
                 </thead>
@@ -606,41 +786,79 @@ export const ReadersPage: React.FC = () => {
 
                       {/* Status */}
                       <td>
-                        {isBlocked ? (
-                          <span
-                            style={{
-                              fontSize: '11px',
-                              fontWeight: 700,
-                              padding: '2px 8px',
-                              borderRadius: '20px',
-                              background: '#FEE2E2',
-                              color: '#991B1B',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                            }}
-                          >
-                            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#EF4444' }}></span>
-                            Блокталған
-                          </span>
-                        ) : (
-                          <span
-                            style={{
-                              fontSize: '11px',
-                              fontWeight: 700,
-                              padding: '2px 8px',
-                              borderRadius: '20px',
-                              background: '#D1FAE5',
-                              color: '#047857',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                            }}
-                          >
-                            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10B981' }}></span>
-                            Оқырман
-                          </span>
-                        )}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-start' }}>
+                          {isBlocked ? (
+                            <span
+                              style={{
+                                fontSize: '11px',
+                                fontWeight: 700,
+                                padding: '2px 8px',
+                                borderRadius: '20px',
+                                background: '#FEE2E2',
+                                color: '#991B1B',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                              }}
+                            >
+                              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#EF4444' }}></span>
+                              Блокталған
+                            </span>
+                          ) : reader.isPremium ? (
+                            <span
+                              style={{
+                                fontSize: '11px',
+                                fontWeight: 800,
+                                padding: '2px 8px',
+                                borderRadius: '20px',
+                                background: '#FEF3C7',
+                                color: '#92400E',
+                                border: '1px solid #FDE68A',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                              }}
+                            >
+                              <Crown style={{ width: '12px', height: '12px', color: '#D97706' }} />
+                              Премиум
+                            </span>
+                          ) : (
+                            <span
+                              style={{
+                                fontSize: '11px',
+                                fontWeight: 700,
+                                padding: '2px 8px',
+                                borderRadius: '20px',
+                                background: '#D1FAE5',
+                                color: '#047857',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                              }}
+                            >
+                              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10B981' }}></span>
+                              Стандарт
+                            </span>
+                          )}
+
+                          {promoUserIds.has(reader.id) && (
+                            <span
+                              style={{
+                                fontSize: '10px',
+                                fontWeight: 700,
+                                padding: '1px 6px',
+                                borderRadius: '12px',
+                                background: '#EDE9FE',
+                                color: '#6D28D9',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '3px',
+                              }}
+                            >
+                              Промокод
+                            </span>
+                          )}
+                        </div>
                       </td>
 
                       {/* Actions */}

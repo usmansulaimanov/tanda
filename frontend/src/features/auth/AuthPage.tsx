@@ -255,6 +255,8 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialMode }) => {
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
+                      onInvalid={(e) => (e.target as HTMLInputElement).setCustomValidity('Бұл өрісті толтырыңыз')}
+                      onInput={(e) => (e.target as HTMLInputElement).setCustomValidity('')}
                       placeholder="example@gmail.com немесе +7 (777)..."
                       className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-[#0057A8] focus:ring-4 focus:ring-[#0057A8]/10 transition-all"
                     />
@@ -275,6 +277,8 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialMode }) => {
                       required
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
+                      onInvalid={(e) => (e.target as HTMLInputElement).setCustomValidity('Бұл өрісті толтырыңыз')}
+                      onInput={(e) => (e.target as HTMLInputElement).setCustomValidity('')}
                       placeholder="••••••••"
                       className="w-full pl-10 pr-11 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-[#0057A8] focus:ring-4 focus:ring-[#0057A8]/10 transition-all"
                     />

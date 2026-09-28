@@ -907,11 +907,9 @@ export const AdminHomePage: React.FC = () => {
               >
                 <CreditCard className="w-5 h-5" />
               </div>
-              {pendingSubscriptionCount > 0 && (
-                <span style={{ fontSize: '12.5px', fontWeight: 800, color: '#C2410C', background: '#FFEDD5', padding: '4px 10px', borderRadius: '20px' }}>
-                  +{pendingSubscriptionCount} жаңа
-                </span>
-              )}
+              <span style={{ fontSize: '12.5px', fontWeight: 800, color: pendingSubscriptionCount > 0 ? '#C2410C' : '#64748B', background: pendingSubscriptionCount > 0 ? '#FFEDD5' : '#F1F5F9', padding: '4px 10px', borderRadius: '20px' }}>
+                {pendingSubscriptionCount > 0 ? `+${pendingSubscriptionCount} жаңа` : '0'}
+              </span>
             </div>
             <div>
               <div style={{ fontSize: '16px', fontWeight: 700, color: '#1E293B', marginBottom: '4px' }}>

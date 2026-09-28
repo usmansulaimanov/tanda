@@ -15,6 +15,8 @@ import { useAudioPlayerStore } from '../../store/useAudioPlayerStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useBookStore } from '../../store/useBookStore';
 import { ErrorBoundary } from '../common/ErrorBoundary';
+import { PWAInstallBanner } from './PWAInstallBanner';
+
 
 export const Layout: React.FC = () => {
   const { currentBook } = useAudioPlayerStore();
@@ -57,6 +59,7 @@ export const Layout: React.FC = () => {
       <ToastContainer />
       {!isAuthorOrStaff && <QuoteNotificationPopup />}
       <MessageNotificationPopup />
+      {!isAuthorOrStaff && <PWAInstallBanner />}
     </div>
   );
 };

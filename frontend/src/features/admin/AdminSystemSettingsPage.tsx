@@ -408,18 +408,81 @@ export const AdminSystemSettingsPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Quick Presets Selection */}
+          {/* Quick Presets Selection & Individual Editing */}
           <div className="mb-5">
             <label className="block text-xs font-bold text-slate-700 mb-2">
               Дайын нұсқалар:
             </label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              {HEADER_BANNER_PRESETS.map((preset) => {
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {presets.map((preset) => {
+                const isEditing = editingPresetId === preset.id;
                 const isSelected = settings.headerBannerText === preset.text;
+
+                if (isEditing) {
+                  return (
+                    <div
+                      key={preset.id}
+                      className="p-3.5 rounded-2xl border-2 border-[#F08000] bg-orange-50/40 space-y-2.5 shadow-sm"
+                    >
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                          Нұсқа атауы:
+                        </label>
+                        <input
+                          type="text"
+                          value={presetEditForm.title}
+                          onChange={(e) => setPresetEditForm({ ...presetEditForm, title: e.target.value })}
+                          className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-300 focus:outline-none focus:border-[#F08000] bg-white text-slate-900"
+                          placeholder="Мысалы: 1-нұсқа: Негізгі"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                          Баннер мәтіні:
+                        </label>
+                        <textarea
+                          rows={2}
+                          value={presetEditForm.text}
+                          onChange={(e) => setPresetEditForm({ ...presetEditForm, text: e.target.value })}
+                          className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-300 focus:outline-none focus:border-[#F08000] bg-white text-slate-900 leading-relaxed"
+                          placeholder="Баннердің негізгі мәтіні..."
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                          Батырма мәтіні:
+                        </label>
+                        <input
+                          type="text"
+                          value={presetEditForm.buttonText}
+                          onChange={(e) => setPresetEditForm({ ...presetEditForm, buttonText: e.target.value })}
+                          className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-300 focus:outline-none focus:border-[#F08000] bg-white text-slate-900"
+                          placeholder="Мысалы: Премиумға жазылу →"
+                        />
+                      </div>
+                      <div className="flex items-center justify-end gap-2 pt-1">
+                        <button
+                          type="button"
+                          onClick={(e) => handleCancelEditPreset(e)}
+                          className="px-3 py-1 text-xs font-bold text-slate-600 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg transition"
+                        >
+                          Болдырмау
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => handleSavePresetEdit(e, preset.id)}
+                          className="px-3 py-1 text-xs font-bold text-white bg-[#F08000] hover:bg-[#c06800] rounded-lg shadow-sm transition"
+                        >
+                          Дайын
+                        </button>
+                      </div>
+                    </div>
+                  );
+                }
+
                 return (
-                  <button
+                  <div
                     key={preset.id}
-                    type="button"
                     onClick={() => {
                       setSettings((prev) => ({
                         ...prev,
@@ -428,22 +491,43 @@ export const AdminSystemSettingsPage: React.FC = () => {
                       }));
                       showToast(`«${preset.title}» мәтіні таңдалды`, 'info');
                     }}
-                    className={`p-3 rounded-2xl text-left border transition flex items-start justify-between gap-2 ${
+                    className={`group relative p-3.5 rounded-2xl text-left border transition cursor-pointer flex flex-col justify-between ${
                       isSelected
                         ? 'border-[#F08000] bg-orange-50/60 ring-2 ring-[#F08000]/20'
-                        : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                        : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50 bg-white'
                     }`}
                   >
                     <div>
-                      <div className="text-xs font-bold text-slate-900 mb-0.5">{preset.title}</div>
-                      <div className="text-[11px] text-slate-600 line-clamp-2 leading-relaxed">{preset.text}</div>
+                      <div className="flex items-center justify-between gap-2 mb-1.5">
+                        <span className="text-xs font-bold text-slate-900">{preset.title}</span>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            title="Өңдеу"
+                            onClick={(e) => handleStartEditPreset(e, preset)}
+                            className="px-2 py-0.5 rounded-md text-[11px] font-semibold text-slate-500 hover:text-[#F08000] hover:bg-orange-100/70 border border-slate-200 hover:border-orange-300 transition flex items-center gap-1"
+                          >
+                            <Pencil className="w-3 h-3" />
+                            <span>Өңдеу</span>
+                          </button>
+                          {isSelected && (
+                            <span className="w-5 h-5 rounded-full bg-[#F08000] text-white flex items-center justify-center text-[10px] shrink-0">
+                              <Check className="w-3 h-3" />
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <p className="text-[11px] text-slate-600 line-clamp-2 leading-relaxed mb-1.5">
+                        {preset.text}
+                      </p>
                     </div>
-                    {isSelected && (
-                      <span className="shrink-0 w-5 h-5 rounded-full bg-[#F08000] text-white flex items-center justify-center text-[10px]">
-                        <Check className="w-3 h-3" />
-                      </span>
+
+                    {preset.buttonText && (
+                      <div className="text-[10px] font-medium text-slate-400 truncate mt-1">
+                        Батырма: <span className="font-semibold text-slate-600">{preset.buttonText}</span>
+                      </div>
                     )}
-                  </button>
+                  </div>
                 );
               })}
             </div>
@@ -665,23 +749,6 @@ export const AdminSystemSettingsPage: React.FC = () => {
                 }}
                 className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none font-bold bg-white disabled:bg-slate-100 disabled:text-slate-400"
               />
-              <div className="mt-2.5 pt-2 border-t border-orange-200/50">
-                <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                  Бұрынғы бағасы (сызылып тұрады):
-                </label>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  placeholder="Мысалы: 2990"
-                  disabled={settings.plan1MonthEnabled === false}
-                  value={settings.oldPrice1Month === null || settings.oldPrice1Month === 0 ? '' : settings.oldPrice1Month}
-                  onChange={(e) => {
-                    const digits = e.target.value.replace(/\D/g, '');
-                    setSettings({ ...settings, oldPrice1Month: digits ? parseInt(digits, 10) : null });
-                  }}
-                  className="w-full px-3 py-1.5 text-xs rounded-xl border border-slate-200 focus:outline-none bg-white text-slate-700 disabled:bg-slate-100 disabled:text-slate-400"
-                />
-              </div>
             </div>
 
             {/* 3 Months */}
@@ -711,23 +778,6 @@ export const AdminSystemSettingsPage: React.FC = () => {
                 }}
                 className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none font-bold bg-white disabled:bg-slate-100 disabled:text-slate-400"
               />
-              <div className="mt-2.5 pt-2 border-t border-orange-200/50">
-                <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                  Бұрынғы бағасы (сызылып тұрады):
-                </label>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  placeholder="Мысалы: 5990"
-                  disabled={settings.plan3MonthsEnabled === false}
-                  value={settings.oldPrice3Months === null || settings.oldPrice3Months === 0 ? '' : settings.oldPrice3Months}
-                  onChange={(e) => {
-                    const digits = e.target.value.replace(/\D/g, '');
-                    setSettings({ ...settings, oldPrice3Months: digits ? parseInt(digits, 10) : null });
-                  }}
-                  className="w-full px-3 py-1.5 text-xs rounded-xl border border-slate-200 focus:outline-none bg-white text-slate-700 disabled:bg-slate-100 disabled:text-slate-400"
-                />
-              </div>
             </div>
 
             {/* 1 Year */}
@@ -757,23 +807,6 @@ export const AdminSystemSettingsPage: React.FC = () => {
                 }}
                 className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none font-bold bg-white disabled:bg-slate-100 disabled:text-slate-400"
               />
-              <div className="mt-2.5 pt-2 border-t border-orange-200/50">
-                <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                  Бұрынғы бағасы (сызылып тұрады):
-                </label>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  placeholder="Мысалы: 17990"
-                  disabled={settings.plan1YearEnabled === false}
-                  value={settings.oldPrice1Year === null || settings.oldPrice1Year === 0 ? '' : settings.oldPrice1Year}
-                  onChange={(e) => {
-                    const digits = e.target.value.replace(/\D/g, '');
-                    setSettings({ ...settings, oldPrice1Year: digits ? parseInt(digits, 10) : null });
-                  }}
-                  className="w-full px-3 py-1.5 text-xs rounded-xl border border-slate-200 focus:outline-none bg-white text-slate-700 disabled:bg-slate-100 disabled:text-slate-400"
-                />
-              </div>
             </div>
           </div>
 

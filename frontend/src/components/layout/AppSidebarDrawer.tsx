@@ -15,6 +15,8 @@ import tandaPremiumWhite from '../../assets/tanda-premium-white.png';
 import { Crown, CreditCard, Sliders } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { premiumApi } from '../../shared/api/premium.api';
+import { PWAInstallSidebarCard } from './PWAInstallBanner';
+
 
 export const AppSidebarDrawer: React.FC = () => {
   const { isOpen, closeSidebar } = useSidebarStore();
@@ -34,7 +36,6 @@ export const AppSidebarDrawer: React.FC = () => {
       return 0;
     }
   });
-  const [showLogoutConfirm, setShowLogoutConfirm] = React.useState(false);
 
   const unreadMessagesCount = React.useMemo(() => {
     if (!user) return 0;
@@ -434,11 +435,9 @@ export const AppSidebarDrawer: React.FC = () => {
               >
                 <CreditCard className="w-[18px] h-[18px]" />
                 <span>Премиум төлемдері</span>
-                {pendingSubscriptionCount > 0 && (
-                  <span className="sidebar-badge orange">
-                    {pendingSubscriptionCount}
-                  </span>
-                )}
+                <span className={`sidebar-badge ${pendingSubscriptionCount > 0 ? 'orange' : ''}`}>
+                  {pendingSubscriptionCount}
+                </span>
               </Link>
 
               <Link
@@ -635,159 +634,10 @@ export const AppSidebarDrawer: React.FC = () => {
               )}
             </div>
           )}
-
-          {/* Quick Stats for Admin */}
-          {role === 'admin' && (
-            <div className="sidebar-stats-widget">
-              <div className="sidebar-stats-title">Қор статистикасы</div>
-              <div className="sidebar-stats-grid">
-                <div className="sidebar-stat-cell">
-                  <span className="stat-name">Барлығы</span>
-                  <span className="stat-val">{nonDeletedBooksCount}</span>
-                </div>
-                <div className="sidebar-stat-cell">
-                  <span className="stat-name">Аудио</span>
-                  <span className="stat-val">{audioBooksCount}</span>
-                </div>
-                <div className="sidebar-stat-cell">
-                  <span className="stat-name">Белсенді</span>
-                  <span className="stat-val text-green">{activeBooksCount}</span>
-                </div>
-                <div className="sidebar-stat-cell">
-                  <span className="stat-name">Архивте</span>
-                  <span className="stat-val text-slate">{archivedBooksCount}</span>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
-
-        {/* Drawer Footer */}
-        <div className="sidebar-drawer-footer">
-          {isAuthenticated ? (
-            <button
-              type="button"
-              className="sidebar-logout-btn"
-              onClick={() => setShowLogoutConfirm(true)}
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                <polyline points="16 17 21 12 16 7"></polyline>
-                <line x1="21" y1="12" x2="9" y2="12"></line>
-              </svg>
-              Аккаунттан шығу
-            </button>
-          ) : (
-            <div style={{ textAlign: 'center', fontSize: '12px', color: '#64748B' }}>
-              Tanda &bull; Таңдаулы қазақша кітаптар қоры
-            </div>
-          )}
-        </div>
+        <PWAInstallSidebarCard />
       </div>
-
-      {/* Logout Confirmation Modal */}
-      {showLogoutConfirm && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(15, 23, 42, 0.65)',
-            backdropFilter: 'blur(4px)',
-            zIndex: 999999,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '20px',
-          }}
-          onClick={() => setShowLogoutConfirm(false)}
-        >
-          <div
-            style={{
-              background: '#FFFFFF',
-              borderRadius: '24px',
-              maxWidth: '400px',
-              width: '100%',
-              padding: '28px',
-              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.25)',
-              textAlign: 'center',
-              color: '#0F172A',
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div
-              style={{
-                width: '56px',
-                height: '56px',
-                borderRadius: '50%',
-                background: '#FEE2E2',
-                color: '#DC2626',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '0 auto 16px',
-              }}
-            >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                <polyline points="16 17 21 12 16 7"></polyline>
-                <line x1="21" y1="12" x2="9" y2="12"></line>
-              </svg>
-            </div>
-
-            <h3 style={{ fontSize: '18px', fontWeight: 900, color: '#0F172A', margin: '0 0 8px' }}>
-              Аккаунттан шығу
-            </h3>
-            <p style={{ fontSize: '13.5px', color: '#64748B', lineHeight: '1.5', margin: '0 0 24px' }}>
-              Сіз шынымен өз аккаунтыңыздан шыққыңыз келе ме?
-            </p>
-
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <button
-                type="button"
-                onClick={() => setShowLogoutConfirm(false)}
-                style={{
-                  flex: 1,
-                  padding: '11px',
-                  borderRadius: '12px',
-                  border: '1.5px solid #CBD5E1',
-                  background: '#FFFFFF',
-                  color: '#475569',
-                  fontSize: '13.5px',
-                  fontWeight: 800,
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                }}
-              >
-                Бас тарту
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowLogoutConfirm(false);
-                  logout();
-                  closeSidebar();
-                  navigate('/', { replace: true });
-                }}
-                style={{
-                  flex: 1,
-                  padding: '11px',
-                  borderRadius: '12px',
-                  border: 'none',
-                  background: '#DC2626',
-                  color: '#FFFFFF',
-                  fontSize: '13.5px',
-                  fontWeight: 800,
-                  cursor: 'pointer',
-                  boxShadow: '0 4px 12px rgba(220, 38, 38, 0.25)',
-                  transition: 'all 0.15s ease',
-                }}
-              >
-                Шығу
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
+
   );
 };

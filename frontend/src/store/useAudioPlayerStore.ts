@@ -34,7 +34,7 @@ interface AudioPlayerState {
   checkDailyLimit: () => Promise<boolean>;
 
   playBook: (book: Book, chapterIndex?: number, initialProgress?: number) => Promise<void> | void;
-  playChapter: (index: number) => void;
+  playChapter: (index: number, explicitProgress?: number) => void;
   setIsPlaying: (isPlaying: boolean) => void;
   togglePlay: () => void;
   pause: () => void;
@@ -554,10 +554,19 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
           }
         }
 
-        // If not exempt on premium book, always clamp chapter to 0
-        if (book.isFree === false && !isExempt && resolvedChapterIndex > 0) {
-          resolvedChapterIndex = 0;
-          resolvedProgress = 0;
+        // If not exempt on premium book, enforce preview constraints
+        if (book.isFree === false && !isExempt) {
+          if (resolvedChapterIndex > 0) {
+            resolvedChapterIndex = 0;
+            resolvedProgress = 0;
+          }
+          const limitMinutes = (book.previewDurationMinutes && book.previewDurationMinutes > 0)
+            ? book.previewDurationMinutes
+            : 15;
+          const limitSec = limitMinutes * 60;
+          if (resolvedProgress >= limitSec) {
+            resolvedProgress = 0;
+          }
         }
 
         const chapter = chapters[resolvedChapterIndex] || chapters[0] || null;
@@ -590,7 +599,7 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
         window.dispatchEvent(new CustomEvent('tanda:audio:seek', { detail: { time: startProgress } }));
       },
 
-      playChapter: (index) => {
+      playChapter: (index, explicitProgress) => {
         if (get().isDailyLimitReached) {
           set({ showDailyLimitModal: true, isPlaying: false });
           return;
@@ -620,21 +629,25 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
           const defaultStart = !hasOwnAudio ? getChapterStartTime(chapters, index) : 0;
           const chapterDur = chapter.duration ? parseDurationToSeconds(chapter.duration) : 180;
 
-          // Check if there is saved progress for this chapter
-          const savedTime = getSavedChapterProgress(currentBook.id, chapter.id, index);
           let startProgress = defaultStart;
 
-          if (savedTime !== null && savedTime !== undefined && savedTime > 0) {
-            if (hasOwnAudio) {
-              if (savedTime < chapterDur) {
-                startProgress = savedTime;
-              }
-            } else {
-              // Virtual chapter continuous audio: check if savedTime is within this chapter's range
-              if (savedTime >= defaultStart && savedTime < defaultStart + chapterDur) {
-                startProgress = savedTime;
-              } else if (savedTime >= 0 && savedTime < chapterDur) {
-                startProgress = defaultStart + savedTime;
+          if (explicitProgress !== undefined) {
+            startProgress = hasOwnAudio ? explicitProgress : (defaultStart + explicitProgress);
+          } else {
+            // Check if there is saved progress for this chapter
+            const savedTime = getSavedChapterProgress(currentBook.id, chapter.id, index);
+            if (savedTime !== null && savedTime !== undefined && savedTime > 0) {
+              if (hasOwnAudio) {
+                if (savedTime < chapterDur) {
+                  startProgress = savedTime;
+                }
+              } else {
+                // Virtual chapter continuous audio: check if savedTime is within this chapter's range
+                if (savedTime >= defaultStart && savedTime < defaultStart + chapterDur) {
+                  startProgress = savedTime;
+                } else if (savedTime >= 0 && savedTime < chapterDur) {
+                  startProgress = defaultStart + savedTime;
+                }
               }
             }
           }
@@ -682,6 +695,17 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
           set({ showDailyLimitModal: true, isPlaying: false });
           return;
         }
+        const isExempt = isUserExemptFromPremium();
+        if (!state.isPlaying && state.currentBook && state.currentBook.isFree === false && !isExempt) {
+          const limitMinutes = (state.currentBook.previewDurationMinutes && state.currentBook.previewDurationMinutes > 0)
+            ? state.currentBook.previewDurationMinutes
+            : 15;
+          const limitSec = limitMinutes * 60;
+          if (state.progress >= limitSec) {
+            set({ progress: 0 });
+            window.dispatchEvent(new CustomEvent('tanda:audio:seek', { detail: { time: 0 } }));
+          }
+        }
         const next = !state.isPlaying;
         if (next) {
           if (!activeSessionId && state.currentBook) {
@@ -715,6 +739,17 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
           set({ showDailyLimitModal: true, isPlaying: false });
           return;
         }
+        const isExempt = isUserExemptFromPremium();
+        if (state.currentBook && state.currentBook.isFree === false && !isExempt) {
+          const limitMinutes = (state.currentBook.previewDurationMinutes && state.currentBook.previewDurationMinutes > 0)
+            ? state.currentBook.previewDurationMinutes
+            : 15;
+          const limitSec = limitMinutes * 60;
+          if (state.progress >= limitSec) {
+            set({ progress: 0 });
+            window.dispatchEvent(new CustomEvent('tanda:audio:seek', { detail: { time: 0 } }));
+          }
+        }
         if (!activeSessionId && state.currentBook) {
           startAudioSession(state.currentBook.id, state.currentChapter?.id);
         } else {
@@ -740,7 +775,7 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
 
         if (repeatMode === 'one') {
           if (chapters.length > 0) {
-            get().playChapter(chapterIndex);
+            get().playChapter(chapterIndex, 0);
           } else {
             set({ progress: 0, isPlaying: true });
             window.dispatchEvent(new CustomEvent('tanda:audio:seek', { detail: { time: 0 } }));
@@ -750,13 +785,9 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
 
         if (chapters.length > 1) {
           if (chapterIndex < chapters.length - 1) {
-            get().playChapter(chapterIndex + 1);
+            get().playChapter(chapterIndex + 1, 0);
           }
-        } else if (chapters.length === 1) {
-          get().playChapter(0);
-        } else {
-          set({ progress: 0, isPlaying: true });
-          window.dispatchEvent(new CustomEvent('tanda:audio:seek', { detail: { time: 0 } }));
+          // Егер соңғы аудио (бөлім) болса, ешқайда өтпейді
         }
       },
 
@@ -764,20 +795,30 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
         const { currentBook, chapterIndex, progress } = get();
         if (!currentBook) return;
         const chapters = currentBook.audioChapters || [];
+        const currentChap = chapters[chapterIndex];
+        const hasOwnAudio = Boolean(currentChap?.audioUrl && currentChap.audioUrl.trim());
+        const defaultStart = !hasOwnAudio && chapters.length > 0 ? getChapterStartTime(chapters, chapterIndex) : 0;
+        const relativeProgress = hasOwnAudio ? progress : Math.max(0, progress - defaultStart);
 
-        if (chapters.length > 1) {
-          if (progress > 4) {
-            get().playChapter(chapterIndex);
-          } else if (chapterIndex > 0) {
-            get().playChapter(chapterIndex - 1);
-          } else {
-            get().playChapter(0);
-          }
-        } else if (chapters.length === 1) {
-          get().playChapter(0);
+        const isExempt = isUserExemptFromPremium();
+        if (currentBook.isFree === false && !isExempt) {
+          // Стандарт қолданушы үшін әрқашан басынан бастап ойнайды
+          get().playChapter(0, 0);
+          return;
+        }
+
+        // Егер аудио 3 секундтан артық ойналған болса, осы аудионы басынан бастайды
+        if (relativeProgress > 3) {
+          get().playChapter(chapterIndex, 0);
+          return;
+        }
+
+        // Егер басында тұрса (<= 3 сек) және алдыңғы бөлім бар болса, алдыңғы бөлімге өтіп басынан ойнайды
+        if (chapterIndex > 0) {
+          get().playChapter(chapterIndex - 1, 0);
         } else {
-          set({ progress: 0, isPlaying: true });
-          window.dispatchEvent(new CustomEvent('tanda:audio:seek', { detail: { time: 0 } }));
+          // Егер 1-бөлімнің өзі болса, қайтадан басынан ойнайды
+          get().playChapter(0, 0);
         }
       },
 

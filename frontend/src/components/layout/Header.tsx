@@ -608,44 +608,7 @@ export const Header: React.FC = () => {
                             <span style={{ flex: 1 }}>Менің сөрем</span>
                           </Link>
 
-                          <Link
-                            to="/quotes"
-                            className="profile-menu-item"
-                            onClick={() => setProfileOpen(false)}
-                          >
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z" />
-                              <path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z" />
-                            </svg>
-                            <span style={{ flex: 1 }}>Цитаталар</span>
-                          </Link>
 
-                          <Link
-                            to="/messages"
-                            className="profile-menu-item"
-                            onClick={() => setProfileOpen(false)}
-                          >
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                              <polyline points="22,6 12,13 2,6"></polyline>
-                            </svg>
-                            <span style={{ flex: 1 }}>Хабарламалар</span>
-                            {unreadMessagesCount > 0 && (
-                              <span
-                                style={{
-                                  background: 'var(--blue)',
-                                  color: '#fff',
-                                  fontSize: '11px',
-                                  fontWeight: 800,
-                                  borderRadius: '20px',
-                                  padding: '2px 8px',
-                                  lineHeight: 1.2,
-                                }}
-                              >
-                                {unreadMessagesCount}
-                              </span>
-                            )}
-                          </Link>
 
                           <Link
                             to="/profile"
