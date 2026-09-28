@@ -32,6 +32,7 @@ export const AdminHomePage: React.FC = () => {
   });
 
   const pendingSubscriptionCount = pendingRequests.length;
+  const nonDeletedBooksCount = useMemo(() => books.filter((b) => !b.isDeleted).length, [books]);
 
   // Auth protection guard
   React.useEffect(() => {
@@ -436,7 +437,7 @@ export const AdminHomePage: React.FC = () => {
                   </svg>
                 </div>
                 <span style={{ fontSize: '13px', fontWeight: 700, color: '#2563EB', background: '#EFF6FF', padding: '4px 10px', borderRadius: '20px' }}>
-                  {books.length} кітап
+                  {nonDeletedBooksCount} кітап
                 </span>
               </div>
               <div>

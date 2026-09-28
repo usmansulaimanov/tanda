@@ -90,9 +90,10 @@ export const AppSidebarDrawer: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, closeSidebar]);
 
-  const activeBooksCount = books.filter((b) => !b.isArchived).length;
-  const archivedBooksCount = books.filter((b) => b.isArchived).length;
-  const audioBooksCount = books.filter((b) => b.hasAudio).length;
+  const nonDeletedBooksCount = React.useMemo(() => books.filter((b) => !b.isDeleted).length, [books]);
+  const activeBooksCount = React.useMemo(() => books.filter((b) => !b.isDeleted && !b.isArchived).length, [books]);
+  const archivedBooksCount = React.useMemo(() => books.filter((b) => !b.isDeleted && b.isArchived).length, [books]);
+  const audioBooksCount = React.useMemo(() => books.filter((b) => !b.isDeleted && b.hasAudio).length, [books]);
 
   const canViewBooks = hasAdminPermission(user, 'books_view');
   const canCreateBooks = hasAdminPermission(user, 'books_create');
@@ -263,7 +264,7 @@ export const AppSidebarDrawer: React.FC = () => {
                     <path d="M6 10h10"></path>
                   </svg>
                   <span>Кітаптар қоры</span>
-                  <span className="sidebar-badge">{books.length}</span>
+                  <span className="sidebar-badge">{nonDeletedBooksCount}</span>
                 </Link>
               )}
 
@@ -642,7 +643,7 @@ export const AppSidebarDrawer: React.FC = () => {
               <div className="sidebar-stats-grid">
                 <div className="sidebar-stat-cell">
                   <span className="stat-name">Барлығы</span>
-                  <span className="stat-val">{books.length}</span>
+                  <span className="stat-val">{nonDeletedBooksCount}</span>
                 </div>
                 <div className="sidebar-stat-cell">
                   <span className="stat-name">Аудио</span>
