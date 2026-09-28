@@ -27,6 +27,26 @@ export interface AdminMessage {
   deletedByUserIds?: string[];
 }
 
+// --- LocalStorage helpers for persisted dismissed popup IDs ---
+const LS_KEY = 'tanda_dismissed_popups_v1';
+
+function loadDismissed(): string[] {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return [];
+    return JSON.parse(raw) as string[];
+  } catch {
+    return [];
+  }
+}
+
+function saveDismissed(ids: string[]): void {
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify(ids));
+  } catch {}
+}
+// ---------------------------------------------------------------
+
 interface MessageState {
   messages: AdminMessage[];
   activePopupMessage: AdminMessage | null;
@@ -63,7 +83,7 @@ interface MessageState {
 export const useMessageStore = create<MessageState>((set, get) => ({
   messages: [],
   activePopupMessage: null,
-  dismissedPopupIds: [],
+  dismissedPopupIds: loadDismissed(),
   isLoading: false,
 
   fetchMyMessages: async () => {
@@ -196,6 +216,14 @@ export const useMessageStore = create<MessageState>((set, get) => ({
     const dismissed = get().dismissedPopupIds || [];
     const newDismissed = current && !dismissed.includes(current.id) ? [...dismissed, current.id] : dismissed;
 
+    // Persist to localStorage so popup won't re-appear after page refresh
+    saveDismissed(newDismissed);
+
+    // Auto mark as read on the server so isRead=true → won't show in future polls
+    if (current) {
+      api.patch(`/api/v1/me/messages/${current.id}/read`).catch(() => {});
+    }
+
     // Check if there is another unread message queued
     const remainingUnread = get().messages.filter((m) => !m.isRead && !newDismissed.includes(m.id) && m.id !== current?.id);
     const nextMsg = remainingUnread.length > 0 ? remainingUnread[0] : null;
@@ -211,6 +239,7 @@ export const useMessageStore = create<MessageState>((set, get) => ({
       }, 400);
     }
   },
+
 
   getMessagesForUser: (_userId?: string) => {
     return get().messages;
