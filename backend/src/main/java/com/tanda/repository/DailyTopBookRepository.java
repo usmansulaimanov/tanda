@@ -17,6 +17,7 @@ public interface DailyTopBookRepository extends JpaRepository<DailyTopBook, Stri
     @Query("SELECT MAX(d.snapshotDate) FROM DailyTopBook d")
     LocalDate findLatestSnapshotDate();
 
+    @org.springframework.transaction.annotation.Transactional
     @Modifying
     @Query("DELETE FROM DailyTopBook d WHERE d.snapshotDate = :snapshotDate")
     void deleteBySnapshotDate(LocalDate snapshotDate);

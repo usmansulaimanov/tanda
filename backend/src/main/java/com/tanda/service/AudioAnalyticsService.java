@@ -79,9 +79,10 @@ public class AudioAnalyticsService {
     @PostConstruct
     public void initOnStartup() {
         try {
+            LocalDate today = LocalDate.now(KZ_ZONE);
             LocalDate latestDate = dailyTopBookRepository.findLatestSnapshotDate();
-            if (latestDate == null) {
-                log.info("No daily top books snapshot found on startup. Generating initial snapshot...");
+            if (latestDate == null || !latestDate.equals(today)) {
+                log.info("No daily top books snapshot found for today ({}). Generating snapshot...", today);
                 calculateDailyTopBooks();
             }
         } catch (Exception e) {
@@ -138,10 +139,10 @@ public class AudioAnalyticsService {
             });
         }
 
-        // 3. Sort active books by listening seconds and listens
+        // 3. Sort active books by listening seconds and listens (Primary: duration, Secondary: listen count)
         List<BookActivity> rankedActivities = new ArrayList<>(activityMap.values());
-        rankedActivities.sort(Comparator.comparingLong(BookActivity::getListens).reversed()
-                .thenComparing(Comparator.comparingLong(BookActivity::getSeconds).reversed()));
+        rankedActivities.sort(Comparator.comparingLong(BookActivity::getSeconds).reversed()
+                .thenComparing(Comparator.comparingLong(BookActivity::getListens).reversed()));
 
         Set<String> chosenBookIds = new LinkedHashSet<>();
         List<DailyTopCandidate> candidates = new ArrayList<>();
@@ -194,18 +195,16 @@ public class AudioAnalyticsService {
     @Transactional
     public List<TopAudioBookResponseDto> getTopAudioBooks(int limit) {
         int effectiveLimit = Math.max(1, Math.min(limit, 50));
+        LocalDate today = LocalDate.now(KZ_ZONE);
         LocalDate latestDate = dailyTopBookRepository.findLatestSnapshotDate();
 
-        List<DailyTopBook> snapshot = latestDate != null
-                ? dailyTopBookRepository.findBySnapshotDateOrderByRankAsc(latestDate)
+        List<DailyTopBook> snapshot = (latestDate != null && latestDate.equals(today))
+                ? dailyTopBookRepository.findBySnapshotDateOrderByRankAsc(today)
                 : List.of();
 
         if (snapshot.isEmpty()) {
             calculateDailyTopBooks();
-            latestDate = dailyTopBookRepository.findLatestSnapshotDate();
-            snapshot = latestDate != null
-                    ? dailyTopBookRepository.findBySnapshotDateOrderByRankAsc(latestDate)
-                    : List.of();
+            snapshot = dailyTopBookRepository.findBySnapshotDateOrderByRankAsc(today);
         }
 
         OffsetDateTime todayStart = LocalDate.now(KZ_ZONE).atStartOfDay(KZ_ZONE).toOffsetDateTime();
