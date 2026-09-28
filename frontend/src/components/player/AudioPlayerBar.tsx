@@ -1425,7 +1425,7 @@ export const AudioPlayerBar: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => skipTime(-10)}
-                    className="hidden xs:flex px-2 h-8 sm:h-9 rounded-xl bg-[#F8FAFC] border border-slate-200 text-slate-700 hover:bg-[#E8F1FB] hover:text-[#005494] hover:border-[#005494]/30 transition-all cursor-pointer items-center gap-1 shadow-sm"
+                    className="flex px-2 h-8 sm:h-9 rounded-xl bg-[#F8FAFC] border border-slate-200 text-slate-700 hover:bg-[#E8F1FB] hover:text-[#005494] hover:border-[#005494]/30 transition-all cursor-pointer items-center gap-1 shadow-sm"
                     title="10 секунд артқа өткізу"
                   >
                     <RotateCcw className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-[#005494]" />
@@ -1450,7 +1450,7 @@ export const AudioPlayerBar: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => skipTime(10)}
-                    className="hidden xs:flex px-2 h-8 sm:h-9 rounded-xl bg-[#F8FAFC] border border-slate-200 text-slate-700 hover:bg-[#E8F1FB] hover:text-[#005494] hover:border-[#005494]/30 transition-all cursor-pointer items-center gap-1 shadow-sm"
+                    className="flex px-2 h-8 sm:h-9 rounded-xl bg-[#F8FAFC] border border-slate-200 text-slate-700 hover:bg-[#E8F1FB] hover:text-[#005494] hover:border-[#005494]/30 transition-all cursor-pointer items-center gap-1 shadow-sm"
                     title="10 секунд алға өткізу"
                   >
                     <span className="text-[10px] sm:text-[11px] font-bold">+10с</span>
