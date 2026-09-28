@@ -409,6 +409,23 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
                 </div>
               </div>
 
+              {/* Admin Notice (Ескерту) */}
+              {settings?.paymentNotice && settings.paymentNotice.trim() && (
+                <div className="mb-6 p-4 rounded-2xl bg-amber-50/90 border border-amber-200/90 text-amber-950 flex items-start gap-3 shadow-sm">
+                  <div className="w-8 h-8 rounded-xl bg-amber-100/90 text-amber-700 flex items-center justify-center shrink-0 mt-0.5">
+                    <AlertCircle className="w-4 h-4 text-amber-600" />
+                  </div>
+                  <div className="flex-1 text-xs leading-relaxed text-left">
+                    <span className="font-bold text-amber-900 block mb-0.5">
+                      Ескерту:
+                    </span>
+                    <p className="whitespace-pre-wrap text-amber-950">
+                      {settings.paymentNotice.trim()}
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {/* Payment instructions */}
               {(() => {
                 const isPhoneVisible = settings?.kaspiPhoneEnabled !== false;

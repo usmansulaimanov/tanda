@@ -36,5 +36,6 @@ public class SystemSettingsResponseDto {
     private String heroMessageText;
     private String heroMessageTarget;
     private OffsetDateTime heroMessageExpiresAt;
+    private String paymentNotice;
     private OffsetDateTime updatedAt;
 }

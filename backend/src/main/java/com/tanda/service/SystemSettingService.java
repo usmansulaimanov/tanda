@@ -75,6 +75,7 @@ public class SystemSettingService {
                 .heroMessageText(map.getOrDefault("hero_message_text", ""))
                 .heroMessageTarget(map.getOrDefault("hero_message_target", "all"))
                 .heroMessageExpiresAt(heroExpiresAt)
+                .paymentNotice(map.getOrDefault("payment_notice", ""))
                 .updatedAt(lastUpdated)
                 .build();
     }
@@ -172,6 +173,9 @@ public class SystemSettingService {
             if (dto.getHeroMessageExpiresAt() == null && dto.getHeroMessageText() != null) {
                 saveSetting("hero_message_expires_at", "");
             }
+        }
+        if (dto.getPaymentNotice() != null) {
+            saveSetting("payment_notice", dto.getPaymentNotice().trim());
         }
 
         log.info("System settings updated successfully: {}", dto);

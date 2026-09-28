@@ -34,4 +34,5 @@ public class UpdateSystemSettingsRequestDto {
     private String heroMessageText;
     private String heroMessageTarget;
     private java.time.OffsetDateTime heroMessageExpiresAt;
+    private String paymentNotice;
 }

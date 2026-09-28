@@ -383,6 +383,7 @@ export interface SystemSettings {
   heroMessageText?: string;
   heroMessageTarget?: 'all' | 'registered' | 'unregistered';
   heroMessageExpiresAt?: string | null;
+  paymentNotice?: string;
   updatedAt?: string;
 }
 

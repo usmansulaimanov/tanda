@@ -58,6 +58,7 @@ export const AdminSystemSettingsPage: React.FC = () => {
     plan1YearEnabled: true,
     kaspiPhoneEnabled: true,
     kaspiCardEnabled: true,
+    paymentNotice: '',
   });
 
   const [isLoading, setIsLoading] = useState(true);
@@ -120,6 +121,7 @@ export const AdminSystemSettingsPage: React.FC = () => {
           kaspiCard: formatKaspiCard(res.kaspiCard || ''),
           kaspiPhoneEnabled: res.kaspiPhoneEnabled !== false,
           kaspiCardEnabled: Boolean(res.kaspiCardEnabled),
+          paymentNotice: res.paymentNotice || '',
         });
         setIsLoading(false);
       })
@@ -138,6 +140,7 @@ export const AdminSystemSettingsPage: React.FC = () => {
         kaspiCard: formatKaspiCard(settings.kaspiCard || ''),
         kaspiPhoneEnabled: settings.kaspiPhoneEnabled !== false,
         kaspiCardEnabled: Boolean(settings.kaspiCardEnabled),
+        paymentNotice: settings.paymentNotice?.trim() || '',
       };
       const updated = await systemApi.updateSettingsAdmin(payload);
       setSettings({
@@ -146,6 +149,7 @@ export const AdminSystemSettingsPage: React.FC = () => {
         kaspiCard: formatKaspiCard(updated.kaspiCard || ''),
         kaspiPhoneEnabled: updated.kaspiPhoneEnabled !== false,
         kaspiCardEnabled: Boolean(updated.kaspiCardEnabled),
+        paymentNotice: updated.paymentNotice || '',
       });
       queryClient.invalidateQueries({ queryKey: ['systemSettings'] });
       showToast('Жүйелік баптаулар сәтті сақталды!', 'success');
@@ -532,6 +536,25 @@ export const AdminSystemSettingsPage: React.FC = () => {
                 />
               </div>
             </div>
+          </div>
+
+          {/* Payment Notice Block */}
+          <div className="mt-6 pt-5 border-t border-slate-100">
+            <div className="flex items-center gap-2 mb-2">
+              <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                <span>Ескерту хабарламасы (Премиум терезесінде тарифтер мен банктің ортасында көрінеді):</span>
+              </label>
+            </div>
+            <textarea
+              rows={3}
+              placeholder="Мысалы: Төлем жасаған соң чекті міндетті түрде төменде тіркеңіз немесе басқа қосымша ескерту..."
+              value={settings.paymentNotice || ''}
+              onChange={(e) => setSettings({ ...settings, paymentNotice: e.target.value })}
+              className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#F08000]/20 focus:border-[#F08000] text-slate-900 placeholder:text-slate-400 leading-relaxed"
+            />
+            <p className="mt-1.5 text-[11px] text-slate-400">
+              💡 Егер бұл өріс бос қалса, оқырмандарда премиум терезесінде ескерту блогы көрсетілмейді.
+            </p>
           </div>
         </div>
       </form>
