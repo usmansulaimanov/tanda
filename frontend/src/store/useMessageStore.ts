@@ -30,6 +30,7 @@ export interface AdminMessage {
 interface MessageState {
   messages: AdminMessage[];
   activePopupMessage: AdminMessage | null;
+  dismissedPopupIds: string[];
   isLoading: boolean;
 
   fetchMyMessages: () => Promise<void>;
@@ -53,6 +54,7 @@ interface MessageState {
   deleteMessageForUser: (messageId: string, userId?: string) => Promise<void>;
   markAsRead: (messageId: string, userId?: string) => Promise<void>;
   markAllAsRead: (userId?: string) => Promise<void>;
+  setActivePopupMessage: (msg: AdminMessage | null) => void;
   dismissPopup: () => void;
   getMessagesForUser: (userId?: string) => AdminMessage[];
   getUnreadCountForUser: (userId?: string) => number;
@@ -61,6 +63,7 @@ interface MessageState {
 export const useMessageStore = create<MessageState>((set, get) => ({
   messages: [],
   activePopupMessage: null,
+  dismissedPopupIds: [],
   isLoading: false,
 
   fetchMyMessages: async () => {
@@ -71,11 +74,21 @@ export const useMessageStore = create<MessageState>((set, get) => ({
     try {
       const { data } = await api.get('/api/v1/me/messages');
       if (Array.isArray(data)) {
-        set({ messages: data });
+        const state = get();
+        const dismissed = state.dismissedPopupIds || [];
+
+        // Check if there are unread messages not dismissed yet
+        const unreadList = data.filter((m) => !m.isRead && !dismissed.includes(m.id));
+        const nextPopup = state.activePopupMessage ? state.activePopupMessage : (unreadList.length > 0 ? unreadList[0] : null);
+
+        set({
+          messages: data,
+          activePopupMessage: nextPopup,
+        });
       }
     } catch (err: any) {
       if (err?.response?.status === 401) {
-        set({ messages: [] });
+        set({ messages: [], activePopupMessage: null });
       }
     } finally {
       set({ isLoading: false });
@@ -174,8 +187,29 @@ export const useMessageStore = create<MessageState>((set, get) => ({
     }
   },
 
+  setActivePopupMessage: (msg: AdminMessage | null) => {
+    set({ activePopupMessage: msg });
+  },
+
   dismissPopup: () => {
-    set({ activePopupMessage: null });
+    const current = get().activePopupMessage;
+    const dismissed = get().dismissedPopupIds || [];
+    const newDismissed = current && !dismissed.includes(current.id) ? [...dismissed, current.id] : dismissed;
+
+    // Check if there is another unread message queued
+    const remainingUnread = get().messages.filter((m) => !m.isRead && !newDismissed.includes(m.id) && m.id !== current?.id);
+    const nextMsg = remainingUnread.length > 0 ? remainingUnread[0] : null;
+
+    set({
+      activePopupMessage: null,
+      dismissedPopupIds: newDismissed,
+    });
+
+    if (nextMsg) {
+      setTimeout(() => {
+        set({ activePopupMessage: nextMsg });
+      }, 400);
+    }
   },
 
   getMessagesForUser: (_userId?: string) => {

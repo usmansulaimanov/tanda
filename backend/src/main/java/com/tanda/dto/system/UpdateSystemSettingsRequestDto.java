@@ -35,4 +35,8 @@ public class UpdateSystemSettingsRequestDto {
     private String heroMessageTarget;
     private java.time.OffsetDateTime heroMessageExpiresAt;
     private String paymentNotice;
+    private Boolean headerBannerEnabled;
+    private String headerBannerText;
+    private String headerBannerButtonText;
+    private String headerBannerPresets;
 }

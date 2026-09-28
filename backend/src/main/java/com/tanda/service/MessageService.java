@@ -196,9 +196,9 @@ public class MessageService {
                     .targetUserNames(recipientName)
                     .title("Tanda платформасына қош келдіңіз!")
                     .content("Құрметті " + (recipientName != null ? recipientName : "оқырман") + "! Біздің онлайн кітапханамызға қош келдіңіз. Мұнда қазақ және әлем әдебиетінің таңдаулы жауһарларын электронды түрде оқып, аудио нұсқасын тыңдай аласыз.")
-                    .priority("news")
+                    .priority("normal")
                     .canReaderDelete(true)
-                    .createdAt(OffsetDateTime.now())
+                    .createdAt(OffsetDateTime.now().plusSeconds(2))
                     .readByUserIds("")
                     .deletedByUserIds("")
                     .build();
@@ -216,6 +216,92 @@ public class MessageService {
         } catch (Exception e) {
             log.warn("Could not create welcome message for user '{}': {}", recipientId, e.getMessage());
         }
+    }
+
+    @Transactional
+    public void createPasswordReminderMessage(String recipientId, String recipientName) {
+        try {
+            Message msg = Message.builder()
+                    .id("msg-pwd-" + UUID.randomUUID().toString().substring(0, 8))
+                    .senderName("Tanda")
+                    .senderRole("admin")
+                    .recipientId(recipientId)
+                    .targetType("single")
+                    .targetUserIds(recipientId)
+                    .targetUserNames(recipientName)
+                    .title("Құпиясөз орнатып алыңыз")
+                    .content("Құрметті " + (recipientName != null ? recipientName : "оқырман") + "! Аккаунтыңыздың қауіпсіздігі үшін және барлық құрылғылардан кедергісіз кіру үшін баптаулар бөлімінен жеке құпиясөз орнатып алуды ұсынамыз.")
+                    .priority("important")
+                    .canReaderDelete(true)
+                    .createdAt(OffsetDateTime.now())
+                    .readByUserIds("")
+                    .deletedByUserIds("")
+                    .build();
+            messageRepository.save(msg);
+
+            PushPayloadDto payload = PushPayloadDto.builder()
+                    .title(msg.getTitle())
+                    .body(msg.getContent())
+                    .icon("/favicon-192x192.png")
+                    .badge("/favicon-32x32.png")
+                    .tag("pwd-" + recipientId)
+                    .data(Map.of("url", "/settings", "messageId", msg.getId()))
+                    .build();
+            pushNotificationService.sendToUserAsync(recipientId, payload);
+        } catch (Exception e) {
+            log.warn("Could not create password reminder message for user '{}': {}", recipientId, e.getMessage());
+        }
+    }
+
+    @Transactional
+    public void createChooseUsernameReminderMessage(String recipientId, String recipientName) {
+        try {
+            Message msg = Message.builder()
+                    .id("msg-uname-" + UUID.randomUUID().toString().substring(0, 8))
+                    .senderName("Tanda")
+                    .senderRole("admin")
+                    .recipientId(recipientId)
+                    .targetType("single")
+                    .targetUserIds(recipientId)
+                    .targetUserNames(recipientName)
+                    .title("Өзіңізге бірегей юзернейм таңдаңыз")
+                    .content("Құрметті " + (recipientName != null ? recipientName : "оқырман") + "! Платформада өзіңіздің бірегей бүркеншік атыңызды (юзернейм) орнатыңыз. Юзернейм арқылы сізді басқа оқырмандар оңай таба алады және пікірлерде есіміңіз ерекшеленеді.")
+                    .priority("normal")
+                    .canReaderDelete(true)
+                    .createdAt(OffsetDateTime.now())
+                    .readByUserIds("")
+                    .deletedByUserIds("")
+                    .build();
+            messageRepository.save(msg);
+
+            PushPayloadDto payload = PushPayloadDto.builder()
+                    .title(msg.getTitle())
+                    .body(msg.getContent())
+                    .icon("/favicon-192x192.png")
+                    .badge("/favicon-32x32.png")
+                    .tag("uname-" + recipientId)
+                    .data(Map.of("url", "/settings", "messageId", msg.getId()))
+                    .build();
+            pushNotificationService.sendToUserAsync(recipientId, payload);
+        } catch (Exception e) {
+            log.warn("Could not create username reminder message for user '{}': {}", recipientId, e.getMessage());
+        }
+    }
+
+    public void scheduleDelayedUsernameReminder(String recipientId, String recipientName) {
+        java.util.concurrent.CompletableFuture.runAsync(() -> {
+            try {
+                createChooseUsernameReminderMessage(recipientId, recipientName);
+            } catch (Exception e) {
+                log.warn("Delayed username reminder error for user '{}': {}", recipientId, e.getMessage());
+            }
+        }, java.util.concurrent.CompletableFuture.delayedExecutor(5, java.util.concurrent.TimeUnit.MINUTES));
+    }
+
+    public void sendNewUserOnboardingMessages(String recipientId, String recipientName) {
+        createWelcomeMessage(recipientId, recipientName);
+        createPasswordReminderMessage(recipientId, recipientName);
+        scheduleDelayedUsernameReminder(recipientId, recipientName);
     }
 
     @Transactional

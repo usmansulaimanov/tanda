@@ -145,6 +145,10 @@ export const Header: React.FC = () => {
     (role === 'client' || user.role === 'client' || !user.role)
   );
 
+  const isBannerEnabled = systemSettings?.headerBannerEnabled !== false;
+  const bannerText = systemSettings?.headerBannerText || 'Tanda Premium: 100+ кітапты шектеусіз әрі 0% жарнамасыз тыңдаңыз!';
+  const bannerButtonText = systemSettings?.headerBannerButtonText ?? 'Премиумға жазылу →';
+
   // Marketing Promo Banner: STRICTLY for authenticated readers without Premium only
   const shouldShowBanner = Boolean(
     isAuthenticated &&
@@ -153,7 +157,8 @@ export const Header: React.FC = () => {
     !isStaffOrAuthor &&
     !isAuthor &&
     !isUserPremium &&
-    !isPremiumSystemDisabled
+    !isPremiumSystemDisabled &&
+    isBannerEnabled
   );
 
   return (
@@ -842,11 +847,13 @@ export const Header: React.FC = () => {
             <div className="flex items-center justify-center gap-2 text-center">
               <Crown className="w-3.5 h-3.5 text-orange-100 shrink-0" />
               <span>
-                <strong>Tanda Premium:</strong> 100+ кітапты шектеусіз әрі 0% жарнамасыз тыңдаңыз!
+                {bannerText}
               </span>
-              <span className="hidden sm:inline-block underline decoration-orange-200 font-black ml-1 text-white">
-                Премиумға жазылу &rarr;
-              </span>
+              {bannerButtonText && (
+                <span className="hidden sm:inline-block underline decoration-orange-200 font-black ml-1 text-white">
+                  {bannerButtonText}
+                </span>
+              )}
             </div>
           </div>
         )}

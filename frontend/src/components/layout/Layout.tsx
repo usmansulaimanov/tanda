@@ -9,6 +9,7 @@ import { AppSidebarDrawer } from './AppSidebarDrawer';
 import { QuoteNotificationPopup } from '../quotes/QuoteNotificationPopup';
 import { QuoteNotificationRunner } from '../quotes/QuoteNotificationRunner';
 import { NewsNotificationRunner } from '../news/NewsNotificationRunner';
+import { MessageNotificationRunner } from '../messages/MessageNotificationRunner';
 import { MessageNotificationPopup } from '../messages/MessageNotificationPopup';
 import { useAudioPlayerStore } from '../../store/useAudioPlayerStore';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -42,6 +43,7 @@ export const Layout: React.FC = () => {
     <div className="flex flex-col min-h-screen">
       {!isAuthorOrStaff && <QuoteNotificationRunner />}
       <NewsNotificationRunner />
+      <MessageNotificationRunner />
       <Header />
       <AppSidebarDrawer />
       <main className={`flex-1 flex flex-col ${isListenPage ? 'pb-10' : isEligibleForPlayer && currentBook ? 'pb-24' : ''}`}>

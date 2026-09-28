@@ -76,6 +76,10 @@ public class SystemSettingService {
                 .heroMessageTarget(map.getOrDefault("hero_message_target", "all"))
                 .heroMessageExpiresAt(heroExpiresAt)
                 .paymentNotice(map.getOrDefault("payment_notice", ""))
+                .headerBannerEnabled(!"false".equalsIgnoreCase(map.get("header_banner_enabled")))
+                .headerBannerText(map.getOrDefault("header_banner_text", "Tanda Premium: 100+ кітапты шектеусіз әрі 0% жарнамасыз тыңдаңыз!"))
+                .headerBannerButtonText(map.getOrDefault("header_banner_button_text", "Премиумға жазылу →"))
+                .headerBannerPresets(map.getOrDefault("header_banner_presets", ""))
                 .updatedAt(lastUpdated)
                 .build();
     }
@@ -176,6 +180,18 @@ public class SystemSettingService {
         }
         if (dto.getPaymentNotice() != null) {
             saveSetting("payment_notice", dto.getPaymentNotice().trim());
+        }
+        if (dto.getHeaderBannerEnabled() != null) {
+            saveSetting("header_banner_enabled", String.valueOf(dto.getHeaderBannerEnabled()));
+        }
+        if (dto.getHeaderBannerText() != null) {
+            saveSetting("header_banner_text", dto.getHeaderBannerText().trim());
+        }
+        if (dto.getHeaderBannerButtonText() != null) {
+            saveSetting("header_banner_button_text", dto.getHeaderBannerButtonText().trim());
+        }
+        if (dto.getHeaderBannerPresets() != null) {
+            saveSetting("header_banner_presets", dto.getHeaderBannerPresets().trim());
         }
 
         log.info("System settings updated successfully: {}", dto);

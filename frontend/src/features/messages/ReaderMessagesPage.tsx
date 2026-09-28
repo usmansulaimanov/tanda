@@ -8,6 +8,18 @@ import { useToastStore } from '../../store/useToastStore';
 import { PushNotificationPrompt } from './components/PushNotificationPrompt';
 import { Modal } from '../../components/ui/Modal';
 
+const formatMessageDate = (dateStr?: string | null): string => {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return '';
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  const hours = String(d.getHours()).padStart(2, '0');
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  return `${day}.${month}.${year}, ${hours}:${minutes}`;
+};
+
 export const ReaderMessagesPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuthStore();
@@ -170,7 +182,7 @@ export const ReaderMessagesPage: React.FC = () => {
             const matchedBook = msg.bookId ? books.find((b) => b.id === msg.bookId) : null;
 
             const priorityLabels = {
-              normal: { text: 'Қалыпты' },
+              normal: { text: 'Хабарлама' },
               news: { text: 'Жаңалық' },
               important: { text: 'Маңызды' },
             };
@@ -219,13 +231,7 @@ export const ReaderMessagesPage: React.FC = () => {
                         {msg.senderName && !msg.senderName.includes('кімші') ? msg.senderName : 'Tanda'}
                       </div>
                       <div style={{ fontSize: '11px', color: '#64748B' }}>
-                        {new Date(msg.createdAt).toLocaleDateString('kk-KZ', {
-                          day: '2-digit',
-                          month: 'long',
-                          year: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
+                        {formatMessageDate(msg.createdAt)}
                       </div>
                     </div>
                   </div>
@@ -559,13 +565,7 @@ export const ReaderMessagesPage: React.FC = () => {
                       : 'Tanda'}
                   </div>
                   <div className="text-xs text-slate-500">
-                    {new Date(selectedMessage.createdAt).toLocaleDateString('kk-KZ', {
-                      day: '2-digit',
-                      month: 'long',
-                      year: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
+                    {formatMessageDate(selectedMessage.createdAt)}
                   </div>
                 </div>
               </div>
@@ -584,7 +584,7 @@ export const ReaderMessagesPage: React.FC = () => {
                     ? 'Маңызды'
                     : selectedMessage.priority === 'news'
                     ? 'Жаңалық'
-                    : 'Қалыпты'}
+                    : 'Хабарлама'}
                 </span>
 
                 {selectedMessage.expiresAt && (

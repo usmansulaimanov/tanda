@@ -8,6 +8,18 @@ import { hasAdminPermission } from '../../utils/permissions';
 import { User, SystemSettings } from '../../types';
 import { systemApi } from '../../shared/api/system.api';
 
+const formatMessageDate = (dateStr?: string | null): string => {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return '';
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  const hours = String(d.getHours()).padStart(2, '0');
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  return `${day}.${month}.${year}, ${hours}:${minutes}`;
+};
+
 export const AdminMessagesPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, role, isAuthInitialized, getAllClients, fetchClients } = useAuthStore();
@@ -581,13 +593,7 @@ export const AdminMessagesPage: React.FC = () => {
                         </td>
 
                         <td style={{ fontSize: '12px', color: '#64748B' }}>
-                          {new Date(msg.createdAt).toLocaleDateString('kk-KZ', {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
+                          {formatMessageDate(msg.createdAt)}
                         </td>
 
                         <td style={{ textAlign: 'center' }}>
@@ -1309,13 +1315,7 @@ export const AdminMessagesPage: React.FC = () => {
                   Жіберілген уақыты:
                 </span>
                 <strong style={{ color: 'var(--text-dark)' }}>
-                  {new Date(selectedMessageForView.createdAt).toLocaleDateString('kk-KZ', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
+                  {formatMessageDate(selectedMessageForView.createdAt)}
                 </strong>
               </div>
 
@@ -1767,7 +1767,7 @@ export const AdminMessagesPage: React.FC = () => {
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 800, color: '#64748B', marginBottom: '8px' }}>
                   <Eye style={{ width: '14px', height: '14px' }} />
-                  Басты бетте қалай көрінеді (Алдын ала көру):
+                  Басты бетте қалай көрінеді:
                 </div>
                 <div
                   style={{

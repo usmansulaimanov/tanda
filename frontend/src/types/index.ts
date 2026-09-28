@@ -384,6 +384,10 @@ export interface SystemSettings {
   heroMessageTarget?: 'all' | 'registered' | 'unregistered';
   heroMessageExpiresAt?: string | null;
   paymentNotice?: string;
+  headerBannerEnabled?: boolean;
+  headerBannerText?: string;
+  headerBannerButtonText?: string;
+  headerBannerPresets?: string;
   updatedAt?: string;
 }
 

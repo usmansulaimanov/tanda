@@ -10,13 +10,49 @@ import {
   Sparkles, 
   AlertTriangle,
   CreditCard,
-  Radio
+  Radio,
+  Megaphone,
+  Pencil
 } from 'lucide-react';
 import { systemApi } from '../../shared/api/system.api';
 import { SystemSettings } from '../../types';
 import { useToastStore } from '../../store/useToastStore';
 import { api } from '../../lib/api';
 import tandaPremiumBlack from '../../assets/tanda-premium-black.png';
+
+export interface HeaderBannerPreset {
+  id: string;
+  title: string;
+  text: string;
+  buttonText: string;
+}
+
+const DEFAULT_BANNER_PRESETS: HeaderBannerPreset[] = [
+  {
+    id: 'default',
+    title: '1-нұсқа: Негізгі',
+    text: 'Tanda Premium: 100+ кітапты шектеусіз әрі 0% жарнамасыз тыңдаңыз!',
+    buttonText: 'Премиумға жазылу →',
+  },
+  {
+    id: 'discount',
+    title: '2-нұсқа: Жеңілдік',
+    text: 'Арнайы жеңілдік: Премиум жазылымды тиімді бағамен алып үлгеріңіз!',
+    buttonText: 'Жеңілдікпен алу →',
+  },
+  {
+    id: 'books',
+    title: '3-нұсқа: Жаңа кітаптар',
+    text: 'Қорда 100+ жаңа аудиокітап бар: Шектеусіз тыңдауды дәл қазір бастаңыз!',
+    buttonText: 'Толығырақ білу →',
+  },
+  {
+    id: 'daily',
+    title: '4-нұсқа: Тиімді баға',
+    text: 'Күніне бар болғаны 30 теңге: Премиуммен барлық кітаптарды шектеусіз тыңдаңыз!',
+    buttonText: 'Қосылу →',
+  },
+];
 
 const KAZAKHSTAN_BANKS = [
   'Kaspi Bank',
@@ -58,7 +94,19 @@ export const AdminSystemSettingsPage: React.FC = () => {
     plan1YearEnabled: true,
     kaspiPhoneEnabled: true,
     kaspiCardEnabled: true,
+    headerBannerEnabled: true,
+    headerBannerText: 'Tanda Premium: 100+ кітапты шектеусіз әрі 0% жарнамасыз тыңдаңыз!',
+    headerBannerButtonText: 'Премиумға жазылу →',
     paymentNotice: '',
+  });
+
+  const [presets, setPresets] = useState<HeaderBannerPreset[]>(DEFAULT_BANNER_PRESETS);
+  const [editingPresetId, setEditingPresetId] = useState<string | null>(null);
+  const [presetEditForm, setPresetEditForm] = useState<HeaderBannerPreset>({
+    id: '',
+    title: '',
+    text: '',
+    buttonText: '',
   });
 
   const [isLoading, setIsLoading] = useState(true);
@@ -115,12 +163,29 @@ export const AdminSystemSettingsPage: React.FC = () => {
   useEffect(() => {
     systemApi.getSettings()
       .then((res) => {
+        let loadedPresets = DEFAULT_BANNER_PRESETS;
+        if (res.headerBannerPresets) {
+          try {
+            const parsed = JSON.parse(res.headerBannerPresets);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              loadedPresets = parsed;
+            }
+          } catch (e) {
+            // fallback
+          }
+        }
+        setPresets(loadedPresets);
+
         setSettings({
           ...res,
           kaspiPhone: formatKaspiPhone(res.kaspiPhone || ''),
           kaspiCard: formatKaspiCard(res.kaspiCard || ''),
           kaspiPhoneEnabled: res.kaspiPhoneEnabled !== false,
           kaspiCardEnabled: Boolean(res.kaspiCardEnabled),
+          headerBannerEnabled: res.headerBannerEnabled !== false,
+          headerBannerText: res.headerBannerText || 'Tanda Premium: 100+ кітапты шектеусіз әрі 0% жарнамасыз тыңдаңыз!',
+          headerBannerButtonText: res.headerBannerButtonText ?? 'Премиумға жазылу →',
+          headerBannerPresets: res.headerBannerPresets || '',
           paymentNotice: res.paymentNotice || '',
         });
         setIsLoading(false);
@@ -129,6 +194,43 @@ export const AdminSystemSettingsPage: React.FC = () => {
         setIsLoading(false);
       });
   }, []);
+
+  const handleStartEditPreset = (e: React.MouseEvent, preset: HeaderBannerPreset) => {
+    e.stopPropagation();
+    setEditingPresetId(preset.id);
+    setPresetEditForm({ ...preset });
+  };
+
+  const handleCancelEditPreset = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setEditingPresetId(null);
+    setPresetEditForm({ id: '', title: '', text: '', buttonText: '' });
+  };
+
+  const handleSavePresetEdit = (e: React.MouseEvent, presetId: string) => {
+    e.stopPropagation();
+    if (!presetEditForm.title.trim() || !presetEditForm.text.trim()) {
+      showToast('Нұсқаның атауы мен мәтінін толтырыңыз', 'error');
+      return;
+    }
+    const updatedPresets = presets.map((p) =>
+      p.id === presetId ? { ...presetEditForm } : p
+    );
+    setPresets(updatedPresets);
+
+    // If this preset was currently active in settings, update settings live preview too
+    const currentActivePreset = presets.find((p) => p.id === presetId);
+    if (currentActivePreset && settings.headerBannerText === currentActivePreset.text) {
+      setSettings((prev) => ({
+        ...prev,
+        headerBannerText: presetEditForm.text,
+        headerBannerButtonText: presetEditForm.buttonText,
+      }));
+    }
+
+    setEditingPresetId(null);
+    showToast(`«${presetEditForm.title}» нұсқасы жаңартылды`, 'success');
+  };
 
   const handleSave = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -140,15 +242,35 @@ export const AdminSystemSettingsPage: React.FC = () => {
         kaspiCard: formatKaspiCard(settings.kaspiCard || ''),
         kaspiPhoneEnabled: settings.kaspiPhoneEnabled !== false,
         kaspiCardEnabled: Boolean(settings.kaspiCardEnabled),
+        headerBannerEnabled: settings.headerBannerEnabled !== false,
+        headerBannerText: settings.headerBannerText?.trim() || '',
+        headerBannerButtonText: settings.headerBannerButtonText?.trim() || '',
+        headerBannerPresets: JSON.stringify(presets),
         paymentNotice: settings.paymentNotice?.trim() || '',
       };
       const updated = await systemApi.updateSettingsAdmin(payload);
+      
+      let loadedPresets = DEFAULT_BANNER_PRESETS;
+      if (updated.headerBannerPresets) {
+        try {
+          const parsed = JSON.parse(updated.headerBannerPresets);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            loadedPresets = parsed;
+          }
+        } catch (e) {}
+      }
+      setPresets(loadedPresets);
+
       setSettings({
         ...updated,
         kaspiPhone: formatKaspiPhone(updated.kaspiPhone || ''),
         kaspiCard: formatKaspiCard(updated.kaspiCard || ''),
         kaspiPhoneEnabled: updated.kaspiPhoneEnabled !== false,
         kaspiCardEnabled: Boolean(updated.kaspiCardEnabled),
+        headerBannerEnabled: updated.headerBannerEnabled !== false,
+        headerBannerText: updated.headerBannerText || 'Tanda Premium: 100+ кітапты шектеусіз әрі 0% жарнамасыз тыңдаңыз!',
+        headerBannerButtonText: updated.headerBannerButtonText ?? 'Премиумға жазылу →',
+        headerBannerPresets: updated.headerBannerPresets || '',
         paymentNotice: updated.paymentNotice || '',
       });
       queryClient.invalidateQueries({ queryKey: ['systemSettings'] });
@@ -240,7 +362,124 @@ export const AdminSystemSettingsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* 2. Audio Pre-Roll Ad Configuration */}
+        {/* 2. Header Promo Banner Configuration */}
+        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
+          <div className="flex items-center justify-between mb-4 pb-4 border-b border-slate-100">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-orange-50 text-[#F08000] flex items-center justify-center">
+                <Megaphone className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-slate-900">Жоғарғы жарнамалық баннер</h3>
+                <p className="text-xs text-slate-500">Сайттың жоғарғы жағында оқырмандарға көрінетін сарғыш баннер</p>
+              </div>
+            </div>
+
+            <label className="relative inline-flex items-center cursor-pointer shrink-0">
+              <input
+                type="checkbox"
+                checked={settings.headerBannerEnabled !== false}
+                onChange={(e) => setSettings({ ...settings, headerBannerEnabled: e.target.checked })}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500" />
+            </label>
+          </div>
+
+          {/* Live Preview */}
+          <div className="mb-5">
+            <label className="block text-xs font-bold text-slate-700 mb-2">
+              Сайтта көріну үлгісі:
+            </label>
+            <div className="rounded-2xl overflow-hidden border border-orange-200/60 shadow-inner">
+              <div className="bg-gradient-to-r from-[#F08000] via-orange-500 to-[#F08000] text-white text-xs font-bold py-2.5 px-4 flex items-center justify-center">
+                <div className="flex items-center justify-center gap-2 text-center flex-wrap">
+                  <Crown className="w-3.5 h-3.5 text-orange-100 shrink-0" />
+                  <span>
+                    {settings.headerBannerText || 'Tanda Premium: 100+ кітапты шектеусіз әрі 0% жарнамасыз тыңдаңыз!'}
+                  </span>
+                  {settings.headerBannerButtonText && (
+                    <span className="underline decoration-orange-200 font-black ml-1 text-white">
+                      {settings.headerBannerButtonText}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Presets Selection */}
+          <div className="mb-5">
+            <label className="block text-xs font-bold text-slate-700 mb-2">
+              Дайын нұсқалар:
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {HEADER_BANNER_PRESETS.map((preset) => {
+                const isSelected = settings.headerBannerText === preset.text;
+                return (
+                  <button
+                    key={preset.id}
+                    type="button"
+                    onClick={() => {
+                      setSettings((prev) => ({
+                        ...prev,
+                        headerBannerText: preset.text,
+                        headerBannerButtonText: preset.buttonText,
+                      }));
+                      showToast(`«${preset.title}» мәтіні таңдалды`, 'info');
+                    }}
+                    className={`p-3 rounded-2xl text-left border transition flex items-start justify-between gap-2 ${
+                      isSelected
+                        ? 'border-[#F08000] bg-orange-50/60 ring-2 ring-[#F08000]/20'
+                        : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                    }`}
+                  >
+                    <div>
+                      <div className="text-xs font-bold text-slate-900 mb-0.5">{preset.title}</div>
+                      <div className="text-[11px] text-slate-600 line-clamp-2 leading-relaxed">{preset.text}</div>
+                    </div>
+                    {isSelected && (
+                      <span className="shrink-0 w-5 h-5 rounded-full bg-[#F08000] text-white flex items-center justify-center text-[10px]">
+                        <Check className="w-3 h-3" />
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Custom Edit Inputs */}
+          <div className="grid grid-cols-1 gap-4">
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                Баннердің негізгі мәтіні:
+              </label>
+              <textarea
+                rows={2}
+                value={settings.headerBannerText || ''}
+                onChange={(e) => setSettings({ ...settings, headerBannerText: e.target.value })}
+                placeholder="Мысалы: Tanda Premium: 100+ кітапты шектеусіз әрі 0% жарнамасыз тыңдаңыз!"
+                className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#F08000]/20 focus:border-[#F08000] text-slate-900 leading-relaxed"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                Оң жақтағы батырма / сілтеме мәтіні:
+              </label>
+              <input
+                type="text"
+                value={settings.headerBannerButtonText || ''}
+                onChange={(e) => setSettings({ ...settings, headerBannerButtonText: e.target.value })}
+                placeholder="Премиумға жазылу →"
+                className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#F08000]/20 focus:border-[#F08000] text-slate-900"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* 3. Audio Pre-Roll Ad Configuration */}
         <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
           <div className="flex items-center justify-between mb-4 pb-4 border-b border-slate-100">
             <div className="flex items-center gap-2.5">

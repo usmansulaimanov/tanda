@@ -39,8 +39,15 @@ export const MessageNotificationPopup: React.FC = () => {
     );
   }, [activePopupMessage]);
 
+  const isSettingsMessage = useMemo(() => {
+    if (!activePopupMessage) return false;
+    const t = (activePopupMessage.title || '').toLowerCase();
+    const c = (activePopupMessage.content || '').toLowerCase();
+    return t.includes('құпиясөз') || t.includes('пароль') || t.includes('юзернейм') || c.includes('баптаулар');
+  }, [activePopupMessage]);
+
   useEffect(() => {
-    if (activePopupMessage && isTargeted && location.pathname !== '/messages') {
+    if (activePopupMessage && isTargeted) {
       setIsVisible(true);
 
       // Play soft chime sound
@@ -78,9 +85,9 @@ export const MessageNotificationPopup: React.FC = () => {
     } else {
       setIsVisible(false);
     }
-  }, [activePopupMessage, isTargeted, dismissPopup, location.pathname]);
+  }, [activePopupMessage, isTargeted, dismissPopup]);
 
-  if (!activePopupMessage || !isTargeted || location.pathname === '/messages') return null;
+  if (!activePopupMessage || !isTargeted) return null;
 
   const handleClose = () => {
     setIsVisible(false);
@@ -100,6 +107,8 @@ export const MessageNotificationPopup: React.FC = () => {
       navigate('/news');
     } else if (activePopupMessage?.bookId) {
       navigate(`/book/${activePopupMessage.bookId}`);
+    } else if (isSettingsMessage) {
+      navigate('/settings');
     } else {
       navigate('/messages');
     }
@@ -304,7 +313,7 @@ export const MessageNotificationPopup: React.FC = () => {
               boxShadow: '0 2px 8px rgba(0, 84, 148, 0.4)',
             }}
           >
-            {isNews ? 'Жаңалықты оқу' : activePopupMessage.bookId ? 'Кітапты көру' : 'Хабарламаны ашу'}
+            {isNews ? 'Жаңалықты оқу' : activePopupMessage.bookId ? 'Кітапты көру' : isSettingsMessage ? 'Баптауларға өту' : 'Хабарламаны ашу'}
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <polyline points="9 18 15 12 9 6"></polyline>
             </svg>

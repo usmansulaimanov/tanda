@@ -123,7 +123,7 @@ public class AuthService {
 
         user = userRepository.save(user);
         if (isNewGoogleUser) {
-            messageService.createWelcomeMessage(user.getId(), user.getName());
+            messageService.sendNewUserOnboardingMessages(user.getId(), user.getName());
         }
         String token = jwtTokenProvider.generateToken(user);
         String rawRefreshToken = refreshTokenService.createRefreshToken(user, userAgent, ipAddress);
@@ -261,7 +261,7 @@ public class AuthService {
                 .build();
 
         user = userRepository.save(user);
-        messageService.createWelcomeMessage(user.getId(), user.getName());
+        messageService.sendNewUserOnboardingMessages(user.getId(), user.getName());
 
         String token = jwtTokenProvider.generateToken(user);
         String rawRefreshToken = refreshTokenService.createRefreshToken(user, userAgent, ipAddress);
