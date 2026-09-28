@@ -20,6 +20,7 @@ import {
 import { premiumApi } from '../../shared/api/premium.api';
 import { SubscriptionPaymentRequest } from '../../types';
 import { useToastStore } from '../../store/useToastStore';
+import { useQueryClient } from '@tanstack/react-query';
 import { Modal } from '../../components/ui/Modal';
 
 interface RejectionTemplate {
@@ -83,6 +84,7 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
 
   const { showToast } = useToastStore();
+  const queryClient = useQueryClient();
 
   const loadRequests = async () => {
     setIsLoading(true);
@@ -91,6 +93,7 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
         statusFilter === 'ALL' ? undefined : statusFilter
       );
       setRequests(data);
+      queryClient.invalidateQueries({ queryKey: ['adminPendingSubscriptionRequests'] });
     } catch (err) {
       showToast('Төлем сұраныстарын жүктеу кезінде қате орын алды', 'error');
     } finally {
@@ -111,6 +114,7 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
     try {
       await premiumApi.approveSubscriptionRequestAdmin(id);
       showToast('Төлем сәтті мақұлданды! Оқырманға Премиум қосылды', 'success');
+      queryClient.invalidateQueries({ queryKey: ['adminPendingSubscriptionRequests'] });
       loadRequests();
     } catch (err: any) {
       showToast(err?.response?.data?.message || 'Мақұлдау кезінде қате орын алды', 'error');
@@ -151,6 +155,7 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
       showToast('Төлемнен бас тартылды және оқырманға хабарлама жіберілді', 'info');
       setRejectModalOpen(false);
       setRejectingRequest(null);
+      queryClient.invalidateQueries({ queryKey: ['adminPendingSubscriptionRequests'] });
       loadRequests();
     } catch (err: any) {
       showToast(err?.response?.data?.message || 'Қате орын алды', 'error');

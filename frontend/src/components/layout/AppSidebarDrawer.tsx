@@ -13,6 +13,8 @@ import { api } from '../../lib/api';
 import tandaLogo from '../../assets/tanda-logo.png';
 import tandaPremiumWhite from '../../assets/tanda-premium-white.png';
 import { Crown, CreditCard, Sliders } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { premiumApi } from '../../shared/api/premium.api';
 
 export const AppSidebarDrawer: React.FC = () => {
   const { isOpen, closeSidebar } = useSidebarStore();
@@ -38,6 +40,16 @@ export const AppSidebarDrawer: React.FC = () => {
     if (!user) return 0;
     return getUnreadCountForUser(user.id);
   }, [user, messages, getUnreadCountForUser]);
+
+  const { data: pendingRequests = [] } = useQuery({
+    queryKey: ['adminPendingSubscriptionRequests'],
+    queryFn: () => premiumApi.getAllSubscriptionRequestsAdmin('PENDING'),
+    enabled: Boolean(role === 'admin' && isAuthenticated),
+    staleTime: 30 * 1000,
+    refetchInterval: 30 * 1000,
+  });
+
+  const pendingSubscriptionCount = pendingRequests.length;
 
   const isAuthor = Boolean(
     isAuthenticated && user && (role === 'author' || user.role === 'author' || user.isAuthor)
@@ -421,6 +433,11 @@ export const AppSidebarDrawer: React.FC = () => {
               >
                 <CreditCard className="w-[18px] h-[18px]" />
                 <span>Премиум төлемдері</span>
+                {pendingSubscriptionCount > 0 && (
+                  <span className="sidebar-badge orange">
+                    {pendingSubscriptionCount}
+                  </span>
+                )}
               </Link>
 
               <Link
