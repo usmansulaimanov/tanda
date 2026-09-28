@@ -21,18 +21,22 @@ export const LeaderboardPage: React.FC = () => {
   const {
     data: leaderboardData,
     isLoading: isLeaderboardLoading,
+    isFetching: isLeaderboardFetching,
     isError: isLeaderboardError,
     refetch: refetchLeaderboard,
   } = useQuery({
     queryKey: ['leaderboard', selectedPeriod],
     queryFn: () => leaderboardApi.getLeaderboard(selectedPeriod),
     staleTime: 30 * 1000,
+    retry: 3,
+    retryDelay: (attempt) => Math.min(2000 * 2 ** attempt, 15000),
   });
 
   // Personal Stats Query
   const {
     data: personalStats,
     isLoading: isPersonalLoading,
+    isFetching: isPersonalFetching,
     isError: isPersonalError,
     refetch: refetchPersonal,
   } = useQuery({
@@ -40,7 +44,10 @@ export const LeaderboardPage: React.FC = () => {
     queryFn: leaderboardApi.getPersonalStats,
     enabled: isAuthenticated && activeMainTab === 'personal',
     staleTime: 30 * 1000,
+    retry: 3,
+    retryDelay: (attempt) => Math.min(2000 * 2 ** attempt, 15000),
   });
+
 
   const filteredEntries = leaderboardData?.topEntries || [];
 
@@ -229,7 +236,8 @@ export const LeaderboardPage: React.FC = () => {
 
             {/* Top 100 List / Table */}
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-              {isLeaderboardLoading ? (
+              {isLeaderboardLoading || (isLeaderboardFetching && !leaderboardData) ? (
+
                 <div className="py-20 text-center space-y-3">
                   <div className="inline-block w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
                   <p className="text-slate-500 text-sm font-medium">Рейтинг есептелуде...</p>
