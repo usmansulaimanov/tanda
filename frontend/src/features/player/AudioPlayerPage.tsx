@@ -773,7 +773,7 @@ export const AudioPlayerPage: React.FC = () => {
               </div>
 
               {/* Presets Row 2 */}
-              <div className="flex items-center justify-center gap-2 mb-4">
+              <div className="flex items-center justify-center gap-2 pb-1">
                 {[1.25, 1.5, 1.75, 2].map((rate) => (
                   <button
                     key={rate}
@@ -789,15 +789,6 @@ export const AudioPlayerPage: React.FC = () => {
                   </button>
                 ))}
               </div>
-
-              {/* Close Button */}
-              <button
-                type="button"
-                onClick={() => setShowMobileSpeedMenu(false)}
-                className="w-full py-2.5 rounded-full text-sm font-bold bg-slate-100 active:bg-slate-200 text-slate-800 transition cursor-pointer"
-              >
-                Жабу
-              </button>
             </div>
           </div>
         )}
