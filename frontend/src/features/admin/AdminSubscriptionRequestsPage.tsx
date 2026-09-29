@@ -317,9 +317,6 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
               </span>
             )}
           </div>
-          <p className="text-xs text-slate-500 mt-1">
-            OpenAI Vision арқылы банк чектер автоматты тексеріледі және шын төлемдерге бірден Премиум беріледі
-          </p>
         </div>
 
         <div className="flex items-center gap-3 flex-wrap">
