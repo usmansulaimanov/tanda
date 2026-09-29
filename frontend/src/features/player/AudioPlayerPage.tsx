@@ -373,13 +373,10 @@ export const AudioPlayerPage: React.FC = () => {
             </button>
           </div>
 
-          {/* Exactly horizontally centered title */}
-          <div className="absolute inset-x-0 mx-auto flex flex-col items-center justify-center text-center px-24 pointer-events-none z-0">
-            <span className="text-[10px] font-black uppercase tracking-widest text-[#EF7E00] leading-none mb-1">
-              TANDA АУДИО
-            </span>
+          {/* Exactly horizontally centered narrator */}
+          <div className="absolute inset-x-0 mx-auto flex items-center justify-center text-center px-24 pointer-events-none z-0">
             <span className="text-xs font-bold text-white/90 truncate max-w-full leading-tight">
-              {activeBook.title}
+              {activeBook.audioNarrator || 'Танда Аудио'}
             </span>
           </div>
 
