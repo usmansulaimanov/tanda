@@ -824,14 +824,9 @@ export const AudioPlayerPage: React.FC = () => {
               <div className="relative mb-4 px-1">
                 {/* Dynamic Left & Right time indicators */}
                 <div className="flex items-center justify-between text-xs font-bold font-mono mb-1 px-0.5">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-sm font-black text-[#EF7E00] font-mono">
-                      {String(Math.floor(mobileTimerMinutes / 60)).padStart(2, '0')}:{String(mobileTimerMinutes % 60).padStart(2, '0')}:00
-                    </span>
-                    <span className="text-xs font-bold text-slate-500">
-                      ({mobileTimerMinutes} минут)
-                    </span>
-                  </div>
+                  <span className="text-sm font-black text-[#EF7E00] font-mono">
+                    {String(Math.floor(mobileTimerMinutes / 60)).padStart(2, '0')}:{String(mobileTimerMinutes % 60).padStart(2, '0')}:00
+                  </span>
                   <span className="text-xs font-semibold text-slate-400 font-mono">01:00:00</span>
                 </div>
 
