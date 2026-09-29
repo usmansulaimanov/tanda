@@ -189,11 +189,11 @@ export const MyBooksPage: React.FC = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto my-4 sm:my-8 px-3 sm:px-6">
+    <div className="max-w-7xl mx-auto my-4 sm:my-8 px-3 sm:px-6 w-full min-w-0 max-w-full overflow-hidden">
       
       {/* Top Header Banner */}
       <div
-        className="relative overflow-hidden rounded-2xl sm:rounded-3xl p-5 sm:p-8 md:p-10 text-white mb-6 sm:mb-8 shadow-lg"
+        className="relative overflow-hidden rounded-2xl sm:rounded-3xl p-5 sm:p-8 md:p-10 text-white mb-6 sm:mb-8 shadow-lg w-full max-w-full"
         style={{
           background: 'linear-gradient(135deg, #004377 0%, #005FA8 100%)',
         }}
@@ -243,10 +243,10 @@ export const MyBooksPage: React.FC = () => {
 
       {/* Tabs & Search Bar Row */}
       <div
-        className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4 mb-6 pb-4 border-b border-slate-200"
+        className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4 mb-6 pb-4 border-b border-slate-200 w-full min-w-0 max-w-full"
       >
         {/* The 3 Tabs */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 no-scrollbar">
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 no-scrollbar w-full min-w-0 max-w-full">
           {/* Tab 1: Оқып жатқандарым */}
           <button
             type="button"
@@ -404,7 +404,7 @@ export const MyBooksPage: React.FC = () => {
 
       {/* Books Content */}
       {filteredBooks.length > 0 ? (
-        <div className="books-grid">
+        <div className="books-grid w-full min-w-0 max-w-full">
           {filteredBooks.map(({ book, record }) => {
             const isMenuOpen = activeMenuBookId === book.id;
             const hasAudio = Boolean(
@@ -423,7 +423,7 @@ export const MyBooksPage: React.FC = () => {
             return (
               <div
                 key={book.id}
-                className="book-card"
+                className="book-card w-full min-w-0 overflow-hidden"
                 onClick={() => navigate(`/book/${book.id}`)}
                 style={{ cursor: 'pointer', position: 'relative', display: 'flex', flexDirection: 'column' }}
               >
@@ -713,7 +713,7 @@ export const MyBooksPage: React.FC = () => {
                     type="button"
                     onClick={() => navigate(`/book/${book.id}`)}
                     className="btn-book-action"
-                    style={{ background: '#F1F5F9', color: 'var(--text-mid)' }}
+                    style={{ background: '#F1F5F9', color: 'var(--text-mid)', gridColumn: 'span 2' }}
                     title="Толық ақпарат"
                   >
                     Ақпарат

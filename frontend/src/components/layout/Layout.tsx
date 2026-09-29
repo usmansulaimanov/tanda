@@ -43,7 +43,7 @@ export const Layout: React.FC = () => {
   }, [location.pathname]);
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen w-full max-w-full overflow-x-hidden">
       {!isAuthorOrStaff && <QuoteNotificationRunner />}
       <NewsNotificationRunner />
       <MessageNotificationRunner />

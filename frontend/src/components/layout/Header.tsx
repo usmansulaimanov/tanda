@@ -163,8 +163,8 @@ export const Header: React.FC = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-50 w-full">
-        <nav className="tanda-nav" style={{ position: 'relative', top: 'auto' }}>
+      <header className="sticky top-0 z-50 w-full max-w-full overflow-hidden">
+        <nav className="tanda-nav" style={{ position: 'relative', top: 'auto', width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
         <div style={{ maxWidth: '1280px', width: '100%', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
           
           {/* Left: Sidebar Toggle, Logo & Search */}
@@ -805,7 +805,7 @@ export const Header: React.FC = () => {
         {shouldShowBanner && (
           <div 
             onClick={() => setShowPremiumModal(true)}
-            className="bg-gradient-to-r from-[#F08000] via-orange-500 to-[#F08000] text-white text-xs font-bold py-2 px-4 cursor-pointer hover:opacity-95 transition shadow-sm flex items-center justify-center z-30 relative"
+            className="bg-gradient-to-r from-[#F08000] via-orange-500 to-[#F08000] text-white text-xs font-bold py-2 px-4 cursor-pointer hover:opacity-95 transition shadow-sm flex items-center justify-center z-30 relative w-full max-w-full box-border"
           >
             <div className="flex items-center justify-center gap-2 text-center">
               <Crown className="w-3.5 h-3.5 text-orange-100 shrink-0" />

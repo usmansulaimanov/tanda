@@ -23,7 +23,10 @@ html, body, #root {
   margin: 0;
   padding: 0;
   width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
   min-height: 100%;
+  box-sizing: border-box;
 }
 
 /* Date input cross-browser cleanup */
