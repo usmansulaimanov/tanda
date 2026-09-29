@@ -12,11 +12,15 @@ import {
   Timer,
   BookOpen,
   ArrowLeft,
+  ChevronDown,
   Check,
   Headphones,
   Music,
   Volume2,
   Lock,
+  Bookmark,
+  List,
+  X,
 } from 'lucide-react';
 import { useBookStore } from '../../store/useBookStore';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -76,6 +80,9 @@ export const AudioPlayerPage: React.FC = () => {
   const [book, setBook] = useState<Book | null>(books.find((b) => b.id === id) || null);
   const [showTimerMenu, setShowTimerMenu] = useState(false);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
+  const [showChaptersDrawer, setShowChaptersDrawer] = useState(false);
+  const [showMobileTimerMenu, setShowMobileTimerMenu] = useState(false);
+  const [showMobileSpeedMenu, setShowMobileSpeedMenu] = useState(false);
   const [remainingTimerSec, setRemainingTimerSec] = useState<number | null>(null);
 
   const timerMenuRef = useRef<HTMLDivElement>(null);
@@ -340,7 +347,503 @@ export const AudioPlayerPage: React.FC = () => {
   };
 
   return (
-    <div className="w-full flex-1 flex flex-col bg-gradient-to-b from-[#F0F5FA] to-[#FFFFFF] p-3 sm:p-5 md:p-6 text-slate-800">
+    <div className="w-full flex-1 flex flex-col">
+      {/* ======================================================== */}
+      {/* MOBILE PLAYER (Yandex Music / Spotify style thumb zone)   */}
+      {/* ======================================================== */}
+      <div className="flex md:hidden flex-col justify-between flex-1 w-full bg-[#111317] text-white px-4 pt-2.5 pb-6 min-h-[calc(100vh-64px)] relative overflow-hidden select-none">
+        
+        {/* Subtle background ambient blur from book gradient */}
+        <div
+          className="absolute -top-32 left-1/2 -translate-x-1/2 w-80 h-80 rounded-full opacity-25 pointer-events-none blur-3xl"
+          style={{ background: activeBook.gradient || '#EF7E00' }}
+        />
+
+        {/* 1. Mobile Top Bar */}
+        <div className="flex items-center justify-between gap-2 relative z-10 py-1 shrink-0">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="w-10 h-10 rounded-full bg-white/5 active:bg-white/15 border border-white/10 flex items-center justify-center text-slate-200 transition"
+            title="Жабу"
+          >
+            <ChevronDown className="w-6 h-6" />
+          </button>
+
+          <div className="flex flex-col items-center min-w-0 px-2 text-center">
+            <span className="text-[10px] font-black uppercase tracking-widest text-[#EF7E00]">
+              TANDA АУДИО
+            </span>
+            <span className="text-xs font-bold text-white/90 truncate max-w-[200px]">
+              {activeBook.title}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => setShowChaptersDrawer(true)}
+              className="w-10 h-10 rounded-full bg-white/5 active:bg-white/15 border border-white/10 flex items-center justify-center text-slate-200 transition"
+              title="Тараулар тізімі"
+            >
+              <List className="w-5 h-5" />
+            </button>
+            <button
+              type="button"
+              onClick={handleToggleBookmark}
+              className={`w-10 h-10 rounded-full border flex items-center justify-center transition ${
+                isSaved
+                  ? 'bg-[#EF7E00] text-white border-[#EF7E00] shadow-sm shadow-orange-500/30'
+                  : 'bg-white/5 border-white/10 text-slate-200 active:bg-white/15'
+              }`}
+              title="Таңдаулыға қосу"
+            >
+              <Bookmark className={`w-5 h-5 ${isSaved ? 'fill-current' : ''}`} />
+            </button>
+          </div>
+        </div>
+
+        {/* 2. Center Large Artwork */}
+        <div className="flex-1 flex items-center justify-center py-4 px-2 min-h-0 relative z-10">
+          <div className="relative w-full max-w-[270px] xs:max-w-[300px] aspect-square rounded-3xl overflow-hidden shadow-2xl border border-white/10 group">
+            {activeBook.coverImage ? (
+              <img
+                src={activeBook.coverImage}
+                alt={activeBook.title}
+                referrerPolicy="no-referrer"
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+            ) : null}
+
+            {/* Fallback gradient if no cover image */}
+            <div
+              className={`w-full h-full flex flex-col items-center justify-center p-4 text-center ${
+                activeBook.coverImage ? 'hidden' : 'flex'
+              }`}
+              style={{
+                background: activeBook.gradient || 'linear-gradient(135deg, #005494, #002d50)',
+              }}
+            >
+              <Headphones className="w-16 h-16 text-white/30 mb-2" />
+              <p className="text-sm font-bold text-white leading-snug">{activeBook.title}</p>
+            </div>
+
+            {/* Playing Animated Soundwave Badge */}
+            {isPlaying && (
+              <div className="absolute bottom-3 right-3 z-20 flex items-end gap-1 bg-black/60 backdrop-blur-md px-2.5 py-1.5 rounded-xl border border-white/10">
+                <span className="w-1 bg-[#EF7E00] rounded-full animate-pulse h-3"></span>
+                <span className="w-1 bg-[#EF7E00] rounded-full animate-bounce h-5"></span>
+                <span className="w-1 bg-[#EF7E00] rounded-full animate-pulse h-4"></span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* 3. Track Info Row */}
+        <div className="relative z-10 shrink-0 mb-2">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <h2 className="text-lg xs:text-xl font-black text-white truncate leading-tight tracking-tight">
+                {activeBook.title}
+              </h2>
+              <p className="text-xs xs:text-sm font-medium text-slate-400 truncate mt-0.5">
+                {activeBook.author} {activeBook.audioNarrator ? `• ${activeBook.audioNarrator}` : ''}
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleToggleCompleted}
+              className={`p-2.5 rounded-2xl border text-xs font-bold transition shrink-0 ${
+                isCompleted
+                  ? 'bg-emerald-600 text-white border-emerald-500 shadow-sm'
+                  : 'bg-white/5 border-white/10 text-slate-400 active:bg-white/10'
+              }`}
+              title={isCompleted ? 'Оқылған' : 'Оқылды деп белгілеу'}
+            >
+              <Check className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Active Chapter / Ad Banner Pill */}
+          <div className="mt-2 flex items-center justify-between gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 ${
+                isAdPlaying ? 'bg-amber-500 text-white' : isPlaying ? 'bg-[#EF7E00] text-white' : 'bg-white/10 text-slate-400'
+              }`}>
+                {isAdPlaying ? (
+                  <Volume2 className="w-3 h-3 animate-pulse" />
+                ) : isPlaying ? (
+                  <Music className="w-3 h-3 animate-pulse" />
+                ) : (
+                  <Headphones className="w-3 h-3" />
+                )}
+              </div>
+              <span className="text-xs font-bold text-slate-200 truncate">
+                {isAdPlaying ? (adTitle || 'Tanda Аудио-Жарнама') : currentChapterTitle}
+              </span>
+            </div>
+
+            {!isAdPlaying && (
+              <span className="text-[11px] font-mono font-bold text-slate-400 shrink-0">
+                {chapterIndex + 1}/{chapters.length}
+              </span>
+            )}
+            {isAdPlaying && (
+              <span className="text-[11px] font-mono font-black text-amber-400 bg-amber-500/20 px-1.5 py-0.5 rounded shrink-0">
+                {Math.max(0, Math.ceil((adDuration || 15) - adProgress))} сек
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* 4. Timeline Slider */}
+        <div className="relative z-10 shrink-0 mb-2">
+          <input
+            type="range"
+            min={0}
+            max={isAdPlaying ? (adDuration || 15) : (duration || 100)}
+            value={isAdPlaying ? adProgress : progress}
+            onChange={handleSeek}
+            disabled={isAdPlaying}
+            className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer accent-[#EF7E00]"
+            style={{ accentColor: isAdPlaying ? '#F59E0B' : '#EF7E00' }}
+          />
+          <div className="flex items-center justify-between text-[11px] font-mono font-semibold text-slate-400 px-0.5 mt-1">
+            <span className={isAdPlaying ? 'text-amber-400 font-bold' : ''}>
+              {formatTime(isAdPlaying ? adProgress : progress)}
+            </span>
+            <span className={isAdPlaying ? 'text-amber-400 font-bold' : ''}>
+              {formatTime(isAdPlaying ? (adDuration || 15) : duration)}
+            </span>
+          </div>
+        </div>
+
+        {/* 5. Primary Controls Row (Thumb Zone - lowered for comfort) */}
+        <div className="relative z-10 shrink-0 flex items-center justify-between px-1 py-2">
+          {/* -10s Rewind */}
+          <button
+            type="button"
+            onClick={() => handleSkip(-10)}
+            className="w-11 h-11 rounded-full bg-white/5 active:bg-white/15 border border-white/10 text-slate-200 flex flex-col items-center justify-center transition active:scale-95 cursor-pointer"
+            title="10 секунд артқа"
+          >
+            <RotateCcw className="w-4 h-4 text-[#EF7E00]" />
+            <span className="text-[8px] font-bold mt-0.5 leading-none">-10с</span>
+          </button>
+
+          {/* Previous Chapter */}
+          <button
+            type="button"
+            onClick={prevChapter}
+            className="w-12 h-12 rounded-full bg-white/5 active:bg-white/15 border border-white/10 text-white flex items-center justify-center transition active:scale-95 cursor-pointer"
+            title="Алдыңғы тарау"
+          >
+            <SkipBack className="w-5 h-5 fill-current" />
+          </button>
+
+          {/* HERO Big Center Play / Pause Button */}
+          <button
+            type="button"
+            onClick={togglePlay}
+            className="w-16 h-16 rounded-full bg-[#EF7E00] active:bg-[#e07500] text-white flex items-center justify-center shadow-xl shadow-orange-500/40 active:scale-95 transition-transform border-2 border-white/20 cursor-pointer"
+            title={isPlaying ? 'Тоқтату (Пауза)' : 'Ойнату'}
+          >
+            {isPlaying ? (
+              <Pause className="w-7 h-7 fill-current" />
+            ) : (
+              <Play className="w-7 h-7 fill-current ml-1" />
+            )}
+          </button>
+
+          {/* Next Chapter */}
+          <button
+            type="button"
+            onClick={nextChapter}
+            className="w-12 h-12 rounded-full bg-white/5 active:bg-white/15 border border-white/10 text-white flex items-center justify-center transition active:scale-95 cursor-pointer"
+            title="Келесі тарау"
+          >
+            <SkipForward className="w-5 h-5 fill-current" />
+          </button>
+
+          {/* +10s Forward */}
+          <button
+            type="button"
+            onClick={() => handleSkip(10)}
+            className="w-11 h-11 rounded-full bg-white/5 active:bg-white/15 border border-white/10 text-slate-200 flex flex-col items-center justify-center transition active:scale-95 cursor-pointer"
+            title="10 секунд алға"
+          >
+            <RotateCw className="w-4 h-4 text-[#EF7E00]" />
+            <span className="text-[8px] font-bold mt-0.5 leading-none">+10с</span>
+          </button>
+        </div>
+
+        {/* 6. Secondary Auxiliary Toolbar */}
+        <div className="relative z-10 shrink-0 flex items-center justify-around px-2 pt-2.5 border-t border-white/10 mt-1">
+          {/* Repeat */}
+          <button
+            type="button"
+            onClick={toggleRepeatMode}
+            className={`p-2 rounded-xl transition flex flex-col items-center gap-1 cursor-pointer ${
+              repeatMode !== 'off' ? 'text-[#EF7E00] bg-[#EF7E00]/15' : 'text-slate-400 active:text-white'
+            }`}
+            title="Қайталау"
+          >
+            {repeatMode === 'one' ? <Repeat1 className="w-4 h-4" /> : <Repeat className="w-4 h-4" />}
+            <span className="text-[9px] font-bold">
+              {repeatMode === 'one' ? '1 рет' : repeatMode === 'all' ? 'Барлығы' : 'Қайталау'}
+            </span>
+          </button>
+
+          {/* Speed */}
+          <button
+            type="button"
+            onClick={() => setShowMobileSpeedMenu(true)}
+            className={`p-2 rounded-xl transition flex flex-col items-center gap-1 cursor-pointer ${
+              playbackRate !== 1 ? 'text-[#EF7E00] bg-[#EF7E00]/15' : 'text-slate-400 active:text-white'
+            }`}
+            title="Жылдамдық"
+          >
+            <span className="text-xs font-black font-mono leading-none">{playbackRate}x</span>
+            <span className="text-[9px] font-bold">Жылдамдық</span>
+          </button>
+
+          {/* Sleep Timer */}
+          <button
+            type="button"
+            onClick={() => setShowMobileTimerMenu(true)}
+            className={`p-2 rounded-xl transition flex flex-col items-center gap-1 cursor-pointer ${
+              sleepTimerMinutes ? 'text-[#EF7E00] bg-[#EF7E00]/15' : 'text-slate-400 active:text-white'
+            }`}
+            title="Ұйқы таймері"
+          >
+            <Timer className="w-4 h-4" />
+            <span className="text-[9px] font-bold font-mono">
+              {sleepTimerMinutes ? (formatRemainingTimer(remainingTimerSec) || `${sleepTimerMinutes}м`) : 'Таймер'}
+            </span>
+          </button>
+
+          {/* Chapters Drawer Trigger */}
+          <button
+            type="button"
+            onClick={() => setShowChaptersDrawer(true)}
+            className="p-2 rounded-xl transition flex flex-col items-center gap-1 text-slate-400 active:text-white cursor-pointer"
+            title="Бөлімдер"
+          >
+            <BookOpen className="w-4 h-4" />
+            <span className="text-[9px] font-bold">Бөлімдер ({chapters.length})</span>
+          </button>
+        </div>
+
+        {/* 7. Mobile Chapters Bottom Sheet Drawer */}
+        {showChaptersDrawer && (
+          <div
+            className="fixed inset-0 z-50 flex flex-col justify-end bg-black/75 backdrop-blur-sm animate-in fade-in duration-200"
+            onClick={() => setShowChaptersDrawer(false)}
+          >
+            <div
+              className="w-full bg-[#181a20] rounded-t-3xl border-t border-white/10 p-5 max-h-[80vh] flex flex-col shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="w-12 h-1 bg-white/20 rounded-full mx-auto mb-4" />
+
+              <div className="flex items-center justify-between pb-3 border-b border-white/10 mb-2">
+                <div>
+                  <h3 className="text-base font-black text-white">Кітап бөлімдері</h3>
+                  <p className="text-xs text-slate-400 font-medium">{chapters.length} бөлім бар</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowChaptersDrawer(false)}
+                  className="w-8 h-8 rounded-full bg-white/10 text-white flex items-center justify-center active:bg-white/20"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto divide-y divide-white/5 pr-1">
+                {chapters.map((ch, idx) => {
+                  const isActive = chapterIndex === idx && currentBook?.id === activeBook.id;
+                  const isExempt = isUserExemptFromPremium();
+                  const isLocked = activeBook.isFree === false && !isExempt && idx > 0;
+
+                  return (
+                    <button
+                      key={ch.id || idx}
+                      type="button"
+                      onClick={() => {
+                        handleChapterSelect(idx);
+                        if (!isLocked) setShowChaptersDrawer(false);
+                      }}
+                      className={`w-full text-left py-3 px-3 rounded-2xl flex items-center justify-between gap-3 transition cursor-pointer my-1 ${
+                        isActive
+                          ? 'bg-[#EF7E00]/15 border border-[#EF7E00]/40 text-[#EF7E00]'
+                          : isLocked
+                          ? 'bg-white/[0.02] text-slate-400'
+                          : 'hover:bg-white/5 text-slate-200'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div
+                          className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+                            isActive
+                              ? 'bg-[#EF7E00] text-white'
+                              : 'bg-white/10 text-slate-300'
+                          }`}
+                        >
+                          {isActive && isPlaying ? (
+                            <Pause className="w-3.5 h-3.5 fill-current" />
+                          ) : (
+                            <span>{idx + 1}</span>
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <p className={`text-sm truncate ${isActive ? 'font-black text-[#EF7E00]' : 'font-semibold text-white'}`}>
+                            {ch.title}
+                          </p>
+                          {isLocked && (
+                            <span className="text-[10px] font-bold text-amber-400 flex items-center gap-1 mt-0.5">
+                              <Lock className="w-3 h-3" /> Tanda Premium
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        {ch.duration && (
+                          <span className="text-xs font-mono text-slate-400">{ch.duration}</span>
+                        )}
+                        {isLocked && <Lock className="w-4 h-4 text-amber-400" />}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 8. Mobile Speed Bottom Sheet */}
+        {showMobileSpeedMenu && (
+          <div
+            className="fixed inset-0 z-50 flex flex-col justify-end bg-black/75 backdrop-blur-sm animate-in fade-in duration-200"
+            onClick={() => setShowMobileSpeedMenu(false)}
+          >
+            <div
+              className="w-full bg-[#181a20] rounded-t-3xl border-t border-white/10 p-5 shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="w-12 h-1 bg-white/20 rounded-full mx-auto mb-4" />
+              <div className="flex items-center justify-between pb-3 border-b border-white/10 mb-4">
+                <h3 className="text-base font-black text-white">Ойнату жылдамдығы</h3>
+                <button
+                  type="button"
+                  onClick={() => setShowMobileSpeedMenu(false)}
+                  className="w-8 h-8 rounded-full bg-white/10 text-white flex items-center justify-center active:bg-white/20"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="grid grid-cols-3 gap-2.5">
+                {SPEED_OPTIONS.map((rate) => (
+                  <button
+                    key={rate}
+                    type="button"
+                    onClick={() => {
+                      setPlaybackRate(rate);
+                      setShowMobileSpeedMenu(false);
+                    }}
+                    className={`py-3 rounded-2xl text-sm font-black flex items-center justify-center transition border ${
+                      playbackRate === rate
+                        ? 'bg-[#EF7E00] text-white border-[#EF7E00] shadow-md shadow-orange-500/30'
+                        : 'bg-white/5 border-white/10 text-slate-200 active:bg-white/10'
+                    }`}
+                  >
+                    <span>{rate}x</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 9. Mobile Timer Bottom Sheet */}
+        {showMobileTimerMenu && (
+          <div
+            className="fixed inset-0 z-50 flex flex-col justify-end bg-black/75 backdrop-blur-sm animate-in fade-in duration-200"
+            onClick={() => setShowMobileTimerMenu(false)}
+          >
+            <div
+              className="w-full bg-[#181a20] rounded-t-3xl border-t border-white/10 p-5 shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="w-12 h-1 bg-white/20 rounded-full mx-auto mb-4" />
+              <div className="flex items-center justify-between pb-3 border-b border-white/10 mb-3">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-base font-black text-white">Ұйқы таймері</h3>
+                  {sleepTimerMinutes && (
+                    <span className="text-xs font-mono font-bold text-[#EF7E00] bg-[#EF7E00]/15 px-2 py-0.5 rounded-lg">
+                      {formatRemainingTimer(remainingTimerSec)} қалды
+                    </span>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowMobileTimerMenu(false)}
+                  className="w-8 h-8 rounded-full bg-white/10 text-white flex items-center justify-center active:bg-white/20"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                {TIMER_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => {
+                      setSleepTimer(opt.value);
+                      setShowMobileTimerMenu(false);
+                      showToast(`Таймер қойылды: ${opt.value} минут`, 'success');
+                    }}
+                    className={`w-full text-left px-4 py-3 rounded-2xl text-sm font-bold flex items-center justify-between transition border ${
+                      sleepTimerMinutes === opt.value
+                        ? 'bg-[#EF7E00] text-white border-[#EF7E00]'
+                        : 'bg-white/5 border-white/10 text-slate-200 active:bg-white/10'
+                    }`}
+                  >
+                    <span>{opt.label}</span>
+                    {sleepTimerMinutes === opt.value && <Check className="w-4 h-4" />}
+                  </button>
+                ))}
+
+                {sleepTimerMinutes && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      cancelSleepTimer();
+                      setShowMobileTimerMenu(false);
+                      showToast('Таймер өшірілді', 'info');
+                    }}
+                    className="w-full text-center py-3 rounded-2xl text-sm font-bold text-rose-400 bg-rose-500/10 border border-rose-500/20 active:bg-rose-500/20 mt-2"
+                  >
+                    Таймерді өшіру
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+      </div>
+
+      {/* ======================================================== */}
+      {/* DESKTOP PLAYER (100% UNTOUCHED original layout)          */}
+      {/* ======================================================== */}
+      <div className="hidden md:flex w-full flex-1 flex-col bg-gradient-to-b from-[#F0F5FA] to-[#FFFFFF] p-3 sm:p-5 md:p-6 text-slate-800">
       
       {/* Top Header Navigation */}
       <div className="w-full max-w-7xl mx-auto shrink-0 mb-3 sm:mb-4">
@@ -840,6 +1343,7 @@ export const AudioPlayerPage: React.FC = () => {
         </div>
       </div>
 
+    </div>
     </div>
   );
 };
