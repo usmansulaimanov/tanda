@@ -454,36 +454,20 @@ export const AudioPlayerPage: React.FC = () => {
             </button>
           </div>
 
-          {/* Active Chapter / Ad Banner Pill */}
-          <div className="mt-2 flex items-center justify-between gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10">
-            <div className="flex items-center gap-2 min-w-0">
-              <div className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 ${
-                isAdPlaying ? 'bg-amber-500 text-white' : isPlaying ? 'bg-[#EF7E00] text-white' : 'bg-white/10 text-slate-400'
-              }`}>
-                {isAdPlaying ? (
-                  <Volume2 className="w-3 h-3 animate-pulse" />
-                ) : isPlaying ? (
-                  <Music className="w-3 h-3 animate-pulse" />
-                ) : (
-                  <Headphones className="w-3 h-3" />
-                )}
+          {/* Ad Banner only when ad is playing */}
+          {isAdPlaying && (
+            <div className="mt-2 flex items-center justify-between gap-2 px-3 py-1.5 rounded-xl bg-amber-500/15 border border-amber-500/30">
+              <div className="flex items-center gap-2 min-w-0">
+                <Volume2 className="w-3.5 h-3.5 text-amber-400 animate-pulse shrink-0" />
+                <span className="text-xs font-bold text-amber-200 truncate">
+                  {adTitle || 'Tanda Аудио-Жарнама'}
+                </span>
               </div>
-              <span className="text-xs font-bold text-slate-200 truncate">
-                {isAdPlaying ? (adTitle || 'Tanda Аудио-Жарнама') : currentChapterTitle}
-              </span>
-            </div>
-
-            {!isAdPlaying && (
-              <span className="text-[11px] font-mono font-bold text-slate-400 shrink-0">
-                {chapterIndex + 1}/{chapters.length}
-              </span>
-            )}
-            {isAdPlaying && (
               <span className="text-[11px] font-mono font-black text-amber-400 bg-amber-500/20 px-1.5 py-0.5 rounded shrink-0">
                 {Math.max(0, Math.ceil((adDuration || 15) - adProgress))} сек
               </span>
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
         {/* 4. Timeline Slider */}
