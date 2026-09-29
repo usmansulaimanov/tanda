@@ -1379,8 +1379,10 @@ export const AudioPlayerBar: React.FC = () => {
                       adTitle || 'Премиумға қосылып, жарнамасыз тыңдаңыз'
                     ) : (
                       <>
-                        {currentBook.author} &bull;{' '}
-                        <span className="text-[#005494] font-semibold">{currentChapterTitle}</span>
+                        {currentBook.author}
+                        {currentChapterTitle && currentChapterTitle !== currentBook.title ? (
+                          <> &bull; <span className="text-[#EF7E00] font-semibold">{currentChapterTitle}</span></>
+                        ) : null}
                       </>
                     )}
                   </div>
@@ -1389,19 +1391,27 @@ export const AudioPlayerBar: React.FC = () => {
 
               {/* Mobile Quick Action Buttons */}
               <div className="flex items-center gap-1 shrink-0">
+                {/* 10 seconds skip */}
                 <button
                   type="button"
-                  onClick={() => skipTime(10)}
-                  className="w-8 h-8 rounded-lg text-slate-600 hover:text-[#005494] active:scale-90 transition flex items-center justify-center"
-                  title="10 секунд алға"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    skipTime(10);
+                  }}
+                  className="w-8 h-8 rounded-full text-slate-600 hover:text-[#EF7E00] active:scale-90 transition flex items-center justify-center cursor-pointer"
+                  title="10 секунд алға өткізу"
                 >
-                  <RotateCw className="w-4 h-4 text-slate-600" />
+                  <RotateCw className="w-4 h-4 text-slate-700" />
                 </button>
 
+                {/* PLAY / PAUSE (Center Button) */}
                 <button
                   type="button"
-                  onClick={togglePlay}
-                  className="w-9 h-9 rounded-full bg-[#005494] hover:bg-[#003F70] active:scale-95 text-white flex items-center justify-center shadow-md transition shrink-0"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    togglePlay();
+                  }}
+                  className="w-9 h-9 rounded-full bg-[#EF7E00] hover:bg-[#e07500] active:scale-95 text-white flex items-center justify-center shadow-md shadow-orange-500/30 transition shrink-0 cursor-pointer"
                   title={isPlaying ? 'Тоқтату' : 'Ойнату'}
                 >
                   {isPlaying ? (
@@ -1411,13 +1421,27 @@ export const AudioPlayerBar: React.FC = () => {
                   )}
                 </button>
 
+                {/* Next Chapter Button */}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    nextChapter();
+                  }}
+                  className="w-8 h-8 rounded-full text-slate-600 hover:text-[#EF7E00] active:scale-90 transition flex items-center justify-center cursor-pointer"
+                  title="Келесі бөлім"
+                >
+                  <SkipForward className="w-4 h-4 text-slate-700 fill-current" />
+                </button>
+
+                {/* Dismiss / Close Mini-Player */}
                 <button
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     handleClose();
                   }}
-                  className="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-800 active:scale-90 transition flex items-center justify-center ml-0.5"
+                  className="w-7 h-7 rounded-full text-slate-400 hover:text-slate-800 active:scale-90 transition flex items-center justify-center ml-0.5 cursor-pointer"
                   title="Жабу"
                 >
                   <X className="w-4 h-4" />
