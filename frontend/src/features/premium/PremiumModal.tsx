@@ -711,7 +711,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
 
                     <p className="mt-3 text-xs text-slate-600 leading-relaxed">
                       <strong className="font-bold text-slate-900">Маңызды ескерту:</strong>{' '}
-                      {settings?.bankName || 'Kaspi'} қосымшасында <strong>дәл осы соманы ({currentPlan.price.toLocaleString('kk-KZ')} ₸)</strong> ғана аударыңыз. Бұдан артық та, кем де салмаңыз, әйтпесе төлем есептелмейді және жазылым іске қосылмайды. Төлем жасалған соң чекті төменде тіркеңіз.
+                      {settings?.bankName || 'Kaspi'} қосымшасында <strong className="font-black text-slate-900">дәл осы соманы ({currentPlan.price.toLocaleString('kk-KZ')} ₸)</strong> ғана аударыңыз. Бұдан артық та, кем де салмаңыз, әйтпесе төлем есептелмейді және жазылым іске қосылмайды. Төлем жасалған соң чекті төменде тіркеңіз.
                     </p>
                   </div>
                 );
