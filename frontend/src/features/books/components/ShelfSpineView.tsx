@@ -86,14 +86,14 @@ export const ShelfSpineView: React.FC<ShelfSpineViewProps> = ({
           style={{ background: 'radial-gradient(circle, #EF7E00 0%, transparent 70%)' }}
         />
 
-        <div className="flex flex-col gap-10 sm:gap-14 relative z-10 pt-4">
+        <div className="flex flex-col gap-8 sm:gap-12 relative z-10 pt-6 sm:pt-8">
           {shelves.map((shelfItems, shelfIndex) => {
             const isLastShelf = shelfIndex === shelves.length - 1;
 
             return (
               <div key={shelfIndex} className="relative w-full">
                 {/* Books Row */}
-                <div className="flex items-end justify-start sm:justify-center gap-2 sm:gap-3.5 px-3 min-h-[200px] overflow-x-auto no-scrollbar pb-0.5">
+                <div className="flex items-end justify-start sm:justify-center gap-2 sm:gap-3.5 px-3 min-h-[235px] pt-7 pb-0 overflow-x-auto no-scrollbar">
                   {shelfItems.map(({ book, record }, bookIndex) => {
                     const idNum = Number(String(book.id).replace(/\D/g, '')) || (shelfIndex * 5 + bookIndex + 1);
                     const palette = SPINE_PALETTES[idNum % SPINE_PALETTES.length];
@@ -115,15 +115,17 @@ export const ShelfSpineView: React.FC<ShelfSpineViewProps> = ({
                           height: `${spineHeight}px`,
                           width: `${spineWidth}px`,
                         }}
-                        className={`group relative shrink-0 cursor-pointer select-none rounded-t-[3px] transition-all duration-300 ease-out flex flex-col justify-between items-center ${
+                        className={`group relative shrink-0 cursor-pointer select-none rounded-t-[4px] transition-all duration-300 ease-out flex flex-col justify-between items-center origin-bottom ${
                           isSelected
-                            ? '-translate-y-4 scale-[1.03] z-30 shadow-[0_20px_30px_rgba(0,0,0,0.8),0_0_20px_rgba(239,126,0,0.35)] ring-2 ring-amber-400/70'
-                            : 'hover:-translate-y-2 hover:scale-[1.01] z-10 shadow-[0_6px_16px_rgba(0,0,0,0.4)]'
+                            ? 'scale-[1.04] z-30 shadow-[0_12px_28px_rgba(0,0,0,0.8),0_0_24px_rgba(245,158,11,0.55)] ring-2 ring-amber-400'
+                            : 'hover:scale-[1.02] z-10 shadow-[0_6px_16px_rgba(0,0,0,0.4)]'
                         }`}
                       >
                         {/* Bookmark Ribbon at Top */}
                         <div
-                          className="absolute -top-3 left-1/2 -translate-x-1/2 w-3.5 h-5 rounded-t-xs z-20 shadow-xs transition-transform group-hover:-translate-y-1"
+                          className={`absolute -top-3 left-1/2 -translate-x-1/2 w-3.5 h-5 rounded-t-xs z-20 shadow-xs transition-all ${
+                            isSelected ? 'shadow-[0_0_10px_rgba(251,191,36,0.8)] brightness-110' : ''
+                          }`}
                           style={{
                             background: palette.ribbon,
                             clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%, 50% 75%, 0% 100%)',
