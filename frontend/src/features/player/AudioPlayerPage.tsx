@@ -352,7 +352,7 @@ export const AudioPlayerPage: React.FC = () => {
       {/* ======================================================== */}
       {/* MOBILE PLAYER (Yandex Music / Spotify style thumb zone)   */}
       {/* ======================================================== */}
-      <div className="flex md:hidden flex-col justify-between flex-1 w-full h-[100dvh] max-h-[100dvh] overflow-hidden bg-gradient-to-b from-[#F0F5FA] via-[#F8FAFC] to-[#FFFFFF] text-slate-900 px-4 pt-2 pb-4 relative select-none">
+      <div className="flex md:hidden flex-col justify-between flex-1 w-full h-[100dvh] max-h-[100dvh] overflow-hidden bg-gradient-to-b from-[#F0F5FA] via-[#F8FAFC] to-[#FFFFFF] text-slate-900 px-4 pt-[max(env(safe-area-inset-top,0px),1.25rem)] pb-4 relative select-none">
         
         {/* Subtle background ambient blur from book gradient */}
         <div
@@ -361,7 +361,7 @@ export const AudioPlayerPage: React.FC = () => {
         />
 
         {/* 1. Mobile Top Bar */}
-        <div className="relative flex items-center justify-between w-full py-1 min-h-[44px] shrink-0 z-10">
+        <div className="relative flex items-center justify-between w-full pt-1 pb-1.5 min-h-[44px] shrink-0 z-10">
           <div className="flex items-center z-10">
             <button
               type="button"
