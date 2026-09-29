@@ -494,12 +494,12 @@ export const AudioPlayerPage: React.FC = () => {
         </div>
 
         {/* 5. Primary Controls Row (Thumb Zone - lowered for comfort) */}
-        <div className="relative z-10 shrink-0 flex items-center justify-between px-1 py-2">
+        <div className="relative z-10 shrink-0 w-full max-w-sm mx-auto flex items-center justify-center gap-3 xs:gap-4 py-2">
           {/* -10s Rewind */}
           <button
             type="button"
             onClick={() => handleSkip(-10)}
-            className="w-11 h-11 rounded-full bg-white/5 active:bg-white/15 border border-white/10 text-slate-200 flex items-center justify-center transition active:scale-95 cursor-pointer"
+            className="w-11 h-11 rounded-full bg-white/5 active:bg-white/15 border border-white/10 text-slate-200 flex items-center justify-center transition active:scale-95 cursor-pointer shrink-0"
             title="10 секунд артқа"
           >
             <RotateCcw className="w-5 h-5 text-[#EF7E00]" />
@@ -509,7 +509,7 @@ export const AudioPlayerPage: React.FC = () => {
           <button
             type="button"
             onClick={prevChapter}
-            className="w-12 h-12 rounded-full bg-white/5 active:bg-white/15 border border-white/10 text-white flex items-center justify-center transition active:scale-95 cursor-pointer"
+            className="w-12 h-12 rounded-full bg-white/5 active:bg-white/15 border border-white/10 text-white flex items-center justify-center transition active:scale-95 cursor-pointer shrink-0"
             title="Алдыңғы тарау"
           >
             <SkipBack className="w-5 h-5 fill-current" />
@@ -519,7 +519,7 @@ export const AudioPlayerPage: React.FC = () => {
           <button
             type="button"
             onClick={togglePlay}
-            className="w-16 h-16 rounded-full bg-[#EF7E00] active:bg-[#e07500] text-white flex items-center justify-center shadow-xl shadow-orange-500/40 active:scale-95 transition-transform border-2 border-white/20 cursor-pointer"
+            className="w-16 h-16 rounded-full bg-[#EF7E00] active:bg-[#e07500] text-white flex items-center justify-center shadow-xl shadow-orange-500/40 active:scale-95 transition-transform border-2 border-white/20 cursor-pointer shrink-0"
             title={isPlaying ? 'Тоқтату (Пауза)' : 'Ойнату'}
           >
             {isPlaying ? (
@@ -533,7 +533,7 @@ export const AudioPlayerPage: React.FC = () => {
           <button
             type="button"
             onClick={nextChapter}
-            className="w-12 h-12 rounded-full bg-white/5 active:bg-white/15 border border-white/10 text-white flex items-center justify-center transition active:scale-95 cursor-pointer"
+            className="w-12 h-12 rounded-full bg-white/5 active:bg-white/15 border border-white/10 text-white flex items-center justify-center transition active:scale-95 cursor-pointer shrink-0"
             title="Келесі тарау"
           >
             <SkipForward className="w-5 h-5 fill-current" />
@@ -543,7 +543,7 @@ export const AudioPlayerPage: React.FC = () => {
           <button
             type="button"
             onClick={() => handleSkip(10)}
-            className="w-11 h-11 rounded-full bg-white/5 active:bg-white/15 border border-white/10 text-slate-200 flex items-center justify-center transition active:scale-95 cursor-pointer"
+            className="w-11 h-11 rounded-full bg-white/5 active:bg-white/15 border border-white/10 text-slate-200 flex items-center justify-center transition active:scale-95 cursor-pointer shrink-0"
             title="10 секунд алға"
           >
             <RotateCw className="w-5 h-5 text-[#EF7E00]" />
