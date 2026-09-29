@@ -1698,3 +1698,82 @@ button:hover .avatar-hover-overlay {
   opacity: 1 !important;
 }
 
+/* 3D Realistic Bookshelf Pull-out & Put-back Animations */
+@keyframes bookPullOut {
+  0% {
+    opacity: 0;
+    transform: perspective(1400px) translateY(80px) translateZ(-60px) scale(0.5) rotateY(55deg) rotateX(15deg);
+  }
+  55% {
+    opacity: 1;
+    transform: perspective(1400px) translateY(-16px) translateZ(20px) scale(1.06) rotateY(-8deg) rotateX(3deg);
+  }
+  78% {
+    transform: perspective(1400px) translateY(6px) translateZ(10px) scale(0.97) rotateY(-5deg) rotateX(2deg);
+  }
+  100% {
+    opacity: 1;
+    transform: perspective(1400px) translateY(0) translateZ(0) scale(1) rotateY(-4deg) rotateX(2deg);
+  }
+}
+
+@keyframes bookPutBack {
+  0% {
+    opacity: 1;
+    transform: perspective(1400px) translateY(0) scale(1) rotateY(-4deg) rotateX(2deg);
+  }
+  35% {
+    opacity: 0.9;
+    transform: perspective(1400px) translateY(-8px) scale(1.02) rotateY(-2deg) rotateX(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: perspective(1400px) translateY(60px) scale(0.55) rotateY(50deg) rotateX(12deg);
+  }
+}
+
+.animate-book-pullout {
+  animation: bookPullOut 0.44s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-book-putback {
+  animation: bookPutBack 0.28s cubic-bezier(0.55, 0, 1, 0.45) forwards;
+}
+
+.book-3d-pages {
+  position: absolute;
+  top: 3px;
+  right: -7px;
+  bottom: 3px;
+  width: 9px;
+  background: repeating-linear-gradient(
+    to bottom,
+    #FDFBF7,
+    #FDFBF7 1.5px,
+    #E8E1D5 2px,
+    #E8E1D5 3px
+  );
+  border-radius: 0 3px 3px 0;
+  box-shadow: 2px 2px 5px rgba(0,0,0,0.35);
+  transform: skewY(1deg);
+}
+
+.book-3d-bottom-pages {
+  position: absolute;
+  left: 6px;
+  right: 0px;
+  bottom: -6px;
+  height: 8px;
+  background: repeating-linear-gradient(
+    to right,
+    #FDFBF7,
+    #FDFBF7 1.5px,
+    #E8E1D5 2px,
+    #E8E1D5 3px
+  );
+  border-radius: 0 0 3px 3px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+  transform: skewX(1deg);
+}
+
+
