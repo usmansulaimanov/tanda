@@ -175,7 +175,8 @@ public class OpenAiVisionService {
             log.warn("OpenAI API key is not configured. Skipping automated vision verification.");
             return ReceiptAnalysisResult.builder()
                     .isReceipt(false)
-                    .rawSummary("OpenAI API кілті серверде бапталмаған")
+                    .aiUnavailable(true)
+                    .rawSummary("OpenAI API кілті серверде бапталмаған немесе қолжетімсіз")
                     .build();
         }
 
@@ -218,10 +219,11 @@ public class OpenAiVisionService {
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() != 200) {
-                log.error("OpenAI API error: HTTP {} body: {}", response.statusCode(), response.body());
+                log.error("OpenAI API error (quota/network/token): HTTP {} body: {}", response.statusCode(), response.body());
                 return ReceiptAnalysisResult.builder()
                         .isReceipt(false)
-                        .rawSummary("OpenAI API қатесі: HTTP " + response.statusCode())
+                        .aiUnavailable(true)
+                        .rawSummary("OpenAI API қатесі (токен/баланс/сервер): HTTP " + response.statusCode())
                         .build();
             }
 
@@ -230,6 +232,7 @@ public class OpenAiVisionService {
             if (choices.isEmpty()) {
                 return ReceiptAnalysisResult.builder()
                         .isReceipt(false)
+                        .aiUnavailable(true)
                         .rawSummary("OpenAI бос жауап қайтарды")
                         .build();
             }
@@ -272,7 +275,8 @@ public class OpenAiVisionService {
             log.error("Failed to analyze receipt with OpenAI Vision: {}", e.getMessage(), e);
             return ReceiptAnalysisResult.builder()
                     .isReceipt(false)
-                    .rawSummary("Талдау кезінде техникалық қате: " + e.getMessage())
+                    .aiUnavailable(true)
+                    .rawSummary("Талдау кезінде техникалық қате (байланыс/токен): " + e.getMessage())
                     .build();
         }
     }

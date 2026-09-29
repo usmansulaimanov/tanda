@@ -384,6 +384,12 @@ export interface SystemSettings {
   plan1MonthEnabled?: boolean;
   plan3MonthsEnabled?: boolean;
   plan1YearEnabled?: boolean;
+  plan1MonthDesc?: string;
+  plan3MonthsDesc?: string;
+  plan1YearDesc?: string;
+  plan1MonthBadge?: string;
+  plan3MonthsBadge?: string;
+  plan1YearBadge?: string;
   kaspiPhoneEnabled?: boolean;
   kaspiCardEnabled?: boolean;
   heroMessageEnabled?: boolean;
@@ -395,6 +401,7 @@ export interface SystemSettings {
   headerBannerText?: string;
   headerBannerButtonText?: string;
   headerBannerPresets?: string;
+  aiReceiptVerificationEnabled?: boolean;
   updatedAt?: string;
 }
 

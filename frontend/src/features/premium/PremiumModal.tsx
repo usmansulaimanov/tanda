@@ -66,8 +66,8 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
       days: 30,
       price: settings?.price1Month || 1490,
       oldPrice: settings?.oldPrice1Month || null,
-      description: 'Ай сайынғы стандартты жазылым',
-      badge: null,
+      description: settings?.plan1MonthDesc !== undefined ? settings.plan1MonthDesc : '',
+      badge: settings?.plan1MonthBadge ? settings.plan1MonthBadge.trim() : null,
       enabled: settings?.plan1MonthEnabled !== false,
     },
     {
@@ -76,8 +76,8 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
       days: 90,
       price: settings?.price3Months || 3990,
       oldPrice: settings?.oldPrice3Months || null,
-      description: 'Тоқсандық жазылым (10% үнемдеу)',
-      badge: 'ТИІМДІ',
+      description: settings?.plan3MonthsDesc !== undefined ? settings.plan3MonthsDesc : '10% үнемдейсіз',
+      badge: settings?.plan3MonthsBadge !== undefined ? (settings.plan3MonthsBadge.trim() || null) : 'ТИІМДІ',
       enabled: settings?.plan3MonthsEnabled !== false,
     },
     {
@@ -86,8 +86,8 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
       days: 365,
       price: settings?.price1Year || 11990,
       oldPrice: settings?.oldPrice1Year || null,
-      description: 'Жылдық толық қолжетімділік (33% үнемдеу)',
-      badge: 'ҮЗДІК ТАҢДАУ ⭐',
+      description: settings?.plan1YearDesc !== undefined ? settings.plan1YearDesc : '30% үнемдейсіз',
+      badge: settings?.plan1YearBadge !== undefined ? (settings.plan1YearBadge.trim() || null) : 'ҮЗДІК ТАҢДАУ ⭐',
       enabled: settings?.plan1YearEnabled !== false,
     },
   ], [settings]);
@@ -270,6 +270,9 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
       if (result.status === 'APPROVED') {
         setIsSubmitted(true);
         showToast('Tanda Premium сәтті белсендірілді! 👑', 'success');
+      } else if (result.status === 'PENDING') {
+        setIsSubmitted(true);
+        showToast('Төлем чегі сәтті қабылданды! ⏳ Модератор тексерген соң премиум іске қосылады.', 'info');
       } else {
         const errorReason = result.rejectionReason || 'Төлем чегі тексеруден өтпеді. Деректерді тексеріп, қайта жүктеңіз.';
         setVerificationError(errorReason);
@@ -442,11 +445,11 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
                             : 'border-slate-200 hover:border-slate-300 bg-white'
                         }`}
                       >
-                        {p.badge && (
+                        {p.badge && p.badge.trim() ? (
                           <span className="absolute -top-2.5 right-3 px-2 py-0.5 rounded-full text-[10px] font-black bg-gradient-to-r from-[#F08000] to-orange-600 text-white shadow">
-                            {p.badge}
+                            {p.badge.trim()}
                           </span>
-                        )}
+                        ) : null}
                         <div className="flex items-center justify-between mb-1">
                           <span className="font-bold text-slate-900 text-base">{p.name}</span>
                           <div className={`w-5 h-5 rounded-full flex items-center justify-center ${isSelected ? 'bg-[#F08000] text-white' : 'border border-slate-300'}`}>
@@ -463,7 +466,9 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
                             </span>
                           ) : null}
                         </div>
-                        <p className="text-[11px] text-slate-500 leading-snug">{p.description}</p>
+                        {p.description && p.description.trim() ? (
+                          <p className="text-[11px] text-slate-500 leading-snug">{p.description.trim()}</p>
+                        ) : null}
                       </div>
                     );
                   })}

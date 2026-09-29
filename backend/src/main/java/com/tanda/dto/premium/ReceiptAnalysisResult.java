@@ -21,4 +21,5 @@ public class ReceiptAnalysisResult {
     private Double confidence;
     private String rawSummary;
     private String rawJson;
+    private boolean aiUnavailable;
 }

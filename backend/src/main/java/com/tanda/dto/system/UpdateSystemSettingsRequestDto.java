@@ -28,6 +28,12 @@ public class UpdateSystemSettingsRequestDto {
     private Boolean plan1MonthEnabled;
     private Boolean plan3MonthsEnabled;
     private Boolean plan1YearEnabled;
+    private String plan1MonthDesc;
+    private String plan3MonthsDesc;
+    private String plan1YearDesc;
+    private String plan1MonthBadge;
+    private String plan3MonthsBadge;
+    private String plan1YearBadge;
     private Boolean kaspiPhoneEnabled;
     private Boolean kaspiCardEnabled;
     private Boolean heroMessageEnabled;
@@ -39,4 +45,5 @@ public class UpdateSystemSettingsRequestDto {
     private String headerBannerText;
     private String headerBannerButtonText;
     private String headerBannerPresets;
+    private Boolean aiReceiptVerificationEnabled;
 }

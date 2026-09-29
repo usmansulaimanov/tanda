@@ -30,6 +30,12 @@ public class SystemSettingsResponseDto {
     private boolean plan1MonthEnabled;
     private boolean plan3MonthsEnabled;
     private boolean plan1YearEnabled;
+    private String plan1MonthDesc;
+    private String plan3MonthsDesc;
+    private String plan1YearDesc;
+    private String plan1MonthBadge;
+    private String plan3MonthsBadge;
+    private String plan1YearBadge;
     private boolean kaspiPhoneEnabled;
     private boolean kaspiCardEnabled;
     private boolean heroMessageEnabled;
@@ -41,5 +47,6 @@ public class SystemSettingsResponseDto {
     private String headerBannerText;
     private String headerBannerButtonText;
     private String headerBannerPresets;
+    private boolean aiReceiptVerificationEnabled;
     private OffsetDateTime updatedAt;
 }

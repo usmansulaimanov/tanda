@@ -12,7 +12,9 @@ import {
   CreditCard,
   Radio,
   Megaphone,
-  Pencil
+  Pencil,
+  Bot,
+  ShieldCheck
 } from 'lucide-react';
 import { systemApi } from '../../shared/api/system.api';
 import { SystemSettings } from '../../types';
@@ -92,11 +94,18 @@ export const AdminSystemSettingsPage: React.FC = () => {
     plan1MonthEnabled: true,
     plan3MonthsEnabled: true,
     plan1YearEnabled: true,
+    plan1MonthDesc: '',
+    plan3MonthsDesc: '10% үнемдейсіз',
+    plan1YearDesc: '30% үнемдейсіз',
+    plan1MonthBadge: '',
+    plan3MonthsBadge: 'ТИІМДІ',
+    plan1YearBadge: 'ҮЗДІК ТАҢДАУ ⭐',
     kaspiPhoneEnabled: true,
     kaspiCardEnabled: true,
     headerBannerEnabled: true,
     headerBannerText: 'Tanda Premium: 100+ кітапты шектеусіз әрі 0% жарнамасыз тыңдаңыз!',
     headerBannerButtonText: 'Премиумға жазылу →',
+    aiReceiptVerificationEnabled: true,
     paymentNotice: '',
   });
 
@@ -178,6 +187,12 @@ export const AdminSystemSettingsPage: React.FC = () => {
 
         setSettings({
           ...res,
+          plan1MonthDesc: res.plan1MonthDesc !== undefined ? res.plan1MonthDesc : '',
+          plan3MonthsDesc: res.plan3MonthsDesc !== undefined ? res.plan3MonthsDesc : '10% үнемдейсіз',
+          plan1YearDesc: res.plan1YearDesc !== undefined ? res.plan1YearDesc : '30% үнемдейсіз',
+          plan1MonthBadge: res.plan1MonthBadge !== undefined ? res.plan1MonthBadge : '',
+          plan3MonthsBadge: res.plan3MonthsBadge !== undefined ? res.plan3MonthsBadge : 'ТИІМДІ',
+          plan1YearBadge: res.plan1YearBadge !== undefined ? res.plan1YearBadge : 'ҮЗДІК ТАҢДАУ ⭐',
           kaspiPhone: formatKaspiPhone(res.kaspiPhone || ''),
           kaspiCard: formatKaspiCard(res.kaspiCard || ''),
           kaspiPhoneEnabled: res.kaspiPhoneEnabled !== false,
@@ -186,6 +201,7 @@ export const AdminSystemSettingsPage: React.FC = () => {
           headerBannerText: res.headerBannerText || 'Tanda Premium: 100+ кітапты шектеусіз әрі 0% жарнамасыз тыңдаңыз!',
           headerBannerButtonText: res.headerBannerButtonText ?? 'Премиумға жазылу →',
           headerBannerPresets: res.headerBannerPresets || '',
+          aiReceiptVerificationEnabled: res.aiReceiptVerificationEnabled !== false,
           paymentNotice: res.paymentNotice || '',
         });
         setIsLoading(false);
@@ -238,6 +254,12 @@ export const AdminSystemSettingsPage: React.FC = () => {
     try {
       const payload = {
         ...settings,
+        plan1MonthDesc: settings.plan1MonthDesc ?? '',
+        plan3MonthsDesc: settings.plan3MonthsDesc ?? '',
+        plan1YearDesc: settings.plan1YearDesc ?? '',
+        plan1MonthBadge: settings.plan1MonthBadge ?? '',
+        plan3MonthsBadge: settings.plan3MonthsBadge ?? '',
+        plan1YearBadge: settings.plan1YearBadge ?? '',
         kaspiPhone: formatKaspiPhone(settings.kaspiPhone),
         kaspiCard: formatKaspiCard(settings.kaspiCard || ''),
         kaspiPhoneEnabled: settings.kaspiPhoneEnabled !== false,
@@ -263,6 +285,12 @@ export const AdminSystemSettingsPage: React.FC = () => {
 
       setSettings({
         ...updated,
+        plan1MonthDesc: updated.plan1MonthDesc !== undefined ? updated.plan1MonthDesc : '',
+        plan3MonthsDesc: updated.plan3MonthsDesc !== undefined ? updated.plan3MonthsDesc : '10% үнемдейсіз',
+        plan1YearDesc: updated.plan1YearDesc !== undefined ? updated.plan1YearDesc : '30% үнемдейсіз',
+        plan1MonthBadge: updated.plan1MonthBadge !== undefined ? updated.plan1MonthBadge : '',
+        plan3MonthsBadge: updated.plan3MonthsBadge !== undefined ? updated.plan3MonthsBadge : 'ТИІМДІ',
+        plan1YearBadge: updated.plan1YearBadge !== undefined ? updated.plan1YearBadge : 'ҮЗДІК ТАҢДАУ ⭐',
         kaspiPhone: formatKaspiPhone(updated.kaspiPhone || ''),
         kaspiCard: formatKaspiCard(updated.kaspiCard || ''),
         kaspiPhoneEnabled: updated.kaspiPhoneEnabled !== false,
@@ -638,6 +666,48 @@ export const AdminSystemSettingsPage: React.FC = () => {
             <h3 className="text-base font-bold text-slate-900">Төлем Реквизиттері және Бағалар</h3>
           </div>
 
+          {/* AI Receipt Verification Mode Toggle */}
+          <div className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-orange-50/70 to-amber-50/70 border border-orange-200/80 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${
+                settings.aiReceiptVerificationEnabled !== false
+                  ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
+                  : 'bg-slate-200 text-slate-500'
+              }`}>
+                <Bot className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h4 className="text-sm font-bold text-slate-900">ЖИ арқылы чекті автоматты тексеру (OpenAI Vision)</h4>
+                  {settings.aiReceiptVerificationEnabled !== false ? (
+                    <span className="px-2 py-0.5 text-[10px] font-black rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
+                      ЖИ РЕЖИМІ ҚОСУЛЫ
+                    </span>
+                  ) : (
+                    <span className="px-2 py-0.5 text-[10px] font-black rounded-full bg-amber-100 text-amber-800 border border-amber-300">
+                      ҚОЛМЕН ТЕКСЕРУ РЕЖИМІ (PENDING)
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                  {settings.aiReceiptVerificationEnabled !== false
+                    ? 'Оқырман салған чектерді жасанды интеллект 3–5 секундта автоматты тексереді. Егер ЖИ токені бітсе, чек автоматты түрде админнің қолмен тексеруіне (PENDING) бағытталады.'
+                    : 'ЖИ өшірулі. Барлық жаңадан жіберілген чектер бірден күтуге (PENDING) түседі және оны админ өзі қолмен мақұлдайды.'}
+                </p>
+              </div>
+            </div>
+
+            <label className="relative inline-flex items-center cursor-pointer shrink-0 self-end sm:self-center">
+              <input
+                type="checkbox"
+                checked={settings.aiReceiptVerificationEnabled !== false}
+                onChange={(e) => setSettings({ ...settings, aiReceiptVerificationEnabled: e.target.checked })}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#F08000]"></div>
+            </label>
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1.5">
@@ -723,90 +793,177 @@ export const AdminSystemSettingsPage: React.FC = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-slate-100">
             {/* 1 Month */}
-            <div className={`p-3.5 rounded-2xl border transition-all ${
+            <div className={`p-4 rounded-2xl border transition-all flex flex-col justify-between ${
               settings.plan1MonthEnabled !== false ? 'bg-orange-50/40 border-orange-200 shadow-sm' : 'bg-slate-50 border-slate-200 opacity-60'
             }`}>
-              <div className="flex items-center justify-between mb-2">
-                <label className="flex items-center gap-2 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={settings.plan1MonthEnabled !== false}
-                    onChange={(e) => setSettings({ ...settings, plan1MonthEnabled: e.target.checked })}
-                    className="w-4 h-4 text-[#F08000] rounded border-slate-300 focus:ring-[#F08000] cursor-pointer"
-                  />
-                  <span className="text-xs font-bold text-slate-800">1 айлық жазылым (₸):</span>
-                </label>
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <label className="flex items-center gap-2 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={settings.plan1MonthEnabled !== false}
+                      onChange={(e) => setSettings({ ...settings, plan1MonthEnabled: e.target.checked })}
+                      className="w-4 h-4 text-[#F08000] rounded border-slate-300 focus:ring-[#F08000] cursor-pointer"
+                    />
+                    <span className="text-xs font-bold text-slate-900">1 айлық тариф:</span>
+                  </label>
+                </div>
+                <div className="space-y-2.5">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Бағасы (₸):</label>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      placeholder="1490"
+                      disabled={settings.plan1MonthEnabled === false}
+                      value={settings.price1Month === 0 ? '' : (settings.price1Month ?? '')}
+                      onChange={(e) => {
+                        const digits = e.target.value.replace(/\D/g, '');
+                        setSettings({ ...settings, price1Month: digits ? parseInt(digits, 10) : 0 });
+                      }}
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-[#F08000] font-bold bg-white disabled:bg-slate-100 disabled:text-slate-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Жоғарғы бейдж (стикер):</label>
+                    <input
+                      type="text"
+                      placeholder="Бос қалдыруға болады"
+                      disabled={settings.plan1MonthEnabled === false}
+                      value={settings.plan1MonthBadge || ''}
+                      onChange={(e) => setSettings({ ...settings, plan1MonthBadge: e.target.value })}
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-[#F08000] bg-white text-slate-900 disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Төменгі сипаттама:</label>
+                    <input
+                      type="text"
+                      placeholder="Бос қалдыруға болады"
+                      disabled={settings.plan1MonthEnabled === false}
+                      value={settings.plan1MonthDesc || ''}
+                      onChange={(e) => setSettings({ ...settings, plan1MonthDesc: e.target.value })}
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-[#F08000] bg-white text-slate-900 disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-400"
+                    />
+                  </div>
+                </div>
               </div>
-              <input
-                type="text"
-                inputMode="numeric"
-                placeholder="1490"
-                disabled={settings.plan1MonthEnabled === false}
-                value={settings.price1Month === 0 ? '' : (settings.price1Month ?? '')}
-                onChange={(e) => {
-                  const digits = e.target.value.replace(/\D/g, '');
-                  setSettings({ ...settings, price1Month: digits ? parseInt(digits, 10) : 0 });
-                }}
-                className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none font-bold bg-white disabled:bg-slate-100 disabled:text-slate-400"
-              />
             </div>
 
             {/* 3 Months */}
-            <div className={`p-3.5 rounded-2xl border transition-all ${
+            <div className={`p-4 rounded-2xl border transition-all flex flex-col justify-between ${
               settings.plan3MonthsEnabled !== false ? 'bg-orange-50/40 border-orange-200 shadow-sm' : 'bg-slate-50 border-slate-200 opacity-60'
             }`}>
-              <div className="flex items-center justify-between mb-2">
-                <label className="flex items-center gap-2 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={settings.plan3MonthsEnabled !== false}
-                    onChange={(e) => setSettings({ ...settings, plan3MonthsEnabled: e.target.checked })}
-                    className="w-4 h-4 text-[#F08000] rounded border-slate-300 focus:ring-[#F08000] cursor-pointer"
-                  />
-                  <span className="text-xs font-bold text-slate-800">3 айлық жазылым (₸):</span>
-                </label>
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <label className="flex items-center gap-2 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={settings.plan3MonthsEnabled !== false}
+                      onChange={(e) => setSettings({ ...settings, plan3MonthsEnabled: e.target.checked })}
+                      className="w-4 h-4 text-[#F08000] rounded border-slate-300 focus:ring-[#F08000] cursor-pointer"
+                    />
+                    <span className="text-xs font-bold text-slate-900">3 айлық тариф:</span>
+                  </label>
+                </div>
+                <div className="space-y-2.5">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Бағасы (₸):</label>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      placeholder="3990"
+                      disabled={settings.plan3MonthsEnabled === false}
+                      value={settings.price3Months === 0 ? '' : (settings.price3Months ?? '')}
+                      onChange={(e) => {
+                        const digits = e.target.value.replace(/\D/g, '');
+                        setSettings({ ...settings, price3Months: digits ? parseInt(digits, 10) : 0 });
+                      }}
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-[#F08000] font-bold bg-white disabled:bg-slate-100 disabled:text-slate-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Жоғарғы бейдж (стикер):</label>
+                    <input
+                      type="text"
+                      placeholder="ТИІМДІ"
+                      disabled={settings.plan3MonthsEnabled === false}
+                      value={settings.plan3MonthsBadge || ''}
+                      onChange={(e) => setSettings({ ...settings, plan3MonthsBadge: e.target.value })}
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-[#F08000] bg-white text-slate-900 disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Төменгі сипаттама:</label>
+                    <input
+                      type="text"
+                      placeholder="10% үнемдейсіз"
+                      disabled={settings.plan3MonthsEnabled === false}
+                      value={settings.plan3MonthsDesc || ''}
+                      onChange={(e) => setSettings({ ...settings, plan3MonthsDesc: e.target.value })}
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-[#F08000] bg-white text-slate-900 disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-400"
+                    />
+                  </div>
+                </div>
               </div>
-              <input
-                type="text"
-                inputMode="numeric"
-                placeholder="3990"
-                disabled={settings.plan3MonthsEnabled === false}
-                value={settings.price3Months === 0 ? '' : (settings.price3Months ?? '')}
-                onChange={(e) => {
-                  const digits = e.target.value.replace(/\D/g, '');
-                  setSettings({ ...settings, price3Months: digits ? parseInt(digits, 10) : 0 });
-                }}
-                className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none font-bold bg-white disabled:bg-slate-100 disabled:text-slate-400"
-              />
             </div>
 
             {/* 1 Year */}
-            <div className={`p-3.5 rounded-2xl border transition-all ${
+            <div className={`p-4 rounded-2xl border transition-all flex flex-col justify-between ${
               settings.plan1YearEnabled !== false ? 'bg-orange-50/40 border-orange-200 shadow-sm' : 'bg-slate-50 border-slate-200 opacity-60'
             }`}>
-              <div className="flex items-center justify-between mb-2">
-                <label className="flex items-center gap-2 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={settings.plan1YearEnabled !== false}
-                    onChange={(e) => setSettings({ ...settings, plan1YearEnabled: e.target.checked })}
-                    className="w-4 h-4 text-[#F08000] rounded border-slate-300 focus:ring-[#F08000] cursor-pointer"
-                  />
-                  <span className="text-xs font-bold text-slate-800">1 жылдық жазылым (₸):</span>
-                </label>
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <label className="flex items-center gap-2 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={settings.plan1YearEnabled !== false}
+                      onChange={(e) => setSettings({ ...settings, plan1YearEnabled: e.target.checked })}
+                      className="w-4 h-4 text-[#F08000] rounded border-slate-300 focus:ring-[#F08000] cursor-pointer"
+                    />
+                    <span className="text-xs font-bold text-slate-900">1 жылдық тариф:</span>
+                  </label>
+                </div>
+                <div className="space-y-2.5">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Бағасы (₸):</label>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      placeholder="11990"
+                      disabled={settings.plan1YearEnabled === false}
+                      value={settings.price1Year === 0 ? '' : (settings.price1Year ?? '')}
+                      onChange={(e) => {
+                        const digits = e.target.value.replace(/\D/g, '');
+                        setSettings({ ...settings, price1Year: digits ? parseInt(digits, 10) : 0 });
+                      }}
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-[#F08000] font-bold bg-white disabled:bg-slate-100 disabled:text-slate-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Жоғарғы бейдж (стикер):</label>
+                    <input
+                      type="text"
+                      placeholder="ҮЗДІК ТАҢДАУ ⭐"
+                      disabled={settings.plan1YearEnabled === false}
+                      value={settings.plan1YearBadge || ''}
+                      onChange={(e) => setSettings({ ...settings, plan1YearBadge: e.target.value })}
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-[#F08000] bg-white text-slate-900 disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Төменгі сипаттама:</label>
+                    <input
+                      type="text"
+                      placeholder="30% үнемдейсіз"
+                      disabled={settings.plan1YearEnabled === false}
+                      value={settings.plan1YearDesc || ''}
+                      onChange={(e) => setSettings({ ...settings, plan1YearDesc: e.target.value })}
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-[#F08000] bg-white text-slate-900 disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-400"
+                    />
+                  </div>
+                </div>
               </div>
-              <input
-                type="text"
-                inputMode="numeric"
-                placeholder="11990"
-                disabled={settings.plan1YearEnabled === false}
-                value={settings.price1Year === 0 ? '' : (settings.price1Year ?? '')}
-                onChange={(e) => {
-                  const digits = e.target.value.replace(/\D/g, '');
-                  setSettings({ ...settings, price1Year: digits ? parseInt(digits, 10) : 0 });
-                }}
-                className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none font-bold bg-white disabled:bg-slate-100 disabled:text-slate-400"
-              />
             </div>
           </div>
 

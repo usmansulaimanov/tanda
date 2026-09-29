@@ -29,6 +29,7 @@ public class SubscriptionPaymentService {
     private final PremiumService premiumService;
     private final MessageService messageService;
     private final ReceiptVerificationService receiptVerificationService;
+    private final SystemSettingService systemSettingService;
 
     private User findUserByIdOrEmail(String identifier) {
         if (identifier == null || identifier.isBlank()) {
@@ -47,13 +48,74 @@ public class SubscriptionPaymentService {
         int days = (dto.getPlanDays() != null && dto.getPlanDays() > 0) ? dto.getPlanDays() : 30;
         int amount = (dto.getAmountKzt() != null && dto.getAmountKzt() > 0) ? dto.getAmountKzt() : 1490;
 
-        // Perform automated AI verification using OpenAI Vision & business rules
-        ReceiptVerificationService.VerificationResult verification = receiptVerificationService.verifyReceipt(
-                dto.getReceiptUrl(),
-                null,
-                amount,
-                dto.getPlanName() != null ? dto.getPlanName() : "1_MONTH"
-        );
+        boolean aiEnabled = systemSettingService.isAiReceiptVerificationEnabled();
+
+        // Mode A: If AI receipt verification is explicitly disabled by Admin
+        if (!aiEnabled) {
+            log.info("AI receipt verification is disabled in system settings. Creating subscription request as PENDING for manual admin review.");
+            SubscriptionPaymentRequest req = SubscriptionPaymentRequest.builder()
+                    .id(UUID.randomUUID().toString())
+                    .userId(userId)
+                    .planName(dto.getPlanName() != null ? dto.getPlanName() : "1_MONTH")
+                    .planDays(days)
+                    .amountKzt(amount)
+                    .receiptUrl(dto.getReceiptUrl())
+                    .phoneOrAccount(dto.getPhoneOrAccount())
+                    .notes(dto.getNotes())
+                    .aiVerified(false)
+                    .aiStatus("MANUAL_REVIEW_NEEDED")
+                    .status("PENDING")
+                    .reviewedBy(null)
+                    .reviewedAt(null)
+                    .createdAt(OffsetDateTime.now())
+                    .build();
+
+            SubscriptionPaymentRequest saved = requestRepository.save(req);
+            return toDto(saved, user.getName(), user.getEmail());
+        }
+
+        // Mode B: Perform automated AI verification using OpenAI Vision & business rules with automatic fallback
+        ReceiptVerificationService.VerificationResult verification;
+        try {
+            verification = receiptVerificationService.verifyReceipt(
+                    dto.getReceiptUrl(),
+                    null,
+                    amount,
+                    dto.getPlanName() != null ? dto.getPlanName() : "1_MONTH"
+            );
+        } catch (Exception e) {
+            log.warn("Receipt AI verification encountered exception (quota/timeout/network): {}. Falling back to manual review.", e.getMessage());
+            verification = ReceiptVerificationService.VerificationResult.builder()
+                    .approved(false)
+                    .aiStatus("MANUAL_REVIEW_NEEDED")
+                    .rejectionReason("ЖИ қызметі уақытша қолжетімсіз (байланыс немесе токен қатесі)")
+                    .build();
+        }
+
+        // Mode C: Fallback to Manual Review if AI is unavailable / quota exhausted
+        if ("MANUAL_REVIEW_NEEDED".equals(verification.getAiStatus())) {
+            log.info("AI returned MANUAL_REVIEW_NEEDED (fallback). Saving request as PENDING for admin review.");
+            SubscriptionPaymentRequest req = SubscriptionPaymentRequest.builder()
+                    .id(UUID.randomUUID().toString())
+                    .userId(userId)
+                    .planName(dto.getPlanName() != null ? dto.getPlanName() : "1_MONTH")
+                    .planDays(days)
+                    .amountKzt(amount)
+                    .receiptUrl(dto.getReceiptUrl())
+                    .phoneOrAccount(dto.getPhoneOrAccount())
+                    .notes((dto.getNotes() != null && !dto.getNotes().isBlank() ? dto.getNotes() + " | " : "") + "[ЖИ токені/байланысы қолжетімсіз: қолмен тексеру күтілуде]")
+                    .aiVerified(false)
+                    .aiStatus("MANUAL_REVIEW_NEEDED")
+                    .aiRejectionReason(verification.getRejectionReason())
+                    .status("PENDING")
+                    .reviewedBy(null)
+                    .reviewedAt(null)
+                    .createdAt(OffsetDateTime.now())
+                    .build();
+
+            SubscriptionPaymentRequest saved = requestRepository.save(req);
+            return toDto(saved, user.getName(), user.getEmail());
+        }
 
         String receiptNum = (verification.getAnalysis() != null) ? verification.getAnalysis().getReceiptNumber() : null;
         boolean isApproved = verification.isApproved();
@@ -124,7 +186,6 @@ public class SubscriptionPaymentService {
             } catch (Exception e) {
                 log.warn("Could not send AI rejection message to user {}: {}", userId, e.getMessage());
             }
-
 
             log.warn("AI Auto-Rejected subscription request {} for user {}: {}",
                     saved.getId(), userId, reasonText);

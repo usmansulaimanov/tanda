@@ -176,4 +176,25 @@ class ReceiptVerificationServiceTest {
         assertEquals("REJECTED", result.getAiStatus());
         assertTrue(result.getRejectionReason().contains("карта"));
     }
+
+    @Test
+    @DisplayName("AI Unavailable / Quota exhausted -> MANUAL_REVIEW_NEEDED fallback")
+    void aiUnavailable_fallbackToManualReview() {
+        ReceiptAnalysisResult analysis = ReceiptAnalysisResult.builder()
+                .isReceipt(false)
+                .aiUnavailable(true)
+                .rawSummary("OpenAI API қатесі: HTTP 429")
+                .build();
+
+        when(openAiVisionService.loadReceiptBytes(any())).thenReturn(new byte[]{1, 2, 3});
+        when(openAiVisionService.computeSha256(any())).thenReturn("hash_fallback");
+        when(openAiVisionService.analyzeReceipt(any(), any())).thenReturn(analysis);
+
+        ReceiptVerificationService.VerificationResult result =
+                verificationService.verifyReceipt("/uploads/covers/test.jpg", null, 2500, "1_MONTH");
+
+        assertFalse(result.isApproved());
+        assertEquals("MANUAL_REVIEW_NEEDED", result.getAiStatus());
+        assertEquals("OpenAI API қатесі: HTTP 429", result.getRejectionReason());
+    }
 }

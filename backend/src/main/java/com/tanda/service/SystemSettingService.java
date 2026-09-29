@@ -69,6 +69,12 @@ public class SystemSettingService {
                 .plan1MonthEnabled(!"false".equalsIgnoreCase(map.get("plan_1_month_enabled")))
                 .plan3MonthsEnabled(!"false".equalsIgnoreCase(map.get("plan_3_months_enabled")))
                 .plan1YearEnabled(!"false".equalsIgnoreCase(map.get("plan_1_year_enabled")))
+                .plan1MonthDesc(map.containsKey("plan_1_month_desc") ? (map.get("plan_1_month_desc") != null ? map.get("plan_1_month_desc") : "") : "")
+                .plan3MonthsDesc(map.containsKey("plan_3_months_desc") ? (map.get("plan_3_months_desc") != null ? map.get("plan_3_months_desc") : "") : "10% үнемдейсіз")
+                .plan1YearDesc(map.containsKey("plan_1_year_desc") ? (map.get("plan_1_year_desc") != null ? map.get("plan_1_year_desc") : "") : "30% үнемдейсіз")
+                .plan1MonthBadge(map.containsKey("plan_1_month_badge") ? (map.get("plan_1_month_badge") != null ? map.get("plan_1_month_badge") : "") : "")
+                .plan3MonthsBadge(map.containsKey("plan_3_months_badge") ? (map.get("plan_3_months_badge") != null ? map.get("plan_3_months_badge") : "") : "ТИІМДІ")
+                .plan1YearBadge(map.containsKey("plan_1_year_badge") ? (map.get("plan_1_year_badge") != null ? map.get("plan_1_year_badge") : "") : "ҮЗДІК ТАҢДАУ ⭐")
                 .kaspiPhoneEnabled(!"false".equalsIgnoreCase(map.get("kaspi_phone_enabled")))
                 .kaspiCardEnabled(!"false".equalsIgnoreCase(map.get("kaspi_card_enabled")))
                 .heroMessageEnabled("true".equalsIgnoreCase(map.getOrDefault("hero_message_enabled", "false")))
@@ -80,8 +86,16 @@ public class SystemSettingService {
                 .headerBannerText(map.getOrDefault("header_banner_text", "Tanda Premium: 100+ кітапты шектеусіз әрі 0% жарнамасыз тыңдаңыз!"))
                 .headerBannerButtonText(map.getOrDefault("header_banner_button_text", "Премиумға жазылу →"))
                 .headerBannerPresets(map.getOrDefault("header_banner_presets", ""))
+                .aiReceiptVerificationEnabled(!"false".equalsIgnoreCase(map.get("ai_receipt_verification_enabled")))
                 .updatedAt(lastUpdated)
                 .build();
+    }
+
+    @Transactional(readOnly = true)
+    public boolean isAiReceiptVerificationEnabled() {
+        return systemSettingRepository.findBySettingKey("ai_receipt_verification_enabled")
+                .map(s -> !"false".equalsIgnoreCase(s.getSettingValue()))
+                .orElse(true);
     }
 
     @Transactional(readOnly = true)
@@ -155,6 +169,24 @@ public class SystemSettingService {
         if (dto.getPlan1YearEnabled() != null) {
             saveSetting("plan_1_year_enabled", String.valueOf(dto.getPlan1YearEnabled()));
         }
+        if (dto.getPlan1MonthDesc() != null) {
+            saveSetting("plan_1_month_desc", dto.getPlan1MonthDesc().trim());
+        }
+        if (dto.getPlan3MonthsDesc() != null) {
+            saveSetting("plan_3_months_desc", dto.getPlan3MonthsDesc().trim());
+        }
+        if (dto.getPlan1YearDesc() != null) {
+            saveSetting("plan_1_year_desc", dto.getPlan1YearDesc().trim());
+        }
+        if (dto.getPlan1MonthBadge() != null) {
+            saveSetting("plan_1_month_badge", dto.getPlan1MonthBadge().trim());
+        }
+        if (dto.getPlan3MonthsBadge() != null) {
+            saveSetting("plan_3_months_badge", dto.getPlan3MonthsBadge().trim());
+        }
+        if (dto.getPlan1YearBadge() != null) {
+            saveSetting("plan_1_year_badge", dto.getPlan1YearBadge().trim());
+        }
         if (dto.getKaspiPhoneEnabled() != null) {
             saveSetting("kaspi_phone_enabled", String.valueOf(dto.getKaspiPhoneEnabled()));
         }
@@ -192,6 +224,9 @@ public class SystemSettingService {
         }
         if (dto.getHeaderBannerPresets() != null) {
             saveSetting("header_banner_presets", dto.getHeaderBannerPresets().trim());
+        }
+        if (dto.getAiReceiptVerificationEnabled() != null) {
+            saveSetting("ai_receipt_verification_enabled", String.valueOf(dto.getAiReceiptVerificationEnabled()));
         }
 
         log.info("System settings updated successfully: {}", dto);

@@ -46,6 +46,20 @@ public class ReceiptVerificationService {
             extractedJson = objectMapper.writeValueAsString(analysis);
         } catch (Exception ignored) {}
 
+        // Rule 0: If OpenAI vision is unavailable or quota exhausted -> Fallback to Manual Review
+        if (analysis.isAiUnavailable()) {
+            log.warn("OpenAI Vision is unavailable or quota exhausted ({}). Returning MANUAL_REVIEW_NEEDED.", analysis.getRawSummary());
+            return VerificationResult.builder()
+                    .approved(false)
+                    .aiStatus("MANUAL_REVIEW_NEEDED")
+                    .confidence(0.0)
+                    .rejectionReason(analysis.getRawSummary() != null ? analysis.getRawSummary() : "ЖИ қызметі уақытша қолжетімсіз")
+                    .analysis(analysis)
+                    .receiptHash(receiptHash)
+                    .extractedDataJson(extractedJson)
+                    .build();
+        }
+
         // Rule 1: Must be recognized as an authentic bank payment receipt
         if (!analysis.isReceipt()) {
             return VerificationResult.builder()
