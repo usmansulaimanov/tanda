@@ -129,7 +129,15 @@ interface PromoState {
   fetchUserActivatedPromos: () => Promise<void>;
 
   generatePromoCodes: (options: GenerateOptions) => Promise<{ batch: PromoBatch; codes: PromoCode[] }>;
-  validatePromoCode: (code: string) => Promise<{ valid: boolean; message?: string; rewardTitle?: string }>;
+  validatePromoCode: (code: string) => Promise<{
+    valid: boolean;
+    message?: string;
+    rewardTitle?: string;
+    rewardType?: string;
+    durationDays?: number;
+    discountPercent?: number;
+    code?: string;
+  }>;
   activatePromoCode: (
     code: string,
     user?: { id: string; name?: string; email: string }
@@ -205,6 +213,9 @@ export const usePromoStore = create<PromoState>((set, get) => ({
         message?: string;
         rewardTitle?: string;
         rewardType?: string;
+        durationDays?: number;
+        discountPercent?: number;
+        code?: string;
       }>('/api/v1/promo-codes/validate', { code });
       return res.data;
     } catch (err: any) {

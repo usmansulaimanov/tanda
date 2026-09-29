@@ -12,7 +12,8 @@ import {
   Headphones,
   CheckCircle2,
   AlertCircle,
-  FileText
+  FileText,
+  Tag
 } from 'lucide-react';
 import tandaPremiumWhite from '../../assets/tanda-premium-white.png';
 import { useQuery } from '@tanstack/react-query';
@@ -37,7 +38,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
   initialReason,
 }) => {
   const { user, isAuthenticated } = useAuthStore();
-  const { activatePromoCode } = usePromoStore();
+  const { activatePromoCode, validatePromoCode } = usePromoStore();
   const { showToast } = useToastStore();
 
   const { data: settings, isLoading: isSettingsLoading } = useQuery({
@@ -56,8 +57,12 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
   const [verificationError, setVerificationError] = useState<string | null>(null);
 
   // Promo code state
-
   const [promoCodeInput, setPromoCodeInput] = useState('');
+  const [appliedPromo, setAppliedPromo] = useState<{
+    code: string;
+    discountPercent: number;
+    rewardTitle: string;
+  } | null>(null);
   const [isApplyingPromo, setIsApplyingPromo] = useState(false);
 
   const allPlans = useMemo(() => [
@@ -65,33 +70,54 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
       id: '1_MONTH' as const,
       name: '1 ай',
       days: 30,
-      price: settings?.price1Month || 1490,
-      oldPrice: settings?.oldPrice1Month || null,
+      basePrice: settings?.price1Month || 1490,
+      price: appliedPromo?.discountPercent
+        ? Math.max(1, Math.round((settings?.price1Month || 1490) * (1 - appliedPromo.discountPercent / 100)))
+        : settings?.price1Month || 1490,
+      oldPrice: appliedPromo?.discountPercent
+        ? settings?.price1Month || 1490
+        : settings?.oldPrice1Month || null,
       description: settings?.plan1MonthDesc !== undefined ? settings.plan1MonthDesc : '',
-      badge: settings?.plan1MonthBadge ? settings.plan1MonthBadge.trim() : null,
+      badge: appliedPromo?.discountPercent
+        ? `-${appliedPromo.discountPercent}% ЖЕҢІЛДІК`
+        : settings?.plan1MonthBadge ? settings.plan1MonthBadge.trim() : null,
       enabled: settings?.plan1MonthEnabled !== false,
     },
     {
       id: '3_MONTHS' as const,
       name: '3 ай',
       days: 90,
-      price: settings?.price3Months || 3990,
-      oldPrice: settings?.oldPrice3Months || null,
+      basePrice: settings?.price3Months || 3990,
+      price: appliedPromo?.discountPercent
+        ? Math.max(1, Math.round((settings?.price3Months || 3990) * (1 - appliedPromo.discountPercent / 100)))
+        : settings?.price3Months || 3990,
+      oldPrice: appliedPromo?.discountPercent
+        ? settings?.price3Months || 3990
+        : settings?.oldPrice3Months || null,
       description: settings?.plan3MonthsDesc !== undefined ? settings.plan3MonthsDesc : '10% үнемдейсіз',
-      badge: settings?.plan3MonthsBadge !== undefined ? (settings.plan3MonthsBadge.trim() || null) : 'ТИІМДІ',
+      badge: appliedPromo?.discountPercent
+        ? `-${appliedPromo.discountPercent}% ЖЕҢІЛДІК`
+        : settings?.plan3MonthsBadge !== undefined ? (settings.plan3MonthsBadge.trim() || null) : 'ТИІМДІ',
       enabled: settings?.plan3MonthsEnabled !== false,
     },
     {
       id: '1_YEAR' as const,
       name: '1 жыл',
       days: 365,
-      price: settings?.price1Year || 11990,
-      oldPrice: settings?.oldPrice1Year || null,
+      basePrice: settings?.price1Year || 11990,
+      price: appliedPromo?.discountPercent
+        ? Math.max(1, Math.round((settings?.price1Year || 11990) * (1 - appliedPromo.discountPercent / 100)))
+        : settings?.price1Year || 11990,
+      oldPrice: appliedPromo?.discountPercent
+        ? settings?.price1Year || 11990
+        : settings?.oldPrice1Year || null,
       description: settings?.plan1YearDesc !== undefined ? settings.plan1YearDesc : '30% үнемдейсіз',
-      badge: settings?.plan1YearBadge !== undefined ? (settings.plan1YearBadge.trim() || null) : 'ҮЗДІК ТАҢДАУ ⭐',
+      badge: appliedPromo?.discountPercent
+        ? `-${appliedPromo.discountPercent}% ЖЕҢІЛДІК`
+        : settings?.plan1YearBadge !== undefined ? (settings.plan1YearBadge.trim() || null) : 'ҮЗДІК ТАҢДАУ ⭐',
       enabled: settings?.plan1YearEnabled !== false,
     },
-  ], [settings]);
+  ], [settings, appliedPromo]);
 
   const plans = useMemo(() => allPlans.filter((p) => p.enabled), [allPlans]);
   const currentPlan = plans.find((p) => p.id === selectedPlan) || plans[0] || allPlans[0];
@@ -257,13 +283,18 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
       }
 
       // 3. Submit payment request (triggers instant AI verification)
+      const userNotes = [
+        `Пайдаланушы: ${user?.name || user?.email}`,
+        appliedPromo ? `[Қолданылған промокод: ${appliedPromo.code} (-${appliedPromo.discountPercent}% жеңілдік)]` : null,
+      ].filter(Boolean).join(' | ');
+
       const result = await premiumApi.createSubscriptionRequest({
         planName: currentPlan.id,
         planDays: currentPlan.days,
         amountKzt: currentPlan.price,
         receiptUrl: receiptUrl || 'receipt_attached',
         phoneOrAccount: phoneOrAccount.trim() || undefined,
-        notes: `Пайдаланушы: ${user?.name || user?.email}`,
+        notes: userNotes,
       });
 
       setVerificationResult(result);
@@ -288,7 +319,6 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
     }
   };
 
-
   const handleApplyPromo = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!promoCodeInput.trim()) return;
@@ -299,16 +329,37 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
 
     setIsApplyingPromo(true);
     try {
-      const res = await activatePromoCode(promoCodeInput.trim());
-      if (res.success) {
-        showToast(`Промокод сәтті қолданылды (${res.rewardTitle || 'Премиум'})! 👑`, 'success');
-        onClose();
-        window.location.reload();
+      const cleanCode = promoCodeInput.trim().toUpperCase();
+      const validation = await validatePromoCode(cleanCode);
+
+      if (!validation.valid) {
+        showToast(validation.message || 'Промокод жарамсыз немесе мерзімі өткен', 'error');
+        return;
+      }
+
+      const rewardType = validation.rewardType?.toLowerCase() || '';
+      const isDiscount = rewardType.includes('discount') || (validation.discountPercent !== undefined && validation.discountPercent > 0);
+
+      if (isDiscount && validation.discountPercent && validation.discountPercent > 0) {
+        setAppliedPromo({
+          code: cleanCode,
+          discountPercent: validation.discountPercent,
+          rewardTitle: validation.rewardTitle || `${validation.discountPercent}% жеңілдік`,
+        });
+        showToast(`«${cleanCode}» промокоды қолданылды: -${validation.discountPercent}% жеңілдік! 🎉`, 'success');
       } else {
-        showToast(res.error || 'Промокод жарамсыз немесе мерзімі өткен', 'error');
+        // Free subscription promo code: Activate immediately
+        const res = await activatePromoCode(cleanCode);
+        if (res.success) {
+          showToast(`Промокод сәтті қолданылды (${res.rewardTitle || 'Премиум'})! 👑`, 'success');
+          onClose();
+          window.location.reload();
+        } else {
+          showToast(res.error || 'Промокод жарамсыз немесе мерзімі өткен', 'error');
+        }
       }
     } catch (err: any) {
-      const msg = err?.response?.data?.message || 'Промокодты қолдану кезінде қате орын алды';
+      const msg = err?.response?.data?.message || 'Промокодты тексеру кезінде қате орын алды';
       showToast(msg, 'error');
     } finally {
       setIsApplyingPromo(false);
@@ -324,6 +375,8 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
       setVerificationResult(null);
       setIsUploading(false);
       setIsSubmitted(false);
+      setAppliedPromo(null);
+      setPromoCodeInput('');
     }
   }, [isOpen]);
 
@@ -690,22 +743,55 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
 
               {/* Promo code alternative */}
               <div className="pt-4 border-t border-slate-100">
-                <form onSubmit={handleApplyPromo} className="flex gap-2">
-                  <input
-                    type="text"
-                    placeholder="Промокод бар ма?"
-                    value={promoCodeInput}
-                    onChange={(e) => setPromoCodeInput(e.target.value.toUpperCase())}
-                    className="flex-1 px-3.5 py-2.5 text-xs font-mono uppercase tracking-wider rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-[#F08000]"
-                  />
-                  <button
-                    type="submit"
-                    disabled={isApplyingPromo || !promoCodeInput.trim()}
-                    className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition disabled:opacity-50"
-                  >
-                    {isApplyingPromo ? '...' : 'Қолдану'}
-                  </button>
-                </form>
+                {appliedPromo ? (
+                  <div className="flex items-center justify-between p-3 rounded-2xl bg-emerald-50 border border-emerald-200/80 text-emerald-950">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                        <Tag className="w-4 h-4 text-emerald-600" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-mono font-black text-xs text-emerald-900 tracking-wider uppercase">
+                            {appliedPromo.code}
+                          </span>
+                          <span className="px-1.5 py-0.5 rounded-full bg-emerald-200/80 text-[10px] font-black text-emerald-800">
+                            -{appliedPromo.discountPercent}% ЖЕҢІЛДІК
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-emerald-700">
+                          Барлық тарифтердің бағасы {appliedPromo.discountPercent}%-ға төмендетілді
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAppliedPromo(null);
+                        setPromoCodeInput('');
+                      }}
+                      className="px-2.5 py-1 rounded-lg text-xs text-slate-600 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer font-medium"
+                    >
+                      Болдырмау
+                    </button>
+                  </div>
+                ) : (
+                  <form onSubmit={handleApplyPromo} className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="Промокод бар ма?"
+                      value={promoCodeInput}
+                      onChange={(e) => setPromoCodeInput(e.target.value.toUpperCase())}
+                      className="flex-1 px-3.5 py-2.5 text-xs font-mono uppercase tracking-wider rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-[#F08000]"
+                    />
+                    <button
+                      type="submit"
+                      disabled={isApplyingPromo || !promoCodeInput.trim()}
+                      className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition disabled:opacity-50 cursor-pointer"
+                    >
+                      {isApplyingPromo ? '...' : 'Қолдану'}
+                    </button>
+                  </form>
+                )}
               </div>
             </>
           )}
