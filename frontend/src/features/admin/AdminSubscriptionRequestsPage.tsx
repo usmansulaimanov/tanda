@@ -551,13 +551,13 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
                         </span>
                       )}
                       {req.status === 'APPROVED' && (
-                        <div>
+                        <div className="inline-flex flex-col items-center">
                           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
                             <CheckCircle2 className="w-3 h-3" />
                             Мақұлданған
                           </span>
                           {req.reviewedBy === 'AI_AUTO' && (
-                            <span className="block text-[10px] font-bold text-emerald-600 mt-0.5">
+                            <span className="block text-[10px] font-bold text-emerald-600 mt-0.5 text-center">
                               AI Авто-мақұлдаған
                             </span>
                           )}
