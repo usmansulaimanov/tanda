@@ -558,7 +558,7 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
                           </span>
                           {req.reviewedBy === 'AI_AUTO' && (
                             <span className="block text-[10px] font-bold text-emerald-600 mt-0.5">
-                              🤖 AI Авто-мақұлдаған
+                              AI Авто-мақұлдаған
                             </span>
                           )}
                         </div>
@@ -922,7 +922,7 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
                 <div className="flex justify-between">
                   <span>Тексерген:</span>
                   <span className="font-bold text-slate-900">
-                    {detailsRequest.reviewedBy === 'AI_AUTO' ? '🤖 ЖИ (AI Auto)' : '👤 Админ'}
+                    {detailsRequest.reviewedBy === 'AI_AUTO' ? 'ЖИ (AI Auto)' : 'Админ'}
                   </span>
                 </div>
               )}
