@@ -8,6 +8,12 @@ import { useAudioPlayerStore } from '../../store/useAudioPlayerStore';
 import { useToastStore } from '../../store/useToastStore';
 import { Book } from '../../types';
 import { TandaPremiumBadge } from '../../components/ui/TandaPremiumBadge';
+import { LayoutGrid, List, BookOpen } from 'lucide-react';
+import { ShelfGridView } from './components/ShelfGridView';
+import { ShelfListView } from './components/ShelfListView';
+import { ShelfSpineView } from './components/ShelfSpineView';
+
+type ViewMode = 'grid' | 'list' | 'spine';
 
 export const MyBooksPage: React.FC = () => {
   const navigate = useNavigate();
@@ -23,6 +29,25 @@ export const MyBooksPage: React.FC = () => {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [activeMenuBookId, setActiveMenuBookId] = useState<string | null>(null);
+
+  // 3-in-1 View Mode for Mobile (Grid, List, Bookshelf Spine)
+  const [viewMode, setViewMode] = useState<ViewMode>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('tanda_my_books_view_mode') as ViewMode | null;
+      if (saved && ['grid', 'list', 'spine'].includes(saved)) {
+        return saved;
+      }
+    }
+    return 'grid';
+  });
+
+  const cycleViewMode = () => {
+    setViewMode((prev) => {
+      const next: ViewMode = prev === 'grid' ? 'list' : prev === 'list' ? 'spine' : 'grid';
+      localStorage.setItem('tanda_my_books_view_mode', next);
+      return next;
+    });
+  };
 
   useEffect(() => {
     if (tabParam && ['reading', 'completed', 'want_to_read'].includes(tabParam)) {
@@ -367,362 +392,98 @@ export const MyBooksPage: React.FC = () => {
           </button>
         </div>
 
-        {/* Filter / Search input */}
-        <div className="relative w-full sm:w-auto sm:min-w-[240px]">
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Сөреден іздеу..."
-            style={{
-              width: '100%',
-              padding: '9px 14px 9px 36px',
-              borderRadius: '50px',
-              border: '1.5px solid #CBD5E1',
-              fontSize: '13px',
-              fontWeight: 500,
-              background: '#FFFFFF',
-              color: 'var(--text-dark)',
-              outline: 'none',
-              boxSizing: 'border-box',
-            }}
-          />
-          <svg
-            style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#64748B', pointerEvents: 'none' }}
-            width="15"
-            height="15"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
+        {/* Filter / Search input & Mobile 3-in-1 View Switcher */}
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="relative flex-1 sm:w-auto sm:min-w-[240px]">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Сөреден іздеу..."
+              style={{
+                width: '100%',
+                padding: '9px 14px 9px 36px',
+                borderRadius: '50px',
+                border: '1.5px solid #CBD5E1',
+                fontSize: '13px',
+                fontWeight: 500,
+                background: '#FFFFFF',
+                color: 'var(--text-dark)',
+                outline: 'none',
+                boxSizing: 'border-box',
+              }}
+            />
+            <svg
+              style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#64748B', pointerEvents: 'none' }}
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+            >
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </div>
+
+          {/* 3-in-1 View Mode Switcher: Тор (Grid) ➔ Тізім (List) ➔ Сөре (Spine) */}
+          <button
+            type="button"
+            onClick={cycleViewMode}
+            className="flex items-center justify-center gap-1.5 h-[38px] px-3 rounded-full bg-white border border-slate-200 shadow-xs hover:border-slate-300 active:scale-95 transition-all text-xs font-bold shrink-0"
+            title="Көріністі ауыстыру: Тор / Тізім / Сөре"
           >
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-          </svg>
+            {viewMode === 'grid' && (
+              <>
+                <LayoutGrid className="w-4 h-4 text-[#005494]" />
+                <span className="text-[11px] font-bold text-[#005494]">Тор</span>
+              </>
+            )}
+            {viewMode === 'list' && (
+              <>
+                <List className="w-4 h-4 text-[#005494]" />
+                <span className="text-[11px] font-bold text-[#005494]">Тізім</span>
+              </>
+            )}
+            {viewMode === 'spine' && (
+              <>
+                <BookOpen className="w-4 h-4 text-[#005494]" />
+                <span className="text-[11px] font-bold text-[#005494]">Сөре</span>
+              </>
+            )}
+          </button>
         </div>
       </div>
 
       {/* Books Content */}
       {filteredBooks.length > 0 ? (
-        <div className="books-grid w-full min-w-0 max-w-full">
-          {filteredBooks.map(({ book, record }) => {
-            const isMenuOpen = activeMenuBookId === book.id;
-            const hasAudio = Boolean(
-              book.hasAudio ||
-              (book.audioUrl && book.audioUrl.trim()) ||
-              (book.audioChapters && book.audioChapters.length > 0)
-            );
-            const hasText = Boolean(
-              book.hasEbook ||
-              (book.ebookUrl && book.ebookUrl.trim()) ||
-              (book.pdfUrl && book.pdfUrl.trim()) ||
-              (book.epubUrl && book.epubUrl.trim()) ||
-              (book.content && book.content.trim())
-            );
-
-            return (
-              <div
-                key={book.id}
-                className="book-card w-full min-w-0 overflow-hidden"
-                onClick={() => navigate(`/book/${book.id}`)}
-                style={{ cursor: 'pointer', position: 'relative', display: 'flex', flexDirection: 'column' }}
-              >
-                {/* Book Cover */}
-                <div
-                  className="book-cover"
-                  style={{
-                    background: book.gradient || 'linear-gradient(135deg, #0057A8, #003d7a)',
-                    position: 'relative',
-                    overflow: 'hidden',
-                  }}
-                >
-                  {book.coverImage && (
-                    <img
-                      src={book.coverImage}
-                      alt={book.title}
-                      referrerPolicy="no-referrer"
-                      style={{
-                        position: 'absolute',
-                        inset: 0,
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover',
-                        zIndex: 1,
-                      }}
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                      }}
-                    />
-                  )}
-
-                  {/* Premium badge */}
-                  {!book.isFree && <TandaPremiumBadge />}
-
-                  {/* Status Options Menu Trigger Button */}
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setActiveMenuBookId(isMenuOpen ? null : book.id);
-                    }}
-                    title="Күйін өзгерту"
-                    style={{
-                      position: 'absolute',
-                      top: '12px',
-                      right: '12px',
-                      width: '32px',
-                      height: '32px',
-                      borderRadius: '50%',
-                      background: 'rgba(0, 20, 45, 0.65)',
-                      backdropFilter: 'blur(4px)',
-                      border: '1px solid rgba(255,255,255,0.3)',
-                      color: '#FFFFFF',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                      zIndex: 10,
-                      transition: 'all 0.2s',
-                    }}
-                  >
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
-                      <circle cx="12" cy="12" r="2"></circle>
-                      <circle cx="12" cy="5" r="2"></circle>
-                      <circle cx="12" cy="19" r="2"></circle>
-                    </svg>
-                  </button>
-
-                  {/* Status Popover Menu */}
-                  {isMenuOpen && (
-                    <div
-                      onClick={(e) => e.stopPropagation()}
-                      style={{
-                        position: 'absolute',
-                        top: '48px',
-                        right: '12px',
-                        background: '#FFFFFF',
-                        borderRadius: '12px',
-                        padding: '6px',
-                        boxShadow: '0 10px 28px rgba(0,0,0,0.25)',
-                        border: '1px solid #E2E8F0',
-                        zIndex: 100,
-                        minWidth: '190px',
-                      }}
-                    >
-                      <div style={{ fontSize: '11px', fontWeight: 800, color: '#94A3B8', padding: '4px 10px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                        Күйді өзгерту
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() => {
-                          handleChangeStatus(book.id, 'reading', book.title);
-                          setActiveMenuBookId(null);
-                        }}
-                        style={{
-                          width: '100%',
-                          textAlign: 'left',
-                          padding: '8px 10px',
-                          fontSize: '12px',
-                          fontWeight: 600,
-                          border: 'none',
-                          background: record.status === 'reading' ? 'rgba(0, 84, 148, 0.08)' : 'transparent',
-                          color: record.status === 'reading' ? 'var(--blue)' : 'var(--text-dark)',
-                          borderRadius: '6px',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '8px',
-                        }}
-                      >
-                        <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--blue)' }}></span>
-                        Қазір оқып жатырмын
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => {
-                          handleChangeStatus(book.id, 'completed', book.title);
-                          setActiveMenuBookId(null);
-                        }}
-                        style={{
-                          width: '100%',
-                          textAlign: 'left',
-                          padding: '8px 10px',
-                          fontSize: '12px',
-                          fontWeight: 600,
-                          border: 'none',
-                          background: record.status === 'completed' ? 'rgba(16, 185, 129, 0.08)' : 'transparent',
-                          color: record.status === 'completed' ? '#10B981' : 'var(--text-dark)',
-                          borderRadius: '6px',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '8px',
-                        }}
-                      >
-                        <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10B981' }}></span>
-                        Оқып болдым
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => {
-                          handleChangeStatus(book.id, 'want_to_read', book.title);
-                          setActiveMenuBookId(null);
-                        }}
-                        style={{
-                          width: '100%',
-                          textAlign: 'left',
-                          padding: '8px 10px',
-                          fontSize: '12px',
-                          fontWeight: 600,
-                          border: 'none',
-                          background: record.status === 'want_to_read' ? 'rgba(239, 126, 0, 0.08)' : 'transparent',
-                          color: record.status === 'want_to_read' ? 'var(--orange)' : 'var(--text-dark)',
-                          borderRadius: '6px',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '8px',
-                        }}
-                      >
-                        <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--orange)' }}></span>
-                        Енді оқимын
-                      </button>
-
-                      <div style={{ height: '1px', background: '#E2E8F0', margin: '4px 0' }} />
-
-                      <button
-                        type="button"
-                        onClick={() => {
-                          handleRemove(book.id, book.title);
-                          setActiveMenuBookId(null);
-                        }}
-                        style={{
-                          width: '100%',
-                          textAlign: 'left',
-                          padding: '8px 10px',
-                          fontSize: '12px',
-                          fontWeight: 600,
-                          border: 'none',
-                          background: 'transparent',
-                          color: '#DC2626',
-                          borderRadius: '6px',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '8px',
-                        }}
-                      >
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <polyline points="3 6 5 6 21 6"></polyline>
-                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                        </svg>
-                        Сөреден өшіру
-                      </button>
-                    </div>
-                  )}
-
-                  <div style={{ position: 'relative', zIndex: 2 }}>
-                    {!book.coverImage && (
-                      <>
-                        <div className="cover-title">{book.title}</div>
-                        <div className="cover-author-text">{book.author}</div>
-                      </>
-                    )}
-                  </div>
-                </div>
-
-                {/* Book Metadata */}
-                <div className="book-meta" style={{ flex: 1 }}>
-                  <div className="book-title">{book.title}</div>
-                  <div className="book-author">{book.author}</div>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginTop: '4px' }}>
-                    <span className="book-category">{book.category}</span>
-                    
-                    {/* Status Badge */}
-                    <span
-                      style={{
-                        fontSize: '10px',
-                        fontWeight: 800,
-                        padding: '2px 7px',
-                        borderRadius: '4px',
-                        background:
-                          record.status === 'reading'
-                            ? 'rgba(0, 84, 148, 0.1)'
-                            : record.status === 'completed'
-                            ? 'rgba(16, 185, 129, 0.12)'
-                            : 'rgba(239, 126, 0, 0.12)',
-                        color:
-                          record.status === 'reading'
-                            ? 'var(--blue)'
-                            : record.status === 'completed'
-                            ? '#059669'
-                            : 'var(--orange)',
-                      }}
-                    >
-                      {record.status === 'reading' && 'Қазір оқуда'}
-                      {record.status === 'completed' && 'Оқылып бітті'}
-                      {record.status === 'want_to_read' && 'Енді оқимын'}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Action buttons */}
-                <div className="book-actions" onClick={(e) => e.stopPropagation()}>
-                  {hasText ? (
-                    <Link to={`/read/${book.id}`} className="btn-book-action btn-read">
-                      Оқу
-                    </Link>
-                  ) : (
-                    <button
-                      type="button"
-                      disabled
-                      className="btn-book-action btn-disabled"
-                      title="Электронды кітап нұсқасы жүктелмеген"
-                    >
-                      Оқу
-                    </button>
-                  )}
-
-                  {hasAudio ? (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        playBook(book);
-                        navigate(`/listen/${book.id}`);
-                      }}
-                      className="btn-book-action btn-listen"
-                    >
-                      Тыңдау
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      disabled
-                      className="btn-book-action btn-disabled"
-                      title="Аудио нұсқасы жүктелмеген"
-                    >
-                      Тыңдау
-                    </button>
-                  )}
-
-                  <button
-                    type="button"
-                    onClick={() => navigate(`/book/${book.id}`)}
-                    className="btn-book-action"
-                    style={{ background: '#F1F5F9', color: 'var(--text-mid)', gridColumn: 'span 2' }}
-                    title="Толық ақпарат"
-                  >
-                    Ақпарат
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        viewMode === 'list' ? (
+          <ShelfListView
+            items={filteredBooks}
+            activeMenuBookId={activeMenuBookId}
+            setActiveMenuBookId={setActiveMenuBookId}
+            handleChangeStatus={handleChangeStatus}
+            handleRemove={handleRemove}
+            onPlayAudio={(b) => playBook(b)}
+          />
+        ) : viewMode === 'spine' ? (
+          <ShelfSpineView
+            items={filteredBooks}
+            handleChangeStatus={handleChangeStatus}
+            handleRemove={handleRemove}
+            onPlayAudio={(b) => playBook(b)}
+          />
+        ) : (
+          <ShelfGridView
+            items={filteredBooks}
+            activeMenuBookId={activeMenuBookId}
+            setActiveMenuBookId={setActiveMenuBookId}
+            handleChangeStatus={handleChangeStatus}
+            handleRemove={handleRemove}
+            onPlayAudio={(b) => playBook(b)}
+          />
+        )
       ) : (
         /* Empty State */
         <div
