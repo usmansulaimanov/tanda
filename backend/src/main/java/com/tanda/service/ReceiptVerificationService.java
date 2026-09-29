@@ -29,6 +29,8 @@ public class ReceiptVerificationService {
         private String aiStatus; // 'APPROVED', 'REJECTED', 'DUPLICATE', 'MANUAL_REVIEW_NEEDED'
         private Double confidence;
         private String rejectionReason;
+        private boolean suspicious;
+        private String suspiciousReason;
         private ReceiptAnalysisResult analysis;
         private String receiptHash;
         private String extractedDataJson;
@@ -185,13 +187,26 @@ public class ReceiptVerificationService {
             }
         }
 
+        // Check if the receipt has any suspicious or borderline indicators
+        boolean isSuspicious = analysis.isSuspicious();
+        String suspiciousReason = analysis.getSuspiciousReason();
+
+        if (!isSuspicious && (receiptNum == null || receiptNum.isBlank())) {
+            isSuspicious = true;
+            suspiciousReason = "Чектің бірегей нөмірі (№ квитанции/RRN) анықталмады";
+        }
+
         // All checks passed!
-        log.info("Receipt verification APPROVED for amount={} KZT, receiptNum={}", analysis.getAmountKzt(), receiptNum);
+        log.info("Receipt verification APPROVED for amount={} KZT, receiptNum={}, suspicious={}",
+                analysis.getAmountKzt(), receiptNum, isSuspicious);
+
         return VerificationResult.builder()
                 .approved(true)
                 .aiStatus("APPROVED")
-                .confidence(0.95)
+                .confidence(isSuspicious ? 0.80 : 0.95)
                 .rejectionReason(null)
+                .suspicious(isSuspicious)
+                .suspiciousReason(suspiciousReason)
                 .analysis(analysis)
                 .receiptHash(receiptHash)
                 .extractedDataJson(extractedJson)

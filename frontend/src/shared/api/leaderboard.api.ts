@@ -26,6 +26,7 @@ export interface LeaderboardResponse {
 
 export interface DailyActivity {
   date: string;
+  dayOfMonth: number;
   dayLabel: string;
   seconds: number;
   minutes: number;
@@ -43,6 +44,12 @@ export interface PersonalStatsResponse {
   thisMonthMinutes: number;
   allTimeSeconds: number;
   allTimeMinutes: number;
+  selectedYear: number;
+  selectedMonth: number;
+  selectedMonthName: string;
+  selectedMonthSeconds: number;
+  selectedMonthMinutes: number;
+  daysInMonth: number;
   dailyActivity: DailyActivity[];
 }
 
@@ -54,8 +61,10 @@ export const leaderboardApi = {
     return data;
   },
 
-  getPersonalStats: async (): Promise<PersonalStatsResponse> => {
-    const { data } = await apiClient.get<PersonalStatsResponse>('/api/v1/leaderboard/personal');
+  getPersonalStats: async (params?: { year?: number; month?: number }): Promise<PersonalStatsResponse> => {
+    const { data } = await apiClient.get<PersonalStatsResponse>('/api/v1/leaderboard/personal', {
+      params,
+    });
     return data;
   },
 

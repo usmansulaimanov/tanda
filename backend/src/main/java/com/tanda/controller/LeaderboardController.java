@@ -52,11 +52,13 @@ public class LeaderboardController {
 
     @GetMapping("/personal")
     public ResponseEntity<PersonalStatsResponseDto> getPersonalStats(
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer month,
             @AuthenticationPrincipal UserPrincipal principal,
             Authentication authentication
     ) {
         String userId = principal != null ? principal.getId() : authentication.getName();
-        PersonalStatsResponseDto response = leaderboardService.getPersonalStats(userId);
+        PersonalStatsResponseDto response = leaderboardService.getPersonalStats(userId, year, month);
         return ResponseEntity.ok(response);
     }
 

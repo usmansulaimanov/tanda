@@ -62,6 +62,8 @@ public class OpenAiVisionService {
             - recipientName: string or null (recipient's person name if shown under recipient details or photo, e.g. "Касимхон К.", null if not shown)
             - recipientCardLast4: string or null (last 4 digits of recipient card if shown with asterisks like *7230 -> "7230", *5096 -> "5096", null if not shown)
             - senderName: string or null (sender name if shown, e.g. "Сулайманов У.Б.")
+            - isSuspicious: boolean (true if the receipt looks suspicious, unclear, edited/photoshopped, photo of a monitor/screen, blurry text, low resolution, odd font inconsistencies, or missing standard bank stamps/transaction IDs; false if clear and normal)
+            - suspiciousReason: string or null (short reason in Kazakh or Russian explaining why it looks suspicious or unclear if isSuspicious is true, otherwise null)
             
             Return pure JSON only.
             """;
@@ -248,9 +250,11 @@ public class OpenAiVisionService {
             String recipientName = data.hasNonNull("recipientName") ? data.path("recipientName").asText().trim() : null;
             String recipientCardLast4 = data.hasNonNull("recipientCardLast4") ? data.path("recipientCardLast4").asText().trim() : null;
             String senderName = data.hasNonNull("senderName") ? data.path("senderName").asText().trim() : null;
+            boolean isSuspicious = data.path("isSuspicious").asBoolean(false);
+            String suspiciousReason = data.hasNonNull("suspiciousReason") ? data.path("suspiciousReason").asText().trim() : null;
 
-            log.info("OpenAI vision parsed receipt: isReceipt={}, bank={}, number={}, amount={}, recipient={}, cardLast4={}",
-                    isReceipt, bankName, receiptNumber, amountKzt, recipientName, recipientCardLast4);
+            log.info("OpenAI vision parsed receipt: isReceipt={}, bank={}, number={}, amount={}, recipient={}, cardLast4={}, suspicious={}, reason={}",
+                    isReceipt, bankName, receiptNumber, amountKzt, recipientName, recipientCardLast4, isSuspicious, suspiciousReason);
 
             return ReceiptAnalysisResult.builder()
                     .isReceipt(isReceipt)
@@ -261,14 +265,17 @@ public class OpenAiVisionService {
                     .recipientName(recipientName)
                     .recipientCardLast4(recipientCardLast4)
                     .senderName(senderName)
-                    .confidence(isReceipt ? 0.95 : 0.1)
+                    .suspicious(isSuspicious)
+                    .suspiciousReason(suspiciousReason)
+                    .confidence(isReceipt ? (isSuspicious ? 0.75 : 0.95) : 0.1)
                     .rawJson(content)
-                    .rawSummary(String.format("Банк: %s, № %s, Сома: %s ₸, Алушы: %s, Карта: *%s",
+                    .rawSummary(String.format("Банк: %s, № %s, Сома: %s ₸, Алушы: %s, Карта: *%s%s",
                             bankName != null ? bankName : "—",
                             receiptNumber != null ? receiptNumber : "—",
                             amountKzt != null ? amountKzt : "—",
                             recipientName != null ? recipientName : "—",
-                            recipientCardLast4 != null ? recipientCardLast4 : "—"))
+                            recipientCardLast4 != null ? recipientCardLast4 : "—",
+                            isSuspicious ? " [Күдікті: " + (suspiciousReason != null ? suspiciousReason : "анықсыз") + "]" : ""))
                     .build();
 
         } catch (Exception e) {

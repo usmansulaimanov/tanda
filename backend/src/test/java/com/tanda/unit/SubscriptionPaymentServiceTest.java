@@ -148,6 +148,54 @@ class SubscriptionPaymentServiceTest {
     }
 
     @Test
+    @DisplayName("When AI approves a suspicious receipt -> alerts Admin to manually double-check")
+    void whenAiApprovesSuspiciousReceipt_alertsAdmin() {
+        when(systemSettingService.isAiReceiptVerificationEnabled()).thenReturn(true);
+
+        User adminUser = User.builder().id("admin-1").email("admin@tanda.kz").role("admin").name("Бас Админ").build();
+        when(userRepository.findByRoleIgnoreCase("ADMIN")).thenReturn(java.util.List.of(adminUser));
+
+        ReceiptAnalysisResult analysis = ReceiptAnalysisResult.builder()
+                .isReceipt(true)
+                .receiptNumber("987654321")
+                .suspicious(true)
+                .suspiciousReason("Чек фотошопталғанға немесе экраннан түсірілгенге ұқсайды")
+                .build();
+
+        ReceiptVerificationService.VerificationResult suspiciousResult = ReceiptVerificationService.VerificationResult.builder()
+                .approved(true)
+                .aiStatus("APPROVED")
+                .confidence(0.75)
+                .suspicious(true)
+                .suspiciousReason("Чек фотошопталғанға немесе экраннан түсірілгенге ұқсайды")
+                .analysis(analysis)
+                .build();
+
+        when(receiptVerificationService.verifyReceipt(any(), any(), anyInt(), any()))
+                .thenReturn(suspiciousResult);
+
+        CreateSubscriptionPaymentRequestDto dto = CreateSubscriptionPaymentRequestDto.builder()
+                .planName("1_MONTH")
+                .planDays(30)
+                .amountKzt(1490)
+                .receiptUrl("/uploads/covers/receipt1.jpg")
+                .notes("Оқырман ескертпесі")
+                .build();
+
+        SubscriptionPaymentRequestResponseDto result = paymentService.createRequest("user-123", dto);
+
+        assertEquals("APPROVED", result.getStatus());
+        assertTrue(result.getNotes().contains("⚠️ ЖИ: Күдікті/түсініксіз чек"));
+        verify(premiumService).grantPremium("user-123", 30, "AI_AUTO_RECEIPT", "AI_VERIFIER");
+        verify(messageService, atLeastOnce()).sendMessage(
+                isNull(),
+                eq("Tanda ЖИ Модератор"),
+                eq("admin"),
+                argThat(req -> req.getTitle().contains("Күдікті чек") && req.getTargetUserIds().contains("admin-1"))
+        );
+    }
+
+    @Test
     @DisplayName("Cooldown Stage 1: 1st rejected receipt sets 5-minute cooldown")
     void whenFirstRejection_sets5MinuteCooldown() {
         SubscriptionPaymentRequest req1 = SubscriptionPaymentRequest.builder()

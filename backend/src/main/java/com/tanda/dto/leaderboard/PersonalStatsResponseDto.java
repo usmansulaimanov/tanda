@@ -23,5 +23,11 @@ public class PersonalStatsResponseDto {
     private long thisMonthMinutes;
     private long allTimeSeconds;
     private long allTimeMinutes;
+    private int selectedYear;
+    private int selectedMonth;
+    private String selectedMonthName;
+    private long selectedMonthSeconds;
+    private long selectedMonthMinutes;
+    private int daysInMonth;
     private List<DailyActivityDto> dailyActivity;
 }

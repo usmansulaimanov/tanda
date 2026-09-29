@@ -236,6 +236,13 @@ public class SubscriptionPaymentService {
         String receiptNum = (verification.getAnalysis() != null) ? verification.getAnalysis().getReceiptNumber() : null;
         boolean isApproved = verification.isApproved();
 
+        String notes = dto.getNotes();
+        if (isApproved && verification.isSuspicious()) {
+            String warningTag = "[⚠️ ЖИ: Күдікті/түсініксіз чек - қайта тексеру ұсынылады: " +
+                    (verification.getSuspiciousReason() != null ? verification.getSuspiciousReason() : "анықсыз деректер") + "]";
+            notes = (notes != null && !notes.isBlank()) ? notes + " | " + warningTag : warningTag;
+        }
+
         SubscriptionPaymentRequest req = SubscriptionPaymentRequest.builder()
                 .id(UUID.randomUUID().toString())
                 .userId(userId)
@@ -244,7 +251,7 @@ public class SubscriptionPaymentService {
                 .amountKzt(amount)
                 .receiptUrl(dto.getReceiptUrl())
                 .phoneOrAccount(dto.getPhoneOrAccount())
-                .notes(dto.getNotes())
+                .notes(notes)
                 .receiptNumber(receiptNum)
                 .aiVerified(true)
                 .aiStatus(verification.getAiStatus())
@@ -267,7 +274,7 @@ public class SubscriptionPaymentService {
             // 1. Instantly grant premium!
             premiumService.grantPremium(userId, days, "AI_AUTO_RECEIPT", "AI_VERIFIER");
 
-            // 2. Send instant congratulatory message
+            // 2. Send instant congratulatory message to user
             try {
                 messageService.sendMessage(null, "Tanda", "admin", MessageRequestDto.builder()
                         .title("Tanda Premium сәтті қосылды! 👑")
@@ -280,8 +287,49 @@ public class SubscriptionPaymentService {
                 log.warn("Could not send AI confirmation message to user {}: {}", userId, e.getMessage());
             }
 
-            log.info("AI Auto-Approved subscription request {} for user {} ({} days, {} KZT, receiptNum={})",
-                    saved.getId(), userId, days, amount, receiptNum);
+            // 3. If AI flagged receipt as suspicious or unclear -> Send alert to all Admin users to manually verify
+            if (verification.isSuspicious()) {
+                try {
+                    List<User> admins = userRepository.findByRoleIgnoreCase("ADMIN");
+                    if (admins != null && !admins.isEmpty()) {
+                        List<String> adminIds = admins.stream().map(User::getId).collect(Collectors.toList());
+                        String suspReason = verification.getSuspiciousReason() != null && !verification.getSuspiciousReason().isBlank()
+                                ? verification.getSuspiciousReason()
+                                : "Чекте кейбір деректер (№ квитанция немесе мәтін) анық емес немесе күмәнді көрінеді";
+
+                        String adminAlert = String.format(
+                                "⚠️ ЖИ төлем чегі бойынша премиум берді, бірақ чек күмәнді/түсініксіз деп белгіленді!\n\n" +
+                                "👤 Оқырман: %s (%s)\n" +
+                                "💳 Тариф: %s (%d күн, %d ₸)\n" +
+                                "🧾 Чек №: %s\n" +
+                                "🧐 Күдік/анықсыздық себебі: %s\n\n" +
+                                "🔍 Өтініш, чекті Әкімшілік панельден тағы бір рет өзіңіз тексеріп алыңыз. Егер чек жарамсыз болса, жазылымды 'Кері қайтару' (Revoke) арқылы тоқтата аласыз.",
+                                readerName,
+                                user.getEmail() != null ? user.getEmail() : "—",
+                                dto.getPlanName() != null ? dto.getPlanName() : "1_MONTH",
+                                days,
+                                amount,
+                                receiptNum != null ? receiptNum : "анықталмады",
+                                suspReason
+                        );
+
+                        messageService.sendMessage(null, "Tanda ЖИ Модератор", "admin", MessageRequestDto.builder()
+                                .title("⚠️ Күдікті чек (ЖИ премиум берді, қайта тексеріңіз)")
+                                .content(adminAlert)
+                                .targetType("multiple")
+                                .targetUserIds(adminIds)
+                                .priority("urgent")
+                                .build());
+                        log.info("Alerted {} admins about suspicious auto-approved receipt {} for user {}",
+                                adminIds.size(), saved.getId(), userId);
+                    }
+                } catch (Exception e) {
+                    log.warn("Could not send admin alert for suspicious receipt {}: {}", saved.getId(), e.getMessage());
+                }
+            }
+
+            log.info("AI Auto-Approved subscription request {} for user {} ({} days, {} KZT, receiptNum={}, suspicious={})",
+                    saved.getId(), userId, days, amount, receiptNum, verification.isSuspicious());
         } else {
             // Send clear rejection notification with reason
             String reasonText = verification.getRejectionReason() != null

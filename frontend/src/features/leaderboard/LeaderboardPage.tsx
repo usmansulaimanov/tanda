@@ -17,6 +17,35 @@ export const LeaderboardPage: React.FC = () => {
   const { user, isAuthenticated } = useAuthStore();
   const [activeMainTab, setActiveMainTab] = useState<'leaderboard' | 'personal'>('leaderboard');
   const [selectedPeriod, setSelectedPeriod] = useState<LeaderboardPeriod>('THIS_WEEK');
+
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1; // 1-12
+  const [selectedYear, setSelectedYear] = useState<number>(currentYear);
+  const [selectedMonth, setSelectedMonth] = useState<number>(currentMonth);
+
+  const handlePrevMonth = () => {
+    if (selectedMonth === 1) {
+      setSelectedYear((y) => y - 1);
+      setSelectedMonth(12);
+    } else {
+      setSelectedMonth((m) => m - 1);
+    }
+  };
+
+  const isCurrentOrFutureMonth =
+    selectedYear > currentYear || (selectedYear === currentYear && selectedMonth >= currentMonth);
+
+  const handleNextMonth = () => {
+    if (isCurrentOrFutureMonth) return;
+    if (selectedMonth === 12) {
+      setSelectedYear((y) => y + 1);
+      setSelectedMonth(1);
+    } else {
+      setSelectedMonth((m) => m + 1);
+    }
+  };
+
   // Leaderboard Query
   const {
     data: leaderboardData,
@@ -40,8 +69,8 @@ export const LeaderboardPage: React.FC = () => {
     isError: isPersonalError,
     refetch: refetchPersonal,
   } = useQuery({
-    queryKey: ['personal-stats'],
-    queryFn: leaderboardApi.getPersonalStats,
+    queryKey: ['personal-stats', selectedYear, selectedMonth],
+    queryFn: () => leaderboardApi.getPersonalStats({ year: selectedYear, month: selectedMonth }),
     enabled: isAuthenticated && activeMainTab === 'personal',
     staleTime: 30 * 1000,
     retry: 3,
@@ -457,19 +486,54 @@ export const LeaderboardPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* 30-Day Activity Bar Chart */}
+                {/* Monthly Activity Bar Chart */}
                 <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-sm space-y-6">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <h3 className="text-base sm:text-lg font-bold text-slate-900">
-                        Тыңдау белсенділігі (Соңғы 30 күн)
+                        Тыңдау белсенділігі ({personalStats.selectedMonthName} {personalStats.selectedYear})
                       </h3>
-                      <p className="text-xs text-slate-500">
-                        Әр күн бойынша тыңдалған аудио минуттарының динамикасы
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        1 мен {personalStats.daysInMonth} {personalStats.selectedMonthName.toLowerCase()} аралығындағы тыңдау динамикасы
                       </p>
                     </div>
-                    <div className="text-xs text-emerald-700 font-bold bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
-                      Жалпы: {formatMinutes(personalStats.dailyActivity.reduce((acc, curr) => acc + curr.minutes, 0))}
+
+                    <div className="flex items-center gap-3">
+                      {/* Month Navigation Switcher */}
+                      <div className="flex items-center bg-slate-100 rounded-xl p-1 border border-slate-200">
+                        <button
+                          type="button"
+                          onClick={handlePrevMonth}
+                          title="Өткен ай"
+                          className="p-1.5 rounded-lg hover:bg-white text-slate-600 hover:text-slate-900 transition-colors shadow-sm"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                          </svg>
+                        </button>
+                        <span className="text-xs font-bold text-slate-700 px-2.5 min-w-[95px] text-center select-none">
+                          {personalStats.selectedMonthName} {personalStats.selectedYear}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={handleNextMonth}
+                          disabled={isCurrentOrFutureMonth}
+                          title="Келесі ай"
+                          className={`p-1.5 rounded-lg transition-colors ${
+                            isCurrentOrFutureMonth
+                              ? 'text-slate-300 cursor-not-allowed'
+                              : 'hover:bg-white text-slate-600 hover:text-slate-900 shadow-sm'
+                          }`}
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </button>
+                      </div>
+
+                      <div className="text-xs text-emerald-700 font-bold bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200 whitespace-nowrap">
+                        Жалпы: {formatMinutes(personalStats.selectedMonthMinutes)}
+                      </div>
                     </div>
                   </div>
 
@@ -486,6 +550,8 @@ export const LeaderboardPage: React.FC = () => {
                           : isLastFew
                           ? 'right-0 translate-x-0'
                           : 'left-1/2 -translate-x-1/2';
+
+                        const formattedDayNum = String(day.dayOfMonth).padStart(2, '0');
 
                         return (
                           <div
@@ -517,9 +583,9 @@ export const LeaderboardPage: React.FC = () => {
                               }`}
                             ></div>
 
-                            {/* Day Label at bottom */}
-                            <span className="text-[8.5px] sm:text-[9.5px] text-slate-500 font-medium mt-2 group-hover:text-slate-900 transition-colors truncate max-w-full text-center">
-                              {day.dayLabel.split(' ')[0]}
+                            {/* Day Number at bottom - 2-digit format without ellipsis */}
+                            <span className="text-[8.5px] sm:text-[9.5px] text-slate-500 font-medium mt-2 group-hover:text-slate-900 transition-colors whitespace-nowrap text-center">
+                              {formattedDayNum}
                             </span>
                           </div>
                         );

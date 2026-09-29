@@ -22,4 +22,6 @@ public class ReceiptAnalysisResult {
     private String rawSummary;
     private String rawJson;
     private boolean aiUnavailable;
+    private boolean suspicious;
+    private String suspiciousReason;
 }

@@ -145,13 +145,27 @@ public class LeaderboardIntegrationTest {
     }
 
     @Test
-    @DisplayName("Personal stats endpoint returns correct aggregations and 30-day activity")
+    @DisplayName("Personal stats endpoint returns correct aggregations and calendar month activity")
     void testPersonalStats() throws Exception {
+        int expectedDaysInCurrentMonth = java.time.LocalDate.now(com.tanda.service.LeaderboardService.KZ_ZONE).lengthOfMonth();
+
         mockMvc.perform(get("/api/v1/leaderboard/personal")
                         .header("Authorization", "Bearer " + user1Token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.userId", is(user1.getId())))
                 .andExpect(jsonPath("$.todayMinutes", is(30)))
+                .andExpect(jsonPath("$.dailyActivity", hasSize(expectedDaysInCurrentMonth)));
+
+        // Test querying with explicit year and month (September 2026 -> 30 days)
+        mockMvc.perform(get("/api/v1/leaderboard/personal")
+                        .header("Authorization", "Bearer " + user1Token)
+                        .param("year", "2026")
+                        .param("month", "9"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.selectedYear", is(2026)))
+                .andExpect(jsonPath("$.selectedMonth", is(9)))
+                .andExpect(jsonPath("$.selectedMonthName", is("Қыркүйек")))
+                .andExpect(jsonPath("$.daysInMonth", is(30)))
                 .andExpect(jsonPath("$.dailyActivity", hasSize(30)));
     }
 

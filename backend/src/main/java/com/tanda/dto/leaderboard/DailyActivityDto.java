@@ -13,7 +13,8 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class DailyActivityDto {
     private LocalDate date;
-    private String dayLabel; // e.g., "Дүйсенбі", "22 қыр"
+    private int dayOfMonth;
+    private String dayLabel; // e.g., "01.09 (Сс)"
     private long seconds;
     private long minutes;
 }

@@ -218,10 +218,17 @@ public class LeaderboardService {
     }
 
     public PersonalStatsResponseDto getPersonalStats(String userId) {
+        return getPersonalStats(userId, null, null);
+    }
+
+    public PersonalStatsResponseDto getPersonalStats(String userId, Integer year, Integer month) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
 
         LocalDate today = LocalDate.now(KZ_ZONE);
+        int targetYear = (year != null && year >= 2020 && year <= today.getYear() + 1) ? year : today.getYear();
+        int targetMonth = (month != null && month >= 1 && month <= 12) ? month : today.getMonthValue();
+
         OffsetDateTime todayStart = today.atStartOfDay(KZ_ZONE).toOffsetDateTime();
         OffsetDateTime last7DaysStart = today.minusDays(6).atStartOfDay(KZ_ZONE).toOffsetDateTime();
         OffsetDateTime thisMonthStart = today.withDayOfMonth(1).atStartOfDay(KZ_ZONE).toOffsetDateTime();
@@ -232,10 +239,15 @@ public class LeaderboardService {
         long thisMonthSeconds = audioSessionRepository.getUserSecondsBetween(userId, thisMonthStart, now);
         long allTimeSeconds = audioSessionRepository.getUserTotalSecondsAllTime(userId);
 
-        // Daily activity for the last 30 days in Kazakhstan Time Zone
-        LocalDate activityStart = today.minusDays(29);
-        OffsetDateTime activityStartDt = activityStart.atStartOfDay(KZ_ZONE).toOffsetDateTime();
-        List<Object[]> rawSessions = audioSessionRepository.getUserSessionTimesSince(userId, activityStartDt);
+        // Calendar month activity from 1st to last day of selected month in Kazakhstan Time Zone
+        LocalDate monthFirstDay = LocalDate.of(targetYear, targetMonth, 1);
+        int daysInMonth = monthFirstDay.lengthOfMonth();
+        LocalDate nextMonthFirstDay = monthFirstDay.plusMonths(1);
+
+        OffsetDateTime monthStartDt = monthFirstDay.atStartOfDay(KZ_ZONE).toOffsetDateTime();
+        OffsetDateTime monthEndDt = nextMonthFirstDay.atStartOfDay(KZ_ZONE).toOffsetDateTime();
+
+        List<Object[]> rawSessions = audioSessionRepository.getUserSessionTimesBetween(userId, monthStartDt, monthEndDt);
 
         Map<LocalDate, Long> daySums = new HashMap<>();
         for (Object[] row : rawSessions) {
@@ -247,13 +259,16 @@ public class LeaderboardService {
             }
         }
 
-        List<DailyActivityDto> dailyActivity = new ArrayList<>();
-        for (int i = 0; i < 30; i++) {
-            LocalDate date = activityStart.plusDays(i);
+        List<DailyActivityDto> dailyActivity = new ArrayList<>(daysInMonth);
+        long selectedMonthSeconds = 0;
+        for (int day = 1; day <= daysInMonth; day++) {
+            LocalDate date = monthFirstDay.withDayOfMonth(day);
             long sec = daySums.getOrDefault(date, 0L);
+            selectedMonthSeconds += sec;
             String label = date.format(DATE_FORMATTER) + " (" + getKazakhShortDayOfWeek(date.getDayOfWeek()) + ")";
             dailyActivity.add(DailyActivityDto.builder()
                     .date(date)
+                    .dayOfMonth(day)
                     .dayLabel(label)
                     .seconds(sec)
                     .minutes(sec / 60)
@@ -272,6 +287,12 @@ public class LeaderboardService {
                 .thisMonthMinutes(thisMonthSeconds / 60)
                 .allTimeSeconds(allTimeSeconds)
                 .allTimeMinutes(allTimeSeconds / 60)
+                .selectedYear(targetYear)
+                .selectedMonth(targetMonth)
+                .selectedMonthName(getKazakhMonthName(targetMonth))
+                .selectedMonthSeconds(selectedMonthSeconds)
+                .selectedMonthMinutes(selectedMonthSeconds / 60)
+                .daysInMonth(daysInMonth)
                 .dailyActivity(dailyActivity)
                 .build();
     }
