@@ -408,10 +408,7 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
         <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
           <div>
             <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Мақұлданған</p>
-            <div className="flex items-baseline gap-2 mt-1">
-              <span className="text-2xl font-black text-slate-900">{approvedCount}</span>
-              <span className="text-xs font-bold text-slate-500">({totalRevenue.toLocaleString('kk-KZ')} ₸)</span>
-            </div>
+            <p className="text-2xl font-black text-slate-900 mt-1">{approvedCount}</p>
           </div>
           <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700">
             <CheckCircle2 className="w-5 h-5" />
