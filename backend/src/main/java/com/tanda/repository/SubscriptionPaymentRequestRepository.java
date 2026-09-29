@@ -12,4 +12,9 @@ public interface SubscriptionPaymentRequestRepository extends JpaRepository<Subs
     List<SubscriptionPaymentRequest> findAllByOrderByCreatedAtDesc();
     List<SubscriptionPaymentRequest> findByStatusOrderByCreatedAtDesc(String status);
     long countByStatus(String status);
+    long countByAiStatus(String aiStatus);
+    boolean existsByReceiptNumberAndStatus(String receiptNumber, String status);
+    boolean existsByReceiptHashAndStatus(String receiptHash, String status);
+    java.util.Optional<SubscriptionPaymentRequest> findFirstByReceiptNumber(String receiptNumber);
 }
+

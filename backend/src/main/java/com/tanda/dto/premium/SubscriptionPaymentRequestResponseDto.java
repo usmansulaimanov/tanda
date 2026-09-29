@@ -26,5 +26,12 @@ public class SubscriptionPaymentRequestResponseDto {
     private String rejectionReason;
     private String reviewedBy;
     private OffsetDateTime reviewedAt;
+    private String receiptNumber;
+    private Boolean aiVerified;
+    private String aiStatus;
+    private Double aiConfidence;
+    private String aiExtractedData;
+    private String aiRejectionReason;
     private OffsetDateTime createdAt;
 }
+

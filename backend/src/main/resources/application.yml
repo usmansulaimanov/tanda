@@ -60,7 +60,12 @@ telegram:
   bot:
     token: ${TELEGRAM_BOT_TOKEN:8656738239:AAE0ryDJRET9vBeVXSTS-08SKt2FRSi435Q}
 
+openai:
+  api-key: ${OPENAI_API_KEY:}
+  model: ${OPENAI_VISION_MODEL:gpt-4o-mini}
+
 vapid:
+
   public-key: ${VAPID_PUBLIC_KEY:BKViGQfbLcbTwrD8S-09-bpo8aPvkFEuimSRRdN5y2N-PSkjWO1Br9NC5XO7kaaY_olAVMmpV3ljiPjuvST6URA}
   private-key: ${VAPID_PRIVATE_KEY:gVjw38hSEtbNDWqv7Iu4-aBjPBbtrj6tH-86AXOPkpo}
   subject: ${VAPID_SUBJECT:mailto:support@tanda.kz}

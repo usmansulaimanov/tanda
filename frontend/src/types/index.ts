@@ -351,12 +351,19 @@ export interface SubscriptionPaymentRequest {
   receiptUrl?: string;
   phoneOrAccount?: string;
   notes?: string;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'REVOKED';
   rejectionReason?: string;
   reviewedBy?: string;
   reviewedAt?: string;
+  receiptNumber?: string;
+  aiVerified?: boolean;
+  aiStatus?: 'APPROVED' | 'REJECTED' | 'DUPLICATE' | 'MANUAL_REVIEW_NEEDED';
+  aiConfidence?: number;
+  aiExtractedData?: string;
+  aiRejectionReason?: string;
   createdAt: string;
 }
+
 
 export interface SystemSettings {
   premiumEnabled: boolean;

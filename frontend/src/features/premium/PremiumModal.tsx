@@ -50,8 +50,11 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
   const [receiptPreview, setReceiptPreview] = useState<string>('');
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [verificationResult, setVerificationResult] = useState<any>(null);
+  const [verificationError, setVerificationError] = useState<string | null>(null);
 
   // Promo code state
+
   const [promoCodeInput, setPromoCodeInput] = useState('');
   const [isApplyingPromo, setIsApplyingPromo] = useState(false);
 
@@ -230,6 +233,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
       return;
     }
 
+    setVerificationError(null);
     setIsUploading(true);
     try {
       // 1. Instant client-side compression (< 150KB)
@@ -244,8 +248,8 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
         receiptUrl = receiptPreview || 'receipt_attached';
       }
 
-      // 3. Submit payment request
-      await premiumApi.createSubscriptionRequest({
+      // 3. Submit payment request (triggers instant AI verification)
+      const result = await premiumApi.createSubscriptionRequest({
         planName: currentPlan.id,
         planDays: currentPlan.days,
         amountKzt: currentPlan.price,
@@ -254,15 +258,25 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
         notes: `Пайдаланушы: ${user?.name || user?.email}`,
       });
 
-      setIsSubmitted(true);
-      showToast('Чек сәтті жіберілді! Админ тексерген соң Премиум бірден қосылады', 'success');
+      setVerificationResult(result);
+
+      if (result.status === 'APPROVED') {
+        setIsSubmitted(true);
+        showToast('Tanda Premium сәтті белсендірілді! 👑', 'success');
+      } else {
+        const errorReason = result.rejectionReason || 'Төлем чегі тексеруден өтпеді. Деректерді тексеріп, қайта жүктеңіз.';
+        setVerificationError(errorReason);
+        showToast(errorReason, 'error');
+      }
     } catch (err: any) {
-      const msg = err?.response?.data?.message || 'Чекті жіберу кезінде қате орын алды';
+      const msg = err?.response?.data?.message || 'Чекті тексеру кезінде қате орын алды';
+      setVerificationError(msg);
       showToast(msg, 'error');
     } finally {
       setIsUploading(false);
     }
   };
+
 
   const handleApplyPromo = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -348,20 +362,38 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
               <p className="text-xs text-slate-400 font-medium">Баптаулар мен тарифтер жүктелуде...</p>
             </div>
           ) : isSubmitted ? (
-            <div className="p-8 rounded-2xl bg-emerald-50 border border-emerald-200 text-center my-4">
-              <CheckCircle2 className="w-16 h-16 text-emerald-600 mx-auto mb-3" />
-              <h3 className="text-xl font-bold text-emerald-950 mb-1">Төлем чегіңіз қабылданды!</h3>
-              <p className="text-sm text-emerald-800 mb-4">
-                Админ тексергеннен кейін (әдетте 5–15 минут ішінде) Премиум жазылым автоматты түрде қосылады. Жеке кабинетіңізге хабарлама келеді.
-              </p>
-              <button
-                onClick={onClose}
-                className="px-6 py-2.5 rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-700 transition"
-              >
-                Түсіндім, жабу
-              </button>
+            <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-b from-emerald-50 to-teal-50/40 border border-emerald-200 text-center my-4 space-y-4">
+              <div className="w-16 h-16 rounded-2xl bg-emerald-100 border border-emerald-300 flex items-center justify-center mx-auto text-emerald-600 shadow-md">
+                <CheckCircle2 className="w-10 h-10" />
+              </div>
+              <div>
+                <h3 className="text-2xl font-black text-emerald-950 mb-1">Tanda Premium белсендірілді! 👑</h3>
+                <p className="text-sm text-emerald-800 max-w-md mx-auto">
+                  Төлем чегіңіз автоматты түрде расталды. Барлық аудио және электронды кітаптарды шектеусіз әрі жарнамасыз тыңдай аласыз!
+                </p>
+              </div>
+
+              {verificationResult?.receiptNumber && (
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/90 border border-emerald-200 text-xs text-emerald-900 shadow-sm">
+                  <span className="font-semibold text-slate-500">Чек №:</span>
+                  <span className="font-mono font-bold">{verificationResult.receiptNumber}</span>
+                </div>
+              )}
+
+              <div className="pt-2">
+                <button
+                  onClick={() => {
+                    onClose();
+                    window.location.reload();
+                  }}
+                  className="w-full sm:w-auto px-8 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm transition shadow-lg shadow-emerald-600/20"
+                >
+                  Тыңдауды бастау 🎧
+                </button>
+              </div>
             </div>
           ) : (
+
             <>
               {/* Tariff selection */}
               <div className="mb-6">
@@ -528,6 +560,25 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
 
               {/* Receipt Upload Form */}
               <form onSubmit={handleSubmitReceipt} className="space-y-4 mb-6">
+                {verificationError && (
+                  <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-950 flex items-start gap-3 shadow-sm">
+                    <div className="w-8 h-8 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0 mt-0.5">
+                      <AlertCircle className="w-5 h-5 text-rose-600" />
+                    </div>
+                    <div className="flex-1 text-xs leading-relaxed text-left">
+                      <span className="font-bold text-rose-900 block mb-0.5">
+                        Төлем чегі қабылданбады:
+                      </span>
+                      <p className="text-rose-900 font-medium">
+                        {verificationError}
+                      </p>
+                      <p className="text-[11px] text-rose-600 mt-1">
+                        Банк чегіндегі сома мен алушының дұрыстығын тексеріп, қайта жүктеп көріңіз.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1.5">
                     Төлем чегінің суреті / скриншоты: <span className="text-red-500">*</span>
@@ -576,11 +627,15 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
                   className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#F08000] to-orange-600 hover:from-[#c06800] hover:to-orange-700 text-white font-black text-sm shadow-lg shadow-orange-500/25 transition disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {isUploading ? (
-                    <span>Жіберілуде...</span>
+                    <span className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span>AI чекті тексеруде... (3–5 сек)</span>
+                    </span>
                   ) : (
                     <span>Чекті растауға жіберу</span>
                   )}
                 </button>
+
               </form>
 
               {/* Promo code alternative */}

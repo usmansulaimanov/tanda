@@ -62,6 +62,17 @@ export const premiumApi = {
     return data;
   },
 
+  revokeSubscriptionRequestAdmin: async (
+    id: string,
+    rejectionReason?: string
+  ): Promise<SubscriptionPaymentRequest> => {
+    const { data } = await api.post(`/api/v1/admin/premium/subscription-requests/${id}/revoke`, {
+      rejectionReason,
+    });
+    return data;
+  },
+
+
   uploadReceiptImage: async (file: File): Promise<string> => {
     const formData = new FormData();
     formData.append('file', file);

@@ -110,6 +110,22 @@ public class PremiumService {
     }
 
     @Transactional
+    public void revokePremium(String userId, String reason, String revokedBy) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Пайдаланушы табылмады: " + userId));
+
+        List<PremiumEntitlement> active = entitlementRepository.findByUserIdAndIsActiveTrueOrderByExpiresAtDesc(userId);
+        for (PremiumEntitlement ent : active) {
+            ent.setIsActive(false);
+            entitlementRepository.save(ent);
+        }
+
+        log.info("Revoked {} active premium entitlements for user {} by {}. Reason: {}",
+                active.size(), userId, revokedBy, reason);
+    }
+
+
+    @Transactional
     public Map<String, Object> grantBirthdayGift(String userId, Integer giftYear, String grantedBy) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Пайдаланушы табылмады: " + userId));

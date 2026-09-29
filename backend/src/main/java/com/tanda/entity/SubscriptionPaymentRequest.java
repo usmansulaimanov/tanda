@@ -63,6 +63,28 @@ public class SubscriptionPaymentRequest {
     @Column(name = "reviewed_at")
     private OffsetDateTime reviewedAt;
 
+    @Column(name = "receipt_number", length = 128)
+    private String receiptNumber;
+
+    @Column(name = "ai_verified")
+    @Builder.Default
+    private Boolean aiVerified = false;
+
+    @Column(name = "ai_status", length = 32)
+    private String aiStatus; // 'APPROVED', 'REJECTED', 'DUPLICATE', 'MANUAL_REVIEW_NEEDED'
+
+    @Column(name = "ai_confidence")
+    private Double aiConfidence;
+
+    @Column(name = "ai_extracted_data", columnDefinition = "TEXT")
+    private String aiExtractedData;
+
+    @Column(name = "ai_rejection_reason", columnDefinition = "TEXT")
+    private String aiRejectionReason;
+
+    @Column(name = "receipt_hash", length = 64)
+    private String receiptHash;
+
     @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
 

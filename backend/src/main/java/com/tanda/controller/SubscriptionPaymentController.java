@@ -96,4 +96,18 @@ public class SubscriptionPaymentController {
         String reason = body != null ? body.getRejectionReason() : null;
         return ResponseEntity.ok(paymentService.rejectRequest(id, reason, adminId));
     }
+
+    @PostMapping("/admin/premium/subscription-requests/{id}/revoke")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Revoke previously approved subscription request and remove premium (Admin only)")
+    public ResponseEntity<SubscriptionPaymentRequestResponseDto> revokeRequest(
+            @PathVariable String id,
+            @RequestBody(required = false) ReviewSubscriptionPaymentRequestDto body,
+            @AuthenticationPrincipal UserPrincipal principal,
+            Authentication authentication) {
+        String adminId = principal != null && principal.getId() != null ? principal.getId() : authentication.getName();
+        String reason = body != null ? body.getRejectionReason() : null;
+        return ResponseEntity.ok(paymentService.revokeApprovedRequest(id, reason, adminId));
+    }
 }
+
