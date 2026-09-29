@@ -573,7 +573,7 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
                             Бас тартылған
                           </span>
                           {req.aiStatus === 'DUPLICATE' && (
-                            <span className="block text-[10px] font-black text-purple-700 bg-purple-100 px-1.5 py-0.5 rounded mt-0.5">
+                            <span className="block text-[10px] font-black text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded mt-0.5">
                               ⚠️ Дубликат чек
                             </span>
                           )}
