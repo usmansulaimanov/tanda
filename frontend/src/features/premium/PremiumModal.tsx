@@ -217,6 +217,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
       showToast('Чек файлының көлемі 15MB-тан аспауы керек', 'error');
       return;
     }
+    setVerificationError(null);
     setReceiptFile(file);
     if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
       setReceiptPreview('pdf');
@@ -225,6 +226,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
       reader.onload = () => setReceiptPreview(reader.result as string);
       reader.readAsDataURL(file);
     }
+    e.target.value = '';
   };
 
   const handleSubmitReceipt = async (e: React.FormEvent) => {
@@ -309,10 +311,32 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
     }
   };
 
+  // Reset receipt state whenever modal closes or opens fresh
+  useEffect(() => {
+    if (!isOpen) {
+      setReceiptFile(null);
+      setReceiptPreview('');
+      setVerificationError(null);
+      setVerificationResult(null);
+      setIsUploading(false);
+      setIsSubmitted(false);
+    }
+  }, [isOpen]);
+
+  const handleModalClose = () => {
+    setReceiptFile(null);
+    setReceiptPreview('');
+    setVerificationError(null);
+    setVerificationResult(null);
+    setIsUploading(false);
+    setIsSubmitted(false);
+    onClose();
+  };
+
   // Prevent background scrolling when modal is open
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') handleModalClose();
     };
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -322,19 +346,19 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
       document.body.style.overflow = 'unset';
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isOpen, onClose]);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-[300] overflow-y-auto">
-      <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity" onClick={onClose} />
+      <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity" onClick={handleModalClose} />
 
       <div className="flex min-h-full items-start justify-center p-3 sm:p-6 text-center">
         <div className="w-full max-w-2xl my-6 sm:my-10 transform rounded-3xl bg-white p-6 sm:p-8 text-left shadow-2xl transition-all z-10 border border-orange-100 relative mb-24 sm:mb-28">
           {/* Close button */}
           <button
-            onClick={onClose}
+            onClick={handleModalClose}
             className="absolute top-5 right-5 rounded-full p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
           >
             <X className="w-5 h-5" />
