@@ -464,7 +464,6 @@ export const AdminSystemSettingsPage: React.FC = () => {
               </div>
               <div>
                 <h3 className="text-base font-bold text-slate-900">Жоғарғы жарнамалық баннер</h3>
-                <p className="text-xs text-slate-500">Сайттың жоғарғы жағында оқырмандарға көрінетін сарғыш баннер</p>
               </div>
             </div>
 
