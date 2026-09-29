@@ -24,6 +24,7 @@ export const Layout: React.FC = () => {
   const { isAuthenticated, isAuthInitialized, user, role } = useAuthStore();
   const location = useLocation();
   const isListenPage = location.pathname.startsWith('/listen');
+  const isMyBooksPage = location.pathname.startsWith('/my-books');
 
   const isAuthorOrStaff = Boolean(
     isAuthenticated && user && (role === 'author' || role === 'admin' || user.role === 'author' || user.role === 'admin' || user.isAuthor || user.isSuperAdmin || Boolean(user.duty))
@@ -78,7 +79,7 @@ export const Layout: React.FC = () => {
           <Outlet />
         </ErrorBoundary>
       </main>
-      {!isListenPage && <Footer />}
+      {!isListenPage && !isMyBooksPage && <Footer />}
       <MobileBottomNav />
       {!isAuthorOrStaff && <AudioPlayerBar />}
       {!isAuthorOrStaff && <DailyLimitModal />}
