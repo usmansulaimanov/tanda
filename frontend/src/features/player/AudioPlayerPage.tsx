@@ -579,7 +579,10 @@ export const AudioPlayerPage: React.FC = () => {
           {/* Sleep Timer */}
           <button
             type="button"
-            onClick={() => setShowMobileTimerMenu(true)}
+            onClick={() => {
+              setMobileTimerMinutes(sleepTimerMinutes || 10);
+              setShowMobileTimerMenu(true);
+            }}
             className={`p-2.5 rounded-xl transition flex items-center justify-center relative cursor-pointer ${
               sleepTimerMinutes ? 'text-[#EF7E00] bg-[#EF7E00]/15' : 'text-slate-400 active:text-white'
             }`}
@@ -765,31 +768,42 @@ export const AudioPlayerPage: React.FC = () => {
 
               {/* Slider area */}
               <div className="relative mb-4 px-1">
-                <div className="flex items-center justify-between text-[11px] font-bold font-mono text-slate-400 mb-1">
-                  <span>00:00:00</span>
-                  <span>01:00:00</span>
+                {/* Dynamic Left & Right time indicators */}
+                <div className="flex items-center justify-between text-xs font-bold font-mono mb-1 px-0.5">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-sm font-black text-[#EF7E00] font-mono">
+                      {String(Math.floor(mobileTimerMinutes / 60)).padStart(2, '0')}:{String(mobileTimerMinutes % 60).padStart(2, '0')}:00
+                    </span>
+                    <span className="text-xs font-bold text-slate-500">
+                      ({mobileTimerMinutes} минут)
+                    </span>
+                  </div>
+                  <span className="text-xs font-semibold text-slate-400 font-mono">01:00:00</span>
                 </div>
 
+                {/* Floating tooltip bubble above thumb */}
+                <div className="relative w-full h-6 mb-1">
+                  <div
+                    className="absolute -translate-x-1/2 bg-white text-slate-900 border border-slate-200 shadow-md px-2 py-0.5 rounded-lg text-xs font-black font-mono whitespace-nowrap pointer-events-none transition-[left] duration-75"
+                    style={{ left: `${Math.min(92, Math.max(8, (mobileTimerMinutes / 60) * 100))}%` }}
+                  >
+                    {String(Math.floor(mobileTimerMinutes / 60)).padStart(2, '0')}:{String(mobileTimerMinutes % 60).padStart(2, '0')}
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-white" />
+                  </div>
+                </div>
+
+                {/* Range Slider - 1 minute step */}
                 <div className="relative flex items-center">
                   <input
                     type="range"
-                    min={0}
+                    min={1}
                     max={60}
-                    step={5}
+                    step={1}
                     value={mobileTimerMinutes}
                     onChange={(e) => setMobileTimerMinutes(Number(e.target.value))}
-                    className="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-[#EF7E00]"
+                    className="w-full h-2.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-[#EF7E00]"
                     style={{ accentColor: '#EF7E00' }}
                   />
-                </div>
-
-                {/* Current Value Tooltip / Pill */}
-                <div className="flex justify-center mt-2">
-                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-black bg-orange-50 text-[#EF7E00] border border-orange-200/60 font-mono shadow-2xs">
-                    {mobileTimerMinutes === 0
-                      ? 'Өшірулі'
-                      : `${String(Math.floor(mobileTimerMinutes / 60)).padStart(2, '0')}:${String(mobileTimerMinutes % 60).padStart(2, '0')}:00`}
-                  </span>
                 </div>
               </div>
 
