@@ -498,11 +498,10 @@ export const AudioPlayerPage: React.FC = () => {
           <button
             type="button"
             onClick={() => handleSkip(-10)}
-            className="w-11 h-11 rounded-full bg-white/5 active:bg-white/15 border border-white/10 text-slate-200 flex flex-col items-center justify-center transition active:scale-95 cursor-pointer"
+            className="w-11 h-11 rounded-full bg-white/5 active:bg-white/15 border border-white/10 text-slate-200 flex items-center justify-center transition active:scale-95 cursor-pointer"
             title="10 секунд артқа"
           >
-            <RotateCcw className="w-4 h-4 text-[#EF7E00]" />
-            <span className="text-[8px] font-bold mt-0.5 leading-none">-10с</span>
+            <RotateCcw className="w-5 h-5 text-[#EF7E00]" />
           </button>
 
           {/* Previous Chapter */}
@@ -543,11 +542,10 @@ export const AudioPlayerPage: React.FC = () => {
           <button
             type="button"
             onClick={() => handleSkip(10)}
-            className="w-11 h-11 rounded-full bg-white/5 active:bg-white/15 border border-white/10 text-slate-200 flex flex-col items-center justify-center transition active:scale-95 cursor-pointer"
+            className="w-11 h-11 rounded-full bg-white/5 active:bg-white/15 border border-white/10 text-slate-200 flex items-center justify-center transition active:scale-95 cursor-pointer"
             title="10 секунд алға"
           >
-            <RotateCw className="w-4 h-4 text-[#EF7E00]" />
-            <span className="text-[8px] font-bold mt-0.5 leading-none">+10с</span>
+            <RotateCw className="w-5 h-5 text-[#EF7E00]" />
           </button>
         </div>
 
