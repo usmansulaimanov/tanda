@@ -375,7 +375,7 @@ export const AudioPlayerPage: React.FC = () => {
 
           {/* Exactly horizontally centered narrator */}
           <div className="absolute inset-x-0 mx-auto flex items-center justify-center text-center px-24 pointer-events-none z-0">
-            <span className="text-xs font-bold text-slate-700 truncate max-w-full leading-tight">
+            <span className="text-sm xs:text-base font-bold text-slate-800 truncate max-w-full leading-tight">
               {activeBook.audioNarrator || 'Танда Аудио'}
             </span>
           </div>
@@ -447,7 +447,7 @@ export const AudioPlayerPage: React.FC = () => {
             <h2 className="text-lg xs:text-xl font-black text-slate-900 truncate max-w-full leading-tight tracking-tight">
               {activeBook.title}
             </h2>
-            <p className="text-xs xs:text-sm font-semibold text-slate-500 truncate max-w-full mt-0.5">
+            <p className="text-sm xs:text-base font-semibold text-slate-600 truncate max-w-full mt-1">
               {activeBook.author}
             </p>
           </div>
