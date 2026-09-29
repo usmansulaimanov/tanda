@@ -1606,7 +1606,7 @@ export const ReaderEditPage: React.FC = () => {
                     <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"></path>
                   </svg>
                   <h3 style={{ fontSize: '16px', fontWeight: 900, color: '#92400E', margin: 0 }}>
-                    Туған күн сыйлығы (1 айлық Премиум)
+                    Туған күн сыйлығы: 1 айлық премиум
                   </h3>
                 </div>
 
