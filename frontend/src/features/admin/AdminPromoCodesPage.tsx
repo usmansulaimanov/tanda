@@ -98,12 +98,46 @@ export const AdminPromoCodesPage: React.FC = () => {
     e.preventDefault();
     const effectiveReward = rewardTitle;
 
+    // Detect discount percent and rewardType
+    let discountPercent: number | undefined = undefined;
+    let rewardType: any = 'subscription_1m';
+
+    const lower = effectiveReward.toLowerCase();
+    if (lower.includes('50%') || lower.includes('50 пайыз')) {
+      discountPercent = 50;
+      rewardType = 'discount';
+    } else if (lower.includes('40%') || lower.includes('40 пайыз')) {
+      discountPercent = 40;
+      rewardType = 'discount';
+    } else if (lower.includes('30%') || lower.includes('30 пайыз')) {
+      discountPercent = 30;
+      rewardType = 'discount';
+    } else if (lower.includes('20%') || lower.includes('20 пайыз')) {
+      discountPercent = 20;
+      rewardType = 'discount';
+    } else if (lower.includes('10%') || lower.includes('10 пайыз')) {
+      discountPercent = 10;
+      rewardType = 'discount';
+    } else if (lower.includes('мәңгі') || lower.includes('шектеусіз')) {
+      rewardType = 'premium_access';
+    } else if (lower.includes('12 ай') || lower.includes('1 жыл')) {
+      rewardType = 'subscription_1y';
+    } else if (lower.includes('6 ай')) {
+      rewardType = 'subscription_6m';
+    } else if (lower.includes('3 ай')) {
+      rewardType = 'subscription_3m';
+    } else {
+      rewardType = 'subscription_1m';
+    }
+
     const effectiveCount = Math.max(1, count || 1);
     try {
       const result = await generatePromoCodes({
         batchName: customBatchName.trim() || undefined,
         count: effectiveCount,
         rewardTitle: effectiveReward,
+        rewardType,
+        discountPercent,
         durationDays,
         customWord: cleanCustomWord || undefined,
         maxUses,

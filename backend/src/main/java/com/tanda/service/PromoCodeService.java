@@ -74,8 +74,44 @@ public class PromoCodeService {
         int count = req.getCount() != null ? Math.max(1, Math.min(req.getCount(), 1000)) : 10;
         int durationDays = req.getDurationDays() != null ? req.getDurationDays() : 30;
         int maxUses = req.getMaxUses() != null ? req.getMaxUses() : 1;
-        String rewardType = req.getRewardType() != null ? req.getRewardType() : "subscription_1m";
         String rewardTitle = req.getRewardTitle() != null ? req.getRewardTitle() : "1 айлық тегін жазылым";
+        String rewardType = req.getRewardType();
+        Integer discountPercent = req.getDiscountPercent();
+
+        // Auto-detect discount percent and rewardType if not explicitly provided
+        String lowerTitle = rewardTitle.toLowerCase();
+        if (discountPercent == null || discountPercent <= 0) {
+            if (lowerTitle.contains("50%") || lowerTitle.contains("50 пайыз")) {
+                discountPercent = 50;
+            } else if (lowerTitle.contains("40%") || lowerTitle.contains("40 пайыз")) {
+                discountPercent = 40;
+            } else if (lowerTitle.contains("30%") || lowerTitle.contains("30 пайыз")) {
+                discountPercent = 30;
+            } else if (lowerTitle.contains("20%") || lowerTitle.contains("20 пайыз")) {
+                discountPercent = 20;
+            } else if (lowerTitle.contains("10%") || lowerTitle.contains("10 пайыз")) {
+                discountPercent = 10;
+            } else {
+                discountPercent = 0;
+            }
+        }
+
+        if (rewardType == null || rewardType.trim().isEmpty() || "subscription_1m".equals(rewardType)) {
+            if (discountPercent > 0 || lowerTitle.contains("жеңілдік") || lowerTitle.contains("скидка") || lowerTitle.contains("discount")) {
+                rewardType = "discount";
+            } else if (lowerTitle.contains("мәңгі") || lowerTitle.contains("вечный") || lowerTitle.contains("шектеусіз")) {
+                rewardType = "premium_access";
+            } else if (lowerTitle.contains("12 ай") || lowerTitle.contains("1 жыл") || lowerTitle.contains("жылдық")) {
+                rewardType = "subscription_1y";
+            } else if (lowerTitle.contains("6 ай")) {
+                rewardType = "subscription_6m";
+            } else if (lowerTitle.contains("3 ай")) {
+                rewardType = "subscription_3m";
+            } else {
+                rewardType = "subscription_1m";
+            }
+        }
+
         String prefix = req.getPrefix() != null && !req.getPrefix().trim().isEmpty()
                 ? req.getPrefix().trim().toUpperCase() : "TANDA";
 
@@ -119,7 +155,7 @@ public class PromoCodeService {
                     .rewardType(rewardType)
                     .rewardTitle(rewardTitle)
                     .durationDays(durationDays)
-                    .discountPercent(req.getDiscountPercent() != null ? req.getDiscountPercent() : 0)
+                    .discountPercent(discountPercent)
                     .expiresAt(expiresAt)
                     .maxUses(maxUses)
                     .usedCount(0)
@@ -257,13 +293,29 @@ public class PromoCodeService {
                     .build();
         }
 
+        String promoRewardType = promo.getRewardType();
+        Integer promoDiscount = promo.getDiscountPercent();
+        String lowerTitle = promo.getRewardTitle() != null ? promo.getRewardTitle().toLowerCase() : "";
+
+        if (promoDiscount == null || promoDiscount <= 0) {
+            if (lowerTitle.contains("50%") || lowerTitle.contains("50 пайыз")) promoDiscount = 50;
+            else if (lowerTitle.contains("40%") || lowerTitle.contains("40 пайыз")) promoDiscount = 40;
+            else if (lowerTitle.contains("30%") || lowerTitle.contains("30 пайыз")) promoDiscount = 30;
+            else if (lowerTitle.contains("20%") || lowerTitle.contains("20 пайыз")) promoDiscount = 20;
+            else if (lowerTitle.contains("10%") || lowerTitle.contains("10 пайыз")) promoDiscount = 10;
+        }
+
+        if (promoDiscount != null && promoDiscount > 0) {
+            promoRewardType = "discount";
+        }
+
         return ValidatePromoResponseDto.builder()
                 .valid(true)
                 .code(code)
-                .rewardType(promo.getRewardType())
+                .rewardType(promoRewardType)
                 .rewardTitle(promo.getRewardTitle())
                 .durationDays(promo.getDurationDays())
-                .discountPercent(promo.getDiscountPercent())
+                .discountPercent(promoDiscount)
                 .message("Промокод белсендіруге дайын")
                 .build();
     }

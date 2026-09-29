@@ -337,16 +337,30 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
         return;
       }
 
-      const rewardType = validation.rewardType?.toLowerCase() || '';
-      const isDiscount = rewardType.includes('discount') || (validation.discountPercent !== undefined && validation.discountPercent > 0);
+      const rewardType = (validation.rewardType || '').toLowerCase();
+      const rewardTitle = (validation.rewardTitle || '').toLowerCase();
+      let discountPercent = validation.discountPercent;
 
-      if (isDiscount && validation.discountPercent && validation.discountPercent > 0) {
+      if (!discountPercent || discountPercent <= 0) {
+        if (rewardTitle.includes('50%') || rewardTitle.includes('50 пайыз')) discountPercent = 50;
+        else if (rewardTitle.includes('40%') || rewardTitle.includes('40 пайыз')) discountPercent = 40;
+        else if (rewardTitle.includes('30%') || rewardTitle.includes('30 пайыз')) discountPercent = 30;
+        else if (rewardTitle.includes('20%') || rewardTitle.includes('20 пайыз')) discountPercent = 20;
+        else if (rewardTitle.includes('10%') || rewardTitle.includes('10 пайыз')) discountPercent = 10;
+      }
+
+      const isDiscount = rewardType.includes('discount') || 
+                         rewardTitle.includes('жеңілдік') || 
+                         rewardTitle.includes('скидка') || 
+                         (discountPercent !== undefined && discountPercent > 0);
+
+      if (isDiscount && discountPercent && discountPercent > 0) {
         setAppliedPromo({
           code: cleanCode,
-          discountPercent: validation.discountPercent,
-          rewardTitle: validation.rewardTitle || `${validation.discountPercent}% жеңілдік`,
+          discountPercent: discountPercent,
+          rewardTitle: validation.rewardTitle || `${discountPercent}% жеңілдік`,
         });
-        showToast(`«${cleanCode}» промокоды қолданылды: -${validation.discountPercent}% жеңілдік! 🎉`, 'success');
+        showToast(`«${cleanCode}» промокоды қолданылды: -${discountPercent}% жеңілдік! 🎉`, 'success');
       } else {
         // Free subscription promo code: Activate immediately
         const res = await activatePromoCode(cleanCode);
