@@ -88,11 +88,21 @@ export const premiumApi = {
     days: number,
     source?: string
   ): Promise<any> => {
-    const { data } = await api.post('/api/v1/admin/premium/grant', {
-      userId,
+    const { data } = await api.post(`/api/v1/admin/premium/${userId}`, {
       days,
       source: source || 'MANUAL_ADMIN',
     });
     return data;
   },
+
+  revokePremiumAdmin: async (
+    userId: string,
+    reason?: string
+  ): Promise<any> => {
+    const { data } = await api.delete(`/api/v1/admin/premium/${userId}`, {
+      params: reason ? { reason } : {},
+    });
+    return data;
+  },
 };
+

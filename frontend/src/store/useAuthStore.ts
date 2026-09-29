@@ -34,6 +34,8 @@ interface AuthState {
   deleteUser: (userId: string) => Promise<{ success: boolean; error?: string }>;
   grantBirthdayGiftManually: (userId: string) => Promise<{ success: boolean; error?: string }>;
   resetBirthdayGiftHistory: (userId: string) => Promise<{ success: boolean; error?: string }>;
+  grantPremiumManually: (userId: string, days?: number) => Promise<{ success: boolean; user?: User; error?: string }>;
+  revokePremiumManually: (userId: string, reason?: string) => Promise<{ success: boolean; user?: User; error?: string }>;
   getUserById: (userId: string) => User | undefined;
   fetchClients: (search?: string) => Promise<User[]>;
   getAllClients: () => User[];
@@ -805,6 +807,47 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
           return {
             success: false,
             error: err.response?.data?.message || err.message || 'Сыйлық қосу сәтсіз аяқталды',
+          };
+        }
+      },
+
+      grantPremiumManually: async (userId: string, days = 30) => {
+        try {
+          await api.post(`/api/v1/admin/premium/${userId}`, {
+            days,
+            source: 'MANUAL_ADMIN',
+          });
+          const { data } = await api.get(`/api/v1/admin/users/${userId}`);
+          const normalized = normalizeUser(data);
+          set((state) => ({
+            clients: state.clients.map((u) => (u.id === userId ? normalized : u)),
+            user: state.user?.id === userId ? normalized : state.user,
+          }));
+          return { success: true, user: normalized };
+        } catch (err: any) {
+          return {
+            success: false,
+            error: err.response?.data?.message || err.message || 'Премиум қосу сәтсіз аяқталды',
+          };
+        }
+      },
+
+      revokePremiumManually: async (userId: string, reason?: string) => {
+        try {
+          await api.delete(`/api/v1/admin/premium/${userId}`, {
+            params: reason ? { reason } : {},
+          });
+          const { data } = await api.get(`/api/v1/admin/users/${userId}`);
+          const normalized = normalizeUser(data);
+          set((state) => ({
+            clients: state.clients.map((u) => (u.id === userId ? normalized : u)),
+            user: state.user?.id === userId ? normalized : state.user,
+          }));
+          return { success: true, user: normalized };
+        } catch (err: any) {
+          return {
+            success: false,
+            error: err.response?.data?.message || err.message || 'Премиумды өшіру сәтсіз аяқталды',
           };
         }
       },

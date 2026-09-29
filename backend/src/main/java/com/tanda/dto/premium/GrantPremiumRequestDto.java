@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class GrantPremiumRequestDto {
+    private String userId;
     @NotNull
     @Min(1)
     private Integer days;

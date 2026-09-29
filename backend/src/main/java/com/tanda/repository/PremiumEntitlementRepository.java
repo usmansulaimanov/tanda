@@ -16,5 +16,9 @@ public interface PremiumEntitlementRepository extends JpaRepository<PremiumEntit
 
     List<PremiumEntitlement> findByIsActiveTrueAndExpiresAtAfter(OffsetDateTime now);
 
+    Optional<PremiumEntitlement> findTopByUserIdOrderByCreatedAtDesc(String userId);
+
+    Optional<PremiumEntitlement> findTopByUserIdOrderByExpiresAtDesc(String userId);
+
     void deleteByUserId(String userId);
 }

@@ -115,8 +115,10 @@ public class PremiumService {
                 .orElseThrow(() -> new ResourceNotFoundException("Пайдаланушы табылмады: " + userId));
 
         List<PremiumEntitlement> active = entitlementRepository.findByUserIdAndIsActiveTrueOrderByExpiresAtDesc(userId);
+        OffsetDateTime now = OffsetDateTime.now();
         for (PremiumEntitlement ent : active) {
             ent.setIsActive(false);
+            ent.setExpiresAt(now);
             entitlementRepository.save(ent);
         }
 

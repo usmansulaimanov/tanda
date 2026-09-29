@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -53,17 +54,52 @@ public class PremiumController {
         return ResponseEntity.ok(premiumService.getAllActivePremiumEntitlements());
     }
 
-    @PostMapping("/api/v1/admin/premium/{userId}")
+    @PostMapping({"/api/v1/admin/premium/{userId}", "/api/v1/admin/premium/grant"})
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<PremiumEntitlementResponseDto> grantPremiumManually(
             @AuthenticationPrincipal UserPrincipal principal,
-            @PathVariable String userId,
+            @PathVariable(required = false) String userId,
             @Valid @RequestBody GrantPremiumRequestDto request
     ) {
         String adminId = principal != null ? principal.getId() : "ADMIN";
+        String targetUserId = userId != null ? userId : request.getUserId();
+        if (targetUserId == null || targetUserId.isBlank()) {
+            throw new org.springframework.web.server.ResponseStatusException(HttpStatus.BAD_REQUEST, "userId көрсетілмеген");
+        }
         int days = request.getDays() != null ? request.getDays() : 30;
         String source = request.getSource() != null ? request.getSource() : "MANUAL_ADMIN";
-        return ResponseEntity.ok(premiumService.grantPremium(userId, days, source, adminId));
+        return ResponseEntity.ok(premiumService.grantPremium(targetUserId, days, source, adminId));
+    }
+
+    @DeleteMapping("/api/v1/admin/premium/{userId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Map<String, Object>> revokePremiumManually(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @PathVariable String userId,
+            @RequestParam(required = false) String reason
+    ) {
+        String adminId = principal != null ? principal.getId() : "ADMIN";
+        premiumService.revokePremium(userId, reason != null ? reason : "MANUAL_ADMIN_REVOKE", adminId);
+        return ResponseEntity.ok(Map.of("success", true, "message", "Премиум жазылым сәтті өшірілді"));
+    }
+
+    @PostMapping({"/api/v1/admin/premium/{userId}/revoke", "/api/v1/admin/premium/revoke"})
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Map<String, Object>> revokePremiumPost(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @PathVariable(required = false) String userId,
+            @RequestParam(required = false) String reason,
+            @RequestBody(required = false) Map<String, String> body
+    ) {
+        String targetUserId = userId;
+        if (targetUserId == null && body != null) {
+            targetUserId = body.get("userId");
+        }
+        String finalReason = reason;
+        if (finalReason == null && body != null) {
+            finalReason = body.get("reason");
+        }
+        return revokePremiumManually(principal, targetUserId, finalReason);
     }
 
     @PostMapping("/api/v1/admin/users/{userId}/birthday-gift")

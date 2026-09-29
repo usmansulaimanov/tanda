@@ -76,6 +76,31 @@ const formatDisplayDate = (d?: string | null) => {
   }
 };
 
+const formatDisplayDateTime = (d?: string | null) => {
+  if (!d) return '—';
+  try {
+    const dt = new Date(d);
+    if (isNaN(dt.getTime())) return d;
+    return dt.toLocaleDateString('kk-KZ', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  } catch {
+    return d;
+  }
+};
+
+const getRemainingDays = (expiresAt?: string | null) => {
+  if (!expiresAt) return 0;
+  const exp = new Date(expiresAt).getTime();
+  const diff = exp - Date.now();
+  if (diff <= 0) return 0;
+  return Math.ceil(diff / (1000 * 60 * 60 * 24));
+};
+
 const formatPhoneNumber = (val: string): string => {
   if (!val) return '';
 
@@ -137,6 +162,8 @@ export const ReaderEditPage: React.FC = () => {
     checkEmailAvailable,
     grantBirthdayGiftManually,
     resetBirthdayGiftHistory,
+    grantPremiumManually,
+    revokePremiumManually,
     fetchNextAvailableIdNumber,
     getNextAvailableIdNumber,
   } = useAuthStore();
@@ -167,6 +194,13 @@ export const ReaderEditPage: React.FC = () => {
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Premium Management States
+  const [premiumDays, setPremiumDays] = useState<number>(30);
+  const [customDays, setCustomDays] = useState<string>('');
+  const [isGrantingPremium, setIsGrantingPremium] = useState<boolean>(false);
+  const [isRevokingPremium, setIsRevokingPremium] = useState<boolean>(false);
+  const [showRevokeConfirm, setShowRevokeConfirm] = useState<boolean>(false);
 
   useEffect(() => {
     if (!id) {
@@ -350,6 +384,45 @@ export const ReaderEditPage: React.FC = () => {
       showToast('Туған күн сыйлық тарихы тазартылды. Енді оқырман осы жылы сыйлықты қайта ала алады.', 'info');
     } else {
       showToast(res.error || 'Тазарту кезінде қате орын алды', 'error');
+    }
+  };
+
+  const handleGrantPremium = async () => {
+    if (!id || !reader) return;
+    const daysToGrant = customDays ? parseInt(customDays, 10) : premiumDays;
+    if (isNaN(daysToGrant) || daysToGrant <= 0) {
+      showToast('Премиум мерзімін (күн санын) дұрыс көрсетіңіз', 'error');
+      return;
+    }
+    setIsGrantingPremium(true);
+    try {
+      const res = await grantPremiumManually(id, daysToGrant);
+      if (res.success && res.user) {
+        setReader(res.user);
+        setCustomDays('');
+        showToast(`Оқырманға ${daysToGrant} күндік Премиум жазылым сәтті қосылды! 👑`, 'success');
+      } else {
+        showToast(res.error || 'Премиум қосу кезінде қате орын алды', 'error');
+      }
+    } finally {
+      setIsGrantingPremium(false);
+    }
+  };
+
+  const handleRevokePremium = async () => {
+    if (!id || !reader) return;
+    setIsRevokingPremium(true);
+    try {
+      const res = await revokePremiumManually(id, 'MANUAL_ADMIN_REVOKE');
+      if (res.success && res.user) {
+        setReader(res.user);
+        setShowRevokeConfirm(false);
+        showToast('Оқырманның Премиум жазылымы сәтті өшірілді!', 'success');
+      } else {
+        showToast(res.error || 'Премиумды өшіру кезінде қате орын алды', 'error');
+      }
+    } finally {
+      setIsRevokingPremium(false);
     }
   };
 
@@ -1145,6 +1218,296 @@ export const ReaderEditPage: React.FC = () => {
                   </>
                 )}
               </button>
+            </div>
+
+            {/* Row: Reader Subscription Status (Премиум / Стандарт) */}
+            <div
+              style={{
+                background: reader?.isPremium
+                  ? 'linear-gradient(135deg, #FFFDF5 0%, #FEF3C7 100%)'
+                  : '#F8FAFC',
+                border: `1.5px solid ${reader?.isPremium ? '#FCD34D' : '#E2E8F0'}`,
+                borderRadius: '16px',
+                padding: '20px 24px',
+                marginBottom: '28px',
+                boxShadow: reader?.isPremium
+                  ? '0 4px 14px rgba(245, 158, 11, 0.08)'
+                  : 'none',
+                transition: 'all 0.2s',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: '14px',
+                  flexWrap: 'wrap',
+                  gap: '10px',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <span
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '10px',
+                      background: reader?.isPremium ? '#FEF3C7' : '#F1F5F9',
+                      border: `1px solid ${reader?.isPremium ? '#F59E0B' : '#CBD5E1'}`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '16px',
+                    }}
+                  >
+                    {reader?.isPremium ? '👑' : '📖'}
+                  </span>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <h3 style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-dark)', margin: 0 }}>
+                        Жазылым мәртебесі:
+                      </h3>
+                      <span
+                        style={{
+                          fontSize: '12px',
+                          fontWeight: 800,
+                          padding: '2px 10px',
+                          borderRadius: '12px',
+                          background: reader?.isPremium ? '#FEF3C7' : '#E2E8F0',
+                          border: `1px solid ${reader?.isPremium ? '#F59E0B' : '#94A3B8'}`,
+                          color: reader?.isPremium ? '#B45309' : '#475569',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                        }}
+                      >
+                        {reader?.isPremium ? 'Премиум 👑' : 'Стандарт 📖'}
+                      </span>
+                    </div>
+                    <p style={{ margin: '4px 0 0', fontSize: '12px', color: reader?.isPremium ? '#92400E' : 'var(--text-mid)' }}>
+                      {reader?.isPremium
+                        ? 'Оқырманға барлық аудио және электронды кітаптар шектеусіз әрі жарнамасыз қолжетімді.'
+                        : 'Оқырман стандартты режимде (тек тегін контент немесе жарнамамен).'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Revoke Button (if Premium) */}
+                {reader?.isPremium && !showRevokeConfirm && (
+                  <button
+                    type="button"
+                    onClick={() => setShowRevokeConfirm(true)}
+                    style={{
+                      padding: '8px 16px',
+                      borderRadius: '8px',
+                      border: '1.5px solid #FCA5A5',
+                      background: '#FEF2F2',
+                      color: '#DC2626',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
+                      <line x1="12" y1="2" x2="12" y2="12"></line>
+                    </svg>
+                    Премиумды өшіру
+                  </button>
+                )}
+              </div>
+
+              {/* Confirmation Prompt for Revoke */}
+              {showRevokeConfirm && (
+                <div
+                  style={{
+                    background: '#FFF5F5',
+                    border: '1.5px solid #FCA5A5',
+                    borderRadius: '12px',
+                    padding: '14px 18px',
+                    marginBottom: '16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    flexWrap: 'wrap',
+                    gap: '12px',
+                  }}
+                >
+                  <div style={{ fontSize: '13px', color: '#991B1B' }}>
+                    <strong>Назар аударыңыз!</strong> Оқырманның Премиум жазылымын дереу өшіруге сенімдісіз бе? Оқырман Стандарт мәртебесіне ауысады.
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <button
+                      type="button"
+                      disabled={isRevokingPremium}
+                      onClick={handleRevokePremium}
+                      style={{
+                        padding: '6px 14px',
+                        borderRadius: '6px',
+                        background: '#DC2626',
+                        border: 'none',
+                        color: '#FFFFFF',
+                        fontSize: '12px',
+                        fontWeight: 800,
+                        cursor: isRevokingPremium ? 'not-allowed' : 'pointer',
+                        opacity: isRevokingPremium ? 0.7 : 1,
+                      }}
+                    >
+                      {isRevokingPremium ? 'Өшірілуде...' : 'Иә, өшіру'}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={isRevokingPremium}
+                      onClick={() => setShowRevokeConfirm(false)}
+                      style={{
+                        padding: '6px 14px',
+                        borderRadius: '6px',
+                        background: '#FFFFFF',
+                        border: '1px solid #CBD5E1',
+                        color: '#475569',
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Болдырмау
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Timing Information Grid */}
+              <div
+                style={{
+                  background: reader?.isPremium ? 'rgba(255, 255, 255, 0.85)' : '#FFFFFF',
+                  borderRadius: '12px',
+                  padding: '14px 18px',
+                  border: `1px solid ${reader?.isPremium ? '#FDE68A' : '#E2E8F0'}`,
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                  gap: '14px',
+                  marginBottom: !reader?.isPremium ? '16px' : 0,
+                }}
+              >
+                <div>
+                  <div style={{ fontSize: '11px', fontWeight: 700, color: reader?.isPremium ? '#92400E' : '#64748B', marginBottom: '3px' }}>
+                    {reader?.isPremium ? 'Қосылған уақыты:' : 'Соңғы қосылған уақыты:'}
+                  </div>
+                  <div style={{ fontSize: '13px', fontWeight: 800, color: '#1E293B' }}>
+                    {reader?.premiumStartsAt ? formatDisplayDateTime(reader.premiumStartsAt) : (reader?.isPremium ? 'Белгісіз' : 'Бұрын қосылмаған')}
+                  </div>
+                </div>
+
+                <div>
+                  <div style={{ fontSize: '11px', fontWeight: 700, color: reader?.isPremium ? '#92400E' : '#64748B', marginBottom: '3px' }}>
+                    {reader?.isPremium ? 'Аяқталу мерзімі:' : 'Өшірілген / аяқталған уақыты:'}
+                  </div>
+                  <div style={{ fontSize: '13px', fontWeight: 800, color: reader?.isPremium ? '#15803D' : '#64748B' }}>
+                    {reader?.premiumExpiresAt ? (
+                      <>
+                        {formatDisplayDateTime(reader.premiumExpiresAt)}
+                        {reader?.isPremium && (
+                          <span style={{ fontSize: '11px', fontWeight: 700, color: '#B45309', marginLeft: '6px' }}>
+                            ({getRemainingDays(reader.premiumExpiresAt)} күн қалды)
+                          </span>
+                        )}
+                      </>
+                    ) : (
+                      '—'
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Grant Premium Section (If currently Standard) */}
+              {!reader?.isPremium && (
+                <div style={{ paddingTop: '14px', borderTop: '1px dashed #CBD5E1' }}>
+                  <div style={{ fontSize: '12px', fontWeight: 800, color: '#334155', marginBottom: '8px' }}>
+                    Премиум жазылым қосу (мерзімін таңдаңыз):
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    {[
+                      { days: 30, label: '1 ай (30 күн)' },
+                      { days: 90, label: '3 ай (90 күн)' },
+                      { days: 365, label: '1 жыл (365 күн)' },
+                    ].map((preset) => (
+                      <button
+                        key={preset.days}
+                        type="button"
+                        onClick={() => {
+                          setPremiumDays(preset.days);
+                          setCustomDays('');
+                        }}
+                        style={{
+                          padding: '6px 12px',
+                          borderRadius: '8px',
+                          border: premiumDays === preset.days && !customDays ? '1.5px solid #F59E0B' : '1px solid #CBD5E1',
+                          background: premiumDays === preset.days && !customDays ? '#FEF3C7' : '#FFFFFF',
+                          color: premiumDays === preset.days && !customDays ? '#B45309' : '#475569',
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          transition: 'all 0.15s',
+                        }}
+                      >
+                        {preset.label}
+                      </button>
+                    ))}
+
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        placeholder="Басқа күн саны"
+                        value={customDays}
+                        onChange={(e) => {
+                          const digits = e.target.value.replace(/\D/g, '');
+                          setCustomDays(digits);
+                        }}
+                        style={{
+                          width: '130px',
+                          padding: '6px 10px',
+                          fontSize: '12px',
+                          borderRadius: '8px',
+                          border: customDays ? '1.5px solid #F59E0B' : '1px solid #CBD5E1',
+                          background: '#FFFFFF',
+                          outline: 'none',
+                          fontWeight: 700,
+                        }}
+                      />
+                      <span style={{ fontSize: '12px', color: '#64748B' }}>күн</span>
+                    </div>
+
+                    <button
+                      type="button"
+                      disabled={isGrantingPremium}
+                      onClick={handleGrantPremium}
+                      style={{
+                        padding: '7px 18px',
+                        borderRadius: '8px',
+                        border: '1px solid #D97706',
+                        background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+                        color: '#FFFFFF',
+                        fontSize: '12px',
+                        fontWeight: 800,
+                        cursor: isGrantingPremium ? 'not-allowed' : 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        boxShadow: '0 2px 6px rgba(217, 119, 6, 0.25)',
+                        opacity: isGrantingPremium ? 0.7 : 1,
+                        marginLeft: 'auto',
+                      }}
+                    >
+                      👑 {isGrantingPremium ? 'Қосылуда...' : 'Премиумды қосу'}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Row 4: Personal Message to Reader (Басты беттегі жеке хабарлама) */}
