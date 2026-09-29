@@ -276,26 +276,15 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
 
         <div className="flex items-center gap-3 flex-wrap">
           {/* AI Mode Live Switch */}
-          <div className={`px-3.5 py-2 rounded-2xl border flex items-center gap-3 transition-all ${
-            isAiEnabled 
-              ? 'bg-emerald-50/90 border-emerald-300 text-emerald-950 shadow-sm' 
-              : 'bg-amber-50/90 border-amber-300 text-amber-950 shadow-sm'
-          }`}>
-            <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
-              isAiEnabled ? 'bg-emerald-600 text-white shadow-sm' : 'bg-amber-500 text-white shadow-sm'
+          <div className="px-3.5 py-2 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center gap-2.5">
+            <div className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+              isAiEnabled ? 'bg-emerald-600 text-white shadow-sm' : 'bg-slate-200 text-slate-500'
             }`}>
               <Bot className="w-4 h-4" />
             </div>
-            <div className="text-left">
-              <div className="flex items-center gap-1.5">
-                <span className="text-xs font-black">
-                  {isAiEnabled ? 'ЖИ Тексеру: Қосулы' : 'Қолмен тексеру режимі'}
-                </span>
-              </div>
-              <p className="text-[10px] text-slate-500 line-clamp-1">
-                {isAiEnabled ? 'Чекті AI автоматты тексереді' : 'Жаңа чектер PENDING болып түседі'}
-              </p>
-            </div>
+            <span className="text-xs font-bold text-slate-900 select-none">
+              ЖИ Тексеру
+            </span>
             <label className="relative inline-flex items-center cursor-pointer ml-1">
               <input
                 type="checkbox"
@@ -304,7 +293,7 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
                 onChange={handleToggleAi}
                 className="sr-only peer"
               />
-              <div className="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+              <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
             </label>
           </div>
 
