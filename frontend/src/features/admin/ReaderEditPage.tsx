@@ -1639,7 +1639,7 @@ export const ReaderEditPage: React.FC = () => {
                     Оқырманның туған күні:
                   </div>
                   <div style={{ fontSize: '13px', fontWeight: 800, color: '#1E293B' }}>
-                    {birthDate ? formatKazakhDate(birthDate) : 'Белгіленбеген'}
+                    {birthDate ? toDotFormat(birthDate) : 'Белгіленбеген'}
                   </div>
                 </div>
 
@@ -1649,7 +1649,7 @@ export const ReaderEditPage: React.FC = () => {
                   </div>
                   <div style={{ fontSize: '13px', fontWeight: 800, color: reader.lastBirthdayGiftYear === new Date().getFullYear() ? '#15803D' : '#D97706' }}>
                     {reader.lastBirthdayGiftYear === new Date().getFullYear()
-                      ? `Берілді (${formatDisplayDate(reader.lastBirthdayGiftDate)})`
+                      ? `Берілді (${formatDisplayDateDot(reader.lastBirthdayGiftDate)})`
                       : 'Әлі берілмеген'}
                   </div>
                 </div>
@@ -1660,7 +1660,7 @@ export const ReaderEditPage: React.FC = () => {
                   </div>
                   <div style={{ fontSize: '13px', fontWeight: 800, color: reader.isPremium ? '#15803D' : '#64748B' }}>
                     {reader.isPremium
-                      ? `Белсенді (${formatDisplayDate(reader.premiumExpiresAt)})`
+                      ? `Белсенді (${formatDisplayDateDot(reader.premiumExpiresAt)})`
                       : 'Премиум жоқ'}
                   </div>
                 </div>
