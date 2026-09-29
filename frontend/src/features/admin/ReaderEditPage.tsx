@@ -1427,14 +1427,13 @@ export const ReaderEditPage: React.FC = () => {
                       <input
                         type="text"
                         inputMode="numeric"
-                        placeholder="Басқа күн саны"
                         value={customDays}
                         onChange={(e) => {
                           const digits = e.target.value.replace(/\D/g, '');
                           setCustomDays(digits);
                         }}
                         style={{
-                          width: '130px',
+                          width: '70px',
                           padding: '6px 10px',
                           fontSize: '12px',
                           borderRadius: '8px',
@@ -1442,6 +1441,7 @@ export const ReaderEditPage: React.FC = () => {
                           background: '#FFFFFF',
                           outline: 'none',
                           fontWeight: 700,
+                          textAlign: 'center',
                         }}
                       />
                       <span style={{ fontSize: '12px', color: '#64748B' }}>күн</span>
