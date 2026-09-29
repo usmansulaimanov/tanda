@@ -26,7 +26,6 @@ import { systemApi } from '../../shared/api/system.api';
 import { SystemSettings } from '../../types';
 import { useToastStore } from '../../store/useToastStore';
 import { api } from '../../lib/api';
-import { FormattedNoticeText } from '../../components/ui/FormattedNoticeText';
 import tandaPremiumBlack from '../../assets/tanda-premium-black.png';
 
 export interface HeaderBannerPreset {
@@ -1116,23 +1115,6 @@ export const AdminSystemSettingsPage: React.FC = () => {
               }`}
               style={{ wordBreak: 'break-word' }}
             />
-
-            {/* Live Preview */}
-            {settings.paymentNoticeEnabled !== false && settings.paymentNotice && settings.paymentNotice.trim() && (
-              <div className="mt-3 p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 text-slate-800">
-                <p className="text-[10px] font-black uppercase tracking-wider text-slate-500 mb-2 flex items-center gap-1.5">
-                  <AlertCircle className="w-3.5 h-3.5 text-slate-400" />
-                  Алдын ала көру (Оқырмандарда осылай көрінеді):
-                </p>
-                <div className="p-3 rounded-xl bg-white border border-slate-200/60 shadow-xs">
-                  <FormattedNoticeText
-                    text={settings.paymentNotice}
-                    align={settings.paymentNoticeAlign || 'left'}
-                    className="text-slate-900"
-                  />
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </form>
