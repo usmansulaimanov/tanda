@@ -398,9 +398,9 @@ export const AudioPlayerPage: React.FC = () => {
           </div>
         </div>
 
-        {/* 2. Center Large Artwork */}
+        {/* 2. Center Large Artwork (3:4 ratio) */}
         <div className="flex-1 min-h-0 flex items-center justify-center py-2 px-2 relative z-10">
-          <div className="relative h-full max-h-[30vh] xs:max-h-[34vh] max-w-[260px] aspect-square rounded-3xl overflow-hidden shadow-2xl border border-white/10 group">
+          <div className="relative h-full max-h-[32vh] xs:max-h-[36vh] aspect-[3/4] rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border border-white/10 group">
             {activeBook.coverImage ? (
               <img
                 src={activeBook.coverImage}
