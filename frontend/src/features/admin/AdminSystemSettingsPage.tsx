@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { 
   Settings, 
@@ -14,12 +14,21 @@ import {
   Megaphone,
   Pencil,
   Bot,
-  ShieldCheck
+  ShieldCheck,
+  Bold,
+  Italic,
+  ListOrdered,
+  List,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  AlertCircle
 } from 'lucide-react';
 import { systemApi } from '../../shared/api/system.api';
 import { SystemSettings } from '../../types';
 import { useToastStore } from '../../store/useToastStore';
 import { api } from '../../lib/api';
+import { FormattedNoticeText } from '../../components/ui/FormattedNoticeText';
 import tandaPremiumBlack from '../../assets/tanda-premium-black.png';
 
 export interface HeaderBannerPreset {
@@ -107,7 +116,48 @@ export const AdminSystemSettingsPage: React.FC = () => {
     headerBannerButtonText: 'Премиумға жазылу →',
     aiReceiptVerificationEnabled: true,
     paymentNotice: '',
+    paymentNoticeAlign: 'left',
   });
+
+  const paymentNoticeTextareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const applyNoticeFormat = (prefix: string, suffix = prefix) => {
+    const el = paymentNoticeTextareaRef.current;
+    if (!el) return;
+    const { selectionStart, selectionEnd, value } = el;
+    const selected = value.substring(selectionStart, selectionEnd);
+    const before = value.substring(0, selectionStart);
+    const after = value.substring(selectionEnd);
+    const replacement = selected ? `${prefix}${selected}${suffix}` : `${prefix}мәтін${suffix}`;
+    const newValue = `${before}${replacement}${after}`;
+    setSettings((prev) => ({ ...prev, paymentNotice: newValue }));
+    setTimeout(() => {
+      if (el) {
+        el.focus();
+        el.setSelectionRange(
+          selectionStart + prefix.length,
+          selectionStart + prefix.length + (selected ? selected.length : 5)
+        );
+      }
+    }, 0);
+  };
+
+  const insertNoticeList = (type: 'numbered' | 'bullet') => {
+    const el = paymentNoticeTextareaRef.current;
+    if (!el) return;
+    const { selectionStart, selectionEnd, value } = el;
+    const before = value.substring(0, selectionStart);
+    const after = value.substring(selectionEnd);
+    const template = type === 'numbered' ? '\n1. \n2. \n3. ' : '\n• \n• \n• ';
+    const newValue = `${before}${template}${after}`;
+    setSettings((prev) => ({ ...prev, paymentNotice: newValue }));
+    setTimeout(() => {
+      if (el) {
+        el.focus();
+        el.setSelectionRange(selectionStart + template.length, selectionStart + template.length);
+      }
+    }, 0);
+  };
 
   const [presets, setPresets] = useState<HeaderBannerPreset[]>(DEFAULT_BANNER_PRESETS);
   const [editingPresetId, setEditingPresetId] = useState<string | null>(null);
@@ -203,6 +253,7 @@ export const AdminSystemSettingsPage: React.FC = () => {
           headerBannerPresets: res.headerBannerPresets || '',
           aiReceiptVerificationEnabled: res.aiReceiptVerificationEnabled !== false,
           paymentNotice: res.paymentNotice || '',
+          paymentNoticeAlign: (res.paymentNoticeAlign as 'left' | 'center' | 'right') || 'left',
         });
         setIsLoading(false);
       })
@@ -966,16 +1017,120 @@ export const AdminSystemSettingsPage: React.FC = () => {
                 <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#F08000]" />
               </label>
             </div>
+
+            {/* Formatting Toolbar */}
+            <div className={`flex items-center justify-between gap-2 mb-1.5 p-1.5 rounded-xl bg-slate-100 border border-slate-200/80 flex-wrap transition ${
+              settings.paymentNoticeEnabled === false ? 'opacity-40 pointer-events-none' : ''
+            }`}>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => applyNoticeFormat('**')}
+                  className="px-2 py-1 rounded-lg text-xs font-black bg-white hover:bg-slate-200 text-slate-800 border border-slate-200 shadow-sm transition cursor-pointer flex items-center gap-1"
+                  title="Қалың қаріп (Bold **мәтін**)"
+                >
+                  <Bold className="w-3.5 h-3.5" />
+                  <span className="text-[11px]">Ж</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => applyNoticeFormat('*')}
+                  className="px-2 py-1 rounded-lg text-xs font-medium italic bg-white hover:bg-slate-200 text-slate-800 border border-slate-200 shadow-sm transition cursor-pointer flex items-center gap-1"
+                  title="Көлбеу қаріп (Italic *мәтін*)"
+                >
+                  <Italic className="w-3.5 h-3.5" />
+                  <span className="text-[11px]">К</span>
+                </button>
+                <div className="w-px h-4 bg-slate-300 mx-1" />
+                <button
+                  type="button"
+                  onClick={() => insertNoticeList('numbered')}
+                  className="px-2 py-1 rounded-lg text-xs font-bold bg-white hover:bg-slate-200 text-slate-800 border border-slate-200 shadow-sm transition cursor-pointer flex items-center gap-1"
+                  title="Нөмірленген тізім (1. 2. 3.)"
+                >
+                  <ListOrdered className="w-3.5 h-3.5" />
+                  <span className="text-[11px]">1. 2. 3.</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => insertNoticeList('bullet')}
+                  className="px-2 py-1 rounded-lg text-xs font-bold bg-white hover:bg-slate-200 text-slate-800 border border-slate-200 shadow-sm transition cursor-pointer flex items-center gap-1"
+                  title="Маркерленген тізім (•)"
+                >
+                  <List className="w-3.5 h-3.5" />
+                  <span className="text-[11px]">•</span>
+                </button>
+              </div>
+
+              {/* Alignment Buttons */}
+              <div className="flex items-center gap-1 bg-white p-0.5 rounded-lg border border-slate-200 shadow-sm">
+                <button
+                  type="button"
+                  onClick={() => setSettings({ ...settings, paymentNoticeAlign: 'left' })}
+                  className={`p-1.5 rounded-md transition cursor-pointer ${
+                    (settings.paymentNoticeAlign || 'left') === 'left'
+                      ? 'bg-orange-500 text-white shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                  title="Сол жаққа туралау"
+                >
+                  <AlignLeft className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSettings({ ...settings, paymentNoticeAlign: 'center' })}
+                  className={`p-1.5 rounded-md transition cursor-pointer ${
+                    settings.paymentNoticeAlign === 'center'
+                      ? 'bg-orange-500 text-white shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                  title="Ортаға туралау"
+                >
+                  <AlignCenter className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSettings({ ...settings, paymentNoticeAlign: 'right' })}
+                  className={`p-1.5 rounded-md transition cursor-pointer ${
+                    settings.paymentNoticeAlign === 'right'
+                      ? 'bg-orange-500 text-white shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                  title="Оң жаққа туралау"
+                >
+                  <AlignRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+
             <textarea
-              rows={3}
-              placeholder="Мысалы: Төлем жасаған соң чекті міндетті түрде төменде тіркеңіз немесе басқа қосымша ескерту..."
+              ref={paymentNoticeTextareaRef}
+              rows={4}
+              placeholder="Мысалы:&#10;**ЕСКЕРТУ**&#10;1. Бірінші ереже&#10;2. Екінші ереже&#10;3. Үшінші ереже"
               value={settings.paymentNotice || ''}
               disabled={settings.paymentNoticeEnabled === false}
               onChange={(e) => setSettings({ ...settings, paymentNotice: e.target.value })}
-              className={`w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#F08000]/20 focus:border-[#F08000] text-slate-900 placeholder:text-slate-400 leading-relaxed transition ${
+              className={`w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#F08000]/20 focus:border-[#F08000] text-slate-900 placeholder:text-slate-400 leading-relaxed font-mono transition ${
                 settings.paymentNoticeEnabled === false ? 'bg-slate-100 text-slate-400 cursor-not-allowed opacity-60' : 'bg-white'
               }`}
             />
+
+            {/* Live Preview */}
+            {settings.paymentNoticeEnabled !== false && settings.paymentNotice && settings.paymentNotice.trim() && (
+              <div className="mt-3 p-3.5 rounded-2xl bg-amber-50/90 border border-amber-200 text-amber-950">
+                <p className="text-[10px] font-black uppercase tracking-wider text-amber-800 mb-1.5 flex items-center gap-1.5">
+                  <AlertCircle className="w-3.5 h-3.5" />
+                  Алдын ала көру (Оқырмандарда осылай көрінеді):
+                </p>
+                <div className="p-3 rounded-xl bg-white/70 border border-amber-200/60 shadow-xs">
+                  <FormattedNoticeText
+                    text={settings.paymentNotice}
+                    align={settings.paymentNoticeAlign || 'left'}
+                    className="text-slate-900"
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </form>

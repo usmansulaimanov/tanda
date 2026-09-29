@@ -83,6 +83,7 @@ public class SystemSettingService {
                 .heroMessageExpiresAt(heroExpiresAt)
                 .paymentNotice(map.getOrDefault("payment_notice", ""))
                 .paymentNoticeEnabled(!"false".equalsIgnoreCase(map.get("payment_notice_enabled")))
+                .paymentNoticeAlign(map.getOrDefault("payment_notice_align", "left"))
                 .headerBannerEnabled(!"false".equalsIgnoreCase(map.get("header_banner_enabled")))
                 .headerBannerText(map.getOrDefault("header_banner_text", "Tanda Premium: 100+ кітапты шектеусіз әрі 0% жарнамасыз тыңдаңыз!"))
                 .headerBannerButtonText(map.getOrDefault("header_banner_button_text", "Премиумға жазылу →"))
@@ -216,6 +217,9 @@ public class SystemSettingService {
         }
         if (dto.getPaymentNoticeEnabled() != null) {
             saveSetting("payment_notice_enabled", String.valueOf(dto.getPaymentNoticeEnabled()));
+        }
+        if (dto.getPaymentNoticeAlign() != null) {
+            saveSetting("payment_notice_align", dto.getPaymentNoticeAlign().trim());
         }
         if (dto.getHeaderBannerEnabled() != null) {
             saveSetting("header_banner_enabled", String.valueOf(dto.getHeaderBannerEnabled()));

@@ -44,6 +44,7 @@ public class SystemSettingsResponseDto {
     private OffsetDateTime heroMessageExpiresAt;
     private String paymentNotice;
     private boolean paymentNoticeEnabled;
+    private String paymentNoticeAlign;
     private boolean headerBannerEnabled;
     private String headerBannerText;
     private String headerBannerButtonText;

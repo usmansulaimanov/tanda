@@ -398,6 +398,7 @@ export interface SystemSettings {
   heroMessageExpiresAt?: string | null;
   paymentNotice?: string;
   paymentNoticeEnabled?: boolean;
+  paymentNoticeAlign?: 'left' | 'center' | 'right';
   headerBannerEnabled?: boolean;
   headerBannerText?: string;
   headerBannerButtonText?: string;

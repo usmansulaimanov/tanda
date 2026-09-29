@@ -23,6 +23,7 @@ import { premiumApi } from '../../shared/api/premium.api';
 import { systemApi } from '../../shared/api/system.api';
 import { SystemSettings } from '../../types';
 import { api } from '../../lib/api';
+import { FormattedNoticeText } from '../../components/ui/FormattedNoticeText';
 
 interface PremiumModalProps {
   isOpen: boolean;
@@ -506,13 +507,12 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
                   <div className="w-8 h-8 rounded-xl bg-amber-100/90 text-amber-700 flex items-center justify-center shrink-0 mt-0.5">
                     <AlertCircle className="w-4 h-4 text-amber-600" />
                   </div>
-                  <div className="flex-1 text-xs leading-relaxed text-left">
-                    <span className="font-bold text-amber-900 block mb-0.5">
-                      Ескерту:
-                    </span>
-                    <p className="whitespace-pre-wrap text-amber-950">
-                      {settings.paymentNotice.trim()}
-                    </p>
+                  <div className="flex-1 text-xs leading-relaxed">
+                    <FormattedNoticeText
+                      text={settings.paymentNotice.trim()}
+                      align={settings.paymentNoticeAlign || 'left'}
+                      className="text-amber-950"
+                    />
                   </div>
                 </div>
               )}
