@@ -123,15 +123,14 @@ const BookCoverModal: React.FC<{
                 style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 60%)' }}
               />
 
-              {/* Premium badge */}
+              {/* Premium badge — icon only */}
               {!book.isFree && (
                 <div className="absolute top-2.5 left-2.5 z-10">
                   <div
-                    className="flex items-center gap-1 px-2 py-0.5 rounded-full"
+                    className="flex items-center justify-center w-6 h-6 rounded-full"
                     style={{ background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(4px)' }}
                   >
-                    <img src={tandaPremiumWhite} alt="Premium" className="w-3 h-3 object-contain" />
-                    <span className="text-[9px] font-black text-amber-300 uppercase tracking-wider">Premium</span>
+                    <img src={tandaPremiumWhite} alt="Premium" className="w-3.5 h-3.5 object-contain" />
                   </div>
                 </div>
               )}
