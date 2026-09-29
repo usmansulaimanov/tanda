@@ -1395,13 +1395,13 @@ export const ReaderEditPage: React.FC = () => {
               {!reader?.isPremium && (
                 <div style={{ paddingTop: '14px', borderTop: '1px dashed #CBD5E1' }}>
                   <div style={{ fontSize: '12px', fontWeight: 800, color: '#334155', marginBottom: '8px' }}>
-                    Премиум жазылым қосу (мерзімін таңдаңыз):
+                    Премиум қосу:
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                     {[
-                      { days: 30, label: '1 ай (30 күн)' },
-                      { days: 90, label: '3 ай (90 күн)' },
-                      { days: 365, label: '1 жыл (365 күн)' },
+                      { days: 30, label: '1 ай' },
+                      { days: 90, label: '3 ай' },
+                      { days: 365, label: '1 жыл' },
                     ].map((preset) => (
                       <button
                         key={preset.days}

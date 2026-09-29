@@ -86,22 +86,41 @@ apiClient.interceptors.response.use(
         .catch((err) => Promise.reject(err));
     }
 
+    const oldAccessToken = localStorage.getItem('tanda_token');
     originalRequest._retry = true;
     isRefreshing = true;
 
     try {
-      const refreshToken = localStorage.getItem('tanda_refresh_token');
-      const refreshUrl = (import.meta.env.VITE_API_URL || '') + '/api/v1/auth/refresh';
-      const { data } = await axios.post(
-        refreshUrl,
-        refreshToken ? { refreshToken } : {},
-        { withCredentials: true }
-      );
+      const executeRefresh = async (): Promise<string> => {
+        // Multi-tab coordination: check if another tab already refreshed the token
+        const currentAccessToken = localStorage.getItem('tanda_token');
+        if (currentAccessToken && currentAccessToken !== oldAccessToken) {
+          return currentAccessToken;
+        }
 
-      const newToken = data.token;
-      localStorage.setItem('tanda_token', newToken);
-      if (data.refreshToken) {
-        localStorage.setItem('tanda_refresh_token', data.refreshToken);
+        const refreshToken = localStorage.getItem('tanda_refresh_token');
+        const refreshUrl = (import.meta.env.VITE_API_URL || '') + '/api/v1/auth/refresh';
+        const { data } = await axios.post(
+          refreshUrl,
+          refreshToken ? { refreshToken } : {},
+          { withCredentials: true }
+        );
+
+        const newToken = data.token;
+        localStorage.setItem('tanda_token', newToken);
+        if (data.refreshToken) {
+          localStorage.setItem('tanda_refresh_token', data.refreshToken);
+        }
+        return newToken;
+      };
+
+      let newToken: string;
+      if (typeof navigator !== 'undefined' && 'locks' in navigator) {
+        newToken = await navigator.locks.request('tanda_auth_refresh_lock', async () => {
+          return await executeRefresh();
+        });
+      } else {
+        newToken = await executeRefresh();
       }
 
       if (originalRequest.headers) {
@@ -110,7 +129,7 @@ apiClient.interceptors.response.use(
 
       processQueue(null, newToken);
       return apiClient(originalRequest);
-    } catch (refreshError) {
+    } catch (refreshError: any) {
       processQueue(refreshError, null);
       localStorage.removeItem('tanda_token');
       localStorage.removeItem('tanda_refresh_token');
