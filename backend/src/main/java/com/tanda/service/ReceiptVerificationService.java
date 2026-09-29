@@ -70,7 +70,7 @@ public class ReceiptVerificationService {
                         .approved(false)
                         .aiStatus("DUPLICATE")
                         .confidence(0.99)
-                        .rejectionReason("Бұл чек бұрын тіркелген және қолданылған (№ " + receiptNum + ")")
+                        .rejectionReason("Бұл чек бұрын тіркелген және қолданылған")
                         .analysis(analysis)
                         .receiptHash(receiptHash)
                         .extractedDataJson(extractedJson)
