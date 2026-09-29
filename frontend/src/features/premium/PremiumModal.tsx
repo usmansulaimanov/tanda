@@ -47,6 +47,59 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
     staleTime: 5 * 60 * 1000,
   });
 
+  const { data: cooldownData, refetch: refetchCooldown } = useQuery({
+    queryKey: ['receiptCooldown', isAuthenticated],
+    queryFn: () => (isAuthenticated ? premiumApi.getCooldownStatus() : Promise.resolve(null)),
+    enabled: isOpen && isAuthenticated,
+    staleTime: 0,
+    gcTime: 0,
+  });
+
+  const [cooldownRemaining, setCooldownRemaining] = useState<number>(0);
+  const [cooldownInfo, setCooldownInfo] = useState<{
+    locked: boolean;
+    stage: number;
+    message?: string | null;
+  }>({ locked: false, stage: 0 });
+
+  useEffect(() => {
+    if (cooldownData) {
+      setCooldownRemaining(cooldownData.remainingSeconds || 0);
+      setCooldownInfo({
+        locked: cooldownData.locked,
+        stage: cooldownData.currentStage,
+        message: cooldownData.message,
+      });
+    }
+  }, [cooldownData]);
+
+  // Live timer interval
+  useEffect(() => {
+    if (cooldownRemaining <= 0) return;
+    const timer = setInterval(() => {
+      setCooldownRemaining((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          setCooldownInfo((info) => ({ ...info, locked: false }));
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [cooldownRemaining]);
+
+  const formatTimer = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    if (mins >= 60) {
+      const hrs = Math.floor(mins / 60);
+      const remMins = mins % 60;
+      return `${hrs} сағ ${remMins} мин`;
+    }
+    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  };
+
   const [selectedPlan, setSelectedPlan] = useState<'1_MONTH' | '3_MONTHS' | '1_YEAR'>('1_MONTH');
   const [phoneOrAccount, setPhoneOrAccount] = useState('');
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
@@ -309,11 +362,13 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
         const errorReason = result.rejectionReason || 'Төлем чегі тексеруден өтпеді. Деректерді тексеріп, қайта жүктеңіз.';
         setVerificationError(errorReason);
         showToast(errorReason, 'error');
+        refetchCooldown();
       }
     } catch (err: any) {
       const msg = err?.response?.data?.message || 'Чекті тексеру кезінде қате орын алды';
       setVerificationError(msg);
       showToast(msg, 'error');
+      refetchCooldown();
     } finally {
       setIsUploading(false);
     }
@@ -733,7 +788,30 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
 
               {/* Receipt Upload Form */}
               <form onSubmit={handleSubmitReceipt} className="space-y-4 mb-6">
-                {verificationError && (
+                {cooldownRemaining > 0 && cooldownInfo.locked && (
+                  <div className="p-4 rounded-2xl bg-amber-50 border border-amber-300 text-amber-950 flex items-start gap-3 shadow-sm">
+                    <div className="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 mt-0.5 border border-amber-200">
+                      <Clock className="w-5 h-5 text-amber-700 animate-pulse" />
+                    </div>
+                    <div className="flex-1 text-xs leading-relaxed text-left">
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <span className="font-bold text-amber-900">
+                          {cooldownInfo.stage >= 4
+                            ? 'Жаңа чек тек келесі күні қабылданады'
+                            : `Қайта жіберу уақыты шектелген (${cooldownInfo.stage}-ші отказ)`}
+                        </span>
+                        <span className="px-2.5 py-0.5 rounded-lg bg-amber-200/90 font-mono font-black text-amber-900 text-xs shrink-0">
+                          {formatTimer(cooldownRemaining)}
+                        </span>
+                      </div>
+                      <p className="text-amber-800 font-medium">
+                        {cooldownInfo.message || 'Чек бірнеше рет қабылданбағандықтан, жүйенің автоматты қауіпсіздік шектеуі іске қосылды. Белгіленген уақыт өткен соң қайта жібере аласыз.'}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {verificationError && !(cooldownRemaining > 0 && cooldownInfo.locked) && (
                   <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-950 flex items-start gap-3 shadow-sm">
                     <div className="w-8 h-8 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0 mt-0.5">
                       <AlertCircle className="w-5 h-5 text-rose-600" />
@@ -753,7 +831,11 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
                   <label className="block text-xs font-bold text-slate-700 mb-1.5">
                     Төлем чегі: <span className="text-red-500">*</span>
                   </label>
-                  <label className="flex flex-col items-center justify-center p-4 border-2 border-dashed border-slate-300 hover:border-[#F08000] rounded-2xl cursor-pointer bg-slate-50/50 hover:bg-orange-50/30 transition">
+                  <label className={`flex flex-col items-center justify-center p-4 border-2 border-dashed rounded-2xl transition ${
+                    cooldownRemaining > 0 && cooldownInfo.locked
+                      ? 'border-slate-200 bg-slate-100/70 opacity-60 cursor-not-allowed'
+                      : 'border-slate-300 hover:border-[#F08000] cursor-pointer bg-slate-50/50 hover:bg-orange-50/30'
+                  }`}>
                     {receiptPreview ? (
                       <div className="flex items-center gap-3">
                         {receiptPreview === 'pdf' || receiptFile?.name.toLowerCase().endsWith('.pdf') ? (
@@ -779,6 +861,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
                     <input
                       type="file"
                       accept="image/*,.pdf"
+                      disabled={cooldownRemaining > 0 && cooldownInfo.locked}
                       onChange={handleFileChange}
                       className="hidden"
                     />
@@ -791,22 +874,28 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
                   </label>
                   <input
                     type="text"
+                    disabled={cooldownRemaining > 0 && cooldownInfo.locked}
                     placeholder="+7 (707) 123-45-67 немесе Асылбек Т."
                     value={phoneOrAccount}
                     onChange={(e) => setPhoneOrAccount(e.target.value)}
-                    className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-[#F08000]"
+                    className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-[#F08000] disabled:bg-slate-100 disabled:opacity-60"
                   />
                 </div>
 
                 <button
                   type="submit"
-                  disabled={isUploading || !receiptFile}
-                  className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#F08000] to-orange-600 hover:from-[#c06800] hover:to-orange-700 text-white font-black text-sm shadow-lg shadow-orange-500/25 transition disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
+                  disabled={isUploading || !receiptFile || (cooldownRemaining > 0 && cooldownInfo.locked)}
+                  className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#F08000] to-orange-600 hover:from-[#c06800] hover:to-orange-700 text-white font-black text-sm shadow-lg shadow-orange-500/25 transition disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed"
                 >
                   {isUploading ? (
                     <span className="flex items-center gap-2">
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                       <span>AI чекті тексеруде... (3–5 сек)</span>
+                    </span>
+                  ) : cooldownRemaining > 0 && cooldownInfo.locked ? (
+                    <span className="flex items-center gap-2">
+                      <Clock className="w-4 h-4" />
+                      <span>Күте тұрыңыз ({formatTimer(cooldownRemaining)})</span>
                     </span>
                   ) : (
                     <span>Чекті растауға жіберу</span>

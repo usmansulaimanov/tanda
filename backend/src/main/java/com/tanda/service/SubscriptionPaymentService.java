@@ -2,6 +2,7 @@ package com.tanda.service;
 
 import com.tanda.dto.content.MessageRequestDto;
 import com.tanda.dto.premium.CreateSubscriptionPaymentRequestDto;
+import com.tanda.dto.premium.ReceiptCooldownDto;
 import com.tanda.dto.premium.SubscriptionPaymentRequestResponseDto;
 import com.tanda.entity.SubscriptionPaymentRequest;
 import com.tanda.entity.User;
@@ -14,7 +15,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -40,10 +43,123 @@ public class SubscriptionPaymentService {
                 .orElseThrow(() -> new ResourceNotFoundException("Пайдаланушы табылмады: " + identifier));
     }
 
+    @Transactional(readOnly = true)
+    public ReceiptCooldownDto getCooldownStatus(String userIdOrEmail) {
+        User user = findUserByIdOrEmail(userIdOrEmail);
+        String userId = user.getId();
+
+        List<SubscriptionPaymentRequest> requests = requestRepository.findByUserIdOrderByCreatedAtDesc(userId);
+        if (requests == null || requests.isEmpty()) {
+            return ReceiptCooldownDto.builder()
+                    .locked(false)
+                    .remainingSeconds(0)
+                    .currentStage(0)
+                    .unlockAt(null)
+                    .message(null)
+                    .build();
+        }
+
+        // Check if the most recent request was rejected
+        SubscriptionPaymentRequest latest = requests.get(0);
+        if (!"REJECTED".equalsIgnoreCase(latest.getStatus())) {
+            return ReceiptCooldownDto.builder()
+                    .locked(false)
+                    .remainingSeconds(0)
+                    .currentStage(0)
+                    .unlockAt(null)
+                    .message(null)
+                    .build();
+        }
+
+        OffsetDateTime lastRejectedAt = latest.getReviewedAt() != null ? latest.getReviewedAt() : latest.getCreatedAt();
+        if (lastRejectedAt == null) {
+            lastRejectedAt = OffsetDateTime.now();
+        }
+
+        // Calculate consecutive rejections streak in the current active session (rolling window <= 60 minutes)
+        int streak = 1;
+        OffsetDateTime currentChainTime = lastRejectedAt;
+
+        for (int i = 1; i < requests.size(); i++) {
+            SubscriptionPaymentRequest r = requests.get(i);
+            if ("APPROVED".equalsIgnoreCase(r.getStatus())) {
+                break;
+            }
+            if ("REJECTED".equalsIgnoreCase(r.getStatus())) {
+                OffsetDateTime prevTime = r.getReviewedAt() != null ? r.getReviewedAt() : r.getCreatedAt();
+                if (prevTime != null) {
+                    long minutesBetween = Duration.between(prevTime, currentChainTime).toMinutes();
+                    if (minutesBetween > 60) {
+                        break; // Session gap > 1 hour resets the streak
+                    } else {
+                        streak++;
+                        currentChainTime = prevTime;
+                    }
+                }
+            }
+        }
+
+        int stage = Math.min(streak, 4);
+        OffsetDateTime unlockAt;
+
+        if (stage == 1) {
+            unlockAt = lastRejectedAt.plusMinutes(5);
+        } else if (stage == 2) {
+            unlockAt = lastRejectedAt.plusMinutes(10);
+        } else if (stage == 3) {
+            unlockAt = lastRejectedAt.plusMinutes(60);
+        } else {
+            // Stage 4+: Locked until the next calendar day (Asia/Almaty 00:00:00)
+            ZoneId kzZone = ZoneId.of("Asia/Almaty");
+            unlockAt = lastRejectedAt.atZoneSameInstant(kzZone).toLocalDate().plusDays(1).atStartOfDay(kzZone).toOffsetDateTime();
+        }
+
+        OffsetDateTime now = OffsetDateTime.now();
+        if (now.isBefore(unlockAt)) {
+            long remainingSeconds = Math.max(1, Duration.between(now, unlockAt).getSeconds());
+            long mins = remainingSeconds / 60;
+            long secs = remainingSeconds % 60;
+            String timeStr = mins > 0 ? String.format("%d мин %02d сек", mins, secs) : String.format("%d сек", secs);
+
+            String message;
+            if (stage == 1) {
+                message = "Төлем чегі қабылданбады. Қайта жіберу үшін 5 минут күту қажет (қалды: " + timeStr + ").";
+            } else if (stage == 2) {
+                message = "Төлем чегі 2-ші рет қабылданбады. Қайта жіберу үшін 10 минут күту қажет (қалды: " + timeStr + ").";
+            } else if (stage == 3) {
+                message = "Төлем чегі 3-ші рет қабылданбады. Қайта жіберу үшін 1 сағат күту қажет (қалды: " + timeStr + ").";
+            } else {
+                message = "Төлем чегі бірнеше рет қабылданбады. Жаңа сұраныс тек келесі күні қабылданады.";
+            }
+
+            return ReceiptCooldownDto.builder()
+                    .locked(true)
+                    .remainingSeconds(remainingSeconds)
+                    .currentStage(stage)
+                    .unlockAt(unlockAt)
+                    .message(message)
+                    .build();
+        }
+
+        return ReceiptCooldownDto.builder()
+                .locked(false)
+                .remainingSeconds(0)
+                .currentStage(stage)
+                .unlockAt(unlockAt)
+                .message(null)
+                .build();
+    }
+
     @Transactional
     public SubscriptionPaymentRequestResponseDto createRequest(String userIdOrEmail, CreateSubscriptionPaymentRequestDto dto) {
         User user = findUserByIdOrEmail(userIdOrEmail);
         String userId = user.getId();
+
+        // Check progressive rate limiting cooldown
+        ReceiptCooldownDto cooldown = getCooldownStatus(userId);
+        if (cooldown.isLocked()) {
+            throw new BadRequestException(cooldown.getMessage());
+        }
 
         int days = (dto.getPlanDays() != null && dto.getPlanDays() > 0) ? dto.getPlanDays() : 30;
         int amount = (dto.getAmountKzt() != null && dto.getAmountKzt() > 0) ? dto.getAmountKzt() : 1490;

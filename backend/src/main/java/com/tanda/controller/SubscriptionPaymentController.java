@@ -55,6 +55,16 @@ public class SubscriptionPaymentController {
         return ResponseEntity.status(HttpStatus.CREATED).body(paymentService.createRequest(userId, request));
     }
 
+    @GetMapping("/premium/subscription-requests/cooldown")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Get current user's receipt submission cooldown status")
+    public ResponseEntity<com.tanda.dto.premium.ReceiptCooldownDto> getCooldownStatus(
+            @AuthenticationPrincipal UserPrincipal principal,
+            Authentication authentication) {
+        String userId = principal != null && principal.getId() != null ? principal.getId() : authentication.getName();
+        return ResponseEntity.ok(paymentService.getCooldownStatus(userId));
+    }
+
     @GetMapping("/premium/subscription-requests/my")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Get current user's subscription requests history")

@@ -10,6 +10,14 @@ export interface CreateSubscriptionPaymentRequestPayload {
   notes?: string;
 }
 
+export interface ReceiptCooldownDto {
+  locked: boolean;
+  remainingSeconds: number;
+  currentStage: number;
+  unlockAt?: string | null;
+  message?: string | null;
+}
+
 export interface PremiumStatusDto {
   isPremium: boolean;
   startsAt?: string | null;
@@ -21,6 +29,11 @@ export interface PremiumStatusDto {
 export const premiumApi = {
   getPremiumStatus: async (): Promise<PremiumStatusDto> => {
     const { data } = await api.get('/api/v1/premium/status');
+    return data;
+  },
+
+  getCooldownStatus: async (): Promise<ReceiptCooldownDto> => {
+    const { data } = await api.get('/api/v1/premium/subscription-requests/cooldown');
     return data;
   },
 
