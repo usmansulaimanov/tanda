@@ -47,12 +47,14 @@ export const Layout: React.FC = () => {
       {!isAuthorOrStaff && <QuoteNotificationRunner />}
       <NewsNotificationRunner />
       <MessageNotificationRunner />
-      <Header />
+      <div className={isListenPage ? 'hidden md:block' : ''}>
+        <Header />
+      </div>
       <AppSidebarDrawer />
       <main
         className={`flex-1 flex flex-col ${
           isListenPage
-            ? 'pb-10'
+            ? 'pb-0 md:pb-10'
             : isEligibleForPlayer && currentBook
             ? 'pb-36 md:pb-24'
             : 'pb-20 md:pb-0'

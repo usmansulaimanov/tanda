@@ -351,7 +351,7 @@ export const AudioPlayerPage: React.FC = () => {
       {/* ======================================================== */}
       {/* MOBILE PLAYER (Yandex Music / Spotify style thumb zone)   */}
       {/* ======================================================== */}
-      <div className="flex md:hidden flex-col justify-between flex-1 w-full bg-[#111317] text-white px-4 pt-2.5 pb-6 min-h-[calc(100vh-64px)] relative overflow-hidden select-none">
+      <div className="flex md:hidden flex-col justify-between flex-1 w-full bg-[#111317] text-white px-4 pt-3 sm:pt-4 pb-8 min-h-[100dvh] relative overflow-hidden select-none">
         
         {/* Subtle background ambient blur from book gradient */}
         <div
