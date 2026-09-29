@@ -1081,7 +1081,7 @@ export const ReaderEditPage: React.FC = () => {
               <div className="form-group" style={{ margin: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
                   <label className="form-label" style={{ margin: 0 }}>
-                    Құпиясөз <span style={{ fontSize: '11px', fontWeight: 'normal', color: '#64748B' }}>(міндетті емес)</span>
+                    Құпиясөз
                   </label>
                   <button
                     type="button"
@@ -1104,7 +1104,6 @@ export const ReaderEditPage: React.FC = () => {
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Өзгеріссіз қалдыру үшін бос қалдырыңыз"
                     className="form-input"
                     style={{ paddingRight: '42px', fontWeight: 600 }}
                   />
