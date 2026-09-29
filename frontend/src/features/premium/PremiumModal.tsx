@@ -577,9 +577,6 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
                       <p className="text-rose-900 font-medium">
                         {verificationError}
                       </p>
-                      <p className="text-[11px] text-rose-600 mt-1">
-                        Банк чегіндегі сома мен алушының дұрыстығын тексеріп, қайта жүктеп көріңіз.
-                      </p>
                     </div>
                   </div>
                 )}
