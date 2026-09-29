@@ -383,11 +383,26 @@ export const AudioPlayerPage: React.FC = () => {
             </span>
           </div>
 
-          <div className="flex items-center z-10">
+          <div className="flex items-center gap-2 z-10">
+            {/* Mark as Completed */}
+            <button
+              type="button"
+              onClick={handleToggleCompleted}
+              className={`w-10 h-10 rounded-full border flex items-center justify-center transition cursor-pointer ${
+                isCompleted
+                  ? 'bg-emerald-600 text-white border-emerald-500 shadow-sm'
+                  : 'bg-white/5 border-white/10 text-slate-200 active:bg-white/15'
+              }`}
+              title={isCompleted ? 'Оқылған' : 'Оқылды деп белгілеу'}
+            >
+              <Check className="w-5 h-5" />
+            </button>
+
+            {/* Quick Bookmark */}
             <button
               type="button"
               onClick={handleToggleBookmark}
-              className={`w-10 h-10 rounded-full border flex items-center justify-center transition ${
+              className={`w-10 h-10 rounded-full border flex items-center justify-center transition cursor-pointer ${
                 isSaved
                   ? 'bg-[#EF7E00] text-white border-[#EF7E00] shadow-sm shadow-orange-500/30'
                   : 'bg-white/5 border-white/10 text-slate-200 active:bg-white/15'
@@ -431,28 +446,13 @@ export const AudioPlayerPage: React.FC = () => {
 
         {/* 3. Track Info Row */}
         <div className="relative z-10 shrink-0 mb-2">
-          <div className="relative flex items-center justify-center min-h-[44px]">
-            <div className="min-w-0 max-w-[80%] text-center">
-              <h2 className="text-lg xs:text-xl font-black text-white truncate leading-tight tracking-tight">
-                {activeBook.title}
-              </h2>
-              <p className="text-xs xs:text-sm font-medium text-slate-400 truncate mt-0.5">
-                {activeBook.author} {activeBook.audioNarrator ? `• ${activeBook.audioNarrator}` : ''}
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={handleToggleCompleted}
-              className={`absolute right-0 p-2.5 rounded-2xl border text-xs font-bold transition shrink-0 ${
-                isCompleted
-                  ? 'bg-emerald-600 text-white border-emerald-500 shadow-sm'
-                  : 'bg-white/5 border-white/10 text-slate-400 active:bg-white/10'
-              }`}
-              title={isCompleted ? 'Оқылған' : 'Оқылды деп белгілеу'}
-            >
-              <Check className="w-4 h-4" />
-            </button>
+          <div className="flex flex-col items-center justify-center text-center px-4">
+            <h2 className="text-lg xs:text-xl font-black text-white truncate max-w-full leading-tight tracking-tight">
+              {activeBook.title}
+            </h2>
+            <p className="text-xs xs:text-sm font-medium text-slate-400 truncate max-w-full mt-0.5">
+              {activeBook.author} {activeBook.audioNarrator ? `• ${activeBook.audioNarrator}` : ''}
+            </p>
           </div>
 
           {/* Ad Banner only when ad is playing */}
