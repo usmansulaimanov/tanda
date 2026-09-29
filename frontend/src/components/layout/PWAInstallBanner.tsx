@@ -64,7 +64,7 @@ export const PWAInstallBanner: React.FC = () => {
   // Android install banner
   if (showBanner && deferredPrompt) {
     return (
-      <div className="fixed bottom-[calc(56px+max(env(safe-area-inset-bottom,0px),8px))] left-0 right-0 z-[9999] md:hidden">
+      <div className="fixed bottom-[var(--mobile-bottom-nav-height)] left-0 right-0 z-[9999] md:hidden">
         <div className="m-3 rounded-2xl bg-white shadow-2xl border border-slate-100 overflow-hidden">
           <div className="flex items-center gap-3 p-4">
             <img
@@ -98,7 +98,7 @@ export const PWAInstallBanner: React.FC = () => {
   // iOS Safari guide
   if (showIOSGuide) {
     return (
-      <div className="fixed bottom-[calc(56px+max(env(safe-area-inset-bottom,0px),8px))] left-0 right-0 z-[9999] md:hidden">
+      <div className="fixed bottom-[var(--mobile-bottom-nav-height)] left-0 right-0 z-[9999] md:hidden">
         <div className="m-3 rounded-2xl bg-white shadow-2xl border border-slate-100 overflow-hidden">
           <div className="flex items-start gap-3 p-4">
             <img

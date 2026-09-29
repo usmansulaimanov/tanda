@@ -13,6 +13,8 @@
   --text-light: #7A93AC;
   --radius: 16px;
   --radius-sm: 10px;
+  --mobile-bottom-nav-pb: max(calc(env(safe-area-inset-bottom, 0px) + 6px), 14px);
+  --mobile-bottom-nav-height: calc(58px + var(--mobile-bottom-nav-pb));
 }
 
 html {

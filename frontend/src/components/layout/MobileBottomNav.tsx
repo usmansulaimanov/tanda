@@ -36,10 +36,10 @@ export const MobileBottomNav: React.FC = () => {
       aria-label="Мобильді навигация"
       className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/98 backdrop-blur-xl border-t border-slate-200/90 shadow-[0_-4px_24px_rgba(0,0,0,0.08)] w-full max-w-full"
       style={{
-        paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 8px)',
+        paddingBottom: 'var(--mobile-bottom-nav-pb)',
       }}
     >
-      <div className="grid grid-cols-4 h-[60px] items-center px-1 w-full max-w-lg mx-auto">
+      <div className="grid grid-cols-4 h-[58px] items-center px-1 w-full max-w-lg mx-auto -translate-y-1">
         {isAdmin ? (
           // Admin navigation items
           <>
