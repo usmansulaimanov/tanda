@@ -352,6 +352,8 @@ public class UserService {
                 : premiumEntitlementRepository.findTopByUserIdOrderByCreatedAtDesc(user.getId());
         java.time.OffsetDateTime premiumStartsAt = latest.map(e -> e.getStartsAt() != null ? e.getStartsAt() : e.getCreatedAt()).orElse(null);
         java.time.OffsetDateTime premiumExpiresAt = latest.map(com.tanda.entity.PremiumEntitlement::getExpiresAt).orElse(null);
+        String premiumRevokedBy = latest.map(com.tanda.entity.PremiumEntitlement::getRevokedBy).orElse(null);
+        java.time.OffsetDateTime premiumRevokedAt = latest.map(com.tanda.entity.PremiumEntitlement::getRevokedAt).orElse(null);
         Integer lastGiftYear = birthdayGiftRepository.findTopByUserIdOrderByGiftYearDesc(user.getId())
                 .map(com.tanda.entity.BirthdayGift::getGiftYear).orElse(null);
 
@@ -381,6 +383,8 @@ public class UserService {
                 .isPremium(isPremium)
                 .premiumStartsAt(premiumStartsAt)
                 .premiumExpiresAt(premiumExpiresAt)
+                .premiumRevokedBy(premiumRevokedBy)
+                .premiumRevokedAt(premiumRevokedAt)
                 .lastBirthdayGiftYear(lastGiftYear)
                 .build();
     }
@@ -389,6 +393,8 @@ public class UserService {
         boolean isPremium = false;
         java.time.OffsetDateTime premiumStartsAt = null;
         java.time.OffsetDateTime premiumExpiresAt = null;
+        String premiumRevokedBy = null;
+        java.time.OffsetDateTime premiumRevokedAt = null;
         try {
             java.time.OffsetDateTime now = java.time.OffsetDateTime.now();
             java.util.Optional<com.tanda.entity.PremiumEntitlement> active = premiumEntitlementRepository
@@ -399,6 +405,8 @@ public class UserService {
                     : premiumEntitlementRepository.findTopByUserIdOrderByCreatedAtDesc(user.getId());
             premiumStartsAt = latest.map(e -> e.getStartsAt() != null ? e.getStartsAt() : e.getCreatedAt()).orElse(null);
             premiumExpiresAt = latest.map(com.tanda.entity.PremiumEntitlement::getExpiresAt).orElse(null);
+            premiumRevokedBy = latest.map(com.tanda.entity.PremiumEntitlement::getRevokedBy).orElse(null);
+            premiumRevokedAt = latest.map(com.tanda.entity.PremiumEntitlement::getRevokedAt).orElse(null);
         } catch (Exception e) {
             log.warn("Failed to check premium entitlement for user {}: {}", user.getId(), e.getMessage());
         }
@@ -425,6 +433,8 @@ public class UserService {
                 .isPremium(isPremium)
                 .premiumStartsAt(premiumStartsAt)
                 .premiumExpiresAt(premiumExpiresAt)
+                .premiumRevokedBy(premiumRevokedBy)
+                .premiumRevokedAt(premiumRevokedAt)
                 .personalMessage(user.getPersonalMessage())
                 .personalMessageDays(user.getPersonalMessageDays())
                 .personalMessageActive(user.getPersonalMessageActive())

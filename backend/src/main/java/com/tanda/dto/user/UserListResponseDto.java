@@ -34,6 +34,8 @@ public class UserListResponseDto {
     private Boolean isPremium;
     private OffsetDateTime premiumStartsAt;
     private OffsetDateTime premiumExpiresAt;
+    private String premiumRevokedBy;
+    private OffsetDateTime premiumRevokedAt;
     private String personalMessage;
     private Integer personalMessageDays;
     private Boolean personalMessageActive;

@@ -39,6 +39,8 @@ public class UserResponseDto {
     private Boolean isPremium;
     private OffsetDateTime premiumStartsAt;
     private OffsetDateTime premiumExpiresAt;
+    private String premiumRevokedBy;
+    private OffsetDateTime premiumRevokedAt;
     private Integer lastBirthdayGiftYear;
     private String token;
 }

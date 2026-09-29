@@ -123,6 +123,8 @@ export interface User {
   isPremium?: boolean;
   premiumStartsAt?: string;
   premiumExpiresAt?: string;
+  premiumRevokedBy?: string;
+  premiumRevokedAt?: string;
   createdAt?: string;
   savedBooksCount?: number;
   avatarUrl?: string;

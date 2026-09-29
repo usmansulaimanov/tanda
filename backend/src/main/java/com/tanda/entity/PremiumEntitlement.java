@@ -49,6 +49,15 @@ public class PremiumEntitlement {
     @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
 
+    @Column(name = "revoked_by", length = 64)
+    private String revokedBy;
+
+    @Column(name = "revoked_at")
+    private OffsetDateTime revokedAt;
+
+    @Column(name = "revoke_reason")
+    private String revokeReason;
+
     @PrePersist
     public void prePersist() {
         if (id == null) {

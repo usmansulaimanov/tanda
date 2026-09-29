@@ -1366,7 +1366,11 @@ export const ReaderEditPage: React.FC = () => {
 
                 <div>
                   <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748B', marginBottom: '3px' }}>
-                    {reader?.isPremium ? 'Аяқталу мерзімі:' : 'Өшірілген / аяқталған уақыты:'}
+                    {reader?.isPremium
+                      ? 'Аяқталу мерзімі:'
+                      : reader?.premiumRevokedBy || reader?.premiumRevokedAt
+                        ? 'Өшірілген уақыты:'
+                        : 'Аяқталған уақыты:'}
                   </div>
                   <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-dark)' }}>
                     {reader?.premiumExpiresAt ? (

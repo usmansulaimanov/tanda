@@ -327,6 +327,8 @@ public class AuthService {
                 : premiumEntitlementRepository.findTopByUserIdOrderByCreatedAtDesc(user.getId());
         java.time.OffsetDateTime premiumStartsAt = latest.map(e -> e.getStartsAt() != null ? e.getStartsAt() : e.getCreatedAt()).orElse(null);
         java.time.OffsetDateTime premiumExpiresAt = latest.map(com.tanda.entity.PremiumEntitlement::getExpiresAt).orElse(null);
+        String premiumRevokedBy = latest.map(com.tanda.entity.PremiumEntitlement::getRevokedBy).orElse(null);
+        java.time.OffsetDateTime premiumRevokedAt = latest.map(com.tanda.entity.PremiumEntitlement::getRevokedAt).orElse(null);
         Integer lastGiftYear = birthdayGiftRepository.findTopByUserIdOrderByGiftYearDesc(user.getId())
                 .map(com.tanda.entity.BirthdayGift::getGiftYear).orElse(null);
 
@@ -356,6 +358,8 @@ public class AuthService {
                 .isPremium(isPremium)
                 .premiumStartsAt(premiumStartsAt)
                 .premiumExpiresAt(premiumExpiresAt)
+                .premiumRevokedBy(premiumRevokedBy)
+                .premiumRevokedAt(premiumRevokedAt)
                 .lastBirthdayGiftYear(lastGiftYear)
                 .build();
     }

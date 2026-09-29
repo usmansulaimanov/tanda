@@ -119,6 +119,9 @@ public class PremiumService {
         for (PremiumEntitlement ent : active) {
             ent.setIsActive(false);
             ent.setExpiresAt(now);
+            ent.setRevokedBy(revokedBy != null ? revokedBy : "ADMIN");
+            ent.setRevokedAt(now);
+            ent.setRevokeReason(reason);
             entitlementRepository.save(ent);
         }
 
