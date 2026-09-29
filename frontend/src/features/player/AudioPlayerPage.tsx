@@ -425,15 +425,6 @@ export const AudioPlayerPage: React.FC = () => {
               <Headphones className="w-16 h-16 text-white/30 mb-2" />
               <p className="text-sm font-bold text-white leading-snug">{activeBook.title}</p>
             </div>
-
-            {/* Playing Animated Soundwave Badge */}
-            {isPlaying && (
-              <div className="absolute bottom-3 right-3 z-20 flex items-end gap-1 bg-black/60 backdrop-blur-md px-2.5 py-1.5 rounded-xl border border-white/10">
-                <span className="w-1 bg-[#EF7E00] rounded-full animate-pulse h-3"></span>
-                <span className="w-1 bg-[#EF7E00] rounded-full animate-bounce h-5"></span>
-                <span className="w-1 bg-[#EF7E00] rounded-full animate-pulse h-4"></span>
-              </div>
-            )}
           </div>
         </div>
 
