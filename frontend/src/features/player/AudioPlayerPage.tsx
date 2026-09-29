@@ -491,7 +491,7 @@ export const AudioPlayerPage: React.FC = () => {
         </div>
 
         {/* 5. Primary Controls Row (Thumb Zone - lowered for comfort) */}
-        <div className="relative z-10 shrink-0 w-full max-w-sm mx-auto flex items-center justify-center gap-3 xs:gap-4 py-2">
+        <div className="relative z-10 shrink-0 w-full max-w-sm mx-auto flex items-center justify-center gap-3 xs:gap-4 pt-2 pb-4">
           {/* -10s Rewind */}
           <button
             type="button"
@@ -548,7 +548,7 @@ export const AudioPlayerPage: React.FC = () => {
         </div>
 
         {/* 6. Secondary Auxiliary Toolbar */}
-        <div className="relative z-10 shrink-0 flex items-center justify-around px-2 pt-2 border-t border-white/10">
+        <div className="relative z-10 shrink-0 flex items-center justify-around px-2 pt-3.5 pb-1 border-t border-white/10">
           {/* Repeat */}
           <button
             type="button"
