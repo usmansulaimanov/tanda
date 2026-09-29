@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Link, useLocation, Navigate } from 'react-router-dom';
+import { Link, useLocation, Navigate, useNavigate } from 'react-router-dom';
 import { useBookStore } from '../../store/useBookStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { booksApi } from '../../shared/api/books.api';
@@ -68,6 +68,7 @@ function useCountUp(target: number, duration = 1800): number {
 }
 
 export const LandingPage: React.FC = () => {
+  const navigate = useNavigate();
   const location = useLocation();
   const { books } = useBookStore();
   const { user, isAuthenticated, restoreSession } = useAuthStore();
@@ -150,31 +151,14 @@ export const LandingPage: React.FC = () => {
 
   const scrollToCatalog = (e?: React.MouseEvent) => {
     if (e) e.preventDefault();
-    const el = document.getElementById('catalog');
-    if (el) {
-      const headerOffset = 70;
-      const elementPosition = el.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth',
-      });
-    }
+    navigate('/catalog');
   };
 
-  // Handle smooth scroll when navigating to #catalog
   useEffect(() => {
-    if (location.hash === '#catalog' || window.location.hash === '#catalog') {
-      const timer = setTimeout(() => {
-        scrollToCatalog();
-        window.history.replaceState(null, '', window.location.pathname + window.location.search);
-      }, 120);
-      return () => clearTimeout(timer);
-    }
     if (books.length === 0) {
       useBookStore.getState().fetchBooks().catch(() => {});
     }
-  }, [location.hash, books.length]);
+  }, [books.length]);
 
   // Active, non-archived books for catalog
   const activeBooks = useMemo(() => {

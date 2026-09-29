@@ -223,7 +223,11 @@ export const router = createBrowserRouter([
       },
       {
         path: 'catalog',
-        element: <Navigate to="/#catalog" replace />,
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <CatalogPage />
+          </Suspense>
+        ),
       },
       {
         path: 'book/:id',

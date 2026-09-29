@@ -525,33 +525,18 @@ export const AppSidebarDrawer: React.FC = () => {
                 <span>Рейтинг</span>
               </Link>
 
-              <a
-                href="/#catalog"
-                className={`sidebar-nav-link ${location.pathname === '/' && location.hash === '#catalog' ? 'active' : ''}`}
-                onClick={(e) => {
-                  e.preventDefault();
-                  closeSidebar();
-                  if (location.pathname === '/') {
-                    const el = document.getElementById('catalog');
-                    if (el) {
-                      const headerOffset = 70;
-                      const elementPosition = el.getBoundingClientRect().top;
-                      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-                      window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
-                      window.history.replaceState(null, '', '/#catalog');
-                    }
-                  } else {
-                    navigate('/#catalog');
-                  }
-                }}
+              <Link
+                to="/catalog"
+                className={`sidebar-nav-link ${location.pathname.startsWith('/catalog') ? 'active' : ''}`}
+                onClick={closeSidebar}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
-                  <polyline points="2 17 12 22 22 17"></polyline>
+                  <polyline points="12 22 12 17 22 12"></polyline>
                   <polyline points="2 12 12 17 22 12"></polyline>
                 </svg>
                 <span>Кітаптар қоры</span>
-              </a>
+              </Link>
 
               {isAuthenticated && (
                 <>

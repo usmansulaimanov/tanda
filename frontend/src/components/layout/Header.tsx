@@ -468,28 +468,13 @@ export const Header: React.FC = () => {
                   </Link>
                 </li>
                 <li>
-                  <a
-                    href="/#catalog"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      if (location.pathname === '/') {
-                        const el = document.getElementById('catalog');
-                        if (el) {
-                          const headerOffset = 70;
-                          const elementPosition = el.getBoundingClientRect().top;
-                          const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-                          window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
-                          window.history.replaceState(null, '', '/#catalog');
-                        }
-                      } else {
-                        navigate('/#catalog');
-                      }
-                    }}
-                    className={location.pathname === '/' && location.hash === '#catalog' ? 'active' : ''}
+                  <Link
+                    to="/catalog"
+                    className={location.pathname.startsWith('/catalog') ? 'active' : ''}
                     style={{ textDecoration: 'none', fontSize: '14px', fontWeight: 600, cursor: 'pointer' }}
                   >
                     Кітаптар қоры
-                  </a>
+                  </Link>
                 </li>
                 {isAuthenticated && (
                   <li>
