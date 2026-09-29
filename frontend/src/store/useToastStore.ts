@@ -15,9 +15,14 @@ interface ToastState {
 export const useToastStore = create<ToastState>((set) => ({
   toasts: [],
   showToast: (message, type = 'success') => {
+    let cleanMessage = message;
+    if (typeof cleanMessage === 'string' && (cleanMessage.includes('Compromised session') || cleanMessage.includes('session terminated'))) {
+      cleanMessage = 'Сессия мерзімі аяқталды. Жүйеге қайта кіріңіз.';
+    }
+
     set((state) => {
       // Prevent duplicate identical messages currently displayed on screen
-      if (state.toasts.some((t) => t.message === message)) {
+      if (state.toasts.some((t) => t.message === cleanMessage)) {
         return state;
       }
       const id = `toast-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
@@ -27,7 +32,7 @@ export const useToastStore = create<ToastState>((set) => ({
         }));
       }, 3500);
       // Keep at most 4 latest toasts to prevent screen overflow
-      const nextToasts = [...state.toasts, { id, type, message }].slice(-4);
+      const nextToasts = [...state.toasts, { id, type, message: cleanMessage }].slice(-4);
       return { toasts: nextToasts };
     });
   },

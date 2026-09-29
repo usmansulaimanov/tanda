@@ -1283,12 +1283,6 @@ export const ReaderEditPage: React.FC = () => {
                 )}
               </div>
 
-              <p style={{ margin: '0 0 14px', fontSize: '12px', color: 'var(--text-mid)' }}>
-                {reader?.isPremium
-                  ? 'Оқырманға барлық аудио және электронды кітаптар шектеусіз әрі жарнамасыз қолжетімді.'
-                  : 'Оқырман стандартты режимде (тек тегін контент немесе жарнамамен).'}
-              </p>
-
               {/* Confirmation Prompt for Revoke */}
               {showRevokeConfirm && (
                 <div
