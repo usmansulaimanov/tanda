@@ -319,8 +319,8 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
     }
   };
 
-  const handleApplyPromo = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleApplyPromo = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!promoCodeInput.trim()) return;
     if (!isAuthenticated) {
       showToast('Промокодты қолдану үшін алдымен жүйеге кіріңіз', 'error');
@@ -724,10 +724,70 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
                   />
                 </div>
 
+                {/* Promo code section (Above submit button) */}
+                <div className="pt-1">
+                  {appliedPromo ? (
+                    <div className="flex items-center justify-between p-3 rounded-2xl bg-emerald-50 border border-emerald-200/80 text-emerald-950">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                          <Tag className="w-4 h-4 text-emerald-600" />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-mono font-black text-xs text-emerald-900 tracking-wider uppercase">
+                              {appliedPromo.code}
+                            </span>
+                            <span className="px-1.5 py-0.5 rounded-full bg-emerald-200/80 text-[10px] font-black text-emerald-800">
+                              -{appliedPromo.discountPercent}% ЖЕҢІЛДІК
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-emerald-700">
+                            Барлық тарифтердің бағасы {appliedPromo.discountPercent}%-ға төмендетілді
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAppliedPromo(null);
+                          setPromoCodeInput('');
+                        }}
+                        className="px-2.5 py-1 rounded-lg text-xs text-slate-600 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer font-medium"
+                      >
+                        Болдырмау
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="Промокод бар ма?"
+                        value={promoCodeInput}
+                        onChange={(e) => setPromoCodeInput(e.target.value.toUpperCase())}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleApplyPromo();
+                          }
+                        }}
+                        className="flex-1 px-3.5 py-2.5 text-xs font-mono uppercase tracking-wider rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-[#F08000] bg-white"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleApplyPromo()}
+                        disabled={isApplyingPromo || !promoCodeInput.trim()}
+                        className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition disabled:opacity-50 cursor-pointer"
+                      >
+                        {isApplyingPromo ? '...' : 'Қолдану'}
+                      </button>
+                    </div>
+                  )}
+                </div>
+
                 <button
                   type="submit"
                   disabled={isUploading || !receiptFile}
-                  className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#F08000] to-orange-600 hover:from-[#c06800] hover:to-orange-700 text-white font-black text-sm shadow-lg shadow-orange-500/25 transition disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#F08000] to-orange-600 hover:from-[#c06800] hover:to-orange-700 text-white font-black text-sm shadow-lg shadow-orange-500/25 transition disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
                 >
                   {isUploading ? (
                     <span className="flex items-center gap-2">
@@ -738,61 +798,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
                     <span>Чекті растауға жіберу</span>
                   )}
                 </button>
-
               </form>
-
-              {/* Promo code alternative */}
-              <div className="pt-4 border-t border-slate-100">
-                {appliedPromo ? (
-                  <div className="flex items-center justify-between p-3 rounded-2xl bg-emerald-50 border border-emerald-200/80 text-emerald-950">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-                        <Tag className="w-4 h-4 text-emerald-600" />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-1.5">
-                          <span className="font-mono font-black text-xs text-emerald-900 tracking-wider uppercase">
-                            {appliedPromo.code}
-                          </span>
-                          <span className="px-1.5 py-0.5 rounded-full bg-emerald-200/80 text-[10px] font-black text-emerald-800">
-                            -{appliedPromo.discountPercent}% ЖЕҢІЛДІК
-                          </span>
-                        </div>
-                        <p className="text-[11px] text-emerald-700">
-                          Барлық тарифтердің бағасы {appliedPromo.discountPercent}%-ға төмендетілді
-                        </p>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setAppliedPromo(null);
-                        setPromoCodeInput('');
-                      }}
-                      className="px-2.5 py-1 rounded-lg text-xs text-slate-600 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer font-medium"
-                    >
-                      Болдырмау
-                    </button>
-                  </div>
-                ) : (
-                  <form onSubmit={handleApplyPromo} className="flex gap-2">
-                    <input
-                      type="text"
-                      placeholder="Промокод бар ма?"
-                      value={promoCodeInput}
-                      onChange={(e) => setPromoCodeInput(e.target.value.toUpperCase())}
-                      className="flex-1 px-3.5 py-2.5 text-xs font-mono uppercase tracking-wider rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-[#F08000]"
-                    />
-                    <button
-                      type="submit"
-                      disabled={isApplyingPromo || !promoCodeInput.trim()}
-                      className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition disabled:opacity-50 cursor-pointer"
-                    >
-                      {isApplyingPromo ? '...' : 'Қолдану'}
-                    </button>
-                  </form>
-                )}
-              </div>
             </>
           )}
         </div>
