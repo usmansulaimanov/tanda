@@ -971,7 +971,7 @@ export const AdminSystemSettingsPage: React.FC = () => {
           <div className="mt-6 pt-5 border-t border-slate-100">
             <div className="flex items-center gap-2 mb-2">
               <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                <span>Ескерту хабарламасы (Премиум терезесінде тарифтер мен банктің ортасында көрінеді):</span>
+                <span>Ескерту хабарламасы:</span>
               </label>
             </div>
             <textarea
