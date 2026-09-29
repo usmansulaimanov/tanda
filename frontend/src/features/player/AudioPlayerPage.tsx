@@ -447,8 +447,8 @@ export const AudioPlayerPage: React.FC = () => {
 
         {/* 3. Track Info Row */}
         <div className="relative z-10 shrink-0 mb-2">
-          <div className="flex items-center justify-between gap-3">
-            <div className="min-w-0 flex-1">
+          <div className="relative flex items-center justify-center min-h-[44px]">
+            <div className="min-w-0 max-w-[80%] text-center">
               <h2 className="text-lg xs:text-xl font-black text-white truncate leading-tight tracking-tight">
                 {activeBook.title}
               </h2>
@@ -460,7 +460,7 @@ export const AudioPlayerPage: React.FC = () => {
             <button
               type="button"
               onClick={handleToggleCompleted}
-              className={`p-2.5 rounded-2xl border text-xs font-bold transition shrink-0 ${
+              className={`absolute right-0 p-2.5 rounded-2xl border text-xs font-bold transition shrink-0 ${
                 isCompleted
                   ? 'bg-emerald-600 text-white border-emerald-500 shadow-sm'
                   : 'bg-white/5 border-white/10 text-slate-400 active:bg-white/10'
