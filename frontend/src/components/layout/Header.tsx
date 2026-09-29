@@ -51,7 +51,7 @@ export const Header: React.FC = () => {
   const profileWrapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
       if (searchWrapRef.current && !searchWrapRef.current.contains(e.target as Node)) {
         setShowResults(false);
       }
@@ -60,7 +60,11 @@ export const Header: React.FC = () => {
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
   }, []);
 
   // Close profile dropdown on page change
@@ -163,7 +167,7 @@ export const Header: React.FC = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-50 w-full max-w-full overflow-hidden">
+      <header className="sticky top-0 z-50 w-full max-w-full">
         <nav className="tanda-nav" style={{ position: 'relative', top: 'auto', width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
         <div style={{ maxWidth: '1280px', width: '100%', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
           
@@ -542,7 +546,13 @@ export const Header: React.FC = () => {
                 </button>
 
                 {profileOpen && (
-                  <div className="nav-profile-dropdown">
+                  <>
+                    <div
+                      className="fixed inset-0 z-[250] bg-black/25 md:hidden"
+                      onClick={() => setProfileOpen(false)}
+                      aria-hidden="true"
+                    />
+                    <div className="nav-profile-dropdown z-[300]">
                     {/* User Info Header: Name, Email & Role */}
                     <div className="profile-card-header">
                       <div className="profile-card-avatar" style={{ overflow: 'hidden' }}>
@@ -762,6 +772,7 @@ export const Header: React.FC = () => {
                       </button>
                     </div>
                   </div>
+                  </>
                 )}
               </div>
             ) : (
