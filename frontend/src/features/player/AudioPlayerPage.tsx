@@ -83,6 +83,7 @@ export const AudioPlayerPage: React.FC = () => {
   const [showChaptersDrawer, setShowChaptersDrawer] = useState(false);
   const [showMobileTimerMenu, setShowMobileTimerMenu] = useState(false);
   const [showMobileSpeedMenu, setShowMobileSpeedMenu] = useState(false);
+  const [mobileTimerMinutes, setMobileTimerMinutes] = useState<number>(10);
   const [remainingTimerSec, setRemainingTimerSec] = useState<number | null>(null);
 
   const timerMenuRef = useRef<HTMLDivElement>(null);
@@ -735,65 +736,125 @@ export const AudioPlayerPage: React.FC = () => {
           </div>
         )}
 
-        {/* 9. Mobile Timer Bottom Sheet */}
+        {/* 9. Mobile Timer Bottom Sheet (Compact, inspired by user reference) */}
         {showMobileTimerMenu && (
           <div
-            className="fixed inset-0 z-50 flex flex-col justify-end bg-black/75 backdrop-blur-sm animate-in fade-in duration-200"
+            className="fixed inset-0 z-50 flex flex-col justify-end bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
             onClick={() => setShowMobileTimerMenu(false)}
           >
             <div
-              className="w-full bg-[#181a20] rounded-t-3xl border-t border-white/10 p-5 shadow-2xl"
+              className="w-full max-w-lg mx-auto bg-white text-slate-900 rounded-t-[28px] p-5 shadow-2xl relative"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="w-12 h-1 bg-white/20 rounded-full mx-auto mb-4" />
-              <div className="flex items-center justify-between pb-3 border-b border-white/10 mb-3">
-                <div className="flex items-center gap-2">
-                  <h3 className="text-base font-black text-white">Ұйқы таймері</h3>
-                  {sleepTimerMinutes && (
-                    <span className="text-xs font-mono font-bold text-[#EF7E00] bg-[#EF7E00]/15 px-2 py-0.5 rounded-lg">
-                      {formatRemainingTimer(remainingTimerSec)} қалды
-                    </span>
-                  )}
-                </div>
+              {/* Top drag handle */}
+              <div className="w-10 h-1 bg-slate-200 rounded-full mx-auto mb-3" />
+
+              {/* Header */}
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-base font-black text-slate-900 tracking-tight">
+                  Автоматты тоқтату
+                </h3>
                 <button
                   type="button"
                   onClick={() => setShowMobileTimerMenu(false)}
-                  className="w-8 h-8 rounded-full bg-white/10 text-white flex items-center justify-center active:bg-white/20"
+                  className="w-7 h-7 rounded-full bg-slate-100 active:bg-slate-200 text-slate-500 hover:text-slate-900 flex items-center justify-center transition cursor-pointer"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-3.5 h-3.5" />
                 </button>
               </div>
 
-              <div className="flex flex-col gap-1.5">
-                {TIMER_OPTIONS.map((opt) => (
+              {/* Slider area */}
+              <div className="relative mb-4 px-1">
+                <div className="flex items-center justify-between text-[11px] font-bold font-mono text-slate-400 mb-1">
+                  <span>00:00:00</span>
+                  <span>01:00:00</span>
+                </div>
+
+                <div className="relative flex items-center">
+                  <input
+                    type="range"
+                    min={0}
+                    max={60}
+                    step={5}
+                    value={mobileTimerMinutes}
+                    onChange={(e) => setMobileTimerMinutes(Number(e.target.value))}
+                    className="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-[#EF7E00]"
+                    style={{ accentColor: '#EF7E00' }}
+                  />
+                </div>
+
+                {/* Current Value Tooltip / Pill */}
+                <div className="flex justify-center mt-2">
+                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-black bg-orange-50 text-[#EF7E00] border border-orange-200/60 font-mono shadow-2xs">
+                    {mobileTimerMinutes === 0
+                      ? 'Өшірулі'
+                      : `${String(Math.floor(mobileTimerMinutes / 60)).padStart(2, '0')}:${String(mobileTimerMinutes % 60).padStart(2, '0')}:00`}
+                  </span>
+                </div>
+              </div>
+
+              {/* Quick Presets */}
+              <div className="flex items-center justify-center gap-2 mb-2">
+                {[15, 30, 45].map((mins) => (
                   <button
-                    key={opt.value}
+                    key={mins}
                     type="button"
-                    onClick={() => {
-                      setSleepTimer(opt.value);
-                      setShowMobileTimerMenu(false);
-                      showToast(`Таймер қойылды: ${opt.value} минут`, 'success');
-                    }}
-                    className={`w-full text-left px-4 py-3 rounded-2xl text-sm font-bold flex items-center justify-between transition border ${
-                      sleepTimerMinutes === opt.value
-                        ? 'bg-[#EF7E00] text-white border-[#EF7E00]'
-                        : 'bg-white/5 border-white/10 text-slate-200 active:bg-white/10'
+                    onClick={() => setMobileTimerMinutes(mins)}
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition cursor-pointer ${
+                      mobileTimerMinutes === mins
+                        ? 'bg-[#EF7E00] text-white shadow-xs'
+                        : 'bg-slate-50 text-[#EF7E00] active:bg-orange-50 border border-slate-100'
                     }`}
                   >
-                    <span>{opt.label}</span>
-                    {sleepTimerMinutes === opt.value && <Check className="w-4 h-4" />}
+                    {mins} минут
                   </button>
                 ))}
+              </div>
+
+              {/* End of chapter preset */}
+              <div className="flex justify-center mb-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const remainingChapterMins = Math.max(1, Math.ceil(((duration || 300) - (progress || 0)) / 60));
+                    setMobileTimerMinutes(remainingChapterMins);
+                  }}
+                  className="px-4 py-1.5 rounded-full text-xs font-bold bg-slate-50 text-[#EF7E00] active:bg-orange-50 border border-slate-100 transition cursor-pointer"
+                >
+                  Бөлім аяқталғанда
+                </button>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (mobileTimerMinutes > 0) {
+                      setSleepTimer(mobileTimerMinutes);
+                      setShowMobileTimerMenu(false);
+                      showToast(`Таймер қойылды: ${mobileTimerMinutes} минут`, 'success');
+                    } else {
+                      cancelSleepTimer();
+                      setShowMobileTimerMenu(false);
+                      showToast('Таймер өшірілді', 'info');
+                    }
+                  }}
+                  className="w-full py-2.5 rounded-full text-sm font-bold bg-slate-100 active:bg-slate-200 text-slate-800 transition cursor-pointer"
+                >
+                  Сақтау
+                </button>
 
                 {sleepTimerMinutes && (
                   <button
                     type="button"
                     onClick={() => {
                       cancelSleepTimer();
+                      setMobileTimerMinutes(0);
                       setShowMobileTimerMenu(false);
                       showToast('Таймер өшірілді', 'info');
                     }}
-                    className="w-full text-center py-3 rounded-2xl text-sm font-bold text-rose-400 bg-rose-500/10 border border-rose-500/20 active:bg-rose-500/20 mt-2"
+                    className="w-full py-1 text-xs font-bold text-rose-500 hover:text-rose-600 transition cursor-pointer"
                   >
                     Таймерді өшіру
                   </button>
