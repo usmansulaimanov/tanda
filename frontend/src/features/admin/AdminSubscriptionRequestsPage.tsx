@@ -15,9 +15,11 @@ import {
   Ban,
   HelpCircle,
   Send,
-  MessageSquare
+  MessageSquare,
+  Bot
 } from 'lucide-react';
 import { premiumApi } from '../../shared/api/premium.api';
+import { systemApi } from '../../shared/api/system.api';
 import { SubscriptionPaymentRequest } from '../../types';
 import { useToastStore } from '../../store/useToastStore';
 import { useQueryClient } from '@tanstack/react-query';
@@ -88,9 +90,39 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
   const [revokingRequest, setRevokingRequest] = useState<SubscriptionPaymentRequest | null>(null);
   const [revokeReason, setRevokeReason] = useState<string>('Чек жарамсыз немесе жалған деп танылды');
 
+  const [isAiEnabled, setIsAiEnabled] = useState<boolean>(true);
+  const [isTogglingAi, setIsTogglingAi] = useState<boolean>(false);
+
   const { showToast } = useToastStore();
   const queryClient = useQueryClient();
 
+  const loadAiSetting = async () => {
+    try {
+      const res = await systemApi.getSettings();
+      setIsAiEnabled(res.aiReceiptVerificationEnabled !== false);
+    } catch (e) {
+      console.warn('Could not load AI receipt verification setting', e);
+    }
+  };
+
+  const handleToggleAi = async () => {
+    setIsTogglingAi(true);
+    try {
+      const nextState = !isAiEnabled;
+      await systemApi.updateSettingsAdmin({ aiReceiptVerificationEnabled: nextState });
+      setIsAiEnabled(nextState);
+      showToast(
+        nextState
+          ? 'ЖИ тексеру қосылды! Жаңа чектер автоматты тексеріледі 🤖'
+          : 'ЖИ тексеру өшірілді! Барлық жаңа чектер қолмен қарауға (PENDING) түседі 👤',
+        'success'
+      );
+    } catch (e) {
+      showToast('ЖИ баптауын өзгерту кезінде қате орын алды', 'error');
+    } finally {
+      setIsTogglingAi(false);
+    }
+  };
 
   const loadRequests = async () => {
     setIsLoading(true);
@@ -106,6 +138,10 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadAiSetting();
+  }, []);
 
   useEffect(() => {
     loadRequests();
@@ -238,13 +274,48 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
           </p>
         </div>
 
-        <button
-          onClick={loadRequests}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold transition"
-        >
-          <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-          Жаңарту
-        </button>
+        <div className="flex items-center gap-3 flex-wrap">
+          {/* AI Mode Live Switch */}
+          <div className={`px-3.5 py-2 rounded-2xl border flex items-center gap-3 transition-all ${
+            isAiEnabled 
+              ? 'bg-emerald-50/90 border-emerald-300 text-emerald-950 shadow-sm' 
+              : 'bg-amber-50/90 border-amber-300 text-amber-950 shadow-sm'
+          }`}>
+            <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
+              isAiEnabled ? 'bg-emerald-600 text-white shadow-sm' : 'bg-amber-500 text-white shadow-sm'
+            }`}>
+              <Bot className="w-4 h-4" />
+            </div>
+            <div className="text-left">
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs font-black">
+                  {isAiEnabled ? 'ЖИ Тексеру: Қосулы' : 'Қолмен тексеру режимі'}
+                </span>
+              </div>
+              <p className="text-[10px] text-slate-500 line-clamp-1">
+                {isAiEnabled ? 'Чекті AI автоматты тексереді' : 'Жаңа чектер PENDING болып түседі'}
+              </p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer ml-1">
+              <input
+                type="checkbox"
+                checked={isAiEnabled}
+                disabled={isTogglingAi}
+                onChange={handleToggleAi}
+                className="sr-only peer"
+              />
+              <div className="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+            </label>
+          </div>
+
+          <button
+            onClick={loadRequests}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold transition shadow-sm cursor-pointer"
+          >
+            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+            Жаңарту
+          </button>
+        </div>
       </div>
 
       {/* 4 Stat Metric Cards */}
