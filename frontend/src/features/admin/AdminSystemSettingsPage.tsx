@@ -117,27 +117,40 @@ export const AdminSystemSettingsPage: React.FC = () => {
     paymentNoticeAlign: 'left',
   });
 
-  const paymentNoticeTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const editorRef = useRef<HTMLDivElement>(null);
 
-  const applyNoticeFormat = (prefix: string, suffix = prefix) => {
-    const el = paymentNoticeTextareaRef.current;
-    if (!el) return;
-    const { selectionStart, selectionEnd, value } = el;
-    const selected = value.substring(selectionStart, selectionEnd);
-    const before = value.substring(0, selectionStart);
-    const after = value.substring(selectionEnd);
-    const replacement = selected ? `${prefix}${selected}${suffix}` : `${prefix}мәтін${suffix}`;
-    const newValue = `${before}${replacement}${after}`;
-    setSettings((prev) => ({ ...prev, paymentNotice: newValue }));
-    setTimeout(() => {
-      if (el) {
-        el.focus();
-        el.setSelectionRange(
-          selectionStart + prefix.length,
-          selectionStart + prefix.length + (selected ? selected.length : 5)
-        );
-      }
-    }, 0);
+  const normalizeToHtml = (text: string) => {
+    if (!text) return '';
+    if (/<[a-z][\s\S]*>/i.test(text)) {
+      return text;
+    }
+    return text
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/\n/g, '<br>');
+  };
+
+  const handleBold = (e: React.MouseEvent) => {
+    e.preventDefault();
+    document.execCommand('bold', false);
+    if (editorRef.current) {
+      setSettings((prev) => ({ ...prev, paymentNotice: editorRef.current?.innerHTML || '' }));
+    }
+  };
+
+  const handleItalic = (e: React.MouseEvent) => {
+    e.preventDefault();
+    document.execCommand('italic', false);
+    if (editorRef.current) {
+      setSettings((prev) => ({ ...prev, paymentNotice: editorRef.current?.innerHTML || '' }));
+    }
+  };
+
+  const handleEditorInput = () => {
+    if (editorRef.current) {
+      const html = editorRef.current.innerHTML;
+      setSettings((prev) => ({ ...prev, paymentNotice: html }));
+    }
   };
 
   const [presets, setPresets] = useState<HeaderBannerPreset[]>(DEFAULT_BANNER_PRESETS);
@@ -216,6 +229,12 @@ export const AdminSystemSettingsPage: React.FC = () => {
         }
         setPresets(loadedPresets);
 
+        const rawNotice = res.paymentNotice || '';
+        const htmlNotice = normalizeToHtml(rawNotice);
+        if (editorRef.current) {
+          editorRef.current.innerHTML = htmlNotice;
+        }
+
         setSettings({
           ...res,
           plan1MonthDesc: res.plan1MonthDesc !== undefined ? res.plan1MonthDesc : '',
@@ -233,7 +252,7 @@ export const AdminSystemSettingsPage: React.FC = () => {
           headerBannerButtonText: res.headerBannerButtonText ?? 'Премиумға жазылу →',
           headerBannerPresets: res.headerBannerPresets || '',
           aiReceiptVerificationEnabled: res.aiReceiptVerificationEnabled !== false,
-          paymentNotice: res.paymentNotice || '',
+          paymentNotice: htmlNotice,
           paymentNoticeAlign: (res.paymentNoticeAlign as 'left' | 'center' | 'right') || 'left',
         });
         setIsLoading(false);
@@ -284,6 +303,13 @@ export const AdminSystemSettingsPage: React.FC = () => {
     if (e) e.preventDefault();
     setIsSaving(true);
     try {
+      const cleanNotice =
+        settings.paymentNotice === '<br>' ||
+        settings.paymentNotice === '<div><br></div>' ||
+        settings.paymentNotice === '<p><br></p>'
+          ? ''
+          : settings.paymentNotice?.trim() || '';
+
       const payload = {
         ...settings,
         plan1MonthDesc: settings.plan1MonthDesc ?? '',
@@ -296,11 +322,13 @@ export const AdminSystemSettingsPage: React.FC = () => {
         kaspiCard: formatKaspiCard(settings.kaspiCard || ''),
         kaspiPhoneEnabled: settings.kaspiPhoneEnabled !== false,
         kaspiCardEnabled: Boolean(settings.kaspiCardEnabled),
+        aiReceiptVerificationEnabled: settings.aiReceiptVerificationEnabled !== false,
         headerBannerEnabled: settings.headerBannerEnabled !== false,
         headerBannerText: settings.headerBannerText?.trim() || '',
         headerBannerButtonText: settings.headerBannerButtonText?.trim() || '',
         headerBannerPresets: JSON.stringify(presets),
-        paymentNotice: settings.paymentNotice?.trim() || '',
+        paymentNotice: cleanNotice,
+        paymentNoticeAlign: settings.paymentNoticeAlign || 'left',
       };
       const updated = await systemApi.updateSettingsAdmin(payload);
       
@@ -314,6 +342,11 @@ export const AdminSystemSettingsPage: React.FC = () => {
         } catch (e) {}
       }
       setPresets(loadedPresets);
+
+      const updatedHtml = normalizeToHtml(updated.paymentNotice || '');
+      if (editorRef.current && editorRef.current.innerHTML !== updatedHtml) {
+        editorRef.current.innerHTML = updatedHtml;
+      }
 
       setSettings({
         ...updated,
@@ -331,7 +364,8 @@ export const AdminSystemSettingsPage: React.FC = () => {
         headerBannerText: updated.headerBannerText || 'Tanda Premium: 100+ кітапты шектеусіз әрі 0% жарнамасыз тыңдаңыз!',
         headerBannerButtonText: updated.headerBannerButtonText ?? 'Премиумға жазылу →',
         headerBannerPresets: updated.headerBannerPresets || '',
-        paymentNotice: updated.paymentNotice || '',
+        paymentNotice: updatedHtml,
+        paymentNoticeAlign: (updated.paymentNoticeAlign as 'left' | 'center' | 'right') || 'left',
       });
       queryClient.invalidateQueries({ queryKey: ['systemSettings'] });
       showToast('Жүйелік баптаулар сәтті сақталды!', 'success');
@@ -1006,17 +1040,17 @@ export const AdminSystemSettingsPage: React.FC = () => {
               <div className="flex items-center gap-1">
                 <button
                   type="button"
-                  onClick={() => applyNoticeFormat('**')}
+                  onMouseDown={handleBold}
                   className="p-1.5 rounded-lg bg-white hover:bg-slate-200 text-slate-800 border border-slate-200 shadow-sm transition cursor-pointer flex items-center justify-center"
-                  title="Қалың қаріп (Bold **мәтін**)"
+                  title="Қалың қаріп (Bold)"
                 >
                   <Bold className="w-4 h-4" />
                 </button>
                 <button
                   type="button"
-                  onClick={() => applyNoticeFormat('*')}
+                  onMouseDown={handleItalic}
                   className="p-1.5 rounded-lg bg-white hover:bg-slate-200 text-slate-800 border border-slate-200 shadow-sm transition cursor-pointer flex items-center justify-center"
-                  title="Көлбеу қаріп (Italic *мәтін*)"
+                  title="Көлбеу қаріп (Italic)"
                 >
                   <Italic className="w-4 h-4" />
                 </button>
@@ -1063,16 +1097,24 @@ export const AdminSystemSettingsPage: React.FC = () => {
               </div>
             </div>
 
-            <textarea
-              ref={paymentNoticeTextareaRef}
-              rows={4}
-              placeholder="Мысалы:&#10;**ЕСКЕРТУ**&#10;Төлем жасаған соң чек жіберіңіз"
-              value={settings.paymentNotice || ''}
-              disabled={settings.paymentNoticeEnabled === false}
-              onChange={(e) => setSettings({ ...settings, paymentNotice: e.target.value })}
-              className={`w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#F08000]/20 focus:border-[#F08000] text-slate-900 placeholder:text-slate-400 leading-relaxed font-mono transition ${
+            {/* WYSIWYG Editable Area */}
+            <div
+              ref={editorRef}
+              contentEditable={settings.paymentNoticeEnabled !== false}
+              onInput={handleEditorInput}
+              onBlur={handleEditorInput}
+              suppressContentEditableWarning
+              data-placeholder="Мысалы: ЕСКЕРТУ! Төлем жасаған соң чек жіберіңіз..."
+              className={`w-full min-h-[95px] px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#F08000]/20 focus:border-[#F08000] text-slate-900 leading-relaxed transition ${
+                (settings.paymentNoticeAlign || 'left') === 'center'
+                  ? 'text-center'
+                  : (settings.paymentNoticeAlign || 'left') === 'right'
+                  ? 'text-right'
+                  : 'text-left'
+              } ${
                 settings.paymentNoticeEnabled === false ? 'bg-slate-100 text-slate-400 cursor-not-allowed opacity-60' : 'bg-white'
               }`}
+              style={{ wordBreak: 'break-word' }}
             />
 
             {/* Live Preview */}

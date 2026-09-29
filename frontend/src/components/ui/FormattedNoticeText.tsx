@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 
 interface FormattedNoticeTextProps {
   text?: string;
@@ -6,14 +6,40 @@ interface FormattedNoticeTextProps {
   className?: string;
 }
 
+function sanitizeAndFormat(input: string): string {
+  if (!input) return '';
+
+  // If input contains HTML tags (WYSIWYG format)
+  if (/<[a-z][\s\S]*>/i.test(input)) {
+    // Strip dangerous tags and attributes
+    return input
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+      .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
+      .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '')
+      .replace(/javascript:/gi, '');
+  }
+
+  // Fallback for markdown format
+  return input
+    .replace(/\*\*(.*?)\*\*/g, '<strong class="font-black text-slate-900">$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em class="italic font-medium">$1</em>')
+    .replace(/\n/g, '<br>');
+}
+
 export const FormattedNoticeText: React.FC<FormattedNoticeTextProps> = ({
   text,
   align = 'left',
   className = '',
 }) => {
-  if (!text || !text.trim()) return null;
-
-  const lines = text.split('\n');
+  if (
+    !text ||
+    !text.trim() ||
+    text === '<br>' ||
+    text === '<div><br></div>' ||
+    text === '<p><br></p>'
+  ) {
+    return null;
+  }
 
   const alignClass =
     align === 'center'
@@ -22,41 +48,15 @@ export const FormattedNoticeText: React.FC<FormattedNoticeTextProps> = ({
       ? 'text-right'
       : 'text-left';
 
-  const formatInline = (str: string) => {
-    // Split by **bold** or *italic*
-    const parts = str.split(/(\*\*.*?\*\*|\*.*?\*)/g);
-    return parts.map((part, index) => {
-      if (part.startsWith('**') && part.endsWith('**') && part.length >= 4) {
-        return (
-          <strong key={index} className="font-black text-slate-900">
-            {part.slice(2, -2)}
-          </strong>
-        );
-      }
-      if (part.startsWith('*') && part.endsWith('*') && part.length >= 2) {
-        return (
-          <em key={index} className="italic font-medium">
-            {part.slice(1, -1)}
-          </em>
-        );
-      }
-      return part;
-    });
-  };
+  const htmlContent = useMemo(() => sanitizeAndFormat(text), [text]);
+
+  if (!htmlContent) return null;
 
   return (
-    <div className={`space-y-1 ${alignClass} ${className}`}>
-      {lines.map((line, idx) => {
-        const trimmed = line.trim();
-        if (!trimmed) {
-          return <div key={idx} className="h-1.5" />;
-        }
-        return (
-          <p key={idx} className="leading-relaxed">
-            {formatInline(line)}
-          </p>
-        );
-      })}
-    </div>
+    <div
+      className={`leading-relaxed text-slate-800 break-words ${alignClass} ${className}`}
+      dangerouslySetInnerHTML={{ __html: htmlContent }}
+    />
   );
 };
+
