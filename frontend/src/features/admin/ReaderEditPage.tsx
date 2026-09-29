@@ -1221,14 +1221,14 @@ export const ReaderEditPage: React.FC = () => {
             <div
               style={{
                 background: reader?.isPremium
-                  ? 'linear-gradient(135deg, #FFFDF5 0%, #FEF3C7 100%)'
+                  ? '#0F172A'
                   : '#F8FAFC',
-                border: `1.5px solid ${reader?.isPremium ? '#FCD34D' : '#E2E8F0'}`,
+                border: `1.5px solid ${reader?.isPremium ? '#1E293B' : '#E2E8F0'}`,
                 borderRadius: '16px',
                 padding: '20px 24px',
                 marginBottom: '28px',
                 boxShadow: reader?.isPremium
-                  ? '0 4px 14px rgba(245, 158, 11, 0.08)'
+                  ? '0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3)'
                   : 'none',
                 transition: 'all 0.2s',
               }}
@@ -1249,15 +1249,15 @@ export const ReaderEditPage: React.FC = () => {
                       width: '32px',
                       height: '32px',
                       borderRadius: '10px',
-                      background: reader?.isPremium ? '#FEF3C7' : '#F1F5F9',
-                      border: `1px solid ${reader?.isPremium ? '#F59E0B' : '#CBD5E1'}`,
+                      background: reader?.isPremium ? '#1E293B' : '#F1F5F9',
+                      border: `1px solid ${reader?.isPremium ? '#334155' : '#CBD5E1'}`,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
                   >
                     {reader?.isPremium ? (
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D97706" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"></path>
                       </svg>
                     ) : (
@@ -1269,7 +1269,7 @@ export const ReaderEditPage: React.FC = () => {
                   </span>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <h3 style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-dark)', margin: 0 }}>
+                      <h3 style={{ fontSize: '15px', fontWeight: 800, color: reader?.isPremium ? '#FFFFFF' : 'var(--text-dark)', margin: 0 }}>
                         Жазылым мәртебесі:
                       </h3>
                       <span
@@ -1278,9 +1278,9 @@ export const ReaderEditPage: React.FC = () => {
                           fontWeight: 800,
                           padding: '2px 10px',
                           borderRadius: '12px',
-                          background: reader?.isPremium ? '#FEF3C7' : '#E2E8F0',
+                          background: reader?.isPremium ? 'rgba(245, 158, 11, 0.15)' : '#E2E8F0',
                           border: `1px solid ${reader?.isPremium ? '#F59E0B' : '#94A3B8'}`,
-                          color: reader?.isPremium ? '#B45309' : '#475569',
+                          color: reader?.isPremium ? '#FBBF24' : '#475569',
                           display: 'inline-flex',
                           alignItems: 'center',
                         }}
@@ -1288,7 +1288,7 @@ export const ReaderEditPage: React.FC = () => {
                         {reader?.isPremium ? 'Премиум' : 'Стандарт'}
                       </span>
                     </div>
-                    <p style={{ margin: '4px 0 0', fontSize: '12px', color: reader?.isPremium ? '#92400E' : 'var(--text-mid)' }}>
+                    <p style={{ margin: '4px 0 0', fontSize: '12px', color: reader?.isPremium ? '#94A3B8' : 'var(--text-mid)' }}>
                       {reader?.isPremium
                         ? 'Оқырманға барлық аудио және электронды кітаптар шектеусіз әрі жарнамасыз қолжетімді.'
                         : 'Оқырман стандартты режимде (тек тегін контент немесе жарнамамен).'}
@@ -1304,9 +1304,9 @@ export const ReaderEditPage: React.FC = () => {
                     style={{
                       padding: '8px 16px',
                       borderRadius: '8px',
-                      border: '1.5px solid #FCA5A5',
-                      background: '#FEF2F2',
-                      color: '#DC2626',
+                      border: '1.5px solid rgba(239, 68, 68, 0.4)',
+                      background: 'rgba(239, 68, 68, 0.12)',
+                      color: '#F87171',
                       fontSize: '12px',
                       fontWeight: 700,
                       cursor: 'pointer',
@@ -1329,8 +1329,8 @@ export const ReaderEditPage: React.FC = () => {
               {showRevokeConfirm && (
                 <div
                   style={{
-                    background: '#FFF5F5',
-                    border: '1.5px solid #FCA5A5',
+                    background: reader?.isPremium ? 'rgba(220, 38, 38, 0.15)' : '#FFF5F5',
+                    border: `1.5px solid ${reader?.isPremium ? '#EF4444' : '#FCA5A5'}`,
                     borderRadius: '12px',
                     padding: '14px 18px',
                     marginBottom: '16px',
@@ -1341,7 +1341,7 @@ export const ReaderEditPage: React.FC = () => {
                     gap: '12px',
                   }}
                 >
-                  <div style={{ fontSize: '13px', color: '#991B1B' }}>
+                  <div style={{ fontSize: '13px', color: reader?.isPremium ? '#FECACA' : '#991B1B' }}>
                     <strong>Назар аударыңыз!</strong> Оқырманның Премиум жазылымын дереу өшіруге сенімдісіз бе? Оқырман Стандарт мәртебесіне ауысады.
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -1370,9 +1370,9 @@ export const ReaderEditPage: React.FC = () => {
                       style={{
                         padding: '6px 14px',
                         borderRadius: '6px',
-                        background: '#FFFFFF',
-                        border: '1px solid #CBD5E1',
-                        color: '#475569',
+                        background: reader?.isPremium ? '#1E293B' : '#FFFFFF',
+                        border: `1px solid ${reader?.isPremium ? '#475569' : '#CBD5E1'}`,
+                        color: reader?.isPremium ? '#E2E8F0' : '#475569',
                         fontSize: '12px',
                         fontWeight: 700,
                         cursor: 'pointer',
@@ -1387,10 +1387,10 @@ export const ReaderEditPage: React.FC = () => {
               {/* Timing Information Grid */}
               <div
                 style={{
-                  background: reader?.isPremium ? 'rgba(255, 255, 255, 0.85)' : '#FFFFFF',
+                  background: reader?.isPremium ? '#1E293B' : '#FFFFFF',
                   borderRadius: '12px',
                   padding: '14px 18px',
-                  border: `1px solid ${reader?.isPremium ? '#FDE68A' : '#E2E8F0'}`,
+                  border: `1px solid ${reader?.isPremium ? '#334155' : '#E2E8F0'}`,
                   display: 'grid',
                   gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
                   gap: '14px',
@@ -1398,24 +1398,24 @@ export const ReaderEditPage: React.FC = () => {
                 }}
               >
                 <div>
-                  <div style={{ fontSize: '11px', fontWeight: 700, color: reader?.isPremium ? '#92400E' : '#64748B', marginBottom: '3px' }}>
+                  <div style={{ fontSize: '11px', fontWeight: 700, color: reader?.isPremium ? '#94A3B8' : '#64748B', marginBottom: '3px' }}>
                     {reader?.isPremium ? 'Қосылған уақыты:' : 'Соңғы қосылған уақыты:'}
                   </div>
-                  <div style={{ fontSize: '13px', fontWeight: 800, color: '#1E293B' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 800, color: reader?.isPremium ? '#FFFFFF' : '#1E293B' }}>
                     {reader?.premiumStartsAt ? formatDisplayDateDot(reader.premiumStartsAt) : (reader?.isPremium ? 'Белгісіз' : 'Бұрын қосылмаған')}
                   </div>
                 </div>
 
                 <div>
-                  <div style={{ fontSize: '11px', fontWeight: 700, color: reader?.isPremium ? '#92400E' : '#64748B', marginBottom: '3px' }}>
+                  <div style={{ fontSize: '11px', fontWeight: 700, color: reader?.isPremium ? '#94A3B8' : '#64748B', marginBottom: '3px' }}>
                     {reader?.isPremium ? 'Аяқталу мерзімі:' : 'Өшірілген / аяқталған уақыты:'}
                   </div>
-                  <div style={{ fontSize: '13px', fontWeight: 800, color: '#1E293B' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 800, color: reader?.isPremium ? '#FFFFFF' : '#1E293B' }}>
                     {reader?.premiumExpiresAt ? (
                       <>
                         {formatDisplayDateDot(reader.premiumExpiresAt)}
                         {reader?.isPremium && (
-                          <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748B', marginLeft: '6px' }}>
+                          <span style={{ fontSize: '12px', fontWeight: 700, color: '#F59E0B', marginLeft: '6px' }}>
                             ({getRemainingDays(reader.premiumExpiresAt)} күн қалды)
                           </span>
                         )}
