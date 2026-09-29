@@ -382,15 +382,7 @@ export const AudioPlayerPage: React.FC = () => {
             </span>
           </div>
 
-          <div className="flex items-center gap-1.5 z-10">
-            <button
-              type="button"
-              onClick={() => setShowChaptersDrawer(true)}
-              className="w-10 h-10 rounded-full bg-white/5 active:bg-white/15 border border-white/10 flex items-center justify-center text-slate-200 transition"
-              title="Тараулар тізімі"
-            >
-              <List className="w-5 h-5" />
-            </button>
+          <div className="flex items-center z-10">
             <button
               type="button"
               onClick={handleToggleBookmark}
