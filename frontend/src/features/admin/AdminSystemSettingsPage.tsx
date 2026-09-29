@@ -659,53 +659,36 @@ export const AdminSystemSettingsPage: React.FC = () => {
 
         {/* 3. Payment & Pricing */}
         <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
-          <div className="flex items-center gap-2.5 mb-4 pb-4 border-b border-slate-100">
-            <div className="w-9 h-9 rounded-xl bg-red-50 text-red-600 flex items-center justify-center">
-              <CreditCard className="w-5 h-5" />
+          <div className="flex items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-100 flex-wrap">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-red-50 text-red-600 flex items-center justify-center">
+                <CreditCard className="w-5 h-5" />
+              </div>
+              <h3 className="text-base font-bold text-slate-900">Төлем Реквизиттері және Бағалар</h3>
             </div>
-            <h3 className="text-base font-bold text-slate-900">Төлем Реквизиттері және Бағалар</h3>
-          </div>
 
-          {/* AI Receipt Verification Mode Toggle */}
-          <div className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-orange-50/70 to-amber-50/70 border border-orange-200/80 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-start gap-3">
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${
+            {/* AI Receipt Verification Mode Toggle */}
+            <div className="px-3.5 py-2 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center gap-2.5">
+              <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-colors ${
                 settings.aiReceiptVerificationEnabled !== false
-                  ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
+                  ? 'bg-emerald-600 text-white shadow-sm'
                   : 'bg-slate-200 text-slate-500'
               }`}>
-                <Bot className="w-5 h-5" />
+                <Bot className="w-4 h-4" />
               </div>
-              <div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h4 className="text-sm font-bold text-slate-900">ЖИ арқылы чекті автоматты тексеру (OpenAI Vision)</h4>
-                  {settings.aiReceiptVerificationEnabled !== false ? (
-                    <span className="px-2 py-0.5 text-[10px] font-black rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
-                      ЖИ РЕЖИМІ ҚОСУЛЫ
-                    </span>
-                  ) : (
-                    <span className="px-2 py-0.5 text-[10px] font-black rounded-full bg-amber-100 text-amber-800 border border-amber-300">
-                      ҚОЛМЕН ТЕКСЕРУ РЕЖИМІ (PENDING)
-                    </span>
-                  )}
-                </div>
-                <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                  {settings.aiReceiptVerificationEnabled !== false
-                    ? 'Оқырман салған чектерді жасанды интеллект 3–5 секундта автоматты тексереді. Егер ЖИ токені бітсе, чек автоматты түрде админнің қолмен тексеруіне (PENDING) бағытталады.'
-                    : 'ЖИ өшірулі. Барлық жаңадан жіберілген чектер бірден күтуге (PENDING) түседі және оны админ өзі қолмен мақұлдайды.'}
-                </p>
-              </div>
+              <span className="text-xs font-bold text-slate-900 select-none">
+                ЖИ Тексеру
+              </span>
+              <label className="relative inline-flex items-center cursor-pointer ml-1">
+                <input
+                  type="checkbox"
+                  checked={settings.aiReceiptVerificationEnabled !== false}
+                  onChange={(e) => setSettings({ ...settings, aiReceiptVerificationEnabled: e.target.checked })}
+                  className="sr-only peer"
+                />
+                <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+              </label>
             </div>
-
-            <label className="relative inline-flex items-center cursor-pointer shrink-0 self-end sm:self-center">
-              <input
-                type="checkbox"
-                checked={settings.aiReceiptVerificationEnabled !== false}
-                onChange={(e) => setSettings({ ...settings, aiReceiptVerificationEnabled: e.target.checked })}
-                className="sr-only peer"
-              />
-              <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#F08000]"></div>
-            </label>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
