@@ -451,7 +451,7 @@ export const AudioPlayerPage: React.FC = () => {
               {activeBook.title}
             </h2>
             <p className="text-xs xs:text-sm font-medium text-slate-400 truncate max-w-full mt-0.5">
-              {activeBook.author} {activeBook.audioNarrator ? `• ${activeBook.audioNarrator}` : ''}
+              {activeBook.author}
             </p>
           </div>
 
