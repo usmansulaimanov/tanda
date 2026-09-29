@@ -815,7 +815,7 @@ export const ReaderCreatePage: React.FC = () => {
                   rows={2}
                   value={messageText}
                   onChange={(e) => setMessageText(e.target.value)}
-                  placeholder="Мысалы: Қош келдіңіз! Сізге кітаптарды оқуға арналған 30 күндік арнайы сыйлық берілді."
+                  placeholder="Қош келдіңіз!"
                   className="form-input"
                   style={{ resize: 'vertical', minHeight: '64px', fontSize: '13px', lineHeight: 1.5 }}
                 />
