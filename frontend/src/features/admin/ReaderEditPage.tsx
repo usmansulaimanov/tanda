@@ -76,18 +76,15 @@ const formatDisplayDate = (d?: string | null) => {
   }
 };
 
-const formatDisplayDateTime = (d?: string | null) => {
+const formatDisplayDateDot = (d?: string | null) => {
   if (!d) return '—';
   try {
     const dt = new Date(d);
     if (isNaN(dt.getTime())) return d;
-    return dt.toLocaleDateString('kk-KZ', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    const day = String(dt.getDate()).padStart(2, '0');
+    const month = String(dt.getMonth() + 1).padStart(2, '0');
+    const year = dt.getFullYear();
+    return `${day}.${month}.${year}`;
   } catch {
     return d;
   }
@@ -400,7 +397,7 @@ export const ReaderEditPage: React.FC = () => {
       if (res.success && res.user) {
         setReader(res.user);
         setCustomDays('');
-        showToast(`Оқырманға ${daysToGrant} күндік Премиум жазылым сәтті қосылды! 👑`, 'success');
+        showToast(`Оқырманға ${daysToGrant} күндік Премиум жазылым сәтті қосылды!`, 'success');
       } else {
         showToast(res.error || 'Премиум қосу кезінде қате орын алды', 'error');
       }
@@ -1257,10 +1254,18 @@ export const ReaderEditPage: React.FC = () => {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      fontSize: '16px',
                     }}
                   >
-                    {reader?.isPremium ? '👑' : '📖'}
+                    {reader?.isPremium ? (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D97706" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"></path>
+                      </svg>
+                    ) : (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748B" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                      </svg>
+                    )}
                   </span>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -1278,10 +1283,9 @@ export const ReaderEditPage: React.FC = () => {
                           color: reader?.isPremium ? '#B45309' : '#475569',
                           display: 'inline-flex',
                           alignItems: 'center',
-                          gap: '4px',
                         }}
                       >
-                        {reader?.isPremium ? 'Премиум 👑' : 'Стандарт 📖'}
+                        {reader?.isPremium ? 'Премиум' : 'Стандарт'}
                       </span>
                     </div>
                     <p style={{ margin: '4px 0 0', fontSize: '12px', color: reader?.isPremium ? '#92400E' : 'var(--text-mid)' }}>
@@ -1398,7 +1402,7 @@ export const ReaderEditPage: React.FC = () => {
                     {reader?.isPremium ? 'Қосылған уақыты:' : 'Соңғы қосылған уақыты:'}
                   </div>
                   <div style={{ fontSize: '13px', fontWeight: 800, color: '#1E293B' }}>
-                    {reader?.premiumStartsAt ? formatDisplayDateTime(reader.premiumStartsAt) : (reader?.isPremium ? 'Белгісіз' : 'Бұрын қосылмаған')}
+                    {reader?.premiumStartsAt ? formatDisplayDateDot(reader.premiumStartsAt) : (reader?.isPremium ? 'Белгісіз' : 'Бұрын қосылмаған')}
                   </div>
                 </div>
 
@@ -1406,12 +1410,12 @@ export const ReaderEditPage: React.FC = () => {
                   <div style={{ fontSize: '11px', fontWeight: 700, color: reader?.isPremium ? '#92400E' : '#64748B', marginBottom: '3px' }}>
                     {reader?.isPremium ? 'Аяқталу мерзімі:' : 'Өшірілген / аяқталған уақыты:'}
                   </div>
-                  <div style={{ fontSize: '13px', fontWeight: 800, color: reader?.isPremium ? '#15803D' : '#64748B' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 800, color: '#1E293B' }}>
                     {reader?.premiumExpiresAt ? (
                       <>
-                        {formatDisplayDateTime(reader.premiumExpiresAt)}
+                        {formatDisplayDateDot(reader.premiumExpiresAt)}
                         {reader?.isPremium && (
-                          <span style={{ fontSize: '11px', fontWeight: 700, color: '#B45309', marginLeft: '6px' }}>
+                          <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748B', marginLeft: '6px' }}>
                             ({getRemainingDays(reader.premiumExpiresAt)} күн қалды)
                           </span>
                         )}
@@ -1503,7 +1507,7 @@ export const ReaderEditPage: React.FC = () => {
                         marginLeft: 'auto',
                       }}
                     >
-                      👑 {isGrantingPremium ? 'Қосылуда...' : 'Премиумды қосу'}
+                      {isGrantingPremium ? 'Қосылуда...' : 'Премиумды қосу'}
                     </button>
                   </div>
                 </div>
