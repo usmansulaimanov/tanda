@@ -31,14 +31,12 @@ const KAZAKH_MONTHS = [
   'Шілде', 'Тамыз', 'Қыркүйек', 'Қазан', 'Қараша', 'Желтоқсан'
 ];
 
-export const formatMonthYear = (ym: string): string => {
-  if (!ym || ym === 'ALL') return 'Барлық уақыт';
-  const parts = ym.split('-');
-  if (parts.length < 2) return ym;
-  const year = parts[0];
-  const monthIdx = parseInt(parts[1], 10) - 1;
-  const monthName = KAZAKH_MONTHS[monthIdx] || parts[1];
-  return `${monthName} ${year}`;
+export const getDateFilterTitle = (year: string, month: string): string => {
+  if (year === 'ALL' && month === 'ALL') return 'Жалпы өтініштер';
+  if (year !== 'ALL' && month === 'ALL') return `${year} жыл өтініштері`;
+  const monthName = KAZAKH_MONTHS[parseInt(month, 10) - 1] || '';
+  if (year === 'ALL' && month !== 'ALL') return `${monthName} айының өтініштері`;
+  return `${monthName} ${year} өтініштері`;
 };
 
 interface RejectionTemplate {
@@ -108,6 +106,7 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
 
   const [isAiEnabled, setIsAiEnabled] = useState<boolean>(true);
   const [isTogglingAi, setIsTogglingAi] = useState<boolean>(false);
+  const [selectedYear, setSelectedYear] = useState<string>('ALL');
   const [selectedMonth, setSelectedMonth] = useState<string>('ALL');
 
   const { showToast } = useToastStore();
@@ -250,39 +249,43 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
     return planName || '1 ай';
   };
 
-  const availableMonths = useMemo(() => {
-    const monthSet = new Set<string>();
-    const now = new Date();
-    const currentYm = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-    monthSet.add(currentYm);
+  const availableYears = useMemo(() => {
+    const yearSet = new Set<string>();
+    const nowYear = new Date().getFullYear().toString();
+    yearSet.add(nowYear);
 
     requests.forEach((r) => {
-      if (r.createdAt && r.createdAt.length >= 7) {
-        monthSet.add(r.createdAt.slice(0, 7));
+      if (r.createdAt && r.createdAt.length >= 4) {
+        yearSet.add(r.createdAt.slice(0, 4));
       }
     });
 
-    return Array.from(monthSet).sort((a, b) => b.localeCompare(a));
+    return Array.from(yearSet).sort((a, b) => b.localeCompare(a));
   }, [requests]);
 
-  const monthFilteredRequests = useMemo(() => {
-    if (selectedMonth === 'ALL') return requests;
+  const dateFilteredRequests = useMemo(() => {
     return requests.filter((r) => {
       if (!r.createdAt) return false;
-      return r.createdAt.startsWith(selectedMonth);
-    });
-  }, [requests, selectedMonth]);
+      const reqYear = r.createdAt.slice(0, 4);
+      const reqMonth = r.createdAt.slice(5, 7);
 
-  const pendingCount = monthFilteredRequests.filter((r) => r.status === 'PENDING').length;
-  const approvedCount = monthFilteredRequests.filter((r) => r.status === 'APPROVED').length;
-  const rejectedCount = monthFilteredRequests.filter((r) => r.status === 'REJECTED' || r.status === 'REVOKED').length;
-  const duplicateCount = monthFilteredRequests.filter((r) => r.aiStatus === 'DUPLICATE').length;
-  const totalRevenue = monthFilteredRequests
+      if (selectedYear !== 'ALL' && reqYear !== selectedYear) return false;
+      if (selectedMonth !== 'ALL' && reqMonth !== selectedMonth) return false;
+
+      return true;
+    });
+  }, [requests, selectedYear, selectedMonth]);
+
+  const pendingCount = dateFilteredRequests.filter((r) => r.status === 'PENDING').length;
+  const approvedCount = dateFilteredRequests.filter((r) => r.status === 'APPROVED').length;
+  const rejectedCount = dateFilteredRequests.filter((r) => r.status === 'REJECTED' || r.status === 'REVOKED').length;
+  const duplicateCount = dateFilteredRequests.filter((r) => r.aiStatus === 'DUPLICATE').length;
+  const totalRevenue = dateFilteredRequests
     .filter((r) => r.status === 'APPROVED')
     .reduce((sum, r) => sum + (r.amountKzt || 0), 0);
 
   const filteredRequests = useMemo(() => {
-    return monthFilteredRequests.filter((r) => {
+    return dateFilteredRequests.filter((r) => {
       if (statusFilter !== 'ALL') {
         if (statusFilter === 'APPROVED' && r.status !== 'APPROVED') return false;
         if (statusFilter === 'REJECTED' && r.status !== 'REJECTED' && r.status !== 'REVOKED') return false;
@@ -299,7 +302,7 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
         (r.receiptNumber && r.receiptNumber.toLowerCase().includes(q))
       );
     });
-  }, [monthFilteredRequests, statusFilter, searchQuery]);
+  }, [dateFilteredRequests, statusFilter, searchQuery]);
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -320,20 +323,42 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-3 flex-wrap">
+          {/* Year Filter Selector */}
+          <div className="px-3.5 py-2 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-slate-500 shrink-0" />
+            <span className="text-xs text-slate-500 font-medium">Жыл:</span>
+            <select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(e.target.value)}
+              className="text-xs font-bold text-slate-900 bg-transparent focus:outline-none cursor-pointer pr-1"
+            >
+              <option value="ALL">Жалпы</option>
+              {availableYears.map((yr) => (
+                <option key={yr} value={yr}>
+                  {yr} жыл
+                </option>
+              ))}
+            </select>
+          </div>
+
           {/* Month Filter Selector */}
           <div className="px-3.5 py-2 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center gap-2">
             <Calendar className="w-4 h-4 text-slate-500 shrink-0" />
+            <span className="text-xs text-slate-500 font-medium">Ай:</span>
             <select
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(e.target.value)}
               className="text-xs font-bold text-slate-900 bg-transparent focus:outline-none cursor-pointer pr-1"
             >
-              <option value="ALL">Барлық уақыт (Жалпы)</option>
-              {availableMonths.map((ym) => (
-                <option key={ym} value={ym}>
-                  {formatMonthYear(ym)}
-                </option>
-              ))}
+              <option value="ALL">Жалпы</option>
+              {KAZAKH_MONTHS.map((mName, idx) => {
+                const mVal = String(idx + 1).padStart(2, '0');
+                return (
+                  <option key={mVal} value={mVal}>
+                    {mName}
+                  </option>
+                );
+              })}
             </select>
           </div>
 
@@ -374,9 +399,9 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
         <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
           <div>
             <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-              {selectedMonth === 'ALL' ? 'Барлық өтініштер' : `${formatMonthYear(selectedMonth)} өтініштері`}
+              {getDateFilterTitle(selectedYear, selectedMonth)}
             </p>
-            <p className="text-2xl font-black text-slate-900 mt-1">{monthFilteredRequests.length}</p>
+            <p className="text-2xl font-black text-slate-900 mt-1">{dateFilteredRequests.length}</p>
           </div>
           <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700">
             <Clock className="w-5 h-5" />
@@ -432,7 +457,7 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
 
         <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl flex-wrap">
           {[
-            { label: 'Барлығы', val: 'ALL', count: monthFilteredRequests.length },
+            { label: 'Барлығы', val: 'ALL', count: dateFilteredRequests.length },
             { label: 'Мақұлданған', val: 'APPROVED', count: approvedCount },
             { label: 'Бас тартылған', val: 'REJECTED', count: rejectedCount },
             { label: 'Күтілуде', val: 'PENDING', count: pendingCount },
