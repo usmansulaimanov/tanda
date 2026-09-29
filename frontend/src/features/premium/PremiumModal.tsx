@@ -602,17 +602,10 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
                       </div>
                     </div>
 
-                    <div className="mt-3 p-3 rounded-xl bg-orange-500/10 border border-orange-500/20 text-xs text-slate-700 flex items-start gap-2.5">
-                      <AlertCircle className="w-4 h-4 text-[#F08000] shrink-0 mt-0.5" />
-                      <div className="leading-relaxed">
-                        <span className="font-bold text-slate-900 block mb-0.5">
-                          Маңызды ескерту:
-                        </span>
-                        <span>
-                          {settings?.bankName || 'Kaspi'} қосымшасында <strong>дәл осы соманы ({currentPlan.price.toLocaleString('kk-KZ')} ₸)</strong> ғана аударыңыз. Бұдан артық та, кем де салмаңыз, әйтпесе төлем есептелмейді және жазылым іске қосылмайды. Төлем жасалған соң чекті төменде тіркеңіз.
-                        </span>
-                      </div>
-                    </div>
+                    <p className="mt-3 text-xs text-slate-600 leading-relaxed">
+                      <strong className="font-bold text-slate-900">Маңызды ескерту:</strong>{' '}
+                      {settings?.bankName || 'Kaspi'} қосымшасында <strong>дәл осы соманы ({currentPlan.price.toLocaleString('kk-KZ')} ₸)</strong> ғана аударыңыз. Бұдан артық та, кем де салмаңыз, әйтпесе төлем есептелмейді және жазылым іске қосылмайды. Төлем жасалған соң чекті төменде тіркеңіз.
+                    </p>
                   </div>
                 );
               })()}
