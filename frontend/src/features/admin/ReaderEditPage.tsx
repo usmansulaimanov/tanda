@@ -1523,7 +1523,7 @@ export const ReaderEditPage: React.FC = () => {
               <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
                 <div style={{ minWidth: '180px' }}>
                   <label className="form-label" style={{ fontSize: '12px', marginBottom: '6px' }}>
-                    Көріну мерзімі (күнмен):
+                    Көріну мерзімі:
                   </label>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <input
