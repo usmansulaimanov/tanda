@@ -588,7 +588,7 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
                         <div>
                           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-900 border border-rose-300">
                             <Ban className="w-3 h-3" />
-                            Тоқтатылған (Жарамсыз)
+                            Тоқтатылған
                           </span>
                           {req.rejectionReason && (
                             <p className="text-[11px] text-rose-700 font-medium mt-1 max-w-xs leading-tight">
