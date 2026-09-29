@@ -40,10 +40,24 @@ export const Layout: React.FC = () => {
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
-  }, [location.pathname]);
+    if (isListenPage && typeof window !== 'undefined' && window.innerWidth < 768) {
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = '';
+        document.documentElement.style.overflow = '';
+      };
+    }
+  }, [location.pathname, isListenPage]);
 
   return (
-    <div className="flex flex-col min-h-screen w-full max-w-full overflow-x-hidden">
+    <div
+      className={`flex flex-col w-full max-w-full overflow-x-hidden ${
+        isListenPage
+          ? 'h-[100dvh] max-h-[100dvh] overflow-hidden bg-[#111317] md:bg-transparent md:h-auto md:max-h-none md:overflow-visible md:min-h-screen'
+          : 'min-h-screen'
+      }`}
+    >
       {!isAuthorOrStaff && <QuoteNotificationRunner />}
       <NewsNotificationRunner />
       <MessageNotificationRunner />
@@ -54,7 +68,7 @@ export const Layout: React.FC = () => {
       <main
         className={`flex-1 flex flex-col ${
           isListenPage
-            ? 'pb-0 md:pb-10'
+            ? 'h-full max-h-full overflow-hidden md:h-auto md:max-h-none md:overflow-visible pb-0 md:pb-10'
             : isEligibleForPlayer && currentBook
             ? 'pb-36 md:pb-24'
             : 'pb-20 md:pb-0'

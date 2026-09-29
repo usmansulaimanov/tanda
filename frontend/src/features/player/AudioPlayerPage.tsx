@@ -351,7 +351,7 @@ export const AudioPlayerPage: React.FC = () => {
       {/* ======================================================== */}
       {/* MOBILE PLAYER (Yandex Music / Spotify style thumb zone)   */}
       {/* ======================================================== */}
-      <div className="flex md:hidden flex-col justify-between flex-1 w-full bg-[#111317] text-white px-4 pt-3 sm:pt-4 pb-8 min-h-[100dvh] relative overflow-hidden select-none">
+      <div className="flex md:hidden flex-col justify-between flex-1 w-full h-[100dvh] max-h-[100dvh] overflow-hidden bg-[#111317] text-white px-4 pt-2 pb-4 relative select-none">
         
         {/* Subtle background ambient blur from book gradient */}
         <div
@@ -399,8 +399,8 @@ export const AudioPlayerPage: React.FC = () => {
         </div>
 
         {/* 2. Center Large Artwork */}
-        <div className="flex-1 flex items-center justify-center py-4 px-2 min-h-0 relative z-10">
-          <div className="relative w-full max-w-[270px] xs:max-w-[300px] aspect-square rounded-3xl overflow-hidden shadow-2xl border border-white/10 group">
+        <div className="flex-1 min-h-0 flex items-center justify-center py-2 px-2 relative z-10">
+          <div className="relative h-full max-h-[30vh] xs:max-h-[34vh] max-w-[260px] aspect-square rounded-3xl overflow-hidden shadow-2xl border border-white/10 group">
             {activeBook.coverImage ? (
               <img
                 src={activeBook.coverImage}
