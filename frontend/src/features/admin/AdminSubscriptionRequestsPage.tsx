@@ -314,40 +314,40 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
             <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Барлық өтініштер</p>
             <p className="text-2xl font-black text-slate-900 mt-1">{requests.length}</p>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600">
+          <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700">
             <Clock className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-emerald-200 shadow-sm flex items-center justify-between">
+        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-xs font-bold text-emerald-700 uppercase tracking-wider">Мақұлданған (Шын)</p>
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Мақұлданған</p>
             <div className="flex items-baseline gap-2 mt-1">
-              <span className="text-2xl font-black text-emerald-950">{approvedCount}</span>
-              <span className="text-xs font-bold text-emerald-600">({totalRevenue.toLocaleString('kk-KZ')} ₸)</span>
+              <span className="text-2xl font-black text-slate-900">{approvedCount}</span>
+              <span className="text-xs font-bold text-slate-500">({totalRevenue.toLocaleString('kk-KZ')} ₸)</span>
             </div>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700">
             <CheckCircle2 className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-rose-200 shadow-sm flex items-center justify-between">
+        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-xs font-bold text-rose-700 uppercase tracking-wider">Өтірік / Бас тартылған</p>
-            <p className="text-2xl font-black text-rose-950 mt-1">{rejectedCount}</p>
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Бас тартылған</p>
+            <p className="text-2xl font-black text-slate-900 mt-1">{rejectedCount}</p>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700">
             <XCircle className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-purple-200 shadow-sm flex items-center justify-between">
+        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-xs font-bold text-purple-700 uppercase tracking-wider">Қайталанған (Дубликат)</p>
-            <p className="text-2xl font-black text-purple-950 mt-1">{duplicateCount}</p>
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Дубликат</p>
+            <p className="text-2xl font-black text-slate-900 mt-1">{duplicateCount}</p>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700">
             <AlertTriangle className="w-5 h-5" />
           </div>
         </div>
