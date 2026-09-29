@@ -41,7 +41,26 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+    <!-- Schema.org: Google-ге бренд + әлеуметтік желілер байланысы -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Tanda",
+      "url": "https://tandamen.kz",
+      "logo": "https://tandamen.kz/tanda-pwa-icon.png",
+      "description": "Tanda — қазақ тіліндегі аудиокітаптар мен электронды кітаптар платформасы",
+      "sameAs": [
+        "https://www.instagram.com/tandamen",
+        "https://www.tiktok.com/@tandamen",
+        "https://www.youtube.com/@tandamen",
+        "https://t.me/tandamen"
+      ]
+    }
+    </script>
   </head>
+
   <body class="bg-[#F8FAFC] text-slate-900 antialiased min-h-screen">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
