@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   CheckCircle2, 
   XCircle, 
@@ -16,7 +16,8 @@ import {
   HelpCircle,
   Send,
   MessageSquare,
-  Bot
+  Bot,
+  Calendar
 } from 'lucide-react';
 import { premiumApi } from '../../shared/api/premium.api';
 import { systemApi } from '../../shared/api/system.api';
@@ -24,6 +25,21 @@ import { SubscriptionPaymentRequest } from '../../types';
 import { useToastStore } from '../../store/useToastStore';
 import { useQueryClient } from '@tanstack/react-query';
 import { Modal } from '../../components/ui/Modal';
+
+const KAZAKH_MONTHS = [
+  'Қаңтар', 'Ақпан', 'Наурыз', 'Сәуір', 'Мамыр', 'Маусым',
+  'Шілде', 'Тамыз', 'Қыркүйек', 'Қазан', 'Қараша', 'Желтоқсан'
+];
+
+export const formatMonthYear = (ym: string): string => {
+  if (!ym || ym === 'ALL') return 'Барлық уақыт';
+  const parts = ym.split('-');
+  if (parts.length < 2) return ym;
+  const year = parts[0];
+  const monthIdx = parseInt(parts[1], 10) - 1;
+  const monthName = KAZAKH_MONTHS[monthIdx] || parts[1];
+  return `${monthName} ${year}`;
+};
 
 interface RejectionTemplate {
   id: string;
@@ -92,6 +108,7 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
 
   const [isAiEnabled, setIsAiEnabled] = useState<boolean>(true);
   const [isTogglingAi, setIsTogglingAi] = useState<boolean>(false);
+  const [selectedMonth, setSelectedMonth] = useState<string>('ALL');
 
   const { showToast } = useToastStore();
   const queryClient = useQueryClient();
@@ -127,9 +144,7 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
   const loadRequests = async () => {
     setIsLoading(true);
     try {
-      const data = await premiumApi.getAllSubscriptionRequestsAdmin(
-        statusFilter === 'ALL' ? undefined : statusFilter
-      );
+      const data = await premiumApi.getAllSubscriptionRequestsAdmin(undefined);
       setRequests(data);
       queryClient.invalidateQueries({ queryKey: ['adminPendingSubscriptionRequests'] });
     } catch (err) {
@@ -141,11 +156,8 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
 
   useEffect(() => {
     loadAiSetting();
-  }, []);
-
-  useEffect(() => {
     loadRequests();
-  }, [statusFilter]);
+  }, []);
 
   const handleApprove = async (id: string, name?: string) => {
     if (!window.confirm(`Бұл төлемді мақұлдап, ${name || 'оқырманға'} Премиум жазылымды қосқыңыз келе ме?`)) {
@@ -238,23 +250,56 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
     return planName || '1 ай';
   };
 
-  const filteredRequests = requests.filter((r) => {
-    const q = searchQuery.toLowerCase();
-    const matchesQuery = 
-      (r.userName && r.userName.toLowerCase().includes(q)) ||
-      (r.userEmail && r.userEmail.toLowerCase().includes(q)) ||
-      (r.phoneOrAccount && r.phoneOrAccount.toLowerCase().includes(q)) ||
-      (r.id && r.id.toLowerCase().includes(q));
-    return matchesQuery;
-  });
+  const availableMonths = useMemo(() => {
+    const monthSet = new Set<string>();
+    const now = new Date();
+    const currentYm = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    monthSet.add(currentYm);
 
-  const pendingCount = requests.filter((r) => r.status === 'PENDING').length;
-  const approvedCount = requests.filter((r) => r.status === 'APPROVED').length;
-  const rejectedCount = requests.filter((r) => r.status === 'REJECTED' || r.status === 'REVOKED').length;
-  const duplicateCount = requests.filter((r) => r.aiStatus === 'DUPLICATE').length;
-  const totalRevenue = requests
+    requests.forEach((r) => {
+      if (r.createdAt && r.createdAt.length >= 7) {
+        monthSet.add(r.createdAt.slice(0, 7));
+      }
+    });
+
+    return Array.from(monthSet).sort((a, b) => b.localeCompare(a));
+  }, [requests]);
+
+  const monthFilteredRequests = useMemo(() => {
+    if (selectedMonth === 'ALL') return requests;
+    return requests.filter((r) => {
+      if (!r.createdAt) return false;
+      return r.createdAt.startsWith(selectedMonth);
+    });
+  }, [requests, selectedMonth]);
+
+  const pendingCount = monthFilteredRequests.filter((r) => r.status === 'PENDING').length;
+  const approvedCount = monthFilteredRequests.filter((r) => r.status === 'APPROVED').length;
+  const rejectedCount = monthFilteredRequests.filter((r) => r.status === 'REJECTED' || r.status === 'REVOKED').length;
+  const duplicateCount = monthFilteredRequests.filter((r) => r.aiStatus === 'DUPLICATE').length;
+  const totalRevenue = monthFilteredRequests
     .filter((r) => r.status === 'APPROVED')
     .reduce((sum, r) => sum + (r.amountKzt || 0), 0);
+
+  const filteredRequests = useMemo(() => {
+    return monthFilteredRequests.filter((r) => {
+      if (statusFilter !== 'ALL') {
+        if (statusFilter === 'APPROVED' && r.status !== 'APPROVED') return false;
+        if (statusFilter === 'REJECTED' && r.status !== 'REJECTED' && r.status !== 'REVOKED') return false;
+        if (statusFilter === 'PENDING' && r.status !== 'PENDING') return false;
+      }
+
+      if (!searchQuery.trim()) return true;
+      const q = searchQuery.toLowerCase();
+      return (
+        (r.userName && r.userName.toLowerCase().includes(q)) ||
+        (r.userEmail && r.userEmail.toLowerCase().includes(q)) ||
+        (r.phoneOrAccount && r.phoneOrAccount.toLowerCase().includes(q)) ||
+        (r.id && r.id.toLowerCase().includes(q)) ||
+        (r.receiptNumber && r.receiptNumber.toLowerCase().includes(q))
+      );
+    });
+  }, [monthFilteredRequests, statusFilter, searchQuery]);
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -275,6 +320,23 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-3 flex-wrap">
+          {/* Month Filter Selector */}
+          <div className="px-3.5 py-2 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-slate-500 shrink-0" />
+            <select
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              className="text-xs font-bold text-slate-900 bg-transparent focus:outline-none cursor-pointer pr-1"
+            >
+              <option value="ALL">Барлық уақыт (Жалпы)</option>
+              {availableMonths.map((ym) => (
+                <option key={ym} value={ym}>
+                  {formatMonthYear(ym)}
+                </option>
+              ))}
+            </select>
+          </div>
+
           {/* AI Mode Live Switch */}
           <div className="px-3.5 py-2 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center gap-2.5">
             <div className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
@@ -311,8 +373,10 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Барлық өтініштер</p>
-            <p className="text-2xl font-black text-slate-900 mt-1">{requests.length}</p>
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              {selectedMonth === 'ALL' ? 'Барлық өтініштер' : `${formatMonthYear(selectedMonth)} өтініштері`}
+            </p>
+            <p className="text-2xl font-black text-slate-900 mt-1">{monthFilteredRequests.length}</p>
           </div>
           <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700">
             <Clock className="w-5 h-5" />
@@ -366,9 +430,9 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
           />
         </div>
 
-        <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl">
+        <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl flex-wrap">
           {[
-            { label: 'Барлығы', val: 'ALL', count: requests.length },
+            { label: 'Барлығы', val: 'ALL', count: monthFilteredRequests.length },
             { label: 'Мақұлданған', val: 'APPROVED', count: approvedCount },
             { label: 'Бас тартылған', val: 'REJECTED', count: rejectedCount },
             { label: 'Күтілуде', val: 'PENDING', count: pendingCount },
