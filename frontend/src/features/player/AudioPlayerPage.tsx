@@ -695,46 +695,112 @@ export const AudioPlayerPage: React.FC = () => {
           </div>
         )}
 
-        {/* 8. Mobile Speed Bottom Sheet */}
+        {/* 8. Mobile Speed Bottom Sheet (Compact, inspired by user reference) */}
         {showMobileSpeedMenu && (
           <div
-            className="fixed inset-0 z-50 flex flex-col justify-end bg-black/75 backdrop-blur-sm animate-in fade-in duration-200"
+            className="fixed inset-0 z-50 flex flex-col justify-end bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
             onClick={() => setShowMobileSpeedMenu(false)}
           >
             <div
-              className="w-full bg-[#181a20] rounded-t-3xl border-t border-white/10 p-5 shadow-2xl"
+              className="w-full max-w-lg mx-auto bg-white text-slate-900 rounded-t-[28px] p-5 shadow-2xl relative"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="w-12 h-1 bg-white/20 rounded-full mx-auto mb-4" />
-              <div className="flex items-center justify-between pb-3 border-b border-white/10 mb-4">
-                <h3 className="text-base font-black text-white">Ойнату жылдамдығы</h3>
+              {/* Top drag handle */}
+              <div className="w-10 h-1 bg-slate-200 rounded-full mx-auto mb-3" />
+
+              {/* Header */}
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-base font-black text-slate-900 tracking-tight">
+                  Ойнату жылдамдығы
+                </h3>
                 <button
                   type="button"
                   onClick={() => setShowMobileSpeedMenu(false)}
-                  className="w-8 h-8 rounded-full bg-white/10 text-white flex items-center justify-center active:bg-white/20"
+                  className="w-7 h-7 rounded-full bg-slate-100 active:bg-slate-200 text-slate-500 hover:text-slate-900 flex items-center justify-center transition cursor-pointer"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-3.5 h-3.5" />
                 </button>
               </div>
-              <div className="grid grid-cols-3 gap-2.5">
-                {SPEED_OPTIONS.map((rate) => (
+
+              {/* Slider area */}
+              <div className="relative mb-4 px-1">
+                <div className="flex items-center justify-between text-xs font-bold font-mono text-slate-400 mb-1 px-0.5">
+                  <span>0.5x</span>
+                  <span>2.00x</span>
+                </div>
+
+                {/* Floating tooltip bubble above thumb */}
+                <div className="relative w-full h-6 mb-1">
+                  <div
+                    className="absolute -translate-x-1/2 bg-white text-slate-900 border border-slate-200 shadow-md px-2 py-0.5 rounded-lg text-xs font-black font-mono whitespace-nowrap pointer-events-none transition-[left] duration-75"
+                    style={{
+                      left: `${Math.min(92, Math.max(8, ((playbackRate - 0.5) / 1.5) * 100))}%`,
+                    }}
+                  >
+                    {playbackRate.toFixed(2)}x
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-white" />
+                  </div>
+                </div>
+
+                {/* Range Slider */}
+                <div className="relative flex items-center">
+                  <input
+                    type="range"
+                    min={0.5}
+                    max={2.0}
+                    step={0.05}
+                    value={playbackRate}
+                    onChange={(e) => setPlaybackRate(Number(Number(e.target.value).toFixed(2)))}
+                    className="w-full h-2.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-[#EF7E00]"
+                    style={{ accentColor: '#EF7E00' }}
+                  />
+                </div>
+              </div>
+
+              {/* Presets Row 1 */}
+              <div className="flex items-center justify-center gap-2 mb-2">
+                {[0.5, 0.75, 1].map((rate) => (
                   <button
                     key={rate}
                     type="button"
-                    onClick={() => {
-                      setPlaybackRate(rate);
-                      setShowMobileSpeedMenu(false);
-                    }}
-                    className={`py-3 rounded-2xl text-sm font-black flex items-center justify-center transition border ${
+                    onClick={() => setPlaybackRate(rate)}
+                    className={`px-4 py-1.5 rounded-full text-xs font-bold transition cursor-pointer ${
                       playbackRate === rate
-                        ? 'bg-[#EF7E00] text-white border-[#EF7E00] shadow-md shadow-orange-500/30'
-                        : 'bg-white/5 border-white/10 text-slate-200 active:bg-white/10'
+                        ? 'bg-[#EF7E00] text-white shadow-xs'
+                        : 'bg-slate-50 text-[#EF7E00] active:bg-orange-50 border border-slate-100'
                     }`}
                   >
-                    <span>{rate}x</span>
+                    {rate}x
                   </button>
                 ))}
               </div>
+
+              {/* Presets Row 2 */}
+              <div className="flex items-center justify-center gap-2 mb-4">
+                {[1.25, 1.5, 1.75, 2].map((rate) => (
+                  <button
+                    key={rate}
+                    type="button"
+                    onClick={() => setPlaybackRate(rate)}
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition cursor-pointer ${
+                      playbackRate === rate
+                        ? 'bg-[#EF7E00] text-white shadow-xs'
+                        : 'bg-slate-50 text-[#EF7E00] active:bg-orange-50 border border-slate-100'
+                    }`}
+                  >
+                    {rate}x
+                  </button>
+                ))}
+              </div>
+
+              {/* Close Button */}
+              <button
+                type="button"
+                onClick={() => setShowMobileSpeedMenu(false)}
+                className="w-full py-2.5 rounded-full text-sm font-bold bg-slate-100 active:bg-slate-200 text-slate-800 transition cursor-pointer"
+              >
+                Жабу
+              </button>
             </div>
           </div>
         )}
