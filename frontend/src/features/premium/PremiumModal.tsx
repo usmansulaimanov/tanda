@@ -522,28 +522,28 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
                   : 'sm:grid-cols-1';
 
                 return (
-                  <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-red-50/60 to-orange-50/60 border border-red-100 mb-6">
+                  <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200/90 mb-6">
                     <div className="flex items-center justify-between mb-3">
-                      <span className="text-xs font-bold text-red-900 uppercase tracking-wide flex items-center gap-1.5">
-                        <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
+                      <span className="text-xs font-bold text-slate-900 uppercase tracking-wide flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-slate-900" />
                         {settings?.bankName || 'Kaspi'} аударым бойынша нұсқаулық:
                       </span>
                       {isPhoneVisible ? (
                         <button
                           type="button"
                           onClick={handleCopyPhone}
-                          className="flex items-center gap-1 text-xs font-bold text-red-600 hover:text-red-700 bg-red-100/80 px-2.5 py-1 rounded-lg transition"
+                          className="flex items-center gap-1 text-xs font-bold text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-100 border border-slate-200 shadow-xs px-2.5 py-1 rounded-lg transition cursor-pointer"
                         >
-                          <Copy className="w-3.5 h-3.5" />
+                          <Copy className="w-3.5 h-3.5 text-slate-500" />
                           Нөмірді көшіру
                         </button>
                       ) : isCardVisible ? (
                         <button
                           type="button"
                           onClick={handleCopyCard}
-                          className="flex items-center gap-1 text-xs font-bold text-red-600 hover:text-red-700 bg-red-100/80 px-2.5 py-1 rounded-lg transition"
+                          className="flex items-center gap-1 text-xs font-bold text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-100 border border-slate-200 shadow-xs px-2.5 py-1 rounded-lg transition cursor-pointer"
                         >
-                          <Copy className="w-3.5 h-3.5" />
+                          <Copy className="w-3.5 h-3.5 text-slate-500" />
                           Картаны көшіру
                         </button>
                       ) : null}
@@ -551,7 +551,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
 
                     <div className={`grid grid-cols-1 ${gridColsClass} gap-2 text-xs text-slate-700`}>
                       {isPhoneVisible && (
-                        <div className="bg-white/80 p-2.5 rounded-xl border border-red-100/60 flex items-center justify-between">
+                        <div className="bg-white p-2.5 rounded-xl border border-slate-200/80 shadow-xs flex items-center justify-between">
                           <div>
                             <span className="text-slate-400 block text-[10px]">{settings?.bankName || 'Kaspi'} нөмірі:</span>
                             <span className="font-black text-slate-900 text-sm font-mono">
@@ -562,7 +562,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
                             type="button"
                             onClick={handleCopyPhone}
                             title="Көшіру"
-                            className="p-1 rounded-lg hover:bg-red-50 text-red-600 transition"
+                            className="p-1 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition cursor-pointer"
                           >
                             <Copy className="w-3.5 h-3.5" />
                           </button>
@@ -570,7 +570,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
                       )}
 
                       {isCardVisible && (
-                        <div className="bg-white/80 p-2.5 rounded-xl border border-red-100/60 flex items-center justify-between">
+                        <div className="bg-white p-2.5 rounded-xl border border-slate-200/80 shadow-xs flex items-center justify-between">
                           <div>
                             <span className="text-slate-400 block text-[10px]">{settings?.bankName || 'Банк'} картасы:</span>
                             <span className="font-black text-slate-900 text-sm font-mono">
@@ -581,14 +581,14 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
                             type="button"
                             onClick={handleCopyCard}
                             title="Картаны көшіру"
-                            className="p-1 rounded-lg hover:bg-red-50 text-red-600 transition"
+                            className="p-1 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition cursor-pointer"
                           >
                             <Copy className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       )}
 
-                      <div className="bg-white/80 p-2.5 rounded-xl border border-red-100/60">
+                      <div className="bg-white p-2.5 rounded-xl border border-slate-200/80 shadow-xs">
                         <span className="text-slate-400 block text-[10px]">Алушы (Аты-жөні):</span>
                         <span className="font-bold text-slate-900 text-sm">
                           {settings?.kaspiRecipientName || 'Tanda Platform'}
