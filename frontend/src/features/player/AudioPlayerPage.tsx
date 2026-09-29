@@ -352,11 +352,11 @@ export const AudioPlayerPage: React.FC = () => {
       {/* ======================================================== */}
       {/* MOBILE PLAYER (Yandex Music / Spotify style thumb zone)   */}
       {/* ======================================================== */}
-      <div className="flex md:hidden flex-col justify-between flex-1 w-full h-[100dvh] max-h-[100dvh] overflow-hidden bg-[#111317] text-white px-4 pt-2 pb-4 relative select-none">
+      <div className="flex md:hidden flex-col justify-between flex-1 w-full h-[100dvh] max-h-[100dvh] overflow-hidden bg-gradient-to-b from-[#F0F5FA] via-[#F8FAFC] to-[#FFFFFF] text-slate-900 px-4 pt-2 pb-4 relative select-none">
         
         {/* Subtle background ambient blur from book gradient */}
         <div
-          className="absolute -top-32 left-1/2 -translate-x-1/2 w-80 h-80 rounded-full opacity-25 pointer-events-none blur-3xl"
+          className="absolute -top-32 left-1/2 -translate-x-1/2 w-80 h-80 rounded-full opacity-20 pointer-events-none blur-3xl"
           style={{ background: activeBook.gradient || '#EF7E00' }}
         />
 
@@ -366,7 +366,7 @@ export const AudioPlayerPage: React.FC = () => {
             <button
               type="button"
               onClick={() => navigate(-1)}
-              className="w-10 h-10 rounded-full bg-white/5 active:bg-white/15 border border-white/10 flex items-center justify-center text-slate-200 transition"
+              className="w-10 h-10 rounded-full bg-white active:bg-slate-100 border border-slate-200/80 shadow-xs flex items-center justify-center text-slate-700 transition cursor-pointer"
               title="Жабу"
             >
               <ChevronDown className="w-6 h-6" />
@@ -375,7 +375,7 @@ export const AudioPlayerPage: React.FC = () => {
 
           {/* Exactly horizontally centered narrator */}
           <div className="absolute inset-x-0 mx-auto flex items-center justify-center text-center px-24 pointer-events-none z-0">
-            <span className="text-xs font-bold text-white/90 truncate max-w-full leading-tight">
+            <span className="text-xs font-bold text-slate-700 truncate max-w-full leading-tight">
               {activeBook.audioNarrator || 'Танда Аудио'}
             </span>
           </div>
@@ -387,8 +387,8 @@ export const AudioPlayerPage: React.FC = () => {
               onClick={handleToggleCompleted}
               className={`w-10 h-10 rounded-full border flex items-center justify-center transition cursor-pointer ${
                 isCompleted
-                  ? 'bg-emerald-600 text-white border-emerald-500 shadow-sm'
-                  : 'bg-white/5 border-white/10 text-slate-200 active:bg-white/15'
+                  ? 'bg-emerald-600 text-white border-emerald-500 shadow-xs'
+                  : 'bg-white border-slate-200/80 text-slate-700 shadow-xs active:bg-slate-100'
               }`}
               title={isCompleted ? 'Оқылған' : 'Оқылды деп белгілеу'}
             >
@@ -401,8 +401,8 @@ export const AudioPlayerPage: React.FC = () => {
               onClick={handleToggleBookmark}
               className={`w-10 h-10 rounded-full border flex items-center justify-center transition cursor-pointer ${
                 isSaved
-                  ? 'bg-[#EF7E00] text-white border-[#EF7E00] shadow-sm shadow-orange-500/30'
-                  : 'bg-white/5 border-white/10 text-slate-200 active:bg-white/15'
+                  ? 'bg-[#EF7E00] text-white border-[#EF7E00] shadow-xs'
+                  : 'bg-white border-slate-200/80 text-slate-700 shadow-xs active:bg-slate-100'
               }`}
               title="Таңдаулыға қосу"
             >
@@ -413,7 +413,7 @@ export const AudioPlayerPage: React.FC = () => {
 
         {/* 2. Center Large Artwork (3:4 ratio - enlarged) */}
         <div className="flex-1 min-h-0 flex items-center justify-center py-2 px-3 relative z-10">
-          <div className="relative h-full max-h-[44vh] xs:max-h-[47vh] max-w-[290px] xs:max-w-[330px] aspect-[3/4] rounded-3xl overflow-hidden shadow-2xl border border-white/10 group">
+          <div className="relative h-full max-h-[44vh] xs:max-h-[47vh] max-w-[290px] xs:max-w-[330px] aspect-[3/4] rounded-3xl overflow-hidden shadow-xl shadow-slate-300/40 border border-slate-200/80 group">
             {activeBook.coverImage ? (
               <img
                 src={activeBook.coverImage}
@@ -444,24 +444,24 @@ export const AudioPlayerPage: React.FC = () => {
         {/* 3. Track Info Row */}
         <div className="relative z-10 shrink-0 mb-2">
           <div className="flex flex-col items-center justify-center text-center px-4">
-            <h2 className="text-lg xs:text-xl font-black text-white truncate max-w-full leading-tight tracking-tight">
+            <h2 className="text-lg xs:text-xl font-black text-slate-900 truncate max-w-full leading-tight tracking-tight">
               {activeBook.title}
             </h2>
-            <p className="text-xs xs:text-sm font-medium text-slate-400 truncate max-w-full mt-0.5">
+            <p className="text-xs xs:text-sm font-semibold text-slate-500 truncate max-w-full mt-0.5">
               {activeBook.author}
             </p>
           </div>
 
           {/* Ad Banner only when ad is playing */}
           {isAdPlaying && (
-            <div className="mt-2 flex items-center justify-between gap-2 px-3 py-1.5 rounded-xl bg-amber-500/15 border border-amber-500/30">
+            <div className="mt-2 flex items-center justify-between gap-2 px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200">
               <div className="flex items-center gap-2 min-w-0">
-                <Volume2 className="w-3.5 h-3.5 text-amber-400 animate-pulse shrink-0" />
-                <span className="text-xs font-bold text-amber-200 truncate">
+                <Volume2 className="w-3.5 h-3.5 text-amber-600 animate-pulse shrink-0" />
+                <span className="text-xs font-bold text-amber-800 truncate">
                   {adTitle || 'Tanda Аудио-Жарнама'}
                 </span>
               </div>
-              <span className="text-[11px] font-mono font-black text-amber-400 bg-amber-500/20 px-1.5 py-0.5 rounded shrink-0">
+              <span className="text-[11px] font-mono font-black text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded shrink-0">
                 {Math.max(0, Math.ceil((adDuration || 15) - adProgress))} сек
               </span>
             </div>
@@ -477,14 +477,14 @@ export const AudioPlayerPage: React.FC = () => {
             value={isAdPlaying ? adProgress : progress}
             onChange={handleSeek}
             disabled={isAdPlaying}
-            className="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer accent-[#EF7E00]"
+            className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[#EF7E00]"
             style={{ accentColor: isAdPlaying ? '#F59E0B' : '#EF7E00' }}
           />
-          <div className="flex items-center justify-between text-[11px] font-mono font-semibold text-slate-400 px-0.5 mt-1">
-            <span className={isAdPlaying ? 'text-amber-400 font-bold' : ''}>
+          <div className="flex items-center justify-between text-[11px] font-mono font-semibold text-slate-500 px-0.5 mt-1">
+            <span className={isAdPlaying ? 'text-amber-600 font-bold' : ''}>
               {formatTime(isAdPlaying ? adProgress : progress)}
             </span>
-            <span className={isAdPlaying ? 'text-amber-400 font-bold' : ''}>
+            <span className={isAdPlaying ? 'text-amber-600 font-bold' : ''}>
               {formatTime(isAdPlaying ? (adDuration || 15) : duration)}
             </span>
           </div>
@@ -496,7 +496,7 @@ export const AudioPlayerPage: React.FC = () => {
           <button
             type="button"
             onClick={() => handleSkip(-10)}
-            className="w-11 h-11 rounded-full bg-white/5 active:bg-white/15 border border-white/10 text-slate-200 flex items-center justify-center transition active:scale-95 cursor-pointer shrink-0"
+            className="w-11 h-11 rounded-full bg-white active:bg-slate-100 border border-slate-200/80 shadow-xs text-slate-700 flex items-center justify-center transition active:scale-95 cursor-pointer shrink-0"
             title="10 секунд артқа"
           >
             <RotateCcw className="w-5 h-5 text-[#EF7E00]" />
@@ -506,7 +506,7 @@ export const AudioPlayerPage: React.FC = () => {
           <button
             type="button"
             onClick={prevChapter}
-            className="w-12 h-12 rounded-full bg-white/5 active:bg-white/15 border border-white/10 text-white flex items-center justify-center transition active:scale-95 cursor-pointer shrink-0"
+            className="w-12 h-12 rounded-full bg-white active:bg-slate-100 border border-slate-200/80 shadow-xs text-slate-700 flex items-center justify-center transition active:scale-95 cursor-pointer shrink-0"
             title="Алдыңғы тарау"
           >
             <SkipBack className="w-5 h-5 fill-current" />
@@ -516,7 +516,7 @@ export const AudioPlayerPage: React.FC = () => {
           <button
             type="button"
             onClick={togglePlay}
-            className="w-16 h-16 rounded-full bg-[#EF7E00] active:bg-[#e07500] text-white flex items-center justify-center shadow-xl shadow-orange-500/40 active:scale-95 transition-transform border-2 border-white/20 cursor-pointer shrink-0"
+            className="w-16 h-16 rounded-full bg-[#EF7E00] active:bg-[#e07500] text-white flex items-center justify-center shadow-xl shadow-orange-500/30 active:scale-95 transition-transform border-2 border-white cursor-pointer shrink-0"
             title={isPlaying ? 'Тоқтату (Пауза)' : 'Ойнату'}
           >
             {isPlaying ? (
@@ -530,7 +530,7 @@ export const AudioPlayerPage: React.FC = () => {
           <button
             type="button"
             onClick={nextChapter}
-            className="w-12 h-12 rounded-full bg-white/5 active:bg-white/15 border border-white/10 text-white flex items-center justify-center transition active:scale-95 cursor-pointer shrink-0"
+            className="w-12 h-12 rounded-full bg-white active:bg-slate-100 border border-slate-200/80 shadow-xs text-slate-700 flex items-center justify-center transition active:scale-95 cursor-pointer shrink-0"
             title="Келесі тарау"
           >
             <SkipForward className="w-5 h-5 fill-current" />
@@ -540,7 +540,7 @@ export const AudioPlayerPage: React.FC = () => {
           <button
             type="button"
             onClick={() => handleSkip(10)}
-            className="w-11 h-11 rounded-full bg-white/5 active:bg-white/15 border border-white/10 text-slate-200 flex items-center justify-center transition active:scale-95 cursor-pointer shrink-0"
+            className="w-11 h-11 rounded-full bg-white active:bg-slate-100 border border-slate-200/80 shadow-xs text-slate-700 flex items-center justify-center transition active:scale-95 cursor-pointer shrink-0"
             title="10 секунд алға"
           >
             <RotateCw className="w-5 h-5 text-[#EF7E00]" />
@@ -548,13 +548,13 @@ export const AudioPlayerPage: React.FC = () => {
         </div>
 
         {/* 6. Secondary Auxiliary Toolbar */}
-        <div className="relative z-10 shrink-0 flex items-center justify-around px-2 pt-3.5 pb-1 border-t border-white/10">
+        <div className="relative z-10 shrink-0 flex items-center justify-around px-2 pt-3.5 pb-1 border-t border-slate-200/70">
           {/* Repeat */}
           <button
             type="button"
             onClick={toggleRepeatMode}
             className={`p-2.5 rounded-xl transition flex items-center justify-center cursor-pointer ${
-              repeatMode !== 'off' ? 'text-[#EF7E00] bg-[#EF7E00]/15' : 'text-slate-400 active:text-white'
+              repeatMode !== 'off' ? 'text-[#EF7E00] bg-orange-500/10' : 'text-slate-600 active:text-slate-900'
             }`}
             title="Қайталау"
           >
@@ -566,7 +566,9 @@ export const AudioPlayerPage: React.FC = () => {
             type="button"
             onClick={() => setShowMobileSpeedMenu(true)}
             className={`px-3 py-1.5 rounded-xl transition flex items-center justify-center cursor-pointer ${
-              playbackRate !== 1 ? 'text-[#EF7E00] bg-[#EF7E00]/15 border border-[#EF7E00]/30' : 'text-slate-300 bg-white/5 border border-white/10 active:text-white'
+              playbackRate !== 1
+                ? 'text-[#EF7E00] bg-orange-500/10 border border-[#EF7E00]/30'
+                : 'text-slate-700 bg-white border border-slate-200 shadow-xs active:bg-slate-50'
             }`}
             title="Жылдамдық"
           >
@@ -581,7 +583,7 @@ export const AudioPlayerPage: React.FC = () => {
               setShowMobileTimerMenu(true);
             }}
             className={`p-2.5 rounded-xl transition flex items-center justify-center relative cursor-pointer ${
-              sleepTimerMinutes ? 'text-[#EF7E00] bg-[#EF7E00]/15' : 'text-slate-400 active:text-white'
+              sleepTimerMinutes ? 'text-[#EF7E00] bg-orange-500/10' : 'text-slate-600 active:text-slate-900'
             }`}
             title="Ұйқы таймері"
           >
@@ -597,7 +599,7 @@ export const AudioPlayerPage: React.FC = () => {
           <button
             type="button"
             onClick={() => setShowChaptersDrawer(true)}
-            className="p-2.5 rounded-xl transition flex items-center justify-center text-slate-400 active:text-white cursor-pointer"
+            className="p-2.5 rounded-xl transition flex items-center justify-center text-slate-600 active:text-slate-900 cursor-pointer"
             title="Бөлімдер"
           >
             <BookOpen className="w-5 h-5" />
@@ -607,30 +609,30 @@ export const AudioPlayerPage: React.FC = () => {
         {/* 7. Mobile Chapters Bottom Sheet Drawer */}
         {showChaptersDrawer && (
           <div
-            className="fixed inset-0 z-50 flex flex-col justify-end bg-black/75 backdrop-blur-sm animate-in fade-in duration-200"
+            className="fixed inset-0 z-50 flex flex-col justify-end bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
             onClick={() => setShowChaptersDrawer(false)}
           >
             <div
-              className="w-full bg-[#181a20] rounded-t-3xl border-t border-white/10 p-5 max-h-[80vh] flex flex-col shadow-2xl"
+              className="w-full bg-white text-slate-900 rounded-t-[28px] p-5 max-h-[80vh] flex flex-col shadow-2xl relative"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="w-12 h-1 bg-white/20 rounded-full mx-auto mb-4" />
+              <div className="w-10 h-1 bg-slate-200 rounded-full mx-auto mb-3" />
 
-              <div className="flex items-center justify-between pb-3 border-b border-white/10 mb-2">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-2">
                 <div>
-                  <h3 className="text-base font-black text-white">Кітап бөлімдері</h3>
-                  <p className="text-xs text-slate-400 font-medium">{chapters.length} бөлім бар</p>
+                  <h3 className="text-base font-black text-slate-900 tracking-tight">Кітап бөлімдері</h3>
+                  <p className="text-xs text-slate-500 font-medium">{chapters.length} бөлім бар</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setShowChaptersDrawer(false)}
-                  className="w-8 h-8 rounded-full bg-white/10 text-white flex items-center justify-center active:bg-white/20"
+                  className="w-7 h-7 rounded-full bg-slate-100 active:bg-slate-200 text-slate-500 hover:text-slate-900 flex items-center justify-center transition cursor-pointer"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-3.5 h-3.5" />
                 </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto divide-y divide-white/5 pr-1">
+              <div className="flex-1 overflow-y-auto divide-y divide-slate-100 pr-1">
                 {chapters.map((ch, idx) => {
                   const isActive = chapterIndex === idx && currentBook?.id === activeBook.id;
                   const isExempt = isUserExemptFromPremium();
@@ -646,10 +648,10 @@ export const AudioPlayerPage: React.FC = () => {
                       }}
                       className={`w-full text-left py-3 px-3 rounded-2xl flex items-center justify-between gap-3 transition cursor-pointer my-1 ${
                         isActive
-                          ? 'bg-[#EF7E00]/15 border border-[#EF7E00]/40 text-[#EF7E00]'
+                          ? 'bg-[#EF7E00]/10 border border-[#EF7E00]/30 text-[#EF7E00]'
                           : isLocked
-                          ? 'bg-white/[0.02] text-slate-400'
-                          : 'hover:bg-white/5 text-slate-200'
+                          ? 'bg-slate-50/50 text-slate-400'
+                          : 'hover:bg-slate-50 active:bg-slate-100 text-slate-800'
                       }`}
                     >
                       <div className="flex items-center gap-3 min-w-0">
@@ -657,7 +659,7 @@ export const AudioPlayerPage: React.FC = () => {
                           className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
                             isActive
                               ? 'bg-[#EF7E00] text-white'
-                              : 'bg-white/10 text-slate-300'
+                              : 'bg-slate-100 text-slate-600'
                           }`}
                         >
                           {isActive && isPlaying ? (
@@ -667,11 +669,11 @@ export const AudioPlayerPage: React.FC = () => {
                           )}
                         </div>
                         <div className="min-w-0">
-                          <p className={`text-sm truncate ${isActive ? 'font-black text-[#EF7E00]' : 'font-semibold text-white'}`}>
+                          <p className={`text-sm truncate ${isActive ? 'font-black text-[#EF7E00]' : 'font-semibold text-slate-800'}`}>
                             {ch.title}
                           </p>
                           {isLocked && (
-                            <span className="text-[10px] font-bold text-amber-400 flex items-center gap-1 mt-0.5">
+                            <span className="text-[10px] font-bold text-amber-600 flex items-center gap-1 mt-0.5">
                               <Lock className="w-3 h-3" /> Tanda Premium
                             </span>
                           )}
@@ -680,9 +682,9 @@ export const AudioPlayerPage: React.FC = () => {
 
                       <div className="flex items-center gap-2 shrink-0">
                         {ch.duration && (
-                          <span className="text-xs font-mono text-slate-400">{ch.duration}</span>
+                          <span className="text-xs font-mono font-medium text-slate-400">{ch.duration}</span>
                         )}
-                        {isLocked && <Lock className="w-4 h-4 text-amber-400" />}
+                        {isLocked && <Lock className="w-4 h-4 text-amber-500" />}
                       </div>
                     </button>
                   );

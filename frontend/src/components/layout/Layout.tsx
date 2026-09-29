@@ -54,7 +54,7 @@ export const Layout: React.FC = () => {
     <div
       className={`flex flex-col w-full max-w-full overflow-x-hidden ${
         isListenPage
-          ? 'h-[100dvh] max-h-[100dvh] overflow-hidden bg-[#111317] md:bg-transparent md:h-auto md:max-h-none md:overflow-visible md:min-h-screen'
+          ? 'h-[100dvh] max-h-[100dvh] overflow-hidden bg-[#F8FAFC] md:bg-transparent md:h-auto md:max-h-none md:overflow-visible md:min-h-screen'
           : 'min-h-screen'
       }`}
     >
