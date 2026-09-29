@@ -18,9 +18,21 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Stri
 
     List<RefreshToken> findAllByUserIdAndRevokedFalse(String userId);
 
+    List<RefreshToken> findAllByUserIdAndRevokedFalseOrderByCreatedAtAsc(String userId);
+
+    List<RefreshToken> findAllByUserIdOrderByCreatedAtDesc(String userId);
+
+    Optional<RefreshToken> findByIdAndUserId(String id, String userId);
+
+    long countByUserIdAndRevokedFalse(String userId);
+
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("UPDATE RefreshToken r SET r.revoked = true WHERE r.userId = :userId AND r.revoked = false")
     int revokeAllByUserId(@Param("userId") String userId);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("UPDATE RefreshToken r SET r.revoked = true, r.revocationReason = :reason WHERE r.userId = :userId AND r.revoked = false")
+    int revokeAllByUserIdWithReason(@Param("userId") String userId, @Param("reason") String reason);
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("DELETE FROM RefreshToken r WHERE r.expiresAt < :now OR r.revoked = true")

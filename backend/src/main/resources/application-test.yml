@@ -18,6 +18,8 @@ app:
     secure: false
   admin:
     initial-password: ${ADMIN_INITIAL_PASSWORD:admin123}
+  auth:
+    max-concurrent-devices: ${MAX_CONCURRENT_DEVICES:10}
   rate-limiting:
     enabled: false
   cors:

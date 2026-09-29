@@ -48,10 +48,28 @@ public class RefreshToken {
     @Column(name = "ip_address", length = 45)
     private String ipAddress;
 
+    @Column(name = "device_name", length = 128)
+    private String deviceName;
+
+    @Column(name = "device_type", length = 32)
+    private String deviceType;
+
+    @Column(name = "location", length = 128)
+    private String location;
+
+    @Column(name = "revocation_reason", length = 64)
+    private String revocationReason;
+
+    @Column(name = "last_active_at")
+    private OffsetDateTime lastActiveAt;
+
     @PrePersist
     public void prePersist() {
         if (createdAt == null) {
             createdAt = OffsetDateTime.now();
+        }
+        if (lastActiveAt == null) {
+            lastActiveAt = OffsetDateTime.now();
         }
         if (revoked == null) {
             revoked = false;

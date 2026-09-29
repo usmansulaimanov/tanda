@@ -26,6 +26,7 @@ public class UserController {
 
     private final UserService userService;
     private final com.tanda.service.AuthService authService;
+    private final com.tanda.service.RefreshTokenService refreshTokenService;
 
     @GetMapping("/deleted-archives")
     public ResponseEntity<List<com.tanda.dto.admin.DeletedUserArchiveResponseDto>> getDeletedUserArchives() {
@@ -71,6 +72,23 @@ public class UserController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable String id) {
         userService.deleteUser(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}/sessions")
+    public ResponseEntity<List<com.tanda.dto.user.UserSessionDto>> getUserSessions(@PathVariable String id) {
+        return ResponseEntity.ok(refreshTokenService.getUserSessions(id));
+    }
+
+    @DeleteMapping("/{id}/sessions/{sessionId}")
+    public ResponseEntity<Void> revokeUserSession(@PathVariable String id, @PathVariable String sessionId) {
+        refreshTokenService.revokeUserSession(id, sessionId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{id}/sessions")
+    public ResponseEntity<Void> revokeAllUserSessions(@PathVariable String id) {
+        refreshTokenService.revokeAllUserSessions(id);
         return ResponseEntity.noContent().build();
     }
 }

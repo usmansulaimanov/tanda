@@ -37,6 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@org.springframework.test.context.TestPropertySource(properties = "app.auth.max-concurrent-devices=2")
 public class RefreshTokenIntegrationTest {
 
     @Autowired
@@ -288,5 +289,77 @@ public class RefreshTokenIntegrationTest {
         mockMvc.perform(post("/api/v1/auth/refresh")
                         .cookie(refreshCookie))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("2-device concurrency limit: 3rd device login kicks out the oldest 1st device (FIFO)")
+    void twoDeviceLimit_revokesOldestWhenThirdDeviceLogsIn() throws Exception {
+        LoginRequestDto loginDto = LoginRequestDto.builder()
+                .email(TEST_EMAIL)
+                .password(TEST_PASSWORD)
+                .build();
+
+        // Device 1: iPhone
+        MvcResult dev1Result = mockMvc.perform(post("/api/v1/auth/login")
+                        .header(HttpHeaders.USER_AGENT, "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1")
+                        .header("X-Forwarded-For", "95.59.120.10")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(loginDto)))
+                .andExpect(status().isOk())
+                .andReturn();
+        Cookie dev1Cookie = dev1Result.getResponse().getCookie(AuthController.REFRESH_COOKIE_NAME);
+        assertThat(dev1Cookie).isNotNull();
+
+        // Device 2: MacBook
+        MvcResult dev2Result = mockMvc.perform(post("/api/v1/auth/login")
+                        .header(HttpHeaders.USER_AGENT, "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+                        .header("X-Forwarded-For", "95.59.120.20")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(loginDto)))
+                .andExpect(status().isOk())
+                .andReturn();
+        Cookie dev2Cookie = dev2Result.getResponse().getCookie(AuthController.REFRESH_COOKIE_NAME);
+        assertThat(dev2Cookie).isNotNull();
+
+        // Both devices 1 & 2 are active
+        List<RefreshToken> activeTokensBefore = refreshTokenRepository.findAllByUserIdAndRevokedFalseOrderByCreatedAtAsc(testUser.getId());
+        assertThat(activeTokensBefore).hasSize(2);
+
+        // Device 3: Windows PC logs in
+        MvcResult dev3Result = mockMvc.perform(post("/api/v1/auth/login")
+                        .header(HttpHeaders.USER_AGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+                        .header("X-Forwarded-For", "95.59.120.30")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(loginDto)))
+                .andExpect(status().isOk())
+                .andReturn();
+        Cookie dev3Cookie = dev3Result.getResponse().getCookie(AuthController.REFRESH_COOKIE_NAME);
+        assertThat(dev3Cookie).isNotNull();
+
+        // Now active tokens should still be exactly 2 (Device 2 and Device 3)
+        List<RefreshToken> activeTokensAfter = refreshTokenRepository.findAllByUserIdAndRevokedFalseOrderByCreatedAtAsc(testUser.getId());
+        assertThat(activeTokensAfter).hasSize(2);
+
+        // Device 1 should have been revoked with DEVICE_LIMIT_EXCEEDED
+        List<RefreshToken> allTokens = refreshTokenRepository.findAllByUserIdOrderByCreatedAtDesc(testUser.getId());
+        assertThat(allTokens).hasSize(3);
+        RefreshToken oldestToken = allTokens.get(2);
+        assertThat(oldestToken.getRevoked()).isTrue();
+        assertThat(oldestToken.getRevocationReason()).isEqualTo("DEVICE_LIMIT_EXCEEDED");
+        assertThat(oldestToken.getDeviceName()).contains("iPhone");
+
+        // Device 1 refresh attempt returns 401 Unauthorized
+        mockMvc.perform(post("/api/v1/auth/refresh")
+                        .cookie(dev1Cookie))
+                .andExpect(status().isUnauthorized());
+
+        // Device 2 and Device 3 should still be able to refresh normally
+        mockMvc.perform(post("/api/v1/auth/refresh")
+                        .cookie(dev2Cookie))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post("/api/v1/auth/refresh")
+                        .cookie(dev3Cookie))
+                .andExpect(status().isOk());
     }
 }

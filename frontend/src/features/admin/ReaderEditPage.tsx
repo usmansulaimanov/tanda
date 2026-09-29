@@ -4,6 +4,7 @@ import { useAuthStore, validatePasswordComplexity, generateCompliantPassword, fo
 import { useToastStore } from '../../store/useToastStore';
 import { User } from '../../types';
 import { api } from '../../lib/api';
+import { readersApi, UserSession } from '../../shared/api/readers.api';
 
 const kazakhMonths = [
   'қаңтар', 'ақпан', 'наурыз', 'сәуір', 'мамыр', 'маусым',
@@ -199,6 +200,57 @@ export const ReaderEditPage: React.FC = () => {
   const [isRevokingPremium, setIsRevokingPremium] = useState<boolean>(false);
   const [showRevokeConfirm, setShowRevokeConfirm] = useState<boolean>(false);
 
+  // Device & Session Management States
+  const [sessions, setSessions] = useState<UserSession[]>([]);
+  const [isLoadingSessions, setIsLoadingSessions] = useState<boolean>(false);
+  const [revokingSessionId, setRevokingSessionId] = useState<string | null>(null);
+  const [isRevokingAll, setIsRevokingAll] = useState<boolean>(false);
+
+  const fetchSessions = async (userId: string) => {
+    setIsLoadingSessions(true);
+    try {
+      const data = await readersApi.getUserSessions(userId);
+      setSessions(data || []);
+    } catch (err) {
+      console.warn('Could not load user sessions:', err);
+    } finally {
+      setIsLoadingSessions(false);
+    }
+  };
+
+  const handleRevokeSession = async (sessionId: string) => {
+    if (!id) return;
+    setRevokingSessionId(sessionId);
+    try {
+      await readersApi.revokeUserSession(id, sessionId);
+      showToast('Сессия сәтті жабылды', 'success');
+      await fetchSessions(id);
+    } catch (err) {
+      showToast('Сессияны жабу мүмкін болмады', 'error');
+    } finally {
+      setRevokingSessionId(null);
+    }
+  };
+
+  const handleRevokeAllSessions = async () => {
+    if (!id) return;
+    if (!window.confirm('Бұл оқырманның барлық белсенді сессиясын жауып, барлық құрылғыдан шығарғыңыз келе ме?')) {
+      return;
+    }
+    setIsRevokingAll(true);
+    try {
+      await readersApi.revokeAllUserSessions(id);
+      showToast('Барлық құрылғыдан шығарылды', 'success');
+      await fetchSessions(id);
+    } catch (err) {
+      showToast('Барлық сессияны жабу мүмкін болмады', 'error');
+    } finally {
+      setIsRevokingAll(false);
+    }
+  };
+
+  const activeSessionsCount = sessions.filter((s) => !s.revoked).length;
+
   useEffect(() => {
     if (!id) {
       setIsLoading(false);
@@ -218,6 +270,7 @@ export const ReaderEditPage: React.FC = () => {
 
       if (found) {
         setReader(found);
+        fetchSessions(id);
         if (found.firstName || found.lastName) {
           setFirstName(found.firstName || '');
           setLastName(found.lastName || '');
@@ -1696,6 +1749,272 @@ export const ReaderEditPage: React.FC = () => {
                     </svg>
                     Тарихты тазарту
                   </button>
+                </div>
+              )}
+            </div>
+
+            {/* Devices and Active Sessions Card (2-Device Concurrency Limit) */}
+            <div
+              style={{
+                background: '#FFFFFF',
+                borderRadius: '16px',
+                padding: '24px',
+                border: '1.5px solid #E2E8F0',
+                marginBottom: '24px',
+                boxShadow: '0 2px 10px rgba(0, 0, 0, 0.02)',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: '16px',
+                  flexWrap: 'wrap',
+                  gap: '10px',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div
+                    style={{
+                      width: '36px',
+                      height: '36px',
+                      borderRadius: '10px',
+                      background: '#F0FDF4',
+                      color: '#16A34A',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                      <line x1="8" y1="21" x2="16" y2="21"></line>
+                      <line x1="12" y1="17" x2="12" y2="21"></line>
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-dark)', margin: 0 }}>
+                      Құрылғылар мен белсенді сессиялар
+                    </h3>
+                    <p style={{ margin: '2px 0 0', fontSize: '12px', color: 'var(--text-mid)' }}>
+                      Бір аккаунтқа максималды 2 құрылғы шектеуі (3-ші құрылғы кіргенде 1-шісі автоматты шығарылады)
+                    </p>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span
+                    style={{
+                      fontSize: '12px',
+                      fontWeight: 800,
+                      padding: '4px 10px',
+                      borderRadius: '20px',
+                      background: activeSessionsCount >= 2 ? '#FEF2F2' : '#F0FDF4',
+                      border: activeSessionsCount >= 2 ? '1px solid #FCA5A5' : '1px solid #BBF7D0',
+                      color: activeSessionsCount >= 2 ? '#DC2626' : '#16A34A',
+                    }}
+                  >
+                    Белсенді: {activeSessionsCount} / 2
+                  </span>
+
+                  {activeSessionsCount > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleRevokeAllSessions}
+                      disabled={isRevokingAll}
+                      style={{
+                        padding: '6px 12px',
+                        borderRadius: '8px',
+                        border: '1px solid #FCA5A5',
+                        background: '#FFF5F5',
+                        color: '#DC2626',
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        cursor: isRevokingAll ? 'not-allowed' : 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
+                        <line x1="12" y1="2" x2="12" y2="12"></line>
+                      </svg>
+                      {isRevokingAll ? 'Шығарылуда...' : 'Барлығын шығару'}
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Sessions list */}
+              {isLoadingSessions ? (
+                <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-mid)', fontSize: '13px' }}>
+                  Құрылғылар тізімі жүктелуде...
+                </div>
+              ) : sessions.length === 0 ? (
+                <div
+                  style={{
+                    padding: '24px',
+                    textAlign: 'center',
+                    background: '#F8FAFC',
+                    borderRadius: '12px',
+                    border: '1px dashed #CBD5E1',
+                    color: 'var(--text-mid)',
+                    fontSize: '13px',
+                  }}
+                >
+                  Әзірге тіркелген құрылғылар немесе сессиялар жоқ
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {sessions.map((session) => {
+                    const isRevoked = Boolean(session.revoked);
+                    const isMobile = session.deviceType === 'MOBILE';
+                    const isTablet = session.deviceType === 'TABLET';
+
+                    return (
+                      <div
+                        key={session.id}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '12px 16px',
+                          borderRadius: '12px',
+                          background: isRevoked ? '#F8FAFC' : '#FFFFFF',
+                          border: isRevoked ? '1px solid #E2E8F0' : '1px solid #CBD5E1',
+                          opacity: isRevoked ? 0.65 : 1,
+                          flexWrap: 'wrap',
+                          gap: '12px',
+                        }}
+                      >
+                        {/* Device Icon & Info */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: '220px', flex: 1 }}>
+                          <div
+                            style={{
+                              width: '36px',
+                              height: '36px',
+                              borderRadius: '8px',
+                              background: isRevoked ? '#E2E8F0' : isMobile ? '#EFF6FF' : '#F1F5F9',
+                              color: isRevoked ? '#64748B' : isMobile ? '#2563EB' : '#0F172A',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              flexShrink: 0,
+                            }}
+                          >
+                            {isMobile ? (
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                                <line x1="12" y1="18" x2="12.01" y2="18"></line>
+                              </svg>
+                            ) : isTablet ? (
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect>
+                                <line x1="12" y1="18" x2="12.01" y2="18"></line>
+                              </svg>
+                            ) : (
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                                <line x1="8" y1="21" x2="16" y2="21"></line>
+                                <line x1="12" y1="17" x2="12" y2="21"></line>
+                              </svg>
+                            )}
+                          </div>
+
+                          <div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-dark)' }}>
+                                {session.deviceName || 'Белгісіз құрылғы'}
+                              </span>
+                              {isRevoked ? (
+                                <span
+                                  style={{
+                                    fontSize: '10px',
+                                    fontWeight: 700,
+                                    padding: '2px 6px',
+                                    borderRadius: '6px',
+                                    background: '#F1F5F9',
+                                    color: '#64748B',
+                                  }}
+                                >
+                                  {session.revocationReason === 'DEVICE_LIMIT_EXCEEDED'
+                                    ? 'Ауыстырылды (Лимит 2)'
+                                    : session.revocationReason === 'ADMIN_REVOKED'
+                                    ? 'Әкімші жапқан'
+                                    : 'Сессия аяқталған'}
+                                </span>
+                              ) : (
+                                <span
+                                  style={{
+                                    fontSize: '10px',
+                                    fontWeight: 800,
+                                    padding: '2px 6px',
+                                    borderRadius: '6px',
+                                    background: '#DCFCE7',
+                                    color: '#15803D',
+                                  }}
+                                >
+                                  Белсенді
+                                </span>
+                              )}
+                            </div>
+
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '3px', flexWrap: 'wrap' }}>
+                              {/* Location */}
+                              <span style={{ fontSize: '11px', color: '#475569', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                  <circle cx="12" cy="10" r="3"></circle>
+                                </svg>
+                                {session.location || 'Қазақстан'}
+                              </span>
+
+                              {/* IP Address */}
+                              {session.ipAddress && (
+                                <span style={{ fontSize: '11px', color: '#64748B', fontFamily: 'monospace' }}>
+                                  IP: {session.ipAddress}
+                                </span>
+                              )}
+
+                              {/* Last Active */}
+                              <span style={{ fontSize: '11px', color: '#64748B' }}>
+                                Соңғы белсенділік: {formatDisplayDateDot(session.lastActiveAt || session.createdAt)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Revoke button */}
+                        {!isRevoked && (
+                          <button
+                            type="button"
+                            onClick={() => handleRevokeSession(session.id)}
+                            disabled={revokingSessionId === session.id}
+                            style={{
+                              padding: '6px 14px',
+                              borderRadius: '8px',
+                              border: '1px solid #CBD5E1',
+                              background: '#FFFFFF',
+                              color: '#DC2626',
+                              fontSize: '12px',
+                              fontWeight: 700,
+                              cursor: revokingSessionId === session.id ? 'not-allowed' : 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              transition: 'all 0.15s',
+                            }}
+                            title="Бұл құрылғыны жүйеден шығару"
+                          >
+                            {revokingSessionId === session.id ? 'Жабылуда...' : 'Шығару'}
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>

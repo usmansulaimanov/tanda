@@ -35,6 +35,8 @@ app:
     secure: ${APP_COOKIE_SECURE:true}
   admin:
     initial-password: ${ADMIN_INITIAL_PASSWORD:admin123}
+  auth:
+    max-concurrent-devices: ${MAX_CONCURRENT_DEVICES:2}
   rate-limiting:
     enabled: ${RATE_LIMITING_ENABLED:true}
   cors:

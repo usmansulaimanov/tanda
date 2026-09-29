@@ -703,4 +703,71 @@ public class UserAdminIntegrationTest {
                     .andExpect(status().isForbidden());
         }
     }
+
+    @Nested
+    @DisplayName("Admin Session Management: GET & DELETE /api/v1/admin/users/{id}/sessions")
+    class SessionManagementTests {
+
+        @Autowired
+        private com.tanda.repository.RefreshTokenRepository refreshTokenRepository;
+
+        @Test
+        @DisplayName("6.1 Admin can list user active sessions with device & location details")
+        void testAdminListUserSessions() throws Exception {
+            refreshTokenRepository.save(com.tanda.entity.RefreshToken.builder()
+                    .id("rt-test-session-1")
+                    .userId(CLIENT_1_ID)
+                    .tokenHash("hash-test-session-1")
+                    .deviceName("iPhone 15 Pro (iOS, Safari)")
+                    .deviceType("MOBILE")
+                    .location("Алматы, Қазақстан")
+                    .ipAddress("95.59.120.45")
+                    .expiresAt(OffsetDateTime.now().plusDays(30))
+                    .revoked(false)
+                    .build());
+
+            mockMvc.perform(get("/api/v1/admin/users/" + CLIENT_1_ID + "/sessions")
+                            .header("Authorization", "Bearer " + adminToken))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$", hasSize(greaterThanOrEqualTo(1))))
+                    .andExpect(jsonPath("$[0].deviceName", is("iPhone 15 Pro (iOS, Safari)")))
+                    .andExpect(jsonPath("$[0].deviceType", is("MOBILE")))
+                    .andExpect(jsonPath("$[0].location", is("Алматы, Қазақстан")))
+                    .andExpect(jsonPath("$[0].revoked", is(false)));
+        }
+
+        @Test
+        @DisplayName("6.2 Admin can revoke a single session")
+        void testAdminRevokeSingleSession() throws Exception {
+            com.tanda.entity.RefreshToken session = refreshTokenRepository.save(com.tanda.entity.RefreshToken.builder()
+                    .id("rt-test-to-revoke")
+                    .userId(CLIENT_1_ID)
+                    .tokenHash("hash-test-to-revoke")
+                    .deviceName("Windows компьютер • Chrome")
+                    .deviceType("DESKTOP")
+                    .location("Астана, Қазақстан")
+                    .expiresAt(OffsetDateTime.now().plusDays(30))
+                    .revoked(false)
+                    .build());
+
+            mockMvc.perform(delete("/api/v1/admin/users/" + CLIENT_1_ID + "/sessions/" + session.getId())
+                            .header("Authorization", "Bearer " + adminToken))
+                    .andExpect(status().isNoContent());
+
+            com.tanda.entity.RefreshToken updated = refreshTokenRepository.findById(session.getId()).orElseThrow();
+            assertThat(updated.getRevoked()).isTrue();
+            assertThat(updated.getRevocationReason()).isEqualTo("ADMIN_REVOKED");
+        }
+
+        @Test
+        @DisplayName("6.3 Admin can revoke all sessions for user")
+        void testAdminRevokeAllSessions() throws Exception {
+            mockMvc.perform(delete("/api/v1/admin/users/" + CLIENT_1_ID + "/sessions")
+                            .header("Authorization", "Bearer " + adminToken))
+                    .andExpect(status().isNoContent());
+
+            long activeCount = refreshTokenRepository.countByUserIdAndRevokedFalse(CLIENT_1_ID);
+            assertThat(activeCount).isZero();
+        }
+    }
 }
