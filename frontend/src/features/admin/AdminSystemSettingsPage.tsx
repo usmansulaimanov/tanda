@@ -17,8 +17,6 @@ import {
   ShieldCheck,
   Bold,
   Italic,
-  ListOrdered,
-  List,
   AlignLeft,
   AlignCenter,
   AlignRight,
@@ -138,23 +136,6 @@ export const AdminSystemSettingsPage: React.FC = () => {
           selectionStart + prefix.length,
           selectionStart + prefix.length + (selected ? selected.length : 5)
         );
-      }
-    }, 0);
-  };
-
-  const insertNoticeList = (type: 'numbered' | 'bullet') => {
-    const el = paymentNoticeTextareaRef.current;
-    if (!el) return;
-    const { selectionStart, selectionEnd, value } = el;
-    const before = value.substring(0, selectionStart);
-    const after = value.substring(selectionEnd);
-    const template = type === 'numbered' ? '\n1. \n2. \n3. ' : '\n• \n• \n• ';
-    const newValue = `${before}${template}${after}`;
-    setSettings((prev) => ({ ...prev, paymentNotice: newValue }));
-    setTimeout(() => {
-      if (el) {
-        el.focus();
-        el.setSelectionRange(selectionStart + template.length, selectionStart + template.length);
       }
     }, 0);
   };
@@ -1026,39 +1007,18 @@ export const AdminSystemSettingsPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => applyNoticeFormat('**')}
-                  className="px-2 py-1 rounded-lg text-xs font-black bg-white hover:bg-slate-200 text-slate-800 border border-slate-200 shadow-sm transition cursor-pointer flex items-center gap-1"
+                  className="p-1.5 rounded-lg bg-white hover:bg-slate-200 text-slate-800 border border-slate-200 shadow-sm transition cursor-pointer flex items-center justify-center"
                   title="Қалың қаріп (Bold **мәтін**)"
                 >
-                  <Bold className="w-3.5 h-3.5" />
-                  <span className="text-[11px]">Ж</span>
+                  <Bold className="w-4 h-4" />
                 </button>
                 <button
                   type="button"
                   onClick={() => applyNoticeFormat('*')}
-                  className="px-2 py-1 rounded-lg text-xs font-medium italic bg-white hover:bg-slate-200 text-slate-800 border border-slate-200 shadow-sm transition cursor-pointer flex items-center gap-1"
+                  className="p-1.5 rounded-lg bg-white hover:bg-slate-200 text-slate-800 border border-slate-200 shadow-sm transition cursor-pointer flex items-center justify-center"
                   title="Көлбеу қаріп (Italic *мәтін*)"
                 >
-                  <Italic className="w-3.5 h-3.5" />
-                  <span className="text-[11px]">К</span>
-                </button>
-                <div className="w-px h-4 bg-slate-300 mx-1" />
-                <button
-                  type="button"
-                  onClick={() => insertNoticeList('numbered')}
-                  className="px-2 py-1 rounded-lg text-xs font-bold bg-white hover:bg-slate-200 text-slate-800 border border-slate-200 shadow-sm transition cursor-pointer flex items-center gap-1"
-                  title="Нөмірленген тізім (1. 2. 3.)"
-                >
-                  <ListOrdered className="w-3.5 h-3.5" />
-                  <span className="text-[11px]">1. 2. 3.</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => insertNoticeList('bullet')}
-                  className="px-2 py-1 rounded-lg text-xs font-bold bg-white hover:bg-slate-200 text-slate-800 border border-slate-200 shadow-sm transition cursor-pointer flex items-center gap-1"
-                  title="Маркерленген тізім (•)"
-                >
-                  <List className="w-3.5 h-3.5" />
-                  <span className="text-[11px]">•</span>
+                  <Italic className="w-4 h-4" />
                 </button>
               </div>
 
@@ -1106,7 +1066,7 @@ export const AdminSystemSettingsPage: React.FC = () => {
             <textarea
               ref={paymentNoticeTextareaRef}
               rows={4}
-              placeholder="Мысалы:&#10;**ЕСКЕРТУ**&#10;1. Бірінші ереже&#10;2. Екінші ереже&#10;3. Үшінші ереже"
+              placeholder="Мысалы:&#10;**ЕСКЕРТУ**&#10;Төлем жасаған соң чек жіберіңіз"
               value={settings.paymentNotice || ''}
               disabled={settings.paymentNoticeEnabled === false}
               onChange={(e) => setSettings({ ...settings, paymentNotice: e.target.value })}
