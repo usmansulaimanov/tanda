@@ -550,59 +550,56 @@ export const AudioPlayerPage: React.FC = () => {
         </div>
 
         {/* 6. Secondary Auxiliary Toolbar */}
-        <div className="relative z-10 shrink-0 flex items-center justify-around px-2 pt-2.5 border-t border-white/10 mt-1">
+        <div className="relative z-10 shrink-0 flex items-center justify-around px-2 pt-2 border-t border-white/10">
           {/* Repeat */}
           <button
             type="button"
             onClick={toggleRepeatMode}
-            className={`p-2 rounded-xl transition flex flex-col items-center gap-1 cursor-pointer ${
+            className={`p-2.5 rounded-xl transition flex items-center justify-center cursor-pointer ${
               repeatMode !== 'off' ? 'text-[#EF7E00] bg-[#EF7E00]/15' : 'text-slate-400 active:text-white'
             }`}
             title="Қайталау"
           >
-            {repeatMode === 'one' ? <Repeat1 className="w-4 h-4" /> : <Repeat className="w-4 h-4" />}
-            <span className="text-[9px] font-bold">
-              {repeatMode === 'one' ? '1 рет' : repeatMode === 'all' ? 'Барлығы' : 'Қайталау'}
-            </span>
+            {repeatMode === 'one' ? <Repeat1 className="w-5 h-5" /> : <Repeat className="w-5 h-5" />}
           </button>
 
           {/* Speed */}
           <button
             type="button"
             onClick={() => setShowMobileSpeedMenu(true)}
-            className={`p-2 rounded-xl transition flex flex-col items-center gap-1 cursor-pointer ${
-              playbackRate !== 1 ? 'text-[#EF7E00] bg-[#EF7E00]/15' : 'text-slate-400 active:text-white'
+            className={`px-3 py-1.5 rounded-xl transition flex items-center justify-center cursor-pointer ${
+              playbackRate !== 1 ? 'text-[#EF7E00] bg-[#EF7E00]/15 border border-[#EF7E00]/30' : 'text-slate-300 bg-white/5 border border-white/10 active:text-white'
             }`}
             title="Жылдамдық"
           >
             <span className="text-xs font-black font-mono leading-none">{playbackRate}x</span>
-            <span className="text-[9px] font-bold">Жылдамдық</span>
           </button>
 
           {/* Sleep Timer */}
           <button
             type="button"
             onClick={() => setShowMobileTimerMenu(true)}
-            className={`p-2 rounded-xl transition flex flex-col items-center gap-1 cursor-pointer ${
+            className={`p-2.5 rounded-xl transition flex items-center justify-center relative cursor-pointer ${
               sleepTimerMinutes ? 'text-[#EF7E00] bg-[#EF7E00]/15' : 'text-slate-400 active:text-white'
             }`}
             title="Ұйқы таймері"
           >
-            <Timer className="w-4 h-4" />
-            <span className="text-[9px] font-bold font-mono">
-              {sleepTimerMinutes ? (formatRemainingTimer(remainingTimerSec) || `${sleepTimerMinutes}м`) : 'Таймер'}
-            </span>
+            <Timer className="w-5 h-5" />
+            {sleepTimerMinutes && (
+              <span className="absolute -top-1 -right-1 text-[9px] font-bold font-mono bg-[#EF7E00] text-white px-1 rounded-full leading-tight">
+                {sleepTimerMinutes}м
+              </span>
+            )}
           </button>
 
           {/* Chapters Drawer Trigger */}
           <button
             type="button"
             onClick={() => setShowChaptersDrawer(true)}
-            className="p-2 rounded-xl transition flex flex-col items-center gap-1 text-slate-400 active:text-white cursor-pointer"
+            className="p-2.5 rounded-xl transition flex items-center justify-center text-slate-400 active:text-white cursor-pointer"
             title="Бөлімдер"
           >
-            <BookOpen className="w-4 h-4" />
-            <span className="text-[9px] font-bold">Бөлімдер ({chapters.length})</span>
+            <BookOpen className="w-5 h-5" />
           </button>
         </div>
 
