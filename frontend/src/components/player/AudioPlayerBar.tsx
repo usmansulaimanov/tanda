@@ -1338,18 +1338,17 @@ export const AudioPlayerBar: React.FC = () => {
           </div>
 
           <div className="max-w-7xl mx-auto px-3 py-2 sm:px-6 sm:py-2.5">
-            {/* MOBILE ONLY: Compact 56px Mini-Player */}
-            <div className="flex md:hidden items-center justify-between gap-2.5 w-full py-0.5">
-              <div
-                onClick={() => navigate(`/listen/${currentBook.id}`)}
-                className="flex items-center gap-2.5 min-w-0 flex-1 cursor-pointer"
-                title="Толық ойнатқышты ашу үшін басыңыз"
-              >
+            {/* MOBILE ONLY: Full-featured Mini-Player (Cover left, Play center, Close right) */}
+            <div className="flex md:hidden items-center justify-between w-full py-0.5">
+              {/* Left: Book Cover Only (clickable to open full player) */}
+              <div className="w-11 shrink-0 flex items-center justify-start">
                 <div
-                  className="w-10 h-10 rounded-lg flex items-center justify-center text-white shrink-0 shadow-xs overflow-hidden relative"
+                  onClick={() => navigate(`/listen/${currentBook.id}`)}
+                  className="w-11 h-11 rounded-xl flex items-center justify-center text-white shrink-0 shadow-xs overflow-hidden relative border border-slate-200/80 active:scale-95 transition cursor-pointer"
                   style={{
-                    background: currentBook.gradient || '#005494',
+                    background: currentBook.gradient || '#EF7E00',
                   }}
+                  title="Толық ойнатқышты ашу үшін басыңыз"
                 >
                   {currentBook.coverImage ? (
                     <img
@@ -1365,83 +1364,89 @@ export const AudioPlayerBar: React.FC = () => {
                     <Headphones className="w-5 h-5 text-white/90" />
                   )}
                 </div>
-                <div className="min-w-0 flex-1">
-                  <div className="text-xs font-bold text-slate-900 truncate leading-tight flex items-center gap-1.5">
-                    <span>{isAdPlaying ? 'Tanda Жарнама' : currentBook.title}</span>
-                    {isAdPlaying && (
-                      <span className="text-[9px] font-black bg-amber-500 text-white px-1.5 py-0.2 rounded-full">
-                        Жарнама
-                      </span>
-                    )}
-                  </div>
-                  <div className="text-[11px] text-slate-500 truncate leading-tight mt-0.5">
-                    {isAdPlaying ? (
-                      adTitle || 'Премиумға қосылып, жарнамасыз тыңдаңыз'
-                    ) : (
-                      <>
-                        {currentBook.author}
-                        {currentChapterTitle && currentChapterTitle !== currentBook.title ? (
-                          <> &bull; <span className="text-[#EF7E00] font-semibold">{currentChapterTitle}</span></>
-                        ) : null}
-                      </>
-                    )}
-                  </div>
-                </div>
               </div>
 
-              {/* Mobile Quick Action Buttons */}
-              <div className="flex items-center gap-1 shrink-0">
-                {/* 10 seconds skip */}
+              {/* Center: Full-fledged Player Controls (Play in dead center) */}
+              <div className="flex-1 flex items-center justify-center gap-1.5 xs:gap-3">
+                {/* Previous Chapter */}
                 <button
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    skipTime(10);
+                    prevChapter();
                   }}
-                  className="w-8 h-8 rounded-full text-slate-600 hover:text-[#EF7E00] active:scale-90 transition flex items-center justify-center cursor-pointer"
-                  title="10 секунд алға өткізу"
+                  className="w-8 h-8 rounded-full text-slate-700 hover:text-slate-900 active:scale-90 transition flex items-center justify-center cursor-pointer"
+                  title="Алдыңғы бөлім"
                 >
-                  <RotateCw className="w-4 h-4 text-slate-700" />
+                  <SkipBack className="w-4 h-4 fill-current" />
                 </button>
 
-                {/* PLAY / PAUSE (Center Button) */}
+                {/* -10s Rewind */}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    skipTime(-10);
+                  }}
+                  className="w-8 h-8 rounded-full text-slate-700 hover:text-[#EF7E00] active:scale-90 transition flex items-center justify-center cursor-pointer"
+                  title="10 секунд артқа"
+                >
+                  <RotateCcw className="w-4 h-4 text-slate-700" />
+                </button>
+
+                {/* HERO PLAY / PAUSE (Center Button) */}
                 <button
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     togglePlay();
                   }}
-                  className="w-9 h-9 rounded-full bg-[#EF7E00] hover:bg-[#e07500] active:scale-95 text-white flex items-center justify-center shadow-md shadow-orange-500/30 transition shrink-0 cursor-pointer"
+                  className="w-11 h-11 rounded-full bg-[#EF7E00] hover:bg-[#e07500] active:scale-95 text-white flex items-center justify-center shadow-md shadow-orange-500/30 transition shrink-0 cursor-pointer"
                   title={isPlaying ? 'Тоқтату' : 'Ойнату'}
                 >
                   {isPlaying ? (
-                    <Pause className="w-4 h-4 fill-current" />
+                    <Pause className="w-5 h-5 fill-current" />
                   ) : (
-                    <Play className="w-4 h-4 fill-current ml-0.5" />
+                    <Play className="w-5 h-5 fill-current ml-0.5" />
                   )}
                 </button>
 
-                {/* Next Chapter Button */}
+                {/* +10s Forward */}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    skipTime(10);
+                  }}
+                  className="w-8 h-8 rounded-full text-slate-700 hover:text-[#EF7E00] active:scale-90 transition flex items-center justify-center cursor-pointer"
+                  title="10 секунд алға"
+                >
+                  <RotateCw className="w-4 h-4 text-slate-700" />
+                </button>
+
+                {/* Next Chapter */}
                 <button
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     nextChapter();
                   }}
-                  className="w-8 h-8 rounded-full text-slate-600 hover:text-[#EF7E00] active:scale-90 transition flex items-center justify-center cursor-pointer"
+                  className="w-8 h-8 rounded-full text-slate-700 hover:text-slate-900 active:scale-90 transition flex items-center justify-center cursor-pointer"
                   title="Келесі бөлім"
                 >
-                  <SkipForward className="w-4 h-4 text-slate-700 fill-current" />
+                  <SkipForward className="w-4 h-4 fill-current" />
                 </button>
+              </div>
 
-                {/* Dismiss / Close Mini-Player */}
+              {/* Right: Dismiss / Close Mini-Player (Matching 44px width for exact centering) */}
+              <div className="w-11 shrink-0 flex items-center justify-end">
                 <button
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     handleClose();
                   }}
-                  className="w-7 h-7 rounded-full text-slate-400 hover:text-slate-800 active:scale-90 transition flex items-center justify-center ml-0.5 cursor-pointer"
+                  className="w-8 h-8 rounded-full text-slate-400 hover:text-slate-800 active:scale-90 transition flex items-center justify-center cursor-pointer"
                   title="Жабу"
                 >
                   <X className="w-4 h-4" />
