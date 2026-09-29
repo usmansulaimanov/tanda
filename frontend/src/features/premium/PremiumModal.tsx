@@ -503,17 +503,11 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
 
               {/* Admin Notice (Ескерту) */}
               {settings?.paymentNoticeEnabled !== false && settings?.paymentNotice && settings.paymentNotice.trim() && (
-                <div className="mb-6 p-4 rounded-2xl bg-amber-50/90 border border-amber-200/90 text-amber-950 flex items-start gap-3 shadow-sm">
-                  <div className="w-8 h-8 rounded-xl bg-amber-100/90 text-amber-700 flex items-center justify-center shrink-0 mt-0.5">
-                    <AlertCircle className="w-4 h-4 text-amber-600" />
-                  </div>
-                  <div className="flex-1 text-xs leading-relaxed">
-                    <FormattedNoticeText
-                      text={settings.paymentNotice.trim()}
-                      align={settings.paymentNoticeAlign || 'left'}
-                      className="text-amber-950"
-                    />
-                  </div>
+                <div className="mb-6 text-xs text-slate-800 leading-relaxed px-1">
+                  <FormattedNoticeText
+                    text={settings.paymentNotice.trim()}
+                    align={settings.paymentNoticeAlign || 'left'}
+                  />
                 </div>
               )}
 
