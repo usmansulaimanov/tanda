@@ -1,0 +1,18 @@
+User-agent: *
+Allow: /
+
+# Админ панельдерін жабамыз
+Disallow: /admin/
+Disallow: /author/
+
+# Жеке аккаунт беттерін жабамыз
+Disallow: /profile
+Disallow: /settings
+Disallow: /messages
+Disallow: /my-books
+Disallow: /saved
+Disallow: /quotes
+Disallow: /promocode
+
+# Sitemap
+Sitemap: https://tandamen.kz/sitemap.xml
