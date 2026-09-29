@@ -16,6 +16,7 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { useBookStore } from '../../store/useBookStore';
 import { ErrorBoundary } from '../common/ErrorBoundary';
 import { PWAInstallBanner } from './PWAInstallBanner';
+import { MobileBottomNav } from './MobileBottomNav';
 
 
 export const Layout: React.FC = () => {
@@ -48,12 +49,21 @@ export const Layout: React.FC = () => {
       <MessageNotificationRunner />
       <Header />
       <AppSidebarDrawer />
-      <main className={`flex-1 flex flex-col ${isListenPage ? 'pb-10' : isEligibleForPlayer && currentBook ? 'pb-24' : ''}`}>
+      <main
+        className={`flex-1 flex flex-col ${
+          isListenPage
+            ? 'pb-10'
+            : isEligibleForPlayer && currentBook
+            ? 'pb-36 md:pb-24'
+            : 'pb-20 md:pb-0'
+        }`}
+      >
         <ErrorBoundary>
           <Outlet />
         </ErrorBoundary>
       </main>
       {!isListenPage && <Footer />}
+      <MobileBottomNav />
       {!isAuthorOrStaff && <AudioPlayerBar />}
       {!isAuthorOrStaff && <DailyLimitModal />}
       <ToastContainer />

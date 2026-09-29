@@ -1317,9 +1317,116 @@ export const AudioPlayerBar: React.FC = () => {
 
       {/* Main Bottom Audio Player Bar - Only shown when NOT on full player page */}
       {!isListenPage && (
-        <div className="fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-2xl transition-all">
+        <div className="fixed bottom-[calc(56px+max(env(safe-area-inset-bottom,0px),8px))] md:bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-2xl transition-all">
+          
+          {/* Mobile Top Progress Line */}
+          <div className="md:hidden absolute top-0 inset-x-0 h-1 bg-slate-100 overflow-hidden">
+            <div
+              className={`h-full transition-all duration-200 ${isAdPlaying ? 'bg-amber-500' : 'bg-[#EF7E00]'}`}
+              style={{
+                width: `${Math.min(
+                  100,
+                  Math.max(
+                    0,
+                    ((isAdPlaying ? adProgress : progress) /
+                      (isAdPlaying ? (adDuration || 15) : (duration || 100))) *
+                      100
+                  )
+                )}%`,
+              }}
+            />
+          </div>
+
           <div className="max-w-7xl mx-auto px-3 py-2 sm:px-6 sm:py-2.5">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-2 sm:gap-3">
+            {/* MOBILE ONLY: Compact 56px Mini-Player */}
+            <div className="flex md:hidden items-center justify-between gap-2.5 w-full py-0.5">
+              <div
+                onClick={() => navigate(`/listen/${currentBook.id}`)}
+                className="flex items-center gap-2.5 min-w-0 flex-1 cursor-pointer"
+                title="Толық ойнатқышты ашу үшін басыңыз"
+              >
+                <div
+                  className="w-10 h-10 rounded-lg flex items-center justify-center text-white shrink-0 shadow-xs overflow-hidden relative"
+                  style={{
+                    background: currentBook.gradient || '#005494',
+                  }}
+                >
+                  {currentBook.coverImage ? (
+                    <img
+                      src={currentBook.coverImage}
+                      alt={currentBook.title}
+                      referrerPolicy="no-referrer"
+                      className="absolute inset-0 w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
+                  ) : (
+                    <Headphones className="w-5 h-5 text-white/90" />
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-xs font-bold text-slate-900 truncate leading-tight flex items-center gap-1.5">
+                    <span>{isAdPlaying ? 'Tanda Жарнама' : currentBook.title}</span>
+                    {isAdPlaying && (
+                      <span className="text-[9px] font-black bg-amber-500 text-white px-1.5 py-0.2 rounded-full">
+                        Жарнама
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-[11px] text-slate-500 truncate leading-tight mt-0.5">
+                    {isAdPlaying ? (
+                      adTitle || 'Премиумға қосылып, жарнамасыз тыңдаңыз'
+                    ) : (
+                      <>
+                        {currentBook.author} &bull;{' '}
+                        <span className="text-[#005494] font-semibold">{currentChapterTitle}</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Mobile Quick Action Buttons */}
+              <div className="flex items-center gap-1 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => skipTime(10)}
+                  className="w-8 h-8 rounded-lg text-slate-600 hover:text-[#005494] active:scale-90 transition flex items-center justify-center"
+                  title="10 секунд алға"
+                >
+                  <RotateCw className="w-4 h-4 text-slate-600" />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={togglePlay}
+                  className="w-9 h-9 rounded-full bg-[#005494] hover:bg-[#003F70] active:scale-95 text-white flex items-center justify-center shadow-md transition shrink-0"
+                  title={isPlaying ? 'Тоқтату' : 'Ойнату'}
+                >
+                  {isPlaying ? (
+                    <Pause className="w-4 h-4 fill-current" />
+                  ) : (
+                    <Play className="w-4 h-4 fill-current ml-0.5" />
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleClose();
+                  }}
+                  className="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-800 active:scale-90 transition flex items-center justify-center ml-0.5"
+                  title="Жабу"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* DESKTOP ONLY: Full Bar Console */}
+            <div className="hidden md:flex flex-row items-center justify-between gap-2 sm:gap-3">
               
               {/* Left: Book Cover & Meta Info - Click opens full player */}
               <div
