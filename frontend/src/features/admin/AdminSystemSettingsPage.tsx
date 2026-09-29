@@ -976,9 +976,6 @@ export const AdminSystemSettingsPage: React.FC = () => {
                 settings.paymentNoticeEnabled === false ? 'bg-slate-100 text-slate-400 cursor-not-allowed opacity-60' : 'bg-white'
               }`}
             />
-            <p className="mt-1.5 text-[11px] text-slate-400">
-              💡 Свитч өшірулі болса немесе өріс бос қалса, оқырмандарда премиум терезесінде ескерту блогы көрсетілмейді.
-            </p>
           </div>
         </div>
       </form>
