@@ -825,7 +825,7 @@ export const AdminSystemSettingsPage: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Жоғарғы бейдж (стикер):</label>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Жоғарғы бейдж:</label>
                     <input
                       type="text"
                       placeholder="Бос қалдыруға болады"
@@ -883,7 +883,7 @@ export const AdminSystemSettingsPage: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Жоғарғы бейдж (стикер):</label>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Жоғарғы бейдж:</label>
                     <input
                       type="text"
                       placeholder="ТИІМДІ"
@@ -941,7 +941,7 @@ export const AdminSystemSettingsPage: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Жоғарғы бейдж (стикер):</label>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Жоғарғы бейдж:</label>
                     <input
                       type="text"
                       placeholder="ҮЗДІК ТАҢДАУ ⭐"
