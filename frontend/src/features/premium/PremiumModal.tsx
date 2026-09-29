@@ -394,36 +394,61 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
               <p className="text-xs text-slate-400 font-medium">Баптаулар мен тарифтер жүктелуде...</p>
             </div>
           ) : isSubmitted ? (
-            <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-b from-emerald-50 to-teal-50/40 border border-emerald-200 text-center my-4 space-y-4">
-              <div className="w-16 h-16 rounded-2xl bg-emerald-100 border border-emerald-300 flex items-center justify-center mx-auto text-emerald-600 shadow-md">
-                <CheckCircle2 className="w-10 h-10" />
-              </div>
-              <div>
-                <h3 className="text-2xl font-black text-emerald-950 mb-1">Tanda Premium белсендірілді! 👑</h3>
-                <p className="text-sm text-emerald-800 max-w-md mx-auto">
-                  Төлем чегіңіз автоматты түрде расталды. Барлық аудио және электронды кітаптарды шектеусіз әрі жарнамасыз тыңдай аласыз!
-                </p>
-              </div>
-
-              {verificationResult?.receiptNumber && (
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/90 border border-emerald-200 text-xs text-emerald-900 shadow-sm">
-                  <span className="font-semibold text-slate-500">Чек №:</span>
-                  <span className="font-mono font-bold">{verificationResult.receiptNumber}</span>
+            verificationResult?.status === 'PENDING' ? (
+              <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-b from-amber-50 to-orange-50/40 border border-amber-200 text-center my-4 space-y-4">
+                <div className="w-16 h-16 rounded-2xl bg-amber-100 border border-amber-300 flex items-center justify-center mx-auto text-amber-600 shadow-md">
+                  <Clock className="w-10 h-10" />
                 </div>
-              )}
+                <div>
+                  <h3 className="text-2xl font-black text-amber-950 mb-1">Төлем чегі қабылданды! ⏳</h3>
+                  <p className="text-sm text-amber-800 max-w-md mx-auto">
+                    Сіздің төлем чегіңіз сәтті жіберілді. Модератор растаған бойда Tanda Premium жазылымыңыз автоматты түрде қосылады.
+                  </p>
+                </div>
 
-              <div className="pt-2">
-                <button
-                  onClick={() => {
-                    onClose();
-                    window.location.reload();
-                  }}
-                  className="w-full sm:w-auto px-8 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm transition shadow-lg shadow-emerald-600/20"
-                >
-                  Тыңдауды бастау 🎧
-                </button>
+                <div className="pt-2">
+                  <button
+                    onClick={() => {
+                      onClose();
+                    }}
+                    className="w-full sm:w-auto px-8 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-black text-sm transition shadow-lg shadow-slate-900/20 cursor-pointer"
+                  >
+                    Түсінікті, жабу
+                  </button>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-b from-emerald-50 to-teal-50/40 border border-emerald-200 text-center my-4 space-y-4">
+                <div className="w-16 h-16 rounded-2xl bg-emerald-100 border border-emerald-300 flex items-center justify-center mx-auto text-emerald-600 shadow-md">
+                  <CheckCircle2 className="w-10 h-10" />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-black text-emerald-950 mb-1">Tanda Premium белсендірілді! 👑</h3>
+                  <p className="text-sm text-emerald-800 max-w-md mx-auto">
+                    Төлем чегіңіз автоматты түрде расталды. Барлық аудио және электронды кітаптарды шектеусіз әрі жарнамасыз тыңдай аласыз!
+                  </p>
+                </div>
+
+                {verificationResult?.receiptNumber && (
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/90 border border-emerald-200 text-xs text-emerald-900 shadow-sm">
+                    <span className="font-semibold text-slate-500">Чек №:</span>
+                    <span className="font-mono font-bold">{verificationResult.receiptNumber}</span>
+                  </div>
+                )}
+
+                <div className="pt-2">
+                  <button
+                    onClick={() => {
+                      onClose();
+                      window.location.reload();
+                    }}
+                    className="w-full sm:w-auto px-8 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm transition shadow-lg shadow-emerald-600/20 cursor-pointer"
+                  >
+                    Тыңдауды бастау 🎧
+                  </button>
+                </div>
+              </div>
+            )
           ) : (
 
             <>
