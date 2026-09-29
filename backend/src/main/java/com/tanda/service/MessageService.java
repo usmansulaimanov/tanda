@@ -8,6 +8,7 @@ import com.tanda.dto.push.PushPayloadDto;
 import com.tanda.entity.Message;
 import com.tanda.exception.ResourceNotFoundException;
 import com.tanda.repository.MessageRepository;
+import com.tanda.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -29,8 +30,10 @@ import java.util.stream.Collectors;
 public class MessageService {
 
     private final MessageRepository messageRepository;
+    private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
     private final PushNotificationService pushNotificationService;
+
 
     @Transactional(readOnly = true)
     public List<MessageResponseDto> getMessagesForUser(String userId) {
@@ -126,11 +129,17 @@ public class MessageService {
             targetNamesStr = String.join(",", dto.getTargetUserNames());
         }
 
+        String validSenderId = senderId;
+        if (validSenderId != null && ("system".equalsIgnoreCase(validSenderId) || !userRepository.existsById(validSenderId))) {
+            validSenderId = null;
+        }
+
         Message message = Message.builder()
                 .id("msg-" + UUID.randomUUID().toString().substring(0, 8))
-                .senderId(senderId)
+                .senderId(validSenderId)
                 .senderName(senderName != null ? senderName : "Tanda")
                 .senderRole(senderRole != null ? senderRole : "admin")
+
                 .recipientId(recipientId)
                 .targetType(targetType)
                 .targetUserIds(targetIdsStr)

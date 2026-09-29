@@ -41,7 +41,7 @@ public class SubscriptionPaymentController {
     @Operation(summary = "Upload payment receipt image for subscription (authenticated users)")
     public ResponseEntity<MediaUploadResponseDto> uploadReceipt(
             @RequestParam("file") MultipartFile file) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(mediaUploadService.uploadFile(file, "covers"));
+        return ResponseEntity.status(HttpStatus.CREATED).body(mediaUploadService.uploadFile(file, "receipts"));
     }
 
     @PostMapping("/premium/subscription-requests")

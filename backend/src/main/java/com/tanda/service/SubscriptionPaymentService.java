@@ -91,7 +91,7 @@ public class SubscriptionPaymentService {
 
             // 2. Send instant congratulatory message
             try {
-                messageService.sendMessage("system", "Tanda", "admin", MessageRequestDto.builder()
+                messageService.sendMessage(null, "Tanda", "admin", MessageRequestDto.builder()
                         .title("Tanda Premium сәтті қосылды! 👑")
                         .content("Құрметті " + readerName + "! Сіздің " + days + " күндік Tanda Premium жазылымыңыз сәтті белсендірілді. Төлем чегі автоматты түрде расталды. Барлық аудио және электронды кітаптарды шектеусіз әрі жарнамасыз тыңдай аласыз!")
                         .targetType("single")
@@ -111,7 +111,7 @@ public class SubscriptionPaymentService {
                     : "Чек расталмады немесе төлем сомасы сәйкес келмейді";
 
             try {
-                messageService.sendMessage("system", "Tanda", "admin", MessageRequestDto.builder()
+                messageService.sendMessage(null, "Tanda", "admin", MessageRequestDto.builder()
                         .title("Төлем чегі қабылданбады")
                         .content("Құрметті " + readerName + "!\n\n"
                                 + "Сіздің Tanda Premium жазылымына жіберген төлем чегіңіз қабылданбады.\n\n"
@@ -124,6 +124,7 @@ public class SubscriptionPaymentService {
             } catch (Exception e) {
                 log.warn("Could not send AI rejection message to user {}: {}", userId, e.getMessage());
             }
+
 
             log.warn("AI Auto-Rejected subscription request {} for user {}: {}",
                     saved.getId(), userId, reasonText);

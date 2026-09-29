@@ -43,7 +43,12 @@ public class MediaUploadService {
             "application/pdf", "application/epub+zip", "application/octet-stream"
     );
 
+    private static final Set<String> ALLOWED_RECEIPT_TYPES = Set.of(
+            "image/jpeg", "image/png", "image/webp", "image/gif", "application/pdf"
+    );
+
     private static final long MAX_IMAGE_SIZE = 10L * 1024 * 1024;  // 10MB
+    private static final long MAX_RECEIPT_SIZE = 15L * 1024 * 1024; // 15MB
     private static final long MAX_AUDIO_SIZE = 300L * 1024 * 1024; // 300MB
     private static final long MAX_BOOK_SIZE = 100L * 1024 * 1024;  // 100MB
 
@@ -52,6 +57,7 @@ public class MediaUploadService {
         try {
             Path root = Paths.get(storageLocation);
             Files.createDirectories(root.resolve("covers"));
+            Files.createDirectories(root.resolve("receipts"));
             Files.createDirectories(root.resolve("audio"));
             Files.createDirectories(root.resolve("books"));
             log.info("Media upload directories initialized at: {}", root.toAbsolutePath());
@@ -66,7 +72,7 @@ public class MediaUploadService {
         }
 
         String normalizedCategory = (category != null ? category.toLowerCase().trim() : "covers");
-        if (!List.of("covers", "audio", "books").contains(normalizedCategory)) {
+        if (!List.of("covers", "receipts", "audio", "books").contains(normalizedCategory)) {
             normalizedCategory = "covers";
         }
 
@@ -140,6 +146,16 @@ public class MediaUploadService {
                 }
                 if (!contentType.startsWith("image/") && !ALLOWED_IMAGE_TYPES.contains(contentType)) {
                     throw new BadRequestException("Қате сурет форматы. Тек JPG, PNG, WEBP қолдау табады.");
+                }
+            }
+            case "receipts" -> {
+                if (size > MAX_RECEIPT_SIZE) {
+                    throw new BadRequestException("Чек файлы 15MB-тан аспауы керек");
+                }
+                boolean isImage = contentType.startsWith("image/") || ALLOWED_IMAGE_TYPES.contains(contentType);
+                boolean isPdf = "application/pdf".equals(contentType) || (file.getOriginalFilename() != null && file.getOriginalFilename().toLowerCase().endsWith(".pdf"));
+                if (!isImage && !isPdf) {
+                    throw new BadRequestException("Қате чек форматы. Тек JPG, PNG немесе PDF түбіртектері қабылданады.");
                 }
             }
             case "audio" -> {

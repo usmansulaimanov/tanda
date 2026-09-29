@@ -19,9 +19,13 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        // Only public covers are statically served. Audio files are served through protected MediaController
+        // Public covers and receipts are statically served. Audio files are served through protected MediaController
         registry.addResourceHandler("/uploads/covers/**")
                 .addResourceLocations("file:./uploads/covers/", "file:uploads/covers/")
+                .setCachePeriod(3600);
+
+        registry.addResourceHandler("/uploads/receipts/**")
+                .addResourceLocations("file:./uploads/receipts/", "file:uploads/receipts/")
                 .setCachePeriod(3600);
     }
 }

@@ -5,9 +5,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tanda.dto.premium.ReceiptAnalysisResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.rendering.ImageType;
+import org.apache.pdfbox.rendering.PDFRenderer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -65,14 +73,14 @@ public class OpenAiVisionService {
 
         try {
             // Case 1: Base64 data URL
-            if (receiptUrl.startsWith("data:image/")) {
+            if (receiptUrl.startsWith("data:")) {
                 int commaIndex = receiptUrl.indexOf(',');
                 if (commaIndex != -1) {
                     return Base64.getDecoder().decode(receiptUrl.substring(commaIndex + 1));
                 }
             }
 
-            // Case 2: Local storage file path (e.g. /uploads/covers/abc.jpg)
+            // Case 2: Local storage file path (e.g. /uploads/covers/abc.jpg or /uploads/receipts/abc.pdf)
             String localPath = receiptUrl;
             if (localPath.startsWith("/uploads/")) {
                 localPath = localPath.substring("/uploads/".length());
@@ -104,6 +112,26 @@ public class OpenAiVisionService {
         return null;
     }
 
+    public boolean isPdf(byte[] data) {
+        if (data == null || data.length < 4) {
+            return false;
+        }
+        return data[0] == 0x25 && data[1] == 0x50 && data[2] == 0x44 && data[3] == 0x46; // %PDF
+    }
+
+    public byte[] convertPdfFirstPageToImage(byte[] pdfBytes) throws IOException {
+        try (PDDocument document = Loader.loadPDF(pdfBytes)) {
+            if (document.getNumberOfPages() == 0) {
+                throw new IOException("PDF құжаты бос (парақтары жоқ)");
+            }
+            PDFRenderer pdfRenderer = new PDFRenderer(document);
+            BufferedImage bim = pdfRenderer.renderImageWithDPI(0, 180, ImageType.RGB);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ImageIO.write(bim, "jpeg", baos);
+            return baos.toByteArray();
+        }
+    }
+
     public String computeSha256(byte[] data) {
         if (data == null || data.length == 0) {
             return null;
@@ -127,6 +155,22 @@ public class OpenAiVisionService {
                     .build();
         }
 
+        // Convert PDF to image if uploaded receipt is PDF
+        byte[] imageBytes = bytes;
+        if (isPdf(bytes)) {
+            try {
+                log.info("Receipt file is PDF (%PDF detected), rendering first page to JPEG...");
+                imageBytes = convertPdfFirstPageToImage(bytes);
+                log.info("PDF first page successfully rendered to JPEG ({} bytes)", imageBytes.length);
+            } catch (Exception e) {
+                log.error("Failed to render PDF receipt to image: {}", e.getMessage(), e);
+                return ReceiptAnalysisResult.builder()
+                        .isReceipt(false)
+                        .rawSummary("PDF түбіртегін өңдеу мүмкін болмады: " + e.getMessage())
+                        .build();
+            }
+        }
+
         if (apiKey == null || apiKey.trim().isEmpty() || apiKey.startsWith("${")) {
             log.warn("OpenAI API key is not configured. Skipping automated vision verification.");
             return ReceiptAnalysisResult.builder()
@@ -136,7 +180,7 @@ public class OpenAiVisionService {
         }
 
         try {
-            String base64Image = Base64.getEncoder().encodeToString(bytes);
+            String base64Image = Base64.getEncoder().encodeToString(imageBytes);
             String dataUrl = "data:image/jpeg;base64," + base64Image;
 
             Map<String, Object> textPart = Map.of(

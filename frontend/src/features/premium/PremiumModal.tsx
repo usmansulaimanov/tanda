@@ -11,7 +11,8 @@ import {
   ArrowRight,
   Headphones,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  FileText
 } from 'lucide-react';
 import tandaPremiumWhite from '../../assets/tanda-premium-white.png';
 import { useQuery } from '@tanstack/react-query';
@@ -217,9 +218,13 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
       return;
     }
     setReceiptFile(file);
-    const reader = new FileReader();
-    reader.onload = () => setReceiptPreview(reader.result as string);
-    reader.readAsDataURL(file);
+    if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
+      setReceiptPreview('pdf');
+    } else {
+      const reader = new FileReader();
+      reader.onload = () => setReceiptPreview(reader.result as string);
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSubmitReceipt = async (e: React.FormEvent) => {
@@ -586,17 +591,24 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
                   <label className="flex flex-col items-center justify-center p-4 border-2 border-dashed border-slate-300 hover:border-[#F08000] rounded-2xl cursor-pointer bg-slate-50/50 hover:bg-orange-50/30 transition">
                     {receiptPreview ? (
                       <div className="flex items-center gap-3">
-                        <img src={receiptPreview} alt="Receipt preview" className="w-14 h-14 object-cover rounded-xl border border-slate-200" />
+                        {receiptPreview === 'pdf' || receiptFile?.name.toLowerCase().endsWith('.pdf') ? (
+                          <div className="w-14 h-14 rounded-xl bg-red-50 text-red-600 flex flex-col items-center justify-center font-bold text-[11px] border border-red-200 shrink-0">
+                            <FileText className="w-6 h-6 mb-0.5 text-red-500" />
+                            PDF
+                          </div>
+                        ) : (
+                          <img src={receiptPreview} alt="Receipt preview" className="w-14 h-14 object-cover rounded-xl border border-slate-200 shrink-0" />
+                        )}
                         <div className="text-left">
-                          <p className="text-xs font-bold text-slate-900">{receiptFile?.name}</p>
-                          <p className="text-[11px] text-slate-500">Басқа сурет таңдау үшін басыңыз</p>
+                          <p className="text-xs font-bold text-slate-900 line-clamp-1">{receiptFile?.name}</p>
+                          <p className="text-[11px] text-slate-500">Басқа файл таңдау үшін басыңыз</p>
                         </div>
                       </div>
                     ) : (
                       <div className="flex flex-col items-center justify-center text-center">
                         <Upload className="w-7 h-7 text-slate-400 mb-1.5" />
                         <p className="text-xs font-bold text-slate-700">Чекті таңдау немесе мында тастау</p>
-                        <p className="text-[10px] text-slate-400 mt-0.5">PNG, JPG, PDF (15MB дейін)</p>
+                        <p className="text-[10px] text-slate-400 mt-0.5">PNG, JPG немесе PDF түбіртектері (15MB дейін)</p>
                       </div>
                     )}
                     <input

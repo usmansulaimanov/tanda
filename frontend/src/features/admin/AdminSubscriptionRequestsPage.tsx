@@ -497,11 +497,19 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
           maxWidth="lg"
         >
           <div className="text-center p-2">
-            <img
-              src={selectedReceiptUrl}
-              alt="Kaspi Receipt"
-              className="max-h-[75vh] mx-auto rounded-xl object-contain shadow-lg border border-slate-200"
-            />
+            {selectedReceiptUrl.toLowerCase().endsWith('.pdf') || selectedReceiptUrl.toLowerCase().includes('.pdf') ? (
+              <iframe
+                src={selectedReceiptUrl}
+                title="Kaspi Receipt PDF"
+                className="w-full h-[75vh] rounded-xl border border-slate-200 shadow-lg"
+              />
+            ) : (
+              <img
+                src={selectedReceiptUrl}
+                alt="Kaspi Receipt"
+                className="max-h-[75vh] mx-auto rounded-xl object-contain shadow-lg border border-slate-200"
+              />
+            )}
             <div className="mt-4 flex justify-center">
               <a
                 href={selectedReceiptUrl}

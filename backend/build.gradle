@@ -55,6 +55,10 @@ dependencies {
     implementation 'nl.martijndwars:web-push:5.1.1'
     implementation 'org.bouncycastle:bcprov-jdk18on:1.78.1'
 
+    // PDF to Image rendering for PDF receipts
+    implementation 'org.apache.pdfbox:pdfbox:3.0.2'
+
+
     // Lombok
     compileOnly 'org.projectlombok:lombok:1.18.36'
     annotationProcessor 'org.projectlombok:lombok:1.18.36'

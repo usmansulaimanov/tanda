@@ -76,7 +76,7 @@ export const premiumApi = {
   uploadReceiptImage: async (file: File): Promise<string> => {
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('category', 'covers');
+    formData.append('category', 'receipts');
     const { data } = await api.post('/api/v1/premium/receipts/upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
