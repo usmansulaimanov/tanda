@@ -969,20 +969,32 @@ export const AdminSystemSettingsPage: React.FC = () => {
 
           {/* Payment Notice Block */}
           <div className="mt-6 pt-5 border-t border-slate-100">
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center justify-between gap-2 mb-2">
               <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
                 <span>Ескерту хабарламасы:</span>
+              </label>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={settings.paymentNoticeEnabled !== false}
+                  onChange={(e) => setSettings({ ...settings, paymentNoticeEnabled: e.target.checked })}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#F08000]" />
               </label>
             </div>
             <textarea
               rows={3}
               placeholder="Мысалы: Төлем жасаған соң чекті міндетті түрде төменде тіркеңіз немесе басқа қосымша ескерту..."
               value={settings.paymentNotice || ''}
+              disabled={settings.paymentNoticeEnabled === false}
               onChange={(e) => setSettings({ ...settings, paymentNotice: e.target.value })}
-              className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#F08000]/20 focus:border-[#F08000] text-slate-900 placeholder:text-slate-400 leading-relaxed"
+              className={`w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#F08000]/20 focus:border-[#F08000] text-slate-900 placeholder:text-slate-400 leading-relaxed transition ${
+                settings.paymentNoticeEnabled === false ? 'bg-slate-100 text-slate-400 cursor-not-allowed opacity-60' : 'bg-white'
+              }`}
             />
             <p className="mt-1.5 text-[11px] text-slate-400">
-              💡 Егер бұл өріс бос қалса, оқырмандарда премиум терезесінде ескерту блогы көрсетілмейді.
+              💡 Свитч өшірулі болса немесе өріс бос қалса, оқырмандарда премиум терезесінде ескерту блогы көрсетілмейді.
             </p>
           </div>
         </div>
