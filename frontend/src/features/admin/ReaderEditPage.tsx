@@ -1172,11 +1172,6 @@ export const ReaderEditPage: React.FC = () => {
                     Оқырман мәртебесі: <span style={{ color: isActive ? '#15803D' : '#B91C1C' }}>{isActive ? 'Белсенді' : 'Блокталған'}</span>
                   </h3>
                 </div>
-                <p style={{ margin: '4px 0 0', fontSize: '12px', color: 'var(--text-mid)' }}>
-                  {isActive
-                    ? 'Оқырман жүйеге еркін кіріп, кітаптарды оқи алады.'
-                    : 'Оқырман бұғатталған: жүйеге кіре алмайды және бұл деректерге жаңа аккаунт ашылмайды.'}
-                </p>
               </div>
 
               <button
