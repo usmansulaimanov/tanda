@@ -624,7 +624,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                    Төлем чегінің суреті / скриншоты: <span className="text-red-500">*</span>
+                    Төлем чегі: <span className="text-red-500">*</span>
                   </label>
                   <label className="flex flex-col items-center justify-center p-4 border-2 border-dashed border-slate-300 hover:border-[#F08000] rounded-2xl cursor-pointer bg-slate-50/50 hover:bg-orange-50/30 transition">
                     {receiptPreview ? (
