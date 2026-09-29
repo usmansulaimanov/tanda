@@ -13,15 +13,15 @@ export const MobileBottomNav: React.FC = () => {
   const isListenPage = location.pathname.startsWith('/listen');
   const isReadPage = location.pathname.startsWith('/read');
 
-  // Hide bottom nav on full-screen reader or player pages
-  if (isListenPage || isReadPage) {
-    return null;
-  }
-
   const unreadMessagesCount = React.useMemo(() => {
     if (!user) return 0;
     return getUnreadCountForUser(user.id);
   }, [user, messages, getUnreadCountForUser]);
+
+  // Hide bottom nav on full-screen reader or player pages
+  if (isListenPage || isReadPage) {
+    return null;
+  }
 
   const isAdmin = Boolean(
     isAuthenticated && user && (role === 'admin' || user.role === 'admin' || user.isSuperAdmin)
