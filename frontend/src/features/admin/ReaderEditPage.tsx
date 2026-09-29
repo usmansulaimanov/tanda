@@ -1671,34 +1671,9 @@ export const ReaderEditPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Action Buttons for Admin */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                <button
-                  type="button"
-                  onClick={handleGrantBirthdayGift}
-                  style={{
-                    padding: '8px 16px',
-                    borderRadius: '8px',
-                    border: '1px solid #D97706',
-                    background: '#D97706',
-                    color: '#FFFFFF',
-                    fontSize: '12px',
-                    fontWeight: 800,
-                    cursor: 'pointer',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    transition: 'all 0.15s',
-                    boxShadow: '0 2px 6px rgba(217, 119, 6, 0.25)',
-                  }}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                  </svg>
-                  Сыйлықты қазір қосу (+30 күн Премиум)
-                </button>
-
-                {reader.lastBirthdayGiftYear && (
+              {/* Action Buttons for Admin (Reset history if needed) */}
+              {reader.lastBirthdayGiftYear && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                   <button
                     type="button"
                     onClick={handleResetBirthdayGift}
@@ -1726,8 +1701,8 @@ export const ReaderEditPage: React.FC = () => {
                     </svg>
                     Тарихты тазарту
                   </button>
-                )}
-              </div>
+                </div>
+              )}
             </div>
 
             {/* Action Buttons */}
