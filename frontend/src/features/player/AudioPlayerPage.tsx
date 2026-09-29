@@ -619,10 +619,7 @@ export const AudioPlayerPage: React.FC = () => {
               <div className="w-10 h-1 bg-slate-200 rounded-full mx-auto mb-3" />
 
               <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-2">
-                <div>
-                  <h3 className="text-base font-black text-slate-900 tracking-tight">Кітап бөлімдері</h3>
-                  <p className="text-xs text-slate-500 font-medium">{chapters.length} бөлім бар</p>
-                </div>
+                <h3 className="text-base font-black text-slate-900 tracking-tight">Кітап бөлімдері</h3>
                 <button
                   type="button"
                   onClick={() => setShowChaptersDrawer(false)}
