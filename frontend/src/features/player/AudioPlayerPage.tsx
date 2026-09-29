@@ -360,26 +360,29 @@ export const AudioPlayerPage: React.FC = () => {
         />
 
         {/* 1. Mobile Top Bar */}
-        <div className="flex items-center justify-between gap-2 relative z-10 py-1 shrink-0">
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            className="w-10 h-10 rounded-full bg-white/5 active:bg-white/15 border border-white/10 flex items-center justify-center text-slate-200 transition"
-            title="Жабу"
-          >
-            <ChevronDown className="w-6 h-6" />
-          </button>
+        <div className="relative flex items-center justify-between w-full py-1 min-h-[44px] shrink-0 z-10">
+          <div className="flex items-center z-10">
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              className="w-10 h-10 rounded-full bg-white/5 active:bg-white/15 border border-white/10 flex items-center justify-center text-slate-200 transition"
+              title="Жабу"
+            >
+              <ChevronDown className="w-6 h-6" />
+            </button>
+          </div>
 
-          <div className="flex flex-col items-center min-w-0 px-2 text-center">
-            <span className="text-[10px] font-black uppercase tracking-widest text-[#EF7E00]">
+          {/* Exactly horizontally centered title */}
+          <div className="absolute inset-x-0 mx-auto flex flex-col items-center justify-center text-center px-24 pointer-events-none z-0">
+            <span className="text-[10px] font-black uppercase tracking-widest text-[#EF7E00] leading-none mb-1">
               TANDA АУДИО
             </span>
-            <span className="text-xs font-bold text-white/90 truncate max-w-[200px]">
+            <span className="text-xs font-bold text-white/90 truncate max-w-full leading-tight">
               {activeBook.title}
             </span>
           </div>
 
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 z-10">
             <button
               type="button"
               onClick={() => setShowChaptersDrawer(true)}
