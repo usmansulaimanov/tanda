@@ -17,7 +17,9 @@ import {
   Send,
   MessageSquare,
   Bot,
-  Calendar
+  Calendar,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { premiumApi } from '../../shared/api/premium.api';
 import { systemApi } from '../../shared/api/system.api';
@@ -111,6 +113,10 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
   const [isTogglingAi, setIsTogglingAi] = useState<boolean>(false);
   const [selectedYear, setSelectedYear] = useState<string>('ALL');
   const [selectedMonth, setSelectedMonth] = useState<string>('ALL');
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(10);
 
   const { showToast } = useToastStore();
   const queryClient = useQueryClient();
@@ -307,6 +313,23 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
     });
   }, [dateFilteredRequests, statusFilter, searchQuery]);
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedYear, selectedMonth, statusFilter, searchQuery]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredRequests.length / pageSize));
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [totalPages, currentPage]);
+
+  const paginatedRequests = useMemo(() => {
+    const startIndex = (currentPage - 1) * pageSize;
+    return filteredRequests.slice(startIndex, startIndex + pageSize);
+  }, [filteredRequests, currentPage, pageSize]);
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
       {/* Header */}
@@ -501,7 +524,7 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-sm">
-                {filteredRequests.map((req) => (
+                {paginatedRequests.map((req) => (
                   <tr key={req.id} className="hover:bg-slate-50/50 transition">
                     <td className="py-3 px-4">
                       <div className="font-bold text-slate-900">{req.userName || 'Аты көрсетілмеген'}</div>
@@ -625,6 +648,102 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* Pagination controls */}
+        {!isLoading && filteredRequests.length > 0 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between flex-wrap gap-4 p-4 border-t border-slate-100 bg-white">
+            {/* Page size selector */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs sm:text-sm text-slate-500 font-medium">
+                Беттегі өтініш саны:
+              </span>
+              <select
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs sm:text-sm font-bold text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 cursor-pointer shadow-sm"
+              >
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={30}>30</option>
+                <option value={40}>40</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+              <span className="text-xs sm:text-sm text-slate-400 font-medium ml-1">
+                ({Math.min((currentPage - 1) * pageSize + 1, filteredRequests.length)}-
+                {Math.min(currentPage * pageSize, filteredRequests.length)} / Барлығы {filteredRequests.length})
+              </span>
+            </div>
+
+            {/* Page navigation */}
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <button
+                type="button"
+                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs sm:text-sm font-bold text-slate-700 hover:bg-slate-50 transition disabled:opacity-40 disabled:cursor-not-allowed shadow-sm cursor-pointer"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Алдыңғы
+              </button>
+
+              {/* Number buttons */}
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => {
+                if (
+                  totalPages > 7 &&
+                  pageNum !== 1 &&
+                  pageNum !== totalPages &&
+                  Math.abs(pageNum - currentPage) > 1
+                ) {
+                  if (pageNum === 2 && currentPage > 3) {
+                    return (
+                      <span key="dots-start" className="px-1 text-slate-400 text-xs font-bold">
+                        ...
+                      </span>
+                    );
+                  }
+                  if (pageNum === totalPages - 1 && currentPage < totalPages - 2) {
+                    return (
+                      <span key="dots-end" className="px-1 text-slate-400 text-xs font-bold">
+                        ...
+                      </span>
+                    );
+                  }
+                  return null;
+                }
+
+                const isActive = currentPage === pageNum;
+                return (
+                  <button
+                    key={pageNum}
+                    type="button"
+                    onClick={() => setCurrentPage(pageNum)}
+                    className={`min-w-[34px] h-[34px] px-2 rounded-lg text-xs sm:text-sm font-bold transition flex items-center justify-center cursor-pointer ${
+                      isActive
+                        ? 'bg-[#0057A8] text-white shadow-sm'
+                        : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              })}
+
+              <button
+                type="button"
+                onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs sm:text-sm font-bold text-slate-700 hover:bg-slate-50 transition disabled:opacity-40 disabled:cursor-not-allowed shadow-sm cursor-pointer"
+              >
+                Кейінгі
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         )}
       </div>
