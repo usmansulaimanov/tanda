@@ -879,7 +879,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
                   ) : cooldownRemaining > 0 && cooldownInfo.locked ? (
                     <span className="flex items-center gap-2">
                       <Clock className="w-4 h-4" />
-                      <span>Күте тұрыңыз ({formatTimer(cooldownRemaining)})</span>
+                      <span>Күтіңіз</span>
                     </span>
                   ) : (
                     <span>Чекті растауға жіберу</span>
