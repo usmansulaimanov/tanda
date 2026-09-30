@@ -1113,11 +1113,6 @@ export const Header: React.FC = () => {
                         {b.author}
                         {b.category ? <span style={{ color: '#005494' }}> · {b.category}</span> : null}
                       </p>
-                      {!b.isFree && (
-                        <span className="inline-flex items-center mt-1 text-[10px] font-black px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(0,84,148,0.08)', color: '#005494' }}>
-                          Premium
-                        </span>
-                      )}
                     </div>
                     {/* Chevron */}
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" strokeWidth="2">

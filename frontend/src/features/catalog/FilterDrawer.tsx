@@ -52,16 +52,14 @@ export const FilterDrawer: React.FC<FilterDrawerProps> = ({
   authorsList,
   narratorsList,
 }) => {
-  const [draft, setDraft] = useState<FilterState>(filters);
   const [openSections, setOpenSections] = useState<Set<SectionKey>>(new Set(['sort']));
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
-      setDraft(filters);
       setIsVisible(true);
     }
-  }, [isOpen, filters]);
+  }, [isOpen]);
 
   const handleClose = () => {
     setIsVisible(false);
@@ -77,8 +75,8 @@ export const FilterDrawer: React.FC<FilterDrawerProps> = ({
     });
   };
 
-  const resetDraft = () => {
-    setDraft({
+  const resetAll = () => {
+    onApply({
       selectedAuthors: [],
       selectedNarrators: [],
       formatFilter: 'all',
@@ -87,17 +85,12 @@ export const FilterDrawer: React.FC<FilterDrawerProps> = ({
     });
   };
 
-  const handleApply = () => {
-    onApply(draft);
-    handleClose();
-  };
-
-  const activeDraftCount = [
-    draft.selectedAuthors.length > 0,
-    draft.selectedNarrators.length > 0,
-    draft.formatFilter !== 'all',
-    draft.accessFilter !== 'all',
-    draft.sortBy !== 'default',
+  const activeCount = [
+    filters.selectedAuthors.length > 0,
+    filters.selectedNarrators.length > 0,
+    filters.formatFilter !== 'all',
+    filters.accessFilter !== 'all',
+    filters.sortBy !== 'default',
   ].filter(Boolean).length;
 
   if (!isOpen && !isVisible) return null;
@@ -227,21 +220,17 @@ export const FilterDrawer: React.FC<FilterDrawerProps> = ({
   );
 
   const toggleAuthor = (name: string) => {
-    setDraft((d) => ({
-      ...d,
-      selectedAuthors: d.selectedAuthors.includes(name)
-        ? d.selectedAuthors.filter((a) => a !== name)
-        : [...d.selectedAuthors, name],
-    }));
+    const next = filters.selectedAuthors.includes(name)
+      ? filters.selectedAuthors.filter((a) => a !== name)
+      : [...filters.selectedAuthors, name];
+    onApply({ ...filters, selectedAuthors: next });
   };
 
   const toggleNarrator = (name: string) => {
-    setDraft((d) => ({
-      ...d,
-      selectedNarrators: d.selectedNarrators.includes(name)
-        ? d.selectedNarrators.filter((n) => n !== name)
-        : [...d.selectedNarrators, name],
-    }));
+    const next = filters.selectedNarrators.includes(name)
+      ? filters.selectedNarrators.filter((n) => n !== name)
+      : [...filters.selectedNarrators, name];
+    onApply({ ...filters, selectedNarrators: next });
   };
 
   return (
@@ -283,19 +272,19 @@ export const FilterDrawer: React.FC<FilterDrawerProps> = ({
               <polyline points="15 18 9 12 15 6" />
             </svg>
             Сүзгі
-            {activeDraftCount > 0 && (
+            {activeCount > 0 && (
               <span
                 className="w-5 h-5 rounded-full text-white text-xs font-black flex items-center justify-center"
                 style={{ background: '#005494' }}
               >
-                {activeDraftCount}
+                {activeCount}
               </span>
             )}
           </button>
 
           <button
             type="button"
-            onClick={resetDraft}
+            onClick={resetAll}
             className="text-sm font-semibold active:opacity-60 transition-opacity"
             style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF7E00' }}
           >
@@ -311,7 +300,7 @@ export const FilterDrawer: React.FC<FilterDrawerProps> = ({
             <SectionHeader
               sectionKey="sort"
               label="Сұрыптау"
-              badge={draft.sortBy !== 'default' ? SORT_OPTIONS.find((o) => o.value === draft.sortBy)?.label : undefined}
+              badge={filters.sortBy !== 'default' ? SORT_OPTIONS.find((o) => o.value === filters.sortBy)?.label : undefined}
             />
             {openSections.has('sort') && (
               <div className="pb-2">
@@ -320,8 +309,8 @@ export const FilterDrawer: React.FC<FilterDrawerProps> = ({
                     key={opt.value}
                     value={opt.value}
                     label={opt.label}
-                    current={draft.sortBy}
-                    onChange={(v) => setDraft((d) => ({ ...d, sortBy: v }))}
+                    current={filters.sortBy}
+                    onChange={(v) => onApply({ ...filters, sortBy: v })}
                   />
                 ))}
               </div>
@@ -333,7 +322,7 @@ export const FilterDrawer: React.FC<FilterDrawerProps> = ({
             <SectionHeader
               sectionKey="author"
               label="Автор бойынша"
-              badge={draft.selectedAuthors.length > 0 ? draft.selectedAuthors.length : undefined}
+              badge={filters.selectedAuthors.length > 0 ? filters.selectedAuthors.length : undefined}
             />
             {openSections.has('author') && (
               <div className="pb-2">
@@ -345,12 +334,12 @@ export const FilterDrawer: React.FC<FilterDrawerProps> = ({
                   <span
                     className="shrink-0 w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all"
                     style={{
-                      borderColor: draft.selectedAuthors.length === 0 ? '#005494' : '#CBD5E1',
-                      background: draft.selectedAuthors.length === 0 ? '#005494' : '#fff',
+                      borderColor: filters.selectedAuthors.length === 0 ? '#005494' : '#CBD5E1',
+                      background: filters.selectedAuthors.length === 0 ? '#005494' : '#fff',
                     }}
-                    onClick={() => setDraft((d) => ({ ...d, selectedAuthors: [] }))}
+                    onClick={() => onApply({ ...filters, selectedAuthors: [] })}
                   >
-                    {draft.selectedAuthors.length === 0 && (
+                    {filters.selectedAuthors.length === 0 && (
                       <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
                         <path d="M1 4L4 7L10 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
@@ -358,8 +347,8 @@ export const FilterDrawer: React.FC<FilterDrawerProps> = ({
                   </span>
                   <span
                     className="text-sm font-semibold flex-1"
-                    style={{ color: draft.selectedAuthors.length === 0 ? '#005494' : '#334155' }}
-                    onClick={() => setDraft((d) => ({ ...d, selectedAuthors: [] }))}
+                    style={{ color: filters.selectedAuthors.length === 0 ? '#005494' : '#334155' }}
+                    onClick={() => onApply({ ...filters, selectedAuthors: [] })}
                   >
                     Барлық авторлар
                   </span>
@@ -369,7 +358,7 @@ export const FilterDrawer: React.FC<FilterDrawerProps> = ({
                     key={item.name}
                     value={item.name}
                     label={`${item.name} (${item.count})`}
-                    selected={draft.selectedAuthors.includes(item.name)}
+                    selected={filters.selectedAuthors.includes(item.name)}
                     onToggle={toggleAuthor}
                   />
                 ))}
@@ -383,7 +372,7 @@ export const FilterDrawer: React.FC<FilterDrawerProps> = ({
               <SectionHeader
                 sectionKey="narrator"
                 label="Диктор бойынша"
-                badge={draft.selectedNarrators.length > 0 ? draft.selectedNarrators.length : undefined}
+                badge={filters.selectedNarrators.length > 0 ? filters.selectedNarrators.length : undefined}
               />
               {openSections.has('narrator') && (
                 <div className="pb-2">
@@ -394,12 +383,12 @@ export const FilterDrawer: React.FC<FilterDrawerProps> = ({
                     <span
                       className="shrink-0 w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all"
                       style={{
-                        borderColor: draft.selectedNarrators.length === 0 ? '#005494' : '#CBD5E1',
-                        background: draft.selectedNarrators.length === 0 ? '#005494' : '#fff',
+                        borderColor: filters.selectedNarrators.length === 0 ? '#005494' : '#CBD5E1',
+                        background: filters.selectedNarrators.length === 0 ? '#005494' : '#fff',
                       }}
-                      onClick={() => setDraft((d) => ({ ...d, selectedNarrators: [] }))}
+                      onClick={() => onApply({ ...filters, selectedNarrators: [] })}
                     >
-                      {draft.selectedNarrators.length === 0 && (
+                      {filters.selectedNarrators.length === 0 && (
                         <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
                           <path d="M1 4L4 7L10 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
@@ -407,8 +396,8 @@ export const FilterDrawer: React.FC<FilterDrawerProps> = ({
                     </span>
                     <span
                       className="text-sm font-semibold flex-1"
-                      style={{ color: draft.selectedNarrators.length === 0 ? '#005494' : '#334155' }}
-                      onClick={() => setDraft((d) => ({ ...d, selectedNarrators: [] }))}
+                      style={{ color: filters.selectedNarrators.length === 0 ? '#005494' : '#334155' }}
+                      onClick={() => onApply({ ...filters, selectedNarrators: [] })}
                     >
                       Барлық дикторлар
                     </span>
@@ -418,7 +407,7 @@ export const FilterDrawer: React.FC<FilterDrawerProps> = ({
                       key={item.name}
                       value={item.name}
                       label={`${item.name} (${item.count})`}
-                      selected={draft.selectedNarrators.includes(item.name)}
+                      selected={filters.selectedNarrators.includes(item.name)}
                       onToggle={toggleNarrator}
                     />
                   ))}
@@ -432,7 +421,7 @@ export const FilterDrawer: React.FC<FilterDrawerProps> = ({
             <SectionHeader
               sectionKey="format"
               label="Форматы"
-              badge={draft.formatFilter !== 'all' ? FORMAT_OPTIONS.find((o) => o.value === draft.formatFilter)?.label : undefined}
+              badge={filters.formatFilter !== 'all' ? FORMAT_OPTIONS.find((o) => o.value === filters.formatFilter)?.label : undefined}
             />
             {openSections.has('format') && (
               <div className="pb-2">
@@ -441,8 +430,8 @@ export const FilterDrawer: React.FC<FilterDrawerProps> = ({
                     key={opt.value}
                     value={opt.value}
                     label={opt.label}
-                    current={draft.formatFilter}
-                    onChange={(v) => setDraft((d) => ({ ...d, formatFilter: v }))}
+                    current={filters.formatFilter}
+                    onChange={(v) => onApply({ ...filters, formatFilter: v })}
                   />
                 ))}
               </div>
@@ -454,7 +443,7 @@ export const FilterDrawer: React.FC<FilterDrawerProps> = ({
             <SectionHeader
               sectionKey="access"
               label="Қолжетімділік"
-              badge={draft.accessFilter !== 'all' ? ACCESS_OPTIONS.find((o) => o.value === draft.accessFilter)?.label : undefined}
+              badge={filters.accessFilter !== 'all' ? ACCESS_OPTIONS.find((o) => o.value === filters.accessFilter)?.label : undefined}
             />
             {openSections.has('access') && (
               <div className="pb-2">
@@ -463,33 +452,15 @@ export const FilterDrawer: React.FC<FilterDrawerProps> = ({
                     key={opt.value}
                     value={opt.value}
                     label={opt.label}
-                    current={draft.accessFilter}
-                    onChange={(v) => setDraft((d) => ({ ...d, accessFilter: v }))}
+                    current={filters.accessFilter}
+                    onChange={(v) => onApply({ ...filters, accessFilter: v })}
                   />
                 ))}
               </div>
             )}
           </div>
 
-          <div className="h-6" />
-        </div>
-
-        {/* Apply Button */}
-        <div
-          className="shrink-0 px-5 py-4"
-          style={{ borderTop: '1px solid #F1F5F9', background: '#FFFFFF' }}
-        >
-          <button
-            type="button"
-            onClick={handleApply}
-            className="w-full py-3.5 rounded-2xl font-black text-white text-base active:scale-[0.98] transition-all"
-            style={{
-              background: 'linear-gradient(135deg, #005494 0%, #002D50 100%)',
-              boxShadow: '0 4px 16px rgba(0,84,148,0.3)',
-            }}
-          >
-            Қолдану{activeDraftCount > 0 ? ` • ${activeDraftCount} сүзгі` : ''}
-          </button>
+          <div className="h-10" />
         </div>
       </div>
     </>
