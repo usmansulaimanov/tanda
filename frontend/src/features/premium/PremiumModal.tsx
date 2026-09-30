@@ -629,7 +629,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
                             </span>
                           </div>
                           <p className="text-[11px] text-emerald-700">
-                            Барлық тарифтердің бағасы {appliedPromo.discountPercent}%-ға төмендетілді
+                            1 айлық тарифтің бағасы {appliedPromo.discountPercent}%-ға төмендетілді
                           </p>
                         </div>
                       </div>
@@ -874,7 +874,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
                   {isUploading ? (
                     <span className="flex items-center gap-2">
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      <span>AI чекті тексеруде... (3–5 сек)</span>
+                      <span>Чек тексерілуде...</span>
                     </span>
                   ) : cooldownRemaining > 0 && cooldownInfo.locked ? (
                     <span className="flex items-center gap-2">
