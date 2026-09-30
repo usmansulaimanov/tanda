@@ -1051,19 +1051,6 @@ export const Header: React.FC = () => {
               animation: 'searchOverlayIn 0.22s cubic-bezier(0.22,1,0.36,1) both',
             }}
           >
-            {/* Empty state — no search + no filters */}
-            {!headerSearch.trim() && headerActiveFilterCount === 0 && (
-              <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
-                <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ background: '#F1F5F9' }}>
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#64748B" strokeWidth="2">
-                    <circle cx="11" cy="11" r="8"></circle>
-                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                  </svg>
-                </div>
-                <p className="text-base font-bold" style={{ color: '#1E293B' }}>Кітап іздеу</p>
-                <p className="text-sm mt-1" style={{ color: '#94A3B8' }}>Атауы, автор немесе жанр бойынша іздеңіз</p>
-              </div>
-            )}
 
             {/* Results count row */}
             {(headerSearch.trim() || headerActiveFilterCount > 0) && (
