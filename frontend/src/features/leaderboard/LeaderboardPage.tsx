@@ -21,29 +21,20 @@ export const LeaderboardPage: React.FC = () => {
   const now = new Date();
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth() + 1; // 1-12
-  const [selectedYear, setSelectedYear] = useState<number>(currentYear);
+  const selectedYear = currentYear;
   const [selectedMonth, setSelectedMonth] = useState<number>(currentMonth);
 
-  const handlePrevMonth = () => {
-    if (selectedMonth === 1) {
-      setSelectedYear((y) => y - 1);
-      setSelectedMonth(12);
-    } else {
-      setSelectedMonth((m) => m - 1);
-    }
-  };
+  const isFirstMonth = selectedMonth <= 1;
+  const isCurrentOrFutureMonth = selectedMonth >= currentMonth;
 
-  const isCurrentOrFutureMonth =
-    selectedYear > currentYear || (selectedYear === currentYear && selectedMonth >= currentMonth);
+  const handlePrevMonth = () => {
+    if (isFirstMonth) return;
+    setSelectedMonth((m) => m - 1);
+  };
 
   const handleNextMonth = () => {
     if (isCurrentOrFutureMonth) return;
-    if (selectedMonth === 12) {
-      setSelectedYear((y) => y + 1);
-      setSelectedMonth(1);
-    } else {
-      setSelectedMonth((m) => m + 1);
-    }
+    setSelectedMonth((m) => m + 1);
   };
 
   // Leaderboard Query
@@ -491,7 +482,7 @@ export const LeaderboardPage: React.FC = () => {
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <h3 className="text-base sm:text-lg font-bold text-slate-900">
-                        Тыңдау белсенділігі ({personalStats.selectedMonthName} {personalStats.selectedYear})
+                        Тыңдау белсенділігі: {personalStats.selectedMonthName}
                       </h3>
                       <p className="text-xs text-slate-500 mt-0.5">
                         1 мен {personalStats.daysInMonth} {personalStats.selectedMonthName.toLowerCase()} аралығындағы тыңдау динамикасы
@@ -504,15 +495,20 @@ export const LeaderboardPage: React.FC = () => {
                         <button
                           type="button"
                           onClick={handlePrevMonth}
+                          disabled={isFirstMonth}
                           title="Өткен ай"
-                          className="p-1.5 rounded-lg hover:bg-white text-slate-600 hover:text-slate-900 transition-colors shadow-sm"
+                          className={`p-1.5 rounded-lg transition-colors ${
+                            isFirstMonth
+                              ? 'text-slate-300 cursor-not-allowed'
+                              : 'hover:bg-white text-slate-600 hover:text-slate-900 shadow-sm cursor-pointer'
+                          }`}
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                           </svg>
                         </button>
-                        <span className="text-xs font-bold text-slate-700 px-2.5 min-w-[95px] text-center select-none">
-                          {personalStats.selectedMonthName} {personalStats.selectedYear}
+                        <span className="text-xs font-bold text-slate-700 px-2.5 min-w-[80px] text-center select-none">
+                          {personalStats.selectedMonthName}
                         </span>
                         <button
                           type="button"
@@ -522,7 +518,7 @@ export const LeaderboardPage: React.FC = () => {
                           className={`p-1.5 rounded-lg transition-colors ${
                             isCurrentOrFutureMonth
                               ? 'text-slate-300 cursor-not-allowed'
-                              : 'hover:bg-white text-slate-600 hover:text-slate-900 shadow-sm'
+                              : 'hover:bg-white text-slate-600 hover:text-slate-900 shadow-sm cursor-pointer'
                           }`}
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
