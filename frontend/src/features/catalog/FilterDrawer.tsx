@@ -34,14 +34,14 @@ const SORT_OPTIONS: { value: SortBy; label: string }[] = [
 
 const FORMAT_OPTIONS: { value: FormatFilter; label: string }[] = [
   { value: 'all', label: 'Барлық формат' },
-  { value: 'audio', label: '🎧 Тек аудиокітаптар' },
-  { value: 'ebook', label: '📖 Тек э-кітаптар' },
+  { value: 'audio', label: 'Тек аудиокітаптар' },
+  { value: 'ebook', label: 'Тек э-кітаптар' },
 ];
 
 const ACCESS_OPTIONS: { value: AccessFilter; label: string }[] = [
   { value: 'all', label: 'Барлық кітаптар' },
   { value: 'free', label: 'Тегін кітаптар' },
-  { value: 'premium', label: '👑 Tanda Premium' },
+  { value: 'premium', label: 'Tanda Premium' },
 ];
 
 export const FilterDrawer: React.FC<FilterDrawerProps> = ({
