@@ -122,12 +122,8 @@ public class SubscriptionPaymentService {
             String timeStr = mins > 0 ? String.format("%d мин %02d сек", mins, secs) : String.format("%d сек", secs);
 
             String message;
-            if (stage == 1) {
-                message = "Төлем чегі қабылданбады. Қайта жіберу үшін 5 минут күту қажет (қалды: " + timeStr + ").";
-            } else if (stage == 2) {
-                message = "Төлем чегі 2-ші рет қабылданбады. Қайта жіберу үшін 10 минут күту қажет (қалды: " + timeStr + ").";
-            } else if (stage == 3) {
-                message = "Төлем чегі 3-ші рет қабылданбады. Қайта жіберу үшін 1 сағат күту қажет (қалды: " + timeStr + ").";
+            if (stage == 1 || stage == 2 || stage == 3) {
+                message = "Төлем чегі қабылданбады. Қайта жібере аласыз: " + timeStr;
             } else {
                 message = "Төлем чегі бірнеше рет қабылданбады. Жаңа сұраныс тек келесі күні қабылданады.";
             }

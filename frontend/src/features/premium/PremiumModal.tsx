@@ -794,19 +794,18 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
                       <Clock className="w-5 h-5 text-amber-700 animate-pulse" />
                     </div>
                     <div className="flex-1 text-xs leading-relaxed text-left">
-                      <div className="flex items-center justify-between gap-2 mb-1">
+                      <div className="flex items-center justify-between gap-2">
                         <span className="font-bold text-amber-900">
                           {cooldownInfo.stage >= 4
-                            ? 'Жаңа чек тек келесі күні қабылданады'
-                            : `Қайта жіберу уақыты шектелген (${cooldownInfo.stage}-ші отказ)`}
+                            ? 'Төлем чегі қабылданбады. Жаңа чек тек келесі күні қабылданады'
+                            : 'Төлем чегі қабылданбады. Қайта жібере аласыз:'}
                         </span>
-                        <span className="px-2.5 py-0.5 rounded-lg bg-amber-200/90 font-mono font-black text-amber-900 text-xs shrink-0">
-                          {formatTimer(cooldownRemaining)}
-                        </span>
+                        {cooldownInfo.stage < 4 && (
+                          <span className="px-2.5 py-0.5 rounded-lg bg-amber-200/90 font-mono font-black text-amber-900 text-xs shrink-0">
+                            {formatTimer(cooldownRemaining)}
+                          </span>
+                        )}
                       </div>
-                      <p className="text-amber-800 font-medium">
-                        {cooldownInfo.message || 'Чек бірнеше рет қабылданбағандықтан, жүйенің автоматты қауіпсіздік шектеуі іске қосылды. Белгіленген уақыт өткен соң қайта жібере аласыз.'}
-                      </p>
                     </div>
                   </div>
                 )}

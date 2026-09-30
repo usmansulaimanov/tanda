@@ -387,6 +387,6 @@ class SubscriptionPaymentServiceTest {
                 () -> paymentService.createRequest("user-123", dto)
         );
 
-        assertTrue(ex.getMessage().contains("5 минут күту қажет"));
+        assertTrue(ex.getMessage().contains("Қайта жібере аласыз"));
     }
 }
