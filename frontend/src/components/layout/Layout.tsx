@@ -54,7 +54,7 @@ export const Layout: React.FC = () => {
 
   return (
     <div
-      className={`flex flex-col w-full max-w-full overflow-x-hidden ${
+      className={`flex flex-col w-full max-w-full overflow-x-clip ${
         isListenPage
           ? 'h-[100dvh] max-h-[100dvh] overflow-hidden bg-[#F8FAFC] md:bg-transparent md:h-auto md:max-h-none md:overflow-visible md:min-h-screen'
           : 'min-h-screen'
@@ -63,7 +63,7 @@ export const Layout: React.FC = () => {
       {!isAuthorOrStaff && <QuoteNotificationRunner />}
       <NewsNotificationRunner />
       <MessageNotificationRunner />
-      <div className={isListenPage ? 'hidden md:block' : ''}>
+      <div className={isListenPage ? 'hidden md:block sticky top-0 z-50' : 'sticky top-0 z-50'}>
         <Header />
       </div>
       <AppSidebarDrawer />
