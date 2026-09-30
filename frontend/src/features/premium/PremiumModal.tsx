@@ -629,7 +629,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
                             </span>
                           </div>
                           <p className="text-[11px] text-emerald-700">
-                            1 айлық тарифтің бағасы {appliedPromo.discountPercent}%-ға төмендетілді
+                            Бір айлық тарифтің бағасы {appliedPromo.discountPercent}%-ға төмендетілді
                           </p>
                         </div>
                       </div>
