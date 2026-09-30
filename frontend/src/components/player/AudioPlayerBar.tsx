@@ -1317,7 +1317,7 @@ export const AudioPlayerBar: React.FC = () => {
 
       {/* Main Bottom Audio Player Bar - Only shown when NOT on full player page */}
       {!isListenPage && (
-        <div className="fixed bottom-[var(--mobile-bottom-nav-height)] md:bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-2xl transition-all">
+        <div className="fixed bottom-[var(--mobile-bottom-nav-height)] md:bottom-0 inset-x-0 z-50 bg-white border-t border-slate-200 shadow-2xl transition-all">
           
           {/* Mobile Top Progress Line */}
           <div className="md:hidden absolute top-0 inset-x-0 h-1 bg-slate-100 overflow-hidden">

@@ -1698,6 +1698,18 @@ button:hover .avatar-hover-overlay {
   opacity: 1 !important;
 }
 
+/* Search overlay fade-slide-in animation */
+@keyframes searchOverlayIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* 3D Realistic Bookshelf Pull-out & Put-back Animations */
 @keyframes bookPullOut {
   0% {

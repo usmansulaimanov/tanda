@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useBookStore } from '../../store/useBookStore';
@@ -9,10 +9,12 @@ import { useMessageStore } from '../../store/useMessageStore';
 import { Book } from '../../types';
 import { hasAdminPermission } from '../../utils/permissions';
 import tandaLogo from '../../assets/tanda-logo.png';
-import { Crown, X } from 'lucide-react';
+import { Crown, X, SlidersHorizontal } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { systemApi } from '../../shared/api/system.api';
 import { PremiumModal } from '../../features/premium/PremiumModal';
+import { FilterDrawer, FilterState } from '../../features/catalog/FilterDrawer';
+
 
 export const Header: React.FC = () => {
   const navigate = useNavigate();
@@ -44,8 +46,110 @@ export const Header: React.FC = () => {
   const [searchResults, setSearchResults] = useState<Book[]>([]);
   const [showResults, setShowResults] = useState(false);
   const searchWrapRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // Profile menu state
+  // Search overlay state
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
+  const [headerFilters, setHeaderFilters] = useState<FilterState>({
+    selectedAuthors: [],
+    selectedNarrators: [],
+    formatFilter: 'all',
+    accessFilter: 'all',
+    sortBy: 'default',
+  });
+
+  const openSearch = () => {
+    setIsSearchOpen(true);
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => searchInputRef.current?.focus(), 60);
+  };
+
+  const closeSearch = () => {
+    setIsSearchOpen(false);
+    setHeaderSearch('');
+    document.body.style.overflow = '';
+  };
+
+  // Authors list for filter drawer
+  const overlayAuthorsList = useMemo(() => {
+    const map = new Map<string, number>();
+    books.filter((b) => !b.isArchived).forEach((b) => {
+      const a = b.author?.trim();
+      if (a) map.set(a, (map.get(a) || 0) + 1);
+    });
+    return Array.from(map.entries())
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => a.name.localeCompare(b.name, 'kk'));
+  }, [books]);
+
+  // Narrators list for filter drawer
+  const overlayNarratorsList = useMemo(() => {
+    const map = new Map<string, number>();
+    books.filter((b) => !b.isArchived).forEach((b) => {
+      const n = b.audioNarrator?.trim();
+      if (n) map.set(n, (map.get(n) || 0) + 1);
+    });
+    return Array.from(map.entries())
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => a.name.localeCompare(b.name, 'kk'));
+  }, [books]);
+
+  // Active filter count badge
+  const headerActiveFilterCount = [
+    headerFilters.selectedAuthors.length > 0,
+    headerFilters.selectedNarrators.length > 0,
+    headerFilters.formatFilter !== 'all',
+    headerFilters.accessFilter !== 'all',
+    headerFilters.sortBy !== 'default',
+  ].filter(Boolean).length;
+
+  // Filtered overlay results
+  const overlayResults = useMemo(() => {
+    const activeBooks = books.filter((b) => {
+      const isArchived = Boolean(b.isArchived) || (b.isArchived as unknown) === 'true';
+      return !isArchived;
+    });
+
+    let list = activeBooks.filter((b) => {
+      if (headerSearch.trim()) {
+        const q = headerSearch.toLowerCase();
+        const matches =
+          (b.title || '').toLowerCase().includes(q) ||
+          (b.author || '').toLowerCase().includes(q) ||
+          (b.category || '').toLowerCase().includes(q) ||
+          (b.description || '').toLowerCase().includes(q);
+        if (!matches) return false;
+      }
+      if (headerFilters.selectedAuthors.length > 0) {
+        const al = (b.author || '').trim().toLowerCase();
+        if (!headerFilters.selectedAuthors.some((a) => a.toLowerCase() === al)) return false;
+      }
+      if (headerFilters.selectedNarrators.length > 0) {
+        const nl = (b.audioNarrator || '').trim().toLowerCase();
+        if (!headerFilters.selectedNarrators.some((n) => n.toLowerCase() === nl)) return false;
+      }
+      if (headerFilters.formatFilter === 'audio' && !b.hasAudio && !b.audioUrl && (!b.audioChapters || b.audioChapters.length === 0)) return false;
+      if (headerFilters.formatFilter === 'ebook' && !b.hasEbook && !b.content && !b.pages && !b.ebookUrl && !b.pdfUrl && !b.epubUrl) return false;
+      if (headerFilters.accessFilter === 'free' && !b.isFree) return false;
+      if (headerFilters.accessFilter === 'premium' && b.isFree !== false) return false;
+      return true;
+    });
+
+    if (headerFilters.sortBy === 'popular') {
+      list.sort((a, b) => ((b.readsCount || 0) + (b.viewsCount || 0)) - ((a.readsCount || 0) + (a.viewsCount || 0)));
+    } else if (headerFilters.sortBy === 'newest') {
+      list.sort((a, b) => (b.createdAt ? new Date(b.createdAt).getTime() : 0) - (a.createdAt ? new Date(a.createdAt).getTime() : 0));
+    } else if (headerFilters.sortBy === 'alpha-asc') {
+      list.sort((a, b) => (a.title || '').localeCompare(b.title || '', 'kk'));
+    } else if (headerFilters.sortBy === 'alpha-desc') {
+      list.sort((a, b) => (b.title || '').localeCompare(a.title || '', 'kk'));
+    }
+
+    return list;
+  }, [books, headerSearch, headerFilters]);
+
+
   const [profileOpen, setProfileOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const profileWrapRef = useRef<HTMLDivElement>(null);
@@ -217,7 +321,7 @@ export const Header: React.FC = () => {
               />
             </Link>
 
-            {/* Header Search with Autocomplete */}
+            {/* Header Search Trigger — click opens fullscreen overlay */}
             <div
               ref={searchWrapRef}
               style={{
@@ -230,125 +334,35 @@ export const Header: React.FC = () => {
                 height: '38px',
               }}
             >
-              <div style={{ position: 'relative', width: '100%', display: 'flex', alignItems: 'center' }}>
-                <input
-                  type="text"
-                  value={headerSearch}
-                  onChange={(e) => handleSearchInput(e.target.value)}
-                  placeholder="Кітап іздеу..."
-                  autoComplete="off"
-                  style={{
-                    width: '100%',
-                    height: '38px',
-                    padding: '0 10px 0 32px',
-                    border: '1.5px solid #CBD5E1',
-                    borderRadius: '50px',
-                    fontSize: '13px',
-                    fontWeight: 500,
-                    background: '#F8FAFC',
-                    color: 'var(--text-dark)',
-                    outline: 'none',
-                    transition: 'all 0.2s',
-                    boxSizing: 'border-box',
-                    display: 'block',
-                  }}
-                />
+              <button
+                type="button"
+                onClick={openSearch}
+                className="w-full flex items-center gap-2 text-left"
+                style={{
+                  height: '38px',
+                  padding: '0 10px 0 34px',
+                  border: '1.5px solid #CBD5E1',
+                  borderRadius: '50px',
+                  fontSize: '13px',
+                  fontWeight: 500,
+                  background: '#F8FAFC',
+                  color: '#94A3B8',
+                  outline: 'none',
+                  cursor: 'pointer',
+                  boxSizing: 'border-box',
+                  width: '100%',
+                  position: 'relative',
+                }}
+              >
                 <svg
-                  style={{
-                    position: 'absolute',
-                    left: '10px',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    color: '#64748B',
-                    pointerEvents: 'none',
-                  }}
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
+                  style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#64748B', pointerEvents: 'none' }}
+                  width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
                 >
                   <circle cx="11" cy="11" r="8"></circle>
                   <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                 </svg>
-              </div>
-
-              {/* Autocomplete Dropdown */}
-              {showResults && (
-                <div
-                  style={{
-                    position: 'absolute',
-                    left: 0,
-                    top: 'calc(100% + 6px)',
-                    width: '320px',
-                    maxWidth: 'calc(100vw - 32px)',
-                    maxHeight: '340px',
-                    overflowY: 'auto',
-                    background: '#FFFFFF',
-                    border: '1px solid #CBD5E1',
-                    borderRadius: '12px',
-                    boxShadow: '0 12px 30px rgba(0,0,0,0.15)',
-                    zIndex: 200,
-                    padding: '6px',
-                  }}
-                >
-                  {searchResults.length > 0 ? (
-                    searchResults.map((b) => (
-                      <div
-                        key={b.id}
-                        onClick={() => handleSelectBook(b)}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '10px',
-                          padding: '8px 10px',
-                          borderRadius: '8px',
-                          cursor: 'pointer',
-                        }}
-                        onMouseEnter={(e) => (e.currentTarget.style.background = '#F1F5F9')}
-                        onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-                      >
-                        <div
-                          style={{
-                            width: '28px',
-                            height: '36px',
-                            borderRadius: '4px',
-                            background: b.gradient || '#0057A8',
-                            flexShrink: 0,
-                            position: 'relative',
-                            overflow: 'hidden',
-                          }}
-                        >
-                          {b.coverImage && (
-                            <img
-                              src={b.coverImage}
-                              alt={b.title}
-                              referrerPolicy="no-referrer"
-                              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
-                              onError={(e) => {
-                                e.currentTarget.style.display = 'none';
-                              }}
-                            />
-                          )}
-                        </div>
-                        <div style={{ minWidth: 0, flex: 1 }}>
-                          <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-dark)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                            {b.title}
-                          </div>
-                          <div style={{ fontSize: '11px', color: 'var(--text-mid)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                            {b.author} &bull; <span style={{ color: 'var(--blue)' }}>{b.category}</span>
-                          </div>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div style={{ padding: '12px', fontSize: '12px', color: '#64748B', textAlign: 'center' }}>
-                      Кітап табылмады
-                    </div>
-                  )}
-                </div>
-              )}
+                Кітап іздеу...
+              </button>
             </div>
           </div>
 
@@ -925,6 +939,224 @@ export const Header: React.FC = () => {
         isOpen={showPremiumModal}
         onClose={() => setShowPremiumModal(false)}
       />
+
+      {/* ===== FULLSCREEN SEARCH OVERLAY ===== */}
+      {isSearchOpen && (
+        <>
+          {/* Header row replacement — fixed at top, same z-index as header */}
+          <div
+            className="fixed top-0 left-0 right-0 z-[200] flex items-center gap-2 px-4"
+            style={{
+              height: '60px',
+              background: '#FFFFFF',
+              boxShadow: '0 1px 0 #E2E8F0',
+            }}
+          >
+            {/* ← Back */}
+            <button
+              type="button"
+              onClick={closeSearch}
+              className="shrink-0 flex items-center justify-center active:opacity-60 transition-opacity"
+              style={{
+                width: '38px',
+                height: '38px',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: '#1E293B',
+              }}
+            >
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+            </button>
+
+            {/* Search input */}
+            <div className="relative flex-1">
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={headerSearch}
+                onChange={(e) => setHeaderSearch(e.target.value)}
+                placeholder="Кітап немесе автор іздеу..."
+                autoComplete="off"
+                style={{
+                  width: '100%',
+                  height: '42px',
+                  padding: '0 36px 0 40px',
+                  borderRadius: '14px',
+                  border: '1.5px solid #005494',
+                  background: '#F8FAFC',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  color: '#1E293B',
+                  outline: 'none',
+                  boxSizing: 'border-box',
+                  boxShadow: '0 0 0 3px rgba(0,84,148,0.1)',
+                }}
+              />
+              <svg
+                style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#64748B', pointerEvents: 'none' }}
+                width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"
+              >
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              {headerSearch && (
+                <button
+                  type="button"
+                  onClick={() => setHeaderSearch('')}
+                  style={{
+                    position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)',
+                    background: '#E2E8F0', border: 'none', borderRadius: '50%',
+                    width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    cursor: 'pointer', color: '#64748B', fontSize: '10px', fontWeight: 800,
+                  }}
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+
+            {/* ⚙ Filter button */}
+            <button
+              type="button"
+              onClick={() => setFilterDrawerOpen(true)}
+              className="relative shrink-0 flex items-center justify-center active:scale-95 transition-all"
+              style={{
+                width: '42px', height: '42px', borderRadius: '12px',
+                border: headerActiveFilterCount > 0 ? '1.5px solid #005494' : '1.5px solid #E2E8F0',
+                background: headerActiveFilterCount > 0 ? '#005494' : '#FFFFFF',
+                color: headerActiveFilterCount > 0 ? '#FFFFFF' : '#64748B',
+                cursor: 'pointer',
+                boxShadow: headerActiveFilterCount > 0 ? '0 4px 12px rgba(0,84,148,0.3)' : '0 2px 6px rgba(0,0,0,0.04)',
+              }}
+            >
+              <SlidersHorizontal className="w-4 h-4" />
+              {headerActiveFilterCount > 0 && (
+                <span
+                  className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-black"
+                  style={{ background: '#EF7E00', color: '#FFFFFF' }}
+                >
+                  {headerActiveFilterCount}
+                </span>
+              )}
+            </button>
+          </div>
+
+          {/* White area below — smoothly fades in, covers page content */}
+          <div
+            className="fixed left-0 right-0 bottom-0 z-[199] overflow-y-auto"
+            style={{
+              top: '60px',
+              background: '#FFFFFF',
+              animation: 'searchOverlayIn 0.22s cubic-bezier(0.22,1,0.36,1) both',
+            }}
+          >
+            {/* Empty state — no search + no filters */}
+            {!headerSearch.trim() && headerActiveFilterCount === 0 && (
+              <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
+                <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ background: '#F1F5F9' }}>
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#64748B" strokeWidth="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                  </svg>
+                </div>
+                <p className="text-base font-bold" style={{ color: '#1E293B' }}>Кітап іздеу</p>
+                <p className="text-sm mt-1" style={{ color: '#94A3B8' }}>Атауы, автор немесе жанр бойынша іздеңіз</p>
+              </div>
+            )}
+
+            {/* Results count row */}
+            {(headerSearch.trim() || headerActiveFilterCount > 0) && (
+              <div className="px-4 pt-4 pb-2" style={{ borderBottom: '1px solid #F1F5F9' }}>
+                <p className="text-sm font-semibold" style={{ color: '#64748B' }}>
+                  {overlayResults.length > 0
+                    ? `${overlayResults.length} кітап табылды`
+                    : 'Кітап табылмады'}
+                </p>
+              </div>
+            )}
+
+            {/* No results */}
+            {(headerSearch.trim() || headerActiveFilterCount > 0) && overlayResults.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
+                <p className="text-base font-bold" style={{ color: '#1E293B' }}>Нәтиже жоқ</p>
+                <p className="text-sm mt-1" style={{ color: '#94A3B8' }}>Басқа сөздермен немесе фильтрлерсіз іздеп көріңіз</p>
+              </div>
+            )}
+
+            {/* Book results list */}
+            {overlayResults.length > 0 && (
+              <div>
+                {overlayResults.map((b) => (
+                  <button
+                    key={b.id}
+                    type="button"
+                    onClick={() => {
+                      closeSearch();
+                      navigate(`/book/${b.id}`);
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-3 active:bg-slate-50 transition-colors text-left"
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', borderBottom: '1px solid #F8FAFC' }}
+                  >
+                    {/* Cover */}
+                    <div
+                      style={{
+                        width: '44px', height: '60px', borderRadius: '8px', flexShrink: 0,
+                        background: b.gradient || '#0057A8',
+                        position: 'relative', overflow: 'hidden',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                      }}
+                    >
+                      {b.coverImage && (
+                        <img
+                          src={b.coverImage}
+                          alt={b.title}
+                          referrerPolicy="no-referrer"
+                          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+                          onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                        />
+                      )}
+                    </div>
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-sm leading-snug" style={{ color: '#1E293B', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {b.title}
+                      </p>
+                      <p className="text-xs mt-0.5" style={{ color: '#64748B', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {b.author}
+                        {b.category ? <span style={{ color: '#005494' }}> · {b.category}</span> : null}
+                      </p>
+                      {!b.isFree && (
+                        <span className="inline-flex items-center mt-1 text-[10px] font-black px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(0,84,148,0.08)', color: '#005494' }}>
+                          Premium
+                        </span>
+                      )}
+                    </div>
+                    {/* Chevron */}
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" strokeWidth="2">
+                      <polyline points="9 18 15 12 9 6" />
+                    </svg>
+                  </button>
+                ))}
+                {/* bottom padding for safe area */}
+                <div style={{ height: '120px' }} />
+              </div>
+            )}
+          </div>
+
+          {/* FilterDrawer */}
+          <FilterDrawer
+            isOpen={filterDrawerOpen}
+            onClose={() => setFilterDrawerOpen(false)}
+            filters={headerFilters}
+            onApply={(f) => setHeaderFilters(f)}
+            authorsList={overlayAuthorsList}
+            narratorsList={overlayNarratorsList}
+          />
+        </>
+      )}
     </>
   );
 };
