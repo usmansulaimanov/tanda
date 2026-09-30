@@ -51,6 +51,10 @@ public class PromoCode {
     @Builder.Default
     private Integer durationDays = 30;
 
+    @Column(name = "subscription_days")
+    @Builder.Default
+    private Integer subscriptionDays = 30;
+
     @Column(name = "discount_percent")
     @Builder.Default
     private Integer discountPercent = 0;

@@ -22,6 +22,7 @@ public class PromoCodeResponseDto {
     private String rewardTitle;
     private String description;
     private Integer durationDays;
+    private Integer subscriptionDays;
     private Integer discountPercent;
     private OffsetDateTime expiresAt;
     private Integer maxUses;

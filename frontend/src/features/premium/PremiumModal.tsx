@@ -141,16 +141,10 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
       name: '3 ай',
       days: 90,
       basePrice: settings?.price3Months || 3990,
-      price: appliedPromo?.discountPercent
-        ? Math.max(1, Math.round((settings?.price3Months || 3990) * (1 - appliedPromo.discountPercent / 100)))
-        : settings?.price3Months || 3990,
-      oldPrice: appliedPromo?.discountPercent
-        ? settings?.price3Months || 3990
-        : settings?.oldPrice3Months || null,
+      price: settings?.price3Months || 3990,
+      oldPrice: settings?.oldPrice3Months || null,
       description: settings?.plan3MonthsDesc !== undefined ? settings.plan3MonthsDesc : '10% үнемдейсіз',
-      badge: appliedPromo?.discountPercent
-        ? `-${appliedPromo.discountPercent}% ЖЕҢІЛДІК`
-        : settings?.plan3MonthsBadge !== undefined ? (settings.plan3MonthsBadge.trim() || null) : 'ТИІМДІ',
+      badge: settings?.plan3MonthsBadge !== undefined ? (settings.plan3MonthsBadge.trim() || null) : 'ТИІМДІ',
       enabled: settings?.plan3MonthsEnabled !== false,
     },
     {
@@ -158,16 +152,10 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
       name: '1 жыл',
       days: 365,
       basePrice: settings?.price1Year || 11990,
-      price: appliedPromo?.discountPercent
-        ? Math.max(1, Math.round((settings?.price1Year || 11990) * (1 - appliedPromo.discountPercent / 100)))
-        : settings?.price1Year || 11990,
-      oldPrice: appliedPromo?.discountPercent
-        ? settings?.price1Year || 11990
-        : settings?.oldPrice1Year || null,
+      price: settings?.price1Year || 11990,
+      oldPrice: settings?.oldPrice1Year || null,
       description: settings?.plan1YearDesc !== undefined ? settings.plan1YearDesc : '30% үнемдейсіз',
-      badge: appliedPromo?.discountPercent
-        ? `-${appliedPromo.discountPercent}% ЖЕҢІЛДІК`
-        : settings?.plan1YearBadge !== undefined ? (settings.plan1YearBadge.trim() || null) : 'ҮЗДІК ТАҢДАУ ⭐',
+      badge: settings?.plan1YearBadge !== undefined ? (settings.plan1YearBadge.trim() || null) : 'ҮЗДІК ТАҢДАУ ⭐',
       enabled: settings?.plan1YearEnabled !== false,
     },
   ], [settings, appliedPromo]);
@@ -410,12 +398,13 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
                          (discountPercent !== undefined && discountPercent > 0);
 
       if (isDiscount && discountPercent && discountPercent > 0) {
+        setSelectedPlan('1_MONTH');
         setAppliedPromo({
           code: cleanCode,
           discountPercent: discountPercent,
           rewardTitle: validation.rewardTitle || `${discountPercent}% жеңілдік`,
         });
-        showToast(`«${cleanCode}» промокоды қолданылды: -${discountPercent}% жеңілдік! 🎉`, 'success');
+        showToast(`«${cleanCode}» промокоды қолданылды: 1 айлық тарифке -${discountPercent}% жеңілдік! 🎉`, 'success');
       } else {
         // Free subscription promo code: Activate immediately
         const res = await activatePromoCode(cleanCode);

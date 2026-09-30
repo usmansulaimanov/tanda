@@ -17,6 +17,7 @@ public class PromoBatchResponseDto {
     private String rewardType;
     private String rewardTitle;
     private Integer durationDays;
+    private Integer subscriptionDays;
     private OffsetDateTime expiresAt;
     private String prefix;
     private Integer totalCodes;

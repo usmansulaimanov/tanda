@@ -41,6 +41,10 @@ public class PromoBatch {
     @Builder.Default
     private Integer durationDays = 30;
 
+    @Column(name = "subscription_days")
+    @Builder.Default
+    private Integer subscriptionDays = 30;
+
     @Column(name = "expires_at", nullable = false)
     private OffsetDateTime expiresAt;
 

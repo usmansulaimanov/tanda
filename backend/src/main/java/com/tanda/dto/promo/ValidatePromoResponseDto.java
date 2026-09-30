@@ -15,6 +15,7 @@ public class ValidatePromoResponseDto {
     private String rewardType;
     private String rewardTitle;
     private Integer durationDays;
+    private Integer subscriptionDays;
     private Integer discountPercent;
     private String message;
 }

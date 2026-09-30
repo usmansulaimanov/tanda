@@ -96,19 +96,35 @@ public class PromoCodeService {
             }
         }
 
+        int subDays = 30;
         if (rewardType == null || rewardType.trim().isEmpty() || "subscription_1m".equals(rewardType)) {
             if (discountPercent > 0 || lowerTitle.contains("жеңілдік") || lowerTitle.contains("скидка") || lowerTitle.contains("discount")) {
                 rewardType = "discount";
+                subDays = 0;
             } else if (lowerTitle.contains("мәңгі") || lowerTitle.contains("вечный") || lowerTitle.contains("шектеусіз")) {
                 rewardType = "premium_access";
+                subDays = 36500;
             } else if (lowerTitle.contains("12 ай") || lowerTitle.contains("1 жыл") || lowerTitle.contains("жылдық")) {
                 rewardType = "subscription_1y";
+                subDays = 365;
             } else if (lowerTitle.contains("6 ай")) {
                 rewardType = "subscription_6m";
+                subDays = 180;
             } else if (lowerTitle.contains("3 ай")) {
                 rewardType = "subscription_3m";
+                subDays = 90;
             } else {
                 rewardType = "subscription_1m";
+                subDays = 30;
+            }
+        } else {
+            switch (rewardType) {
+                case "subscription_1y" -> subDays = 365;
+                case "subscription_6m" -> subDays = 180;
+                case "subscription_3m" -> subDays = 90;
+                case "premium_access" -> subDays = 36500;
+                case "discount" -> subDays = 0;
+                default -> subDays = 30;
             }
         }
 
@@ -129,6 +145,7 @@ public class PromoCodeService {
                 .rewardType(rewardType)
                 .rewardTitle(rewardTitle)
                 .durationDays(durationDays)
+                .subscriptionDays(subDays)
                 .expiresAt(expiresAt)
                 .prefix(prefix)
                 .totalCodes(count)
@@ -155,6 +172,7 @@ public class PromoCodeService {
                     .rewardType(rewardType)
                     .rewardTitle(rewardTitle)
                     .durationDays(durationDays)
+                    .subscriptionDays(subDays)
                     .discountPercent(discountPercent)
                     .expiresAt(expiresAt)
                     .maxUses(maxUses)
@@ -352,7 +370,10 @@ public class PromoCodeService {
         codeRepository.save(promo);
 
         // Grant premium if promo gives subscription/premium access
-        int days = promo.getDurationDays() != null && promo.getDurationDays() > 0 ? promo.getDurationDays() : 30;
+        int days = promo.getSubscriptionDays() != null && promo.getSubscriptionDays() > 0
+                ? promo.getSubscriptionDays()
+                : (promo.getDurationDays() != null && promo.getDurationDays() > 0 ? promo.getDurationDays() : 30);
+
         String rt = promo.getRewardType() != null ? promo.getRewardType().toLowerCase() : "";
         String title = promo.getRewardTitle() != null ? promo.getRewardTitle().toLowerCase() : "";
         if (rt.contains("subscription") || rt.contains("premium") || title.contains("жазылым") || title.contains("премиум") || title.contains("подписка")) {
@@ -428,6 +449,7 @@ public class PromoCodeService {
                 .rewardType(b.getRewardType())
                 .rewardTitle(b.getRewardTitle())
                 .durationDays(b.getDurationDays())
+                .subscriptionDays(b.getSubscriptionDays())
                 .expiresAt(b.getExpiresAt())
                 .prefix(b.getPrefix())
                 .totalCodes(b.getTotalCodes())
@@ -445,6 +467,7 @@ public class PromoCodeService {
                 .rewardTitle(c.getRewardTitle())
                 .description(c.getDescription())
                 .durationDays(c.getDurationDays())
+                .subscriptionDays(c.getSubscriptionDays())
                 .discountPercent(c.getDiscountPercent())
                 .expiresAt(c.getExpiresAt())
                 .maxUses(c.getMaxUses())
