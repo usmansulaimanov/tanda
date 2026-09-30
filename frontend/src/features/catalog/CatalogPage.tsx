@@ -29,8 +29,8 @@ export const CatalogPage: React.FC = () => {
 
   const [search, setSearch] = useState('');
   const [selectedCat, setSelectedCat] = useState('Бәрі');
-  const [selectedAuthor, setSelectedAuthor] = useState('all');
-  const [selectedNarrator, setSelectedNarrator] = useState('all');
+  const [selectedAuthors, setSelectedAuthors] = useState<string[]>([]);
+  const [selectedNarrators, setSelectedNarrators] = useState<string[]>([]);
   const [formatFilter, setFormatFilter] = useState<'all' | 'audio' | 'ebook'>('all');
   const [accessFilter, setAccessFilter] = useState<'all' | 'free' | 'premium'>('all');
   const [sortBy, setSortBy] = useState<'default' | 'popular' | 'newest' | 'alpha-asc' | 'alpha-desc'>('default');
@@ -72,7 +72,7 @@ export const CatalogPage: React.FC = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedCat, selectedAuthor, selectedNarrator, formatFilter, accessFilter, sortBy, search]);
+  }, [selectedCat, selectedAuthors, selectedNarrators, formatFilter, accessFilter, sortBy, search]);
 
   const activeBooks = useMemo<Book[]>(() => {
     return (Array.isArray(books) ? books : []).filter((b) => Boolean(b && !b.isArchived));
@@ -125,8 +125,8 @@ export const CatalogPage: React.FC = () => {
 
   const hasActiveFilters = Boolean(
     selectedCat !== 'Бәрі' ||
-    selectedAuthor !== 'all' ||
-    selectedNarrator !== 'all' ||
+    selectedAuthors.length > 0 ||
+    selectedNarrators.length > 0 ||
     formatFilter !== 'all' ||
     accessFilter !== 'all' ||
     sortBy !== 'default' ||
@@ -134,8 +134,8 @@ export const CatalogPage: React.FC = () => {
   );
 
   const activeFilterCount = [
-    selectedAuthor !== 'all',
-    selectedNarrator !== 'all',
+    selectedAuthors.length > 0,
+    selectedNarrators.length > 0,
     formatFilter !== 'all',
     accessFilter !== 'all',
     sortBy !== 'default',
@@ -143,8 +143,8 @@ export const CatalogPage: React.FC = () => {
 
   const resetFilters = () => {
     setSelectedCat('Бәрі');
-    setSelectedAuthor('all');
-    setSelectedNarrator('all');
+    setSelectedAuthors([]);
+    setSelectedNarrators([]);
     setFormatFilter('all');
     setAccessFilter('all');
     setSortBy('default');
@@ -153,8 +153,8 @@ export const CatalogPage: React.FC = () => {
   };
 
   const handleApplyFilters = (f: FilterState) => {
-    setSelectedAuthor(f.selectedAuthor);
-    setSelectedNarrator(f.selectedNarrator);
+    setSelectedAuthors(f.selectedAuthors);
+    setSelectedNarrators(f.selectedNarrators);
     setFormatFilter(f.formatFilter);
     setAccessFilter(f.accessFilter);
     setSortBy(f.sortBy);
@@ -175,16 +175,18 @@ export const CatalogPage: React.FC = () => {
         }
       }
 
-      // 2. Author
-      if (selectedAuthor !== 'all') {
-        if (!book.author || book.author.trim().toLowerCase() !== selectedAuthor.toLowerCase()) {
+      // 2. Author (multi-select)
+      if (selectedAuthors.length > 0) {
+        const authorLower = (book.author || '').trim().toLowerCase();
+        if (!selectedAuthors.some((a) => a.toLowerCase() === authorLower)) {
           return false;
         }
       }
 
-      // 3. Narrator
-      if (selectedNarrator !== 'all') {
-        if (!book.audioNarrator || book.audioNarrator.trim().toLowerCase() !== selectedNarrator.toLowerCase()) {
+      // 3. Narrator (multi-select)
+      if (selectedNarrators.length > 0) {
+        const narratorLower = (book.audioNarrator || '').trim().toLowerCase();
+        if (!selectedNarrators.some((n) => n.toLowerCase() === narratorLower)) {
           return false;
         }
       }
@@ -237,7 +239,7 @@ export const CatalogPage: React.FC = () => {
     }
 
     return list;
-  }, [activeBooks, selectedCat, selectedAuthor, selectedNarrator, formatFilter, accessFilter, sortBy, search]);
+  }, [activeBooks, selectedCat, selectedAuthors, selectedNarrators, formatFilter, accessFilter, sortBy, search]);
 
   const totalPages = Math.max(1, Math.ceil(filteredBooks.length / pageSize));
   const startIndex = filteredBooks.length === 0 ? 0 : (currentPage - 1) * pageSize + 1;
@@ -543,8 +545,8 @@ export const CatalogPage: React.FC = () => {
         isOpen={filterDrawerOpen}
         onClose={() => setFilterDrawerOpen(false)}
         filters={{
-          selectedAuthor,
-          selectedNarrator,
+          selectedAuthors,
+          selectedNarrators,
           formatFilter,
           accessFilter,
           sortBy,

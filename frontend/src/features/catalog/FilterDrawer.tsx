@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { X, ChevronDown, ChevronUp, RotateCcw } from 'lucide-react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 
 type SortBy = 'default' | 'popular' | 'newest' | 'alpha-asc' | 'alpha-desc';
 type FormatFilter = 'all' | 'audio' | 'ebook';
 type AccessFilter = 'all' | 'free' | 'premium';
 
 export interface FilterState {
-  selectedAuthor: string;
-  selectedNarrator: string;
+  selectedAuthors: string[];
+  selectedNarrators: string[];
   formatFilter: FormatFilter;
   accessFilter: AccessFilter;
   sortBy: SortBy;
@@ -52,12 +52,10 @@ export const FilterDrawer: React.FC<FilterDrawerProps> = ({
   authorsList,
   narratorsList,
 }) => {
-  // Local draft state — only applied when user taps "Қолдану"
   const [draft, setDraft] = useState<FilterState>(filters);
   const [openSections, setOpenSections] = useState<Set<SectionKey>>(new Set(['sort']));
   const [isVisible, setIsVisible] = useState(false);
 
-  // Sync draft when drawer opens
   useEffect(() => {
     if (isOpen) {
       setDraft(filters);
@@ -65,7 +63,6 @@ export const FilterDrawer: React.FC<FilterDrawerProps> = ({
     }
   }, [isOpen, filters]);
 
-  // Animate out before unmounting
   const handleClose = () => {
     setIsVisible(false);
     setTimeout(onClose, 280);
@@ -74,19 +71,16 @@ export const FilterDrawer: React.FC<FilterDrawerProps> = ({
   const toggleSection = (key: SectionKey) => {
     setOpenSections((prev) => {
       const next = new Set(prev);
-      if (next.has(key)) {
-        next.delete(key);
-      } else {
-        next.add(key);
-      }
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
       return next;
     });
   };
 
   const resetDraft = () => {
     setDraft({
-      selectedAuthor: 'all',
-      selectedNarrator: 'all',
+      selectedAuthors: [],
+      selectedNarrators: [],
       formatFilter: 'all',
       accessFilter: 'all',
       sortBy: 'default',
@@ -99,8 +93,8 @@ export const FilterDrawer: React.FC<FilterDrawerProps> = ({
   };
 
   const activeDraftCount = [
-    draft.selectedAuthor !== 'all',
-    draft.selectedNarrator !== 'all',
+    draft.selectedAuthors.length > 0,
+    draft.selectedNarrators.length > 0,
     draft.formatFilter !== 'all',
     draft.accessFilter !== 'all',
     draft.sortBy !== 'default',
@@ -108,54 +102,68 @@ export const FilterDrawer: React.FC<FilterDrawerProps> = ({
 
   if (!isOpen && !isVisible) return null;
 
-  const sectionHeader = (key: SectionKey, label: string, activeLabel?: string) => {
-    const isExpanded = openSections.has(key);
+  // --- Sub-components ---
+
+  const SectionHeader = ({
+    sectionKey,
+    label,
+    badge,
+  }: {
+    sectionKey: SectionKey;
+    label: string;
+    badge?: string | number;
+  }) => {
+    const isExpanded = openSections.has(sectionKey);
     return (
       <button
         type="button"
-        onClick={() => toggleSection(key)}
-        className="w-full flex items-center justify-between py-4 px-0 text-left group"
+        onClick={() => toggleSection(sectionKey)}
+        className="w-full flex items-center justify-between py-4 px-0 text-left"
         style={{ background: 'none', border: 'none', cursor: 'pointer' }}
       >
-        <span
-          className="font-bold text-base"
-          style={{ color: activeLabel ? '#005494' : '#1E293B' }}
-        >
-          {label}
-          {activeLabel && (
+        <span className="flex items-center gap-2">
+          <span
+            className="font-bold text-base"
+            style={{ color: badge !== undefined && badge !== '' ? '#005494' : '#1E293B' }}
+          >
+            {label}
+          </span>
+          {badge !== undefined && badge !== '' && (
             <span
-              className="ml-2 text-xs font-semibold px-2 py-0.5 rounded-full"
+              className="text-xs font-semibold px-2 py-0.5 rounded-full"
               style={{ background: 'rgba(0,84,148,0.1)', color: '#005494' }}
             >
-              {activeLabel}
+              {badge}
             </span>
           )}
         </span>
-        <span className="text-sm font-medium" style={{ color: '#94A3B8' }}>
-          {isExpanded ? (
-            <ChevronUp className="w-4 h-4" />
-          ) : (
-            <ChevronDown className="w-4 h-4" />
-          )}
-        </span>
+        {isExpanded ? (
+          <ChevronUp className="w-4 h-4 shrink-0" style={{ color: '#94A3B8' }} />
+        ) : (
+          <ChevronDown className="w-4 h-4 shrink-0" style={{ color: '#94A3B8' }} />
+        )}
       </button>
     );
   };
 
-  const radioOption = <T extends string>(
-    value: T,
-    label: string,
-    current: T,
-    onChange: (v: T) => void,
-  ) => {
+  /** Single-select radio row */
+  const RadioOption = <T extends string>({
+    value,
+    label,
+    current,
+    onChange,
+  }: {
+    value: T;
+    label: string;
+    current: T;
+    onChange: (v: T) => void;
+  }) => {
     const checked = value === current;
     return (
       <label
-        key={value}
         className="flex items-center gap-3 py-3 px-1 cursor-pointer"
         style={{ borderBottom: '1px solid #F1F5F9' }}
       >
-        {/* Custom radio */}
         <span
           className="shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all"
           style={{
@@ -164,9 +172,7 @@ export const FilterDrawer: React.FC<FilterDrawerProps> = ({
           }}
           onClick={() => onChange(value)}
         >
-          {checked && (
-            <span className="w-2 h-2 rounded-full bg-white" />
-          )}
+          {checked && <span className="w-2 h-2 rounded-full bg-white" />}
         </span>
         <span
           className="text-sm font-semibold flex-1"
@@ -177,6 +183,65 @@ export const FilterDrawer: React.FC<FilterDrawerProps> = ({
         </span>
       </label>
     );
+  };
+
+  /** Multi-select checkbox row */
+  const CheckboxOption = ({
+    value,
+    label,
+    selected,
+    onToggle,
+  }: {
+    value: string;
+    label: string;
+    selected: boolean;
+    onToggle: (v: string) => void;
+  }) => (
+    <label
+      className="flex items-center gap-3 py-3 px-1 cursor-pointer active:bg-slate-50 transition-colors"
+      style={{ borderBottom: '1px solid #F1F5F9' }}
+    >
+      {/* Custom checkbox */}
+      <span
+        className="shrink-0 w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all"
+        style={{
+          borderColor: selected ? '#005494' : '#CBD5E1',
+          background: selected ? '#005494' : '#fff',
+        }}
+        onClick={() => onToggle(value)}
+      >
+        {selected && (
+          <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
+            <path d="M1 4L4 7L10 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        )}
+      </span>
+      <span
+        className="text-sm font-semibold flex-1"
+        style={{ color: selected ? '#005494' : '#334155' }}
+        onClick={() => onToggle(value)}
+      >
+        {label}
+      </span>
+    </label>
+  );
+
+  const toggleAuthor = (name: string) => {
+    setDraft((d) => ({
+      ...d,
+      selectedAuthors: d.selectedAuthors.includes(name)
+        ? d.selectedAuthors.filter((a) => a !== name)
+        : [...d.selectedAuthors, name],
+    }));
+  };
+
+  const toggleNarrator = (name: string) => {
+    setDraft((d) => ({
+      ...d,
+      selectedNarrators: d.selectedNarrators.includes(name)
+        ? d.selectedNarrators.filter((n) => n !== name)
+        : [...d.selectedNarrators, name],
+    }));
   };
 
   return (
@@ -192,7 +257,7 @@ export const FilterDrawer: React.FC<FilterDrawerProps> = ({
         onClick={handleClose}
       />
 
-      {/* Drawer panel — slides in from right */}
+      {/* Drawer — slides in from right */}
       <div
         className="fixed top-0 right-0 bottom-0 z-[960] flex flex-col"
         style={{
@@ -241,117 +306,171 @@ export const FilterDrawer: React.FC<FilterDrawerProps> = ({
         {/* Scrollable sections */}
         <div className="flex-1 overflow-y-auto px-5">
 
-          {/* 1. Сұрыптау */}
+          {/* 1. Сұрыптау — radio (single) */}
           <div style={{ borderBottom: '1px solid #F1F5F9' }}>
-            {sectionHeader(
-              'sort',
-              'Сұрыптау',
-              draft.sortBy !== 'default'
-                ? SORT_OPTIONS.find((o) => o.value === draft.sortBy)?.label
-                : undefined,
-            )}
+            <SectionHeader
+              sectionKey="sort"
+              label="Сұрыптау"
+              badge={draft.sortBy !== 'default' ? SORT_OPTIONS.find((o) => o.value === draft.sortBy)?.label : undefined}
+            />
             {openSections.has('sort') && (
               <div className="pb-2">
-                {SORT_OPTIONS.map((opt) =>
-                  radioOption(opt.value, opt.label, draft.sortBy, (v) =>
-                    setDraft((d) => ({ ...d, sortBy: v })),
-                  ),
-                )}
+                {SORT_OPTIONS.map((opt) => (
+                  <RadioOption
+                    key={opt.value}
+                    value={opt.value}
+                    label={opt.label}
+                    current={draft.sortBy}
+                    onChange={(v) => setDraft((d) => ({ ...d, sortBy: v }))}
+                  />
+                ))}
               </div>
             )}
           </div>
 
-          {/* 2. Автор */}
+          {/* 2. Автор — checkbox (multi) */}
           <div style={{ borderBottom: '1px solid #F1F5F9' }}>
-            {sectionHeader(
-              'author',
-              'Автор бойынша',
-              draft.selectedAuthor !== 'all' ? draft.selectedAuthor : undefined,
-            )}
+            <SectionHeader
+              sectionKey="author"
+              label="Автор бойынша"
+              badge={draft.selectedAuthors.length > 0 ? draft.selectedAuthors.length : undefined}
+            />
             {openSections.has('author') && (
               <div className="pb-2">
-                {radioOption('all', 'Барлық авторлар', draft.selectedAuthor, (v) =>
-                  setDraft((d) => ({ ...d, selectedAuthor: v })),
-                )}
-                {authorsList.map((item) =>
-                  radioOption(
-                    item.name,
-                    `${item.name} (${item.count})`,
-                    draft.selectedAuthor,
-                    (v) => setDraft((d) => ({ ...d, selectedAuthor: v })),
-                  ),
-                )}
+                {/* «Барлығы» — deselects all */}
+                <label
+                  className="flex items-center gap-3 py-3 px-1 cursor-pointer"
+                  style={{ borderBottom: '1px solid #F1F5F9' }}
+                >
+                  <span
+                    className="shrink-0 w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all"
+                    style={{
+                      borderColor: draft.selectedAuthors.length === 0 ? '#005494' : '#CBD5E1',
+                      background: draft.selectedAuthors.length === 0 ? '#005494' : '#fff',
+                    }}
+                    onClick={() => setDraft((d) => ({ ...d, selectedAuthors: [] }))}
+                  >
+                    {draft.selectedAuthors.length === 0 && (
+                      <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
+                        <path d="M1 4L4 7L10 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    )}
+                  </span>
+                  <span
+                    className="text-sm font-semibold flex-1"
+                    style={{ color: draft.selectedAuthors.length === 0 ? '#005494' : '#334155' }}
+                    onClick={() => setDraft((d) => ({ ...d, selectedAuthors: [] }))}
+                  >
+                    Барлық авторлар
+                  </span>
+                </label>
+                {authorsList.map((item) => (
+                  <CheckboxOption
+                    key={item.name}
+                    value={item.name}
+                    label={`${item.name} (${item.count})`}
+                    selected={draft.selectedAuthors.includes(item.name)}
+                    onToggle={toggleAuthor}
+                  />
+                ))}
               </div>
             )}
           </div>
 
-          {/* 3. Диктор */}
+          {/* 3. Диктор — checkbox (multi) */}
           {narratorsList.length > 0 && (
             <div style={{ borderBottom: '1px solid #F1F5F9' }}>
-              {sectionHeader(
-                'narrator',
-                'Диктор бойынша',
-                draft.selectedNarrator !== 'all' ? draft.selectedNarrator : undefined,
-              )}
+              <SectionHeader
+                sectionKey="narrator"
+                label="Диктор бойынша"
+                badge={draft.selectedNarrators.length > 0 ? draft.selectedNarrators.length : undefined}
+              />
               {openSections.has('narrator') && (
                 <div className="pb-2">
-                  {radioOption('all', 'Барлық дикторлар', draft.selectedNarrator, (v) =>
-                    setDraft((d) => ({ ...d, selectedNarrator: v })),
-                  )}
-                  {narratorsList.map((item) =>
-                    radioOption(
-                      item.name,
-                      `${item.name} (${item.count})`,
-                      draft.selectedNarrator,
-                      (v) => setDraft((d) => ({ ...d, selectedNarrator: v })),
-                    ),
-                  )}
+                  <label
+                    className="flex items-center gap-3 py-3 px-1 cursor-pointer"
+                    style={{ borderBottom: '1px solid #F1F5F9' }}
+                  >
+                    <span
+                      className="shrink-0 w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all"
+                      style={{
+                        borderColor: draft.selectedNarrators.length === 0 ? '#005494' : '#CBD5E1',
+                        background: draft.selectedNarrators.length === 0 ? '#005494' : '#fff',
+                      }}
+                      onClick={() => setDraft((d) => ({ ...d, selectedNarrators: [] }))}
+                    >
+                      {draft.selectedNarrators.length === 0 && (
+                        <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
+                          <path d="M1 4L4 7L10 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      )}
+                    </span>
+                    <span
+                      className="text-sm font-semibold flex-1"
+                      style={{ color: draft.selectedNarrators.length === 0 ? '#005494' : '#334155' }}
+                      onClick={() => setDraft((d) => ({ ...d, selectedNarrators: [] }))}
+                    >
+                      Барлық дикторлар
+                    </span>
+                  </label>
+                  {narratorsList.map((item) => (
+                    <CheckboxOption
+                      key={item.name}
+                      value={item.name}
+                      label={`${item.name} (${item.count})`}
+                      selected={draft.selectedNarrators.includes(item.name)}
+                      onToggle={toggleNarrator}
+                    />
+                  ))}
                 </div>
               )}
             </div>
           )}
 
-          {/* 4. Формат */}
+          {/* 4. Формат — radio (single) */}
           <div style={{ borderBottom: '1px solid #F1F5F9' }}>
-            {sectionHeader(
-              'format',
-              'Форматы',
-              draft.formatFilter !== 'all'
-                ? FORMAT_OPTIONS.find((o) => o.value === draft.formatFilter)?.label
-                : undefined,
-            )}
+            <SectionHeader
+              sectionKey="format"
+              label="Форматы"
+              badge={draft.formatFilter !== 'all' ? FORMAT_OPTIONS.find((o) => o.value === draft.formatFilter)?.label : undefined}
+            />
             {openSections.has('format') && (
               <div className="pb-2">
-                {FORMAT_OPTIONS.map((opt) =>
-                  radioOption(opt.value, opt.label, draft.formatFilter, (v) =>
-                    setDraft((d) => ({ ...d, formatFilter: v })),
-                  ),
-                )}
+                {FORMAT_OPTIONS.map((opt) => (
+                  <RadioOption
+                    key={opt.value}
+                    value={opt.value}
+                    label={opt.label}
+                    current={draft.formatFilter}
+                    onChange={(v) => setDraft((d) => ({ ...d, formatFilter: v }))}
+                  />
+                ))}
               </div>
             )}
           </div>
 
-          {/* 5. Қолжетімділік */}
+          {/* 5. Қолжетімділік — radio (single) */}
           <div style={{ borderBottom: '1px solid #F1F5F9' }}>
-            {sectionHeader(
-              'access',
-              'Қолжетімділік',
-              draft.accessFilter !== 'all'
-                ? ACCESS_OPTIONS.find((o) => o.value === draft.accessFilter)?.label
-                : undefined,
-            )}
+            <SectionHeader
+              sectionKey="access"
+              label="Қолжетімділік"
+              badge={draft.accessFilter !== 'all' ? ACCESS_OPTIONS.find((o) => o.value === draft.accessFilter)?.label : undefined}
+            />
             {openSections.has('access') && (
               <div className="pb-2">
-                {ACCESS_OPTIONS.map((opt) =>
-                  radioOption(opt.value, opt.label, draft.accessFilter, (v) =>
-                    setDraft((d) => ({ ...d, accessFilter: v })),
-                  ),
-                )}
+                {ACCESS_OPTIONS.map((opt) => (
+                  <RadioOption
+                    key={opt.value}
+                    value={opt.value}
+                    label={opt.label}
+                    current={draft.accessFilter}
+                    onChange={(v) => setDraft((d) => ({ ...d, accessFilter: v }))}
+                  />
+                ))}
               </div>
             )}
           </div>
 
-          {/* Bottom padding */}
           <div className="h-6" />
         </div>
 
@@ -369,8 +488,7 @@ export const FilterDrawer: React.FC<FilterDrawerProps> = ({
               boxShadow: '0 4px 16px rgba(0,84,148,0.3)',
             }}
           >
-            Қолдану
-            {activeDraftCount > 0 && ` • ${activeDraftCount} сүзгі`}
+            Қолдану{activeDraftCount > 0 ? ` • ${activeDraftCount} сүзгі` : ''}
           </button>
         </div>
       </div>
