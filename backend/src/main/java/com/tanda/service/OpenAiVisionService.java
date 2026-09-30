@@ -63,7 +63,7 @@ public class OpenAiVisionService {
             - recipientCardLast4: string or null (last 4 digits of recipient card if shown with asterisks like *7230 -> "7230", *5096 -> "5096", null if not shown)
             - senderName: string or null (sender name if shown, e.g. "Сулайманов У.Б.")
             - isSuspicious: boolean (true if the receipt looks suspicious, unclear, edited/photoshopped, photo of a monitor/screen, blurry text, low resolution, odd font inconsistencies, or missing standard bank stamps/transaction IDs; false if clear and normal)
-            - suspiciousReason: string or null (short reason in Kazakh or Russian explaining why it looks suspicious or unclear if isSuspicious is true, otherwise null)
+            - suspiciousReason: string or null (strictly short reason in pure Kazakh language only (қазақша ғана, e.g. "Чек толық емес, банк немесе сомасы анықталмады", "Түбіртек бұлыңғыр немесе скриншот анық емес") if isSuspicious is true, otherwise null)
             
             Return pure JSON only.
             """;
