@@ -16,8 +16,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -48,6 +51,10 @@ public class SubscriptionPaymentService {
         User user = findUserByIdOrEmail(userIdOrEmail);
         String userId = user.getId();
 
+        ZoneId kzZone = ZoneId.of("Asia/Almaty");
+        OffsetDateTime now = OffsetDateTime.now();
+        LocalDate todayKz = now.atZoneSameInstant(kzZone).toLocalDate();
+
         List<SubscriptionPaymentRequest> requests = requestRepository.findByUserIdOrderByCreatedAtDesc(userId);
         if (requests == null || requests.isEmpty()) {
             return ReceiptCooldownDto.builder()
@@ -71,37 +78,83 @@ public class SubscriptionPaymentService {
                     .build();
         }
 
-        OffsetDateTime lastRejectedAt = latest.getReviewedAt() != null ? latest.getReviewedAt() : latest.getCreatedAt();
-        if (lastRejectedAt == null) {
-            lastRejectedAt = OffsetDateTime.now();
-        }
-
-        // Calculate consecutive rejections streak in the current active session (rolling window <= 60 minutes)
-        int streak = 1;
-        OffsetDateTime currentChainTime = lastRejectedAt;
-
-        for (int i = 1; i < requests.size(); i++) {
-            SubscriptionPaymentRequest r = requests.get(i);
+        // Find consecutive rejections today (Asia/Almaty) since the latest APPROVED request
+        List<SubscriptionPaymentRequest> todayRejections = new ArrayList<>();
+        for (SubscriptionPaymentRequest r : requests) {
             if ("APPROVED".equalsIgnoreCase(r.getStatus())) {
-                break;
+                break; // Stop at the most recent approved request
             }
             if ("REJECTED".equalsIgnoreCase(r.getStatus())) {
-                OffsetDateTime prevTime = r.getReviewedAt() != null ? r.getReviewedAt() : r.getCreatedAt();
-                if (prevTime != null) {
-                    long minutesBetween = Duration.between(prevTime, currentChainTime).toMinutes();
-                    if (minutesBetween > 60) {
-                        break; // Session gap > 1 hour resets the streak
+                OffsetDateTime reqTime = r.getReviewedAt() != null ? r.getReviewedAt() : r.getCreatedAt();
+                if (reqTime != null) {
+                    LocalDate reqDate = reqTime.atZoneSameInstant(kzZone).toLocalDate();
+                    if (reqDate.equals(todayKz)) {
+                        todayRejections.add(r);
                     } else {
-                        streak++;
-                        currentChainTime = prevTime;
+                        break; // Older than today
                     }
                 }
             }
         }
 
-        int stage = Math.min(streak, 4);
-        OffsetDateTime unlockAt;
+        if (todayRejections.isEmpty()) {
+            return ReceiptCooldownDto.builder()
+                    .locked(false)
+                    .remainingSeconds(0)
+                    .currentStage(0)
+                    .unlockAt(null)
+                    .message(null)
+                    .build();
+        }
 
+        // Reverse to chronological order (oldest rejection today -> newest rejection today)
+        Collections.reverse(todayRejections);
+
+        int stage = 0;
+        OffsetDateTime prevReqTime = null;
+        OffsetDateTime lastRejectedAt = null;
+
+        for (SubscriptionPaymentRequest r : todayRejections) {
+            OffsetDateTime reqTime = r.getReviewedAt() != null ? r.getReviewedAt() : r.getCreatedAt();
+            if (reqTime == null) {
+                reqTime = now;
+            }
+            lastRejectedAt = reqTime;
+
+            if (stage == 0) {
+                stage = 1;
+            } else if (stage == 1) {
+                // Stage 1 cooldown is 5 min. If next rejection within 1 hr after cooldown (gap <= 65m), advance to 2; else reset to 1
+                long gapMinutes = prevReqTime != null ? Duration.between(prevReqTime, reqTime).toMinutes() : 0;
+                if (gapMinutes <= 65) {
+                    stage = 2;
+                } else {
+                    stage = 1;
+                }
+            } else if (stage == 2) {
+                // Stage 2 cooldown is 10 min. If next rejection within 1 hr after cooldown (gap <= 70m), advance to 3; else reset to 1
+                long gapMinutes = prevReqTime != null ? Duration.between(prevReqTime, reqTime).toMinutes() : 0;
+                if (gapMinutes <= 70) {
+                    stage = 3;
+                } else {
+                    stage = 1;
+                }
+            } else if (stage == 3) {
+                // Once Stage 3 (60 min cooldown) is reached, any subsequent rejection today triggers Stage 4 (next day lockout)
+                stage = 4;
+            } else {
+                // Stage 4 lockout stays Stage 4 for the rest of today
+                stage = 4;
+            }
+
+            prevReqTime = reqTime;
+        }
+
+        if (lastRejectedAt == null) {
+            lastRejectedAt = now;
+        }
+
+        OffsetDateTime unlockAt;
         if (stage == 1) {
             unlockAt = lastRejectedAt.plusMinutes(5);
         } else if (stage == 2) {
@@ -110,11 +163,9 @@ public class SubscriptionPaymentService {
             unlockAt = lastRejectedAt.plusMinutes(60);
         } else {
             // Stage 4+: Locked until the next calendar day (Asia/Almaty 00:00:00)
-            ZoneId kzZone = ZoneId.of("Asia/Almaty");
             unlockAt = lastRejectedAt.atZoneSameInstant(kzZone).toLocalDate().plusDays(1).atStartOfDay(kzZone).toOffsetDateTime();
         }
 
-        OffsetDateTime now = OffsetDateTime.now();
         if (now.isBefore(unlockAt)) {
             long remainingSeconds = Math.max(1, Duration.between(now, unlockAt).getSeconds());
             long mins = remainingSeconds / 60;

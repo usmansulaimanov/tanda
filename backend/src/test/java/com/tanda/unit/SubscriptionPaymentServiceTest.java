@@ -320,7 +320,55 @@ class SubscriptionPaymentServiceTest {
                 .reviewedAt(now.minusMinutes(45))
                 .build();
 
-        // 4 consecutive rejections within the active session (< 60 min between each)
+        // 4 consecutive rejections within the active session
+        when(requestRepository.findByUserIdOrderByCreatedAtDesc("user-123"))
+                .thenReturn(java.util.List.of(req4, req3, req2, req1));
+
+        com.tanda.dto.premium.ReceiptCooldownDto cooldown = paymentService.getCooldownStatus("user-123");
+
+        assertTrue(cooldown.isLocked());
+        assertEquals(4, cooldown.getCurrentStage());
+        assertTrue(cooldown.getMessage().contains("келесі күні"));
+    }
+
+    @Test
+    @DisplayName("Cooldown Stage 4: 4th rejected receipt submitted after Stage 3's 1-hour wait sets lockout until next day")
+    void whenFourthRejectionAfter1HourCooldown_setsNextDayLockout() {
+        java.time.OffsetDateTime now = java.time.OffsetDateTime.now();
+        // req4 submitted just now
+        SubscriptionPaymentRequest req4 = SubscriptionPaymentRequest.builder()
+                .id("req-4")
+                .userId("user-123")
+                .status("REJECTED")
+                .createdAt(now.minusMinutes(1))
+                .reviewedAt(now.minusMinutes(1))
+                .build();
+
+        // req3 was 70 minutes ago (Stage 3 cooldown was 60 min, user waited and tried again)
+        SubscriptionPaymentRequest req3 = SubscriptionPaymentRequest.builder()
+                .id("req-3")
+                .userId("user-123")
+                .status("REJECTED")
+                .createdAt(now.minusMinutes(71))
+                .reviewedAt(now.minusMinutes(71))
+                .build();
+
+        SubscriptionPaymentRequest req2 = SubscriptionPaymentRequest.builder()
+                .id("req-2")
+                .userId("user-123")
+                .status("REJECTED")
+                .createdAt(now.minusMinutes(85))
+                .reviewedAt(now.minusMinutes(85))
+                .build();
+
+        SubscriptionPaymentRequest req1 = SubscriptionPaymentRequest.builder()
+                .id("req-1")
+                .userId("user-123")
+                .status("REJECTED")
+                .createdAt(now.minusMinutes(95))
+                .reviewedAt(now.minusMinutes(95))
+                .build();
+
         when(requestRepository.findByUserIdOrderByCreatedAtDesc("user-123"))
                 .thenReturn(java.util.List.of(req4, req3, req2, req1));
 
