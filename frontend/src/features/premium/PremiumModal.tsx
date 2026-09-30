@@ -793,13 +793,13 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
                     <div className="w-7 h-7 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 border border-amber-200">
                       <Clock className="w-4 h-4 text-amber-700 animate-pulse" />
                     </div>
-                    <span className="font-bold text-amber-900 text-xs sm:text-sm text-center">
+                    <span className="font-bold text-amber-900 text-xs sm:text-sm text-center leading-none">
                       {cooldownInfo.stage >= 4
                         ? 'Төлем чегі қабылданбады. Жаңа чек тек келесі күні қабылданады'
                         : 'Төлем чегі қабылданбады. Қайта жібере аласыз:'}
                     </span>
                     {cooldownInfo.stage < 4 && (
-                      <span className="px-2.5 py-0.5 rounded-lg bg-amber-200/90 font-mono font-black text-amber-900 text-xs shrink-0">
+                      <span className="px-2.5 py-0.5 rounded-lg bg-amber-200/90 font-mono font-black text-amber-900 text-xs shrink-0 leading-none flex items-center justify-center">
                         {formatTimer(cooldownRemaining)}
                       </span>
                     )}
