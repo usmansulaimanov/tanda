@@ -181,12 +181,13 @@ export const ReaderMessagesPage: React.FC = () => {
             const isRead = user ? (msg.readByUserIds || []).includes(user.id) : true;
             const matchedBook = msg.bookId ? books.find((b) => b.id === msg.bookId) : null;
 
-            const priorityLabels = {
+            const priorityLabels: Record<string, { text: string }> = {
               normal: { text: 'Хабарлама' },
               news: { text: 'Жаңалық' },
               important: { text: 'Маңызды' },
+              urgent: { text: 'Шұғыл' },
             };
-            const pri = priorityLabels[msg.priority || 'normal'];
+            const pri = priorityLabels[msg.priority || 'normal'] || { text: 'Хабарлама' };
 
             return (
               <div
@@ -241,7 +242,7 @@ export const ReaderMessagesPage: React.FC = () => {
                         style={{
                           fontSize: '12px',
                           fontWeight: 700,
-                          color: '#0F172A',
+                          color: msg.priority === 'urgent' ? '#DC2626' : '#0F172A',
                           background: 'transparent',
                           padding: 0,
                           border: 'none',
@@ -573,14 +574,18 @@ export const ReaderMessagesPage: React.FC = () => {
               <div className="flex items-center gap-2 flex-wrap">
                 <span
                   className={`px-2.5 py-1 rounded-full text-xs font-bold ${
-                    selectedMessage.priority === 'important'
+                    selectedMessage.priority === 'urgent'
+                      ? 'bg-rose-100 text-rose-800'
+                      : selectedMessage.priority === 'important'
                       ? 'bg-amber-100 text-amber-800'
                       : selectedMessage.priority === 'news'
                       ? 'bg-blue-100 text-blue-800'
                       : 'bg-slate-100 text-slate-700'
                   }`}
                 >
-                  {selectedMessage.priority === 'important'
+                  {selectedMessage.priority === 'urgent'
+                    ? 'Шұғыл'
+                    : selectedMessage.priority === 'important'
                     ? 'Маңызды'
                     : selectedMessage.priority === 'news'
                     ? 'Жаңалық'
