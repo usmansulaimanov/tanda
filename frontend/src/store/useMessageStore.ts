@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { api } from '../lib/api';
 
 export type MessageTargetType = 'all' | 'single' | 'multiple';
-export type MessagePriority = 'normal' | 'news' | 'important';
+export type MessagePriority = 'normal' | 'news' | 'important' | 'urgent';
 
 export interface AdminMessage {
   id: string;

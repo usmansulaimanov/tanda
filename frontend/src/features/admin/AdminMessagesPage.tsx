@@ -526,8 +526,9 @@ export const AdminMessagesPage: React.FC = () => {
                       normal: 'Қалыпты',
                       news: 'Жаңалық',
                       important: 'Маңызды',
+                      urgent: 'Шұғыл',
                     };
-                    const priorityText = priorityLabels[msg.priority || 'normal'];
+                    const priorityText = priorityLabels[msg.priority || 'normal'] || 'Қалыпты';
 
                     return (
                       <tr
