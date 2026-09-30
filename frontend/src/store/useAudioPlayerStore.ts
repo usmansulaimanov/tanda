@@ -785,39 +785,28 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
 
         if (chapters.length > 1) {
           if (chapterIndex < chapters.length - 1) {
-            get().playChapter(chapterIndex + 1, 0);
+            get().playChapter(chapterIndex + 1);
           }
           // Егер соңғы аудио (бөлім) болса, ешқайда өтпейді
         }
       },
 
       prevChapter: () => {
-        const { currentBook, chapterIndex, progress } = get();
+        const { currentBook, chapterIndex } = get();
         if (!currentBook) return;
-        const chapters = currentBook.audioChapters || [];
-        const currentChap = chapters[chapterIndex];
-        const hasOwnAudio = Boolean(currentChap?.audioUrl && currentChap.audioUrl.trim());
-        const defaultStart = !hasOwnAudio && chapters.length > 0 ? getChapterStartTime(chapters, chapterIndex) : 0;
-        const relativeProgress = hasOwnAudio ? progress : Math.max(0, progress - defaultStart);
 
         const isExempt = isUserExemptFromPremium();
         if (currentBook.isFree === false && !isExempt) {
-          // Стандарт қолданушы үшін әрқашан басынан бастап ойнайды
-          get().playChapter(0, 0);
+          get().playChapter(0);
           return;
         }
 
-        // Егер аудио 3 секундтан артық ойналған болса, осы аудионы басынан бастайды
-        if (relativeProgress > 3) {
-          get().playChapter(chapterIndex, 0);
-          return;
-        }
-
-        // Егер басында тұрса (<= 3 сек) және алдыңғы бөлім бар болса, алдыңғы бөлімге өтіп басынан ойнайды
+        // Егер алдыңғы бөлім бар болса (chapterIndex > 0), осы аудионы басынан бастамай, бірден алдыңғы бөлімге өтеді
+        // және сол бөлімнің соңғы тыңдалған / сақталған орнынан жалғастырады
         if (chapterIndex > 0) {
-          get().playChapter(chapterIndex - 1, 0);
+          get().playChapter(chapterIndex - 1);
         } else {
-          // Егер 1-бөлімнің өзі болса, қайтадан басынан ойнайды
+          // Егер 1-бөлімнің өзінде тұрса, басына (0-ге) қайтарады
           get().playChapter(0, 0);
         }
       },
