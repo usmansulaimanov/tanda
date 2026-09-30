@@ -51,6 +51,8 @@ interface MessageState {
   messages: AdminMessage[];
   activePopupMessage: AdminMessage | null;
   dismissedPopupIds: string[];
+  knownMessageIds: string[];
+  isInitialized: boolean;
   isLoading: boolean;
 
   fetchMyMessages: () => Promise<void>;
@@ -84,6 +86,8 @@ export const useMessageStore = create<MessageState>((set, get) => ({
   messages: [],
   activePopupMessage: null,
   dismissedPopupIds: loadDismissed(),
+  knownMessageIds: [],
+  isInitialized: false,
   isLoading: false,
 
   fetchMyMessages: async () => {
@@ -96,19 +100,41 @@ export const useMessageStore = create<MessageState>((set, get) => ({
       if (Array.isArray(data)) {
         const state = get();
         const dismissed = state.dismissedPopupIds || [];
+        const currentKnown = state.knownMessageIds || [];
 
-        // Check if there are unread messages not dismissed yet
-        const unreadList = data.filter((m) => !m.isRead && !dismissed.includes(m.id));
-        const nextPopup = state.activePopupMessage ? state.activePopupMessage : (unreadList.length > 0 ? unreadList[0] : null);
+        if (!state.isInitialized) {
+          // Initial load: User just opened the site.
+          // Store all messages for inbox & unread badge count,
+          // but DO NOT pop up old messages that arrived while user was offline.
+          const allInitialIds = data.map((m) => m.id);
+          set({
+            messages: data,
+            knownMessageIds: allInitialIds,
+            isInitialized: true,
+            activePopupMessage: null,
+          });
+        } else {
+          // Subsequent fetch (polling while user is actively browsing online):
+          // Only show popup for BRAND NEW messages that arrived while user is active on site
+          const newRealtimeMessages = data.filter(
+            (m) => !currentKnown.includes(m.id) && !m.isRead && !dismissed.includes(m.id)
+          );
 
-        set({
-          messages: data,
-          activePopupMessage: nextPopup,
-        });
+          const updatedKnownIds = Array.from(new Set([...currentKnown, ...data.map((m) => m.id)]));
+          const nextPopup = state.activePopupMessage
+            ? state.activePopupMessage
+            : (newRealtimeMessages.length > 0 ? newRealtimeMessages[0] : null);
+
+          set({
+            messages: data,
+            knownMessageIds: updatedKnownIds,
+            activePopupMessage: nextPopup,
+          });
+        }
       }
     } catch (err: any) {
       if (err?.response?.status === 401) {
-        set({ messages: [], activePopupMessage: null });
+        set({ messages: [], activePopupMessage: null, knownMessageIds: [], isInitialized: false });
       }
     } finally {
       set({ isLoading: false });

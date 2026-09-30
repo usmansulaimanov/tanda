@@ -1,9 +1,6 @@
 name: Deploy to Production VPS (tandamen.kz)
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
 
 concurrency:

@@ -12,7 +12,10 @@ export const MessageNotificationRunner: React.FC = () => {
   // Initial fetch and user changes
   useEffect(() => {
     if (isAuthenticated && user?.id) {
+      useMessageStore.setState({ isInitialized: false, knownMessageIds: [], activePopupMessage: null });
       fetchMyMessages().catch(() => {});
+    } else {
+      useMessageStore.setState({ messages: [], activePopupMessage: null, knownMessageIds: [], isInitialized: false });
     }
   }, [isAuthenticated, user?.id, fetchMyMessages]);
 
