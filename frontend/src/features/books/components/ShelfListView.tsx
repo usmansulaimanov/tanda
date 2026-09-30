@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Headphones, BookOpen, MoreVertical, Play, CheckCircle2, Clock, Bookmark, Trash2 } from 'lucide-react';
 import { Book } from '../../../types';
 import { BookShelfStatus } from '../../../store/useMyBooksStore';
-import tandaPremiumWhite from '../../../assets/tanda-premium-white.png';
+import { TandaPremiumBadge } from '../../../components/ui/TandaPremiumBadge';
 
 interface ShelfListViewProps {
   items: { book: Book; record: { bookId: string | number; status: BookShelfStatus } }[];
@@ -70,21 +70,10 @@ export const ShelfListView: React.FC<ShelfListViewProps> = ({
                 </div>
               )}
               {!book.isFree && (
-                <div
-                  className="absolute bottom-1.5 left-1/2 -translate-x-1/2 z-10 pointer-events-none flex items-center justify-center"
-                  style={{
-                    width: '16px',
-                    height: '18px',
-                    filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.75))',
-                  }}
-                  title="Премиум кітап"
-                >
-                  <img
-                    src={tandaPremiumWhite}
-                    alt="Premium"
-                    className="w-full h-auto object-contain block"
-                  />
-                </div>
+                <>
+                  <div className="absolute inset-x-0 bottom-0 h-6 bg-gradient-to-t from-black/60 to-transparent pointer-events-none z-[5]" />
+                  <TandaPremiumBadge size="xs" position="bottom-center" />
+                </>
               )}
             </div>
 
