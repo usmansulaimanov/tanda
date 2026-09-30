@@ -789,23 +789,21 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
               {/* Receipt Upload Form */}
               <form onSubmit={handleSubmitReceipt} className="space-y-4 mb-6">
                 {cooldownRemaining > 0 && cooldownInfo.locked && (
-                  <div className="p-4 rounded-2xl bg-amber-50 border border-amber-300 text-amber-950 flex items-start gap-3 shadow-sm">
-                    <div className="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 mt-0.5 border border-amber-200">
-                      <Clock className="w-5 h-5 text-amber-700 animate-pulse" />
+                  <div className="py-2.5 px-3.5 rounded-2xl bg-amber-50 border border-amber-300 text-amber-950 flex items-center gap-3 shadow-xs">
+                    <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 border border-amber-200">
+                      <Clock className="w-4 h-4 text-amber-700 animate-pulse" />
                     </div>
-                    <div className="flex-1 text-xs leading-relaxed text-left">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="font-bold text-amber-900">
-                          {cooldownInfo.stage >= 4
-                            ? 'Төлем чегі қабылданбады. Жаңа чек тек келесі күні қабылданады'
-                            : 'Төлем чегі қабылданбады. Қайта жібере аласыз:'}
+                    <div className="flex-1 flex items-center justify-between gap-2 min-w-0">
+                      <span className="font-bold text-amber-900 text-xs sm:text-sm">
+                        {cooldownInfo.stage >= 4
+                          ? 'Төлем чегі қабылданбады. Жаңа чек тек келесі күні қабылданады'
+                          : 'Төлем чегі қабылданбады. Қайта жібере аласыз:'}
+                      </span>
+                      {cooldownInfo.stage < 4 && (
+                        <span className="px-2.5 py-1 rounded-lg bg-amber-200/90 font-mono font-black text-amber-900 text-xs shrink-0">
+                          {formatTimer(cooldownRemaining)}
                         </span>
-                        {cooldownInfo.stage < 4 && (
-                          <span className="px-2.5 py-0.5 rounded-lg bg-amber-200/90 font-mono font-black text-amber-900 text-xs shrink-0">
-                            {formatTimer(cooldownRemaining)}
-                          </span>
-                        )}
-                      </div>
+                      )}
                     </div>
                   </div>
                 )}
