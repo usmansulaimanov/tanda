@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useBookStore } from '../../store/useBookStore';
@@ -940,16 +941,15 @@ export const Header: React.FC = () => {
         onClose={() => setShowPremiumModal(false)}
       />
 
-      {/* ===== FULLSCREEN SEARCH OVERLAY ===== */}
-      {isSearchOpen && (
-        <>
-          {/* Header row replacement — fixed at top, same z-index as header */}
+      {/* ===== FULLSCREEN SEARCH OVERLAY (PORTAL TO BODY) ===== */}
+      {isSearchOpen && typeof document !== 'undefined' && createPortal(
+        <div className="fixed inset-0 z-[900] flex flex-col bg-white overflow-hidden">
+          {/* Header row replacement — fixed at top */}
           <div
-            className="fixed top-0 left-0 right-0 z-[200] flex items-center gap-2 px-4"
+            className="w-full shrink-0 flex items-center gap-2 px-4 bg-white"
             style={{
               height: '60px',
-              background: '#FFFFFF',
-              boxShadow: '0 1px 0 #E2E8F0',
+              borderBottom: '1px solid #E2E8F0',
             }}
           >
             {/* ← Back */}
@@ -1044,12 +1044,10 @@ export const Header: React.FC = () => {
             </button>
           </div>
 
-          {/* White area below — smoothly fades in, covers page content */}
+          {/* White area below — smoothly scrolls */}
           <div
-            className="fixed left-0 right-0 bottom-0 z-[199] overflow-y-auto"
+            className="flex-1 overflow-y-auto bg-white"
             style={{
-              top: '60px',
-              background: '#FFFFFF',
               animation: 'searchOverlayIn 0.22s cubic-bezier(0.22,1,0.36,1) both',
             }}
           >
@@ -1155,7 +1153,8 @@ export const Header: React.FC = () => {
             authorsList={overlayAuthorsList}
             narratorsList={overlayNarratorsList}
           />
-        </>
+        </div>,
+        document.body
       )}
     </>
   );
