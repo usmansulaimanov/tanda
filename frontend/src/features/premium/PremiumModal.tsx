@@ -109,13 +109,20 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
   const [verificationResult, setVerificationResult] = useState<any>(null);
   const [verificationError, setVerificationError] = useState<string | null>(null);
 
-  // Promo code state
+  // Promo code state (persisted across modal close/open until user clicks cancel)
   const [promoCodeInput, setPromoCodeInput] = useState('');
   const [appliedPromo, setAppliedPromo] = useState<{
     code: string;
     discountPercent: number;
     rewardTitle: string;
-  } | null>(null);
+  } | null>(() => {
+    try {
+      const saved = localStorage.getItem('tanda_active_discount_promo');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
   const [isApplyingPromo, setIsApplyingPromo] = useState(false);
 
   const allPlans = useMemo(() => [
@@ -399,11 +406,15 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
 
       if (isDiscount && discountPercent && discountPercent > 0) {
         setSelectedPlan('1_MONTH');
-        setAppliedPromo({
+        const promoData = {
           code: cleanCode,
           discountPercent: discountPercent,
           rewardTitle: validation.rewardTitle || `${discountPercent}% жеңілдік`,
-        });
+        };
+        setAppliedPromo(promoData);
+        try {
+          localStorage.setItem('tanda_active_discount_promo', JSON.stringify(promoData));
+        } catch {}
         showToast(`«${cleanCode}» промокоды қолданылды: 1 айлық тарифке -${discountPercent}% жеңілдік! 🎉`, 'success');
       } else {
         // Free subscription promo code: Activate immediately
@@ -424,7 +435,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
     }
   };
 
-  // Reset receipt state whenever modal closes or opens fresh
+  // Reset receipt upload state whenever modal closes or opens fresh (keep appliedPromo persisted)
   useEffect(() => {
     if (!isOpen) {
       setReceiptFile(null);
@@ -433,8 +444,6 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
       setVerificationResult(null);
       setIsUploading(false);
       setIsSubmitted(false);
-      setAppliedPromo(null);
-      setPromoCodeInput('');
     }
   }, [isOpen]);
 
@@ -638,6 +647,9 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
                         onClick={() => {
                           setAppliedPromo(null);
                           setPromoCodeInput('');
+                          try {
+                            localStorage.removeItem('tanda_active_discount_promo');
+                          } catch {}
                         }}
                         className="px-2.5 py-1 rounded-lg text-xs text-slate-600 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer font-medium"
                       >
