@@ -36,7 +36,6 @@ export const CatalogPage: React.FC = () => {
   const [pageSize, setPageSize] = useState<number>(16);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
-  const [search, setSearch] = useState('');
 
   const tabsContainerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -72,7 +71,7 @@ export const CatalogPage: React.FC = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedCat, selectedAuthors, selectedNarrators, formatFilter, accessFilter, sortBy, search]);
+  }, [selectedCat, selectedAuthors, selectedNarrators, formatFilter, accessFilter, sortBy]);
 
   const activeBooks = useMemo<Book[]>(() => {
     return (Array.isArray(books) ? books : []).filter((b) => Boolean(b && !b.isArchived));
@@ -129,8 +128,7 @@ export const CatalogPage: React.FC = () => {
     selectedNarrators.length > 0 ||
     formatFilter !== 'all' ||
     accessFilter !== 'all' ||
-    sortBy !== 'default' ||
-    search.trim()
+    sortBy !== 'default'
   );
 
   const activeFilterCount = [
@@ -148,7 +146,6 @@ export const CatalogPage: React.FC = () => {
     setFormatFilter('all');
     setAccessFilter('all');
     setSortBy('default');
-    setSearch('');
     setCurrentPage(1);
   };
 
@@ -207,19 +204,6 @@ export const CatalogPage: React.FC = () => {
         return false;
       }
 
-      // 6. Search query
-      if (search.trim()) {
-        const q = search.toLowerCase();
-        const matchesTitle = (book.title || '').toLowerCase().includes(q);
-        const matchesAuthor = (book.author || '').toLowerCase().includes(q);
-        const matchesNarrator = (book.audioNarrator || '').toLowerCase().includes(q);
-        const matchesCategory = (book.category || '').toLowerCase().includes(q);
-        const matchesDesc = (book.description || '').toLowerCase().includes(q);
-        if (!matchesTitle && !matchesAuthor && !matchesNarrator && !matchesCategory && !matchesDesc) {
-          return false;
-        }
-      }
-
       return true;
     });
 
@@ -239,7 +223,7 @@ export const CatalogPage: React.FC = () => {
     }
 
     return list;
-  }, [activeBooks, selectedCat, selectedAuthors, selectedNarrators, formatFilter, accessFilter, sortBy, search]);
+  }, [activeBooks, selectedCat, selectedAuthors, selectedNarrators, formatFilter, accessFilter, sortBy]);
 
   const totalPages = Math.max(1, Math.ceil(filteredBooks.length / pageSize));
   const startIndex = filteredBooks.length === 0 ? 0 : (currentPage - 1) * pageSize + 1;
