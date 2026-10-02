@@ -471,22 +471,22 @@ export const LeaderboardPage: React.FC = () => {
             ) : (
               <div className="space-y-6">
                 
-                {/* 4 Summary Cards */}
+                {/* 4 Summary Cards (Ordered: Жалпы, Бүгін, Осы айда, Соңғы 7 күн) */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                  <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm">
+                    <div className="text-xs text-slate-500 font-bold uppercase tracking-wider">Жалпы</div>
+                    <div className="text-xl sm:text-2xl font-black text-slate-900 mt-2">
+                      {formatMinutes(personalStats.allTimeMinutes)}
+                    </div>
+                    <div className="text-[11px] text-slate-400 mt-1">Тіркелгеннен бері</div>
+                  </div>
+
                   <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm">
                     <div className="text-xs text-slate-500 font-bold uppercase tracking-wider">Бүгін</div>
                     <div className="text-xl sm:text-2xl font-black text-emerald-700 mt-2">
                       {formatMinutes(personalStats.todayMinutes)}
                     </div>
                     <div className="text-[11px] text-slate-400 mt-1">Бүгінгі тыңдалым</div>
-                  </div>
-
-                  <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm">
-                    <div className="text-xs text-slate-500 font-bold uppercase tracking-wider">Соңғы 7 күн</div>
-                    <div className="text-xl sm:text-2xl font-black text-emerald-700 mt-2">
-                      {formatMinutes(personalStats.last7DaysMinutes)}
-                    </div>
-                    <div className="text-[11px] text-slate-400 mt-1">Осы апталық белсенділік</div>
                   </div>
 
                   <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm">
@@ -498,11 +498,11 @@ export const LeaderboardPage: React.FC = () => {
                   </div>
 
                   <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm">
-                    <div className="text-xs text-slate-500 font-bold uppercase tracking-wider">Жалпы</div>
-                    <div className="text-xl sm:text-2xl font-black text-slate-900 mt-2">
-                      {formatMinutes(personalStats.allTimeMinutes)}
+                    <div className="text-xs text-slate-500 font-bold uppercase tracking-wider">Соңғы 7 күн</div>
+                    <div className="text-xl sm:text-2xl font-black text-emerald-700 mt-2">
+                      {formatMinutes(personalStats.last7DaysMinutes)}
                     </div>
-                    <div className="text-[11px] text-slate-400 mt-1">Тіркелгеннен бері</div>
+                    <div className="text-[11px] text-slate-400 mt-1">Осы апталық белсенділік</div>
                   </div>
                 </div>
 
