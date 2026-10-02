@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useBookStore } from '../../store/useBookStore';
@@ -940,16 +941,15 @@ export const Header: React.FC = () => {
         onClose={() => setShowPremiumModal(false)}
       />
 
-      {/* ===== FULLSCREEN SEARCH OVERLAY ===== */}
-      {isSearchOpen && (
-        <>
-          {/* Header row replacement — fixed at top, same z-index as header */}
+      {/* ===== FULLSCREEN SEARCH OVERLAY (PORTAL TO BODY) ===== */}
+      {isSearchOpen && typeof document !== 'undefined' && createPortal(
+        <div className="fixed inset-0 z-[900] flex flex-col bg-white overflow-hidden">
+          {/* Header row replacement — fixed at top */}
           <div
-            className="fixed top-0 left-0 right-0 z-[200] flex items-center gap-2 px-4"
+            className="w-full shrink-0 flex items-center gap-2 px-4 bg-white"
             style={{
               height: '60px',
-              background: '#FFFFFF',
-              boxShadow: '0 1px 0 #E2E8F0',
+              borderBottom: '1px solid #E2E8F0',
             }}
           >
             {/* ← Back */}
@@ -1044,28 +1044,13 @@ export const Header: React.FC = () => {
             </button>
           </div>
 
-          {/* White area below — smoothly fades in, covers page content */}
+          {/* White area below — smoothly scrolls */}
           <div
-            className="fixed left-0 right-0 bottom-0 z-[199] overflow-y-auto"
+            className="flex-1 overflow-y-auto bg-white"
             style={{
-              top: '60px',
-              background: '#FFFFFF',
               animation: 'searchOverlayIn 0.22s cubic-bezier(0.22,1,0.36,1) both',
             }}
           >
-            {/* Empty state — no search + no filters */}
-            {!headerSearch.trim() && headerActiveFilterCount === 0 && (
-              <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
-                <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ background: '#F1F5F9' }}>
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#64748B" strokeWidth="2">
-                    <circle cx="11" cy="11" r="8"></circle>
-                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                  </svg>
-                </div>
-                <p className="text-base font-bold" style={{ color: '#1E293B' }}>Кітап іздеу</p>
-                <p className="text-sm mt-1" style={{ color: '#94A3B8' }}>Атауы, автор немесе жанр бойынша іздеңіз</p>
-              </div>
-            )}
 
             {/* Results count row */}
             {(headerSearch.trim() || headerActiveFilterCount > 0) && (
@@ -1128,11 +1113,6 @@ export const Header: React.FC = () => {
                         {b.author}
                         {b.category ? <span style={{ color: '#005494' }}> · {b.category}</span> : null}
                       </p>
-                      {!b.isFree && (
-                        <span className="inline-flex items-center mt-1 text-[10px] font-black px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(0,84,148,0.08)', color: '#005494' }}>
-                          Premium
-                        </span>
-                      )}
                     </div>
                     {/* Chevron */}
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" strokeWidth="2">
@@ -1155,7 +1135,8 @@ export const Header: React.FC = () => {
             authorsList={overlayAuthorsList}
             narratorsList={overlayNarratorsList}
           />
-        </>
+        </div>,
+        document.body
       )}
     </>
   );

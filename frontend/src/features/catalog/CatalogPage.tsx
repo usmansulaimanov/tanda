@@ -27,7 +27,6 @@ const CATEGORIES = [
 export const CatalogPage: React.FC = () => {
   const { books, fetchBooks } = useBookStore();
 
-  const [search, setSearch] = useState('');
   const [selectedCat, setSelectedCat] = useState('Бәрі');
   const [selectedAuthors, setSelectedAuthors] = useState<string[]>([]);
   const [selectedNarrators, setSelectedNarrators] = useState<string[]>([]);
@@ -72,7 +71,7 @@ export const CatalogPage: React.FC = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedCat, selectedAuthors, selectedNarrators, formatFilter, accessFilter, sortBy, search]);
+  }, [selectedCat, selectedAuthors, selectedNarrators, formatFilter, accessFilter, sortBy]);
 
   const activeBooks = useMemo<Book[]>(() => {
     return (Array.isArray(books) ? books : []).filter((b) => Boolean(b && !b.isArchived));
@@ -129,8 +128,7 @@ export const CatalogPage: React.FC = () => {
     selectedNarrators.length > 0 ||
     formatFilter !== 'all' ||
     accessFilter !== 'all' ||
-    sortBy !== 'default' ||
-    search.trim()
+    sortBy !== 'default'
   );
 
   const activeFilterCount = [
@@ -148,7 +146,6 @@ export const CatalogPage: React.FC = () => {
     setFormatFilter('all');
     setAccessFilter('all');
     setSortBy('default');
-    setSearch('');
     setCurrentPage(1);
   };
 
@@ -207,19 +204,6 @@ export const CatalogPage: React.FC = () => {
         return false;
       }
 
-      // 6. Search query
-      if (search.trim()) {
-        const q = search.toLowerCase();
-        const matchesTitle = (book.title || '').toLowerCase().includes(q);
-        const matchesAuthor = (book.author || '').toLowerCase().includes(q);
-        const matchesNarrator = (book.audioNarrator || '').toLowerCase().includes(q);
-        const matchesCategory = (book.category || '').toLowerCase().includes(q);
-        const matchesDesc = (book.description || '').toLowerCase().includes(q);
-        if (!matchesTitle && !matchesAuthor && !matchesNarrator && !matchesCategory && !matchesDesc) {
-          return false;
-        }
-      }
-
       return true;
     });
 
@@ -239,7 +223,7 @@ export const CatalogPage: React.FC = () => {
     }
 
     return list;
-  }, [activeBooks, selectedCat, selectedAuthors, selectedNarrators, formatFilter, accessFilter, sortBy, search]);
+  }, [activeBooks, selectedCat, selectedAuthors, selectedNarrators, formatFilter, accessFilter, sortBy]);
 
   const totalPages = Math.max(1, Math.ceil(filteredBooks.length / pageSize));
   const startIndex = filteredBooks.length === 0 ? 0 : (currentPage - 1) * pageSize + 1;
@@ -302,107 +286,30 @@ export const CatalogPage: React.FC = () => {
       </div>
 
 
-      {/* Search Input + Filter Button Row */}
-      <div className="flex items-center gap-2 w-full mb-6">
-        {/* Search field */}
-        <div className="relative flex-1">
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Кітап немесе автор іздеу..."
-            style={{
-              width: '100%',
-              height: '46px',
-              padding: '0 40px 0 42px',
-              borderRadius: '16px',
-              border: '1.5px solid #CBD5E1',
-              background: '#FFFFFF',
-              fontSize: '14px',
-              fontWeight: 600,
-              color: 'var(--text-dark)',
-              outline: 'none',
-              boxSizing: 'border-box',
-              transition: 'all 0.2s ease',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
-            }}
-            onFocus={(e) => {
-              e.currentTarget.style.borderColor = 'var(--blue)';
-              e.currentTarget.style.boxShadow = '0 0 0 4px rgba(0, 84, 148, 0.1)';
-            }}
-            onBlur={(e) => {
-              e.currentTarget.style.borderColor = '#CBD5E1';
-              e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.02)';
-            }}
-          />
-          {/* Search Icon */}
-          <div
-            style={{
-              position: 'absolute',
-              left: '14px',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              color: '#64748B',
-              pointerEvents: 'none',
-              display: 'flex',
-              alignItems: 'center',
-            }}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="11" cy="11" r="8"></circle>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            </svg>
-          </div>
-          {/* Clear Button */}
-          {search && (
-            <button
-              type="button"
-              onClick={() => setSearch('')}
-              style={{
-                position: 'absolute',
-                right: '12px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                background: '#F1F5F9',
-                border: 'none',
-                borderRadius: '50%',
-                width: '24px',
-                height: '24px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#64748B',
-                cursor: 'pointer',
-                fontSize: '12px',
-                fontWeight: 800,
-              }}
-            >
-              ✕
-            </button>
-          )}
-        </div>
-
-        {/* Filter Button */}
+      {/* Filter Button — search is now in the header */}
+      <div className="flex items-center justify-end w-full mb-5">
         <button
           type="button"
           onClick={() => setFilterDrawerOpen(true)}
-          className="relative shrink-0 flex items-center justify-center active:scale-95 transition-all"
+          className="relative flex items-center gap-2 active:scale-95 transition-all"
           style={{
-            width: '46px',
-            height: '46px',
-            borderRadius: '14px',
+            height: '42px',
+            padding: '0 16px',
+            borderRadius: '12px',
             border: activeFilterCount > 0 ? '1.5px solid #005494' : '1.5px solid #E2E8F0',
             background: activeFilterCount > 0 ? '#005494' : '#FFFFFF',
             color: activeFilterCount > 0 ? '#FFFFFF' : '#64748B',
             cursor: 'pointer',
+            fontSize: '13px',
+            fontWeight: 700,
             boxShadow: activeFilterCount > 0 ? '0 4px 12px rgba(0,84,148,0.3)' : '0 2px 6px rgba(0,0,0,0.04)',
           }}
         >
-          <SlidersHorizontal className="w-5 h-5" />
-          {/* Active filter badge */}
+          <SlidersHorizontal className="w-4 h-4" />
+          <span>Сүзгі</span>
           {activeFilterCount > 0 && (
             <span
-              className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-black"
+              className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-black"
               style={{ background: '#EF7E00', color: '#FFFFFF' }}
             >
               {activeFilterCount}

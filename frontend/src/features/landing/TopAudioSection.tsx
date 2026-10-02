@@ -265,7 +265,7 @@ export const TopAudioSection: React.FC = () => {
                   )}
 
                   {/* Premium badge */}
-                  {!book.isFree && <TandaPremiumBadge size="sm" position="left" />}
+                  {!book.isFree && <TandaPremiumBadge position="left" />}
 
                   {/* Play Button Overlay */}
                   <button
