@@ -724,20 +724,19 @@ export const AdminBonusesPage: React.FC = () => {
               </div>
               <div>
                 <h3 className="text-lg font-bold text-slate-900">Бонусты қолмен түзету</h3>
-                <p className="text-xs text-slate-500">Оқырманға бонус қосу немесе азайту</p>
               </div>
             </div>
 
             <form onSubmit={handleAdjustSubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Оқырманның ID нөмірі (немесе Email / @юзернейм)
+                  ID немесе юзернейм
                 </label>
                 <div className="relative">
                   <input
                     type="text"
                     required
-                    placeholder="мысалы: 9870 0979 немесе email"
+                    placeholder="0000 0000"
                     value={adjustUserId}
                     onChange={(e) => handleIdInputChange(e.target.value)}
                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
@@ -808,7 +807,7 @@ export const AdminBonusesPage: React.FC = () => {
                     }`}
                   >
                     <PlusCircle className="w-4 h-4" />
-                    + Бонус қосу
+                    Бонус қосу
                   </button>
                   <button
                     type="button"
@@ -820,7 +819,7 @@ export const AdminBonusesPage: React.FC = () => {
                     }`}
                   >
                     <MinusCircle className="w-4 h-4" />
-                    - Бонусты азайту
+                    Бонусты азайту
                   </button>
                 </div>
               </div>
@@ -852,11 +851,11 @@ export const AdminBonusesPage: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Түзету себебі (Себебі транзакциялар тарихында көрінеді)
+                  Түзету себебі:
                 </label>
                 <textarea
                   rows={2}
-                  placeholder="мысалы: Науқандық сыйлық немесе техникалық қатені өтеу"
+                  placeholder="Техникалық ақау"
                   value={adjustReason}
                   onChange={(e) => setAdjustReason(e.target.value)}
                   className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 resize-none"
