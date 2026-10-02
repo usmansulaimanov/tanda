@@ -60,13 +60,13 @@ public class LeaderboardService {
             case THIS_MONTH -> {
                 startDate = now.withDayOfMonth(1);
                 endDate = now.with(TemporalAdjusters.lastDayOfMonth());
-                periodLabel = String.format("Осы ай (%s)", getKazakhMonthName(startDate.getMonthValue()) + " " + startDate.getYear());
+                periodLabel = getKazakhMonthName(startDate.getMonthValue());
             }
             case LAST_MONTH -> {
                 LocalDate lastMonthDate = now.minusMonths(1);
                 startDate = lastMonthDate.withDayOfMonth(1);
                 endDate = lastMonthDate.with(TemporalAdjusters.lastDayOfMonth());
-                periodLabel = String.format("Өткен ай (%s)", getKazakhMonthName(startDate.getMonthValue()) + " " + startDate.getYear());
+                periodLabel = getKazakhMonthName(startDate.getMonthValue());
             }
             case THIS_WEEK -> {
                 startDate = now.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
