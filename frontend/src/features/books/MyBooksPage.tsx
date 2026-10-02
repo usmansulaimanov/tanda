@@ -5,7 +5,6 @@ import { useBookStore } from '../../store/useBookStore';
 import { useMyBooksStore, BookShelfStatus } from '../../store/useMyBooksStore';
 import { useSavedBooksStore } from '../../store/useSavedBooksStore';
 import { useAudioPlayerStore } from '../../store/useAudioPlayerStore';
-import { useToastStore } from '../../store/useToastStore';
 import { Book } from '../../types';
 import { TandaPremiumBadge } from '../../components/ui/TandaPremiumBadge';
 import { LayoutGrid, List, BookOpen } from 'lucide-react';
@@ -25,7 +24,6 @@ export const MyBooksPage: React.FC = () => {
   const { activeTab, setActiveTab, setBookStatus, removeBookFromShelf, currentShelf, getBooksByStatus, fetchShelf } = useMyBooksStore();
   const { savedBookIds, fetchSavedBooks } = useSavedBooksStore();
   const { playBook } = useAudioPlayerStore();
-  const { showToast } = useToastStore();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [activeMenuBookId, setActiveMenuBookId] = useState<string | null>(null);
@@ -124,39 +122,16 @@ export const MyBooksPage: React.FC = () => {
     );
   }, [shelfBooksWithRecords, searchQuery]);
 
-  const handleChangeStatus = (bookId: string, status: BookShelfStatus, title: string) => {
+  const handleChangeStatus = (bookId: string, status: BookShelfStatus, _title?: string) => {
     setBookStatus(bookId, status);
-    const statusLabels: Record<BookShelfStatus, string> = {
-      reading: '«Оқып жатқандарым» бөліміне қосылды',
-      completed: '«Оқып болғандар» бөліміне қосылды',
-      want_to_read: '«Енді оқимын» бөліміне қосылды',
-    };
-    showToast(`«${title}» — ${statusLabels[status]}`, 'success');
   };
 
-  const handleToggleStatus = async (bookId: string, status: BookShelfStatus, title: string) => {
-    const isCurrentlyActive = useMyBooksStore.getState().hasStatus(bookId, status);
+  const handleToggleStatus = async (bookId: string, status: BookShelfStatus, _title?: string) => {
     await useMyBooksStore.getState().toggleBookStatus(bookId, status);
-    const statusLabels: Record<BookShelfStatus, string> = {
-      reading: '«Оқып жатқандарым» бөлімінен өшірілді',
-      completed: '«Оқып болғандар» бөлімінен өшірілді',
-      want_to_read: '«Енді оқимын» бөлімінен өшірілді',
-    };
-    const addLabels: Record<BookShelfStatus, string> = {
-      reading: '«Оқып жатқандарым» бөліміне қосылды',
-      completed: '«Оқып болғандар» бөліміне қосылды',
-      want_to_read: '«Енді оқимын» бөліміне қосылды',
-    };
-    if (isCurrentlyActive) {
-      showToast(`«${title}» — ${statusLabels[status]}`, 'info');
-    } else {
-      showToast(`«${title}» — ${addLabels[status]}`, 'success');
-    }
   };
 
-  const handleRemove = (bookId: string, title: string) => {
+  const handleRemove = (bookId: string, _title?: string) => {
     removeBookFromShelf(bookId);
-    showToast(`«${title}» сөреден өшірілді`, 'info');
   };
 
   const isStaffOrAuthor = Boolean(
