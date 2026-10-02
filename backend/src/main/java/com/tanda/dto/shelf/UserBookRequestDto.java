@@ -14,6 +14,9 @@ import lombok.NoArgsConstructor;
 public class UserBookRequestDto {
 
     private String status; // 'reading', 'completed', 'want_to_read'
+    private Boolean isReading;
+    private Boolean isCompleted;
+    private Boolean isWantToRead;
 
     @Min(value = 1, message = "Current page must be at least 1")
     private Integer currentPage;

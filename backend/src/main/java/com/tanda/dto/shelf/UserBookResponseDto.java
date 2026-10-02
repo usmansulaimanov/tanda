@@ -16,6 +16,9 @@ public class UserBookResponseDto {
     private String id;
     private String bookId;
     private String status;
+    private Boolean isReading;
+    private Boolean isCompleted;
+    private Boolean isWantToRead;
     private Integer currentPage;
     private Integer totalPages;
     private Double progressPercent;

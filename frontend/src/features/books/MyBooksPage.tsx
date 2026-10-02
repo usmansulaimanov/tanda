@@ -134,6 +134,26 @@ export const MyBooksPage: React.FC = () => {
     showToast(`«${title}» — ${statusLabels[status]}`, 'success');
   };
 
+  const handleToggleStatus = async (bookId: string, status: BookShelfStatus, title: string) => {
+    const isCurrentlyActive = useMyBooksStore.getState().hasStatus(bookId, status);
+    await useMyBooksStore.getState().toggleBookStatus(bookId, status);
+    const statusLabels: Record<BookShelfStatus, string> = {
+      reading: '«Оқып жатқандарым» бөлімінен өшірілді',
+      completed: '«Оқып болғандар» бөлімінен өшірілді',
+      want_to_read: '«Енді оқимын» бөлімінен өшірілді',
+    };
+    const addLabels: Record<BookShelfStatus, string> = {
+      reading: '«Оқып жатқандарым» бөліміне қосылды',
+      completed: '«Оқып болғандар» бөліміне қосылды',
+      want_to_read: '«Енді оқимын» бөліміне қосылды',
+    };
+    if (isCurrentlyActive) {
+      showToast(`«${title}» — ${statusLabels[status]}`, 'info');
+    } else {
+      showToast(`«${title}» — ${addLabels[status]}`, 'success');
+    }
+  };
+
   const handleRemove = (bookId: string, title: string) => {
     removeBookFromShelf(bookId);
     showToast(`«${title}» сөреден өшірілді`, 'info');
@@ -488,14 +508,14 @@ export const MyBooksPage: React.FC = () => {
             items={filteredBooks}
             activeMenuBookId={activeMenuBookId}
             setActiveMenuBookId={setActiveMenuBookId}
-            handleChangeStatus={handleChangeStatus}
+            handleToggleStatus={handleToggleStatus}
             handleRemove={handleRemove}
             onPlayAudio={(b) => playBook(b)}
           />
         ) : viewMode === 'spine' ? (
           <ShelfSpineView
             items={filteredBooks}
-            handleChangeStatus={handleChangeStatus}
+            handleToggleStatus={handleToggleStatus}
             handleRemove={handleRemove}
             onPlayAudio={(b) => playBook(b)}
           />
@@ -504,7 +524,7 @@ export const MyBooksPage: React.FC = () => {
             items={filteredBooks}
             activeMenuBookId={activeMenuBookId}
             setActiveMenuBookId={setActiveMenuBookId}
-            handleChangeStatus={handleChangeStatus}
+            handleToggleStatus={handleToggleStatus}
             handleRemove={handleRemove}
             onPlayAudio={(b) => playBook(b)}
           />

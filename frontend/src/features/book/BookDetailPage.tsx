@@ -20,7 +20,7 @@ export const BookDetailPage: React.FC = () => {
   const [book, setBook] = React.useState<Book | null>(() => (id ? books.find((b) => b.id === id) || null : null));
   const [isLoading, setIsLoading] = React.useState<boolean>(!book);
   const { isBookSaved, toggleSavedBook } = useSavedBooksStore();
-  const { markAsReading, markAsWantToRead, markAsCompleted, removeBookFromShelf, getBookStatus, currentShelf } = useMyBooksStore();
+  const { toggleBookStatus, hasStatus, currentShelf } = useMyBooksStore();
   const { showToast } = useToastStore();
 
   React.useEffect(() => {
@@ -86,9 +86,8 @@ export const BookDetailPage: React.FC = () => {
   }
 
   const isCurrentPlaying = currentBook?.id === book.id && isPlaying;
-  const isSaved = isBookSaved(book.id);
-  const bookStatus = getBookStatus(book.id);
-  const isCompleted = bookStatus === 'completed';
+  const isCompleted = hasStatus(book.id, 'completed');
+  const isSaved = hasStatus(book.id, 'want_to_read') || isBookSaved(book.id);
 
   const hasAudio = Boolean(
     book.hasAudio ||
@@ -111,7 +110,6 @@ export const BookDetailPage: React.FC = () => {
       navigate(`/login?redirect=${encodeURIComponent(`/read/${book.id}`)}`);
       return;
     }
-    markAsReading(book.id, 1, book.pages ? parseInt(String(book.pages)) : undefined);
     navigate(`/read/${book.id}`);
   };
 
@@ -121,7 +119,6 @@ export const BookDetailPage: React.FC = () => {
       navigate(`/login?redirect=${encodeURIComponent(`/listen/${book.id}`)}`);
       return;
     }
-    markAsReading(book.id, 1, book.pages ? parseInt(String(book.pages)) : undefined);
     if (currentBook?.id !== book.id) {
       playBook(book);
     }
@@ -141,7 +138,6 @@ export const BookDetailPage: React.FC = () => {
       }));
       return;
     }
-    markAsReading(book.id, 1, book.pages ? parseInt(String(book.pages)) : undefined);
     if (currentBook?.id !== book.id) {
       playBook(book, idx);
     } else {
@@ -156,33 +152,16 @@ export const BookDetailPage: React.FC = () => {
       navigate(`/login?redirect=${encodeURIComponent(`/book/${book.id}`)}`);
       return;
     }
-    const nowSaved = await toggleSavedBook(book.id);
-    if (nowSaved) {
-      if (!isCompleted && bookStatus !== 'reading') {
-        markAsWantToRead(book.id);
-      }
-    } else {
-      if (bookStatus === 'want_to_read') {
-        removeBookFromShelf(book.id);
-      }
-    }
+    await toggleBookStatus(book.id, 'want_to_read');
   };
 
-  const handleToggleCompleted = () => {
+  const handleToggleCompleted = async () => {
     if (!isAuthenticated) {
       showToast('Кітапты белгілеу үшін тіркеліңіз немесе аккаунтқа кіріңіз', 'info');
       navigate(`/login?redirect=${encodeURIComponent(`/book/${book.id}`)}`);
       return;
     }
-    if (isCompleted) {
-      if (isSaved) {
-        markAsWantToRead(book.id);
-      } else {
-        removeBookFromShelf(book.id);
-      }
-    } else {
-      markAsCompleted(book.id);
-    }
+    await toggleBookStatus(book.id, 'completed');
   };
 
   return (

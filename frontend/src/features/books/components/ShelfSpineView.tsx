@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BookOpen, Play, Trash2, X, Info, CheckCircle, Clock, Bookmark, ChevronRight } from 'lucide-react';
 import { Book } from '../../../types';
-import { BookShelfStatus } from '../../../store/useMyBooksStore';
+import { BookShelfStatus, useMyBooksStore } from '../../../store/useMyBooksStore';
 import { TandaPremiumBadge } from '../../../components/ui/TandaPremiumBadge';
 
 interface ShelfSpineViewProps {
   items: { book: Book; record: { bookId: string | number; status: BookShelfStatus } }[];
-  handleChangeStatus: (bookId: string, status: BookShelfStatus, title: string) => void;
+  handleToggleStatus: (bookId: string, status: BookShelfStatus, title: string) => void;
   handleRemove: (bookId: string, title: string) => void;
   onPlayAudio: (book: Book) => void;
 }
@@ -69,11 +69,12 @@ const BOOKS_PER_SHELF = 6;
 
 export const ShelfSpineView: React.FC<ShelfSpineViewProps> = ({
   items,
-  handleChangeStatus,
+  handleToggleStatus,
   handleRemove,
   onPlayAudio,
 }) => {
   const navigate = useNavigate();
+  const { hasStatus } = useMyBooksStore();
   const [modalItem, setModalItem] = useState<{
     book: Book;
     record: { bookId: string | number; status: BookShelfStatus };
@@ -329,32 +330,26 @@ export const ShelfSpineView: React.FC<ShelfSpineViewProps> = ({
                   {activeBook.author}
                 </p>
 
-                {/* Current Status Badge */}
-                <div className="mt-2.5">
-                  <span
-                    className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-full shadow-xs"
-                    style={{
-                      background:
-                        activeRecord.status === 'reading'
-                          ? 'rgba(0, 84, 148, 0.1)'
-                          : activeRecord.status === 'completed'
-                          ? 'rgba(16, 185, 129, 0.12)'
-                          : 'rgba(239, 126, 0, 0.12)',
-                      color:
-                        activeRecord.status === 'reading'
-                          ? '#005494'
-                          : activeRecord.status === 'completed'
-                          ? '#059669'
-                          : '#EF7E00',
-                    }}
-                  >
-                    {activeRecord.status === 'reading' && <Clock className="w-3 h-3" />}
-                    {activeRecord.status === 'completed' && <CheckCircle className="w-3 h-3" />}
-                    {activeRecord.status === 'want_to_read' && <Bookmark className="w-3 h-3" />}
-                    {activeRecord.status === 'reading' && 'Қазір оқуда'}
-                    {activeRecord.status === 'completed' && 'Оқылып бітті'}
-                    {activeRecord.status === 'want_to_read' && 'Енді оқимын'}
-                  </span>
+                {/* Current Status Badges */}
+                <div className="mt-2.5 flex flex-wrap gap-1.5">
+                  {hasStatus(String(activeBook.id), 'reading') && (
+                    <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-blue-100 text-[#005494] shadow-xs">
+                      <Clock className="w-3 h-3" />
+                      Қазір оқуда
+                    </span>
+                  )}
+                  {hasStatus(String(activeBook.id), 'completed') && (
+                    <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 shadow-xs">
+                      <CheckCircle className="w-3 h-3" />
+                      Оқылып бітті
+                    </span>
+                  )}
+                  {hasStatus(String(activeBook.id), 'want_to_read') && (
+                    <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 shadow-xs">
+                      <Bookmark className="w-3 h-3" />
+                      Енді оқимын
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -372,24 +367,21 @@ export const ShelfSpineView: React.FC<ShelfSpineViewProps> = ({
                 Сөредегі күйін өзгерту:
               </div>
               <div className="grid grid-cols-3 gap-1.5">
+                {/* 1. Оқуда - toggles OFF if active; disabled if inactive (requires 5 min listening) */}
                 <button
                   type="button"
                   onClick={() => {
-                    if (activeRecord.status === 'reading') {
-                      handleRemove(String(activeBook.id), activeBook.title);
-                      setModalItem(null);
-                    } else {
-                      // Manual adding to reading is not allowed (only automatically after 5 min listening)
-                      // Notify the user gently
+                    if (hasStatus(String(activeBook.id), 'reading')) {
+                      handleToggleStatus(String(activeBook.id), 'reading', activeBook.title);
                     }
                   }}
                   className={`py-1.5 px-2 rounded-xl text-[11px] font-bold transition-all flex items-center justify-center gap-1 ${
-                    activeRecord.status === 'reading'
+                    hasStatus(String(activeBook.id), 'reading')
                       ? 'bg-[#005494] text-white shadow-xs cursor-pointer hover:bg-[#004377]'
                       : 'bg-slate-100 text-slate-400 cursor-not-allowed opacity-60'
                   }`}
                   title={
-                    activeRecord.status === 'reading'
+                    hasStatus(String(activeBook.id), 'reading')
                       ? 'Басып, «Оқып жатқандарым» сөресінен өшіру'
                       : 'Бұл күй кітапты 5 минут тыңдағанда автоматты қосылады'
                   }
@@ -398,51 +390,35 @@ export const ShelfSpineView: React.FC<ShelfSpineViewProps> = ({
                   Оқуда
                 </button>
 
+                {/* 2. Оқылды - independent toggle on/off */}
                 <button
                   type="button"
                   onClick={() => {
-                    if (activeRecord.status === 'completed') {
-                      handleRemove(String(activeBook.id), activeBook.title);
-                      setModalItem(null);
-                    } else {
-                      handleChangeStatus(String(activeBook.id), 'completed', activeBook.title);
-                      setModalItem({
-                        ...modalItem,
-                        record: { ...activeRecord, status: 'completed' },
-                      });
-                    }
+                    handleToggleStatus(String(activeBook.id), 'completed', activeBook.title);
                   }}
-                  className={`py-1.5 px-2 rounded-xl text-[11px] font-bold transition-all flex items-center justify-center gap-1 ${
-                    activeRecord.status === 'completed'
-                      ? 'bg-emerald-600 text-white shadow-xs'
+                  className={`py-1.5 px-2 rounded-xl text-[11px] font-bold transition-all flex items-center justify-center gap-1 cursor-pointer ${
+                    hasStatus(String(activeBook.id), 'completed')
+                      ? 'bg-emerald-600 text-white shadow-xs hover:bg-emerald-700'
                       : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                   }`}
-                  title={activeRecord.status === 'completed' ? 'Басып сөреден өшіру' : 'Оқылғандарға қосу'}
+                  title={hasStatus(String(activeBook.id), 'completed') ? 'Басып, «Оқылып бітті» күйін өшіру' : 'Оқылғандарға қосу'}
                 >
                   <CheckCircle className="w-3 h-3" />
                   Оқылды
                 </button>
 
+                {/* 3. Енді оқимын - independent toggle on/off */}
                 <button
                   type="button"
                   onClick={() => {
-                    if (activeRecord.status === 'want_to_read') {
-                      handleRemove(String(activeBook.id), activeBook.title);
-                      setModalItem(null);
-                    } else {
-                      handleChangeStatus(String(activeBook.id), 'want_to_read', activeBook.title);
-                      setModalItem({
-                        ...modalItem,
-                        record: { ...activeRecord, status: 'want_to_read' },
-                      });
-                    }
+                    handleToggleStatus(String(activeBook.id), 'want_to_read', activeBook.title);
                   }}
-                  className={`py-1.5 px-2 rounded-xl text-[11px] font-bold transition-all flex items-center justify-center gap-1 ${
-                    activeRecord.status === 'want_to_read'
-                      ? 'bg-[#EF7E00] text-white shadow-xs'
+                  className={`py-1.5 px-2 rounded-xl text-[11px] font-bold transition-all flex items-center justify-center gap-1 cursor-pointer ${
+                    hasStatus(String(activeBook.id), 'want_to_read')
+                      ? 'bg-[#EF7E00] text-white shadow-xs hover:bg-[#d67000]'
                       : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                   }`}
-                  title={activeRecord.status === 'want_to_read' ? 'Басып сөреден өшіру' : 'Енді оқитындарға қосу'}
+                  title={hasStatus(String(activeBook.id), 'want_to_read') ? 'Басып, «Енді оқимын» күйін өшіру' : 'Енді оқитындарға қосу'}
                 >
                   <Bookmark className="w-3 h-3" />
                   Енді оқимын

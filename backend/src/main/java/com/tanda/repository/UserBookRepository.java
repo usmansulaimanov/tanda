@@ -15,7 +15,11 @@ public interface UserBookRepository extends JpaRepository<UserBook, String> {
     @Query("SELECT ub FROM UserBook ub JOIN FETCH ub.book WHERE ub.userId = :userId ORDER BY ub.updatedAt DESC")
     List<UserBook> findAllByUserIdWithBook(@Param("userId") String userId);
 
-    @Query("SELECT ub FROM UserBook ub JOIN FETCH ub.book WHERE ub.userId = :userId AND ub.status = :status ORDER BY ub.updatedAt DESC")
+    @Query("SELECT ub FROM UserBook ub JOIN FETCH ub.book WHERE ub.userId = :userId AND " +
+           "((:status = 'reading' AND (ub.isReading = true OR ub.status = 'reading')) OR " +
+           " (:status = 'completed' AND (ub.isCompleted = true OR ub.status = 'completed')) OR " +
+           " (:status = 'want_to_read' AND (ub.isWantToRead = true OR ub.status = 'want_to_read'))) " +
+           "ORDER BY ub.updatedAt DESC")
     List<UserBook> findAllByUserIdAndStatusWithBook(@Param("userId") String userId, @Param("status") String status);
 
     @Query("SELECT ub FROM UserBook ub JOIN FETCH ub.book WHERE ub.userId = :userId AND ub.book.id = :bookId")

@@ -591,7 +591,6 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
           adTitle: cachedSettings?.audioAdTitle || 'Tanda Аудио-Жарнама',
         });
 
-        useMyBooksStore.getState().markAsReading(book.id);
         if (!needsAd) {
           startAudioSession(book.id, chapter?.id);
         }

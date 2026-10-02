@@ -54,14 +54,39 @@ public class UserBookService {
                         .id("ub-" + UUID.randomUUID().toString().substring(0, 8))
                         .userId(userId)
                         .book(book)
+                        .isReading(false)
+                        .isCompleted(false)
+                        .isWantToRead(false)
                         .addedAt(now)
                         .build());
 
-        String targetStatus = (dto != null && dto.getStatus() != null && !dto.getStatus().isBlank())
-                ? dto.getStatus().trim().toLowerCase()
-                : (ub.getStatus() != null ? ub.getStatus() : "want_to_read");
+        // Handle explicit boolean flags if provided
+        if (dto != null) {
+            if (dto.getIsReading() != null) {
+                ub.setIsReading(dto.getIsReading());
+            }
+            if (dto.getIsCompleted() != null) {
+                ub.setIsCompleted(dto.getIsCompleted());
+            }
+            if (dto.getIsWantToRead() != null) {
+                ub.setIsWantToRead(dto.getIsWantToRead());
+            }
+        }
 
-        ub.setStatus(targetStatus);
+        // Handle status string (e.g. 'reading', 'completed', 'want_to_read')
+        if (dto != null && dto.getStatus() != null && !dto.getStatus().isBlank()) {
+            String targetStatus = dto.getStatus().trim().toLowerCase();
+            if ("reading".equals(targetStatus)) {
+                ub.setIsReading(true);
+            } else if ("completed".equals(targetStatus)) {
+                ub.setIsCompleted(true);
+            } else if ("want_to_read".equals(targetStatus)) {
+                ub.setIsWantToRead(true);
+            }
+            ub.setStatus(targetStatus);
+        } else if (ub.getStatus() == null) {
+            ub.setStatus("want_to_read");
+        }
 
         if (dto != null) {
             if (dto.getCurrentPage() != null) {
@@ -85,19 +110,32 @@ public class UserBookService {
             }
         }
 
-        if ("completed".equalsIgnoreCase(ub.getStatus()) || (ub.getProgressPercent() != null && ub.getProgressPercent() >= 100.0)) {
-            ub.setStatus("completed");
+        if (Boolean.TRUE.equals(ub.getIsCompleted()) || (ub.getProgressPercent() != null && ub.getProgressPercent() >= 100.0)) {
             ub.setProgressPercent(100.0);
+            ub.setIsCompleted(true);
+            ub.setStatus("completed");
             if (ub.getCompletedAt() == null) {
                 ub.setCompletedAt(now);
             }
-        } else if ("reading".equalsIgnoreCase(ub.getStatus())) {
+        }
+        if (Boolean.TRUE.equals(ub.getIsReading())) {
             ub.setLastReadAt(now);
+        }
+
+        // If all flags become false, delete record
+        boolean hasAnyStatus = Boolean.TRUE.equals(ub.getIsReading()) ||
+                               Boolean.TRUE.equals(ub.getIsCompleted()) ||
+                               Boolean.TRUE.equals(ub.getIsWantToRead());
+        if (!hasAnyStatus) {
+            userBookRepository.delete(ub);
+            log.info("Removed shelf record for user={}, book={} because all statuses are inactive", userId, bookId);
+            return toResponseDto(ub);
         }
 
         ub.setUpdatedAt(now);
         UserBook saved = userBookRepository.save(ub);
-        log.info("Updated shelf record for user={}, book={}, status={}", userId, bookId, saved.getStatus());
+        log.info("Updated shelf record for user={}, book={}, isReading={}, isCompleted={}, isWantToRead={}",
+                userId, bookId, saved.getIsReading(), saved.getIsCompleted(), saved.getIsWantToRead());
         return toResponseDto(saved);
     }
 
@@ -118,6 +156,9 @@ public class UserBookService {
                 .id(ub.getId())
                 .bookId(b != null ? b.getId() : null)
                 .status(ub.getStatus())
+                .isReading(Boolean.TRUE.equals(ub.getIsReading()) || "reading".equalsIgnoreCase(ub.getStatus()))
+                .isCompleted(Boolean.TRUE.equals(ub.getIsCompleted()) || "completed".equalsIgnoreCase(ub.getStatus()))
+                .isWantToRead(Boolean.TRUE.equals(ub.getIsWantToRead()) || "want_to_read".equalsIgnoreCase(ub.getStatus()))
                 .currentPage(ub.getCurrentPage())
                 .totalPages(ub.getTotalPages())
                 .progressPercent(ub.getProgressPercent())

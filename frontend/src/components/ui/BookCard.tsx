@@ -17,12 +17,11 @@ export const BookCard: React.FC<BookCardProps> = ({ book }) => {
   const { role, isAuthenticated, openAuthModal } = useAuthStore();
   const { playBook } = useAudioPlayerStore();
   const { isBookSaved, toggleSavedBook } = useSavedBooksStore();
-  const { markAsReading, markAsWantToRead, markAsCompleted, removeBookFromShelf, getBookStatus } = useMyBooksStore();
+  const { toggleBookStatus, hasStatus } = useMyBooksStore();
   const { showToast } = useToastStore();
 
-  const isSaved = isBookSaved(book.id);
-  const bookStatus = getBookStatus(book.id);
-  const isCompleted = bookStatus === 'completed';
+  const isCompleted = hasStatus(book.id, 'completed');
+  const isSaved = hasStatus(book.id, 'want_to_read') || isBookSaved(book.id);
 
   const hasAudio = Boolean(
     book.hasAudio ||
@@ -46,7 +45,6 @@ export const BookCard: React.FC<BookCardProps> = ({ book }) => {
       navigate(`/login?redirect=${encodeURIComponent(`/read/${book.id}`)}`);
       return;
     }
-    markAsReading(book.id, 1, book.pages ? parseInt(String(book.pages)) : undefined);
     navigate(`/read/${book.id}`);
   };
 
@@ -58,7 +56,6 @@ export const BookCard: React.FC<BookCardProps> = ({ book }) => {
       navigate(`/login?redirect=${encodeURIComponent(`/listen/${book.id}`)}`);
       return;
     }
-    markAsReading(book.id, 1, book.pages ? parseInt(String(book.pages)) : undefined);
     playBook(book);
     navigate(`/listen/${book.id}`);
   };
@@ -71,19 +68,10 @@ export const BookCard: React.FC<BookCardProps> = ({ book }) => {
       navigate(`/login?redirect=${encodeURIComponent(`/book/${book.id}`)}`);
       return;
     }
-    const nowSaved = await toggleSavedBook(book.id);
-    if (nowSaved) {
-      if (!isCompleted && bookStatus !== 'reading') {
-        markAsWantToRead(book.id);
-      }
-    } else {
-      if (bookStatus === 'want_to_read') {
-        removeBookFromShelf(book.id);
-      }
-    }
+    await toggleBookStatus(book.id, 'want_to_read');
   };
 
-  const handleCompletedClick = (e: React.MouseEvent) => {
+  const handleCompletedClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     if (!isAuthenticated) {
@@ -91,15 +79,7 @@ export const BookCard: React.FC<BookCardProps> = ({ book }) => {
       navigate(`/login?redirect=${encodeURIComponent(`/book/${book.id}`)}`);
       return;
     }
-    if (isCompleted) {
-      if (isSaved) {
-        markAsWantToRead(book.id);
-      } else {
-        removeBookFromShelf(book.id);
-      }
-    } else {
-      markAsCompleted(book.id);
-    }
+    await toggleBookStatus(book.id, 'completed');
   };
 
   return (

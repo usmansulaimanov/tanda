@@ -1,14 +1,14 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Book } from '../../../types';
-import { BookShelfStatus } from '../../../store/useMyBooksStore';
+import { BookShelfStatus, useMyBooksStore } from '../../../store/useMyBooksStore';
 import { TandaPremiumBadge } from '../../../components/ui/TandaPremiumBadge';
 
 interface ShelfGridViewProps {
   items: { book: Book; record: { bookId: string | number; status: BookShelfStatus } }[];
   activeMenuBookId: string | null;
   setActiveMenuBookId: (id: string | null) => void;
-  handleChangeStatus: (bookId: string, status: BookShelfStatus, title: string) => void;
+  handleToggleStatus: (bookId: string, status: BookShelfStatus, title: string) => void;
   handleRemove: (bookId: string, title: string) => void;
   onPlayAudio: (book: Book) => void;
 }
@@ -17,16 +17,21 @@ export const ShelfGridView: React.FC<ShelfGridViewProps> = ({
   items,
   activeMenuBookId,
   setActiveMenuBookId,
-  handleChangeStatus,
+  handleToggleStatus,
   handleRemove,
   onPlayAudio,
 }) => {
   const navigate = useNavigate();
+  const { hasStatus } = useMyBooksStore();
 
   return (
     <div className="books-grid w-full min-w-0 max-w-full">
       {items.map(({ book, record }) => {
         const isMenuOpen = activeMenuBookId === String(book.id);
+        const isReadingActive = hasStatus(String(book.id), 'reading');
+        const isCompletedActive = hasStatus(String(book.id), 'completed');
+        const isWantToReadActive = hasStatus(String(book.id), 'want_to_read');
+
         const hasAudio = Boolean(
           book.hasAudio ||
           (book.audioUrl && book.audioUrl.trim()) ||
@@ -134,11 +139,12 @@ export const ShelfGridView: React.FC<ShelfGridViewProps> = ({
                     Күйді өзгерту
                   </div>
 
+                  {/* 1. Оқуда */}
                   <button
                     type="button"
                     onClick={() => {
-                      if (record.status === 'reading') {
-                        handleRemove(String(book.id), book.title);
+                      if (isReadingActive) {
+                        handleToggleStatus(String(book.id), 'reading', book.title);
                       }
                       setActiveMenuBookId(null);
                     }}
@@ -148,19 +154,19 @@ export const ShelfGridView: React.FC<ShelfGridViewProps> = ({
                       textAlign: 'left',
                       borderRadius: '8px',
                       border: 'none',
-                      background: record.status === 'reading' ? '#F1F5F9' : 'transparent',
-                      color: record.status === 'reading' ? 'var(--blue)' : '#94A3B8',
-                      fontWeight: record.status === 'reading' ? 800 : 600,
+                      background: isReadingActive ? '#F1F5F9' : 'transparent',
+                      color: isReadingActive ? 'var(--blue)' : '#94A3B8',
+                      fontWeight: isReadingActive ? 800 : 600,
                       fontSize: '12px',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '8px',
-                      cursor: record.status === 'reading' ? 'pointer' : 'not-allowed',
-                      opacity: record.status === 'reading' ? 1 : 0.6,
+                      cursor: isReadingActive ? 'pointer' : 'not-allowed',
+                      opacity: isReadingActive ? 1 : 0.6,
                     }}
                     title={
-                      record.status === 'reading'
-                        ? 'Басып сөреден өшіру'
+                      isReadingActive
+                        ? 'Басып, «Оқып жатқандарым» сөресінен өшіру'
                         : 'Бұл күй кітапты 5 минут тыңдағанда автоматты қосылады'
                     }
                   >
@@ -171,14 +177,11 @@ export const ShelfGridView: React.FC<ShelfGridViewProps> = ({
                     Қазір оқуда
                   </button>
 
+                  {/* 2. Оқылып бітті */}
                   <button
                     type="button"
                     onClick={() => {
-                      if (record.status === 'completed') {
-                        handleRemove(String(book.id), book.title);
-                      } else {
-                        handleChangeStatus(String(book.id), 'completed', book.title);
-                      }
+                      handleToggleStatus(String(book.id), 'completed', book.title);
                       setActiveMenuBookId(null);
                     }}
                     style={{
@@ -187,15 +190,16 @@ export const ShelfGridView: React.FC<ShelfGridViewProps> = ({
                       textAlign: 'left',
                       borderRadius: '8px',
                       border: 'none',
-                      background: record.status === 'completed' ? '#F1F5F9' : 'transparent',
-                      color: record.status === 'completed' ? '#059669' : 'var(--text-dark)',
-                      fontWeight: record.status === 'completed' ? 800 : 600,
+                      background: isCompletedActive ? '#ECFDF5' : 'transparent',
+                      color: isCompletedActive ? '#059669' : 'var(--text-dark)',
+                      fontWeight: isCompletedActive ? 800 : 600,
                       fontSize: '12px',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '8px',
                       cursor: 'pointer',
                     }}
+                    title={isCompletedActive ? 'Басып, «Оқылып бітті» күйін өшіру' : 'Оқылғандарға қосу'}
                   >
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                       <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
@@ -204,14 +208,11 @@ export const ShelfGridView: React.FC<ShelfGridViewProps> = ({
                     Оқылып бітті
                   </button>
 
+                  {/* 3. Енді оқимын */}
                   <button
                     type="button"
                     onClick={() => {
-                      if (record.status === 'want_to_read') {
-                        handleRemove(String(book.id), book.title);
-                      } else {
-                        handleChangeStatus(String(book.id), 'want_to_read', book.title);
-                      }
+                      handleToggleStatus(String(book.id), 'want_to_read', book.title);
                       setActiveMenuBookId(null);
                     }}
                     style={{
@@ -220,15 +221,16 @@ export const ShelfGridView: React.FC<ShelfGridViewProps> = ({
                       textAlign: 'left',
                       borderRadius: '8px',
                       border: 'none',
-                      background: record.status === 'want_to_read' ? '#F1F5F9' : 'transparent',
-                      color: record.status === 'want_to_read' ? 'var(--orange)' : 'var(--text-dark)',
-                      fontWeight: record.status === 'want_to_read' ? 800 : 600,
+                      background: isWantToReadActive ? '#FFFBEB' : 'transparent',
+                      color: isWantToReadActive ? 'var(--orange)' : 'var(--text-dark)',
+                      fontWeight: isWantToReadActive ? 800 : 600,
                       fontSize: '12px',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '8px',
                       cursor: 'pointer',
                     }}
+                    title={isWantToReadActive ? 'Басып, «Енді оқимын» күйін өшіру' : 'Енді оқитындарға қосу'}
                   >
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                       <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path>
@@ -278,32 +280,50 @@ export const ShelfGridView: React.FC<ShelfGridViewProps> = ({
               </h3>
               <p className="book-author">{book.author}</p>
 
-              {/* Status pill badge */}
+              {/* Status pill badges (all active) */}
               <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                <span
-                  style={{
-                    fontSize: '11px',
-                    fontWeight: 700,
-                    padding: '2px 7px',
-                    borderRadius: '4px',
-                    background:
-                      record.status === 'reading'
-                        ? 'rgba(0, 84, 148, 0.1)'
-                        : record.status === 'completed'
-                        ? 'rgba(16, 185, 129, 0.12)'
-                        : 'rgba(239, 126, 0, 0.12)',
-                    color:
-                      record.status === 'reading'
-                        ? 'var(--blue)'
-                        : record.status === 'completed'
-                        ? '#059669'
-                        : 'var(--orange)',
-                  }}
-                >
-                  {record.status === 'reading' && 'Қазір оқуда'}
-                  {record.status === 'completed' && 'Оқылып бітті'}
-                  {record.status === 'want_to_read' && 'Енді оқимын'}
-                </span>
+                {isReadingActive && (
+                  <span
+                    style={{
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      padding: '2px 7px',
+                      borderRadius: '4px',
+                      background: 'rgba(0, 84, 148, 0.1)',
+                      color: 'var(--blue)',
+                    }}
+                  >
+                    Қазір оқуда
+                  </span>
+                )}
+                {isCompletedActive && (
+                  <span
+                    style={{
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      padding: '2px 7px',
+                      borderRadius: '4px',
+                      background: 'rgba(16, 185, 129, 0.12)',
+                      color: '#059669',
+                    }}
+                  >
+                    Оқылып бітті
+                  </span>
+                )}
+                {isWantToReadActive && (
+                  <span
+                    style={{
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      padding: '2px 7px',
+                      borderRadius: '4px',
+                      background: 'rgba(239, 126, 0, 0.12)',
+                      color: 'var(--orange)',
+                    }}
+                  >
+                    Енді оқимын
+                  </span>
+                )}
               </div>
             </div>
 

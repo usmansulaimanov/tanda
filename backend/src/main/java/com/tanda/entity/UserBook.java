@@ -43,6 +43,18 @@ public class UserBook {
     @Column(name = "status", length = 32, nullable = false)
     private String status; // 'reading', 'completed', 'want_to_read'
 
+    @Column(name = "is_reading")
+    @Builder.Default
+    private Boolean isReading = false;
+
+    @Column(name = "is_completed")
+    @Builder.Default
+    private Boolean isCompleted = false;
+
+    @Column(name = "is_want_to_read")
+    @Builder.Default
+    private Boolean isWantToRead = false;
+
     @Column(name = "current_page")
     @Builder.Default
     private Integer currentPage = 1;

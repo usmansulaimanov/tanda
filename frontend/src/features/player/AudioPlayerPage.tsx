@@ -48,7 +48,7 @@ export const AudioPlayerPage: React.FC = () => {
   const { books, fetchBookById } = useBookStore();
   const { role, isAuthenticated, isAuthInitialized } = useAuthStore();
   const { isBookSaved, toggleSavedBook } = useSavedBooksStore();
-  const { markAsReading, markAsWantToRead, markAsCompleted, removeBookFromShelf, getBookStatus } = useMyBooksStore();
+  const { toggleBookStatus, hasStatus } = useMyBooksStore();
   const { showToast } = useToastStore();
 
   const {
@@ -248,9 +248,8 @@ export const AudioPlayerPage: React.FC = () => {
     );
   }
 
-  const isSaved = isBookSaved(activeBook.id);
-  const bookStatus = getBookStatus(activeBook.id);
-  const isCompleted = bookStatus === 'completed';
+  const isCompleted = hasStatus(activeBook.id, 'completed');
+  const isSaved = hasStatus(activeBook.id, 'want_to_read') || isBookSaved(activeBook.id);
 
   const chapters = activeBook.audioChapters && activeBook.audioChapters.length > 0
     ? activeBook.audioChapters
@@ -314,7 +313,6 @@ export const AudioPlayerPage: React.FC = () => {
       }));
       return;
     }
-    markAsReading(activeBook.id, 1, activeBook.pages ? parseInt(String(activeBook.pages)) : undefined);
     if (currentBook?.id !== activeBook.id) {
       playBook(activeBook, idx);
     } else if (chapterIndex !== idx) {
@@ -323,28 +321,11 @@ export const AudioPlayerPage: React.FC = () => {
   };
 
   const handleToggleBookmark = async () => {
-    const nowSaved = await toggleSavedBook(activeBook.id);
-    if (nowSaved) {
-      if (!isCompleted && bookStatus !== 'reading') {
-        markAsWantToRead(activeBook.id);
-      }
-    } else {
-      if (bookStatus === 'want_to_read') {
-        removeBookFromShelf(activeBook.id);
-      }
-    }
+    await toggleBookStatus(activeBook.id, 'want_to_read');
   };
 
-  const handleToggleCompleted = () => {
-    if (isCompleted) {
-      if (isSaved) {
-        markAsWantToRead(activeBook.id);
-      } else {
-        removeBookFromShelf(activeBook.id);
-      }
-    } else {
-      markAsCompleted(activeBook.id);
-    }
+  const handleToggleCompleted = async () => {
+    await toggleBookStatus(activeBook.id, 'completed');
   };
 
   return (

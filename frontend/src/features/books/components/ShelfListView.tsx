@@ -2,14 +2,14 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Headphones, BookOpen, MoreVertical, Play, CheckCircle2, Clock, Bookmark, Trash2 } from 'lucide-react';
 import { Book } from '../../../types';
-import { BookShelfStatus } from '../../../store/useMyBooksStore';
+import { BookShelfStatus, useMyBooksStore } from '../../../store/useMyBooksStore';
 import { TandaPremiumBadge } from '../../../components/ui/TandaPremiumBadge';
 
 interface ShelfListViewProps {
   items: { book: Book; record: { bookId: string | number; status: BookShelfStatus } }[];
   activeMenuBookId: string | null;
   setActiveMenuBookId: (id: string | null) => void;
-  handleChangeStatus: (bookId: string, status: BookShelfStatus, title: string) => void;
+  handleToggleStatus: (bookId: string, status: BookShelfStatus, title: string) => void;
   handleRemove: (bookId: string, title: string) => void;
   onPlayAudio: (book: Book) => void;
 }
@@ -18,16 +18,21 @@ export const ShelfListView: React.FC<ShelfListViewProps> = ({
   items,
   activeMenuBookId,
   setActiveMenuBookId,
-  handleChangeStatus,
+  handleToggleStatus,
   handleRemove,
   onPlayAudio,
 }) => {
   const navigate = useNavigate();
+  const { hasStatus } = useMyBooksStore();
 
   return (
     <div className="flex flex-col gap-2.5 w-full">
       {items.map(({ book, record }) => {
         const isMenuOpen = activeMenuBookId === String(book.id);
+        const isReadingActive = hasStatus(String(book.id), 'reading');
+        const isCompletedActive = hasStatus(String(book.id), 'completed');
+        const isWantToReadActive = hasStatus(String(book.id), 'want_to_read');
+
         const hasAudio = Boolean(
           book.hasAudio ||
           (book.audioUrl && book.audioUrl.trim()) ||
@@ -80,27 +85,21 @@ export const ShelfListView: React.FC<ShelfListViewProps> = ({
             {/* Book Metadata */}
             <div className="flex-1 min-w-0 pr-1">
               <div className="flex items-center gap-1.5 flex-wrap mb-1">
-                <span
-                  className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                  style={{
-                    background:
-                      record.status === 'reading'
-                        ? 'rgba(0, 84, 148, 0.1)'
-                        : record.status === 'completed'
-                        ? 'rgba(16, 185, 129, 0.12)'
-                        : 'rgba(239, 126, 0, 0.12)',
-                    color:
-                      record.status === 'reading'
-                        ? 'var(--blue)'
-                        : record.status === 'completed'
-                        ? '#059669'
-                        : 'var(--orange)',
-                  }}
-                >
-                  {record.status === 'reading' && 'Қазір оқуда'}
-                  {record.status === 'completed' && 'Оқылып бітті'}
-                  {record.status === 'want_to_read' && 'Енді оқимын'}
-                </span>
+                {isReadingActive && (
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-[#005494]">
+                    Қазір оқуда
+                  </span>
+                )}
+                {isCompletedActive && (
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
+                    Оқылып бітті
+                  </span>
+                )}
+                {isWantToReadActive && (
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">
+                    Енді оқимын
+                  </span>
+                )}
 
                 {hasAudio && (
                   <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded-md">
@@ -173,56 +172,56 @@ export const ShelfListView: React.FC<ShelfListViewProps> = ({
                     <div className="px-3 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                       Күйін өзгерту
                     </div>
+
+                    {/* 1. Оқуда */}
                     <button
                       type="button"
                       onClick={() => {
-                        if (record.status === 'reading') {
-                          handleRemove(String(book.id), book.title);
+                        if (isReadingActive) {
+                          handleToggleStatus(String(book.id), 'reading', book.title);
                         }
                         setActiveMenuBookId(null);
                       }}
                       className={`w-full px-3 py-2 text-left flex items-center gap-2 hover:bg-slate-50 transition-colors ${
-                        record.status === 'reading' ? 'font-bold text-[#005494] cursor-pointer' : 'text-slate-400 cursor-not-allowed opacity-60'
+                        isReadingActive ? 'font-bold text-[#005494] cursor-pointer' : 'text-slate-400 cursor-not-allowed opacity-60'
                       }`}
                       title={
-                        record.status === 'reading'
-                          ? 'Басып сөреден өшіру'
+                        isReadingActive
+                          ? 'Басып, «Оқып жатқандарым» сөресінен өшіру'
                           : 'Бұл күй кітапты 5 минут тыңдағанда автоматты қосылады'
                       }
                     >
                       <Clock className="w-3.5 h-3.5 text-[#005494]" />
                       Қазір оқуда
                     </button>
+
+                    {/* 2. Оқылып бітті */}
                     <button
                       type="button"
                       onClick={() => {
-                        if (record.status === 'completed') {
-                          handleRemove(String(book.id), book.title);
-                        } else {
-                          handleChangeStatus(String(book.id), 'completed', book.title);
-                        }
+                        handleToggleStatus(String(book.id), 'completed', book.title);
                         setActiveMenuBookId(null);
                       }}
                       className={`w-full px-3 py-2 text-left flex items-center gap-2 hover:bg-slate-50 transition-colors ${
-                        record.status === 'completed' ? 'font-bold text-emerald-600' : 'text-slate-700'
+                        isCompletedActive ? 'font-bold text-emerald-600 bg-emerald-50' : 'text-slate-700'
                       }`}
+                      title={isCompletedActive ? 'Басып, «Оқылып бітті» күйін өшіру' : 'Оқылғандарға қосу'}
                     >
                       <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                       Оқылып бітті
                     </button>
+
+                    {/* 3. Енді оқимын */}
                     <button
                       type="button"
                       onClick={() => {
-                        if (record.status === 'want_to_read') {
-                          handleRemove(String(book.id), book.title);
-                        } else {
-                          handleChangeStatus(String(book.id), 'want_to_read', book.title);
-                        }
+                        handleToggleStatus(String(book.id), 'want_to_read', book.title);
                         setActiveMenuBookId(null);
                       }}
                       className={`w-full px-3 py-2 text-left flex items-center gap-2 hover:bg-slate-50 transition-colors ${
-                        record.status === 'want_to_read' ? 'font-bold text-amber-600' : 'text-slate-700'
+                        isWantToReadActive ? 'font-bold text-amber-600 bg-amber-50' : 'text-slate-700'
                       }`}
+                      title={isWantToReadActive ? 'Басып, «Енді оқимын» күйін өшіру' : 'Енді оқитындарға қосу'}
                     >
                       <Bookmark className="w-3.5 h-3.5 text-amber-600" />
                       Енді оқимын
@@ -230,8 +229,11 @@ export const ShelfListView: React.FC<ShelfListViewProps> = ({
                     <div className="h-px bg-slate-100 my-1" />
                     <button
                       type="button"
-                      onClick={() => handleRemove(String(book.id), book.title)}
-                      className="w-full px-3 py-2 text-left flex items-center gap-2 text-rose-600 hover:bg-rose-50 transition-colors font-medium"
+                      onClick={() => {
+                        handleRemove(String(book.id), book.title);
+                        setActiveMenuBookId(null);
+                      }}
+                      className="w-full px-3 py-2 text-left flex items-center gap-2 text-rose-600 hover:bg-rose-50 transition-colors font-medium cursor-pointer"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                       Сөреден өшіру

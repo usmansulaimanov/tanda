@@ -16,7 +16,6 @@ export const TopAudioSection: React.FC = () => {
   const { currentBook, isPlaying, playBook, togglePlay } = useAudioPlayerStore();
   const { isAuthenticated } = useAuthStore();
   const { showToast } = useToastStore();
-  const { markAsReading } = useMyBooksStore();
 
   React.useEffect(() => {
     fetchTopAudio();
@@ -53,7 +52,6 @@ export const TopAudioSection: React.FC = () => {
     if (currentBook?.id === book.id) {
       togglePlay();
     } else {
-      markAsReading(book.id, 1, book.pages ? parseInt(String(book.pages)) : undefined);
       playBook(book);
       navigate(`/listen/${book.id}`);
     }
