@@ -510,7 +510,7 @@ export const AdminBonusesPage: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Жалпы берілген</span>
+                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Барлық берілген</span>
                 <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600">
                   <TrendingUp className="w-5 h-5" />
                 </div>
@@ -540,7 +540,7 @@ export const AdminBonusesPage: React.FC = () => {
 
             <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Қолданыстағы белсенді</span>
+                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Қазіргі қалдық баланс</span>
                 <div className="p-2 rounded-xl bg-amber-50 text-amber-600">
                   <Coins className="w-5 h-5" />
                 </div>
