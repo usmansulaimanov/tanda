@@ -42,5 +42,6 @@ public class UserResponseDto {
     private String premiumRevokedBy;
     private OffsetDateTime premiumRevokedAt;
     private Integer lastBirthdayGiftYear;
+    private Integer bonusBalance;
     private String token;
 }

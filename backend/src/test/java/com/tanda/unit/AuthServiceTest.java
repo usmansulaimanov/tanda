@@ -8,6 +8,7 @@ import com.tanda.entity.User;
 import com.tanda.repository.UserRepository;
 import com.tanda.security.JwtTokenProvider;
 import com.tanda.service.AuthService;
+import com.tanda.service.BonusService;
 import com.tanda.service.GoogleTokenVerifier;
 import com.tanda.service.IdNumberService;
 import com.tanda.service.RefreshTokenService;
@@ -84,6 +85,9 @@ class AuthServiceTest {
     @Mock
     private com.tanda.repository.UserDailyAudioLimitRepository userDailyAudioLimitRepository;
 
+    @Mock
+    private BonusService bonusService;
+
     private PasswordEncoder passwordEncoder;
     private JwtTokenProvider jwtTokenProvider;
 
@@ -116,7 +120,8 @@ class AuthServiceTest {
                 userBookRepository,
                 savedBookRepository,
                 readingProgressRepository,
-                userDailyAudioLimitRepository
+                userDailyAudioLimitRepository,
+                bonusService
         );
     }
 

@@ -7,7 +7,7 @@ import { useNewsStore } from '../../store/useNewsStore';
 import { useToastStore } from '../../store/useToastStore';
 import { hasAdminPermission } from '../../utils/permissions';
 import heroReadingImg from '../../assets/hero-reading.jpg';
-import { CreditCard, Sliders } from 'lucide-react';
+import { CreditCard, Sliders, Gift } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { premiumApi } from '../../shared/api/premium.api';
 
@@ -917,6 +917,47 @@ export const AdminHomePage: React.FC = () => {
               </div>
               <div style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.4 }}>
                 Оқырмандардан келген чектерді тексеру, мақұлдау немесе бас тарту
+              </div>
+            </div>
+          </Link>
+
+          <Link
+            to="/admin/bonuses"
+            style={{
+              textDecoration: 'none',
+              background: '#FFFFFF',
+              borderRadius: '16px',
+              padding: '20px',
+              border: '1px solid #E2E8F0',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div
+                style={{
+                  width: '42px',
+                  height: '42px',
+                  borderRadius: '12px',
+                  background: '#FEF3C7',
+                  color: '#D97706',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Gift className="w-5 h-5" />
+              </div>
+            </div>
+            <div>
+              <div style={{ fontSize: '16px', fontWeight: 700, color: '#1E293B', marginBottom: '4px' }}>
+                Бонустар
+              </div>
+              <div style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.4 }}>
+                Бонус беру шарттары, валюта атауы, статистика және түзету
               </div>
             </div>
           </Link>

@@ -50,5 +50,7 @@ public class SystemSettingsResponseDto {
     private String headerBannerButtonText;
     private String headerBannerPresets;
     private boolean aiReceiptVerificationEnabled;
+    private boolean bonusSystemEnabled;
+    private String bonusCurrencyName;
     private OffsetDateTime updatedAt;
 }

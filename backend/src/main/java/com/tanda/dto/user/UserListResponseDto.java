@@ -39,4 +39,5 @@ public class UserListResponseDto {
     private String personalMessage;
     private Integer personalMessageDays;
     private Boolean personalMessageActive;
+    private Integer bonusBalance;
 }

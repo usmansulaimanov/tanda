@@ -76,6 +76,7 @@ const CertificateVerifyPage = lazyWithRetry(() => import('../features/certificat
 const PremiumPage = lazyWithRetry(() => import('../features/premium/PremiumPage').then((m) => ({ default: m.PremiumPage })));
 const AdminSubscriptionRequestsPage = lazyWithRetry(() => import('../features/admin/AdminSubscriptionRequestsPage').then((m) => ({ default: m.AdminSubscriptionRequestsPage })));
 const AdminSystemSettingsPage = lazyWithRetry(() => import('../features/admin/AdminSystemSettingsPage').then((m) => ({ default: m.AdminSystemSettingsPage })));
+const AdminBonusesPage = lazyWithRetry(() => import('../features/admin/AdminBonusesPage').then((m) => ({ default: m.AdminBonusesPage })));
 const AboutPage = lazyWithRetry(() => import('../features/about/AboutPage').then((m) => ({ default: m.AboutPage })));
 
 
@@ -698,6 +699,16 @@ export const router = createBrowserRouter([
           <AdminRouteGuard>
             <Suspense fallback={<PageLoader />}>
               <AdminSystemSettingsPage />
+            </Suspense>
+          </AdminRouteGuard>
+        ),
+      },
+      {
+        path: 'admin/bonuses',
+        element: (
+          <AdminRouteGuard>
+            <Suspense fallback={<PageLoader />}>
+              <AdminBonusesPage />
             </Suspense>
           </AdminRouteGuard>
         ),

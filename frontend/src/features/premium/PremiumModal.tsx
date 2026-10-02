@@ -13,7 +13,9 @@ import {
   CheckCircle2,
   AlertCircle,
   FileText,
-  Tag
+  Tag,
+  Coins,
+  Gift
 } from 'lucide-react';
 import tandaPremiumWhite from '../../assets/tanda-premium-white.png';
 import { useQuery } from '@tanstack/react-query';
@@ -22,6 +24,7 @@ import { usePromoStore } from '../../store/usePromoStore';
 import { useToastStore } from '../../store/useToastStore';
 import { premiumApi } from '../../shared/api/premium.api';
 import { systemApi } from '../../shared/api/system.api';
+import { bonusApi } from '../../shared/api/bonus.api';
 import { SystemSettings } from '../../types';
 import { api } from '../../lib/api';
 import { FormattedNoticeText } from '../../components/ui/FormattedNoticeText';
@@ -435,6 +438,39 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
     }
   };
 
+  const [isRedeemingBonus, setIsRedeemingBonus] = useState(false);
+
+  const handleRedeemWithBonus = async () => {
+    if (!isAuthenticated) {
+      showToast('Премиум жазылымды алу үшін алдымен сайтқа кіріңіз', 'error');
+      return;
+    }
+    const currencyName = settings?.bonusCurrencyName || 'Бонус';
+    const confirmed = window.confirm(
+      `«${currentPlan.name}» жазылымын ${currentPlan.price.toLocaleString('kk-KZ')} ${currencyName} төлеп белсендіруді растайсыз ба?`
+    );
+    if (!confirmed) return;
+
+    setIsRedeemingBonus(true);
+    try {
+      await bonusApi.redeemSubscription({
+        planName: currentPlan.id,
+        planDays: currentPlan.days,
+        amount: currentPlan.price,
+      });
+      showToast('Tanda Premium жазылымы бонуспен сәтті қосылды! 👑', 'success');
+      setIsSubmitted(true);
+      setVerificationResult({ status: 'APPROVED' } as any);
+      try {
+        await useAuthStore.getState().restoreSession();
+      } catch {}
+    } catch (err: any) {
+      showToast(err?.response?.data?.message || 'Бонуспен жазылым алу кезінде қате орын алды', 'error');
+    } finally {
+      setIsRedeemingBonus(false);
+    }
+  };
+
   // Reset receipt upload state whenever modal closes or opens fresh (keep appliedPromo persisted)
   useEffect(() => {
     if (!isOpen) {
@@ -691,6 +727,42 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
                     text={settings.paymentNotice.trim()}
                     align={settings.paymentNoticeAlign || 'left'}
                   />
+                </div>
+              )}
+
+              {/* Bonus Redemption Option (Shown only if user has sufficient full balance) */}
+              {isAuthenticated && settings?.bonusSystemEnabled !== false && (user?.bonusBalance ?? 0) >= currentPlan.price && (
+                <div className="mb-6 p-4.5 rounded-2xl bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/10 border-2 border-amber-400 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 text-white flex items-center justify-center shadow-md flex-shrink-0">
+                      <Coins className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-500 text-white shadow-xs">
+                          Арнайы ұсыныс
+                        </span>
+                        <span className="text-xs text-slate-600 font-semibold">
+                          Балансыңызда: <strong className="text-amber-700">{(user?.bonusBalance ?? 0).toLocaleString('kk-KZ')}</strong> {settings?.bonusCurrencyName || 'Бонус'}
+                        </span>
+                      </div>
+                      <h4 className="font-black text-slate-900 text-base mt-1">
+                        Тарифті бонуспен сатып алу ({currentPlan.price.toLocaleString('kk-KZ')} {settings?.bonusCurrencyName || 'Бонус'})
+                      </h4>
+                      <p className="text-xs text-slate-600 mt-0.5">
+                        Kaspi арқылы төлемей-ақ, жиналған бонустарыңызбен бірден Премиум жазылымды белсендіріңіз.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    disabled={isRedeemingBonus}
+                    onClick={handleRedeemWithBonus}
+                    className="w-full sm:w-auto px-5 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-black text-sm shadow-md transition-all flex items-center justify-center gap-2 flex-shrink-0 cursor-pointer disabled:opacity-50"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    {isRedeemingBonus ? 'Қосылуда...' : 'Бонуспен сатып алу'}
+                  </button>
                 </div>
               )}
 

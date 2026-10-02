@@ -12,7 +12,7 @@ import { hasAdminPermission } from '../../utils/permissions';
 import { api } from '../../lib/api';
 import tandaLogo from '../../assets/tanda-logo.png';
 import tandaPremiumWhite from '../../assets/tanda-premium-white.png';
-import { Crown, CreditCard, Sliders } from 'lucide-react';
+import { Crown, CreditCard, Sliders, Gift, Coins } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { premiumApi } from '../../shared/api/premium.api';
 import { PWAInstallSidebarCard } from './PWAInstallBanner';
@@ -175,6 +175,12 @@ export const AppSidebarDrawer: React.FC = () => {
                   title={`@${user.username.replace(/^@/, '')}`}
                 >
                   @{user.username.replace(/^@/, '')}
+                </div>
+              )}
+              {(!user.role || user.role === 'client') && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px', fontSize: '12px', fontWeight: 700, color: '#D97706' }}>
+                  <Coins className="w-3.5 h-3.5" />
+                  <span>{(user.bonusBalance ?? 0).toLocaleString('kk-KZ')} Бонус</span>
                 </div>
               )}
             </div>
@@ -438,6 +444,15 @@ export const AppSidebarDrawer: React.FC = () => {
                 <span className={`sidebar-badge ${pendingSubscriptionCount > 0 ? 'orange' : ''}`}>
                   {pendingSubscriptionCount}
                 </span>
+              </Link>
+
+              <Link
+                to="/admin/bonuses"
+                className={`sidebar-nav-link ${location.pathname.startsWith('/admin/bonuses') ? 'active' : ''}`}
+                onClick={closeSidebar}
+              >
+                <Gift className="w-[18px] h-[18px]" />
+                <span>Бонустар</span>
               </Link>
 
               <Link

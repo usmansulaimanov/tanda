@@ -87,6 +87,17 @@ public class User {
     @Builder.Default
     private Boolean isActive = true;
 
+    @Column(name = "bonus_balance", nullable = false)
+    @Builder.Default
+    private Integer bonusBalance = 0;
+
+    @Column(name = "last_daily_bonus_at")
+    private java.time.LocalDate lastDailyBonusAt;
+
+    @Column(name = "total_listened_seconds", nullable = false)
+    @Builder.Default
+    private Long totalListenedSeconds = 0L;
+
     @PrePersist
     public void prePersist() {
         if (createdAt == null) {
@@ -103,6 +114,12 @@ public class User {
         }
         if (authProvider == null) {
             authProvider = "LOCAL";
+        }
+        if (bonusBalance == null) {
+            bonusBalance = 0;
+        }
+        if (totalListenedSeconds == null) {
+            totalListenedSeconds = 0L;
         }
     }
 }

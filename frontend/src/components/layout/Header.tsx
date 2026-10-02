@@ -10,7 +10,7 @@ import { useMessageStore } from '../../store/useMessageStore';
 import { Book } from '../../types';
 import { hasAdminPermission } from '../../utils/permissions';
 import tandaLogo from '../../assets/tanda-logo.png';
-import { Crown, X, SlidersHorizontal } from 'lucide-react';
+import { Crown, X, SlidersHorizontal, Coins, Gift } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { systemApi } from '../../shared/api/system.api';
 import { PremiumModal } from '../../features/premium/PremiumModal';
@@ -593,6 +593,25 @@ export const Header: React.FC = () => {
                             >
                               @{user.username.replace(/^@/, '')}
                             </span>
+                          )}
+                          {(!user.role || user.role === 'client') && (
+                            <div
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '5px',
+                                marginTop: '4px',
+                                padding: '3px 8px',
+                                borderRadius: '8px',
+                                background: '#FEF3C7',
+                                color: '#B45309',
+                                fontSize: '12px',
+                                fontWeight: 800,
+                              }}
+                            >
+                              <Coins style={{ width: '13px', height: '13px' }} />
+                              <span>{(user.bonusBalance ?? 0).toLocaleString('kk-KZ')} {systemSettings?.bonusCurrencyName || 'Бонус'}</span>
+                            </div>
                           )}
                         </div>
                         <div className="profile-card-email" title={user.email} style={{ marginTop: '2px' }}>

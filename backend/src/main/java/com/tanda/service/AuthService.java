@@ -44,6 +44,7 @@ public class AuthService {
     private final com.tanda.repository.SavedBookRepository savedBookRepository;
     private final com.tanda.repository.ReadingProgressRepository readingProgressRepository;
     private final com.tanda.repository.UserDailyAudioLimitRepository userDailyAudioLimitRepository;
+    private final BonusService bonusService;
 
     public record AuthResult(AuthResponseDto responseDto, String rawRefreshToken) {}
 
@@ -123,8 +124,10 @@ public class AuthService {
 
         user = userRepository.save(user);
         if (isNewGoogleUser) {
+            bonusService.awardSignupBonus(user);
             messageService.sendNewUserOnboardingMessages(user.getId(), user.getName());
         }
+        bonusService.checkAndAwardDailyBonus(user);
         String token = jwtTokenProvider.generateToken(user);
         String rawRefreshToken = refreshTokenService.createRefreshToken(user, userAgent, ipAddress);
 
@@ -215,6 +218,7 @@ public class AuthService {
             }
         }
 
+        bonusService.checkAndAwardDailyBonus(user);
         String token = jwtTokenProvider.generateToken(user);
         String rawRefreshToken = refreshTokenService.createRefreshToken(user, userAgent, ipAddress);
 
@@ -261,6 +265,8 @@ public class AuthService {
                 .build();
 
         user = userRepository.save(user);
+        bonusService.awardSignupBonus(user);
+        bonusService.checkAndAwardDailyBonus(user);
         messageService.sendNewUserOnboardingMessages(user.getId(), user.getName());
 
         String token = jwtTokenProvider.generateToken(user);
@@ -305,11 +311,12 @@ public class AuthService {
         refreshTokenService.revokeToken(rawRefreshToken);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public UserResponseDto getMe(String identifier) {
         User user = userRepository.findById(identifier)
                 .or(() -> userRepository.findByEmail(identifier.trim().toLowerCase()))
                 .orElseThrow(() -> new ResourceNotFoundException("Пайдаланушы табылмады"));
+        bonusService.checkAndAwardDailyBonus(user);
         return toUserDto(user);
     }
 
@@ -361,6 +368,7 @@ public class AuthService {
                 .premiumRevokedBy(premiumRevokedBy)
                 .premiumRevokedAt(premiumRevokedAt)
                 .lastBirthdayGiftYear(lastGiftYear)
+                .bonusBalance(user.getBonusBalance() != null ? user.getBonusBalance() : 0)
                 .build();
     }
 

@@ -89,6 +89,8 @@ public class SystemSettingService {
                 .headerBannerButtonText(map.getOrDefault("header_banner_button_text", "Премиумға жазылу →"))
                 .headerBannerPresets(map.getOrDefault("header_banner_presets", ""))
                 .aiReceiptVerificationEnabled(!"false".equalsIgnoreCase(map.get("ai_receipt_verification_enabled")))
+                .bonusSystemEnabled(!"false".equalsIgnoreCase(map.getOrDefault("bonus_system_enabled", "true")))
+                .bonusCurrencyName(map.getOrDefault("bonus_currency_name", "Бонус"))
                 .updatedAt(lastUpdated)
                 .build();
     }

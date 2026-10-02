@@ -58,6 +58,7 @@ public class AudioSessionService {
     private final AudioDailyStatsRepository audioDailyStatsRepository;
     private final AuthorBookRepository authorBookRepository;
     private final AuthorRepository authorRepository;
+    private final BonusService bonusService;
 
     @Transactional(readOnly = true)
     public UserDailyLimitResponseDto getDailyLimit(String userId) {
@@ -180,6 +181,13 @@ public class AudioSessionService {
                     } catch (Exception e) {
                         log.debug("Auto shelf reading update skipped: {}", e.getMessage());
                     }
+                }
+
+                // Award cumulative hourly listening bonuses if milestones reached
+                try {
+                    bonusService.processListeningDelta(userId, allowedContentSeconds);
+                } catch (Exception e) {
+                    log.warn("Failed to process listening bonus for user {}: {}", userId, e.getMessage());
                 }
             }
 

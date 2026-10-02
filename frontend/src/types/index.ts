@@ -133,6 +133,7 @@ export interface User {
   googleId?: string;
   hasPassword?: boolean;
   password?: string;
+  bonusBalance?: number;
   personalMessage?: UserPersonalMessage;
 }
 
@@ -407,7 +408,50 @@ export interface SystemSettings {
   headerBannerButtonText?: string;
   headerBannerPresets?: string;
   aiReceiptVerificationEnabled?: boolean;
+  bonusSystemEnabled?: boolean;
+  bonusCurrencyName?: string;
   updatedAt?: string;
+}
+
+export interface BonusSettings {
+  bonusSystemEnabled: boolean;
+  bonusCurrencyName: string;
+  bonusSignupEnabled: boolean;
+  bonusSignupAmount: number;
+  bonusDailyLoginEnabled: boolean;
+  bonusDailyLoginAmount: number;
+  bonusListeningEnabled: boolean;
+  bonusListeningAmount: number;
+  bonusListeningIntervalHours: number;
+  bonusReviewEnabled: boolean;
+  bonusReviewAmount: number;
+}
+
+export interface BonusTransaction {
+  id: string;
+  userId: string;
+  userName?: string;
+  userEmail?: string;
+  userUsername?: string;
+  userIdNumber?: string;
+  amount: number;
+  type: 'SIGNUP' | 'DAILY_LOGIN' | 'LISTENING_MILESTONE' | 'REVIEW' | 'SUBSCRIPTION_PURCHASE' | 'ADMIN_ADJUSTMENT' | string;
+  description?: string;
+  createdAt: string;
+}
+
+export interface BonusStatsSummary {
+  totalBonusesEarned: number;
+  totalBonusesSpent: number;
+  totalActiveBonusesInCirculation: number;
+  totalUsersWithBonuses: number;
+  totalTransactionsCount: number;
+}
+
+export interface BonusRedeemSubscriptionRequest {
+  planName: string;
+  planDays: number;
+  amount: number;
 }
 
 export interface SpineColorOption {

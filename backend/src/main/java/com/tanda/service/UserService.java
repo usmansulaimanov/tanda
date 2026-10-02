@@ -386,6 +386,7 @@ public class UserService {
                 .premiumRevokedBy(premiumRevokedBy)
                 .premiumRevokedAt(premiumRevokedAt)
                 .lastBirthdayGiftYear(lastGiftYear)
+                .bonusBalance(user.getBonusBalance() != null ? user.getBonusBalance() : 0)
                 .build();
     }
 
@@ -438,6 +439,7 @@ public class UserService {
                 .personalMessage(user.getPersonalMessage())
                 .personalMessageDays(user.getPersonalMessageDays())
                 .personalMessageActive(user.getPersonalMessageActive())
+                .bonusBalance(user.getBonusBalance() != null ? user.getBonusBalance() : 0)
                 .build();
     }
 
