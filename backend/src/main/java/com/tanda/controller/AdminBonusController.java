@@ -56,6 +56,11 @@ public class AdminBonusController {
         return ResponseEntity.ok(bonusService.getBonusStatsSummaryAdmin());
     }
 
+    @GetMapping("/lookup-user")
+    public ResponseEntity<com.tanda.dto.user.UserResponseDto> lookupUser(@RequestParam String query) {
+        return ResponseEntity.ok(bonusService.lookupUserForAdmin(query));
+    }
+
     @PostMapping("/adjust/{userId}")
     public ResponseEntity<Map<String, Object>> adjustBonus(
             @PathVariable String userId,

@@ -129,8 +129,54 @@ export const AdminBonusesPage: React.FC = () => {
   // Adjust bonus modal state
   const [adjustModalOpen, setAdjustModalOpen] = useState(false);
   const [adjustUserId, setAdjustUserId] = useState('');
+  const [adjustMode, setAdjustMode] = useState<'add' | 'subtract'>('add');
   const [adjustAmount, setAdjustAmount] = useState<number>(100);
   const [adjustReason, setAdjustReason] = useState('');
+  const [lookupLoading, setLookupLoading] = useState(false);
+  const [foundUser, setFoundUser] = useState<any>(null);
+  const [lookupError, setLookupError] = useState<string | null>(null);
+
+  // Auto format reader ID (e.g. 98700979 -> 9870 0979) or keep username/email
+  const handleIdInputChange = (rawVal: string) => {
+    let val = rawVal;
+    const cleanDigits = rawVal.replace(/\s+/g, '');
+    if (/^\d+$/.test(cleanDigits)) {
+      if (cleanDigits.length <= 4) {
+        val = cleanDigits;
+      } else {
+        val = `${cleanDigits.slice(0, 4)} ${cleanDigits.slice(4, 8)}`.trim();
+      }
+    }
+    setAdjustUserId(val);
+  };
+
+  // Live lookup with debounce
+  useEffect(() => {
+    const trimmed = adjustUserId.trim();
+    if (!trimmed || trimmed.length < 3) {
+      setFoundUser(null);
+      setLookupError(null);
+      setLookupLoading(false);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setLookupLoading(true);
+      setLookupError(null);
+      try {
+        const u = await bonusApi.lookupUser(trimmed);
+        setFoundUser(u);
+        setLookupError(null);
+      } catch (err: any) {
+        setFoundUser(null);
+        setLookupError('Мұндай ID немесе Email-і бар оқырман табылмады');
+      } finally {
+        setLookupLoading(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [adjustUserId]);
 
   const adjustMutation = useMutation({
     mutationFn: ({ userId, amount, reason }: { userId: string; amount: number; reason: string }) =>
@@ -141,6 +187,9 @@ export const AdminBonusesPage: React.FC = () => {
       showToast('Оқырманның бонустары сәтті түзетілді', 'success');
       setAdjustModalOpen(false);
       setAdjustUserId('');
+      setFoundUser(null);
+      setLookupError(null);
+      setAdjustMode('add');
       setAdjustAmount(100);
       setAdjustReason('');
     },
@@ -155,9 +204,14 @@ export const AdminBonusesPage: React.FC = () => {
       showToast('Пайдаланушы ID нөмірін енгізіңіз', 'error');
       return;
     }
+    if (!foundUser && lookupError) {
+      showToast('Түзету үшін алдымен оқырманды дұрыс таңдаңыз', 'error');
+      return;
+    }
+    const finalAmount = adjustMode === 'add' ? Math.abs(adjustAmount) : -Math.abs(adjustAmount);
     adjustMutation.mutate({
-      userId: adjustUserId.trim(),
-      amount: adjustAmount,
+      userId: foundUser ? foundUser.id : adjustUserId.trim(),
+      amount: finalAmount,
       reason: adjustReason.trim(),
     });
   };
@@ -677,28 +731,122 @@ export const AdminBonusesPage: React.FC = () => {
             <form onSubmit={handleAdjustSubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Оқырманның User ID (немесе Email)
+                  Оқырманның ID нөмірі (немесе Email / @юзернейм)
                 </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="мысалы: user-abc12345"
-                  value={adjustUserId}
-                  onChange={(e) => setAdjustUserId(e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
-                />
+                <div className="relative">
+                  <input
+                    type="text"
+                    required
+                    placeholder="мысалы: 9870 0979 немесе email"
+                    value={adjustUserId}
+                    onChange={(e) => handleIdInputChange(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                  />
+                  {lookupLoading && (
+                    <div className="absolute right-3.5 top-1/2 -translate-y-1/2">
+                      <div className="w-4 h-4 border-2 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                  )}
+                </div>
               </div>
 
+              {/* Lookup Error Message */}
+              {lookupError && !lookupLoading && (
+                <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0 text-rose-500" />
+                  <span>{lookupError}</span>
+                </div>
+              )}
+
+              {/* Found User Profile Preview Card */}
+              {foundUser && !lookupLoading && (
+                <div className="p-3.5 rounded-xl bg-emerald-50/70 border border-emerald-200/80 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-full overflow-hidden bg-white border border-emerald-200 flex items-center justify-center flex-shrink-0">
+                      {foundUser.avatarUrl ? (
+                        <img src={foundUser.avatarUrl} alt={foundUser.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="font-bold text-xs text-slate-700">
+                          {foundUser.name ? foundUser.name.charAt(0).toUpperCase() : 'О'}
+                        </span>
+                      )}
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                        {foundUser.name || 'Оқырман'}
+                        <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-100 px-1.5 py-0.2 rounded">✓ Табылды</span>
+                      </div>
+                      <div className="text-[11px] text-slate-500 flex items-center gap-1.5 mt-0.5">
+                        <span className="font-mono font-bold text-slate-700">ID: {foundUser.idNumber || '—'}</span>
+                        {foundUser.username && <span className="text-slate-600">@{foundUser.username.replace(/^@/, '')}</span>}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <div className="text-[10px] text-slate-500 font-medium">Қазіргі балансы:</div>
+                    <div className="text-xs font-black text-amber-700 flex items-center justify-end gap-1">
+                      <img src="/bonus-coin.png" alt="Бонус" className="w-3.5 h-3.5 object-contain" />
+                      {(foundUser.bonusBalance ?? 0).toLocaleString('kk-KZ')} {form.bonusCurrencyName || 'Бонус'}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* +/- Operation Mode Buttons */}
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Бонус мөлшері (Қосу үшін оң сан, азайту үшін теріс сан: мысалы +50 немесе -50)
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Әрекет түрі
                 </label>
+                <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-xl">
+                  <button
+                    type="button"
+                    onClick={() => setAdjustMode('add')}
+                    className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-bold transition-all ${
+                      adjustMode === 'add'
+                        ? 'bg-emerald-600 text-white shadow-sm'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                    }`}
+                  >
+                    <PlusCircle className="w-4 h-4" />
+                    + Бонус қосу
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAdjustMode('subtract')}
+                    className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-bold transition-all ${
+                      adjustMode === 'subtract'
+                        ? 'bg-rose-600 text-white shadow-sm'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                    }`}
+                  >
+                    <MinusCircle className="w-4 h-4" />
+                    - Бонусты азайту
+                  </button>
+                </div>
+              </div>
+
+              {/* Amount Input */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-semibold text-slate-700">
+                    {form.bonusCurrencyName || 'Бонус'} мөлшері
+                  </label>
+                  {foundUser && (
+                    <span className="text-[11px] text-slate-500">
+                      Нәтижесі: <strong className={adjustMode === 'add' ? 'text-emerald-700 font-bold' : 'text-rose-700 font-bold'}>
+                        {Math.max(0, (foundUser.bonusBalance ?? 0) + (adjustMode === 'add' ? (adjustAmount || 0) : -(adjustAmount || 0))).toLocaleString('kk-KZ')}
+                      </strong> {form.bonusCurrencyName || 'Бонус'}
+                    </span>
+                  )}
+                </div>
                 <input
                   type="number"
+                  min="1"
                   required
-                  value={adjustAmount}
-                  onChange={(e) => setAdjustAmount(parseInt(e.target.value) || 0)}
-                  className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                  value={adjustAmount || ''}
+                  onChange={(e) => setAdjustAmount(Math.max(1, Math.abs(parseInt(e.target.value) || 0)))}
+                  placeholder="100"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
                 />
               </div>
 
@@ -725,8 +873,8 @@ export const AdminBonusesPage: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  disabled={adjustMutation.isPending}
-                  className="px-5 py-2 text-sm font-bold bg-amber-500 text-white rounded-xl hover:bg-amber-600 transition-colors disabled:opacity-50"
+                  disabled={adjustMutation.isPending || (lookupError !== null && !foundUser)}
+                  className="px-5 py-2 text-sm font-bold bg-amber-500 text-white rounded-xl hover:bg-amber-600 transition-colors disabled:opacity-50 shadow-sm"
                 >
                   {adjustMutation.isPending ? 'Түзетілуде...' : 'Түзетуді сақтау'}
                 </button>

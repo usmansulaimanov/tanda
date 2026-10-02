@@ -7,6 +7,7 @@ import com.tanda.dto.bonus.BonusStatsSummaryResponseDto;
 import com.tanda.dto.bonus.BonusTransactionResponseDto;
 import com.tanda.dto.bonus.UpdateBonusSettingsRequestDto;
 import com.tanda.dto.system.SystemSettingsResponseDto;
+import com.tanda.dto.user.UserResponseDto;
 import com.tanda.entity.BonusTransaction;
 import com.tanda.entity.SystemSetting;
 import com.tanda.entity.User;
@@ -28,6 +29,7 @@ import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -43,6 +45,7 @@ public class BonusService {
     private final SystemSettingRepository systemSettingRepository;
     private final SystemSettingService systemSettingService;
     private final PremiumService premiumService;
+    private final UserService userService;
 
     @Transactional(readOnly = true)
     public BonusSettingsDto getBonusSettings() {
@@ -325,10 +328,57 @@ public class BonusService {
                 .build();
     }
 
+    @Transactional(readOnly = true)
+    public UserResponseDto lookupUserForAdmin(String query) {
+        if (query == null || query.trim().isEmpty()) {
+            throw new BadRequestException("Іздеу мәні бос болмауы керек");
+        }
+        User user = findUserFlexibly(query.trim());
+        if (user == null) {
+            throw new ResourceNotFoundException("Оқырман табылмады: " + query);
+        }
+        return userService.getUserById(user.getId());
+    }
+
+    public User findUserFlexibly(String query) {
+        if (query == null) return null;
+        String clean = query.trim();
+        if (clean.isEmpty()) return null;
+
+        // 1. By ID (UUID)
+        Optional<User> byId = userRepository.findById(clean);
+        if (byId.isPresent()) return byId.get();
+
+        // 2. By ID Number exactly (e.g. "9870 0979")
+        Optional<User> byIdNum = userRepository.findByIdNumber(clean);
+        if (byIdNum.isPresent()) return byIdNum.get();
+
+        // 2b. By formatted / unformatted ID Number
+        String digitsOnly = clean.replaceAll("[^0-9]", "");
+        if (digitsOnly.length() == 8) {
+            String formattedId = digitsOnly.substring(0, 4) + " " + digitsOnly.substring(4);
+            Optional<User> byFormatted = userRepository.findByIdNumber(formattedId);
+            if (byFormatted.isPresent()) return byFormatted.get();
+        }
+
+        // 3. By Email
+        Optional<User> byEmail = userRepository.findByEmail(clean);
+        if (byEmail.isPresent()) return byEmail.get();
+
+        // 4. By Username
+        String cleanUsername = clean.startsWith("@") ? clean.substring(1) : clean;
+        Optional<User> byUsername = userRepository.findByUsernameIgnoreCase(cleanUsername);
+        if (byUsername.isPresent()) return byUsername.get();
+
+        return null;
+    }
+
     @Transactional
-    public void adjustUserBonusAdmin(String userId, AdjustBonusRequestDto dto) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Пайдаланушы табылмады: " + userId));
+    public void adjustUserBonusAdmin(String userIdOrQuery, AdjustBonusRequestDto dto) {
+        User user = findUserFlexibly(userIdOrQuery);
+        if (user == null) {
+            throw new ResourceNotFoundException("Пайдаланушы табылмады: " + userIdOrQuery);
+        }
 
         int amount = dto.getAmount();
         int current = user.getBonusBalance() != null ? user.getBonusBalance() : 0;
@@ -350,7 +400,7 @@ public class BonusService {
                 .build();
         bonusTransactionRepository.save(tx);
 
-        log.info("Admin adjusted bonus for user {} by {} (new balance: {})", userId, amount, newBalance);
+        log.info("Admin adjusted bonus for user {} by {} (new balance: {})", user.getId(), amount, newBalance);
     }
 
     private BonusTransactionResponseDto toTransactionDto(BonusTransaction tx, User user) {

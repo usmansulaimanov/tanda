@@ -15,6 +15,7 @@ import com.tanda.repository.UserRepository;
 import com.tanda.service.BonusService;
 import com.tanda.service.PremiumService;
 import com.tanda.service.SystemSettingService;
+import com.tanda.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -52,6 +53,9 @@ class BonusServiceTest {
     @Mock
     private PremiumService premiumService;
 
+    @Mock
+    private UserService userService;
+
     private BonusService bonusService;
 
     @BeforeEach
@@ -61,7 +65,8 @@ class BonusServiceTest {
                 userRepository,
                 systemSettingRepository,
                 systemSettingService,
-                premiumService
+                premiumService,
+                userService
         );
     }
 

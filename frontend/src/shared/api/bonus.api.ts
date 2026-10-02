@@ -81,6 +81,13 @@ export const bonusApi = {
     return data;
   },
 
+  lookupUser: async (query: string): Promise<any> => {
+    const { data } = await api.get('/api/v1/admin/bonus/lookup-user', {
+      params: { query },
+    });
+    return data;
+  },
+
   adjustUserBonus: async (
     userId: string,
     amount: number,
