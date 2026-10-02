@@ -734,8 +734,8 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
               {isAuthenticated && settings?.bonusSystemEnabled !== false && (user?.bonusBalance ?? 0) >= currentPlan.price && (
                 <div className="mb-6 p-4.5 rounded-2xl bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/10 border-2 border-amber-400 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div className="flex items-center gap-3.5">
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 text-white flex items-center justify-center shadow-md flex-shrink-0">
-                      <Coins className="w-6 h-6" />
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-md flex-shrink-0 p-2">
+                      <img src="/bonus-coin.png" alt="Бонус" className="w-full h-full object-contain drop-shadow-xs" />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">

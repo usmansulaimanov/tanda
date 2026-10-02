@@ -169,20 +169,23 @@ export const AppSidebarDrawer: React.FC = () => {
               <div className="sidebar-user-name" title={user.name}>
                 {user.role === 'admin' ? user.name || 'Әкімші' : (user.name || 'Оқырман')}
               </div>
-              {user.username && user.username.trim() && (
-                <div
-                  className="sidebar-user-email"
-                  title={`@${user.username.replace(/^@/, '')}`}
-                >
-                  @{user.username.replace(/^@/, '')}
-                </div>
-              )}
-              {(!user.role || user.role === 'client') && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px', fontSize: '12px', fontWeight: 700, color: '#D97706' }}>
-                  <Coins className="w-3.5 h-3.5" />
-                  <span>{(user.bonusBalance ?? 0).toLocaleString('kk-KZ')} Бонус</span>
-                </div>
-              )}
+              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px', rowGap: '2px', marginTop: '2px' }}>
+                {user.username && user.username.trim() && (
+                  <div
+                    className="sidebar-user-email"
+                    style={{ margin: 0, padding: 0 }}
+                    title={`@${user.username.replace(/^@/, '')}`}
+                  >
+                    @{user.username.replace(/^@/, '')}
+                  </div>
+                )}
+                {(!user.role || user.role === 'client') && (
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '12px', fontWeight: 700, color: '#D97706', whiteSpace: 'nowrap' }}>
+                    <img src="/bonus-coin.png" alt="Бонус" style={{ width: '15px', height: '15px', objectFit: 'contain', flexShrink: 0 }} />
+                    <span>{(user.bonusBalance ?? 0).toLocaleString('kk-KZ')} Бонус</span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}

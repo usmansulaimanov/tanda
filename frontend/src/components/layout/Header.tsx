@@ -583,34 +583,36 @@ export const Header: React.FC = () => {
                           >
                             ID: {user.idNumber || '—'}
                           </span>
-                          {(!user.role || user.role === 'client') && user.username && (
-                            <span
-                              style={{
-                                fontSize: '12px',
-                                fontWeight: 700,
-                                color: '#0F172A',
-                              }}
-                            >
-                              @{user.username.replace(/^@/, '')}
-                            </span>
-                          )}
                           {(!user.role || user.role === 'client') && (
-                            <div
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '5px',
-                                marginTop: '4px',
-                                padding: '3px 8px',
-                                borderRadius: '8px',
-                                background: '#FEF3C7',
-                                color: '#B45309',
-                                fontSize: '12px',
-                                fontWeight: 800,
-                              }}
-                            >
-                              <Coins style={{ width: '13px', height: '13px' }} />
-                              <span>{(user.bonusBalance ?? 0).toLocaleString('kk-KZ')} {systemSettings?.bonusCurrencyName || 'Бонус'}</span>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px', rowGap: '2px', marginTop: '1px' }}>
+                              {user.username && (
+                                <span
+                                  style={{
+                                    fontSize: '12px',
+                                    fontWeight: 700,
+                                    color: '#0F172A',
+                                  }}
+                                >
+                                  @{user.username.replace(/^@/, '')}
+                                </span>
+                              )}
+                              <div
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                  whiteSpace: 'nowrap',
+                                }}
+                              >
+                                <img
+                                  src="/bonus-coin.png"
+                                  alt="Бонус"
+                                  style={{ width: '15px', height: '15px', objectFit: 'contain', flexShrink: 0 }}
+                                />
+                                <span style={{ color: '#D97706', fontWeight: 700, fontSize: '12px' }}>
+                                  {(user.bonusBalance ?? 0).toLocaleString('kk-KZ')} {systemSettings?.bonusCurrencyName || 'Бонус'}
+                                </span>
+                              </div>
                             </div>
                           )}
                         </div>
