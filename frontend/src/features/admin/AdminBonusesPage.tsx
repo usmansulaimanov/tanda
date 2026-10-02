@@ -329,7 +329,7 @@ export const AdminBonusesPage: React.FC = () => {
                   </label>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold text-slate-700">Бонус сомасы:</span>
+                  <span className="text-xs font-semibold text-slate-700">{form.bonusCurrencyName || 'Бонус'} сомасы:</span>
                   <input
                     type="number"
                     min="0"
@@ -361,7 +361,7 @@ export const AdminBonusesPage: React.FC = () => {
                   </label>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold text-slate-700">Бонус сомасы:</span>
+                  <span className="text-xs font-semibold text-slate-700">{form.bonusCurrencyName || 'Бонус'} сомасы:</span>
                   <input
                     type="number"
                     min="0"
@@ -393,7 +393,7 @@ export const AdminBonusesPage: React.FC = () => {
                   </label>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold text-slate-700">Бонус сомасы:</span>
+                  <span className="text-xs font-semibold text-slate-700">{form.bonusCurrencyName || 'Бонус'} сомасы:</span>
                   <input
                     type="number"
                     min="0"
@@ -425,7 +425,7 @@ export const AdminBonusesPage: React.FC = () => {
                   </label>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold text-slate-700">Бонус сомасы:</span>
+                  <span className="text-xs font-semibold text-slate-700">{form.bonusCurrencyName || 'Бонус'} сомасы:</span>
                   <input
                     type="number"
                     min="0"
