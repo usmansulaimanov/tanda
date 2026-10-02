@@ -105,31 +105,33 @@ export const ShelfSpineView: React.FC<ShelfSpineViewProps> = ({
 
   return (
     <div className="w-full relative select-none">
-      {/* Bookshelf Master Container - Natural Light Pine Wood Theme */}
+      {/* Bookshelf Master Container - Real Natural Pine Wood Texture */}
       <div
-        className="rounded-3xl p-4 sm:p-8 overflow-hidden shadow-xl border border-[#D4A373]/50 relative"
+        className="rounded-3xl p-4 sm:p-8 overflow-hidden shadow-2xl border-2 border-[#C99C6B]/70 relative"
         style={{
-          background: 'linear-gradient(180deg, #F9F1E6 0%, #F1E2CD 35%, #E5CEB0 100%)',
-          boxShadow: '0 16px 40px rgba(180, 130, 80, 0.15), inset 0 2px 6px rgba(255, 255, 255, 0.6), inset 0 -4px 12px rgba(160, 110, 60, 0.1)',
+          backgroundImage: 'linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(245, 225, 195, 0.18) 50%, rgba(180, 130, 70, 0.25) 100%), url(/pine-wood-texture.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          boxShadow: '0 20px 48px rgba(160, 110, 60, 0.2), inset 0 2px 8px rgba(255, 255, 255, 0.8), inset 0 -6px 16px rgba(140, 90, 40, 0.15)',
         }}
       >
-        {/* Vertical Wood Panel Planks Texture on the back wall */}
+        {/* Subtle Vertical Wood Panel Slats on the back wall */}
         <div
-          className="absolute inset-0 pointer-events-none opacity-40"
+          className="absolute inset-0 pointer-events-none opacity-25"
           style={{
             backgroundImage:
-              'repeating-linear-gradient(90deg, transparent 0px, transparent 56px, rgba(140, 90, 40, 0.18) 57px, rgba(255, 255, 255, 0.4) 58px)',
+              'repeating-linear-gradient(90deg, transparent 0px, transparent 72px, rgba(120, 70, 25, 0.3) 73px, rgba(255, 255, 255, 0.5) 74px)',
           }}
         />
 
         {/* Ambient Warm Daylight & Candlelight Glows */}
         <div
-          className="absolute -top-16 left-1/4 w-96 h-80 rounded-full pointer-events-none opacity-30 blur-3xl"
-          style={{ background: 'radial-gradient(circle, #FDE68A 0%, transparent 70%)' }}
+          className="absolute -top-16 left-1/4 w-96 h-80 rounded-full pointer-events-none opacity-35 blur-3xl"
+          style={{ background: 'radial-gradient(circle, #FEF3C7 0%, transparent 70%)' }}
         />
         <div
-          className="absolute -top-16 right-1/4 w-96 h-80 rounded-full pointer-events-none opacity-25 blur-3xl"
-          style={{ background: 'radial-gradient(circle, #FBBF24 0%, transparent 70%)' }}
+          className="absolute -top-16 right-1/4 w-96 h-80 rounded-full pointer-events-none opacity-30 blur-3xl"
+          style={{ background: 'radial-gradient(circle, #FDE68A 0%, transparent 70%)' }}
         />
 
         {/* Shelves Stack */}
@@ -170,9 +172,9 @@ export const ShelfSpineView: React.FC<ShelfSpineViewProps> = ({
                             width: `${spineWidth}px`,
                             height: `${spineHeight}px`,
                             background: palette.bg,
-                            boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.4), inset -3px 0 6px rgba(0,0,0,0.45), 0 8px 16px rgba(140,90,40,0.22)',
+                            boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.4), inset -3px 0 6px rgba(0,0,0,0.45), 0 8px 16px rgba(120,75,30,0.25)',
                           }}
-                          className="relative rounded-t-[4px] flex flex-col justify-between items-center overflow-hidden transition-all duration-300 transform group-hover:-translate-y-3 group-hover:scale-105 group-hover:shadow-[0_16px_32px_rgba(100,60,20,0.35)]"
+                          className="relative rounded-t-[4px] flex flex-col justify-between items-center overflow-hidden transition-all duration-300 transform group-hover:-translate-y-3 group-hover:scale-105 group-hover:shadow-[0_16px_32px_rgba(100,60,20,0.38)]"
                         >
                           {/* Bookmark Ribbon on top */}
                           <div
@@ -245,26 +247,29 @@ export const ShelfSpineView: React.FC<ShelfSpineViewProps> = ({
 
                 {/* 3D Realistic Natural Light Pine Wood Shelf Plank */}
                 <div className="w-full relative mt-[-2px] z-30">
-                  {/* Top Shelf Edge Highlight (Golden Pine bevel) */}
+                  {/* Top Shelf Edge Highlight (Golden Pine texture bevel) */}
                   <div
-                    className="h-2.5 w-full rounded-t-sm"
+                    className="h-3 w-full rounded-t-sm relative overflow-hidden"
                     style={{
-                      background:
-                        'linear-gradient(90deg, #E6C59E 0%, #F7E5CF 20%, #FFF7EC 50%, #F7E5CF 80%, #E6C59E 100%)',
-                      boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.9), 0 -1px 3px rgba(180,120,60,0.15)',
+                      backgroundImage: 'linear-gradient(90deg, rgba(255,255,255,0.7) 0%, rgba(255,245,230,0.4) 50%, rgba(255,255,255,0.7) 100%), url(/pine-wood-texture.png)',
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center top',
+                      boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.95), 0 -1px 3px rgba(160,110,50,0.2)',
                     }}
                   />
-                  {/* Front Plank Bevel & Warm Shadow */}
+                  {/* Front Plank Face with Wood Grain & 3D Depth Shadow */}
                   <div
-                    className="h-7 sm:h-8 w-full rounded-b-xl flex items-center justify-between px-6 border-t border-[#DDB88C] relative overflow-hidden"
+                    className="h-8 sm:h-9 w-full rounded-b-xl flex items-center justify-between px-6 border-t border-[#DFBA8E] relative overflow-hidden"
                     style={{
-                      background: 'linear-gradient(180deg, #D4A373 0%, #B88550 55%, #9E6C38 100%)',
-                      boxShadow: '0 14px 28px rgba(140, 90, 40, 0.22), inset 0 1px 2px rgba(255,255,255,0.4)',
+                      backgroundImage: 'linear-gradient(180deg, rgba(255,255,255,0.2) 0%, rgba(160,110,60,0.15) 50%, rgba(100,55,15,0.4) 100%), url(/pine-wood-texture.png)',
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center bottom',
+                      boxShadow: '0 16px 32px rgba(130, 80, 30, 0.28), inset 0 1px 2px rgba(255,255,255,0.5)',
                     }}
                   >
-                    <div className="w-16 h-0.5 bg-amber-950/15 rounded-full" />
-                    <div className="w-24 h-0.5 bg-amber-950/10 rounded-full" />
-                    <div className="w-20 h-0.5 bg-amber-950/15 rounded-full" />
+                    <div className="w-16 h-0.5 bg-amber-950/20 rounded-full" />
+                    <div className="w-24 h-0.5 bg-amber-950/15 rounded-full" />
+                    <div className="w-20 h-0.5 bg-amber-950/20 rounded-full" />
                   </div>
                 </div>
               </div>
