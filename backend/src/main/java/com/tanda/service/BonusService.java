@@ -109,9 +109,16 @@ public class BonusService {
         return getBonusSettings();
     }
 
+    public boolean isClientReader(User user) {
+        if (user == null) return false;
+        if (user.getDuty() != null && !user.getDuty().isBlank()) return false;
+        String role = user.getRole();
+        return role == null || "client".equalsIgnoreCase(role) || "reader".equalsIgnoreCase(role);
+    }
+
     @Transactional
     public void awardSignupBonus(User user) {
-        if (user == null) return;
+        if (!isClientReader(user)) return;
         BonusSettingsDto settings = getBonusSettings();
         if (!settings.isBonusSystemEnabled() || !settings.isBonusSignupEnabled() || settings.getBonusSignupAmount() <= 0) {
             return;
@@ -137,7 +144,7 @@ public class BonusService {
 
     @Transactional
     public boolean checkAndAwardDailyBonus(User user) {
-        if (user == null || user.getId() == null) return false;
+        if (!isClientReader(user) || user.getId() == null) return false;
         BonusSettingsDto settings = getBonusSettings();
         if (!settings.isBonusSystemEnabled() || !settings.isBonusDailyLoginEnabled() || settings.getBonusDailyLoginAmount() <= 0) {
             return false;
@@ -172,7 +179,7 @@ public class BonusService {
     public void processListeningDelta(String userId, int allowedSeconds) {
         if (userId == null || allowedSeconds <= 0) return;
         User user = userRepository.findById(userId).orElse(null);
-        if (user == null) return;
+        if (!isClientReader(user)) return;
 
         long oldSeconds = user.getTotalListenedSeconds() != null ? user.getTotalListenedSeconds() : 0L;
         long newSeconds = oldSeconds + allowedSeconds;
@@ -216,7 +223,7 @@ public class BonusService {
         }
 
         User user = userRepository.findById(userId).orElse(null);
-        if (user == null) return;
+        if (!isClientReader(user)) return;
 
         int amount = settings.getBonusReviewAmount();
         int current = user.getBonusBalance() != null ? user.getBonusBalance() : 0;
@@ -320,6 +327,7 @@ public class BonusService {
         long totalTxCount = bonusTransactionRepository.count();
 
         long usersWithBonuses = userRepository.findAll().stream()
+                .filter(this::isClientReader)
                 .filter(u -> u.getBonusBalance() != null && u.getBonusBalance() > 0)
                 .count();
 
@@ -341,12 +349,16 @@ public class BonusService {
         if (user == null) {
             throw new ResourceNotFoundException("Оқырман табылмады: " + query);
         }
+        if (!isClientReader(user)) {
+            throw new BadRequestException("Бұл қолданушы оқырман емес (автор немесе әкімші/көмекші). Бонус тек оқырмандарға ғана беріледі.");
+        }
         return userService.getUserById(user.getId());
     }
 
     @Transactional(readOnly = true)
     public Page<UserListResponseDto> getBonusReadersAdmin(String search, String sortBy, int page, int size) {
         List<User> users = userRepository.findAll().stream()
+                .filter(this::isClientReader)
                 .filter(u -> u.getBonusBalance() != null && u.getBonusBalance() > 0)
                 .collect(Collectors.toList());
 
@@ -450,7 +462,10 @@ public class BonusService {
     public void adjustUserBonusAdmin(String userIdOrQuery, AdjustBonusRequestDto dto) {
         User user = findUserFlexibly(userIdOrQuery);
         if (user == null) {
-            throw new ResourceNotFoundException("Пайдаланушы табылмады: " + userIdOrQuery);
+            throw new ResourceNotFoundException("Оқырман табылмады: " + userIdOrQuery);
+        }
+        if (!isClientReader(user)) {
+            throw new BadRequestException("Бұл қолданушы оқырман емес (автор немесе әкімші/көмекші). Бонус тек оқырмандарға ғана беріледі.");
         }
 
         int amount = dto.getAmount();

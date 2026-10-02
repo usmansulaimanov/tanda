@@ -22,10 +22,10 @@ public interface BonusTransactionRepository extends JpaRepository<BonusTransacti
     @Query("SELECT bt FROM BonusTransaction bt WHERE (:type IS NULL OR bt.type = :type) ORDER BY bt.createdAt DESC")
     Page<BonusTransaction> findByTypeFiltered(@Param("type") String type, Pageable pageable);
 
-    @Query("SELECT COALESCE(SUM(bt.amount), 0) FROM BonusTransaction bt WHERE bt.amount > 0")
+    @Query("SELECT COALESCE(SUM(bt.amount), 0) FROM BonusTransaction bt WHERE bt.amount > 0 AND bt.userId IN (SELECT u.id FROM User u WHERE (u.role IS NULL OR LOWER(u.role) = 'client' OR LOWER(u.role) = 'reader') AND (u.duty IS NULL OR u.duty = ''))")
     long sumTotalEarned();
 
-    @Query("SELECT COALESCE(SUM(ABS(bt.amount)), 0) FROM BonusTransaction bt WHERE bt.amount < 0")
+    @Query("SELECT COALESCE(SUM(ABS(bt.amount)), 0) FROM BonusTransaction bt WHERE bt.amount < 0 AND bt.userId IN (SELECT u.id FROM User u WHERE (u.role IS NULL OR LOWER(u.role) = 'client' OR LOWER(u.role) = 'reader') AND (u.duty IS NULL OR u.duty = ''))")
     long sumTotalSpent();
 
     long countByUserId(String userId);
