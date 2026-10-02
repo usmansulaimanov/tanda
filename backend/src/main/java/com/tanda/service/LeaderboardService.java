@@ -43,7 +43,7 @@ public class LeaderboardService {
 
     public LeaderboardResponseDto getLeaderboard(LeaderboardPeriod period, String currentUserId, boolean isAdmin) {
         if (period == null) {
-            period = LeaderboardPeriod.THIS_WEEK;
+            period = LeaderboardPeriod.THIS_MONTH;
         }
 
         LocalDate now = LocalDate.now(KZ_ZONE);

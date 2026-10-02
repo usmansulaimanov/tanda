@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { leaderboardApi, LeaderboardPeriod } from '../../shared/api/leaderboard.api';
 import { useAuthStore } from '../../store/useAuthStore';
 
@@ -15,8 +15,40 @@ function formatMinutes(totalMinutes: number): string {
 
 export const LeaderboardPage: React.FC = () => {
   const { user, isAuthenticated } = useAuthStore();
-  const [activeMainTab, setActiveMainTab] = useState<'leaderboard' | 'personal'>('leaderboard');
-  const [selectedPeriod, setSelectedPeriod] = useState<LeaderboardPeriod>('THIS_WEEK');
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Tab: leaderboard | personal
+  const tabParam = searchParams.get('tab');
+  const activeMainTab: 'leaderboard' | 'personal' = tabParam === 'personal' ? 'personal' : 'leaderboard';
+
+  // Period: THIS_MONTH (default) | LAST_MONTH | THIS_WEEK | LAST_WEEK
+  const periodParam = searchParams.get('period') as LeaderboardPeriod | null;
+  const validPeriods: LeaderboardPeriod[] = ['THIS_MONTH', 'LAST_MONTH', 'THIS_WEEK', 'LAST_WEEK'];
+  const selectedPeriod: LeaderboardPeriod = (periodParam && validPeriods.includes(periodParam)) ? periodParam : 'THIS_MONTH';
+
+  const setActiveMainTab = (tab: 'leaderboard' | 'personal') => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (tab === 'personal') {
+        next.set('tab', 'personal');
+      } else {
+        next.delete('tab');
+      }
+      return next;
+    }, { replace: true });
+  };
+
+  const setSelectedPeriod = (period: LeaderboardPeriod) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (period === 'THIS_MONTH') {
+        next.delete('period');
+      } else {
+        next.set('period', period);
+      }
+      return next;
+    }, { replace: true });
+  };
 
   const now = new Date();
   const currentYear = now.getFullYear();
@@ -128,28 +160,6 @@ export const LeaderboardPage: React.FC = () => {
               <div className="flex flex-wrap items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => setSelectedPeriod('THIS_WEEK')}
-                  className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
-                    selectedPeriod === 'THIS_WEEK'
-                      ? 'bg-emerald-600 text-white shadow-sm'
-                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                  }`}
-                >
-                  Осы апта
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSelectedPeriod('LAST_WEEK')}
-                  className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
-                    selectedPeriod === 'LAST_WEEK'
-                      ? 'bg-amber-600 text-white shadow-sm'
-                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                  }`}
-                >
-                  Өткен апта
-                </button>
-                <button
-                  type="button"
                   onClick={() => setSelectedPeriod('THIS_MONTH')}
                   className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
                     selectedPeriod === 'THIS_MONTH'
@@ -169,6 +179,28 @@ export const LeaderboardPage: React.FC = () => {
                   }`}
                 >
                   Өткен ай
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedPeriod('THIS_WEEK')}
+                  className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
+                    selectedPeriod === 'THIS_WEEK'
+                      ? 'bg-emerald-600 text-white shadow-sm'
+                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  }`}
+                >
+                  Осы апта
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedPeriod('LAST_WEEK')}
+                  className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
+                    selectedPeriod === 'LAST_WEEK'
+                      ? 'bg-amber-600 text-white shadow-sm'
+                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  }`}
+                >
+                  Өткен апта
                 </button>
               </div>
 
