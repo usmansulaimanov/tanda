@@ -12,58 +12,104 @@ interface ShelfSpineViewProps {
   onPlayAudio: (book: Book) => void;
 }
 
-// Authentic leather / cloth book spine color palettes
-const SPINE_PALETTES = [
-  {
-    bg: 'linear-gradient(180deg, #7A5C22 0%, #5E4616 100%)',
-    accent: '#F6CD6A',
-    ribbon: '#ECC060',
-    cover: 'linear-gradient(145deg, #8B6914 0%, #6B4F10 40%, #4A3508 100%)',
-    glow: 'rgba(236, 192, 96, 0.45)',
-  },
-  {
-    bg: 'linear-gradient(180deg, #1C4332 0%, #112E21 100%)',
-    accent: '#A7F3D0',
-    ribbon: '#FCD34D',
-    cover: 'linear-gradient(145deg, #1A4D38 0%, #113326 40%, #0A1F18 100%)',
-    glow: 'rgba(167, 243, 208, 0.4)',
-  },
-  {
-    bg: 'linear-gradient(180deg, #1E3A5F 0%, #10243D 100%)',
-    accent: '#BAE6FD',
-    ribbon: '#EF7E00',
-    cover: 'linear-gradient(145deg, #1E4170 0%, #12295A 40%, #0A1A3D 100%)',
-    glow: 'rgba(0, 84, 148, 0.45)',
-  },
-  {
-    bg: 'linear-gradient(180deg, #5E1928 0%, #3D0F19 100%)',
-    accent: '#FECDD3',
-    ribbon: '#FCD34D',
-    cover: 'linear-gradient(145deg, #701A2E 0%, #4D0F1E 40%, #320A14 100%)',
-    glow: 'rgba(254, 205, 211, 0.4)',
-  },
-  {
-    bg: 'linear-gradient(180deg, #6B3419 0%, #48200D 100%)',
-    accent: '#FED7AA',
-    ribbon: '#F6CD6A',
-    cover: 'linear-gradient(145deg, #7D3A1A 0%, #562411 40%, #381608 100%)',
-    glow: 'rgba(246, 205, 106, 0.45)',
-  },
-  {
-    bg: 'linear-gradient(180deg, #4A2346 0%, #30142D 100%)',
-    accent: '#F5D0FE',
-    ribbon: '#ECC060',
-    cover: 'linear-gradient(145deg, #5A2554 0%, #3A1637 40%, #240E22 100%)',
-    glow: 'rgba(245, 208, 254, 0.4)',
-  },
-  {
-    bg: 'linear-gradient(180deg, #2B3545 0%, #1A212D 100%)',
-    accent: '#E2E8F0',
-    ribbon: '#EF7E00',
-    cover: 'linear-gradient(145deg, #2E3F52 0%, #1C2A3A 40%, #111C27 100%)',
-    glow: 'rgba(226, 232, 240, 0.4)',
-  },
+// 12 Authentic book spine color palettes
+export const PREDEFINED_SPINE_COLORS = [
+  { code: '#2373F4', name: 'Қанық көк' },
+  { code: '#E11A45', name: 'Қызыл' },
+  { code: '#D8A2A2', name: 'Жұмсақ қызғылт' },
+  { code: '#76C0EC', name: 'Ашық көк' },
+  { code: '#31AAA9', name: 'Бирюза' },
+  { code: '#597928', name: 'Зәйтүн жасыл' },
+  { code: '#FFD444', name: 'Алтын сары' },
+  { code: '#689D4B', name: 'Ашық жасыл' },
+  { code: '#2BBBD7', name: 'Циан' },
+  { code: '#830000', name: 'Қою бордо' },
+  { code: '#60241E', name: 'Қоңыр бордо' },
+  { code: '#0A2947', name: 'Түнгі көк' },
 ];
+
+const COLOR_PALETTE_MAP: Record<string, { bg: string; ribbon: string; accent: string }> = {
+  '#2373F4': {
+    bg: 'linear-gradient(180deg, #1d60ce 0%, #174ea6 40%, #0d3272 100%)',
+    ribbon: '#FCD34D',
+    accent: '#BAE6FD',
+  },
+  '#E11A45': {
+    bg: 'linear-gradient(180deg, #c7143a 0%, #a30e2d 40%, #6e081c 100%)',
+    ribbon: '#FCD34D',
+    accent: '#FECDD3',
+  },
+  '#D8A2A2': {
+    bg: 'linear-gradient(180deg, #c98f8f 0%, #aa6c6c 40%, #7d4848 100%)',
+    ribbon: '#ECC060',
+    accent: '#FFF0F0',
+  },
+  '#76C0EC': {
+    bg: 'linear-gradient(180deg, #5dafdc 0%, #3d92c2 40%, #20638a 100%)',
+    ribbon: '#FCD34D',
+    accent: '#F0F9FF',
+  },
+  '#31AAA9': {
+    bg: 'linear-gradient(180deg, #289594 0%, #1e7a79 40%, #115352 100%)',
+    ribbon: '#FCD34D',
+    accent: '#CCFBF1',
+  },
+  '#597928': {
+    bg: 'linear-gradient(180deg, #4c6821 0%, #3b5218 40%, #25360c 100%)',
+    ribbon: '#ECC060',
+    accent: '#ECFCCB',
+  },
+  '#FFD444': {
+    bg: 'linear-gradient(180deg, #e6bc34 0%, #c49d1e 40%, #87680a 100%)',
+    ribbon: '#C93B2B',
+    accent: '#FEF9C3',
+  },
+  '#689D4B': {
+    bg: 'linear-gradient(180deg, #578a3d 0%, #436f2c 40%, #294918 100%)',
+    ribbon: '#ECC060',
+    accent: '#DCFCE7',
+  },
+  '#2BBBD7': {
+    bg: 'linear-gradient(180deg, #22a2bb 0%, #188297 40%, #0d5463 100%)',
+    ribbon: '#FCD34D',
+    accent: '#E0F2FE',
+  },
+  '#830000': {
+    bg: 'linear-gradient(180deg, #700000 0%, #520000 40%, #330000 100%)',
+    ribbon: '#FCD34D',
+    accent: '#FFE4E6',
+  },
+  '#60241E': {
+    bg: 'linear-gradient(180deg, #521c17 0%, #3e120e 40%, #270906 100%)',
+    ribbon: '#ECC060',
+    accent: '#FED7AA',
+  },
+  '#0A2947': {
+    bg: 'linear-gradient(180deg, #09233e 0%, #06182c 40%, #030e1a 100%)',
+    ribbon: '#F6CD6A',
+    accent: '#BAE6FD',
+  },
+};
+
+export const getSpinePaletteForBook = (book: Book, seedIndex = 0) => {
+  let hex = book.spineColor?.trim();
+  if (!hex || hex.toLowerCase() === 'auto') {
+    const seed = book.id ? Math.abs(String(book.id).split('').reduce((acc, c) => acc + c.charCodeAt(0), 0)) : seedIndex;
+    hex = PREDEFINED_SPINE_COLORS[seed % PREDEFINED_SPINE_COLORS.length].code;
+  }
+  if (!hex.startsWith('#')) hex = '#' + hex;
+  hex = hex.toUpperCase();
+
+  if (COLOR_PALETTE_MAP[hex]) {
+    return COLOR_PALETTE_MAP[hex];
+  }
+
+  return {
+    bg: `linear-gradient(180deg, ${hex} 0%, ${hex}DD 40%, ${hex}99 100%)`,
+    ribbon: '#ECC060',
+    accent: '#FFFDF0',
+  };
+};
 
 const BOOKS_PER_SHELF = 6;
 
@@ -147,7 +193,7 @@ export const ShelfSpineView: React.FC<ShelfSpineViewProps> = ({
                 >
                   {shelfItems.map(({ book, record }, bookIndex) => {
                     const idNum = Number(String(book.id).replace(/\D/g, '')) || (shelfIndex * 6 + bookIndex + 1);
-                    const palette = SPINE_PALETTES[idNum % SPINE_PALETTES.length];
+                    const palette = getSpinePaletteForBook(book, shelfIndex * 6 + bookIndex);
 
                     // Physical dimensions
                     const heightVariations = [220, 235, 210, 240, 225, 230];

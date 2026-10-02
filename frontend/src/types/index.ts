@@ -19,6 +19,7 @@ export interface Book {
   audioUrl?: string;
   coverImage?: string;
   gradient?: string;
+  spineColor?: string;
   description: string;
   isFree: boolean;
   isArchived: boolean;
@@ -408,4 +409,24 @@ export interface SystemSettings {
   aiReceiptVerificationEnabled?: boolean;
   updatedAt?: string;
 }
+
+export interface SpineColorOption {
+  code: string;
+  name: string;
+}
+
+export const PREDEFINED_SPINE_COLORS: SpineColorOption[] = [
+  { code: '#2373F4', name: 'Қанық көк' },
+  { code: '#E11A45', name: 'Қызыл' },
+  { code: '#D8A2A2', name: 'Жұмсақ қызғылт' },
+  { code: '#76C0EC', name: 'Ашық көк' },
+  { code: '#31AAA9', name: 'Бирюза' },
+  { code: '#597928', name: 'Зәйтүн жасыл' },
+  { code: '#FFD444', name: 'Алтын сары' },
+  { code: '#689D4B', name: 'Ашық жасыл' },
+  { code: '#2BBBD7', name: 'Циан' },
+  { code: '#830000', name: 'Қою бордо' },
+  { code: '#60241E', name: 'Қоңыр бордо' },
+  { code: '#0A2947', name: 'Түнгі көк' },
+];
 

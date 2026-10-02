@@ -196,6 +196,9 @@ public class UserBookService {
                 .audioDuration(b != null ? b.getAudioDuration() : null)
                 .isFree(b != null ? b.getIsFree() : true)
                 .gradient(b != null ? b.getGradient() : null)
+                .spineColor(b != null && b.getSpineColor() != null && !b.getSpineColor().isBlank()
+                        ? b.getSpineColor()
+                        : BookService.resolveSpineColor(null, b != null ? b.getId() : ub.getId()))
                 .build();
     }
 }

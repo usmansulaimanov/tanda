@@ -36,4 +36,5 @@ public class UserBookResponseDto {
     private String audioDuration;
     private Boolean isFree;
     private String gradient;
+    private String spineColor;
 }

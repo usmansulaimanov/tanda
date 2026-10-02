@@ -87,6 +87,9 @@ public class Book {
     @Column(name = "gradient", length = 255)
     private String gradient;
 
+    @Column(name = "spine_color", length = 16)
+    private String spineColor;
+
     @Column(name = "preview_duration_minutes")
     @Builder.Default
     private Integer previewDurationMinutes = 15;

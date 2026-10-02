@@ -28,6 +28,25 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class BookService {
 
+    public static final List<String> PREDEFINED_SPINE_COLORS = List.of(
+            "#2373F4", "#E11A45", "#D8A2A2", "#76C0EC",
+            "#31AAA9", "#597928", "#FFD444", "#689D4B",
+            "#2BBBD7", "#830000", "#60241E", "#0A2947"
+    );
+
+    public static String resolveSpineColor(String inputColor, String bookId) {
+        if (inputColor != null && !inputColor.trim().isEmpty() && !inputColor.trim().equalsIgnoreCase("auto")) {
+            String trimmed = inputColor.trim();
+            if (!trimmed.startsWith("#")) {
+                trimmed = "#" + trimmed;
+            }
+            return trimmed.toUpperCase();
+        }
+        int seed = (bookId != null && !bookId.isBlank()) ? Math.abs(bookId.hashCode()) : (int)(Math.random() * 1000);
+        int idx = seed % PREDEFINED_SPINE_COLORS.size();
+        return PREDEFINED_SPINE_COLORS.get(idx);
+    }
+
     private final BookRepository bookRepository;
 
     private boolean isSecurityContextAdmin() {
@@ -145,6 +164,8 @@ public class BookService {
             else effectiveEbookFormat = "PDF";
         }
 
+        String effectiveSpineColor = resolveSpineColor(dto.getSpineColor(), bookId);
+
         Book book = Book.builder()
                 .id(bookId)
                 .title(dto.getTitle().trim())
@@ -163,6 +184,7 @@ public class BookService {
                 .ebookUrl(hasEbook ? effectiveEbookUrl : null)
                 .ebookFormat(hasEbook ? effectiveEbookFormat : null)
                 .gradient(dto.getGradient())
+                .spineColor(effectiveSpineColor)
                 .previewDurationMinutes(dto.getPreviewDurationMinutes() != null && dto.getPreviewDurationMinutes() > 0 ? dto.getPreviewDurationMinutes() : 15)
                 .createdAt(OffsetDateTime.now())
                 .audioChapters(new ArrayList<>())
@@ -238,6 +260,11 @@ public class BookService {
         book.setEbookUrl(hasEbook ? effectiveEbookUrl : null);
         book.setEbookFormat(hasEbook ? effectiveEbookFormat : null);
         book.setGradient(dto.getGradient());
+        if (dto.getSpineColor() != null && !dto.getSpineColor().isBlank()) {
+            book.setSpineColor(resolveSpineColor(dto.getSpineColor(), book.getId()));
+        } else if (book.getSpineColor() == null || book.getSpineColor().isBlank()) {
+            book.setSpineColor(resolveSpineColor(null, book.getId()));
+        }
         book.setPreviewDurationMinutes(dto.getPreviewDurationMinutes() != null && dto.getPreviewDurationMinutes() > 0 ? dto.getPreviewDurationMinutes() : 15);
 
         book.getAudioChapters().clear();
@@ -330,6 +357,10 @@ public class BookService {
                         .collect(Collectors.toList())
                 : new ArrayList<>();
 
+        String spineColor = (book.getSpineColor() != null && !book.getSpineColor().isBlank())
+                ? book.getSpineColor()
+                : resolveSpineColor(null, book.getId());
+
         return BookResponseDto.builder()
                 .id(book.getId())
                 .title(book.getTitle())
@@ -349,6 +380,7 @@ public class BookService {
                 .ebookUrl(book.getEbookUrl())
                 .ebookFormat(book.getEbookFormat())
                 .gradient(book.getGradient())
+                .spineColor(spineColor)
                 .previewDurationMinutes(book.getPreviewDurationMinutes() != null ? book.getPreviewDurationMinutes() : 15)
                 .createdAt(book.getCreatedAt())
                 .audioChapters(chapterDtos)
@@ -366,6 +398,10 @@ public class BookService {
                         .chapterOrder(ch.getChapterOrder())
                         .build())
                 .collect(Collectors.toList());
+
+        String spineColor = (book.getSpineColor() != null && !book.getSpineColor().isBlank())
+                ? book.getSpineColor()
+                : resolveSpineColor(null, book.getId());
 
         return BookDetailResponseDto.builder()
                 .id(book.getId())
@@ -386,6 +422,7 @@ public class BookService {
                 .ebookUrl(book.getEbookUrl())
                 .ebookFormat(book.getEbookFormat())
                 .gradient(book.getGradient())
+                .spineColor(spineColor)
                 .previewDurationMinutes(book.getPreviewDurationMinutes() != null ? book.getPreviewDurationMinutes() : 15)
                 .createdAt(book.getCreatedAt())
                 .audioChapters(chapterDtos)

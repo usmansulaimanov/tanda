@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useBookStore } from '../../store/useBookStore';
 import { useToastStore } from '../../store/useToastStore';
-import { AudioChapter } from '../../types';
+import { AudioChapter, PREDEFINED_SPINE_COLORS } from '../../types';
 import { isYouTubeUrl, getYouTubeEmbedUrl } from '../../utils/youtube';
 import { mediaApi } from '../../shared/api/media.api';
 
@@ -59,6 +59,7 @@ export const BookFormPage: React.FC = () => {
   const [previewDurationMinutes, setPreviewDurationMinutes] = useState<string>('15');
   const [coverImage, setCoverImage] = useState('');
   const [coverImageError, setCoverImageError] = useState(false);
+  const [spineColor, setSpineColor] = useState<string>('');
 
   // E-book settings
   const [hasEbook, setHasEbook] = useState(false);
@@ -109,6 +110,7 @@ export const BookFormPage: React.FC = () => {
           setIsFree(Boolean(book.isFree));
           setPreviewDurationMinutes(book.previewDurationMinutes ? String(book.previewDurationMinutes) : '15');
           if (book.coverImage) setCoverImage(book.coverImage);
+          if (book.spineColor) setSpineColor(book.spineColor);
           if (book.hasEbook || book.ebookUrl || book.pdfUrl || book.epubUrl) {
             setHasEbook(true);
             setEbookUrl(book.ebookUrl || book.pdfUrl || book.epubUrl || '');
@@ -389,6 +391,7 @@ export const BookFormPage: React.FC = () => {
       isArchived: existingBook ? existingBook.isArchived : false,
       coverImage: coverImage.trim() || undefined,
       gradient: coverImage ? undefined : (existingBook?.gradient || DEFAULT_COVER_GRADIENT),
+      spineColor: spineColor.trim() || undefined,
       hasEbook: effectiveHasEbook,
       ebookUrl: effectiveHasEbook && ebookUrl.trim() ? ebookUrl.trim() : undefined,
       ebookFormat: effectiveHasEbook ? ebookFormat : undefined,
@@ -1005,6 +1008,226 @@ export const BookFormPage: React.FC = () => {
                         </div>
                       </div>
                     )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* BOOK SPINE COLOR SECTION (Сөредегі түсі) */}
+            <div
+              style={{
+                background: '#F8FAFC',
+                border: '1.5px solid #E2E8F0',
+                borderRadius: '14px',
+                padding: '24px',
+                marginBottom: '24px',
+              }}
+            >
+              <div style={{ marginBottom: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                  <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                    Кітап сөресіндегі түсі (Сөре түбі)
+                  </h3>
+                  <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 600 }}>
+                    Оқырманның «Менің сөрем» сөресінде көрінетін түсі
+                  </span>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', alignItems: 'start' }}>
+                {/* Palette picker */}
+                <div>
+                  <label className="form-label" style={{ fontSize: '12px', color: '#475569', marginBottom: '12px', display: 'block' }}>
+                    Түсті таңдаңыз:
+                  </label>
+
+                  {/* 12 Color Swatches */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '10px', marginBottom: '16px' }}>
+                    {PREDEFINED_SPINE_COLORS.map((c) => {
+                      const isSelected = spineColor.toUpperCase() === c.code.toUpperCase();
+                      return (
+                        <button
+                          key={c.code}
+                          type="button"
+                          onClick={() => setSpineColor(c.code)}
+                          title={`${c.name} (${c.code})`}
+                          style={{
+                            aspectRatio: '1',
+                            background: c.code,
+                            borderRadius: '10px',
+                            border: isSelected ? '3px solid #005494' : '2px solid rgba(0, 0, 0, 0.08)',
+                            boxShadow: isSelected ? '0 0 0 3px rgba(0, 84, 148, 0.25), 0 4px 12px rgba(0,0,0,0.15)' : '0 2px 6px rgba(0,0,0,0.06)',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            position: 'relative',
+                            transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+                            transform: isSelected ? 'scale(1.08)' : 'scale(1)',
+                          }}
+                        >
+                          {isSelected && (
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Auto / Random Button */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      onClick={() => setSpineColor('')}
+                      style={{
+                        padding: '7px 14px',
+                        background: !spineColor ? '#005494' : '#FFFFFF',
+                        color: !spineColor ? '#FFFFFF' : '#475569',
+                        border: !spineColor ? '1.5px solid #005494' : '1.5px solid #CBD5E1',
+                        borderRadius: '8px',
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
+                      </svg>
+                      Автоматты түрде (Кездейсоқ)
+                    </button>
+                    {spineColor && (
+                      <span style={{ fontSize: '12px', color: '#0F172A', fontWeight: 700, background: '#F1F5F9', padding: '4px 10px', borderRadius: '6px' }}>
+                        Таңдалды: {PREDEFINED_SPINE_COLORS.find(c => c.code.toUpperCase() === spineColor.toUpperCase())?.name || spineColor}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Spine Live Preview (Authentic 3D book spine on shelf) */}
+                <div>
+                  <label className="form-label" style={{ fontSize: '12px', color: '#475569', marginBottom: '8px', display: 'block' }}>
+                    Сөредегі көрінісі (Алдын ала қарау):
+                  </label>
+                  <div
+                    style={{
+                      height: '220px',
+                      background: 'linear-gradient(180deg, #F9F5EE 0%, #EBDBC3 100%)',
+                      borderRadius: '12px',
+                      border: '1.5px solid #E2D3B8',
+                      display: 'flex',
+                      alignItems: 'flex-end',
+                      justifyContent: 'center',
+                      paddingBottom: '12px',
+                      position: 'relative',
+                      overflow: 'hidden',
+                      boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.06)',
+                    }}
+                  >
+                    {/* Shelf plank underneath */}
+                    <div
+                      style={{
+                        position: 'absolute',
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        height: '14px',
+                        background: 'linear-gradient(180deg, #D4A373 0%, #A97142 100%)',
+                        borderTop: '2px solid #FAEDCD',
+                        boxShadow: '0 -2px 4px rgba(0,0,0,0.1)',
+                      }}
+                    />
+
+                    {/* Physical 3D Spine */}
+                    {(() => {
+                      const displayHex = spineColor ? spineColor.toUpperCase() : '#60241E';
+                      return (
+                        <div
+                          style={{
+                            width: '52px',
+                            height: '190px',
+                            background: `linear-gradient(180deg, ${displayHex} 0%, ${displayHex}E6 40%, ${displayHex}99 100%)`,
+                            borderRadius: '4px 4px 0 0',
+                            position: 'relative',
+                            zIndex: 2,
+                            boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.4), inset -3px 0 6px rgba(0,0,0,0.45), 0 8px 16px rgba(120,75,30,0.25)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            overflow: 'hidden',
+                          }}
+                        >
+                          {/* Ribbon */}
+                          <div
+                            style={{
+                              position: 'absolute',
+                              top: '-4px',
+                              left: '50%',
+                              transform: 'translateX(-50%)',
+                              width: '14px',
+                              height: '24px',
+                              background: displayHex === '#FFD444' ? '#C93B2B' : '#FCD34D',
+                              clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%, 50% 75%, 0% 100%)',
+                              zIndex: 10,
+                            }}
+                          />
+                          {/* 3D cylindrical lighting */}
+                          <div
+                            style={{
+                              position: 'absolute',
+                              inset: 0,
+                              background: 'linear-gradient(90deg, rgba(0,0,0,0.35) 0%, rgba(255,255,255,0.3) 20%, rgba(255,255,255,0.06) 45%, rgba(0,0,0,0.05) 75%, rgba(0,0,0,0.45) 100%)',
+                              pointerEvents: 'none',
+                            }}
+                          />
+                          {/* Top Golden Ridges */}
+                          <div style={{ width: '100%', paddingTop: '14px', paddingLeft: '4px', paddingRight: '4px', position: 'relative', zIndex: 2 }}>
+                            <div style={{ width: '100%', height: '1.5px', background: 'rgba(254, 243, 199, 0.45)', borderRadius: '999px' }} />
+                            <div style={{ width: '100%', height: '1px', background: 'rgba(254, 243, 199, 0.25)', marginTop: '2px', borderRadius: '999px' }} />
+                          </div>
+                          {/* Title */}
+                          <div
+                            style={{
+                              writingMode: 'vertical-rl',
+                              transform: 'rotate(180deg)',
+                              position: 'relative',
+                              zIndex: 2,
+                              padding: '8px 2px',
+                              maxHeight: '120px',
+                              overflow: 'hidden',
+                            }}
+                          >
+                            <span
+                              style={{
+                                fontFamily: 'serif',
+                                fontWeight: 700,
+                                fontSize: '11px',
+                                letterSpacing: '0.04em',
+                                color: '#FFFBEB',
+                                textShadow: '0 1px 2px rgba(0,0,0,0.95)',
+                                display: 'block',
+                                whiteSpace: 'nowrap',
+                                textOverflow: 'ellipsis',
+                                overflow: 'hidden',
+                              }}
+                            >
+                              {title || 'Кітап атауы'}
+                            </span>
+                          </div>
+                          {/* Bottom Golden Ridges */}
+                          <div style={{ width: '100%', paddingBottom: '10px', paddingLeft: '4px', paddingRight: '4px', position: 'relative', zIndex: 2 }}>
+                            <div style={{ width: '100%', height: '1px', background: 'rgba(254, 243, 199, 0.25)', marginBottom: '2px', borderRadius: '999px' }} />
+                            <div style={{ width: '100%', height: '1.5px', background: 'rgba(254, 243, 199, 0.45)', borderRadius: '999px' }} />
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
               </div>

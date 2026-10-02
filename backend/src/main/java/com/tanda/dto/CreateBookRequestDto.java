@@ -53,6 +53,7 @@ public class CreateBookRequestDto {
     private String ebookFormat;
 
     private String gradient;
+    private String spineColor;
 
     private Integer previewDurationMinutes;
 

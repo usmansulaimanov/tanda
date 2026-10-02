@@ -34,6 +34,7 @@ public class BookResponseDto {
     private String ebookUrl;
     private String ebookFormat;
     private String gradient;
+    private String spineColor;
     private Integer previewDurationMinutes;
     private OffsetDateTime createdAt;
 
