@@ -13,6 +13,21 @@ function formatMinutes(totalMinutes: number): string {
   return `${hours} сағ ${mins} мин`;
 }
 
+function getPeriodDisplayLabel(period: LeaderboardPeriod): string {
+  switch (period) {
+    case 'THIS_MONTH':
+      return 'Осы айда';
+    case 'LAST_MONTH':
+      return 'Өткен айда';
+    case 'THIS_WEEK':
+      return 'Осы аптада';
+    case 'LAST_WEEK':
+      return 'Өткен аптада';
+    default:
+      return 'Осы мерзімде';
+  }
+}
+
 export const LeaderboardPage: React.FC = () => {
   const { user, isAuthenticated } = useAuthStore();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -243,13 +258,15 @@ export const LeaderboardPage: React.FC = () => {
 
                   <div className="flex items-center gap-6">
                     <div className="text-right">
-                      <div className="text-xs text-slate-500 uppercase tracking-wider font-semibold">Осы мерзімде</div>
+                      <div className="text-xs text-slate-500 uppercase tracking-wider font-semibold">
+                        {getPeriodDisplayLabel(selectedPeriod)}
+                      </div>
                       <div className="text-lg sm:text-xl font-black text-emerald-600">
                         {formatMinutes(leaderboardData.currentUserEntry.periodMinutes)}
                       </div>
                     </div>
                     <div className="text-right border-l border-slate-200 pl-6 hidden sm:block">
-                      <div className="text-xs text-slate-500 uppercase tracking-wider font-semibold">Барлық уақытта</div>
+                      <div className="text-xs text-slate-500 uppercase tracking-wider font-semibold">Жалпы</div>
                       <div className="text-base sm:text-lg font-bold text-slate-700">
                         {formatMinutes(leaderboardData.currentUserEntry.allTimeMinutes)}
                       </div>
@@ -298,8 +315,8 @@ export const LeaderboardPage: React.FC = () => {
                       <tr className="border-b border-slate-200 bg-slate-50 text-[11px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">
                         <th className="py-3.5 px-4 sm:px-6 w-16 text-center">Орын</th>
                         <th className="py-3.5 px-4">Оқырман</th>
-                        <th className="py-3.5 px-4 text-right">Таңдалған мерзім</th>
-                        <th className="py-3.5 px-4 sm:px-6 text-right hidden sm:table-cell">Барлық уақытта</th>
+                        <th className="py-3.5 px-4 text-right">{getPeriodDisplayLabel(selectedPeriod)}</th>
+                        <th className="py-3.5 px-4 sm:px-6 text-right hidden sm:table-cell">Жалпы</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 text-sm">
@@ -481,7 +498,7 @@ export const LeaderboardPage: React.FC = () => {
                   </div>
 
                   <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm">
-                    <div className="text-xs text-slate-500 font-bold uppercase tracking-wider">Барлық уақытта</div>
+                    <div className="text-xs text-slate-500 font-bold uppercase tracking-wider">Жалпы</div>
                     <div className="text-xl sm:text-2xl font-black text-slate-900 mt-2">
                       {formatMinutes(personalStats.allTimeMinutes)}
                     </div>
