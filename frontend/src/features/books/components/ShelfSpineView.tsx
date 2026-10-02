@@ -105,27 +105,35 @@ export const ShelfSpineView: React.FC<ShelfSpineViewProps> = ({
 
   return (
     <div className="w-full relative select-none">
-      {/* Bookshelf Master Container */}
+      {/* Bookshelf Master Container - Natural Light Pine Wood Theme */}
       <div
-        className="rounded-3xl p-4 sm:p-8 overflow-hidden shadow-2xl border border-amber-950/40 relative"
+        className="rounded-3xl p-4 sm:p-8 overflow-hidden shadow-xl border border-[#D4A373]/50 relative"
         style={{
-          background: 'radial-gradient(ellipse at 50% 20%, #2D1E16 0%, #19120D 60%, #0D0805 100%)',
+          background: 'linear-gradient(180deg, #F9F1E6 0%, #F1E2CD 35%, #E5CEB0 100%)',
+          boxShadow: '0 16px 40px rgba(180, 130, 80, 0.15), inset 0 2px 6px rgba(255, 255, 255, 0.6), inset 0 -4px 12px rgba(160, 110, 60, 0.1)',
         }}
       >
-        {/* Ambient Candlelight Glows */}
+        {/* Vertical Wood Panel Planks Texture on the back wall */}
         <div
-          className="absolute -top-24 left-1/4 w-96 h-96 rounded-full pointer-events-none opacity-25 blur-3xl"
-          style={{ background: 'radial-gradient(circle, #F59E0B 0%, transparent 70%)' }}
-        />
-        <div
-          className="absolute -top-24 right-1/4 w-96 h-96 rounded-full pointer-events-none opacity-20 blur-3xl"
-          style={{ background: 'radial-gradient(circle, #EF7E00 0%, transparent 70%)' }}
+          className="absolute inset-0 pointer-events-none opacity-40"
+          style={{
+            backgroundImage:
+              'repeating-linear-gradient(90deg, transparent 0px, transparent 56px, rgba(140, 90, 40, 0.18) 57px, rgba(255, 255, 255, 0.4) 58px)',
+          }}
         />
 
-
+        {/* Ambient Warm Daylight & Candlelight Glows */}
+        <div
+          className="absolute -top-16 left-1/4 w-96 h-80 rounded-full pointer-events-none opacity-30 blur-3xl"
+          style={{ background: 'radial-gradient(circle, #FDE68A 0%, transparent 70%)' }}
+        />
+        <div
+          className="absolute -top-16 right-1/4 w-96 h-80 rounded-full pointer-events-none opacity-25 blur-3xl"
+          style={{ background: 'radial-gradient(circle, #FBBF24 0%, transparent 70%)' }}
+        />
 
         {/* Shelves Stack */}
-        <div className="flex flex-col gap-12 sm:gap-16 relative z-10 pt-4">
+        <div className="flex flex-col gap-12 sm:gap-16 relative z-10 pt-2">
           {shelves.map((shelfItems, shelfIndex) => {
             const isLastShelf = shelfIndex === shelves.length - 1;
 
@@ -162,9 +170,9 @@ export const ShelfSpineView: React.FC<ShelfSpineViewProps> = ({
                             width: `${spineWidth}px`,
                             height: `${spineHeight}px`,
                             background: palette.bg,
-                            boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.4), inset -3px 0 6px rgba(0,0,0,0.55)',
+                            boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.4), inset -3px 0 6px rgba(0,0,0,0.45), 0 8px 16px rgba(140,90,40,0.22)',
                           }}
-                          className="relative rounded-t-[4px] flex flex-col justify-between items-center overflow-hidden transition-all duration-300 transform group-hover:-translate-y-3 group-hover:scale-105 group-hover:shadow-[0_16px_32px_rgba(0,0,0,0.85)]"
+                          className="relative rounded-t-[4px] flex flex-col justify-between items-center overflow-hidden transition-all duration-300 transform group-hover:-translate-y-3 group-hover:scale-105 group-hover:shadow-[0_16px_32px_rgba(100,60,20,0.35)]"
                         >
                           {/* Bookmark Ribbon on top */}
                           <div
@@ -180,14 +188,14 @@ export const ShelfSpineView: React.FC<ShelfSpineViewProps> = ({
                             className="absolute inset-0 pointer-events-none"
                             style={{
                               background:
-                                'linear-gradient(90deg, rgba(0,0,0,0.45) 0%, rgba(255,255,255,0.24) 20%, rgba(255,255,255,0.04) 45%, rgba(0,0,0,0.05) 75%, rgba(0,0,0,0.55) 100%)',
+                                'linear-gradient(90deg, rgba(0,0,0,0.35) 0%, rgba(255,255,255,0.3) 20%, rgba(255,255,255,0.06) 45%, rgba(0,0,0,0.05) 75%, rgba(0,0,0,0.45) 100%)',
                             }}
                           />
 
                           {/* Top Golden Ridges */}
                           <div className="relative z-10 w-full pt-3 px-1">
-                            <div className="w-full h-[1.5px] bg-amber-200/35 rounded-full" />
-                            <div className="w-full h-px bg-amber-200/20 mt-1 rounded-full" />
+                            <div className="w-full h-[1.5px] bg-amber-200/40 rounded-full" />
+                            <div className="w-full h-px bg-amber-200/25 mt-1 rounded-full" />
                           </div>
 
                           {/* Vertical Book Title on Spine */}
@@ -204,8 +212,8 @@ export const ShelfSpineView: React.FC<ShelfSpineViewProps> = ({
 
                           {/* Bottom Golden Ridges */}
                           <div className="relative z-10 w-full pb-2.5 px-1">
-                            <div className="w-full h-px bg-amber-200/20 mb-1 rounded-full" />
-                            <div className="w-full h-[1.5px] bg-amber-200/35 rounded-full" />
+                            <div className="w-full h-px bg-amber-200/25 mb-1 rounded-full" />
+                            <div className="w-full h-[1.5px] bg-amber-200/40 rounded-full" />
                           </div>
                         </div>
                       </div>
@@ -219,7 +227,7 @@ export const ShelfSpineView: React.FC<ShelfSpineViewProps> = ({
                       <div className="relative flex items-center justify-center mb-1">
                         <div
                           className="absolute w-12 h-12 rounded-full pointer-events-none -top-2 animate-pulse"
-                          style={{ background: 'radial-gradient(circle, rgba(251,191,36,0.4) 0%, transparent 70%)' }}
+                          style={{ background: 'radial-gradient(circle, rgba(251,191,36,0.5) 0%, transparent 70%)' }}
                         />
                         <div
                           className="w-2.5 h-4.5 rounded-full shadow-[0_0_12px_#F59E0B]"
@@ -228,32 +236,35 @@ export const ShelfSpineView: React.FC<ShelfSpineViewProps> = ({
                       </div>
                       {/* Candle Wax Body */}
                       <div
-                        className="w-4 h-12 rounded-t-xs shadow-md border-t border-amber-200/40"
-                        style={{ background: 'linear-gradient(180deg, #FAF3E0 0%, #D8C8B0 100%)' }}
+                        className="w-4 h-12 rounded-t-xs shadow-md border-t border-amber-200"
+                        style={{ background: 'linear-gradient(180deg, #FFFFFF 0%, #FDF6E2 50%, #EADBBE 100%)' }}
                       />
                     </div>
                   )}
                 </div>
 
-                {/* 3D Realistic Heavy Wood Shelf Plank */}
+                {/* 3D Realistic Natural Light Pine Wood Shelf Plank */}
                 <div className="w-full relative mt-[-2px] z-30">
-                  {/* Top Edge Highlight */}
+                  {/* Top Shelf Edge Highlight (Golden Pine bevel) */}
                   <div
-                    className="h-2 w-full rounded-t-sm"
+                    className="h-2.5 w-full rounded-t-sm"
                     style={{
                       background:
-                        'linear-gradient(90deg, #8B5A2B 0%, #C48A54 25%, #E5B382 50%, #C48A54 75%, #8B5A2B 100%)',
-                      boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.45)',
+                        'linear-gradient(90deg, #E6C59E 0%, #F7E5CF 20%, #FFF7EC 50%, #F7E5CF 80%, #E6C59E 100%)',
+                      boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.9), 0 -1px 3px rgba(180,120,60,0.15)',
                     }}
                   />
-                  {/* Front Bevel & Shadow */}
+                  {/* Front Plank Bevel & Warm Shadow */}
                   <div
-                    className="h-7 sm:h-8 w-full rounded-b-xl shadow-[0_16px_30px_rgba(0,0,0,0.85)] flex items-center justify-between px-6 border-t border-amber-900/60 relative overflow-hidden"
-                    style={{ background: 'linear-gradient(180deg, #5C3314 0%, #3D1E08 55%, #241104 100%)' }}
+                    className="h-7 sm:h-8 w-full rounded-b-xl flex items-center justify-between px-6 border-t border-[#DDB88C] relative overflow-hidden"
+                    style={{
+                      background: 'linear-gradient(180deg, #D4A373 0%, #B88550 55%, #9E6C38 100%)',
+                      boxShadow: '0 14px 28px rgba(140, 90, 40, 0.22), inset 0 1px 2px rgba(255,255,255,0.4)',
+                    }}
                   >
-                    <div className="w-16 h-0.5 bg-black/25 rounded-full" />
-                    <div className="w-24 h-0.5 bg-black/20 rounded-full" />
-                    <div className="w-20 h-0.5 bg-black/25 rounded-full" />
+                    <div className="w-16 h-0.5 bg-amber-950/15 rounded-full" />
+                    <div className="w-24 h-0.5 bg-amber-950/10 rounded-full" />
+                    <div className="w-20 h-0.5 bg-amber-950/15 rounded-full" />
                   </div>
                 </div>
               </div>
