@@ -267,75 +267,80 @@ export const AdminBonusesPage: React.FC = () => {
 
   if (!isAuthInitialized || isSettingsLoading) {
     return (
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <div className="animate-pulse flex flex-col gap-6">
-          <div className="h-10 bg-slate-200 rounded w-1/4"></div>
-          <div className="h-64 bg-slate-200 rounded-2xl"></div>
+      <div className="min-h-screen bg-slate-50 text-slate-800 py-8 sm:py-10 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-5xl mx-auto">
+          <div className="animate-pulse flex flex-col gap-6">
+            <div className="h-10 bg-slate-200 rounded w-1/4"></div>
+            <div className="h-64 bg-slate-200 rounded-2xl"></div>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-3 sm:px-6 py-6 font-sans min-h-[70vh]">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center font-bold">
-              <Gift className="w-5 h-5" />
+    <div className="min-h-screen bg-slate-50 text-slate-800 py-8 sm:py-10 px-4 sm:px-6 lg:px-8 font-sans">
+      <div className="max-w-5xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center font-bold">
+                <Gift className="w-5 h-5" />
+              </div>
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                  Бонус жүйесі
+                </h1>
+                <p className="text-sm text-slate-500 mt-0.5">
+                  Оқырмандарды ынталандыру, бонустарды есептеу және бақылау жүйесі
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-                Бонус жүйесі
-              </h1>
-              <p className="text-sm text-slate-500 mt-0.5">
-                Оқырмандарды ынталандыру, бонустарды есептеу және бақылау жүйесі
-              </p>
-            </div>
+          </div>
+
+          {/* Action button */}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setAdjustModalOpen(true)}
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-900 text-white rounded-xl font-medium text-sm hover:bg-slate-800 transition-colors shadow-sm"
+            >
+              <Coins className="w-4 h-4" />
+              Бонусты қолмен түзету
+            </button>
           </div>
         </div>
 
-        {/* Action button */}
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setAdjustModalOpen(true)}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-900 text-white rounded-xl font-medium text-sm hover:bg-slate-800 transition-colors shadow-sm"
-          >
-            <Coins className="w-4 h-4" />
-            Бонусты қолмен түзету
-          </button>
+        {/* Main Tabs Navigation (Segmented Switcher) */}
+        <div className="flex justify-start">
+          <div className="inline-flex p-1.5 bg-slate-200/80 rounded-2xl shadow-inner">
+            <button
+              type="button"
+              onClick={() => setActiveTab('settings')}
+              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-200 ${
+                activeTab === 'settings'
+                  ? 'bg-white text-amber-700 shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Settings className="w-4 h-4" />
+              <span>Баптаулар</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('stats')}
+              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-200 ${
+                activeTab === 'stats'
+                  ? 'bg-white text-amber-700 shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <BarChart3 className="w-4 h-4" />
+              <span>Статистика және транзакциялар</span>
+            </button>
+          </div>
         </div>
-      </div>
-
-      {/* Tabs */}
-      <div className="flex items-center gap-2 border-b border-slate-200 mb-6">
-        <button
-          type="button"
-          onClick={() => setActiveTab('settings')}
-          className={`flex items-center gap-2 py-3 px-4 text-sm font-semibold border-b-2 transition-colors ${
-            activeTab === 'settings'
-              ? 'border-amber-500 text-amber-600'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
-          }`}
-        >
-          <Settings className="w-4 h-4" />
-          Баптаулар
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab('stats')}
-          className={`flex items-center gap-2 py-3 px-4 text-sm font-semibold border-b-2 transition-colors ${
-            activeTab === 'stats'
-              ? 'border-amber-500 text-amber-600'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
-          }`}
-        >
-          <BarChart3 className="w-4 h-4" />
-          Статистика және транзакциялар
-        </button>
-      </div>
 
       {/* TAB 1: SETTINGS */}
       {activeTab === 'settings' && (
@@ -1133,6 +1138,7 @@ export const AdminBonusesPage: React.FC = () => {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 };
