@@ -282,12 +282,9 @@ export const AdminBonusesPage: React.FC = () => {
         <form onSubmit={handleSaveSettings} className="space-y-6">
           {/* Main Master Switch Card */}
           <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
-            <div className="flex items-start justify-between gap-4">
+            <div className="flex items-center justify-between gap-4">
               <div>
-                <h2 className="text-lg font-bold text-slate-900">Негізгі бонус режимі</h2>
-                <p className="text-sm text-slate-500 mt-1 max-w-2xl">
-                  Бонус жүйесін толық қосу немесе тоқтату. Жүйе өшірілгенде оқырмандарға жаңа бонустар түспейді, бірақ бұрынғы жиналған бонустары сақталады.
-                </p>
+                <h2 className="text-lg font-bold text-slate-900">Бонус жүйесі</h2>
               </div>
               <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
                 <input
@@ -303,7 +300,7 @@ export const AdminBonusesPage: React.FC = () => {
             <div className="mt-6 pt-6 border-t border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-slate-800 mb-1.5">
-                  Бонус атауы (Термин / Валюта)
+                  Валюта
                 </label>
                 <input
                   type="text"
@@ -312,9 +309,6 @@ export const AdminBonusesPage: React.FC = () => {
                   placeholder="Бонус, Теңге, ₸, Ұпай..."
                   className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 text-sm font-medium"
                 />
-                <p className="text-xs text-slate-500 mt-1.5">
-                  Оқырмандардың профилінде және төлемдерде осы атау көрсетіледі (мысалы: «100 Бонус» немесе «100 Теңге»).
-                </p>
               </div>
             </div>
           </div>
