@@ -1013,7 +1013,7 @@ export const BookFormPage: React.FC = () => {
               </div>
             </div>
 
-            {/* BOOK SPINE COLOR SECTION (Сөредегі түсі) */}
+            {/* BOOK SPINE COLOR SECTION */}
             <div
               style={{
                 background: '#F8FAFC',
@@ -1024,14 +1024,9 @@ export const BookFormPage: React.FC = () => {
               }}
             >
               <div style={{ marginBottom: '16px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
-                  <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
-                    Кітап сөресіндегі түсі (Сөре түбі)
-                  </h3>
-                  <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 600 }}>
-                    Оқырманның «Менің сөрем» сөресінде көрінетін түсі
-                  </span>
-                </div>
+                <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                  Кітап сөресіндегі түсі
+                </h3>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', alignItems: 'start' }}>
@@ -1042,14 +1037,14 @@ export const BookFormPage: React.FC = () => {
                   </label>
 
                   {/* 12 Color Swatches */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '10px', marginBottom: '16px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '10px' }}>
                     {PREDEFINED_SPINE_COLORS.map((c) => {
                       const isSelected = spineColor.toUpperCase() === c.code.toUpperCase();
                       return (
                         <button
                           key={c.code}
                           type="button"
-                          onClick={() => setSpineColor(c.code)}
+                          onClick={() => setSpineColor(isSelected ? '' : c.code)}
                           title={`${c.name} (${c.code})`}
                           style={{
                             aspectRatio: '1',
@@ -1075,45 +1070,10 @@ export const BookFormPage: React.FC = () => {
                       );
                     })}
                   </div>
-
-                  {/* Auto / Random Button */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                    <button
-                      type="button"
-                      onClick={() => setSpineColor('')}
-                      style={{
-                        padding: '7px 14px',
-                        background: !spineColor ? '#005494' : '#FFFFFF',
-                        color: !spineColor ? '#FFFFFF' : '#475569',
-                        border: !spineColor ? '1.5px solid #005494' : '1.5px solid #CBD5E1',
-                        borderRadius: '8px',
-                        fontSize: '12px',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        transition: 'all 0.15s',
-                      }}
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
-                      </svg>
-                      Автоматты түрде (Кездейсоқ)
-                    </button>
-                    {spineColor && (
-                      <span style={{ fontSize: '12px', color: '#0F172A', fontWeight: 700, background: '#F1F5F9', padding: '4px 10px', borderRadius: '6px' }}>
-                        Таңдалды: {PREDEFINED_SPINE_COLORS.find(c => c.code.toUpperCase() === spineColor.toUpperCase())?.name || spineColor}
-                      </span>
-                    )}
-                  </div>
                 </div>
 
                 {/* Spine Live Preview (Authentic 3D book spine on shelf) */}
                 <div>
-                  <label className="form-label" style={{ fontSize: '12px', color: '#475569', marginBottom: '8px', display: 'block' }}>
-                    Сөредегі көрінісі (Алдын ала қарау):
-                  </label>
                   <div
                     style={{
                       height: '220px',
