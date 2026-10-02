@@ -155,6 +155,8 @@ export const Header: React.FC = () => {
   const [showBonusInfo, setShowBonusInfo] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const profileWrapRef = useRef<HTMLDivElement>(null);
+  const bonusPopupRef = useRef<HTMLDivElement>(null);
+  const bonusBtnRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent | TouchEvent) => {
@@ -173,6 +175,27 @@ export const Header: React.FC = () => {
       document.removeEventListener('touchstart', handleClickOutside);
     };
   }, []);
+
+  // When showBonusInfo is open, clicking anywhere outside the bonus card itself closes it immediately
+  useEffect(() => {
+    if (!showBonusInfo) return;
+    const handleOutsideBonusClick = (e: MouseEvent | TouchEvent) => {
+      if (
+        bonusPopupRef.current &&
+        !bonusPopupRef.current.contains(e.target as Node) &&
+        bonusBtnRef.current &&
+        !bonusBtnRef.current.contains(e.target as Node)
+      ) {
+        setShowBonusInfo(false);
+      }
+    };
+    document.addEventListener('mousedown', handleOutsideBonusClick, true);
+    document.addEventListener('touchstart', handleOutsideBonusClick, true);
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideBonusClick, true);
+      document.removeEventListener('touchstart', handleOutsideBonusClick, true);
+    };
+  }, [showBonusInfo]);
 
   // Close profile dropdown on page change
   useEffect(() => {
@@ -602,6 +625,7 @@ export const Header: React.FC = () => {
                                 </span>
                               )}
                               <button
+                                ref={bonusBtnRef}
                                 type="button"
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -639,22 +663,18 @@ export const Header: React.FC = () => {
 
                     {/* Bonus Info Floating Overlay in Profile Dropdown (Floats ON TOP without shifting content) */}
                     {showBonusInfo && (
-                      <>
-                        <div
-                          className="fixed inset-0 z-[350]"
-                          onClick={() => setShowBonusInfo(false)}
-                        />
-                        <div
-                          style={{
-                            position: 'absolute',
-                            top: '80px',
-                            left: '12px',
-                            right: '12px',
-                            zIndex: 400,
-                            padding: '12px 14px',
-                            borderRadius: '14px',
-                            background: '#FFFBEB',
-                            border: '1.5px solid #FCD34D',
+                      <div
+                        ref={bonusPopupRef}
+                        style={{
+                          position: 'absolute',
+                          top: '80px',
+                          left: '12px',
+                          right: '12px',
+                          zIndex: 400,
+                          padding: '12px 14px',
+                          borderRadius: '14px',
+                          background: '#FFFBEB',
+                          border: '1.5px solid #FCD34D',
                             boxShadow: '0 12px 28px rgba(217, 119, 6, 0.2), 0 4px 12px rgba(0, 0, 0, 0.08)',
                             boxSizing: 'border-box',
                           }}
@@ -695,7 +715,6 @@ export const Header: React.FC = () => {
                             </span>
                           </div>
                         </div>
-                      </>
                     )}
 
                     {/* Quick Navigation Links */}

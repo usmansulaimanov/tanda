@@ -31,12 +31,35 @@ export const AppSidebarDrawer: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [showBonusInfo, setShowBonusInfo] = React.useState(false);
+  const bonusPopupRef = React.useRef<HTMLDivElement>(null);
+  const bonusBtnRef = React.useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!isOpen) {
       setShowBonusInfo(false);
     }
   }, [isOpen]);
+
+  // When showBonusInfo is open, clicking anywhere outside the bonus card itself closes it immediately
+  React.useEffect(() => {
+    if (!showBonusInfo) return;
+    const handleOutsideBonusClick = (e: MouseEvent | TouchEvent) => {
+      if (
+        bonusPopupRef.current &&
+        !bonusPopupRef.current.contains(e.target as Node) &&
+        bonusBtnRef.current &&
+        !bonusBtnRef.current.contains(e.target as Node)
+      ) {
+        setShowBonusInfo(false);
+      }
+    };
+    document.addEventListener('mousedown', handleOutsideBonusClick, true);
+    document.addEventListener('touchstart', handleOutsideBonusClick, true);
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideBonusClick, true);
+      document.removeEventListener('touchstart', handleOutsideBonusClick, true);
+    };
+  }, [showBonusInfo]);
 
   const { data: systemSettings } = useQuery({
     queryKey: ['systemSettings'],
@@ -198,6 +221,7 @@ export const AppSidebarDrawer: React.FC = () => {
                     )}
                     {(!user.role || user.role === 'client') && (
                       <button
+                        ref={bonusBtnRef}
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
@@ -228,66 +252,58 @@ export const AppSidebarDrawer: React.FC = () => {
 
               {/* Bonus Info Floating Overlay in Sidebar (Floats ON TOP without shifting content) */}
               {showBonusInfo && (
-                <>
-                  <div
-                    className="fixed inset-0 z-[250]"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowBonusInfo(false);
-                    }}
-                  />
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: 'calc(100% - 6px)',
-                      left: '16px',
-                      right: '16px',
-                      zIndex: 300,
-                      padding: '12px 14px',
-                      borderRadius: '14px',
-                      background: '#FFFBEB',
-                      border: '1.5px solid #FCD34D',
-                      boxShadow: '0 12px 28px rgba(217, 119, 6, 0.2), 0 4px 12px rgba(0, 0, 0, 0.08)',
-                      boxSizing: 'border-box',
-                    }}
-                    className="animate-in fade-in zoom-in-95 duration-150"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                        <img src="/bonus-coin.png" alt="Бонус" style={{ width: '16px', height: '16px', objectFit: 'contain' }} />
-                        <span style={{ fontSize: '13px', fontWeight: 800, color: '#92400E' }}>
-                          {systemSettings?.bonusCurrencyName || 'Бонус'}
-                        </span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setShowBonusInfo(false)}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          color: '#94A3B8',
-                          cursor: 'pointer',
-                          padding: '2px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                        className="hover:text-slate-600 rounded"
-                      >
-                        <X className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                    <p style={{ fontSize: '11px', color: '#475569', lineHeight: 1.5, margin: 0, fontWeight: 500, whiteSpace: 'normal', wordBreak: 'break-word' }}>
-                      Белсенді оқырмандарға берілетін бонус. Күн сайын сайтқа кіру, кітап тыңдау немесе пікір жазу арқылы жинап, оны жазылымға айырбастауға болады.
-                    </p>
-                    <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #FEF3C7', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <span style={{ fontSize: '11px', fontWeight: 700, color: '#B45309' }}>
-                        Балансыңыз: {(user.bonusBalance ?? 0).toLocaleString('kk-KZ')} {systemSettings?.bonusCurrencyName || 'Бонус'}
+                <div
+                  ref={bonusPopupRef}
+                  style={{
+                    position: 'absolute',
+                    top: 'calc(100% - 6px)',
+                    left: '16px',
+                    right: '16px',
+                    zIndex: 300,
+                    padding: '12px 14px',
+                    borderRadius: '14px',
+                    background: '#FFFBEB',
+                    border: '1.5px solid #FCD34D',
+                    boxShadow: '0 12px 28px rgba(217, 119, 6, 0.2), 0 4px 12px rgba(0, 0, 0, 0.08)',
+                    boxSizing: 'border-box',
+                  }}
+                  className="animate-in fade-in zoom-in-95 duration-150"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <img src="/bonus-coin.png" alt="Бонус" style={{ width: '16px', height: '16px', objectFit: 'contain' }} />
+                      <span style={{ fontSize: '13px', fontWeight: 800, color: '#92400E' }}>
+                        {systemSettings?.bonusCurrencyName || 'Бонус'}
                       </span>
                     </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowBonusInfo(false)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#94A3B8',
+                        cursor: 'pointer',
+                        padding: '2px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                      className="hover:text-slate-600 rounded"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
                   </div>
-                </>
+                  <p style={{ fontSize: '11px', color: '#475569', lineHeight: 1.5, margin: 0, fontWeight: 500, whiteSpace: 'normal', wordBreak: 'break-word' }}>
+                    Белсенді оқырмандарға берілетін бонус. Күн сайын сайтқа кіру, кітап тыңдау немесе пікір жазу арқылы жинап, оны жазылымға айырбастауға болады.
+                  </p>
+                  <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #FEF3C7', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: '11px', fontWeight: 700, color: '#B45309' }}>
+                      Балансыңыз: {(user.bonusBalance ?? 0).toLocaleString('kk-KZ')} {systemSettings?.bonusCurrencyName || 'Бонус'}
+                    </span>
+                  </div>
+                </div>
               )}
             </div>
           </>
