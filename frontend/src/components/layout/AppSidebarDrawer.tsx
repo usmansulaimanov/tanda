@@ -12,9 +12,10 @@ import { hasAdminPermission } from '../../utils/permissions';
 import { api } from '../../lib/api';
 import tandaLogo from '../../assets/tanda-logo.png';
 import tandaPremiumWhite from '../../assets/tanda-premium-white.png';
-import { Crown, CreditCard, Sliders, Gift, Coins } from 'lucide-react';
+import { Crown, CreditCard, Sliders, Gift, Coins, X } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { premiumApi } from '../../shared/api/premium.api';
+import { systemApi } from '../../shared/api/system.api';
 import { PWAInstallSidebarCard } from './PWAInstallBanner';
 
 
@@ -29,6 +30,20 @@ export const AppSidebarDrawer: React.FC = () => {
   const { getUnreadCountForUser, messages } = useMessageStore();
   const location = useLocation();
   const navigate = useNavigate();
+  const [showBonusInfo, setShowBonusInfo] = React.useState(false);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setShowBonusInfo(false);
+    }
+  }, [isOpen]);
+
+  const { data: systemSettings } = useQuery({
+    queryKey: ['systemSettings'],
+    queryFn: systemApi.getSettings,
+    staleTime: 60 * 1000,
+  });
+
   const [readersCount, setReadersCount] = React.useState<number>(() => {
     try {
       return useAuthStore.getState().getClientsCount();
@@ -180,9 +195,102 @@ export const AppSidebarDrawer: React.FC = () => {
                   </div>
                 )}
                 {(!user.role || user.role === 'client') && (
-                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '12px', fontWeight: 700, color: '#D97706', whiteSpace: 'nowrap' }}>
-                    <img src="/bonus-coin.png" alt="Бонус" style={{ width: '15px', height: '15px', objectFit: 'contain', flexShrink: 0 }} />
-                    <span>{(user.bonusBalance ?? 0).toLocaleString('kk-KZ')} Бонус</span>
+                  <div className="relative inline-block">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowBonusInfo((prev) => !prev);
+                      }}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        color: '#D97706',
+                        whiteSpace: 'nowrap',
+                        background: showBonusInfo ? '#FEF3C7' : 'transparent',
+                        border: showBonusInfo ? '1px solid #FDE68A' : '1px solid transparent',
+                        borderRadius: '6px',
+                        padding: '1px 5px',
+                        cursor: 'pointer',
+                      }}
+                      className="hover:bg-amber-50"
+                      title="Бонус туралы ақпаратты көру"
+                    >
+                      <img src="/bonus-coin.png" alt="Бонус" style={{ width: '15px', height: '15px', objectFit: 'contain', flexShrink: 0 }} />
+                      <span>{(user.bonusBalance ?? 0).toLocaleString('kk-KZ')} {systemSettings?.bonusCurrencyName || 'Бонус'}</span>
+                    </button>
+
+                    {showBonusInfo && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: 'calc(100% + 6px)',
+                          left: '0',
+                          width: '240px',
+                          zIndex: 100,
+                          padding: '12px',
+                          borderRadius: '12px',
+                          background: '#FFFFFF',
+                          border: '1.5px solid #FCD34D',
+                          boxShadow: '0 10px 25px -5px rgba(217, 119, 6, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.08)',
+                          textAlign: 'left',
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                            <img src="/bonus-coin.png" alt="Бонус" style={{ width: '16px', height: '16px', objectFit: 'contain' }} />
+                            <span style={{ fontSize: '12px', fontWeight: 800, color: '#92400E' }}>
+                              {systemSettings?.bonusCurrencyName || 'Бонус'}
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setShowBonusInfo(false)}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              color: '#94A3B8',
+                              cursor: 'pointer',
+                              padding: '2px',
+                            }}
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                        <p style={{ fontSize: '11px', color: '#475569', lineHeight: 1.45, margin: 0, fontWeight: 500 }}>
+                          Белсенді оқырмандарға берілетін бонус. Күн сайын сайтқа кіру, кітап тыңдау немесе пікір жазу арқылы жинап, оны жазылымға (подписка) айырбастауға болады.
+                        </p>
+                        <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #FEF3C7', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <span style={{ fontSize: '11px', fontWeight: 700, color: '#B45309' }}>
+                            Балансыңыз: {(user.bonusBalance ?? 0).toLocaleString('kk-KZ')}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowBonusInfo(false);
+                              closeSidebar();
+                              window.dispatchEvent(new CustomEvent('open-premium-modal'));
+                            }}
+                            style={{
+                              background: '#F59E0B',
+                              color: '#FFFFFF',
+                              border: 'none',
+                              borderRadius: '6px',
+                              padding: '3px 8px',
+                              fontSize: '10px',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                            }}
+                          >
+                            Жазылым алу
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
