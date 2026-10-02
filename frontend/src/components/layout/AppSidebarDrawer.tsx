@@ -168,113 +168,128 @@ export const AppSidebarDrawer: React.FC = () => {
         {/* User Card */}
         {isAuthenticated && user && (
           <>
-            <div className="sidebar-user-box">
-              <div className="sidebar-user-avatar" style={{ overflow: 'hidden' }}>
-                {(user.avatarUrl || (role === 'client' ? '/default-reader-avatar.jpg' : undefined)) ? (
-                  <img
-                    src={user.avatarUrl || '/default-reader-avatar.jpg'}
-                    alt={user.name || 'Avatar'}
-                    style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }}
-                    referrerPolicy="no-referrer"
-                  />
-                ) : (
-                  user.name ? user.name.trim().charAt(0).toUpperCase() : (role === 'admin' ? 'А' : 'О')
-                )}
-              </div>
-              <div className="sidebar-user-info">
-                <div className="sidebar-user-name" title={user.name}>
-                  {user.role === 'admin' ? user.name || 'Әкімші' : (user.name || 'Оқырман')}
-                </div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px', rowGap: '2px', marginTop: '2px' }}>
-                  {user.username && user.username.trim() && (
-                    <div
-                      className="sidebar-user-email"
-                      style={{ margin: 0, padding: 0 }}
-                      title={`@${user.username.replace(/^@/, '')}`}
-                    >
-                      @{user.username.replace(/^@/, '')}
-                    </div>
-                  )}
-                  {(!user.role || user.role === 'client') && (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setShowBonusInfo((prev) => !prev);
-                      }}
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                        fontSize: '12px',
-                        fontWeight: 700,
-                        color: '#D97706',
-                        whiteSpace: 'nowrap',
-                        background: 'none',
-                        border: 'none',
-                        padding: 0,
-                        cursor: 'pointer',
-                      }}
-                      title="Бонус туралы ақпаратты көру"
-                    >
-                      <img src="/bonus-coin.png" alt="Бонус" style={{ width: '15px', height: '15px', objectFit: 'contain', flexShrink: 0 }} />
-                      <span>{(user.bonusBalance ?? 0).toLocaleString('kk-KZ')} {systemSettings?.bonusCurrencyName || 'Бонус'}</span>
-                    </button>
+            <div style={{ position: 'relative' }}>
+              <div className="sidebar-user-box">
+                <div className="sidebar-user-avatar" style={{ overflow: 'hidden' }}>
+                  {(user.avatarUrl || (role === 'client' ? '/default-reader-avatar.jpg' : undefined)) ? (
+                    <img
+                      src={user.avatarUrl || '/default-reader-avatar.jpg'}
+                      alt={user.name || 'Avatar'}
+                      style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }}
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    user.name ? user.name.trim().charAt(0).toUpperCase() : (role === 'admin' ? 'А' : 'О')
                   )}
                 </div>
-              </div>
-            </div>
-
-            {/* Bonus Info Banner in Sidebar */}
-            {showBonusInfo && (
-              <div
-                style={{
-                  margin: '-8px 16px 12px 16px',
-                  padding: '12px',
-                  borderRadius: '12px',
-                  background: '#FFFBEB',
-                  border: '1.5px solid #FCD34D',
-                  boxShadow: '0 4px 12px rgba(217, 119, 6, 0.08)',
-                  boxSizing: 'border-box',
-                }}
-                className="animate-in fade-in duration-150"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                    <img src="/bonus-coin.png" alt="Бонус" style={{ width: '16px', height: '16px', objectFit: 'contain' }} />
-                    <span style={{ fontSize: '13px', fontWeight: 800, color: '#92400E' }}>
-                      {systemSettings?.bonusCurrencyName || 'Бонус'}
-                    </span>
+                <div className="sidebar-user-info">
+                  <div className="sidebar-user-name" title={user.name}>
+                    {user.role === 'admin' ? user.name || 'Әкімші' : (user.name || 'Оқырман')}
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setShowBonusInfo(false)}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: '#94A3B8',
-                      cursor: 'pointer',
-                      padding: '2px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                    className="hover:text-slate-600 rounded"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-                <p style={{ fontSize: '11px', color: '#475569', lineHeight: 1.5, margin: 0, fontWeight: 500, whiteSpace: 'normal', wordBreak: 'break-word' }}>
-                  Белсенді оқырмандарға берілетін бонус. Күн сайын сайтқа кіру, кітап тыңдау немесе пікір жазу арқылы жинап, оны жазылымға (подписка) айырбастауға болады.
-                </p>
-                <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #FEF3C7', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: '11px', fontWeight: 700, color: '#B45309' }}>
-                    Балансыңыз: {(user.bonusBalance ?? 0).toLocaleString('kk-KZ')} {systemSettings?.bonusCurrencyName || 'Бонус'}
-                  </span>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px', rowGap: '2px', marginTop: '2px' }}>
+                    {user.username && user.username.trim() && (
+                      <div
+                        className="sidebar-user-email"
+                        style={{ margin: 0, padding: 0 }}
+                        title={`@${user.username.replace(/^@/, '')}`}
+                      >
+                        @{user.username.replace(/^@/, '')}
+                      </div>
+                    )}
+                    {(!user.role || user.role === 'client') && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowBonusInfo((prev) => !prev);
+                        }}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          color: '#D97706',
+                          whiteSpace: 'nowrap',
+                          background: 'none',
+                          border: 'none',
+                          padding: 0,
+                          cursor: 'pointer',
+                        }}
+                        title="Бонус туралы ақпаратты көру"
+                      >
+                        <img src="/bonus-coin.png" alt="Бонус" style={{ width: '15px', height: '15px', objectFit: 'contain', flexShrink: 0 }} />
+                        <span>{(user.bonusBalance ?? 0).toLocaleString('kk-KZ')} {systemSettings?.bonusCurrencyName || 'Бонус'}</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
-            )}
+
+              {/* Bonus Info Floating Overlay in Sidebar (Floats ON TOP without shifting content) */}
+              {showBonusInfo && (
+                <>
+                  <div
+                    className="fixed inset-0 z-[250]"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowBonusInfo(false);
+                    }}
+                  />
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: 'calc(100% - 6px)',
+                      left: '16px',
+                      right: '16px',
+                      zIndex: 300,
+                      padding: '12px 14px',
+                      borderRadius: '14px',
+                      background: '#FFFBEB',
+                      border: '1.5px solid #FCD34D',
+                      boxShadow: '0 12px 28px rgba(217, 119, 6, 0.2), 0 4px 12px rgba(0, 0, 0, 0.08)',
+                      boxSizing: 'border-box',
+                    }}
+                    className="animate-in fade-in zoom-in-95 duration-150"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                        <img src="/bonus-coin.png" alt="Бонус" style={{ width: '16px', height: '16px', objectFit: 'contain' }} />
+                        <span style={{ fontSize: '13px', fontWeight: 800, color: '#92400E' }}>
+                          {systemSettings?.bonusCurrencyName || 'Бонус'}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowBonusInfo(false)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#94A3B8',
+                          cursor: 'pointer',
+                          padding: '2px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                        className="hover:text-slate-600 rounded"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                    <p style={{ fontSize: '11px', color: '#475569', lineHeight: 1.5, margin: 0, fontWeight: 500, whiteSpace: 'normal', wordBreak: 'break-word' }}>
+                      Белсенді оқырмандарға берілетін бонус. Күн сайын сайтқа кіру, кітап тыңдау немесе пікір жазу арқылы жинап, оны жазылымға (подписка) айырбастауға болады.
+                    </p>
+                    <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #FEF3C7', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <span style={{ fontSize: '11px', fontWeight: 700, color: '#B45309' }}>
+                        Балансыңыз: {(user.bonusBalance ?? 0).toLocaleString('kk-KZ')} {systemSettings?.bonusCurrencyName || 'Бонус'}
+                      </span>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
           </>
         )}
 
