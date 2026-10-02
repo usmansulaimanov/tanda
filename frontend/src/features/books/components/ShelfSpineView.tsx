@@ -153,16 +153,7 @@ export const ShelfSpineView: React.FC<ShelfSpineViewProps> = ({
           style={{ background: 'radial-gradient(circle, #EF7E00 0%, transparent 70%)' }}
         />
 
-        {/* Shelf Header Banner */}
-        <div className="flex items-center justify-between gap-3 mb-6 px-2 text-amber-200/80 text-xs font-semibold">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-            <span>3D Кітап сөресі — кітапты басқанда сөреден суырылып, 3D мұқабасымен бұрылады</span>
-          </div>
-          <span className="text-[11px] text-amber-200/60 hidden sm:inline">
-            Барлығы: {items.length} кітап
-          </span>
-        </div>
+
 
         {/* Shelves Stack */}
         <div className="flex flex-col gap-12 sm:gap-16 relative z-10 pt-4">
