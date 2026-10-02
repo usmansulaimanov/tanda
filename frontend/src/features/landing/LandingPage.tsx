@@ -346,8 +346,13 @@ export const LandingPage: React.FC = () => {
 
             <div className="hero-tag">Қазақша кітаптар қоры</div>
             <h1>Оқы. Тыңда. <span>Дамы.</span></h1>
-            <p className="hero-desc">
-              Жүздеген қазақша электронды және аудиокітаптар — бір жерде. Кез келген уақытта оқып, тыңдай аласыз.
+            <p className="hero-desc" style={{ maxWidth: '640px' }}>
+              <span style={{ display: 'block' }}>
+                Жүздеген қазақша электронды және аудиокітаптар — бір&nbsp;жерде.
+              </span>
+              <span style={{ display: 'block' }}>
+                Кез келген уақытта оқып, тыңдай аласыз.
+              </span>
             </p>
             <div className="hero-buttons">
               <button type="button" onClick={scrollToCatalog} className="btn-primary">Кітаптарды көру</button>

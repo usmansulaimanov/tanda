@@ -62,14 +62,25 @@ public class UserBookService {
 
         // Handle explicit boolean flags if provided
         if (dto != null) {
-            if (dto.getIsReading() != null) {
-                ub.setIsReading(dto.getIsReading());
-            }
-            if (dto.getIsCompleted() != null) {
-                ub.setIsCompleted(dto.getIsCompleted());
-            }
-            if (dto.getIsWantToRead() != null) {
-                ub.setIsWantToRead(dto.getIsWantToRead());
+            if (Boolean.TRUE.equals(dto.getIsReading())) {
+                ub.setIsReading(true);
+                ub.setIsCompleted(false);
+                ub.setIsWantToRead(false);
+                ub.setStatus("reading");
+            } else if (Boolean.TRUE.equals(dto.getIsCompleted())) {
+                ub.setIsCompleted(true);
+                ub.setIsReading(false);
+                ub.setIsWantToRead(false);
+                ub.setStatus("completed");
+            } else if (Boolean.TRUE.equals(dto.getIsWantToRead())) {
+                ub.setIsWantToRead(true);
+                ub.setIsReading(false);
+                ub.setIsCompleted(false);
+                ub.setStatus("want_to_read");
+            } else if (dto.getIsReading() != null || dto.getIsCompleted() != null || dto.getIsWantToRead() != null) {
+                if (dto.getIsReading() != null) ub.setIsReading(dto.getIsReading());
+                if (dto.getIsCompleted() != null) ub.setIsCompleted(dto.getIsCompleted());
+                if (dto.getIsWantToRead() != null) ub.setIsWantToRead(dto.getIsWantToRead());
             }
         }
 
@@ -78,14 +89,23 @@ public class UserBookService {
             String targetStatus = dto.getStatus().trim().toLowerCase();
             if ("reading".equals(targetStatus)) {
                 ub.setIsReading(true);
+                ub.setIsCompleted(false);
+                ub.setIsWantToRead(false);
             } else if ("completed".equals(targetStatus)) {
                 ub.setIsCompleted(true);
+                ub.setIsReading(false);
+                ub.setIsWantToRead(false);
             } else if ("want_to_read".equals(targetStatus)) {
                 ub.setIsWantToRead(true);
+                ub.setIsReading(false);
+                ub.setIsCompleted(false);
             }
             ub.setStatus(targetStatus);
         } else if (ub.getStatus() == null) {
             ub.setStatus("want_to_read");
+            ub.setIsWantToRead(true);
+            ub.setIsReading(false);
+            ub.setIsCompleted(false);
         }
 
         if (dto != null) {
@@ -110,9 +130,11 @@ public class UserBookService {
             }
         }
 
-        if (Boolean.TRUE.equals(ub.getIsCompleted()) || (ub.getProgressPercent() != null && ub.getProgressPercent() >= 100.0)) {
-            ub.setProgressPercent(100.0);
+        // Auto-complete if >= 90% or explicitly completed
+        if (Boolean.TRUE.equals(ub.getIsCompleted()) || (ub.getProgressPercent() != null && ub.getProgressPercent() >= 90.0)) {
             ub.setIsCompleted(true);
+            ub.setIsReading(false);
+            ub.setIsWantToRead(false);
             ub.setStatus("completed");
             if (ub.getCompletedAt() == null) {
                 ub.setCompletedAt(now);

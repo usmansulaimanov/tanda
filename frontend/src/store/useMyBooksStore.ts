@@ -107,9 +107,9 @@ export const useMyBooksStore = create<MyBooksState>((set, get) => ({
     const existing = get().currentShelf[strId];
     const nowIso = new Date().toISOString();
 
-    const isReading = status === 'reading' ? true : Boolean(existing?.isReading);
-    const isCompleted = status === 'completed' ? true : Boolean(existing?.isCompleted);
-    const isWantToRead = status === 'want_to_read' ? true : Boolean(existing?.isWantToRead);
+    const isReading = status === 'reading';
+    const isCompleted = status === 'completed';
+    const isWantToRead = status === 'want_to_read';
 
     const optimisticRecord: UserBookRecord = {
       bookId: strId,
@@ -121,7 +121,7 @@ export const useMyBooksStore = create<MyBooksState>((set, get) => ({
       lastReadAt: status === 'reading' ? nowIso : existing?.lastReadAt,
       currentPage: existing?.currentPage || 1,
       totalPages: existing?.totalPages,
-      progressPercent: existing?.progressPercent || 0,
+      progressPercent: status === 'completed' ? 100 : (existing?.progressPercent || 0),
       completedAt: status === 'completed' ? nowIso : existing?.completedAt,
     };
 
@@ -157,6 +157,10 @@ export const useMyBooksStore = create<MyBooksState>((set, get) => ({
         try {
           useSavedBooksStore.getState().addSavedBook(strId);
         } catch {}
+      } else {
+        try {
+          useSavedBooksStore.getState().removeSavedBook(strId);
+        } catch {}
       }
     } catch (err) {
       console.error('Failed to set book status on server:', err);
@@ -177,84 +181,16 @@ export const useMyBooksStore = create<MyBooksState>((set, get) => ({
 
   toggleBookStatus: async (bookId: string, status: BookShelfStatus) => {
     const strId = String(bookId);
-    const existing = get().currentShelf[strId];
-    const nowIso = new Date().toISOString();
+    const isCurrentlyInStatus = get().hasStatus(strId, status);
 
-    const currentFlag = status === 'reading'
-      ? Boolean(existing?.isReading || existing?.status === 'reading')
-      : status === 'completed'
-      ? Boolean(existing?.isCompleted || existing?.status === 'completed')
-      : Boolean(existing?.isWantToRead || existing?.status === 'want_to_read' || useSavedBooksStore.getState().isBookSaved(strId));
-
-    const nextFlag = !currentFlag;
-
-    const isReading = status === 'reading' ? nextFlag : Boolean(existing?.isReading || existing?.status === 'reading');
-    const isCompleted = status === 'completed' ? nextFlag : Boolean(existing?.isCompleted || existing?.status === 'completed');
-    const isWantToRead = status === 'want_to_read' ? nextFlag : Boolean(existing?.isWantToRead || existing?.status === 'want_to_read');
-
-    const hasAny = isReading || isCompleted || isWantToRead;
-
-    if (!hasAny) {
-      // If all flags turned off, remove completely
+    if (isCurrentlyInStatus) {
+      // If already has this status, toggle off by removing from shelf
       await get().removeBookFromShelf(strId);
       return;
     }
 
-    const optimisticRecord: UserBookRecord = {
-      bookId: strId,
-      status: isReading ? 'reading' : isCompleted ? 'completed' : 'want_to_read',
-      isReading,
-      isCompleted,
-      isWantToRead,
-      addedAt: existing?.addedAt || nowIso,
-      lastReadAt: isReading ? nowIso : existing?.lastReadAt,
-      currentPage: existing?.currentPage || 1,
-      totalPages: existing?.totalPages,
-      progressPercent: existing?.progressPercent || 0,
-      completedAt: isCompleted ? nowIso : existing?.completedAt,
-    };
-
-    set((state) => ({
-      currentShelf: { ...state.currentShelf, [strId]: optimisticRecord },
-    }));
-
-    try {
-      const { data } = await api.post(`/api/v1/me/books/${strId}`, {
-        isReading,
-        isCompleted,
-        isWantToRead,
-      });
-
-      if (data?.bookId) {
-        set((state) => ({
-          currentShelf: {
-            ...state.currentShelf,
-            [strId]: {
-              ...optimisticRecord,
-              isReading: Boolean(data.isReading ?? isReading),
-              isCompleted: Boolean(data.isCompleted ?? isCompleted),
-              isWantToRead: Boolean(data.isWantToRead ?? isWantToRead),
-            },
-          },
-        }));
-      }
-
-      if (status === 'want_to_read') {
-        if (nextFlag) {
-          useSavedBooksStore.getState().addSavedBook(strId);
-        } else {
-          useSavedBooksStore.getState().removeSavedBook(strId);
-        }
-      }
-    } catch (err) {
-      console.error('Failed to toggle book status on server:', err);
-      if (existing) {
-        set((state) => ({
-          currentShelf: { ...state.currentShelf, [strId]: existing },
-        }));
-      }
-      throw err;
-    }
+    // Otherwise, transition exclusively to the new status
+    await get().setBookStatus(strId, status);
   },
 
   removeBookFromShelf: async (bookId: string) => {
@@ -309,10 +245,7 @@ export const useMyBooksStore = create<MyBooksState>((set, get) => ({
       }
       return false;
     }
-    if (status === 'reading') return Boolean(rec.isReading || rec.status === 'reading');
-    if (status === 'completed') return Boolean(rec.isCompleted || rec.status === 'completed');
-    if (status === 'want_to_read') return Boolean(rec.isWantToRead || rec.status === 'want_to_read' || useSavedBooksStore.getState().isBookSaved(strId));
-    return false;
+    return rec.status === status;
   },
 
   getBooksByStatus: (status: BookShelfStatus) => {
@@ -324,8 +257,11 @@ export const useMyBooksStore = create<MyBooksState>((set, get) => ({
         const savedIdSet = new Set(savedIds.map(String));
 
         for (const [id, rec] of Object.entries(shelf)) {
-          if (rec.isWantToRead || rec.status === 'want_to_read') {
+          if (rec.status === 'want_to_read') {
             savedIdSet.add(String(id));
+          } else {
+            // If actively reading or completed, ensure not shown in want_to_read
+            savedIdSet.delete(String(id));
           }
         }
 
@@ -335,8 +271,8 @@ export const useMyBooksStore = create<MyBooksState>((set, get) => ({
           list.push({
             bookId: sId,
             status: 'want_to_read',
-            isReading: existingRec?.isReading,
-            isCompleted: existingRec?.isCompleted,
+            isReading: false,
+            isCompleted: false,
             isWantToRead: true,
             addedAt: existingRec?.addedAt || new Date().toISOString(),
             lastReadAt: existingRec?.lastReadAt,
@@ -358,11 +294,11 @@ export const useMyBooksStore = create<MyBooksState>((set, get) => ({
     }
 
     if (status === 'reading') {
-      return Object.values(shelf).filter((r) => Boolean(r.isReading || r.status === 'reading'));
+      return Object.values(shelf).filter((r) => r.status === 'reading');
     }
 
     if (status === 'completed') {
-      return Object.values(shelf).filter((r) => Boolean(r.isCompleted || r.status === 'completed'));
+      return Object.values(shelf).filter((r) => r.status === 'completed');
     }
 
     return Object.values(shelf);
