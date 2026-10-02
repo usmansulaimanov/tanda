@@ -612,14 +612,11 @@ export const Header: React.FC = () => {
                                   alignItems: 'center',
                                   gap: '4px',
                                   whiteSpace: 'nowrap',
-                                  background: showBonusInfo ? '#FEF3C7' : '#FFFBEB',
-                                  border: showBonusInfo ? '1px solid #FCD34D' : '1px solid #FDE68A',
-                                  borderRadius: '6px',
-                                  padding: '2px 6px',
+                                  background: 'none',
+                                  border: 'none',
+                                  padding: 0,
                                   cursor: 'pointer',
-                                  transition: 'all 0.15s',
                                 }}
-                                className="hover:bg-amber-100 hover:border-amber-300"
                                 title="Бонус туралы ақпаратты көру"
                               >
                                 <img
