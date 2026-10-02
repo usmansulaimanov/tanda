@@ -175,17 +175,34 @@ export const ShelfListView: React.FC<ShelfListViewProps> = ({
                     </div>
                     <button
                       type="button"
-                      onClick={() => handleChangeStatus(String(book.id), 'reading', book.title)}
+                      onClick={() => {
+                        if (record.status === 'reading') {
+                          handleRemove(String(book.id), book.title);
+                        }
+                        setActiveMenuBookId(null);
+                      }}
                       className={`w-full px-3 py-2 text-left flex items-center gap-2 hover:bg-slate-50 transition-colors ${
-                        record.status === 'reading' ? 'font-bold text-[#005494]' : 'text-slate-700'
+                        record.status === 'reading' ? 'font-bold text-[#005494] cursor-pointer' : 'text-slate-400 cursor-not-allowed opacity-60'
                       }`}
+                      title={
+                        record.status === 'reading'
+                          ? 'Басып сөреден өшіру'
+                          : 'Бұл күй кітапты 5 минут тыңдағанда автоматты қосылады'
+                      }
                     >
                       <Clock className="w-3.5 h-3.5 text-[#005494]" />
                       Қазір оқуда
                     </button>
                     <button
                       type="button"
-                      onClick={() => handleChangeStatus(String(book.id), 'completed', book.title)}
+                      onClick={() => {
+                        if (record.status === 'completed') {
+                          handleRemove(String(book.id), book.title);
+                        } else {
+                          handleChangeStatus(String(book.id), 'completed', book.title);
+                        }
+                        setActiveMenuBookId(null);
+                      }}
                       className={`w-full px-3 py-2 text-left flex items-center gap-2 hover:bg-slate-50 transition-colors ${
                         record.status === 'completed' ? 'font-bold text-emerald-600' : 'text-slate-700'
                       }`}
@@ -195,7 +212,14 @@ export const ShelfListView: React.FC<ShelfListViewProps> = ({
                     </button>
                     <button
                       type="button"
-                      onClick={() => handleChangeStatus(String(book.id), 'want_to_read', book.title)}
+                      onClick={() => {
+                        if (record.status === 'want_to_read') {
+                          handleRemove(String(book.id), book.title);
+                        } else {
+                          handleChangeStatus(String(book.id), 'want_to_read', book.title);
+                        }
+                        setActiveMenuBookId(null);
+                      }}
                       className={`w-full px-3 py-2 text-left flex items-center gap-2 hover:bg-slate-50 transition-colors ${
                         record.status === 'want_to_read' ? 'font-bold text-amber-600' : 'text-slate-700'
                       }`}

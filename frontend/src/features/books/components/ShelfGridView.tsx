@@ -137,7 +137,9 @@ export const ShelfGridView: React.FC<ShelfGridViewProps> = ({
                   <button
                     type="button"
                     onClick={() => {
-                      handleChangeStatus(String(book.id), 'reading', book.title);
+                      if (record.status === 'reading') {
+                        handleRemove(String(book.id), book.title);
+                      }
                       setActiveMenuBookId(null);
                     }}
                     style={{
@@ -147,14 +149,20 @@ export const ShelfGridView: React.FC<ShelfGridViewProps> = ({
                       borderRadius: '8px',
                       border: 'none',
                       background: record.status === 'reading' ? '#F1F5F9' : 'transparent',
-                      color: record.status === 'reading' ? 'var(--blue)' : 'var(--text-dark)',
+                      color: record.status === 'reading' ? 'var(--blue)' : '#94A3B8',
                       fontWeight: record.status === 'reading' ? 800 : 600,
                       fontSize: '12px',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '8px',
-                      cursor: 'pointer',
+                      cursor: record.status === 'reading' ? 'pointer' : 'not-allowed',
+                      opacity: record.status === 'reading' ? 1 : 0.6,
                     }}
+                    title={
+                      record.status === 'reading'
+                        ? 'Басып сөреден өшіру'
+                        : 'Бұл күй кітапты 5 минут тыңдағанда автоматты қосылады'
+                    }
                   >
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                       <circle cx="12" cy="12" r="10"></circle>
@@ -166,7 +174,11 @@ export const ShelfGridView: React.FC<ShelfGridViewProps> = ({
                   <button
                     type="button"
                     onClick={() => {
-                      handleChangeStatus(String(book.id), 'completed', book.title);
+                      if (record.status === 'completed') {
+                        handleRemove(String(book.id), book.title);
+                      } else {
+                        handleChangeStatus(String(book.id), 'completed', book.title);
+                      }
                       setActiveMenuBookId(null);
                     }}
                     style={{
@@ -195,7 +207,11 @@ export const ShelfGridView: React.FC<ShelfGridViewProps> = ({
                   <button
                     type="button"
                     onClick={() => {
-                      handleChangeStatus(String(book.id), 'want_to_read', book.title);
+                      if (record.status === 'want_to_read') {
+                        handleRemove(String(book.id), book.title);
+                      } else {
+                        handleChangeStatus(String(book.id), 'want_to_read', book.title);
+                      }
                       setActiveMenuBookId(null);
                     }}
                     style={{

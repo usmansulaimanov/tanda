@@ -375,17 +375,24 @@ export const ShelfSpineView: React.FC<ShelfSpineViewProps> = ({
                 <button
                   type="button"
                   onClick={() => {
-                    handleChangeStatus(String(activeBook.id), 'reading', activeBook.title);
-                    setModalItem({
-                      ...modalItem,
-                      record: { ...activeRecord, status: 'reading' },
-                    });
+                    if (activeRecord.status === 'reading') {
+                      handleRemove(String(activeBook.id), activeBook.title);
+                      setModalItem(null);
+                    } else {
+                      // Manual adding to reading is not allowed (only automatically after 5 min listening)
+                      // Notify the user gently
+                    }
                   }}
                   className={`py-1.5 px-2 rounded-xl text-[11px] font-bold transition-all flex items-center justify-center gap-1 ${
                     activeRecord.status === 'reading'
-                      ? 'bg-[#005494] text-white shadow-xs'
-                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                      ? 'bg-[#005494] text-white shadow-xs cursor-pointer hover:bg-[#004377]'
+                      : 'bg-slate-100 text-slate-400 cursor-not-allowed opacity-60'
                   }`}
+                  title={
+                    activeRecord.status === 'reading'
+                      ? 'Басып, «Оқып жатқандарым» сөресінен өшіру'
+                      : 'Бұл күй кітапты 5 минут тыңдағанда автоматты қосылады'
+                  }
                 >
                   <Clock className="w-3 h-3" />
                   Оқуда
@@ -394,17 +401,23 @@ export const ShelfSpineView: React.FC<ShelfSpineViewProps> = ({
                 <button
                   type="button"
                   onClick={() => {
-                    handleChangeStatus(String(activeBook.id), 'completed', activeBook.title);
-                    setModalItem({
-                      ...modalItem,
-                      record: { ...activeRecord, status: 'completed' },
-                    });
+                    if (activeRecord.status === 'completed') {
+                      handleRemove(String(activeBook.id), activeBook.title);
+                      setModalItem(null);
+                    } else {
+                      handleChangeStatus(String(activeBook.id), 'completed', activeBook.title);
+                      setModalItem({
+                        ...modalItem,
+                        record: { ...activeRecord, status: 'completed' },
+                      });
+                    }
                   }}
                   className={`py-1.5 px-2 rounded-xl text-[11px] font-bold transition-all flex items-center justify-center gap-1 ${
                     activeRecord.status === 'completed'
                       ? 'bg-emerald-600 text-white shadow-xs'
                       : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                   }`}
+                  title={activeRecord.status === 'completed' ? 'Басып сөреден өшіру' : 'Оқылғандарға қосу'}
                 >
                   <CheckCircle className="w-3 h-3" />
                   Оқылды
@@ -413,17 +426,23 @@ export const ShelfSpineView: React.FC<ShelfSpineViewProps> = ({
                 <button
                   type="button"
                   onClick={() => {
-                    handleChangeStatus(String(activeBook.id), 'want_to_read', activeBook.title);
-                    setModalItem({
-                      ...modalItem,
-                      record: { ...activeRecord, status: 'want_to_read' },
-                    });
+                    if (activeRecord.status === 'want_to_read') {
+                      handleRemove(String(activeBook.id), activeBook.title);
+                      setModalItem(null);
+                    } else {
+                      handleChangeStatus(String(activeBook.id), 'want_to_read', activeBook.title);
+                      setModalItem({
+                        ...modalItem,
+                        record: { ...activeRecord, status: 'want_to_read' },
+                      });
+                    }
                   }}
                   className={`py-1.5 px-2 rounded-xl text-[11px] font-bold transition-all flex items-center justify-center gap-1 ${
                     activeRecord.status === 'want_to_read'
                       ? 'bg-[#EF7E00] text-white shadow-xs'
                       : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                   }`}
+                  title={activeRecord.status === 'want_to_read' ? 'Басып сөреден өшіру' : 'Енді оқитындарға қосу'}
                 >
                   <Bookmark className="w-3 h-3" />
                   Енді оқимын

@@ -46,6 +46,7 @@ public class AudioSessionService {
 
     public static final int DAILY_MAX_CONTENT_SECONDS = 8 * 3600; // 28,800 seconds = 8 hours
     public static final int MINIMUM_SESSION_THRESHOLD_SECONDS = 60; // 1 minute threshold
+    public static final int AUTO_SHELF_READING_THRESHOLD_SECONDS = 300; // 5 minutes (300 seconds) threshold to add to reading shelf
 
     private final AudioSessionRepository audioSessionRepository;
     private final AudioListenEventRepository audioListenEventRepository;
@@ -102,15 +103,6 @@ public class AudioSessionService {
                 .build();
 
         AudioSession saved = audioSessionRepository.save(session);
-
-        // Mark book as reading on user shelf
-        try {
-            userBookService.addOrUpdateBook(userId, book.getId(), UserBookRequestDto.builder()
-                    .status("reading")
-                    .build());
-        } catch (Exception e) {
-            log.warn("Could not automatically update user shelf for session start: {}", e.getMessage());
-        }
 
         log.info("Started audio session={} for user={}, book={}", saved.getId(), userId, book.getId());
         return toSessionResponseDto(saved);
@@ -176,6 +168,17 @@ public class AudioSessionService {
                     if (uncredited > 0) {
                         creditStatsToAuthorAndBook(session.getBook().getId(), today, uncredited, credited == 0);
                         session.setCreditedSeconds(credited + uncredited);
+                    }
+                }
+
+                // Auto-add book to "reading" shelf ONLY when user listens for at least 5 minutes (>= 300s) in a session
+                if (newValid >= AUTO_SHELF_READING_THRESHOLD_SECONDS) {
+                    try {
+                        userBookService.addOrUpdateBook(userId, session.getBook().getId(), UserBookRequestDto.builder()
+                                .status("reading")
+                                .build());
+                    } catch (Exception e) {
+                        log.debug("Auto shelf reading update skipped: {}", e.getMessage());
                     }
                 }
             }
