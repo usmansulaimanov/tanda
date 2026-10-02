@@ -550,8 +550,6 @@ export const AuthorStatsPage: React.FC = () => {
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginTop: '8px', fontSize: '13px', color: '#64748B', flexWrap: 'wrap' }}>
-                  <span>ID: <strong style={{ fontFamily: 'monospace', color: 'var(--text-dark)' }}>{formatDisplayId(targetAuthor.idNumber || targetAuthor.id)}</strong></span>
-                  <span>•</span>
                   <span>{targetAuthor.email}</span>
                   {targetAuthor.phone && (
                     <>

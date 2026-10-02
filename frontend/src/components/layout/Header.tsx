@@ -572,17 +572,19 @@ export const Header: React.FC = () => {
                           {user.role === 'admin' ? 'Админ' : (user.name || 'Оқырман')}
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '2px', marginTop: '3px' }}>
-                          <span
-                            style={{
-                              fontSize: '12px',
-                              fontWeight: 700,
-                              fontFamily: 'monospace',
-                              color: '#0F172A',
-                              letterSpacing: '0.02em',
-                            }}
-                          >
-                            ID: {user.idNumber || '—'}
-                          </span>
+                          {(!user.role || user.role === 'client') && user.idNumber && (
+                            <span
+                              style={{
+                                fontSize: '12px',
+                                fontWeight: 700,
+                                fontFamily: 'monospace',
+                                color: '#0F172A',
+                                letterSpacing: '0.02em',
+                              }}
+                            >
+                              ID: {user.idNumber}
+                            </span>
+                          )}
                           {(!user.role || user.role === 'client') && (
                             <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px', rowGap: '2px', marginTop: '1px' }}>
                               {user.username && (

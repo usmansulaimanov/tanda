@@ -117,22 +117,6 @@ export const AuthorHomePage: React.FC = () => {
               Қош келдіңіз, {userDisplayName}!
             </h1>
 
-            {/* ID Subtitle */}
-            {user?.idNumber && (
-              <div
-                style={{
-                  fontSize: '15px',
-                  fontWeight: 700,
-                  color: 'rgba(255, 255, 255, 0.85)',
-                  fontFamily: 'monospace',
-                  marginBottom: '14px',
-                  letterSpacing: '0.05em',
-                }}
-              >
-                ID: {user.idNumber}
-              </div>
-            )}
-
             <p
               style={{
                 fontSize: '15px',

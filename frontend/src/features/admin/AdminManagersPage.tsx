@@ -121,8 +121,6 @@ export const AdminManagersPage: React.FC = () => {
   const [formPassword, setFormPassword] = useState('');
   const [showFormPassword, setShowFormPassword] = useState(false);
   const [formDuty, setFormDuty] = useState('');
-  const [formIdNumber, setFormIdNumber] = useState('');
-  const [formIdNumberError, setFormIdNumberError] = useState('');
   const [formAvatarUrl, setFormAvatarUrl] = useState<string | null>(DEFAULT_MANAGER_AVATAR);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [formPermissions, setFormPermissions] = useState<AdminPermission[]>([]);
@@ -144,8 +142,6 @@ export const AdminManagersPage: React.FC = () => {
   const [authorPhone, setAuthorPhone] = useState('');
   const [authorPassword, setAuthorPassword] = useState('');
   const [showAuthorPassword, setShowAuthorPassword] = useState(false);
-  const [authorIdNumber, setAuthorIdNumber] = useState('');
-  const [authorIdNumberError, setAuthorIdNumberError] = useState('');
   const [authorAvatarUrl, setAuthorAvatarUrl] = useState<string | null>(DEFAULT_MANAGER_AVATAR);
   const [isUploadingAuthorAvatar, setIsUploadingAuthorAvatar] = useState(false);
   const [authorAssignedBookIds, setAuthorAssignedBookIds] = useState<string[]>([]);
@@ -188,7 +184,6 @@ export const AdminManagersPage: React.FC = () => {
     if (m.isSuperAdmin) return true;
     if (m.id === '001007' || m.id === 'admin-001') return true;
     if (m.email?.toLowerCase() === 'admin@tanda.kz' || m.email?.toLowerCase() === 'usmansulaimanovv@gmail.com') return true;
-    if (m.idNumber === '0000 0001') return true;
     if (currentUser) {
       if (m.id === currentUser.id) return true;
       if (m.email && currentUser.email && m.email.toLowerCase() === currentUser.email.toLowerCase()) return true;
@@ -212,8 +207,7 @@ export const AdminManagersPage: React.FC = () => {
       (a) =>
         a.name.toLowerCase().includes(q) ||
         a.email.toLowerCase().includes(q) ||
-        (a.duty && a.duty.toLowerCase().includes(q)) ||
-        (a.idNumber && a.idNumber.toLowerCase().includes(q))
+        (a.duty && a.duty.toLowerCase().includes(q))
     );
   }, [assistants, searchQuery]);
 
@@ -263,8 +257,7 @@ export const AdminManagersPage: React.FC = () => {
         a.name.toLowerCase().includes(q) ||
         a.email.toLowerCase().includes(q) ||
         (a.phone && a.phone.toLowerCase().includes(q)) ||
-        (a.assignedAuthorName && a.assignedAuthorName.toLowerCase().includes(q)) ||
-        (a.idNumber && a.idNumber.toLowerCase().includes(q))
+        (a.assignedAuthorName && a.assignedAuthorName.toLowerCase().includes(q))
     );
   }, [authors, nonDeletedBooks, authorSearchQuery]);
 
@@ -275,8 +268,6 @@ export const AdminManagersPage: React.FC = () => {
     setFormPassword('');
     setShowFormPassword(false);
     setFormDuty('');
-    setFormIdNumber('');
-    setFormIdNumberError('');
     setFormAvatarUrl(DEFAULT_MANAGER_AVATAR);
     setFormPermissions([]);
     setFormIsActive(true);
@@ -290,32 +281,10 @@ export const AdminManagersPage: React.FC = () => {
     setFormPassword(mgr.password || '');
     setShowFormPassword(false);
     setFormDuty(mgr.duty || '');
-    setFormIdNumber(mgr.idNumber || '');
-    setFormIdNumberError('');
     setFormAvatarUrl(mgr.avatarUrl || DEFAULT_MANAGER_AVATAR);
     setFormPermissions(mgr.permissions || []);
     setFormIsActive(mgr.isActive !== false);
     setIsModalOpen(true);
-  };
-
-  const handleIdNumberChange = (val: string) => {
-    const formatted = formatIdNumberInput(val);
-    setFormIdNumber(formatted);
-    const digits = formatted.replace(/\D/g, '');
-    if (!digits) {
-      setFormIdNumberError('');
-      return;
-    }
-    if (digits.length < 8) {
-      setFormIdNumberError('ID нөмірі толық 8 саннан тұруы керек');
-      return;
-    }
-    const res = checkIdNumberAvailable(formatted, editingManager?.id);
-    if (!res.available) {
-      setFormIdNumberError(res.error || 'Бұл ID нөмірі бос емес, басқасын таңдаңыз');
-    } else {
-      setFormIdNumberError('');
-    }
   };
 
   const handleAvatarFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -374,14 +343,6 @@ export const AdminManagersPage: React.FC = () => {
       showToast('Кем дегенде бір функцияға рұқсат белгілеңіз', 'error');
       return;
     }
-    if (formIdNumber.trim()) {
-      const idCheck = checkIdNumberAvailable(formIdNumber.trim(), editingManager?.id);
-      if (!idCheck.available) {
-        setFormIdNumberError(idCheck.error || 'Бұл ID нөмірі бос емес, басқасын таңдаңыз');
-        showToast(idCheck.error || 'Бұл ID нөмірі бос емес, басқасын таңдаңыз', 'error');
-        return;
-      }
-    }
 
     setIsSubmitting(true);
     try {
@@ -391,7 +352,6 @@ export const AdminManagersPage: React.FC = () => {
           email: formEmail.trim().toLowerCase(),
           password: formPassword.trim() || undefined,
           duty: formDuty.trim() || undefined,
-          idNumber: formIdNumber.trim() || undefined,
           avatarUrl: formAvatarUrl,
           permissions: formPermissions,
           isActive: formIsActive,
@@ -409,7 +369,6 @@ export const AdminManagersPage: React.FC = () => {
           email: formEmail.trim().toLowerCase(),
           password: formPassword.trim() || undefined,
           duty: formDuty.trim() || undefined,
-          idNumber: formIdNumber.trim() || undefined,
           avatarUrl: formAvatarUrl,
           permissions: formPermissions,
         });
@@ -448,12 +407,6 @@ export const AdminManagersPage: React.FC = () => {
     setAuthorPhone('');
     setAuthorPassword('');
     setShowAuthorPassword(false);
-    try {
-      setAuthorIdNumber(getNextAvailableIdNumber());
-    } catch {
-      setAuthorIdNumber('0000 5001');
-    }
-    setAuthorIdNumberError('');
     setAuthorAvatarUrl(DEFAULT_MANAGER_AVATAR);
     setAuthorAssignedBookIds([]);
     setBookSearchInModal('');
@@ -471,8 +424,6 @@ export const AdminManagersPage: React.FC = () => {
     setAuthorPhone(formatPhoneNumber(aut.phone || ''));
     setAuthorPassword(aut.password || '');
     setShowAuthorPassword(false);
-    setAuthorIdNumber(aut.idNumber || '');
-    setAuthorIdNumberError('');
     setAuthorAvatarUrl(aut.avatarUrl || DEFAULT_MANAGER_AVATAR);
     setAuthorAssignedBookIds(aut.assignedBookIds || []);
     setBookSearchInModal('');
@@ -483,7 +434,7 @@ export const AdminManagersPage: React.FC = () => {
 
   useEffect(() => {
     if (editAuthorIdParam && authors.length > 0) {
-      const target = authors.find((a) => a.id === editAuthorIdParam || a.idNumber === editAuthorIdParam);
+      const target = authors.find((a) => a.id === editAuthorIdParam);
       if (target) {
         handleOpenAuthorEditModal(target);
         setSearchParams({ tab: 'authors' }, { replace: true });
@@ -507,26 +458,6 @@ export const AdminManagersPage: React.FC = () => {
       setAuthorEmailError(res.error || 'Бұл электронды пошта жүйеде тіркеліп қойған');
     } else {
       setAuthorEmailError('');
-    }
-  };
-
-  const handleAuthorIdNumberChange = (val: string) => {
-    const formatted = formatIdNumberInput(val);
-    setAuthorIdNumber(formatted);
-    const digits = formatted.replace(/\D/g, '');
-    if (!digits) {
-      setAuthorIdNumberError('');
-      return;
-    }
-    if (digits.length < 8) {
-      setAuthorIdNumberError('ID нөмірі толық 8 саннан тұруы керек');
-      return;
-    }
-    const res = checkIdNumberAvailable(formatted, editingAuthor?.id);
-    if (!res.available) {
-      setAuthorIdNumberError(res.error || 'Бұл ID нөмірі бос емес, басқасын таңдаңыз');
-    } else {
-      setAuthorIdNumberError('');
     }
   };
 
@@ -582,14 +513,6 @@ export const AdminManagersPage: React.FC = () => {
       showToast(emailCheck.error || 'Бұл электронды пошта жүйеде тіркеліп қойған', 'error');
       return;
     }
-    if (authorIdNumber.trim()) {
-      const idCheck = checkIdNumberAvailable(authorIdNumber.trim(), editingAuthor?.id);
-      if (!idCheck.available) {
-        setAuthorIdNumberError(idCheck.error || 'Бұл ID нөмірі бос емес, басқасын таңдаңыз');
-        showToast(idCheck.error || 'Бұл ID нөмірі бос емес, басқасын таңдаңыз', 'error');
-        return;
-      }
-    }
 
     setIsAuthorSubmitting(true);
     try {
@@ -599,7 +522,6 @@ export const AdminManagersPage: React.FC = () => {
           email: authorEmail.trim().toLowerCase(),
           password: authorPassword.trim() || undefined,
           phone: authorPhone.trim() || undefined,
-          idNumber: authorIdNumber.trim() || undefined,
           avatarUrl: authorAvatarUrl,
           assignedAuthorName: authorAssignedName.trim() || authorName.trim(),
           assignedBookIds: authorAssignedBookIds,
@@ -613,8 +535,6 @@ export const AdminManagersPage: React.FC = () => {
           const errMsg = res.error || 'Қате орын алды';
           if (errMsg.toLowerCase().includes('пошта') || errMsg.toLowerCase().includes('email')) {
             setAuthorEmailError(errMsg);
-          } else if (errMsg.toLowerCase().includes('id')) {
-            setAuthorIdNumberError(errMsg);
           }
           showToast(errMsg, 'error');
         }
@@ -624,7 +544,6 @@ export const AdminManagersPage: React.FC = () => {
           email: authorEmail.trim().toLowerCase(),
           password: authorPassword.trim() || undefined,
           phone: authorPhone.trim() || undefined,
-          idNumber: authorIdNumber.trim() || undefined,
           avatarUrl: authorAvatarUrl,
           assignedAuthorName: authorAssignedName.trim() || authorName.trim(),
           assignedBookIds: authorAssignedBookIds,
@@ -637,8 +556,6 @@ export const AdminManagersPage: React.FC = () => {
           const errMsg = res.error || 'Қате орын алды';
           if (errMsg.toLowerCase().includes('пошта') || errMsg.toLowerCase().includes('email')) {
             setAuthorEmailError(errMsg);
-          } else if (errMsg.toLowerCase().includes('id')) {
-            setAuthorIdNumberError(errMsg);
           }
           showToast(errMsg, 'error');
         }
@@ -905,7 +822,7 @@ export const AdminManagersPage: React.FC = () => {
                       </h3>
                     </div>
                     <div style={{ fontSize: '13px', color: 'var(--text-mid)', marginTop: '4px' }}>
-                      {superAdmin.email} &bull; ID: {superAdmin.idNumber || '0000 0001'}
+                      {superAdmin.email}
                     </div>
                   </div>
                 </div>
@@ -1034,7 +951,7 @@ export const AdminManagersPage: React.FC = () => {
                               </span>
                             </div>
                             <div style={{ fontSize: '13px', color: '#64748B', marginTop: '4px' }}>
-                              {assistant.email} &bull; ID: {assistant.idNumber || '0000 0002'}
+                              {assistant.email}
                             </div>
 
                             {/* Permissions badges */}
@@ -1283,7 +1200,7 @@ export const AdminManagersPage: React.FC = () => {
                           </div>
 
                           <div style={{ fontSize: '13px', color: '#64748B', marginTop: '4px' }}>
-                            {author.email} {author.phone ? `• ${author.phone}` : ''} &bull; ID: {author.idNumber || '0000 0001'}
+                            {author.email} {author.phone ? `• ${author.phone}` : ''}
                           </div>
 
                           {/* Matching meta badges */}
@@ -1804,6 +1721,7 @@ export const AdminManagersPage: React.FC = () => {
                       type="text"
                       value={formDuty}
                       onChange={(e) => setFormDuty(e.target.value)}
+                      placeholder="Мысалы: Көмекші модератор"
                       style={{
                         width: '100%',
                         padding: '11px 14px',
@@ -1814,36 +1732,6 @@ export const AdminManagersPage: React.FC = () => {
                         boxSizing: 'border-box',
                       }}
                     />
-                  </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '6px' }}>
-                      ID нөмірі
-                    </label>
-                    <input
-                      type="text"
-                      maxLength={9}
-                      placeholder="0000 0002"
-                      value={formIdNumber}
-                      onChange={(e) => handleIdNumberChange(e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: '11px 14px',
-                        borderRadius: '10px',
-                        border: formIdNumberError ? '1.5px solid #EF4444' : '1.5px solid #CBD5E1',
-                        boxShadow: formIdNumberError ? '0 0 0 3px rgba(239, 68, 68, 0.12)' : 'none',
-                        fontSize: '14px',
-                        outline: 'none',
-                        boxSizing: 'border-box',
-                        fontFamily: 'monospace',
-                        fontWeight: 600,
-                      }}
-                    />
-                    {formIdNumberError && (
-                      <span style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#DC2626', marginTop: '6px' }}>
-                        {formIdNumberError}
-                      </span>
-                    )}
                   </div>
                 </div>
 
@@ -2418,36 +2306,6 @@ export const AdminManagersPage: React.FC = () => {
                         )}
                       </button>
                     </div>
-                  </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: 'var(--text-dark)', marginBottom: '6px' }}>
-                      ID нөмірі
-                    </label>
-                    <input
-                      type="text"
-                      maxLength={9}
-                      placeholder="0000 0001"
-                      value={authorIdNumber}
-                      onChange={(e) => handleAuthorIdNumberChange(e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: '11px 14px',
-                        borderRadius: '10px',
-                        border: authorIdNumberError ? '1.5px solid #EF4444' : '1.5px solid #CBD5E1',
-                        boxShadow: authorIdNumberError ? '0 0 0 3px rgba(239, 68, 68, 0.12)' : 'none',
-                        fontSize: '14px',
-                        outline: 'none',
-                        boxSizing: 'border-box',
-                        fontFamily: 'monospace',
-                        fontWeight: 600,
-                      }}
-                    />
-                    {authorIdNumberError && (
-                      <span style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#DC2626', marginTop: '6px' }}>
-                        {authorIdNumberError}
-                      </span>
-                    )}
                   </div>
                 </div>
 

@@ -705,16 +705,18 @@ export const SettingsPage: React.FC = () => {
               <h1 style={{ fontSize: '22px', fontWeight: 900, color: '#0F172A', margin: 0 }}>
                 {user.name || 'Оқырман'}
               </h1>
-              <span
-                style={{
-                  fontSize: '13px',
-                  fontWeight: 700,
-                  fontFamily: 'monospace',
-                  color: '#0F172A',
-                }}
-              >
-                ID: {user.idNumber || '—'}
-              </span>
+              {isClient && user.idNumber && (
+                <span
+                  style={{
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    fontFamily: 'monospace',
+                    color: '#0F172A',
+                  }}
+                >
+                  ID: {user.idNumber}
+                </span>
+              )}
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '4px', fontSize: '13px', flexWrap: 'wrap' }}>

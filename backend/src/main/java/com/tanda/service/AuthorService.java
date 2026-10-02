@@ -37,7 +37,6 @@ public class AuthorService {
     private final UserRepository userRepository;
     private final BookRepository bookRepository;
     private final PasswordEncoder passwordEncoder;
-    private final IdNumberService idNumberService;
 
     @Transactional(readOnly = true)
     public List<AuthorResponseDto> getAllAuthors() {
@@ -118,29 +117,15 @@ public class AuthorService {
                 ? dto.getAssignedAuthorName().trim()
                 : dto.getName().trim();
 
-        String idNum = dto.getIdNumber() != null ? dto.getIdNumber().trim() : null;
-        if (idNum != null && !idNum.isBlank()) {
-            if (userRepository.existsByIdNumber(idNum)) {
-                throw new BadRequestException("Бұл ID нөмірі бос емес");
-            }
-        } else {
-            idNum = idNumberService.generateUniqueReaderId();
-        }
-
         String password = dto.getPassword();
         if (password == null || password.isBlank()) {
             password = "author" + UUID.randomUUID().toString().substring(0, 6);
         }
 
-        String username = email.split("@")[0].toLowerCase().replaceAll("[^a-z0-9_]", "");
-        if (username.isBlank()) {
-            username = "author" + UUID.randomUUID().toString().substring(0, 4);
-        }
-
         // 1. Create linked User with role 'author'
         User user = User.builder()
                 .id("author-user-" + UUID.randomUUID().toString().substring(0, 8))
-                .idNumber(idNum)
+                .idNumber(null)
                 .name(dto.getName().trim())
                 .email(email)
                 .phone(dto.getPhone() != null ? dto.getPhone().trim() : null)
@@ -149,7 +134,7 @@ public class AuthorService {
                 .role("author")
                 .duty("Автор")
                 .avatarUrl(dto.getAvatarUrl() != null ? dto.getAvatarUrl().trim() : null)
-                .username(username)
+                .username(null)
                 .isActive(dto.getIsActive() != null ? dto.getIsActive() : true)
                 .isBlocked(false)
                 .build();
@@ -162,7 +147,7 @@ public class AuthorService {
                 .displayName(displayName)
                 .bio(dto.getBio() != null ? dto.getBio().trim() : null)
                 .phone(user.getPhone())
-                .idNumber(user.getIdNumber())
+                .idNumber(null)
                 .isActive(user.getIsActive())
                 .build();
         author = authorRepository.save(author);
@@ -231,14 +216,6 @@ public class AuthorService {
             }
             if (dto.getPhone() != null) {
                 user.setPhone(dto.getPhone().trim());
-            }
-            if (dto.getIdNumber() != null && !dto.getIdNumber().isBlank()) {
-                String newIdNumber = dto.getIdNumber().trim();
-                if (!newIdNumber.equalsIgnoreCase(user.getIdNumber()) && userRepository.existsByIdNumber(newIdNumber)) {
-                    throw new BadRequestException("Бұл ID нөмірі бос емес");
-                }
-                user.setIdNumber(newIdNumber);
-                author.setIdNumber(newIdNumber);
             }
             if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
                 user.setPasswordHash(passwordEncoder.encode(dto.getPassword().trim()));

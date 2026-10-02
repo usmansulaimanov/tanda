@@ -29,7 +29,6 @@ public class ManagerService {
     private final ManagerPermissionRepository managerPermissionRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserService userService;
-    private final IdNumberService idNumberService;
 
     @Transactional(readOnly = true)
     public List<UserResponseDto> getAllManagers() {
@@ -55,20 +54,6 @@ public class ManagerService {
             throw new BadRequestException("Бұл электронды поштамен пайдаланушы тіркелген");
         }
 
-        String idNum = dto.getIdNumber() != null ? dto.getIdNumber().trim() : null;
-        if (idNum != null && !idNum.isBlank()) {
-            if (userRepository.existsByIdNumber(idNum)) {
-                throw new BadRequestException("Бұл ID нөмірі бос емес");
-            }
-        } else {
-            idNum = idNumberService.generateUniqueReaderId();
-        }
-
-        String username = email.split("@")[0].toLowerCase().replaceAll("[^a-z0-9_]", "");
-        if (username.isBlank()) {
-            username = "admin" + UUID.randomUUID().toString().substring(0, 4);
-        }
-
         String password = dto.getPassword();
         if (password == null || password.isBlank()) {
             password = "admin" + UUID.randomUUID().toString().substring(0, 6);
@@ -76,7 +61,7 @@ public class ManagerService {
 
         User manager = User.builder()
                 .id("manager-" + UUID.randomUUID().toString().substring(0, 8))
-                .idNumber(idNum)
+                .idNumber(null)
                 .name(dto.getName().trim())
                 .email(email)
                 .passwordHash(passwordEncoder.encode(password.trim()))
@@ -84,7 +69,7 @@ public class ManagerService {
                 .role("admin")
                 .duty(dto.getDuty() != null ? dto.getDuty().trim() : "Көмекші")
                 .avatarUrl(dto.getAvatarUrl() != null ? dto.getAvatarUrl().trim() : null)
-                .username(username)
+                .username(null)
                 .isActive(dto.getIsActive() != null ? dto.getIsActive() : true)
                 .isBlocked(false)
                 .build();
@@ -125,13 +110,6 @@ public class ManagerService {
         }
         if (dto.getAvatarUrl() != null) {
             manager.setAvatarUrl(dto.getAvatarUrl().trim());
-        }
-        if (dto.getIdNumber() != null && !dto.getIdNumber().isBlank()) {
-            String newIdNumber = dto.getIdNumber().trim();
-            if (!newIdNumber.equalsIgnoreCase(manager.getIdNumber()) && userRepository.existsByIdNumber(newIdNumber)) {
-                throw new BadRequestException("Бұл ID нөмірі бос емес");
-            }
-            manager.setIdNumber(newIdNumber);
         }
         if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
             manager.setPasswordHash(passwordEncoder.encode(dto.getPassword().trim()));
