@@ -315,15 +315,12 @@ export const AdminBonusesPage: React.FC = () => {
 
           {/* Granular Triggers Configuration */}
           <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
-            <h2 className="text-lg font-bold text-slate-900 mb-1">Бонус беру шарттары мен мөлшерлері</h2>
-            <p className="text-sm text-slate-500 mb-6">
-              Әрбір әрекет үшін бонус беруді жеке-жеке қосып, олардың сомасын еркін өзгерте аласыз.
-            </p>
+            <h2 className="text-lg font-bold text-slate-900 mb-6">Бонус беру шарттары мен мөлшерлері</h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* 1. Signup Bonus */}
               <div className="p-5 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition-colors">
-                <div className="flex items-center justify-between gap-3 mb-3">
+                <div className="flex items-center justify-between gap-3 mb-4">
                   <div className="flex items-center gap-2.5 font-bold text-slate-900 text-sm">
                     <div className="p-2 rounded-lg bg-emerald-100 text-emerald-700">
                       <UserPlus className="w-4 h-4" />
@@ -340,9 +337,6 @@ export const AdminBonusesPage: React.FC = () => {
                     <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
                   </label>
                 </div>
-                <p className="text-xs text-slate-500 mb-3">
-                  Сайтқа жаңадан аккаунт ашқан оқырманға бір реттік берілетін бастапқы бонус.
-                </p>
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-semibold text-slate-700">Бонус сомасы:</span>
                   <input
@@ -358,12 +352,12 @@ export const AdminBonusesPage: React.FC = () => {
 
               {/* 2. Daily Login Bonus */}
               <div className="p-5 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition-colors">
-                <div className="flex items-center justify-between gap-3 mb-3">
+                <div className="flex items-center justify-between gap-3 mb-4">
                   <div className="flex items-center gap-2.5 font-bold text-slate-900 text-sm">
                     <div className="p-2 rounded-lg bg-blue-100 text-blue-700">
                       <Calendar className="w-4 h-4" />
                     </div>
-                    Күн сайын сайтқа кіргенде
+                    Күндік бонус
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
@@ -375,9 +369,6 @@ export const AdminBonusesPage: React.FC = () => {
                     <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
                   </label>
                 </div>
-                <p className="text-xs text-slate-500 mb-3">
-                  Оқырман сайтқа тәулігіне 1 рет кірген сайын автоматты түрде қосылатын күндік бонус.
-                </p>
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-semibold text-slate-700">Бонус сомасы:</span>
                   <input
@@ -393,12 +384,12 @@ export const AdminBonusesPage: React.FC = () => {
 
               {/* 3. Audio Listening Milestone Bonus */}
               <div className="p-5 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition-colors">
-                <div className="flex items-center justify-between gap-3 mb-3">
+                <div className="flex items-center justify-between gap-3 mb-4">
                   <div className="flex items-center gap-2.5 font-bold text-slate-900 text-sm">
                     <div className="p-2 rounded-lg bg-indigo-100 text-indigo-700">
                       <Headphones className="w-4 h-4" />
                     </div>
-                    Әр 1 сағат тыңдаған сайын
+                    1 сағат тыңдалымға
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
@@ -410,9 +401,6 @@ export const AdminBonusesPage: React.FC = () => {
                     <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-500"></div>
                   </label>
                 </div>
-                <p className="text-xs text-slate-500 mb-3">
-                  Жалпы тыңдалым сағаты әр 1 сағатқа (60 минут) толған сайын автоматты түрде беріледі.
-                </p>
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-semibold text-slate-700">Бонус сомасы:</span>
                   <input
@@ -428,12 +416,12 @@ export const AdminBonusesPage: React.FC = () => {
 
               {/* 4. Book Review Bonus */}
               <div className="p-5 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition-colors">
-                <div className="flex items-center justify-between gap-3 mb-3">
+                <div className="flex items-center justify-between gap-3 mb-4">
                   <div className="flex items-center gap-2.5 font-bold text-slate-900 text-sm">
                     <div className="p-2 rounded-lg bg-amber-100 text-amber-700">
                       <MessageSquare className="w-4 h-4" />
                     </div>
-                    Кітапқа пікір жазғанда
+                    Рейтинг, пікір
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
@@ -445,9 +433,6 @@ export const AdminBonusesPage: React.FC = () => {
                     <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
                   </label>
                 </div>
-                <p className="text-xs text-slate-500 mb-3">
-                  Оқырман кітапқа баға мен пікір қалдырғаны үшін берілетін ынталандыру бонусы.
-                </p>
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-semibold text-slate-700">Бонус сомасы:</span>
                   <input
