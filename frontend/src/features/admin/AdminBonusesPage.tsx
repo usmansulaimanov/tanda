@@ -683,7 +683,7 @@ export const AdminBonusesPage: React.FC = () => {
                           {formatDate(r.createdAt)}
                         </td>
 
-                        {/* Bonus Balance (Clickable) */}
+                        {/* Bonus Balance (Clickable to view history) */}
                         <td className="py-3.5 px-4">
                           <button
                             type="button"
@@ -697,38 +697,23 @@ export const AdminBonusesPage: React.FC = () => {
                             <img src="/bonus-coin.png" alt="Бонус" className="w-4 h-4 object-contain group-hover:scale-110 transition-transform" />
                             <span>{(r.bonusBalance ?? 0).toLocaleString('kk-KZ')}</span>
                             <span className="text-[11px] font-semibold text-amber-700">{form.bonusCurrencyName || 'Бонус'}</span>
-                            <History className="w-3.5 h-3.5 text-amber-600 ml-1 opacity-70 group-hover:opacity-100" />
                           </button>
                         </td>
 
                         {/* Actions */}
                         <td className="py-3.5 px-4 text-right">
-                          <div className="inline-flex items-center gap-1.5">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setSelectedReaderForHistory(r);
-                                setHistoryPage(0);
-                              }}
-                              className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold inline-flex items-center gap-1 transition-colors"
-                              title="Транзакциялар тарихы"
-                            >
-                              <History className="w-3.5 h-3.5 text-slate-500" />
-                              <span>Тарихы</span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setAdjustUserId(r.idNumber || r.username || r.email || r.id);
-                                setAdjustModalOpen(true);
-                              }}
-                              className="px-2.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold inline-flex items-center gap-1 transition-colors shadow-xs"
-                              title="Бонусты түзету"
-                            >
-                              <Coins className="w-3.5 h-3.5" />
-                              <span>Түзету</span>
-                            </button>
-                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setAdjustUserId(r.idNumber || r.username || r.email || r.id);
+                              setAdjustModalOpen(true);
+                            }}
+                            className="px-2.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold inline-flex items-center gap-1 transition-colors shadow-xs"
+                            title="Бонусты түзету"
+                          >
+                            <Coins className="w-3.5 h-3.5" />
+                            <span>Түзету</span>
+                          </button>
                         </td>
                       </tr>
                     ))
