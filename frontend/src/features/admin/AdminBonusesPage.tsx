@@ -739,7 +739,11 @@ export const AdminBonusesPage: React.FC = () => {
                     placeholder="0000 0000"
                     value={adjustUserId}
                     onChange={(e) => handleIdInputChange(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                    className={`w-full px-3.5 py-2.5 rounded-xl border text-sm font-medium focus:outline-none focus:ring-2 transition-colors ${
+                      lookupError && !lookupLoading
+                        ? 'border-rose-300 focus:ring-rose-500/20 focus:border-rose-500'
+                        : 'border-slate-300 focus:ring-amber-500/20 focus:border-amber-500'
+                    }`}
                   />
                   {lookupLoading && (
                     <div className="absolute right-3.5 top-1/2 -translate-y-1/2">
@@ -747,15 +751,12 @@ export const AdminBonusesPage: React.FC = () => {
                     </div>
                   )}
                 </div>
+                {lookupError && !lookupLoading && (
+                  <p className="text-xs text-rose-500 mt-1 font-medium">
+                    Табылмады
+                  </p>
+                )}
               </div>
-
-              {/* Lookup Error Message */}
-              {lookupError && !lookupLoading && (
-                <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 flex-shrink-0 text-rose-500" />
-                  <span>{lookupError}</span>
-                </div>
-              )}
 
               {/* Found User Profile Preview Card */}
               {foundUser && !lookupLoading && (
