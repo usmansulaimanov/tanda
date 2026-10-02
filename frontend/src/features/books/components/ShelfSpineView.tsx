@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BookOpen, Play, Trash2, X, Info, CheckCircle, Clock, Bookmark, ChevronRight } from 'lucide-react';
+import { BookOpen, Play, X, CheckCircle, Clock, Bookmark } from 'lucide-react';
 import { Book } from '../../../types';
 import { BookShelfStatus, useMyBooksStore } from '../../../store/useMyBooksStore';
 import { TandaPremiumBadge } from '../../../components/ui/TandaPremiumBadge';
@@ -289,9 +289,14 @@ export const ShelfSpineView: React.FC<ShelfSpineViewProps> = ({
 
             {/* Top Book Overview */}
             <div className="flex gap-4 items-start pr-8">
-              {/* Cover Image */}
+              {/* Cover Image - clickable to open book details */}
               <div
-                className="w-24 sm:w-28 aspect-[3/4] rounded-xl overflow-hidden shadow-lg shrink-0 relative"
+                onClick={() => {
+                  setModalItem(null);
+                  navigate(`/book/${activeBook.id}`);
+                }}
+                className="w-24 sm:w-28 aspect-[3/4] rounded-xl overflow-hidden shadow-lg shrink-0 relative cursor-pointer hover:opacity-90 hover:scale-[1.02] active:scale-95 transition-all"
+                title="Кітап карточкасын ашу"
                 style={{
                   background: activeBook.gradient || 'linear-gradient(135deg, #0057A8, #003d7a)',
                 }}
@@ -322,7 +327,14 @@ export const ShelfSpineView: React.FC<ShelfSpineViewProps> = ({
                   </span>
                 )}
 
-                <h3 className="font-extrabold text-base sm:text-lg text-slate-900 leading-snug line-clamp-2">
+                <h3
+                  onClick={() => {
+                    setModalItem(null);
+                    navigate(`/book/${activeBook.id}`);
+                  }}
+                  className="font-extrabold text-base sm:text-lg text-slate-900 leading-snug line-clamp-2 cursor-pointer hover:text-[#005494] transition-colors"
+                  title="Кітап карточкасын ашу"
+                >
                   {activeBook.title}
                 </h3>
 
@@ -363,9 +375,6 @@ export const ShelfSpineView: React.FC<ShelfSpineViewProps> = ({
 
             {/* Quick Status Switcher */}
             <div className="mt-4 pt-3 border-t border-slate-100">
-              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
-                Сөредегі күйін өзгерту:
-              </div>
               <div className="grid grid-cols-3 gap-1.5">
                 {/* 1. Оқуда - toggles OFF if active; disabled if inactive (requires 5 min listening) */}
                 <button
@@ -427,7 +436,7 @@ export const ShelfSpineView: React.FC<ShelfSpineViewProps> = ({
             </div>
 
             {/* Main Action Buttons */}
-            <div className="mt-4 pt-3 border-t border-slate-100 flex flex-col gap-2">
+            <div className="mt-4 pt-3 border-t border-slate-100">
               <div className="grid grid-cols-2 gap-2">
                 {/* Read Button */}
                 {hasText ? (
@@ -481,34 +490,6 @@ export const ShelfSpineView: React.FC<ShelfSpineViewProps> = ({
                     Тыңдау
                   </button>
                 )}
-              </div>
-
-              {/* Bottom secondary row: Details link & Remove button */}
-              <div className="flex items-center justify-between gap-2 pt-1">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setModalItem(null);
-                    navigate(`/book/${activeBook.id}`);
-                  }}
-                  className="text-xs font-bold text-[#005494] hover:underline flex items-center gap-1 py-1"
-                >
-                  <Info className="w-3.5 h-3.5" />
-                  Толық ақпарат
-                  <ChevronRight className="w-3 h-3" />
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    handleRemove(String(activeBook.id), activeBook.title);
-                    setModalItem(null);
-                  }}
-                  className="text-xs font-semibold text-red-500 hover:text-red-700 hover:bg-red-50 px-2 py-1 rounded-lg transition-all flex items-center gap-1"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                  Сөреден өшіру
-                </button>
               </div>
             </div>
           </div>
