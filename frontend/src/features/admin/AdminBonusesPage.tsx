@@ -267,7 +267,7 @@ export const AdminBonusesPage: React.FC = () => {
 
   if (!isAuthInitialized || isSettingsLoading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="animate-pulse flex flex-col gap-6">
           <div className="h-10 bg-slate-200 rounded w-1/4"></div>
           <div className="h-64 bg-slate-200 rounded-2xl"></div>
@@ -277,7 +277,7 @@ export const AdminBonusesPage: React.FC = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-3 sm:px-6 py-6 font-sans">
+    <div className="max-w-6xl mx-auto px-3 sm:px-6 py-6 font-sans">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
