@@ -252,15 +252,14 @@ export const AdminBonusesPage: React.FC = () => {
   };
 
   const formatDate = (iso: string) => {
+    if (!iso) return '—';
     try {
       const d = new Date(iso);
-      return d.toLocaleString('kk-KZ', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      });
+      if (isNaN(d.getTime())) return iso;
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const year = d.getFullYear();
+      return `${day}.${month}.${year}`;
     } catch {
       return iso;
     }
@@ -628,7 +627,7 @@ export const AdminBonusesPage: React.FC = () => {
                   <tr className="border-b border-slate-200 bg-slate-50/75 text-slate-500 text-xs font-semibold uppercase tracking-wider">
                     <th className="py-3.5 px-4">Оқырман</th>
                     <th className="py-3.5 px-4">ID нөмірі / Юзернейм</th>
-                    <th className="py-3.5 px-4">Тіркелген уақыты</th>
+                    <th className="py-3.5 px-4">Тіркелген күні</th>
                     <th className="py-3.5 px-4">Бонус балансы</th>
                     <th className="py-3.5 px-4 text-right">Әрекеттер</th>
                   </tr>
