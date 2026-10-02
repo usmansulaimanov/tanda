@@ -341,10 +341,11 @@ export const AdminBonusesPage: React.FC = () => {
       {activeTab === 'settings' && (
         <form onSubmit={handleSaveSettings} className="space-y-6">
           {/* Main Master Switch Card */}
-          <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
-            <div className="flex items-center justify-between gap-4">
+          <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h2 className="text-lg font-bold text-slate-900">Бонус жүйесі</h2>
+                <p className="text-xs text-slate-500 mt-0.5">Жүйені жалпы қосу/өшіру және валюта атауын орнату</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
                 <input
@@ -357,147 +358,153 @@ export const AdminBonusesPage: React.FC = () => {
               </label>
             </div>
 
-            <div className="mt-6 pt-6 border-t border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-semibold text-slate-800 mb-1.5">
-                  Валюта
-                </label>
-                <input
-                  type="text"
-                  value={form.bonusCurrencyName}
-                  onChange={(e) => setForm({ ...form, bonusCurrencyName: e.target.value })}
-                  placeholder="Бонус, Теңге, ₸, Ұпай..."
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 text-sm font-medium"
-                />
-              </div>
+            <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center gap-3">
+              <label className="text-sm font-semibold text-slate-800 flex-shrink-0">
+                Валюта:
+              </label>
+              <input
+                type="text"
+                value={form.bonusCurrencyName}
+                onChange={(e) => setForm({ ...form, bonusCurrencyName: e.target.value })}
+                placeholder="Бонус, Теңге, ₸, Ұпай..."
+                className="max-w-xs px-3.5 py-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 text-sm font-medium"
+              />
             </div>
           </div>
 
           {/* Granular Triggers Configuration */}
-          <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
-            <h2 className="text-lg font-bold text-slate-900 mb-6">Бонус беру шарттары мен мөлшерлері</h2>
+          <div>
+            <h2 className="text-base font-bold text-slate-900 mb-3">Бонус беру шарттары мен мөлшерлері</h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* 1. Signup Bonus */}
-              <div className="p-5 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition-colors">
-                <div className="flex items-center justify-between gap-3 mb-4">
-                  <div className="flex items-center gap-2.5 font-bold text-slate-900 text-sm">
-                    <div className="p-2 rounded-lg bg-emerald-100 text-emerald-700">
-                      <UserPlus className="w-4 h-4" />
+              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-3">
+                    <div className="p-2.5 rounded-xl bg-emerald-50 text-emerald-600">
+                      <UserPlus className="w-5 h-5" />
                     </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="sr-only peer"
+                        checked={form.bonusSignupEnabled}
+                        onChange={(e) => setForm({ ...form, bonusSignupEnabled: e.target.checked })}
+                      />
+                      <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                    </label>
+                  </div>
+                  <div className="font-bold text-slate-900 text-sm mb-3">
                     Жаңа оқырман тіркелгенде
                   </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      className="sr-only peer"
-                      checked={form.bonusSignupEnabled}
-                      onChange={(e) => setForm({ ...form, bonusSignupEnabled: e.target.checked })}
-                    />
-                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
-                  </label>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold text-slate-700">{form.bonusCurrencyName || 'Бонус'} сомасы:</span>
+                <div className="flex items-center justify-between gap-2 pt-3 border-t border-slate-100">
+                  <span className="text-xs font-semibold text-slate-500">{form.bonusCurrencyName || 'Бонус'}:</span>
                   <input
                     type="number"
                     min="0"
                     value={form.bonusSignupAmount}
                     onChange={(e) => setForm({ ...form, bonusSignupAmount: parseInt(e.target.value) || 0 })}
-                    className="w-24 px-3 py-1.5 rounded-lg border border-slate-300 text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                    className="w-20 px-2.5 py-1.5 rounded-lg border border-slate-300 text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 text-right"
                   />
                 </div>
               </div>
 
               {/* 2. Daily Login Bonus */}
-              <div className="p-5 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition-colors">
-                <div className="flex items-center justify-between gap-3 mb-4">
-                  <div className="flex items-center gap-2.5 font-bold text-slate-900 text-sm">
-                    <div className="p-2 rounded-lg bg-blue-100 text-blue-700">
-                      <Calendar className="w-4 h-4" />
+              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-3">
+                    <div className="p-2.5 rounded-xl bg-blue-50 text-blue-600">
+                      <Calendar className="w-5 h-5" />
                     </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="sr-only peer"
+                        checked={form.bonusDailyLoginEnabled}
+                        onChange={(e) => setForm({ ...form, bonusDailyLoginEnabled: e.target.checked })}
+                      />
+                      <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
+                    </label>
+                  </div>
+                  <div className="font-bold text-slate-900 text-sm mb-3">
                     Күндік бонус
                   </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      className="sr-only peer"
-                      checked={form.bonusDailyLoginEnabled}
-                      onChange={(e) => setForm({ ...form, bonusDailyLoginEnabled: e.target.checked })}
-                    />
-                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
-                  </label>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold text-slate-700">{form.bonusCurrencyName || 'Бонус'} сомасы:</span>
+                <div className="flex items-center justify-between gap-2 pt-3 border-t border-slate-100">
+                  <span className="text-xs font-semibold text-slate-500">{form.bonusCurrencyName || 'Бонус'}:</span>
                   <input
                     type="number"
                     min="0"
                     value={form.bonusDailyLoginAmount}
                     onChange={(e) => setForm({ ...form, bonusDailyLoginAmount: parseInt(e.target.value) || 0 })}
-                    className="w-24 px-3 py-1.5 rounded-lg border border-slate-300 text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                    className="w-20 px-2.5 py-1.5 rounded-lg border border-slate-300 text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 text-right"
                   />
                 </div>
               </div>
 
               {/* 3. Audio Listening Milestone Bonus */}
-              <div className="p-5 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition-colors">
-                <div className="flex items-center justify-between gap-3 mb-4">
-                  <div className="flex items-center gap-2.5 font-bold text-slate-900 text-sm">
-                    <div className="p-2 rounded-lg bg-indigo-100 text-indigo-700">
-                      <Headphones className="w-4 h-4" />
+              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-3">
+                    <div className="p-2.5 rounded-xl bg-indigo-50 text-indigo-600">
+                      <Headphones className="w-5 h-5" />
                     </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="sr-only peer"
+                        checked={form.bonusListeningEnabled}
+                        onChange={(e) => setForm({ ...form, bonusListeningEnabled: e.target.checked })}
+                      />
+                      <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-500"></div>
+                    </label>
+                  </div>
+                  <div className="font-bold text-slate-900 text-sm mb-3">
                     1 сағат тыңдалымға
                   </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      className="sr-only peer"
-                      checked={form.bonusListeningEnabled}
-                      onChange={(e) => setForm({ ...form, bonusListeningEnabled: e.target.checked })}
-                    />
-                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-500"></div>
-                  </label>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold text-slate-700">{form.bonusCurrencyName || 'Бонус'} сомасы:</span>
+                <div className="flex items-center justify-between gap-2 pt-3 border-t border-slate-100">
+                  <span className="text-xs font-semibold text-slate-500">{form.bonusCurrencyName || 'Бонус'}:</span>
                   <input
                     type="number"
                     min="0"
                     value={form.bonusListeningAmount}
                     onChange={(e) => setForm({ ...form, bonusListeningAmount: parseInt(e.target.value) || 0 })}
-                    className="w-24 px-3 py-1.5 rounded-lg border border-slate-300 text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                    className="w-20 px-2.5 py-1.5 rounded-lg border border-slate-300 text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 text-right"
                   />
                 </div>
               </div>
 
               {/* 4. Book Review Bonus */}
-              <div className="p-5 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition-colors">
-                <div className="flex items-center justify-between gap-3 mb-4">
-                  <div className="flex items-center gap-2.5 font-bold text-slate-900 text-sm">
-                    <div className="p-2 rounded-lg bg-amber-100 text-amber-700">
-                      <MessageSquare className="w-4 h-4" />
+              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-3">
+                    <div className="p-2.5 rounded-xl bg-amber-50 text-amber-600">
+                      <MessageSquare className="w-5 h-5" />
                     </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="sr-only peer"
+                        checked={form.bonusReviewEnabled}
+                        onChange={(e) => setForm({ ...form, bonusReviewEnabled: e.target.checked })}
+                      />
+                      <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+                    </label>
+                  </div>
+                  <div className="font-bold text-slate-900 text-sm mb-3">
                     Рейтинг, пікір
                   </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      className="sr-only peer"
-                      checked={form.bonusReviewEnabled}
-                      onChange={(e) => setForm({ ...form, bonusReviewEnabled: e.target.checked })}
-                    />
-                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
-                  </label>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold text-slate-700">{form.bonusCurrencyName || 'Бонус'} сомасы:</span>
+                <div className="flex items-center justify-between gap-2 pt-3 border-t border-slate-100">
+                  <span className="text-xs font-semibold text-slate-500">{form.bonusCurrencyName || 'Бонус'}:</span>
                   <input
                     type="number"
                     min="0"
                     value={form.bonusReviewAmount}
                     onChange={(e) => setForm({ ...form, bonusReviewAmount: parseInt(e.target.value) || 0 })}
-                    className="w-24 px-3 py-1.5 rounded-lg border border-slate-300 text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                    className="w-20 px-2.5 py-1.5 rounded-lg border border-slate-300 text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 text-right"
                   />
                 </div>
               </div>
