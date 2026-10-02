@@ -217,17 +217,8 @@ export const AdminBonusesPage: React.FC = () => {
               <Gift className="w-5 h-5" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+              <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
                 Бонус жүйесі
-                {form.bonusSystemEnabled ? (
-                  <span className="text-xs font-medium px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
-                    Қосулы
-                  </span>
-                ) : (
-                  <span className="text-xs font-medium px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600">
-                    Өшірулі
-                  </span>
-                )}
               </h1>
               <p className="text-sm text-slate-500 mt-0.5">
                 Оқырмандарды ынталандыру, бонустарды есептеу және бақылау жүйесі
