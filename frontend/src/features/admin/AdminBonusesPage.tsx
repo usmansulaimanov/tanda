@@ -235,19 +235,19 @@ export const AdminBonusesPage: React.FC = () => {
   const getTypeBadge = (type: string) => {
     switch (type) {
       case 'SIGNUP':
-        return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">🎉 Тіркелу</span>;
+        return <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700">🎉 Тіркелу</span>;
       case 'DAILY_LOGIN':
-        return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">📅 Күндік кіру</span>;
+        return <span className="inline-flex items-center gap-1 text-xs font-bold text-blue-700">📅 Күндік кіру</span>;
       case 'LISTENING_MILESTONE':
-        return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800">🎧 Тыңдалым (1 сағат)</span>;
+        return <span className="inline-flex items-center gap-1 text-xs font-bold text-indigo-700">🎧 Тыңдалым</span>;
       case 'REVIEW':
-        return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">✍️ Пікір жазу</span>;
+        return <span className="inline-flex items-center gap-1 text-xs font-bold text-amber-700">✍️ Пікір жазу</span>;
       case 'SUBSCRIPTION_PURCHASE':
-        return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-800">👑 Жазылым алу</span>;
+        return <span className="inline-flex items-center gap-1 text-xs font-bold text-purple-700">👑 Жазылым алу</span>;
       case 'ADMIN_ADJUSTMENT':
-        return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-800">⚙️ Әкімші түзетуі</span>;
+        return <span className="inline-flex items-center gap-1 text-xs font-bold text-slate-700">⚙️ Әкімші түзетуі</span>;
       default:
-        return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-800">{type}</span>;
+        return <span className="inline-flex items-center gap-1 text-xs font-bold text-slate-600">{type}</span>;
     }
   };
 
