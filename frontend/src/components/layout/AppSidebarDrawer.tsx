@@ -279,7 +279,7 @@ export const AppSidebarDrawer: React.FC = () => {
                       </button>
                     </div>
                     <p style={{ fontSize: '11px', color: '#475569', lineHeight: 1.5, margin: 0, fontWeight: 500, whiteSpace: 'normal', wordBreak: 'break-word' }}>
-                      Белсенді оқырмандарға берілетін бонус. Күн сайын сайтқа кіру, кітап тыңдау немесе пікір жазу арқылы жинап, оны жазылымға (подписка) айырбастауға болады.
+                      Белсенді оқырмандарға берілетін бонус. Күн сайын сайтқа кіру, кітап тыңдау немесе пікір жазу арқылы жинап, оны жазылымға айырбастауға болады.
                     </p>
                     <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #FEF3C7', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <span style={{ fontSize: '11px', fontWeight: 700, color: '#B45309' }}>

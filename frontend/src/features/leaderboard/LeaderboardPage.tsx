@@ -71,8 +71,6 @@ export const LeaderboardPage: React.FC = () => {
 
   const filteredEntries = leaderboardData?.topEntries || [];
 
-  const isPastPeriod = selectedPeriod === 'LAST_WEEK' || selectedPeriod === 'LAST_MONTH';
-
   // Max minutes for chart scaling
   const maxChartMinutes = Math.max(
     ...(personalStats?.dailyActivity?.map((d) => d.minutes) || [60]),
@@ -179,24 +177,6 @@ export const LeaderboardPage: React.FC = () => {
                 {leaderboardData?.periodLabel || ''}
               </div>
             </div>
-
-            {/* Past Winners Celebration Banner */}
-            {isPastPeriod && (
-              <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 shadow-sm flex items-start sm:items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-amber-100 border border-amber-300 flex items-center justify-center text-2xl flex-shrink-0 shadow-sm">
-                  🎖️
-                </div>
-                <div className="space-y-0.5">
-                  <h3 className="text-amber-900 font-extrabold text-base sm:text-lg">
-                    {leaderboardData?.periodLabel} — Ресми сертификат иегерлері
-                  </h3>
-                  <p className="text-amber-800 text-xs sm:text-sm">
-                    Төмендегі үздік 10 оқырманға Tanda платформасының ресми сертификаты табысталады!
-                  </p>
-                </div>
-              </div>
-            )}
-
 
             {/* Current User Result Card (Pinned at top) */}
             {isAuthenticated && leaderboardData?.currentUserEntry && (
