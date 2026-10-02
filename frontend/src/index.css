@@ -20,15 +20,12 @@
 html {
   scroll-behavior: smooth;
   overflow-y: scroll;
-  scrollbar-gutter: stable;
 }
 
 html, body, #root {
   margin: 0;
   padding: 0;
   width: 100%;
-  max-width: 100%;
-  overflow-x: clip;
   min-height: 100%;
   box-sizing: border-box;
 }
