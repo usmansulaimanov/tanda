@@ -55,28 +55,28 @@ public class LeaderboardService {
             case LAST_WEEK -> {
                 startDate = now.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).minusWeeks(1);
                 endDate = startDate.plusDays(6);
-                periodLabel = String.format("Өткен апта (%s – %s)", startDate.format(DATE_FORMATTER), endDate.format(DATE_FORMATTER));
+                periodLabel = String.format("Өткен апта: %s – %s", startDate.format(DATE_FORMATTER), endDate.format(DATE_FORMATTER));
             }
             case THIS_MONTH -> {
                 startDate = now.withDayOfMonth(1);
                 endDate = now.with(TemporalAdjusters.lastDayOfMonth());
-                periodLabel = getKazakhMonthName(startDate.getMonthValue());
+                periodLabel = String.format("%s %d", getKazakhMonthName(startDate.getMonthValue()), startDate.getYear());
             }
             case LAST_MONTH -> {
                 LocalDate lastMonthDate = now.minusMonths(1);
                 startDate = lastMonthDate.withDayOfMonth(1);
                 endDate = lastMonthDate.with(TemporalAdjusters.lastDayOfMonth());
-                periodLabel = getKazakhMonthName(startDate.getMonthValue());
+                periodLabel = String.format("%s %d", getKazakhMonthName(startDate.getMonthValue()), startDate.getYear());
             }
             case THIS_WEEK -> {
                 startDate = now.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
                 endDate = startDate.plusDays(6);
-                periodLabel = String.format("Осы апта (%s – %s)", startDate.format(DATE_FORMATTER), endDate.format(DATE_FORMATTER));
+                periodLabel = String.format("Осы апта: %s – %s", startDate.format(DATE_FORMATTER), endDate.format(DATE_FORMATTER));
             }
             default -> {
                 startDate = now.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
                 endDate = startDate.plusDays(6);
-                periodLabel = String.format("Осы апта (%s – %s)", startDate.format(DATE_FORMATTER), endDate.format(DATE_FORMATTER));
+                periodLabel = String.format("Осы апта: %s – %s", startDate.format(DATE_FORMATTER), endDate.format(DATE_FORMATTER));
             }
         }
 
