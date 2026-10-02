@@ -337,7 +337,6 @@ export const AdminBonusesPage: React.FC = () => {
                     onChange={(e) => setForm({ ...form, bonusSignupAmount: parseInt(e.target.value) || 0 })}
                     className="w-24 px-3 py-1.5 rounded-lg border border-slate-300 text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
                   />
-                  <span className="text-xs text-slate-500">{form.bonusCurrencyName}</span>
                 </div>
               </div>
 
@@ -369,7 +368,6 @@ export const AdminBonusesPage: React.FC = () => {
                     onChange={(e) => setForm({ ...form, bonusDailyLoginAmount: parseInt(e.target.value) || 0 })}
                     className="w-24 px-3 py-1.5 rounded-lg border border-slate-300 text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
                   />
-                  <span className="text-xs text-slate-500">{form.bonusCurrencyName}</span>
                 </div>
               </div>
 
@@ -401,7 +399,6 @@ export const AdminBonusesPage: React.FC = () => {
                     onChange={(e) => setForm({ ...form, bonusListeningAmount: parseInt(e.target.value) || 0 })}
                     className="w-24 px-3 py-1.5 rounded-lg border border-slate-300 text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
                   />
-                  <span className="text-xs text-slate-500">{form.bonusCurrencyName}</span>
                 </div>
               </div>
 
@@ -433,7 +430,6 @@ export const AdminBonusesPage: React.FC = () => {
                     onChange={(e) => setForm({ ...form, bonusReviewAmount: parseInt(e.target.value) || 0 })}
                     className="w-24 px-3 py-1.5 rounded-lg border border-slate-300 text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
                   />
-                  <span className="text-xs text-slate-500">{form.bonusCurrencyName}</span>
                 </div>
               </div>
             </div>
