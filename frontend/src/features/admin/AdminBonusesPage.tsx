@@ -277,7 +277,7 @@ export const AdminBonusesPage: React.FC = () => {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-3 sm:px-6 py-6 font-sans">
+    <div className="max-w-6xl mx-auto px-3 sm:px-6 py-6 font-sans min-h-[70vh]">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
