@@ -56,6 +56,25 @@ public class AdminBonusController {
         return ResponseEntity.ok(bonusService.getBonusStatsSummaryAdmin());
     }
 
+    @GetMapping("/readers")
+    public ResponseEntity<Page<com.tanda.dto.user.UserListResponseDto>> getBonusReaders(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false, defaultValue = "bonus_desc") String sortBy,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return ResponseEntity.ok(bonusService.getBonusReadersAdmin(search, sortBy, page, size));
+    }
+
+    @GetMapping("/readers/{userId}/transactions")
+    public ResponseEntity<Page<BonusTransactionResponseDto>> getReaderTransactions(
+            @PathVariable String userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        return ResponseEntity.ok(bonusService.getUserTransactionsAdmin(userId, PageRequest.of(page, size)));
+    }
+
     @GetMapping("/lookup-user")
     public ResponseEntity<com.tanda.dto.user.UserResponseDto> lookupUser(@RequestParam String query) {
         return ResponseEntity.ok(bonusService.lookupUserForAdmin(query));

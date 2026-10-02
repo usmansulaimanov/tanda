@@ -24,7 +24,10 @@ import {
   AlertCircle,
   PlusCircle,
   MinusCircle,
-  X
+  X,
+  ChevronLeft,
+  ChevronRight,
+  History
 } from 'lucide-react';
 import { bonusApi, UpdateBonusSettingsPayload } from '../../shared/api/bonus.api';
 import { useToastStore } from '../../store/useToastStore';
@@ -64,15 +67,27 @@ export const AdminBonusesPage: React.FC = () => {
     queryFn: bonusApi.getAdminSummary,
   });
 
-  // Query Transactions
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedType, setSelectedType] = useState('ALL');
-  const [page, setPage] = useState(0);
+  // Query Readers with Bonuses (Statistics Tab)
+  const [readersSearch, setReadersSearch] = useState('');
+  const [readersSortBy, setReadersSortBy] = useState('bonus_desc');
+  const [readersPage, setReadersPage] = useState(1);
+  const [readersPageSize, setReadersPageSize] = useState(10);
 
-  const { data: transactionsData, isLoading: isTransactionsLoading, refetch: refetchTransactions } = useQuery({
-    queryKey: ['adminBonusTransactions', searchQuery, selectedType, page],
-    queryFn: () => bonusApi.getAdminTransactions(searchQuery || undefined, selectedType, page, 20),
+  const { data: bonusReadersData, isLoading: isBonusReadersLoading } = useQuery({
+    queryKey: ['adminBonusReaders', readersSearch, readersSortBy, readersPage, readersPageSize],
+    queryFn: () => bonusApi.getBonusReaders(readersSearch || undefined, readersSortBy, readersPage - 1, readersPageSize),
   });
+
+  // Reader Transaction History Modal State
+  const [selectedReaderForHistory, setSelectedReaderForHistory] = useState<any>(null);
+  const [historyPage, setHistoryPage] = useState(0);
+
+  const { data: readerHistoryData, isLoading: isReaderHistoryLoading } = useQuery({
+    queryKey: ['adminReaderBonusHistory', selectedReaderForHistory?.id, historyPage],
+    queryFn: () => selectedReaderForHistory ? bonusApi.getReaderTransactions(selectedReaderForHistory.id, historyPage, 20) : null,
+    enabled: Boolean(selectedReaderForHistory?.id),
+  });
+
 
   // Form State for Settings
   const [form, setForm] = useState<UpdateBonusSettingsPayload>({
@@ -183,7 +198,8 @@ export const AdminBonusesPage: React.FC = () => {
       bonusApi.adjustUserBonus(userId, amount, reason),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['adminBonusSummary'] });
-      queryClient.invalidateQueries({ queryKey: ['adminBonusTransactions'] });
+      queryClient.invalidateQueries({ queryKey: ['adminBonusReaders'] });
+      queryClient.invalidateQueries({ queryKey: ['adminReaderBonusHistory'] });
       showToast('Оқырманның бонустары сәтті түзетілді', 'success');
       setAdjustModalOpen(false);
       setAdjustUserId('');
@@ -503,7 +519,7 @@ export const AdminBonusesPage: React.FC = () => {
         </form>
       )}
 
-      {/* TAB 2: STATISTICS & TRANSACTIONS */}
+      {/* TAB 2: STATISTICS & READERS WITH BONUSES */}
       {activeTab === 'stats' && (
         <div className="space-y-6">
           {/* Summary Cards */}
@@ -569,7 +585,7 @@ export const AdminBonusesPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Transactions Filter & Table */}
+          {/* Readers with Bonuses Table */}
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             {/* Filters Bar */}
             <div className="p-4 border-b border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-50/50">
@@ -577,11 +593,11 @@ export const AdminBonusesPage: React.FC = () => {
                 <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
-                  placeholder="Оқырман аты, Email, ID..."
-                  value={searchQuery}
+                  placeholder="Оқырман аты, Email, ID, @юзернейм..."
+                  value={readersSearch}
                   onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setPage(0);
+                    setReadersSearch(e.target.value);
+                    setReadersPage(1);
                   }}
                   className="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 bg-white"
                 />
@@ -590,20 +606,17 @@ export const AdminBonusesPage: React.FC = () => {
               <div className="flex items-center gap-2 w-full sm:w-auto">
                 <Filter className="w-4 h-4 text-slate-400" />
                 <select
-                  value={selectedType}
+                  value={readersSortBy}
                   onChange={(e) => {
-                    setSelectedType(e.target.value);
-                    setPage(0);
+                    setReadersSortBy(e.target.value);
+                    setReadersPage(1);
                   }}
-                  className="px-3 py-2 rounded-xl border border-slate-300 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 bg-white text-slate-700"
+                  className="px-3 py-2 rounded-xl border border-slate-300 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 bg-white text-slate-700 cursor-pointer"
                 >
-                  <option value="ALL">Барлық транзакциялар</option>
-                  <option value="SIGNUP">🎉 Тіркелу</option>
-                  <option value="DAILY_LOGIN">📅 Күндік кіру</option>
-                  <option value="LISTENING_MILESTONE">🎧 Тыңдалым</option>
-                  <option value="REVIEW">✍️ Пікір жазу</option>
-                  <option value="SUBSCRIPTION_PURCHASE">👑 Жазылым алу</option>
-                  <option value="ADMIN_ADJUSTMENT">⚙️ Әкімші түзетуі</option>
+                  <option value="bonus_desc">Көп бонус бойынша</option>
+                  <option value="bonus_asc">Аз бонус бойынша</option>
+                  <option value="newest">Соңғы тіркелгендер</option>
+                  <option value="oldest">Алғашқы тіркелгендер</option>
                 </select>
               </div>
             </div>
@@ -613,59 +626,117 @@ export const AdminBonusesPage: React.FC = () => {
               <table className="w-full text-left border-collapse text-sm">
                 <thead>
                   <tr className="border-b border-slate-200 bg-slate-50/75 text-slate-500 text-xs font-semibold uppercase tracking-wider">
-                    <th className="py-3 px-4">Оқырман</th>
-                    <th className="py-3 px-4">Әрекет түрі</th>
-                    <th className="py-3 px-4">Сомасы</th>
-                    <th className="py-3 px-4">Сипаттамасы</th>
-                    <th className="py-3 px-4 text-right">Уақыты</th>
+                    <th className="py-3.5 px-4">Оқырман</th>
+                    <th className="py-3.5 px-4">ID нөмірі / Юзернейм</th>
+                    <th className="py-3.5 px-4">Тіркелген уақыты</th>
+                    <th className="py-3.5 px-4">Бонус балансы</th>
+                    <th className="py-3.5 px-4 text-right">Әрекеттер</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {isTransactionsLoading ? (
+                  {isBonusReadersLoading ? (
                     <tr>
-                      <td colSpan={5} className="py-8 text-center text-slate-400">
-                        Жүктелуде...
+                      <td colSpan={5} className="py-12 text-center text-slate-400">
+                        <div className="inline-flex items-center gap-2">
+                          <div className="w-4 h-4 border-2 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
+                          <span>Жүктелуде...</span>
+                        </div>
                       </td>
                     </tr>
-                  ) : transactionsData?.content && transactionsData.content.length > 0 ? (
-                    transactionsData.content.map((tx) => (
-                      <tr key={tx.id} className="hover:bg-slate-50/80 transition-colors">
-                        <td className="py-3 px-4">
-                          <div className="font-semibold text-slate-900">
-                            {tx.userName || 'Оқырман'}
-                          </div>
-                          <div className="text-xs text-slate-500 flex items-center gap-2">
-                            {tx.userIdNumber && <span className="font-mono">ID: {tx.userIdNumber}</span>}
-                            {tx.userUsername && <span>@{tx.userUsername}</span>}
-                            {!tx.userUsername && !tx.userIdNumber && tx.userEmail && <span>{tx.userEmail}</span>}
+                  ) : bonusReadersData?.content && bonusReadersData.content.length > 0 ? (
+                    bonusReadersData.content.map((r: any) => (
+                      <tr key={r.id} className="hover:bg-slate-50/80 transition-colors">
+                        {/* User info */}
+                        <td className="py-3.5 px-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-full overflow-hidden bg-slate-100 border border-slate-200 flex items-center justify-center flex-shrink-0 font-bold text-xs text-slate-700">
+                              {r.avatarUrl ? (
+                                <img src={r.avatarUrl} alt={r.name} className="w-full h-full object-cover" />
+                              ) : (
+                                <span>{r.name ? r.name.charAt(0).toUpperCase() : 'О'}</span>
+                              )}
+                            </div>
+                            <div>
+                              <div className="font-bold text-slate-900 leading-tight">
+                                {r.name || 'Оқырман'}
+                              </div>
+                              <div className="text-xs text-slate-500 mt-0.5">
+                                {r.email}
+                              </div>
+                            </div>
                           </div>
                         </td>
-                        <td className="py-3 px-4">
-                          {getTypeBadge(tx.type)}
-                        </td>
-                        <td className="py-3 px-4 font-bold">
-                          {tx.amount > 0 ? (
-                            <span className="text-emerald-600 inline-flex items-center gap-0.5">
-                              <ArrowUpRight className="w-3.5 h-3.5" />+{tx.amount} {form.bonusCurrencyName}
-                            </span>
-                          ) : (
-                            <span className="text-purple-600 inline-flex items-center gap-0.5">
-                              <ArrowDownLeft className="w-3.5 h-3.5" />{tx.amount} {form.bonusCurrencyName}
-                            </span>
+
+                        {/* ID / Username */}
+                        <td className="py-3.5 px-4">
+                          <div className="font-mono font-bold text-xs text-slate-800">
+                            {r.idNumber || '—'}
+                          </div>
+                          {r.username && (
+                            <div className="text-xs text-slate-500 mt-0.5">
+                              @{r.username.replace(/^@/, '')}
+                            </div>
                           )}
                         </td>
-                        <td className="py-3 px-4 text-slate-600 text-xs max-w-xs truncate" title={tx.description}>
-                          {tx.description || '—'}
+
+                        {/* Created At */}
+                        <td className="py-3.5 px-4 text-xs text-slate-600 whitespace-nowrap">
+                          {formatDate(r.createdAt)}
                         </td>
-                        <td className="py-3 px-4 text-right text-xs text-slate-400 whitespace-nowrap">
-                          {formatDate(tx.createdAt)}
+
+                        {/* Bonus Balance (Clickable) */}
+                        <td className="py-3.5 px-4">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedReaderForHistory(r);
+                              setHistoryPage(0);
+                            }}
+                            className="group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-200/80 text-amber-900 font-bold text-xs transition-all shadow-xs cursor-pointer"
+                            title="Оқырманның барлық бонус транзакцияларын көру"
+                          >
+                            <img src="/bonus-coin.png" alt="Бонус" className="w-4 h-4 object-contain group-hover:scale-110 transition-transform" />
+                            <span>{(r.bonusBalance ?? 0).toLocaleString('kk-KZ')}</span>
+                            <span className="text-[11px] font-semibold text-amber-700">{form.bonusCurrencyName || 'Бонус'}</span>
+                            <History className="w-3.5 h-3.5 text-amber-600 ml-1 opacity-70 group-hover:opacity-100" />
+                          </button>
+                        </td>
+
+                        {/* Actions */}
+                        <td className="py-3.5 px-4 text-right">
+                          <div className="inline-flex items-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedReaderForHistory(r);
+                                setHistoryPage(0);
+                              }}
+                              className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold inline-flex items-center gap-1 transition-colors"
+                              title="Транзакциялар тарихы"
+                            >
+                              <History className="w-3.5 h-3.5 text-slate-500" />
+                              <span>Тарихы</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setAdjustUserId(r.idNumber || r.username || r.email || r.id);
+                                setAdjustModalOpen(true);
+                              }}
+                              className="px-2.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold inline-flex items-center gap-1 transition-colors shadow-xs"
+                              title="Бонусты түзету"
+                            >
+                              <Coins className="w-3.5 h-3.5" />
+                              <span>Түзету</span>
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
                       <td colSpan={5} className="py-12 text-center text-slate-400">
-                        Транзакциялар табылмады
+                        Бонусы бар оқырмандар табылмады
                       </td>
                     </tr>
                   )}
@@ -673,35 +744,223 @@ export const AdminBonusesPage: React.FC = () => {
               </table>
             </div>
 
-            {/* Pagination */}
-            {transactionsData && transactionsData.totalPages > 1 && (
-              <div className="p-4 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
-                <span>
-                  Барлығы: <strong>{transactionsData.totalElements}</strong> жазба
-                </span>
+            {/* Pagination matching Screenshot 2 & ReadersPage */}
+            {bonusReadersData && (
+              <div className="p-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white">
+                {/* Page size selector */}
                 <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    disabled={page <= 0}
-                    onClick={() => setPage((p) => Math.max(0, p - 1))}
-                    className="px-3 py-1.5 rounded-lg border border-slate-200 font-medium hover:bg-slate-100 disabled:opacity-40"
-                  >
-                    Артқа
-                  </button>
-                  <span>
-                    {page + 1} / {transactionsData.totalPages}
+                  <span className="text-xs font-semibold text-slate-500">
+                    Беттегі оқырман саны:
                   </span>
+                  <select
+                    value={readersPageSize}
+                    onChange={(e) => {
+                      setReadersPageSize(Number(e.target.value));
+                      setReadersPage(1);
+                    }}
+                    className="px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-bold text-slate-800 bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                  >
+                    <option value={10}>10</option>
+                    <option value={20}>20</option>
+                    <option value={30}>30</option>
+                    <option value={40}>40</option>
+                    <option value={50}>50</option>
+                    <option value={100}>100</option>
+                  </select>
+                  <span className="text-xs text-slate-400 ml-1">
+                    ({bonusReadersData.totalElements === 0 ? 0 : (readersPage - 1) * readersPageSize + 1}-
+                    {Math.min(readersPage * readersPageSize, bonusReadersData.totalElements)} / Барлығы {bonusReadersData.totalElements})
+                  </span>
+                </div>
+
+                {/* Page navigation */}
+                <div className="flex items-center gap-1.5">
                   <button
                     type="button"
-                    disabled={page >= transactionsData.totalPages - 1}
-                    onClick={() => setPage((p) => p + 1)}
-                    className="px-3 py-1.5 rounded-lg border border-slate-200 font-medium hover:bg-slate-100 disabled:opacity-40"
+                    onClick={() => setReadersPage((prev) => Math.max(1, prev - 1))}
+                    disabled={readersPage === 1}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed bg-white hover:bg-slate-50 text-slate-700"
                   >
-                    Алға
+                    <ChevronLeft className="w-3.5 h-3.5" />
+                    Алдыңғы
+                  </button>
+
+                  {/* Number buttons with ellipsis */}
+                  {Array.from({ length: bonusReadersData.totalPages || 1 }, (_, i) => i + 1).map((pageNum) => {
+                    const totalPages = bonusReadersData.totalPages || 1;
+                    if (
+                      totalPages > 7 &&
+                      pageNum !== 1 &&
+                      pageNum !== totalPages &&
+                      Math.abs(pageNum - readersPage) > 1
+                    ) {
+                      if (pageNum === 2 && readersPage > 3) {
+                        return (
+                          <span key="dots-start" className="px-1 text-slate-400 text-xs">
+                            ...
+                          </span>
+                        );
+                      }
+                      if (pageNum === totalPages - 1 && readersPage < totalPages - 2) {
+                        return (
+                          <span key="dots-end" className="px-1 text-slate-400 text-xs">
+                            ...
+                          </span>
+                        );
+                      }
+                      return null;
+                    }
+
+                    const isActive = readersPage === pageNum;
+                    return (
+                      <button
+                        key={pageNum}
+                        type="button"
+                        onClick={() => setReadersPage(pageNum)}
+                        className={`min-w-[32px] h-[32px] px-2 rounded-lg text-xs font-bold transition-all inline-flex items-center justify-center ${
+                          isActive
+                            ? 'bg-[#025a9e] text-white border border-[#025a9e] shadow-xs'
+                            : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+
+                  <button
+                    type="button"
+                    onClick={() => setReadersPage((prev) => Math.min(bonusReadersData.totalPages || 1, prev + 1))}
+                    disabled={readersPage >= (bonusReadersData.totalPages || 1) || bonusReadersData.totalElements === 0}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed bg-white hover:bg-slate-50 text-slate-700"
+                  >
+                    Кейінгі
+                    <ChevronRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* READER BONUS HISTORY MODAL */}
+      {selectedReaderForHistory && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl relative animate-in fade-in zoom-in duration-200 max-h-[90vh] flex flex-col">
+            <button
+              type="button"
+              onClick={() => setSelectedReaderForHistory(null)}
+              className="absolute right-4 top-4 p-2 text-slate-400 hover:text-slate-600 rounded-lg cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Header */}
+            <div className="flex items-center gap-3 pb-4 border-b border-slate-200 pr-8">
+              <div className="w-11 h-11 rounded-full overflow-hidden bg-amber-50 border border-amber-200 flex items-center justify-center flex-shrink-0 font-bold text-amber-800">
+                {selectedReaderForHistory.avatarUrl ? (
+                  <img src={selectedReaderForHistory.avatarUrl} alt={selectedReaderForHistory.name} className="w-full h-full object-cover" />
+                ) : (
+                  <span>{selectedReaderForHistory.name ? selectedReaderForHistory.name.charAt(0).toUpperCase() : 'О'}</span>
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                  <span className="truncate">{selectedReaderForHistory.name || 'Оқырман'}</span>
+                  <span className="text-xs font-normal text-slate-500 whitespace-nowrap">бонус тарихы</span>
+                </h3>
+                <div className="text-xs text-slate-500 flex flex-wrap items-center gap-2 mt-0.5">
+                  {selectedReaderForHistory.idNumber && (
+                    <span className="font-mono font-bold text-slate-700">ID: {selectedReaderForHistory.idNumber}</span>
+                  )}
+                  {selectedReaderForHistory.username && (
+                    <span className="text-slate-600">@{selectedReaderForHistory.username.replace(/^@/, '')}</span>
+                  )}
+                  <span className="text-slate-400">{selectedReaderForHistory.email}</span>
+                </div>
+              </div>
+              <div className="text-right flex-shrink-0 pl-2">
+                <div className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Балансы</div>
+                <div className="text-base font-black text-amber-700 flex items-center justify-end gap-1 mt-0.5">
+                  <img src="/bonus-coin.png" alt="Бонус" className="w-4 h-4 object-contain" />
+                  <span>{(selectedReaderForHistory.bonusBalance ?? 0).toLocaleString('kk-KZ')}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Transactions List */}
+            <div className="flex-1 overflow-y-auto py-4 -mx-6 px-6">
+              {isReaderHistoryLoading ? (
+                <div className="py-12 text-center text-slate-400">
+                  <div className="inline-flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
+                    <span>Жүктелуде...</span>
+                  </div>
+                </div>
+              ) : readerHistoryData?.content && readerHistoryData.content.length > 0 ? (
+                <div className="space-y-2.5">
+                  {readerHistoryData.content.map((tx) => (
+                    <div key={tx.id} className="p-3.5 rounded-xl border border-slate-200/80 bg-slate-50/60 hover:bg-slate-50 transition-colors flex items-center justify-between gap-3">
+                      <div className="flex items-start gap-3 min-w-0">
+                        <div className="mt-0.5 flex-shrink-0">
+                          {getTypeBadge(tx.type)}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="text-xs font-bold text-slate-900 truncate">
+                            {tx.description || 'Бонус операциясы'}
+                          </div>
+                          <div className="text-[11px] text-slate-400 mt-0.5">
+                            {formatDate(tx.createdAt)}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="text-right flex-shrink-0 font-bold text-sm">
+                        {tx.amount > 0 ? (
+                          <span className="text-emerald-600 inline-flex items-center gap-0.5">
+                            <ArrowUpRight className="w-3.5 h-3.5" />+{tx.amount} {form.bonusCurrencyName || 'Бонус'}
+                          </span>
+                        ) : (
+                          <span className="text-purple-600 inline-flex items-center gap-0.5">
+                            <ArrowDownLeft className="w-3.5 h-3.5" />{tx.amount} {form.bonusCurrencyName || 'Бонус'}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="py-12 text-center text-slate-400 text-sm">
+                  Бұл оқырманда әлі бонус транзакциялары жоқ
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="pt-4 border-t border-slate-200 flex items-center justify-between">
+              <button
+                type="button"
+                onClick={() => {
+                  const userToAdjust = selectedReaderForHistory;
+                  setSelectedReaderForHistory(null);
+                  setAdjustUserId(userToAdjust.idNumber || userToAdjust.username || userToAdjust.email || userToAdjust.id);
+                  setAdjustModalOpen(true);
+                }}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 transition-colors cursor-pointer shadow-xs"
+              >
+                <Coins className="w-3.5 h-3.5" />
+                Осы оқырманның бонусын түзету
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setSelectedReaderForHistory(null)}
+                className="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+              >
+                Жабу
+              </button>
+            </div>
           </div>
         </div>
       )}

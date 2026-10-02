@@ -7,6 +7,7 @@ import com.tanda.dto.bonus.BonusStatsSummaryResponseDto;
 import com.tanda.dto.bonus.BonusTransactionResponseDto;
 import com.tanda.dto.bonus.UpdateBonusSettingsRequestDto;
 import com.tanda.dto.system.SystemSettingsResponseDto;
+import com.tanda.dto.user.UserListResponseDto;
 import com.tanda.dto.user.UserResponseDto;
 import com.tanda.entity.BonusTransaction;
 import com.tanda.entity.SystemSetting;
@@ -19,6 +20,8 @@ import com.tanda.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -338,6 +342,75 @@ public class BonusService {
             throw new ResourceNotFoundException("Оқырман табылмады: " + query);
         }
         return userService.getUserById(user.getId());
+    }
+
+    @Transactional(readOnly = true)
+    public Page<UserListResponseDto> getBonusReadersAdmin(String search, String sortBy, int page, int size) {
+        List<User> users = userRepository.findAll().stream()
+                .filter(u -> u.getBonusBalance() != null && u.getBonusBalance() > 0)
+                .collect(Collectors.toList());
+
+        if (search != null && !search.trim().isEmpty()) {
+            String q = search.trim().toLowerCase();
+            String qDigits = search.replaceAll("[^0-9]", "");
+            users = users.stream().filter(u -> {
+                if (u.getName() != null && u.getName().toLowerCase().contains(q)) return true;
+                if (u.getEmail() != null && u.getEmail().toLowerCase().contains(q)) return true;
+                if (u.getUsername() != null && u.getUsername().toLowerCase().contains(q.replace("@", ""))) return true;
+                if (u.getIdNumber() != null) {
+                    if (u.getIdNumber().toLowerCase().contains(q)) return true;
+                    if (!qDigits.isEmpty() && u.getIdNumber().replaceAll("[^0-9]", "").contains(qDigits)) return true;
+                }
+                if (u.getId() != null && u.getId().toLowerCase().contains(q)) return true;
+                return false;
+            }).collect(Collectors.toList());
+        }
+
+        Comparator<User> comparator;
+        if ("bonus_asc".equalsIgnoreCase(sortBy)) {
+            comparator = Comparator.comparingInt(u -> (u.getBonusBalance() != null ? u.getBonusBalance() : 0));
+        } else if ("newest".equalsIgnoreCase(sortBy)) {
+            comparator = Comparator.comparing(User::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder()));
+        } else if ("oldest".equalsIgnoreCase(sortBy)) {
+            comparator = Comparator.comparing(User::getCreatedAt, Comparator.nullsLast(Comparator.naturalOrder()));
+        } else {
+            comparator = Comparator.<User>comparingInt(u -> (u.getBonusBalance() != null ? u.getBonusBalance() : 0)).reversed()
+                    .thenComparing(User::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder()));
+        }
+        users.sort(comparator);
+
+        int total = users.size();
+        int fromIndex = Math.min(page * size, total);
+        int toIndex = Math.min(fromIndex + size, total);
+        List<User> pagedUsers = users.subList(fromIndex, toIndex);
+
+        List<UserListResponseDto> dtos = pagedUsers.stream().map(u -> {
+            boolean isClient = u.getRole() == null || "client".equalsIgnoreCase(u.getRole()) || "reader".equalsIgnoreCase(u.getRole());
+            return UserListResponseDto.builder()
+                    .id(u.getId())
+                    .idNumber(u.getIdNumber())
+                    .name(u.getName())
+                    .email(u.getEmail())
+                    .role(u.getRole())
+                    .isActive(u.getIsActive())
+                    .createdAt(u.getCreatedAt())
+                    .phone(u.getPhone())
+                    .username(isClient ? u.getUsername() : null)
+                    .avatarUrl(u.getAvatarUrl())
+                    .isBlocked(u.getIsBlocked())
+                    .bonusBalance(u.getBonusBalance() != null ? u.getBonusBalance() : 0)
+                    .build();
+        }).collect(Collectors.toList());
+
+        return new PageImpl<>(dtos, PageRequest.of(page, size), total);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<BonusTransactionResponseDto> getUserTransactionsAdmin(String userId, Pageable pageable) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Пайдаланушы табылмады: " + userId));
+        Page<BonusTransaction> txs = bonusTransactionRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
+        return txs.map(tx -> toTransactionDto(tx, user));
     }
 
     public User findUserFlexibly(String query) {

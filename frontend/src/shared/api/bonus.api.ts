@@ -88,6 +88,29 @@ export const bonusApi = {
     return data;
   },
 
+  getBonusReaders: async (
+    search?: string,
+    sortBy = 'bonus_desc',
+    page = 0,
+    size = 10
+  ): Promise<PageResponse<any>> => {
+    const { data } = await api.get('/api/v1/admin/bonus/readers', {
+      params: { search, sortBy, page, size },
+    });
+    return data;
+  },
+
+  getReaderTransactions: async (
+    userId: string,
+    page = 0,
+    size = 20
+  ): Promise<PageResponse<BonusTransaction>> => {
+    const { data } = await api.get(`/api/v1/admin/bonus/readers/${userId}/transactions`, {
+      params: { page, size },
+    });
+    return data;
+  },
+
   adjustUserBonus: async (
     userId: string,
     amount: number,
@@ -100,3 +123,4 @@ export const bonusApi = {
     return data;
   },
 };
+
