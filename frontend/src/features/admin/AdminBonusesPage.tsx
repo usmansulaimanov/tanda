@@ -32,12 +32,16 @@ import {
 import { bonusApi, UpdateBonusSettingsPayload } from '../../shared/api/bonus.api';
 import { useToastStore } from '../../store/useToastStore';
 import { useAuthStore } from '../../store/useAuthStore';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { hasAdminPermission } from '../../utils/permissions';
 import { BonusTransaction } from '../../types';
 
+type BonusTab = 'settings' | 'stats';
+
 export const AdminBonusesPage: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabParam = searchParams.get('tab') as BonusTab | null;
   const queryClient = useQueryClient();
   const { user, role, isAuthInitialized } = useAuthStore();
   const { showToast } = useToastStore();
@@ -53,7 +57,38 @@ export const AdminBonusesPage: React.FC = () => {
     }
   }, [isAuthInitialized, user, isAdminOrStaff, isAuthor, navigate, showToast]);
 
-  const [activeTab, setActiveTab] = useState<'settings' | 'stats'>('settings');
+  const getInitialTab = (): BonusTab => {
+    if (tabParam === 'settings' || tabParam === 'stats') {
+      return tabParam;
+    }
+    try {
+      const saved = localStorage.getItem('tanda_admin_bonuses_tab') as BonusTab | null;
+      if (saved === 'settings' || saved === 'stats') {
+        return saved;
+      }
+    } catch {}
+    return 'settings';
+  };
+
+  const [activeTab, setActiveTabState] = useState<BonusTab>(getInitialTab);
+
+  useEffect(() => {
+    if (tabParam === 'settings' || tabParam === 'stats') {
+      setActiveTabState(tabParam);
+    }
+  }, [tabParam]);
+
+  const handleTabChange = (tab: BonusTab) => {
+    setActiveTabState(tab);
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      next.set('tab', tab);
+      return next;
+    }, { replace: true });
+    try {
+      localStorage.setItem('tanda_admin_bonuses_tab', tab);
+    } catch {}
+  };
 
   // Query Settings
   const { data: settings, isLoading: isSettingsLoading } = useQuery({
@@ -319,7 +354,7 @@ export const AdminBonusesPage: React.FC = () => {
           <div className="inline-flex p-1.5 bg-slate-200/80 rounded-2xl shadow-inner">
             <button
               type="button"
-              onClick={() => setActiveTab('settings')}
+              onClick={() => handleTabChange('settings')}
               className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-200 ${
                 activeTab === 'settings'
                   ? 'bg-white text-amber-700 shadow-sm'
@@ -331,7 +366,7 @@ export const AdminBonusesPage: React.FC = () => {
             </button>
             <button
               type="button"
-              onClick={() => setActiveTab('stats')}
+              onClick={() => handleTabChange('stats')}
               className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-200 ${
                 activeTab === 'stats'
                   ? 'bg-white text-amber-700 shadow-sm'
