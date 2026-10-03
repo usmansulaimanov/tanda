@@ -6,8 +6,10 @@ import com.tanda.dto.content.MessageRequestDto;
 import com.tanda.dto.content.MessageResponseDto;
 import com.tanda.dto.push.PushPayloadDto;
 import com.tanda.entity.Message;
+import com.tanda.entity.SystemSetting;
 import com.tanda.exception.ResourceNotFoundException;
 import com.tanda.repository.MessageRepository;
+import com.tanda.repository.SystemSettingRepository;
 import com.tanda.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +35,7 @@ public class MessageService {
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
     private final PushNotificationService pushNotificationService;
+    private final SystemSettingRepository systemSettingRepository;
 
 
     @Transactional(readOnly = true)
@@ -195,6 +198,32 @@ public class MessageService {
     @Transactional
     public void createWelcomeMessage(String recipientId, String recipientName) {
         try {
+            String bonusInfo = "";
+            try {
+                if (systemSettingRepository != null) {
+                    Map<String, String> settings = systemSettingRepository.findAll().stream()
+                            .collect(Collectors.toMap(SystemSetting::getSettingKey, SystemSetting::getSettingValue, (a, b) -> b));
+
+                    boolean bonusSystemEnabled = !"false".equalsIgnoreCase(settings.getOrDefault("bonus_system_enabled", "true"));
+                    boolean bonusSignupEnabled = !"false".equalsIgnoreCase(settings.getOrDefault("bonus_signup_enabled", "true"));
+                    int signupAmount = 100;
+                    try {
+                        if (settings.containsKey("bonus_signup_amount")) {
+                            signupAmount = Integer.parseInt(settings.get("bonus_signup_amount").trim());
+                        }
+                    } catch (Exception ignored) {}
+
+                    if (bonusSystemEnabled && bonusSignupEnabled && signupAmount > 0) {
+                        String currency = settings.getOrDefault("bonus_currency_name", "Бонус");
+                        bonusInfo = " Тіркелгеніңіз үшін сізге " + signupAmount + " " + currency + " берілді!";
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("Could not retrieve bonus settings for welcome message: {}", e.getMessage());
+            }
+
+            String content = "Құрметті " + (recipientName != null ? recipientName : "оқырман") + "! Біздің онлайн кітапханамызға қош келдіңіз." + bonusInfo + " Мұнда қазақ және әлем әдебиетінің таңдаулы жауһарларын электронды түрде оқып, аудио нұсқасын тыңдай аласыз.";
+
             Message welcome = Message.builder()
                     .id("msg-welcome-" + UUID.randomUUID().toString().substring(0, 8))
                     .senderName("Tanda")
@@ -204,7 +233,7 @@ public class MessageService {
                     .targetUserIds(recipientId)
                     .targetUserNames(recipientName)
                     .title("Tanda платформасына қош келдіңіз!")
-                    .content("Құрметті " + (recipientName != null ? recipientName : "оқырман") + "! Біздің онлайн кітапханамызға қош келдіңіз. Мұнда қазақ және әлем әдебиетінің таңдаулы жауһарларын электронды түрде оқып, аудио нұсқасын тыңдай аласыз.")
+                    .content(content)
                     .priority("normal")
                     .canReaderDelete(true)
                     .createdAt(OffsetDateTime.now().plusSeconds(2))
