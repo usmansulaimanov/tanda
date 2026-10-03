@@ -862,9 +862,8 @@ export const AdminBonusesPage: React.FC = () => {
                 )}
               </div>
               <div className="min-w-0 flex-1">
-                <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                <h3 className="text-lg font-bold text-slate-900">
                   <span className="truncate">{selectedReaderForHistory.name || 'Оқырман'}</span>
-                  <span className="text-xs font-normal text-slate-500 whitespace-nowrap">бонус тарихы</span>
                 </h3>
                 <div className="text-xs text-slate-500 flex flex-wrap items-center gap-2 mt-0.5">
                   {selectedReaderForHistory.idNumber && (
