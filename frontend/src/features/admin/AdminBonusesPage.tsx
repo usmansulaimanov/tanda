@@ -380,16 +380,15 @@ export const AdminBonusesPage: React.FC = () => {
 
             <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col gap-2">
               <label className="text-sm font-semibold text-slate-800">
-                Бонус туралы түсіндірме мәтін (оқырмандарға көрінетін сипаттама):
+                Бонустың сипаттамасы:
               </label>
               <textarea
                 rows={3}
                 value={form.bonusDescription || ''}
                 onChange={(e) => setForm({ ...form, bonusDescription: e.target.value })}
-                placeholder="Белсенді оқырмандарға берілетін бонус. Күн сайын сайтқа кіру, кітап тыңдау немесе пікір жазу арқылы жинап, оны жазылымға айырбастауға болады."
+                placeholder=""
                 className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 text-sm font-medium leading-relaxed resize-none"
               />
-              <p className="text-xs text-slate-500">Бұл мәтін сайтта оқырманның жеке кабинеті мен менюіндегі бонус белгішесін басқан кезде шығатын терезеде көрсетіледі.</p>
             </div>
           </div>
 
