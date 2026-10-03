@@ -410,12 +410,14 @@ export interface SystemSettings {
   aiReceiptVerificationEnabled?: boolean;
   bonusSystemEnabled?: boolean;
   bonusCurrencyName?: string;
+  bonusDescription?: string;
   updatedAt?: string;
 }
 
 export interface BonusSettings {
   bonusSystemEnabled: boolean;
   bonusCurrencyName: string;
+  bonusDescription?: string;
   bonusSignupEnabled: boolean;
   bonusSignupAmount: number;
   bonusDailyLoginEnabled: boolean;

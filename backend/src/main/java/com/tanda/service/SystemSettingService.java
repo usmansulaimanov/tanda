@@ -91,6 +91,7 @@ public class SystemSettingService {
                 .aiReceiptVerificationEnabled(!"false".equalsIgnoreCase(map.get("ai_receipt_verification_enabled")))
                 .bonusSystemEnabled(!"false".equalsIgnoreCase(map.getOrDefault("bonus_system_enabled", "true")))
                 .bonusCurrencyName(map.getOrDefault("bonus_currency_name", "Бонус"))
+                .bonusDescription(map.getOrDefault("bonus_description", "Белсенді оқырмандарға берілетін бонус. Күн сайын сайтқа кіру, кітап тыңдау немесе пікір жазу арқылы жинап, оны жазылымға айырбастауға болады."))
                 .updatedAt(lastUpdated)
                 .build();
     }

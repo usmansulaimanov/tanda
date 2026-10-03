@@ -23,4 +23,5 @@ public class BonusSettingsDto {
     private int bonusListeningIntervalHours;
     private boolean bonusReviewEnabled;
     private int bonusReviewAmount;
+    private String bonusDescription;
 }

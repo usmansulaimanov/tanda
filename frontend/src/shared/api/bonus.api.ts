@@ -21,6 +21,7 @@ export interface UpdateBonusSettingsPayload {
   bonusListeningIntervalHours?: number;
   bonusReviewEnabled?: boolean;
   bonusReviewAmount?: number;
+  bonusDescription?: string;
 }
 
 export interface RedeemSubscriptionPayload {

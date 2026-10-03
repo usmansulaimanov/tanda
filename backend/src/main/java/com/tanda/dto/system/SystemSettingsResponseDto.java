@@ -52,5 +52,6 @@ public class SystemSettingsResponseDto {
     private boolean aiReceiptVerificationEnabled;
     private boolean bonusSystemEnabled;
     private String bonusCurrencyName;
+    private String bonusDescription;
     private OffsetDateTime updatedAt;
 }

@@ -66,6 +66,7 @@ public class BonusService {
                 .bonusListeningIntervalHours(parseIntOrDefault(map.get("bonus_listening_interval_hours"), 1))
                 .bonusReviewEnabled(!"false".equalsIgnoreCase(map.getOrDefault("bonus_review_enabled", "true")))
                 .bonusReviewAmount(parseIntOrDefault(map.get("bonus_review_amount"), 5))
+                .bonusDescription(map.getOrDefault("bonus_description", "Белсенді оқырмандарға берілетін бонус. Күн сайын сайтқа кіру, кітап тыңдау немесе пікір жазу арқылы жинап, оны жазылымға айырбастауға болады."))
                 .build();
     }
 
@@ -76,6 +77,9 @@ public class BonusService {
         }
         if (dto.getBonusCurrencyName() != null && !dto.getBonusCurrencyName().isBlank()) {
             saveSetting("bonus_currency_name", dto.getBonusCurrencyName().trim());
+        }
+        if (dto.getBonusDescription() != null) {
+            saveSetting("bonus_description", dto.getBonusDescription().trim());
         }
         if (dto.getBonusSignupEnabled() != null) {
             saveSetting("bonus_signup_enabled", String.valueOf(dto.getBonusSignupEnabled()));
