@@ -275,7 +275,7 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({
 
       {/* User's own pinned review card (if exists) */}
       {myReview && (
-        <div className="my-6 p-4 sm:p-5 bg-blue-50/60 border border-blue-100 rounded-2xl">
+        <div className="mt-4 mb-3 p-4 sm:p-5 bg-blue-50/60 border border-blue-100 rounded-2xl">
           <div className="flex items-center justify-between gap-2 mb-2">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-xs font-black uppercase tracking-wider text-blue-700">
@@ -328,7 +328,7 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({
       )}
 
       {/* Sorting Tabs */}
-      <div className="flex items-center justify-between flex-wrap gap-2 pt-6 pb-4">
+      <div className="flex items-center justify-between flex-wrap gap-2 pt-2 pb-3">
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar flex-1 min-w-0">
           {[
             { id: 'newest', label: 'Ең жаңасы' },
