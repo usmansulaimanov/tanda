@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { reviewsApi } from '../../shared/api/reviews.api';
-import { useBookStore } from '../../store/useBookStore';
+import { booksApi } from '../../shared/api/books.api';
 import { useToastStore } from '../../store/useToastStore';
 import { BookReview } from '../../types';
-import { Search, Filter, Trash2, MessageSquare, Star, BookOpen, AlertTriangle, ExternalLink, User } from 'lucide-react';
+import { Search, Filter, Trash2, MessageSquare, Star, BookOpen, AlertTriangle, ExternalLink, User, X, ChevronRight } from 'lucide-react';
 
 const formatDate = (isoString?: string): string => {
   if (!isoString) return '';
@@ -20,7 +20,6 @@ const formatDate = (isoString?: string): string => {
 export const AdminReviewsPage: React.FC = () => {
   const queryClient = useQueryClient();
   const { showToast } = useToastStore();
-  const { books } = useBookStore();
 
   const [search, setSearch] = useState('');
   const [selectedRating, setSelectedRating] = useState<number | null>(null);
@@ -30,6 +29,14 @@ export const AdminReviewsPage: React.FC = () => {
 
   const pageSize = 15;
 
+  // 1. Fetch all books from the API so the dropdown always has complete real database books
+  const { data: allBooks = [], isLoading: isBooksLoading } = useQuery({
+    queryKey: ['adminAllBooksList'],
+    queryFn: () => booksApi.getAll({ includeDeleted: false }),
+    staleTime: 60 * 1000,
+  });
+
+  // 2. Fetch reviews list based on current filters
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['adminReviews', page, selectedRating, selectedBookId, search],
     queryFn: () =>
@@ -43,12 +50,23 @@ export const AdminReviewsPage: React.FC = () => {
     staleTime: 10 * 1000,
   });
 
+  // 3. If a specific book is selected, fetch its rating summary breakdown
+  const { data: ratingSummary, isLoading: isSummaryLoading } = useQuery({
+    queryKey: ['adminBookRatingSummary', selectedBookId],
+    queryFn: () => reviewsApi.getSummary(selectedBookId),
+    enabled: Boolean(selectedBookId),
+    staleTime: 10 * 1000,
+  });
+
+  const selectedBook = allBooks.find((b) => String(b.id) === String(selectedBookId));
+
   const deleteMutation = useMutation({
     mutationFn: (reviewId: number) => reviewsApi.adminDeleteReview(reviewId),
     onSuccess: () => {
       showToast('Пікір сәтті өшірілді', 'success');
       setReviewToDelete(null);
       queryClient.invalidateQueries({ queryKey: ['adminReviews'] });
+      queryClient.invalidateQueries({ queryKey: ['adminBookRatingSummary'] });
       queryClient.invalidateQueries({ queryKey: ['bookReviews'] });
       queryClient.invalidateQueries({ queryKey: ['ratingSummary'] });
     },
@@ -110,7 +128,7 @@ export const AdminReviewsPage: React.FC = () => {
             />
           </div>
 
-          {/* Book selector */}
+          {/* Book selector (populated from all database books) */}
           <div className="md:col-span-6">
             <select
               value={selectedBookId}
@@ -118,16 +136,15 @@ export const AdminReviewsPage: React.FC = () => {
                 setSelectedBookId(e.target.value);
                 setPage(0);
               }}
+              disabled={isBooksLoading}
               className="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all text-slate-900 font-medium cursor-pointer"
             >
-              <option value="">Барлық кітаптар</option>
-              {books
-                .filter((b) => !b.isDeleted)
-                .map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.title} ({b.author})
-                  </option>
-                ))}
+              <option value="">Барлық кітаптар ({allBooks.length})</option>
+              {allBooks.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.title} — {b.author}
+                </option>
+              ))}
             </select>
           </div>
         </div>
@@ -169,7 +186,151 @@ export const AdminReviewsPage: React.FC = () => {
               <span>{rating} жұлдыз</span>
             </button>
           ))}
+
+          {/* Reset Filters button if any filter is active */}
+          {(selectedRating !== null || selectedBookId || search) && (
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedRating(null);
+                setSelectedBookId('');
+                setSearch('');
+                setPage(0);
+              }}
+              className="ml-auto inline-flex items-center gap-1 text-xs font-bold text-slate-500 hover:text-rose-600 transition-colors"
+            >
+              <X className="w-3.5 h-3.5" />
+              <span>Сүзгілерді тазалау</span>
+            </button>
+          )}
         </div>
+      </div>
+
+      {/* Selected Book Rating Summary Card (Shown when a book is selected) */}
+      {selectedBook && (
+        <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl p-5 sm:p-6 mb-6 shadow-xl relative overflow-hidden">
+          <div className="absolute right-0 top-0 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 relative z-10">
+            {/* Book Info */}
+            <div className="flex items-start gap-4">
+              {selectedBook.coverImage ? (
+                <img
+                  src={selectedBook.coverImage}
+                  alt={selectedBook.title}
+                  className="w-16 sm:w-20 h-24 sm:h-28 object-cover rounded-xl shadow-lg shrink-0 border border-white/10"
+                />
+              ) : (
+                <div className="w-16 sm:w-20 h-24 sm:h-28 bg-slate-700 rounded-xl flex items-center justify-center shrink-0 border border-white/10">
+                  <BookOpen className="w-8 h-8 text-slate-400" />
+                </div>
+              )}
+
+              <div>
+                <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30 mb-2">
+                  Таңдалған кітап
+                </div>
+                <h2 className="text-lg sm:text-xl font-black text-white leading-snug">
+                  {selectedBook.title}
+                </h2>
+                <p className="text-xs sm:text-sm text-slate-300 font-semibold mt-0.5">
+                  Авторы: <span className="text-white font-bold">{selectedBook.author}</span>
+                </p>
+                {selectedBook.category && (
+                  <span className="text-xs text-slate-400 mt-1 block">
+                    Санаты: {selectedBook.category}
+                  </span>
+                )}
+
+                <div className="flex items-center gap-3 mt-3">
+                  <Link
+                    to={`/books/${selectedBook.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-400 hover:text-amber-300 transition-colors"
+                  >
+                    <span>Кітап парақшасын ашу</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedBookId('');
+                      setPage(0);
+                    }}
+                    className="inline-flex items-center gap-1 text-xs font-medium text-slate-400 hover:text-white transition-colors"
+                  >
+                    <X className="w-3 h-3" />
+                    <span>Барлық кітаптарды көрсету</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Rating Score & Breakdown */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-6 w-full lg:w-auto bg-white/5 backdrop-blur-xs p-4 sm:p-5 rounded-xl border border-white/10">
+              {/* Overall Score */}
+              <div className="text-center sm:text-left pr-0 sm:pr-6 sm:border-r sm:border-white/10">
+                <div className="flex items-center justify-center sm:justify-start gap-1 text-amber-400 font-black text-3xl sm:text-4xl">
+                  <Star className="w-7 h-7 fill-amber-400 text-amber-400" />
+                  <span>
+                    {ratingSummary?.averageRating !== undefined && ratingSummary.averageRating > 0
+                      ? (ratingSummary.averageRating % 1 === 0 ? ratingSummary.averageRating.toFixed(0) : ratingSummary.averageRating.toFixed(1))
+                      : (selectedBook.averageRating && selectedBook.averageRating > 0
+                          ? (selectedBook.averageRating % 1 === 0 ? selectedBook.averageRating.toFixed(0) : selectedBook.averageRating.toFixed(1))
+                          : '0')}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-400 mt-1 font-semibold">
+                  Орташа бағасы
+                </p>
+                <p className="text-[11px] text-amber-300/80 font-bold mt-0.5">
+                  {ratingSummary?.ratingCount ?? selectedBook.ratingCount ?? 0} баға / пікір
+                </p>
+              </div>
+
+              {/* Breakdown Bars */}
+              <div className="space-y-1.5 min-w-[200px] flex-1">
+                {[5, 4, 3, 2, 1].map((star) => {
+                  const count = ratingSummary?.distribution?.[star] || 0;
+                  const pct = ratingSummary?.percentages?.[star] || 0;
+                  return (
+                    <div key={star} className="flex items-center gap-2 text-xs">
+                      <span className="w-7 font-bold text-slate-300 text-right flex items-center justify-end gap-0.5">
+                        <span>{star}</span>
+                        <Star className="w-2.5 h-2.5 fill-amber-400 text-amber-400 inline" />
+                      </span>
+                      <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-amber-400 rounded-full transition-all duration-500"
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                      <span className="w-8 text-[11px] font-medium text-slate-400 text-right">
+                        {count}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reviews List Header */}
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
+          <span>Пікірлер тізімі</span>
+          {selectedBook && (
+            <span className="text-xs font-bold text-slate-500">
+              («{selectedBook.title}» бойынша)
+            </span>
+          )}
+        </h3>
+        <span className="text-xs font-semibold text-slate-500">
+          Барлығы: {totalElements}
+        </span>
       </div>
 
       {/* Reviews List */}
@@ -213,6 +374,20 @@ export const AdminReviewsPage: React.FC = () => {
               ? 'Іздеу сүзгілері бойынша ешқандай пікір табылмады. Сүзгілерді тазалап көріңіз.'
               : 'Платформада әлі ешқандай пікір жазылмаған.'}
           </p>
+          {(selectedRating !== null || selectedBookId || search) && (
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedRating(null);
+                setSelectedBookId('');
+                setSearch('');
+                setPage(0);
+              }}
+              className="mt-4 px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-xl hover:bg-blue-700 transition-colors"
+            >
+              Барлық пікірлерді көру
+            </button>
+          )}
         </div>
       ) : (
         <div className="space-y-4">
@@ -356,7 +531,7 @@ export const AdminReviewsPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setReviewToDelete(review)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-rose-600 hover:text-white bg-rose-50 hover:bg-rose-600 rounded-xl transition-all border border-rose-200/60 shadow-xs active:scale-95"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-rose-600 hover:text-white bg-rose-50 hover:bg-rose-600 rounded-xl transition-all border border-rose-200/60 shadow-xs active:scale-95 cursor-pointer"
                   title="Пікірді платформадан өшіру"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
