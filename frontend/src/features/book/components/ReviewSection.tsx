@@ -277,10 +277,20 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({
       {myReview && (
         <div className="my-6 p-4 sm:p-5 bg-blue-50/60 border border-blue-100 rounded-2xl">
           <div className="flex items-center justify-between gap-2 mb-2">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className="text-xs font-black uppercase tracking-wider text-blue-700 bg-blue-100 px-2 py-0.5 rounded-md">
                 Сіздің бағаңыз
               </span>
+              {myReview.isVerifiedReader && (
+                <span
+                  className="inline-flex items-center text-blue-500"
+                  title="Тексерілген оқырман (Кітапты 20%+ тыңдаған немесе оқыған)"
+                >
+                  <svg className="w-4 h-4 text-blue-500 fill-current shrink-0" viewBox="0 0 24 24">
+                    <path d="M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.67-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.33 2.19c-1.4-.46-2.91-.2-3.92.81s-1.26 2.52-.8 3.91c-1.31.67-2.2 1.91-2.2 3.34s.89 2.67 2.2 3.34c-.46 1.39-.21 2.9.8 3.91s2.52 1.26 3.91.81c.67 1.31 1.91 2.19 3.34 2.19s2.67-.88 3.34-2.19c1.39.45 2.9.2 3.91-.81s1.27-2.52.81-3.91c1.31-.67 2.19-1.91 2.19-3.34zm-11.71 4.2L6.8 12.46l1.41-1.42 2.33 2.33 4.99-4.99 1.42 1.42-6.41 6.4z" />
+                  </svg>
+                </span>
+              )}
               <StarRating value={myReview.rating} size="sm" />
               {(myReview.isEdited || (myReview.updatedAt && myReview.createdAt && new Date(myReview.updatedAt).getTime() - new Date(myReview.createdAt).getTime() > 1000)) && (
                 <span className="text-[11px] text-blue-600/80 font-normal italic ml-1">
@@ -405,12 +415,13 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-bold text-slate-900 text-sm">{rev.userName}</span>
                         {rev.isVerifiedReader && (
-                          <span className="inline-flex items-center" title="Тексерілген оқырман (Кітаптың 20%+ оқыған)">
-                            <img
-                              src="/assets/verified-reader-badge.png"
-                              alt="Тексерілген оқырман"
-                              className="w-4 h-4 object-contain inline-block drop-shadow-sm"
-                            />
+                          <span
+                            className="inline-flex items-center text-blue-500 hover:text-blue-600 transition-colors"
+                            title="Тексерілген оқырман (Кітаптың 20%+ оқыған немесе тыңдаған)"
+                          >
+                            <svg className="w-4 h-4 text-blue-500 fill-current shrink-0" viewBox="0 0 24 24">
+                              <path d="M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.67-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.33 2.19c-1.4-.46-2.91-.2-3.92.81s-1.26 2.52-.8 3.91c-1.31.67-2.2 1.91-2.2 3.34s.89 2.67 2.2 3.34c-.46 1.39-.21 2.9.8 3.91s2.52 1.26 3.91.81c.67 1.31 1.91 2.19 3.34 2.19s2.67-.88 3.34-2.19c1.39.45 2.9.2 3.91-.81s1.27-2.52.81-3.91c1.31-.67 2.19-1.91 2.19-3.34zm-11.71 4.2L6.8 12.46l1.41-1.42 2.33 2.33 4.99-4.99 1.42 1.42-6.41 6.4z" />
+                            </svg>
                           </span>
                         )}
                       </div>

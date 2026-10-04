@@ -13,6 +13,7 @@ import com.tanda.entity.UserBook;
 import com.tanda.exception.BadRequestException;
 import com.tanda.exception.ResourceNotFoundException;
 import com.tanda.exception.UnauthorizedException;
+import com.tanda.repository.AudioSessionRepository;
 import com.tanda.repository.BookRepository;
 import com.tanda.repository.BookReviewLikeRepository;
 import com.tanda.repository.BookReviewRepository;
@@ -46,6 +47,7 @@ public class BookReviewService {
     private final UserRepository userRepository;
     private final ReadingProgressRepository readingProgressRepository;
     private final UserBookRepository userBookRepository;
+    private final AudioSessionRepository audioSessionRepository;
 
     @Transactional
     public BookReviewResponseDto addOrUpdateReview(String bookId, String userId, CreateReviewRequestDto dto) {
@@ -320,16 +322,19 @@ public class BookReviewService {
     private boolean checkIsVerifiedReader(User author, Book book) {
         if (author == null || book == null) return false;
 
-        // 1. Check shelf status: If marked completed or progress >= 20%
+        // 1. Check shelf status / UserBook
         Optional<UserBook> userBookOpt = userBookRepository.findByUserIdAndBookId(author.getId(), book.getId());
         if (userBookOpt.isPresent()) {
             UserBook ub = userBookOpt.get();
             if (Boolean.TRUE.equals(ub.getIsCompleted()) || "completed".equalsIgnoreCase(ub.getStatus())) {
                 return true;
             }
+            if (ub.getProgressPercent() != null && ub.getProgressPercent() >= 20.0) {
+                return true;
+            }
             if (ub.getCurrentPage() != null && book.getPages() != null && book.getPages() > 0) {
-                double pct = (double) ub.getCurrentPage() / book.getPages();
-                if (pct >= 0.20) {
+                double pct = ((double) ub.getCurrentPage() / book.getPages()) * 100.0;
+                if (pct >= 20.0) {
                     return true;
                 }
             }
@@ -340,19 +345,75 @@ public class BookReviewService {
         if (progressOpt.isPresent()) {
             ReadingProgress rp = progressOpt.get();
             if (rp.getCurrentPage() != null && book.getPages() != null && book.getPages() > 0) {
-                double pct = (double) rp.getCurrentPage() / book.getPages();
-                if (pct >= 0.20) {
+                double pct = ((double) rp.getCurrentPage() / book.getPages()) * 100.0;
+                if (pct >= 20.0) {
                     return true;
                 }
             }
-            if (rp.getCurrentAudioTime() != null && rp.getCurrentAudioTime() >= 120) {
-                return true;
+            if (rp.getCurrentAudioTime() != null && rp.getCurrentAudioTime() > 0) {
+                long durationSec = parseAudioDurationSeconds(book.getAudioDuration());
+                if (durationSec > 0) {
+                    double audioPct = ((double) rp.getCurrentAudioTime() / durationSec) * 100.0;
+                    if (audioPct >= 20.0) {
+                        return true;
+                    }
+                } else if (rp.getCurrentAudioTime() >= 60) {
+                    return true;
+                }
             }
             if (rp.getEpubCfi() != null && !rp.getEpubCfi().isBlank()) {
                 return true;
             }
         }
 
+        // 3. Check AudioSession listening time
+        try {
+            long listeningSeconds = audioSessionRepository.getUserBookListeningAllTime(book.getId(), author.getId());
+            if (listeningSeconds > 0) {
+                long durationSec = parseAudioDurationSeconds(book.getAudioDuration());
+                if (durationSec > 0) {
+                    double audioPct = ((double) listeningSeconds / durationSec) * 100.0;
+                    if (audioPct >= 20.0) {
+                        return true;
+                    }
+                } else if (listeningSeconds >= 60) {
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Error calculating user book audio listening seconds for bookId={}, userId={}", book.getId(), author.getId(), e);
+        }
+
         return false;
+    }
+
+    private long parseAudioDurationSeconds(String duration) {
+        if (duration == null || duration.trim().isEmpty()) {
+            return 0;
+        }
+        try {
+            String clean = duration.trim().toLowerCase()
+                    .replace("сек", "")
+                    .replace("мин", "")
+                    .replace("сағ", "")
+                    .replace("s", "")
+                    .replace("m", "")
+                    .replace("h", "")
+                    .trim();
+            if (clean.contains(":")) {
+                String[] parts = clean.split(":");
+                if (parts.length == 3) {
+                    return Long.parseLong(parts[0].trim()) * 3600
+                            + Long.parseLong(parts[1].trim()) * 60
+                            + Long.parseLong(parts[2].trim());
+                } else if (parts.length == 2) {
+                    return Long.parseLong(parts[0].trim()) * 60
+                            + Long.parseLong(parts[1].trim());
+                }
+            }
+            return Long.parseLong(clean);
+        } catch (Exception e) {
+            return 0;
+        }
     }
 }
