@@ -137,6 +137,8 @@ export interface User {
   hasPassword?: boolean;
   password?: string;
   bonusBalance?: number;
+  totalListenedSeconds?: number;
+  hasActiveSubscription?: boolean;
   personalMessage?: UserPersonalMessage;
 }
 

@@ -96,6 +96,14 @@ public class BookReviewService {
     }
 
     @Transactional(readOnly = true)
+    public List<BookReviewResponseDto> getMyReviews(String userId) {
+        List<BookReview> reviews = bookReviewRepository.findByUserIdWithUserAndBookOrderByCreatedAtDesc(userId);
+        return reviews.stream()
+                .map(r -> mapToDto(r, userId, false))
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
     public Page<BookReviewResponseDto> getReviews(String bookId, Pageable pageable, String currentUserId, boolean isAdmin) {
         if (!bookRepository.existsById(bookId)) {
             throw new ResourceNotFoundException("Book", "id", bookId);

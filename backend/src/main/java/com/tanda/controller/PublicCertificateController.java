@@ -12,6 +12,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tanda.security.UserPrincipal;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+
 @RestController
 @RequestMapping("/api/v1/certificates")
 @RequiredArgsConstructor
@@ -19,6 +23,16 @@ import org.springframework.web.bind.annotation.RestController;
 public class PublicCertificateController {
 
     private final CertificateService certificateService;
+
+    @GetMapping("/my")
+    @Operation(summary = "Пайдаланушының өз сертификаттарын алу")
+    public ResponseEntity<java.util.List<CertificateResponseDto>> getMyCertificates(
+            @AuthenticationPrincipal UserPrincipal principal) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        return ResponseEntity.ok(certificateService.getUserCertificates(principal.getId()));
+    }
 
     @GetMapping("/verify/{certificateNumber}")
     @Operation(summary = "Сертификатты нөмірі және құпия кілті бойынша тексеру (Public / Ашық)")

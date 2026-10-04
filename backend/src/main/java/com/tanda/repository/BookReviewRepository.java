@@ -19,6 +19,11 @@ public interface BookReviewRepository extends JpaRepository<BookReview, Long> {
     boolean existsByBookIdAndUserId(String bookId, String userId);
 
     @Query(
+        value = "SELECT r FROM BookReview r JOIN FETCH r.user JOIN FETCH r.book WHERE r.user.id = :userId ORDER BY r.createdAt DESC"
+    )
+    List<BookReview> findByUserIdWithUserAndBookOrderByCreatedAtDesc(@Param("userId") String userId);
+
+    @Query(
         value = "SELECT r FROM BookReview r JOIN FETCH r.user WHERE r.book.id = :bookId",
         countQuery = "SELECT COUNT(r) FROM BookReview r WHERE r.book.id = :bookId"
     )

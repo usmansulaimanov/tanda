@@ -76,7 +76,16 @@ export const certificatesApi = {
     await apiClient.delete(`/api/v1/admin/certificates/${id}`);
   },
 
-  // Public Endpoint
+  // Public & User Endpoints
+  getMyCertificates: async (): Promise<CertificateItem[]> => {
+    try {
+      const { data } = await apiClient.get<CertificateItem[]>('/api/v1/certificates/my');
+      return data || [];
+    } catch {
+      return [];
+    }
+  },
+
   verify: async (certificateNumber: string, key?: string | null): Promise<CertificateItem> => {
     const { data } = await apiClient.get<CertificateItem>(
       `/api/v1/certificates/verify/${encodeURIComponent(certificateNumber)}`,

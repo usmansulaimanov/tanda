@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -110,6 +111,16 @@ public class BookReviewController {
             return ResponseEntity.noContent().build();
         }
         return ResponseEntity.ok(myReview);
+    }
+
+    @GetMapping("/reviews/my-list")
+    public ResponseEntity<List<BookReviewResponseDto>> getMyReviewsList(
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        return ResponseEntity.ok(bookReviewService.getMyReviews(principal.getId()));
     }
 
     @PostMapping("/books/{bookId}/reviews")

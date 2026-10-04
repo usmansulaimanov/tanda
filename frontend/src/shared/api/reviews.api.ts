@@ -40,6 +40,15 @@ export const reviewsApi = {
     }
   },
 
+  getMyReviewsList: async (): Promise<BookReview[]> => {
+    try {
+      const { data } = await apiClient.get<BookReview[]>('/api/v1/reviews/my-list');
+      return data || [];
+    } catch {
+      return [];
+    }
+  },
+
   submitReview: async (bookId: string, payload: CreateReviewPayload): Promise<BookReview> => {
     const { data } = await apiClient.post<BookReview>(`/api/v1/books/${bookId}/reviews`, payload);
     return data;
