@@ -140,7 +140,7 @@ export const AdminReviewsPage: React.FC = () => {
               disabled={isBooksLoading}
               className="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all text-slate-900 font-medium cursor-pointer"
             >
-              <option value="">Барлық кітаптар ({booksList.length})</option>
+              <option value="">Барлық кітаптар</option>
               {booksList.map((b) => (
                 <option key={b.id} value={b.id}>
                   {b.title} — {b.author}
