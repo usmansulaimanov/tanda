@@ -42,6 +42,23 @@ if (typeof window !== 'undefined') {
 
   // Background pre-warm for Render backend instance
   fetch((import.meta.env.VITE_API_URL || '') + '/api/v1/books', { method: 'GET', keepalive: true }).catch(() => {});
+
+  // Prevent dragging images or right-click saving across the platform
+  window.addEventListener('dragstart', (e) => {
+    const target = e.target as HTMLElement | null;
+    if (target instanceof HTMLImageElement || target?.tagName === 'IMG' || target?.closest('img')) {
+      e.preventDefault();
+      return false;
+    }
+  }, true);
+
+  window.addEventListener('contextmenu', (e) => {
+    const target = e.target as HTMLElement | null;
+    if (target instanceof HTMLImageElement || target?.tagName === 'IMG' || target?.closest('img')) {
+      e.preventDefault();
+      return false;
+    }
+  }, true);
 }
 
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '470329734598-c32dk937vu2hgkbvblqjuvi43noc1mu9.apps.googleusercontent.com';
