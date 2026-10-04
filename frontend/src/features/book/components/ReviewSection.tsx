@@ -255,15 +255,12 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({
       {/* Top Title & Action */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100">
         <div>
-          <h2 className="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2.5">
-            <span>Пікірлер мен бағалар</span>
-            <span className="text-sm font-bold text-slate-400 bg-slate-100 px-2.5 py-0.5 rounded-full">
+          <h2 className="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2">
+            <span>Пікірлер:</span>
+            <span className="text-sm sm:text-base font-bold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full">
               {totalRatingCount}
             </span>
           </h2>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Кітапты оқыған оқырмандардың шынайы пікірлері
-          </p>
         </div>
 
         <button
