@@ -94,6 +94,14 @@ public class Book {
     @Builder.Default
     private Integer previewDurationMinutes = 15;
 
+    @Column(name = "average_rating")
+    @Builder.Default
+    private Double averageRating = 0.0;
+
+    @Column(name = "rating_count")
+    @Builder.Default
+    private Integer ratingCount = 0;
+
     @Column(name = "created_at")
     private OffsetDateTime createdAt;
 

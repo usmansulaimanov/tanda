@@ -7,6 +7,8 @@ import { useSavedBooksStore } from '../../store/useSavedBooksStore';
 import { useMyBooksStore } from '../../store/useMyBooksStore';
 import { useToastStore } from '../../store/useToastStore';
 import { TandaPremiumBadge } from '../../components/ui/TandaPremiumBadge';
+import { StarRating } from '../../components/ui/StarRating';
+import { ReviewSection } from './components/ReviewSection';
 
 import { Book } from '../../types';
 
@@ -244,7 +246,16 @@ export const BookDetailPage: React.FC = () => {
               Авторы: <span className="text-slate-900 font-bold">{book.author}</span>
             </p>
 
-            <div className="flex flex-wrap gap-3 sm:gap-5 text-xs sm:text-sm text-slate-600 mb-5 pb-4 border-b border-slate-100">
+            <div className="flex flex-wrap items-center gap-3 sm:gap-5 text-xs sm:text-sm text-slate-600 mb-5 pb-4 border-b border-slate-100">
+              <div className="flex items-center gap-1.5 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200/60">
+                <StarRating value={book.averageRating || 0} size="sm" />
+                <span className="font-bold text-slate-900">
+                  {book.averageRating && book.averageRating > 0 ? book.averageRating.toFixed(1) : '0.0'}
+                </span>
+                <span className="text-slate-400 font-medium">
+                  ({book.ratingCount || 0})
+                </span>
+              </div>
               {book.pages && <div>Бет саны: <strong>{book.pages}</strong></div>}
               {book.ebookFormat && <div>Форматы: <strong>{book.ebookFormat}</strong></div>}
               {book.audioDuration && <div>Ұзақтығы: <strong>{book.audioDuration}</strong></div>}
@@ -460,6 +471,15 @@ export const BookDetailPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Reviews & Ratings Section */}
+      <ReviewSection
+        bookId={book.id}
+        bookTitle={book.title}
+        onRatingUpdated={(newAvg, newCount) => {
+          setBook((prev) => (prev ? { ...prev, averageRating: newAvg, ratingCount: newCount } : null));
+        }}
+      />
     </div>
   );
 };

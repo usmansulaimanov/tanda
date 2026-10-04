@@ -83,6 +83,9 @@ public class SecurityConfig {
                 .requestMatchers("/media/stream/audio/**", "/api/media/stream/audio/**", "/api/v1/media/stream/audio/**", "/uploads/audio/**").authenticated()
                 .requestMatchers("/api/premium/subscription-requests/**", "/api/v1/premium/subscription-requests/**").authenticated()
                 .requestMatchers("/api/premium/**", "/api/v1/premium/**").authenticated()
+                .requestMatchers(HttpMethod.POST, "/api/books/*/reviews", "/api/v1/books/*/reviews").authenticated()
+                .requestMatchers(HttpMethod.DELETE, "/api/books/*/reviews/*", "/api/v1/books/*/reviews/*").authenticated()
+                .requestMatchers(HttpMethod.POST, "/api/reviews/*/like", "/api/v1/reviews/*/like").authenticated()
 
                 // Admin-only endpoints
                 .requestMatchers(HttpMethod.POST, "/api/books", "/api/books/**", "/api/v1/books", "/api/v1/books/**").hasRole("ADMIN")

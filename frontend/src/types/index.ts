@@ -37,6 +37,8 @@ export interface Book {
   listensCount?: number;
   audioListensCount?: number;
   savedCount?: number;
+  averageRating?: number;
+  ratingCount?: number;
 }
 
 export type Category = 
@@ -475,4 +477,36 @@ export const PREDEFINED_SPINE_COLORS: SpineColorOption[] = [
   { code: '#60241E', name: 'Қоңыр бордо' },
   { code: '#0A2947', name: 'Түнгі көк' },
 ];
+
+export interface BookReview {
+  id: number;
+  bookId: string;
+  userId: string;
+  userName: string;
+  userAvatar?: string;
+  userRole?: string;
+  rating: number;
+  reviewText?: string;
+  isSpoiler: boolean;
+  likesCount: number;
+  isLikedByCurrentUser: boolean;
+  isVerifiedReader: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface RatingSummary {
+  averageRating: number;
+  ratingCount: number;
+  distribution: Record<number, number>;
+  percentages: Record<number, number>;
+}
+
+export interface CreateReviewPayload {
+  rating: number;
+  reviewText?: string;
+  isSpoiler?: boolean;
+}
 

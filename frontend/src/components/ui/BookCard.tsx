@@ -214,7 +214,26 @@ export const BookCard: React.FC<BookCardProps> = ({ book }) => {
       <div className="book-meta">
         <div className="book-title">{book.title}</div>
         <div className="book-author">{book.author}</div>
-        <span className="book-category">{book.category}</span>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px', marginTop: '4px' }}>
+          <span className="book-category">{book.category}</span>
+          {book.averageRating !== undefined && book.averageRating > 0 && (
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '2px',
+                fontSize: '11px',
+                fontWeight: 800,
+                color: '#D97706',
+                background: '#FEF3C7',
+                padding: '1px 5px',
+                borderRadius: '6px',
+              }}
+            >
+              ★ {book.averageRating.toFixed(1)}
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="book-actions" onClick={(e) => e.stopPropagation()}>

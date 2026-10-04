@@ -382,6 +382,8 @@ public class BookService {
                 .gradient(book.getGradient())
                 .spineColor(spineColor)
                 .previewDurationMinutes(book.getPreviewDurationMinutes() != null ? book.getPreviewDurationMinutes() : 15)
+                .averageRating(book.getAverageRating() != null ? book.getAverageRating() : 0.0)
+                .ratingCount(book.getRatingCount() != null ? book.getRatingCount() : 0)
                 .createdAt(book.getCreatedAt())
                 .audioChapters(chapterDtos)
                 .build();
@@ -424,6 +426,8 @@ public class BookService {
                 .gradient(book.getGradient())
                 .spineColor(spineColor)
                 .previewDurationMinutes(book.getPreviewDurationMinutes() != null ? book.getPreviewDurationMinutes() : 15)
+                .averageRating(book.getAverageRating() != null ? book.getAverageRating() : 0.0)
+                .ratingCount(book.getRatingCount() != null ? book.getRatingCount() : 0)
                 .createdAt(book.getCreatedAt())
                 .audioChapters(chapterDtos)
                 .build();

@@ -36,6 +36,8 @@ public class BookResponseDto {
     private String gradient;
     private String spineColor;
     private Integer previewDurationMinutes;
+    private Double averageRating;
+    private Integer ratingCount;
     private OffsetDateTime createdAt;
 
     @Builder.Default
