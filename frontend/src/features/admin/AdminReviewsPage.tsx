@@ -5,7 +5,7 @@ import { reviewsApi } from '../../shared/api/reviews.api';
 import { booksApi } from '../../shared/api/books.api';
 import { useToastStore } from '../../store/useToastStore';
 import { BookReview, Book } from '../../types';
-import { Search, Filter, Trash2, MessageSquare, Star, BookOpen, AlertTriangle, ExternalLink, User, X, ChevronRight } from 'lucide-react';
+import { Search, Filter, Trash2, MessageSquare, Star, BookOpen, AlertTriangle, ExternalLink, User, X, ChevronRight, ThumbsUp, ThumbsDown } from 'lucide-react';
 
 const formatDate = (isoString?: string): string => {
   if (!isoString) return '';
@@ -517,12 +517,14 @@ export const AdminReviewsPage: React.FC = () => {
               {/* Bottom Actions Row */}
               <div className="flex items-center justify-between pt-3 border-t border-slate-100">
                 {/* Like / Dislike Counts */}
-                <div className="flex items-center gap-4 text-xs font-bold text-slate-500">
-                  <span className="flex items-center gap-1.5" title="Лайктар саны">
-                    <span>👍</span> {review.likesCount || 0}
+                <div className="flex items-center gap-3 text-xs font-bold text-slate-500">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200/70 text-slate-600" title="Лайктар саны">
+                    <ThumbsUp className="w-3.5 h-3.5 text-slate-500" />
+                    <span>{review.likesCount || 0}</span>
                   </span>
-                  <span className="flex items-center gap-1.5" title="Дизлайктар саны">
-                    <span>👎</span> {review.dislikesCount || 0}
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200/70 text-slate-600" title="Дизлайктар саны">
+                    <ThumbsDown className="w-3.5 h-3.5 text-slate-500" />
+                    <span>{review.dislikesCount || 0}</span>
                   </span>
                 </div>
 
