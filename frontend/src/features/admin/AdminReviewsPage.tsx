@@ -209,9 +209,7 @@ export const AdminReviewsPage: React.FC = () => {
 
       {/* Selected Book Rating Summary Card (Shown when a book is selected) */}
       {selectedBook && (
-        <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl p-5 sm:p-6 mb-6 shadow-xl relative overflow-hidden">
-          <div className="absolute right-0 top-0 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-
+        <div className="bg-white rounded-2xl p-5 sm:p-6 mb-6 border border-slate-200/80 shadow-sm relative overflow-hidden">
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 relative z-10">
             {/* Book Info */}
             <div className="flex items-start gap-4">
@@ -219,23 +217,23 @@ export const AdminReviewsPage: React.FC = () => {
                 <img
                   src={selectedBook.coverImage}
                   alt={selectedBook.title}
-                  className="w-16 sm:w-20 h-24 sm:h-28 object-cover rounded-xl shadow-lg shrink-0 border border-white/10"
+                  className="w-16 sm:w-20 h-24 sm:h-28 object-cover rounded-xl shadow-md shrink-0 border border-slate-200"
                 />
               ) : (
-                <div className="w-16 sm:w-20 h-24 sm:h-28 bg-slate-700 rounded-xl flex items-center justify-center shrink-0 border border-white/10">
-                  <BookOpen className="w-8 h-8 text-slate-400" />
+                <div className="w-16 sm:w-20 h-24 sm:h-28 bg-slate-100 rounded-xl flex items-center justify-center shrink-0 border border-slate-200 text-slate-400">
+                  <BookOpen className="w-8 h-8" />
                 </div>
               )}
 
               <div>
-                <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30 mb-2">
+                <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200/80 mb-2">
                   Таңдалған кітап
                 </div>
-                <h2 className="text-lg sm:text-xl font-black text-white leading-snug">
+                <h2 className="text-lg sm:text-xl font-black text-slate-900 leading-snug">
                   {selectedBook.title}
                 </h2>
-                <p className="text-xs sm:text-sm text-slate-300 font-semibold mt-0.5">
-                  Авторы: <span className="text-white font-bold">{selectedBook.author}</span>
+                <p className="text-xs sm:text-sm text-slate-600 font-semibold mt-0.5">
+                  Авторы: <span className="text-slate-900 font-bold">{selectedBook.author}</span>
                 </p>
                 {selectedBook.category && (
                   <span className="text-xs text-slate-400 mt-1 block">
@@ -248,7 +246,7 @@ export const AdminReviewsPage: React.FC = () => {
                     to={`/books/${selectedBook.id}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-400 hover:text-amber-300 transition-colors"
+                    className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-700 transition-colors"
                   >
                     <span>Кітап парақшасын ашу</span>
                     <ExternalLink className="w-3 h-3" />
@@ -259,7 +257,7 @@ export const AdminReviewsPage: React.FC = () => {
                       setSelectedBookId('');
                       setPage(0);
                     }}
-                    className="inline-flex items-center gap-1 text-xs font-medium text-slate-400 hover:text-white transition-colors"
+                    className="inline-flex items-center gap-1 text-xs font-medium text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
                   >
                     <X className="w-3 h-3" />
                     <span>Барлық кітаптарды көрсету</span>
@@ -269,10 +267,10 @@ export const AdminReviewsPage: React.FC = () => {
             </div>
 
             {/* Rating Score & Breakdown */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-6 w-full lg:w-auto bg-white/5 backdrop-blur-xs p-4 sm:p-5 rounded-xl border border-white/10">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-6 w-full lg:w-auto bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-200/70">
               {/* Overall Score */}
-              <div className="text-center sm:text-left pr-0 sm:pr-6 sm:border-r sm:border-white/10">
-                <div className="flex items-center justify-center sm:justify-start gap-1 text-amber-400 font-black text-3xl sm:text-4xl">
+              <div className="text-center sm:text-left pr-0 sm:pr-6 sm:border-r sm:border-slate-200">
+                <div className="flex items-center justify-center sm:justify-start gap-1 text-amber-500 font-black text-3xl sm:text-4xl">
                   <Star className="w-7 h-7 fill-amber-400 text-amber-400" />
                   <span>
                     {ratingSummary?.averageRating !== undefined && ratingSummary.averageRating > 0
@@ -282,10 +280,10 @@ export const AdminReviewsPage: React.FC = () => {
                           : '0')}
                   </span>
                 </div>
-                <p className="text-xs text-slate-400 mt-1 font-semibold">
+                <p className="text-xs text-slate-500 mt-1 font-semibold">
                   Орташа бағасы
                 </p>
-                <p className="text-[11px] text-amber-300/80 font-bold mt-0.5">
+                <p className="text-[11px] text-slate-700 font-bold mt-0.5">
                   {ratingSummary?.ratingCount ?? selectedBook.ratingCount ?? 0} баға / пікір
                 </p>
               </div>
@@ -297,17 +295,17 @@ export const AdminReviewsPage: React.FC = () => {
                   const pct = ratingSummary?.percentages?.[star] || 0;
                   return (
                     <div key={star} className="flex items-center gap-2 text-xs">
-                      <span className="w-7 font-bold text-slate-300 text-right flex items-center justify-end gap-0.5">
+                      <span className="w-7 font-bold text-slate-700 text-right flex items-center justify-end gap-0.5">
                         <span>{star}</span>
                         <Star className="w-2.5 h-2.5 fill-amber-400 text-amber-400 inline" />
                       </span>
-                      <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
+                      <div className="flex-1 h-2 bg-slate-200 rounded-full overflow-hidden">
                         <div
                           className="h-full bg-amber-400 rounded-full transition-all duration-500"
                           style={{ width: `${pct}%` }}
                         />
                       </div>
-                      <span className="w-8 text-[11px] font-medium text-slate-400 text-right">
+                      <span className="w-8 text-[11px] font-medium text-slate-500 text-right">
                         {count}
                       </span>
                     </div>
