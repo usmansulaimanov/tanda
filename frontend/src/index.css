@@ -381,8 +381,8 @@ body {
   width: 40px;
   height: 40px;
   border-radius: 10px;
-  background: #F8FAFC;
-  border: 1.5px solid #CBD5E1;
+  background: transparent;
+  border: none;
   color: #334155;
   display: inline-flex;
   align-items: center;
@@ -394,16 +394,14 @@ body {
 }
 
 .nav-sidebar-toggle-btn:hover {
-  background: var(--blue-light);
+  background: #F1F5F9;
   color: var(--blue);
-  border-color: #BFDBFE;
   transform: translateY(-1px);
 }
 
 .nav-sidebar-toggle-btn.active {
-  background: var(--blue);
-  color: #FFFFFF;
-  border-color: var(--blue);
+  background: #E2E8F0;
+  color: var(--blue);
 }
 
 /* SIDEBAR DRAWER */

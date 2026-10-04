@@ -270,68 +270,71 @@ export const BookDetailPage: React.FC = () => {
           </div>
 
           {/* Action buttons */}
-          <div className="flex flex-col sm:flex-row flex-wrap gap-2.5 sm:gap-3 mt-6 sm:mt-8 items-stretch sm:items-center">
-            {hasText ? (
-              <button
-                type="button"
-                onClick={handleReadClick}
-                className="btn-primary w-full sm:w-auto text-center justify-center"
-                style={{ padding: '12px 24px', fontSize: '14px', background: 'var(--blue)', cursor: 'pointer', border: 'none' }}
-              >
-                Кітапты оқу
-              </button>
-            ) : (
-              <button
-                type="button"
-                disabled
-                className="btn-primary w-full sm:w-auto text-center justify-center"
-                style={{
-                  padding: '12px 24px',
-                  fontSize: '14px',
-                  background: '#F1F5F9',
-                  color: '#94A3B8',
-                  border: '1px solid #E2E8F0',
-                  cursor: 'not-allowed',
-                  opacity: 0.6,
-                }}
-                title="Электронды кітап нұсқасы жүктелмеген"
-              >
-                Кітапты оқу
-              </button>
-            )}
+          <div className="flex flex-col gap-2.5 sm:gap-3 mt-6 sm:mt-8">
+            {/* Primary Action Buttons: Read & Listen in a single row */}
+            <div className="grid grid-cols-2 gap-2.5 sm:gap-3 w-full">
+              {hasText ? (
+                <button
+                  type="button"
+                  onClick={handleReadClick}
+                  className="btn-primary w-full text-center justify-center truncate"
+                  style={{ padding: '12px 14px', fontSize: '14px', background: 'var(--blue)', cursor: 'pointer', border: 'none' }}
+                >
+                  Кітапты оқу
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  disabled
+                  className="btn-primary w-full text-center justify-center truncate"
+                  style={{
+                    padding: '12px 14px',
+                    fontSize: '14px',
+                    background: '#F1F5F9',
+                    color: '#94A3B8',
+                    border: '1px solid #E2E8F0',
+                    cursor: 'not-allowed',
+                    opacity: 0.6,
+                  }}
+                  title="Электронды кітап нұсқасы жүктелмеген"
+                >
+                  Кітапты оқу
+                </button>
+              )}
 
-            {hasAudio ? (
-              <button
-                type="button"
-                onClick={handleAudioClick}
-                className="btn-primary w-full sm:w-auto text-center justify-center"
-                style={{ padding: '12px 24px', fontSize: '14px', background: 'var(--orange)', cursor: 'pointer', border: 'none' }}
-              >
-                {isCurrentPlaying ? 'Тоқтату (Пауза)' : 'Аудионы тыңдау'}
-              </button>
-            ) : (
-              <button
-                type="button"
-                disabled
-                className="btn-primary w-full sm:w-auto text-center justify-center"
-                style={{
-                  padding: '12px 24px',
-                  fontSize: '14px',
-                  background: '#F1F5F9',
-                  color: '#94A3B8',
-                  border: '1px solid #E2E8F0',
-                  cursor: 'not-allowed',
-                  opacity: 0.6,
-                }}
-                title="Аудио нұсқасы жүктелмеген"
-              >
-                Аудионы тыңдау
-              </button>
-            )}
+              {hasAudio ? (
+                <button
+                  type="button"
+                  onClick={handleAudioClick}
+                  className="btn-primary w-full text-center justify-center truncate"
+                  style={{ padding: '12px 14px', fontSize: '14px', background: 'var(--orange)', cursor: 'pointer', border: 'none' }}
+                >
+                  {isCurrentPlaying ? 'Тоқтату (Пауза)' : 'Аудионы тыңдау'}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  disabled
+                  className="btn-primary w-full text-center justify-center truncate"
+                  style={{
+                    padding: '12px 14px',
+                    fontSize: '14px',
+                    background: '#F1F5F9',
+                    color: '#94A3B8',
+                    border: '1px solid #E2E8F0',
+                    cursor: 'not-allowed',
+                    opacity: 0.6,
+                  }}
+                  title="Аудио нұсқасы жүктелмеген"
+                >
+                  Аудионы тыңдау
+                </button>
+              )}
+            </div>
 
-            {/* Read later / Bookmark button - only for readers */}
+            {/* Read later / Bookmark and Completed buttons */}
             {role !== 'admin' && (
-              <>
+              <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 w-full">
                 <button
                   type="button"
                   onClick={handleToggleSave}
@@ -402,7 +405,7 @@ export const BookDetailPage: React.FC = () => {
                   </svg>
                   <span>{isCompleted ? 'Оқылған ✓' : 'Оқылған'}</span>
                 </button>
-              </>
+              </div>
             )}
           </div>
         </div>
