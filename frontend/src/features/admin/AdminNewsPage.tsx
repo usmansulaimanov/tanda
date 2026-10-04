@@ -544,8 +544,8 @@ export const AdminNewsPage: React.FC = () => {
                   <option value={100}>100</option>
                 </select>
                 <span style={{ fontSize: '13px', color: '#94A3B8', marginLeft: '6px' }}>
-                  ({Math.min((currentPage - 1) * pageSize + 1, filteredArticles.length)}-
-                  {Math.min(currentPage * pageSize, filteredArticles.length)} / Барлығы {filteredArticles.length})
+                  ({filteredArticles.length === 0 ? 0 : Math.min((currentPage - 1) * pageSize + 1, filteredArticles.length)}-
+                  {Math.min(currentPage * pageSize, filteredArticles.length)} / {filteredArticles.length})
                 </span>
               </div>
 

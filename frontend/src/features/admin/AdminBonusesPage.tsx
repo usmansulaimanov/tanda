@@ -815,7 +815,7 @@ export const AdminBonusesPage: React.FC = () => {
                   </select>
                   <span className="text-xs text-slate-400 ml-1">
                     ({bonusReadersData.totalElements === 0 ? 0 : (readersPage - 1) * readersPageSize + 1}-
-                    {Math.min(readersPage * readersPageSize, bonusReadersData.totalElements)} / Барлығы {bonusReadersData.totalElements})
+                    {Math.min(readersPage * readersPageSize, bonusReadersData.totalElements)} / {bonusReadersData.totalElements})
                   </span>
                 </div>
 

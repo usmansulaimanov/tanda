@@ -883,8 +883,8 @@ export const AdminDashboard: React.FC = () => {
                   <option value={100}>100</option>
                 </select>
                 <span style={{ fontSize: '13px', color: '#94A3B8', marginLeft: '6px' }}>
-                  ({Math.min((currentPage - 1) * pageSize + 1, filteredBooks.length)}-
-                  {Math.min(currentPage * pageSize, filteredBooks.length)} / Барлығы {filteredBooks.length})
+                  ({filteredBooks.length === 0 ? 0 : Math.min((currentPage - 1) * pageSize + 1, filteredBooks.length)}-
+                  {Math.min(currentPage * pageSize, filteredBooks.length)} / {filteredBooks.length})
                 </span>
               </div>
 

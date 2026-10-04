@@ -591,7 +591,7 @@ export const AdminReviewsPage: React.FC = () => {
               <option value={100}>100</option>
             </select>
             <span style={{ fontSize: '13px', color: '#94A3B8', marginLeft: '6px' }}>
-              ({totalElements === 0 ? '0' : `${page * pageSize + 1}-${Math.min((page + 1) * pageSize, totalElements)}`} / Барлығы {totalElements})
+              ({totalElements === 0 ? '0' : `${page * pageSize + 1}-${Math.min((page + 1) * pageSize, totalElements)}`} / {totalElements})
             </span>
           </div>
 

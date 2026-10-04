@@ -721,7 +721,7 @@ export const LandingPage: React.FC = () => {
                   <option value={128}>128</option>
                 </select>
                 <span style={{ fontSize: '13px', color: '#94A3B8', marginLeft: '4px' }}>
-                  ({startIndex}-{endIndex} / Барлығы {filteredBooks.length})
+                  ({startIndex}-{endIndex} / {filteredBooks.length})
                 </span>
               </div>
 

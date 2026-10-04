@@ -1203,8 +1203,8 @@ export const ReadersPage: React.FC = () => {
                   <option value={100}>100</option>
                 </select>
                 <span style={{ fontSize: '13px', color: '#94A3B8', marginLeft: '6px' }}>
-                  ({Math.min((currentPage - 1) * pageSize + 1, filteredReaders.length)}-
-                  {Math.min(currentPage * pageSize, filteredReaders.length)} / Барлығы {filteredReaders.length})
+                  ({filteredReaders.length === 0 ? 0 : Math.min((currentPage - 1) * pageSize + 1, filteredReaders.length)}-
+                  {Math.min(currentPage * pageSize, filteredReaders.length)} / {filteredReaders.length})
                 </span>
               </div>
 

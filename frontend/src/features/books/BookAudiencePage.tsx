@@ -879,8 +879,8 @@ export const BookAudiencePage: React.FC = () => {
                 </select>
 
                 <span style={{ fontSize: '12px', color: '#94A3B8' }}>
-                  ({Math.min((currentPage - 1) * pageSize + 1, filteredMembers.length)}-
-                  {Math.min(currentPage * pageSize, filteredMembers.length)} / Барлығы {filteredMembers.length})
+                  ({filteredMembers.length === 0 ? 0 : Math.min((currentPage - 1) * pageSize + 1, filteredMembers.length)}-
+                  {Math.min(currentPage * pageSize, filteredMembers.length)} / {filteredMembers.length})
                 </span>
               </div>
 

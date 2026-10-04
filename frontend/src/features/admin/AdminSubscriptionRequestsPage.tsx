@@ -675,8 +675,8 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
                 <option value={100}>100</option>
               </select>
               <span className="text-xs sm:text-sm text-slate-400 font-medium ml-1">
-                ({Math.min((currentPage - 1) * pageSize + 1, filteredRequests.length)}-
-                {Math.min(currentPage * pageSize, filteredRequests.length)} / Барлығы {filteredRequests.length})
+                ({filteredRequests.length === 0 ? 0 : Math.min((currentPage - 1) * pageSize + 1, filteredRequests.length)}-
+                {Math.min(currentPage * pageSize, filteredRequests.length)} / {filteredRequests.length})
               </span>
             </div>
 

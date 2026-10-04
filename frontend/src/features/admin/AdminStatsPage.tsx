@@ -1357,8 +1357,8 @@ export const AdminStatsPage: React.FC = () => {
                       <option value={50}>50</option>
                     </select>
                     <span>
-                      ({(readerCurrentPage - 1) * readerItemsPerPage + 1}-
-                      {Math.min(readerCurrentPage * readerItemsPerPage, filteredReadersOverview.length)} / Барлығы {filteredReadersOverview.length})
+                      ({filteredReadersOverview.length === 0 ? 0 : (readerCurrentPage - 1) * readerItemsPerPage + 1}-
+                      {Math.min(readerCurrentPage * readerItemsPerPage, filteredReadersOverview.length)} / {filteredReadersOverview.length})
                     </span>
                   </div>
 
