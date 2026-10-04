@@ -346,7 +346,7 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({
               <StarRating value={myReview.rating} size="sm" />
               {(myReview.isEdited || (myReview.updatedAt && myReview.createdAt && new Date(myReview.updatedAt).getTime() - new Date(myReview.createdAt).getTime() > 1000)) && (
                 <span className="text-[11px] text-blue-600/80 font-normal italic ml-1">
-                  (өңделген)
+                  өңделген
                 </span>
               )}
             </div>
@@ -529,7 +529,7 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({
                             </span>
                             {(rev.isEdited || (rev.updatedAt && rev.createdAt && new Date(rev.updatedAt).getTime() - new Date(rev.createdAt).getTime() > 1000)) && (
                               <span className="text-[11px] text-slate-400 font-normal italic">
-                                (өңделген)
+                                өңделген
                               </span>
                             )}
                           </div>
@@ -662,12 +662,12 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({
         </div>
       )}
 
-      {/* Full Modal: All Reviews (Суреттегідей мобильді және десктоптық толық терезе) */}
+      {/* Full Modal: All Reviews (Толықтай бетте / экранда ашылады) */}
       {isAllReviewsModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
-          <div className="bg-white w-full sm:max-w-2xl sm:rounded-3xl rounded-t-3xl h-[92vh] sm:h-[85vh] flex flex-col shadow-2xl border border-slate-100 overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
+          <div className="bg-white w-full h-full sm:h-[85vh] sm:max-w-2xl sm:rounded-3xl rounded-none flex flex-col shadow-2xl border-0 sm:border sm:border-slate-100 overflow-hidden">
             {/* Modal Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 shrink-0 bg-white">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-100 shrink-0 bg-white">
               <div className="flex items-center gap-3">
                 <button
                   type="button"
@@ -762,6 +762,11 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({
                                 <span className="text-[11px] text-slate-400 font-medium">
                                   {formatDate(rev.createdAt)}
                                 </span>
+                                {(rev.isEdited || (rev.updatedAt && rev.createdAt && new Date(rev.updatedAt).getTime() - new Date(rev.createdAt).getTime() > 1000)) && (
+                                  <span className="text-[11px] text-slate-400 font-normal italic">
+                                    өңделген
+                                  </span>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -849,8 +854,8 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({
               )}
             </div>
 
-            {/* Modal Sticky Bottom Bar (екінші суреттегідей "Кітап туралы пікір қалдыру") */}
-            <div className="p-4 border-t border-slate-100 bg-white shrink-0">
+            {/* Modal Sticky Bottom Bar */}
+            <div className="p-4 pb-[max(1rem,env(safe-area-inset-bottom))] border-t border-slate-100 bg-white shrink-0">
               <button
                 type="button"
                 onClick={() => {
