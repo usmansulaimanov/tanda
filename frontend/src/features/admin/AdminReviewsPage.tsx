@@ -27,7 +27,7 @@ export const AdminReviewsPage: React.FC = () => {
   const [page, setPage] = useState(0);
   const [reviewToDelete, setReviewToDelete] = useState<BookReview | null>(null);
 
-  const pageSize = 15;
+  const [pageSize, setPageSize] = useState<number>(10);
 
   // 1. Fetch all books from the API so the dropdown always has complete real database books
   const { data: allBooks = [], isLoading: isBooksLoading } = useQuery({
@@ -38,7 +38,7 @@ export const AdminReviewsPage: React.FC = () => {
 
   // 2. Fetch reviews list based on current filters
   const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ['adminReviews', page, selectedRating, selectedBookId, search],
+    queryKey: ['adminReviews', page, pageSize, selectedRating, selectedBookId, search],
     queryFn: () =>
       reviewsApi.getAdminReviews({
         page,
@@ -540,27 +540,162 @@ export const AdminReviewsPage: React.FC = () => {
       )}
 
       {/* Pagination Controls */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2 mt-8">
-          <button
-            type="button"
-            disabled={page === 0}
-            onClick={() => setPage((p) => Math.max(0, p - 1))}
-            className="px-3 py-1.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-          >
-            ← Алдыңғы
-          </button>
-          <span className="text-xs font-bold text-slate-600 px-2">
-            {page + 1} / {totalPages}
-          </span>
-          <button
-            type="button"
-            disabled={page >= totalPages - 1}
-            onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-            className="px-3 py-1.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-          >
-            Келесі →
-          </button>
+      {totalElements > 0 && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: '16px',
+            marginTop: '24px',
+            paddingTop: '20px',
+            borderTop: '1.5px solid #F1F5F9',
+          }}
+        >
+          {/* Page size selector */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '13px', color: '#64748B', fontWeight: 600 }}>
+              Беттегі пікір саны:
+            </span>
+            <select
+              value={pageSize}
+              onChange={(e) => {
+                setPageSize(Number(e.target.value));
+                setPage(0);
+              }}
+              style={{
+                padding: '6px 12px',
+                borderRadius: '8px',
+                border: '1.5px solid #CBD5E1',
+                fontSize: '13px',
+                fontWeight: 700,
+                color: '#1E293B',
+                background: '#FFFFFF',
+                outline: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={30}>30</option>
+              <option value={40}>40</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+            </select>
+            <span style={{ fontSize: '13px', color: '#94A3B8', marginLeft: '6px' }}>
+              ({totalElements === 0 ? '0' : `${page * pageSize + 1}-${Math.min((page + 1) * pageSize, totalElements)}`} / Барлығы {totalElements})
+            </span>
+          </div>
+
+          {/* Page navigation */}
+          {totalPages > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <button
+                type="button"
+                onClick={() => setPage((prev) => Math.max(0, prev - 1))}
+                disabled={page === 0}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  padding: '6px 12px',
+                  borderRadius: '8px',
+                  border: '1.5px solid #CBD5E1',
+                  background: page === 0 ? '#F8FAFC' : '#FFFFFF',
+                  color: page === 0 ? '#94A3B8' : '#1E293B',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  cursor: page === 0 ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.15s',
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+                Алдыңғы
+              </button>
+
+              {/* Number buttons */}
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => {
+                const currentPage = page + 1;
+                if (
+                  totalPages > 7 &&
+                  pageNum !== 1 &&
+                  pageNum !== totalPages &&
+                  Math.abs(pageNum - currentPage) > 1
+                ) {
+                  if (pageNum === 2 && currentPage > 3) {
+                    return (
+                      <span key="dots-start" style={{ padding: '0 4px', color: '#94A3B8', fontSize: '12px' }}>
+                        ...
+                      </span>
+                    );
+                  }
+                  if (pageNum === totalPages - 1 && currentPage < totalPages - 2) {
+                    return (
+                      <span key="dots-end" style={{ padding: '0 4px', color: '#94A3B8', fontSize: '12px' }}>
+                        ...
+                      </span>
+                    );
+                  }
+                  return null;
+                }
+
+                const isActive = currentPage === pageNum;
+                return (
+                  <button
+                    key={pageNum}
+                    type="button"
+                    onClick={() => setPage(pageNum - 1)}
+                    style={{
+                      minWidth: '34px',
+                      height: '34px',
+                      padding: '0 8px',
+                      borderRadius: '8px',
+                      border: isActive ? '1.5px solid #2563eb' : '1.5px solid #CBD5E1',
+                      background: isActive ? '#2563eb' : '#FFFFFF',
+                      color: isActive ? '#FFFFFF' : '#1E293B',
+                      fontSize: '13px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              })}
+
+              <button
+                type="button"
+                onClick={() => setPage((prev) => Math.min(totalPages - 1, prev + 1))}
+                disabled={page >= totalPages - 1 || totalPages === 0}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  padding: '6px 12px',
+                  borderRadius: '8px',
+                  border: '1.5px solid #CBD5E1',
+                  background: page >= totalPages - 1 || totalPages === 0 ? '#F8FAFC' : '#FFFFFF',
+                  color: page >= totalPages - 1 || totalPages === 0 ? '#94A3B8' : '#1E293B',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  cursor: page >= totalPages - 1 || totalPages === 0 ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.15s',
+                }}
+              >
+                Кейінгі
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+              </button>
+            </div>
+          )}
         </div>
       )}
 
