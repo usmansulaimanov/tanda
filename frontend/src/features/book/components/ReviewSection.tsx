@@ -330,7 +330,7 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({
         <div className="mt-4 mb-3 p-4 sm:p-5 bg-blue-50/60 border border-blue-100 rounded-2xl">
           <div className="flex items-center justify-between gap-2 mb-2">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-xs font-black uppercase tracking-wider text-blue-700">
+              <span className="text-xs font-black uppercase tracking-wider text-slate-900">
                 Сіздің бағаңыз
               </span>
               {myReview.isVerifiedReader && (
@@ -345,7 +345,7 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({
               )}
               <StarRating value={myReview.rating} size="sm" />
               {(myReview.isEdited || (myReview.updatedAt && myReview.createdAt && new Date(myReview.updatedAt).getTime() - new Date(myReview.createdAt).getTime() > 1000)) && (
-                <span className="text-[11px] text-blue-600/80 font-normal italic ml-1">
+                <span className="text-[11px] text-slate-900 font-semibold italic ml-1">
                   өңделген
                 </span>
               )}
@@ -527,7 +527,7 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({
                               {formatDate(rev.createdAt)}
                             </span>
                             {(rev.isEdited || (rev.updatedAt && rev.createdAt && new Date(rev.updatedAt).getTime() - new Date(rev.createdAt).getTime() > 1000)) && (
-                              <span className="text-[11px] text-slate-400 font-normal italic">
+                              <span className="text-[11px] text-slate-900 font-semibold italic">
                                 өңделген
                               </span>
                             )}
@@ -754,7 +754,7 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({
                                   {formatDate(rev.createdAt)}
                                 </span>
                                 {(rev.isEdited || (rev.updatedAt && rev.createdAt && new Date(rev.updatedAt).getTime() - new Date(rev.createdAt).getTime() > 1000)) && (
-                                  <span className="text-[11px] text-slate-400 font-normal italic">
+                                  <span className="text-[11px] text-slate-900 font-semibold italic">
                                     өңделген
                                   </span>
                                 )}
