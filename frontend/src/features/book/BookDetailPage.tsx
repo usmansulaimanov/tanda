@@ -167,7 +167,7 @@ export const BookDetailPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto my-4 sm:my-8 px-3 sm:px-6">
+    <div className="max-w-5xl mx-auto my-4 sm:my-8 px-3 sm:px-6 w-full overflow-x-hidden">
       <button
         type="button"
         onClick={() => navigate(-1)}
@@ -189,7 +189,7 @@ export const BookDetailPage: React.FC = () => {
 
       {/* Book details container */}
       <div
-        className="bg-white border border-slate-200/80 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-10 shadow-sm grid grid-cols-1 md:grid-cols-[280px_1fr] gap-6 md:gap-10"
+        className="bg-white border border-slate-200/80 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-10 shadow-sm grid grid-cols-1 md:grid-cols-[280px_1fr] gap-6 md:gap-10 w-full overflow-hidden"
       >
         {/* Cover */}
         <div className="flex justify-center md:justify-start">
@@ -232,22 +232,22 @@ export const BookDetailPage: React.FC = () => {
         </div>
 
         {/* Info */}
-        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }} className="min-w-0 w-full">
           <div>
             <div style={{ marginBottom: '10px' }}>
               <span className="book-category">{book.category}</span>
             </div>
 
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 mb-2 leading-tight">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 mb-2 leading-tight break-words">
               {book.title}
             </h1>
 
-            <p className="text-base sm:text-lg text-slate-600 font-semibold mb-4">
+            <p className="text-base sm:text-lg text-slate-600 font-semibold mb-4 break-words">
               Авторы: <span className="text-slate-900 font-bold">{book.author}</span>
             </p>
 
-            <div className="flex flex-wrap items-center gap-3 sm:gap-5 text-xs sm:text-sm text-slate-600 mb-5 pb-4 border-b border-slate-100">
-              <div className="flex items-center gap-1 font-extrabold text-slate-900 text-sm">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs sm:text-sm text-slate-600 mb-5 pb-4 border-b border-slate-100">
+              <div className="flex items-center gap-1 font-extrabold text-slate-900 text-sm shrink-0">
                 <svg className="w-4 h-4 text-amber-400 fill-amber-400 drop-shadow-[0_1px_2px_rgba(251,191,36,0.3)]" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
                 </svg>
@@ -255,10 +255,10 @@ export const BookDetailPage: React.FC = () => {
                   {book.averageRating && book.averageRating > 0 ? (book.averageRating % 1 === 0 ? book.averageRating.toFixed(0) : book.averageRating.toFixed(1)) : '0'}
                 </span>
               </div>
-              {book.pages && <div>Бет саны: <strong>{book.pages}</strong></div>}
-              {book.ebookFormat && <div>Форматы: <strong>{book.ebookFormat}</strong></div>}
-              {book.audioDuration && <div>Ұзақтығы: <strong>{book.audioDuration}</strong></div>}
-              {book.audioNarrator && <div>Диктор: <strong>{book.audioNarrator}</strong></div>}
+              {book.pages && <div className="shrink-0">Бет саны: <strong>{book.pages}</strong></div>}
+              {book.ebookFormat && <div className="shrink-0">Форматы: <strong>{book.ebookFormat}</strong></div>}
+              {book.audioDuration && <div className="shrink-0">Ұзақтығы: <strong>{book.audioDuration}</strong></div>}
+              {book.audioNarrator && <div className="shrink-0">Диктор: <strong>{book.audioNarrator}</strong></div>}
             </div>
 
             <h3 className="text-sm sm:text-base font-extrabold text-slate-900 mb-2">

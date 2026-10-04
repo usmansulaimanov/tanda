@@ -304,7 +304,7 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({
   const avgRating = summary?.averageRating || 0;
 
   return (
-    <div className="mt-8 sm:mt-12 bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 border border-slate-200/80 shadow-sm">
+    <div className="mt-8 sm:mt-12 bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 border border-slate-200/80 shadow-sm w-full overflow-hidden">
       {/* Top Title & Action */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100">
         <div>
@@ -446,11 +446,11 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({
       </div>
 
       {/* Reviews List (Horizontal swipe on mobile, vertical stack on desktop - max 10 reviews) */}
-      <div className="flex sm:flex-col overflow-x-auto sm:overflow-visible gap-3 sm:gap-0 sm:space-y-4 -mx-5 px-5 sm:mx-0 sm:px-0 no-scrollbar snap-x snap-mandatory sm:snap-none pb-2 sm:pb-0 mt-2">
+      <div className="flex sm:flex-col overflow-x-auto sm:overflow-visible gap-3 sm:gap-0 sm:space-y-4 -mx-4 px-4 sm:mx-0 sm:px-0 no-scrollbar snap-x snap-mandatory sm:snap-none pb-2 sm:pb-0 mt-2">
         {loading ? (
-          <div className="flex sm:flex-col overflow-x-auto sm:overflow-visible gap-3 sm:gap-0 sm:space-y-3 -mx-5 px-5 sm:mx-0 sm:px-0 no-scrollbar py-2 w-full">
+          <div className="flex sm:flex-col overflow-x-auto sm:overflow-visible gap-3 sm:gap-0 sm:space-y-3 no-scrollbar py-2 w-full">
             {[1, 2, 3].map((n) => (
-              <div key={n} className="w-[84vw] max-w-[340px] shrink-0 sm:w-full p-4 rounded-xl border border-slate-100 bg-slate-50 animate-pulse flex flex-col gap-3">
+              <div key={n} className="w-[80vw] max-w-[320px] shrink-0 sm:w-full p-4 rounded-xl border border-slate-100 bg-slate-50 animate-pulse flex flex-col gap-3">
                 <div className="flex gap-3 items-center">
                   <div className="w-10 h-10 rounded-full bg-slate-200" />
                   <div className="flex-1 space-y-2">
@@ -488,7 +488,7 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({
               return (
                 <div
                   key={rev.id}
-                  className="w-[84vw] max-w-[340px] min-w-[280px] shrink-0 snap-start flex flex-col justify-between sm:w-full sm:max-w-none sm:min-w-0 sm:shrink p-4 sm:p-5 rounded-2xl border border-slate-100 bg-white hover:border-slate-200 transition-all shadow-xs"
+                  className="w-[80vw] max-w-[320px] min-w-[260px] shrink-0 snap-start flex flex-col justify-between sm:w-full sm:max-w-none sm:min-w-0 sm:shrink p-4 sm:p-5 rounded-2xl border border-slate-100 bg-white hover:border-slate-200 transition-all shadow-xs"
                 >
                   <div>
                     {/* Review Header */}
