@@ -90,14 +90,9 @@ export const AdminReviewsPage: React.FC = () => {
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
         <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-              Пікірлерді басқару
-            </h1>
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-blue-50 text-blue-700 border border-blue-100">
-              {totalElements} пікір
-            </span>
-          </div>
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+            Пікірлерді басқару
+          </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1 font-medium">
             Оқырмандардың кітаптарға жазған барлық пікірлері мен бағаларын бақылау және модерациялау
           </p>
@@ -327,8 +322,8 @@ export const AdminReviewsPage: React.FC = () => {
             </span>
           )}
         </h3>
-        <span className="text-xs font-semibold text-slate-500">
-          Барлығы: {totalElements}
+        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200/80">
+          Барлығы: {totalElements} пікір
         </span>
       </div>
 
