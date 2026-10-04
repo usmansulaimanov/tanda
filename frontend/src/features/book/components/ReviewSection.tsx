@@ -1,4 +1,5 @@
 import React from 'react';
+import { AlertTriangle } from 'lucide-react';
 import { StarRating } from '../../../components/ui/StarRating';
 import { BookReview, RatingSummary } from '../../../types';
 import { reviewsApi } from '../../../shared/api/reviews.api';
@@ -436,20 +437,14 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({
                 {rev.reviewText && (
                   <div className="mt-3 text-sm text-slate-700 leading-relaxed">
                     {isSpoilerHidden ? (
-                      <div
-                        role="button"
-                        tabIndex={0}
+                      <button
+                        type="button"
                         onClick={() => toggleSpoiler(rev.id)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            toggleSpoiler(rev.id);
-                          }
-                        }}
-                        className="p-3 bg-amber-50/70 border border-amber-200/80 rounded-xl cursor-pointer hover:bg-amber-100/70 transition-all flex items-center gap-2 text-amber-900 font-semibold text-xs select-none"
+                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors cursor-pointer py-1 text-left"
                       >
-                        <span>⚠️</span>
+                        <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
                         <span>Бұл пікірде сюжеттік спойлер бар. Оқу үшін басыңыз.</span>
-                      </div>
+                      </button>
                     ) : (
                       <p className="whitespace-pre-line">{rev.reviewText}</p>
                     )}
