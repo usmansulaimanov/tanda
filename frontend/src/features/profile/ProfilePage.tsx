@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
-  Settings,
+  Menu,
   Share2,
   Sparkles,
   ChevronRight,
@@ -13,7 +13,6 @@ import {
   ExternalLink,
   BookMarked,
   MessageSquare,
-  BookOpen,
   Award,
   Quote as QuoteIcon,
   Bookmark,
@@ -44,13 +43,13 @@ const formatDateDMY = (dateStr?: string | Date | null): string => {
 };
 
 const formatReadingTime = (seconds?: number): string => {
-  if (!seconds || seconds <= 0) return '0 мин';
+  if (!seconds || seconds <= 0) return '0 daq';
   const mins = Math.floor(seconds / 60);
-  if (mins < 60) return `${mins} мин`;
+  if (mins < 60) return `${mins} daq`;
   const hours = Math.floor(mins / 60);
   const remainingMins = mins % 60;
-  if (remainingMins === 0) return `${hours} сағ`;
-  return `${hours} сағ ${remainingMins} мин`;
+  if (remainingMins === 0) return `${hours} saǵ`;
+  return `${hours} saǵ ${remainingMins} daq`;
 };
 
 const getInitials = (name?: string): string => {
@@ -83,7 +82,7 @@ export const ProfilePage: React.FC = () => {
     fetchQuotes();
   }, [fetchBooks, fetchSavedBooks, fetchShelf, fetchQuotes]);
 
-  // Fetch personal reading stats for mobile profile
+  // Fetch personal reading stats
   const { data: personalStats } = useQuery({
     queryKey: ['personal-stats', user?.id],
     queryFn: () => leaderboardApi.getPersonalStats(),
@@ -91,7 +90,7 @@ export const ProfilePage: React.FC = () => {
     staleTime: 60 * 1000,
   });
 
-  // Fetch leaderboard ranking for mobile profile
+  // Fetch leaderboard ranking
   const { data: leaderboardData } = useQuery({
     queryKey: ['leaderboard-rank', user?.id],
     queryFn: () => leaderboardApi.getLeaderboard('THIS_WEEK'),
@@ -122,7 +121,7 @@ export const ProfilePage: React.FC = () => {
     return books.filter((b) => savedSet.has(String(b.id)) && !b.isArchived);
   }, [books, savedBookIds, getSavedBookIds]);
 
-  // Shelf books list for mobile tabs
+  // Shelf books list
   const shelfBooks = useMemo(() => Object.values(currentShelf), [currentShelf]);
   const filteredShelfBooks = useMemo(() => {
     return shelfBooks.filter((ub: UserBookRecord) => {
@@ -226,34 +225,32 @@ export const ProfilePage: React.FC = () => {
       {/* ============================================================
           1. MOBILE VIEW (Тек мобилкада: screen < 768px / md:hidden)
           ============================================================ */}
-      <div className="block md:hidden max-w-lg mx-auto mb-24 pb-8">
-        {/* Mobile Header Banner */}
+      <div className="block md:hidden w-full max-w-md mx-auto bg-[#FAFAFA] min-h-screen pb-24 text-slate-900">
+        {/* Mobile Header Hero Background */}
         <div
-          className="relative h-44 w-full rounded-b-3xl overflow-hidden px-4 pt-4 flex justify-end items-start shadow-md"
+          className="relative h-28 w-full px-4 pt-3 flex justify-end items-start"
           style={{
-            background: 'linear-gradient(135deg, #134E4A 0%, #064E3B 50%, #042F2C 100%)',
+            background: 'linear-gradient(180deg, #3A5B52 0%, #2A4840 100%)',
           }}
         >
-          {/* Subtle decorative elements */}
-          <div className="absolute -top-12 -left-12 w-48 h-48 rounded-full bg-emerald-400/10 blur-2xl pointer-events-none" />
-          <div className="absolute bottom-0 right-0 w-64 h-64 rounded-full bg-teal-500/10 blur-3xl pointer-events-none" />
-
-          {/* Top Right Settings link */}
+          {/* Top Right Menu button */}
           <Link
             to="/settings"
-            className="relative z-10 p-2.5 rounded-xl bg-black/30 backdrop-blur-md text-white/90 hover:text-white hover:bg-black/40 transition-all active:scale-95"
+            className="w-8 h-8 rounded-lg bg-black/20 flex items-center justify-center text-white/90 hover:text-white transition-colors"
             title="Баптаулар"
             aria-label="Баптаулар"
           >
-            <Settings className="w-5 h-5" />
+            <Menu className="w-4 h-4" />
           </Link>
         </div>
 
+        {/* Content Body */}
         <div className="px-4">
-          {/* Avatar & Action Buttons */}
-          <div className="relative flex items-end justify-between -mt-14 mb-4">
-            <div className="relative group">
-              <div className="w-24 h-24 rounded-full border-4 border-white bg-teal-800 text-white shadow-lg overflow-hidden flex items-center justify-center font-black text-2xl tracking-wider select-none">
+          {/* Avatar & Action Buttons Bar */}
+          <div className="flex items-end justify-between -mt-10 mb-3">
+            {/* Avatar */}
+            <div className="relative">
+              <div className="w-[74px] h-[74px] rounded-full border-2 border-white bg-[#25453D] text-white shadow flex items-center justify-center font-bold text-xl select-none overflow-hidden">
                 {user.avatarUrl ? (
                   <img
                     src={user.avatarUrl}
@@ -269,23 +266,24 @@ export const ProfilePage: React.FC = () => {
                 )}
               </div>
               {isPremiumActive && (
-                <div className="absolute bottom-1 right-1 w-6 h-6 bg-amber-500 rounded-full border-2 border-white flex items-center justify-center text-white shadow-sm" title="Tanda Premium">
-                  <Sparkles className="w-3.5 h-3.5" />
+                <div className="absolute bottom-0 right-0 w-5 h-5 bg-amber-500 rounded-full border-2 border-white flex items-center justify-center text-white text-[10px]">
+                  <Sparkles className="w-3 h-3" />
                 </div>
               )}
             </div>
 
-            <div className="flex items-center gap-2 mb-1">
+            {/* Action buttons: Profil tahrirlash + Share */}
+            <div className="flex items-center gap-1.5 mb-1">
               <Link
                 to="/settings"
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold transition-all shadow-sm active:scale-95"
+                className="px-3.5 py-1.5 rounded-lg bg-[#F1F5F9] text-slate-800 text-xs font-semibold hover:bg-slate-200 transition-colors shadow-none"
               >
                 Профильді өңдеу
               </Link>
               <button
                 type="button"
                 onClick={handleShareProfile}
-                className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all shadow-sm active:scale-95"
+                className="p-1.5 rounded-lg bg-[#F1F5F9] text-slate-700 hover:bg-slate-200 transition-colors"
                 title="Бөлісу"
                 aria-label="Профильмен бөлісу"
               >
@@ -294,51 +292,51 @@ export const ProfilePage: React.FC = () => {
             </div>
           </div>
 
-          {/* User Details */}
-          <div className="mb-5">
-            <h1 className="text-2xl font-black text-slate-900 leading-tight">
+          {/* User Name and Meta */}
+          <div className="mb-3.5">
+            <h1 className="text-xl font-black text-slate-900 leading-snug">
               {user.name || 'Оқырман'}
             </h1>
-            <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 font-medium mt-1">
-              <span>ID: {user.idNumber || user.id?.substring(0, 8)}</span>
-              <span>•</span>
-              <span className="text-slate-700 font-semibold">@{user.username || 'username'}</span>
+            <div className="text-xs text-slate-500 font-medium mt-0.5">
+              <span>ID: {user.idNumber || user.id?.substring(0, 7)}</span>
+              <span className="mx-1.5 text-slate-300">|</span>
+              <span className="text-slate-600 font-semibold">@{user.username || 'username'}</span>
             </div>
-            <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 mt-2">
-              <span>📅 {formatDateDMY(user.createdAt)} ж. тіркелген</span>
-              <span>•</span>
-              <span className="text-slate-600 font-medium">
-                0 пікірлес • 0 қауымдас
-              </span>
+            <div className="text-xs text-slate-500 mt-1 flex items-center gap-1">
+              <span>📅</span>
+              <span>{formatDateDMY(user.createdAt)} ж. тіркелген</span>
+            </div>
+            <div className="text-xs text-slate-600 mt-1">
+              <span className="font-bold text-slate-900">0</span> пікірлес
+              <span className="mx-1.5 text-slate-300">|</span>
+              <span className="font-bold text-slate-900">0</span> қауымдас
             </div>
           </div>
 
-          {/* Premium Card */}
+          {/* Orange Tanda Premium Card */}
           <div
             onClick={() => (!isPremiumActive ? setIsPremiumModalOpen(true) : navigate('/premium'))}
-            className="relative overflow-hidden rounded-2xl p-4 text-white mb-5 cursor-pointer shadow-md transition-all active:scale-[0.99] flex items-center justify-between gap-3"
+            className="w-full rounded-2xl p-3.5 text-white mb-3 cursor-pointer shadow-sm active:scale-[0.99] flex items-center justify-between gap-2.5 transition-all"
             style={{
-              background: isPremiumActive
-                ? 'linear-gradient(135deg, #059669 0%, #047857 100%)'
-                : 'linear-gradient(135deg, #FF6B00 0%, #EA580C 100%)',
+              background: 'linear-gradient(90deg, #FF6000 0%, #FF7A00 100%)',
             }}
           >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0 shadow-inner">
-                <Sparkles className="w-5 h-5 text-amber-200" />
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
+                <Sparkles className="w-4 h-4 text-amber-200" />
               </div>
-              <div>
-                <div className="font-extrabold text-base leading-tight flex items-center gap-2">
+              <div className="min-w-0">
+                <div className="font-bold text-[14px] leading-tight flex items-center gap-1.5">
                   Tanda Premium
                   {isPremiumActive && (
-                    <span className="text-[10px] bg-white/30 text-white font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
+                    <span className="text-[9px] bg-white/30 text-white font-bold px-1.5 py-0.2 rounded-full uppercase">
                       Белсенді
                     </span>
                   )}
                 </div>
-                <div className="text-xs text-white/90 mt-0.5">
+                <div className="text-[11px] text-white/90 truncate mt-0.5">
                   {isPremiumActive
-                    ? 'Барлық мүмкіндіктер ашық'
+                    ? 'Барлық мүмкіндіктер қолжетімді'
                     : 'Өзіңіз үшін премиум мүмкіндіктерді ашыңыз'}
                 </div>
               </div>
@@ -346,75 +344,72 @@ export const ProfilePage: React.FC = () => {
 
             <button
               type="button"
-              className="shrink-0 px-3 py-1.5 rounded-full bg-white/20 hover:bg-white/30 border border-white/40 text-xs font-bold flex items-center gap-1 backdrop-blur-sm"
+              className="shrink-0 px-2.5 py-1 rounded-full bg-white/20 border border-white/30 text-[11px] font-bold flex items-center gap-0.5 text-white"
             >
               {isPremiumActive ? 'Толығырақ' : 'Премиум'}
-              <ChevronRight className="w-3.5 h-3.5" />
+              <ChevronRight className="w-3 h-3" />
             </button>
           </div>
 
           {/* 2x2 Stats Grid */}
-          <div className="grid grid-cols-2 gap-2.5 mb-6">
-            <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3.5">
-              <div className="text-[11px] text-slate-500 font-medium mb-1">Бонус балансы</div>
-              <div className="flex items-center gap-1.5 text-base font-black text-slate-900">
-                <span className="w-5 h-5 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center text-xs font-black shrink-0">
-                  🪙
-                </span>
+          <div className="grid grid-cols-2 gap-2 mb-4">
+            {/* Card 1 */}
+            <div className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm">
+              <div className="text-[11px] text-slate-500 font-medium">Бонус балансы</div>
+              <div className="flex items-center gap-1.5 text-sm font-bold text-slate-900 mt-1">
+                <span>🪙</span>
                 <span>{bonusBalance}</span>
               </div>
             </div>
 
-            <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3.5">
-              <div className="text-[11px] text-slate-500 font-medium mb-1">Жалпы оқу</div>
-              <div className="flex items-center gap-1.5 text-base font-black text-slate-900">
-                <span className="w-5 h-5 rounded-full bg-sky-100 text-sky-600 flex items-center justify-center text-xs font-black shrink-0">
-                  ⏱️
-                </span>
+            {/* Card 2 */}
+            <div className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm">
+              <div className="text-[11px] text-slate-500 font-medium">Жалпы оқу</div>
+              <div className="flex items-center gap-1.5 text-sm font-bold text-slate-900 mt-1">
+                <span>⏱️</span>
                 <span>{formatReadingTime(totalSecondsRead)}</span>
               </div>
             </div>
 
+            {/* Card 3 */}
             <Link
               to="/leaderboard"
-              className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3.5 flex items-center justify-between"
+              className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm flex items-center justify-between"
             >
               <div>
-                <div className="text-[11px] text-slate-500 font-medium mb-1">Марра рейтингі</div>
-                <div className="flex items-center gap-1.5 text-base font-black text-slate-900">
-                  <span className="w-5 h-5 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center text-xs font-black shrink-0">
-                    🏆
-                  </span>
+                <div className="text-[11px] text-slate-500 font-medium">Марра рейтингі</div>
+                <div className="flex items-center gap-1.5 text-sm font-bold text-slate-900 mt-1">
+                  <span>🏆</span>
                   <span>{userRank ? `#${userRank}` : '-'}</span>
                 </div>
               </div>
-              <ChevronRight className="w-4 h-4 text-slate-400" />
+              <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
             </Link>
 
-            <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3.5 flex items-center justify-between">
+            {/* Card 4 */}
+            <div className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm flex items-center justify-between">
               <div>
-                <div className="text-[11px] text-slate-500 font-medium mb-1">Соңғы 7 күн</div>
-                <div className="flex items-center gap-1.5 text-base font-black text-slate-900">
-                  <span className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-black shrink-0">
-                    📅
-                  </span>
+                <div className="text-[11px] text-slate-500 font-medium">Соңғы 7 күн</div>
+                <div className="flex items-center gap-1.5 text-sm font-bold text-slate-900 mt-1">
+                  <span>📅</span>
                   <span>{formatReadingTime(last7DaysSeconds)}</span>
                 </div>
               </div>
+              <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
             </div>
           </div>
 
           {/* Mobile Tabs */}
-          <div className="border-b border-slate-200 mb-6 overflow-x-auto no-scrollbar">
+          <div className="border-b border-slate-200 mb-3 overflow-x-auto no-scrollbar">
             <div className="flex items-center gap-5 min-w-max">
               <button
                 type="button"
                 onClick={() => setActiveTab('reviews')}
-                className={`pb-3 text-sm font-bold transition-all relative ${
+                className={`pb-2.5 text-xs font-bold transition-all relative ${
                   activeTab === 'reviews' ? 'text-orange-600' : 'text-slate-500'
                 }`}
               >
-                Пікірлер ({myReviews.length})
+                Пікірлер
                 {activeTab === 'reviews' && (
                   <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange-600 rounded-full" />
                 )}
@@ -423,11 +418,11 @@ export const ProfilePage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setActiveTab('shelves')}
-                className={`pb-3 text-sm font-bold transition-all relative ${
+                className={`pb-2.5 text-xs font-bold transition-all relative ${
                   activeTab === 'shelves' ? 'text-orange-600' : 'text-slate-500'
                 }`}
               >
-                Сөрелер ({shelfBooks.length})
+                Сөрелер
                 {activeTab === 'shelves' && (
                   <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange-600 rounded-full" />
                 )}
@@ -436,11 +431,11 @@ export const ProfilePage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setActiveTab('certificates')}
-                className={`pb-3 text-sm font-bold transition-all relative ${
+                className={`pb-2.5 text-xs font-bold transition-all relative ${
                   activeTab === 'certificates' ? 'text-orange-600' : 'text-slate-500'
                 }`}
               >
-                Сертификаттар ({myCertificates.length})
+                Сертификаттар
                 {activeTab === 'certificates' && (
                   <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange-600 rounded-full" />
                 )}
@@ -449,7 +444,7 @@ export const ProfilePage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setActiveTab('quotes')}
-                className={`pb-3 text-sm font-bold transition-all relative ${
+                className={`pb-2.5 text-xs font-bold transition-all relative ${
                   activeTab === 'quotes' ? 'text-orange-600' : 'text-slate-500'
                 }`}
               >
@@ -462,11 +457,11 @@ export const ProfilePage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setActiveTab('saved')}
-                className={`pb-3 text-sm font-bold transition-all relative ${
+                className={`pb-2.5 text-xs font-bold transition-all relative ${
                   activeTab === 'saved' ? 'text-orange-600' : 'text-slate-500'
                 }`}
               >
-                Сақталғандар ({savedBooks.length})
+                Ұнағандар
                 {activeTab === 'saved' && (
                   <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange-600 rounded-full" />
                 )}
@@ -476,51 +471,52 @@ export const ProfilePage: React.FC = () => {
 
           {/* Mobile Tab Contents */}
           {activeTab === 'reviews' && (
-            <div className="space-y-3">
+            <div className="space-y-2.5">
+              {/* Quick Thought card */}
               <Link
                 to="/catalog"
-                className="flex items-center justify-between p-3.5 rounded-2xl bg-white border border-slate-200 shadow-sm"
+                className="flex items-center justify-between p-3 rounded-2xl bg-white border border-slate-100 shadow-sm"
               >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-orange-50 text-orange-600 font-bold flex items-center justify-center shrink-0">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-full bg-[#EA580C] text-white font-bold flex items-center justify-center text-sm shrink-0">
                     {getInitials(user.name)[0]}
                   </div>
                   <div>
-                    <div className="text-sm font-bold text-slate-800">{user.name}</div>
-                    <div className="text-xs text-slate-400">Пікіріңізбен бөлісіңіз...</div>
+                    <div className="text-xs font-bold text-slate-800">{user.name}</div>
+                    <div className="text-[11px] text-slate-400">Пікіріңізбен бөлісіңіз...</div>
                   </div>
                 </div>
                 <ChevronRight className="w-4 h-4 text-slate-400" />
               </Link>
 
               {isLoadingReviews ? (
-                <div className="h-24 bg-slate-100 rounded-2xl animate-pulse" />
+                <div className="h-20 bg-slate-100 rounded-2xl animate-pulse" />
               ) : myReviews.length > 0 ? (
                 myReviews.map((rev) => (
-                  <div key={rev.id} className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm">
-                    <div className="flex items-start justify-between gap-2 mb-2">
-                      <Link to={`/book/${rev.bookId}`} className="font-bold text-slate-900 text-sm line-clamp-1">
+                  <div key={rev.id} className="p-3.5 rounded-2xl bg-white border border-slate-100 shadow-sm">
+                    <div className="flex items-start justify-between gap-2 mb-1.5">
+                      <Link to={`/book/${rev.bookId}`} className="font-bold text-slate-900 text-xs line-clamp-1">
                         «{rev.bookTitle}»
                       </Link>
                       <div className="flex items-center gap-1 text-amber-500 shrink-0">
-                        <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                        <span className="text-xs font-bold text-slate-700">{rev.rating}</span>
+                        <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                        <span className="text-[11px] font-bold text-slate-700">{rev.rating}</span>
                       </div>
                     </div>
                     {rev.reviewText && (
                       <p className="text-xs text-slate-700 leading-relaxed mb-2 whitespace-pre-line">{rev.reviewText}</p>
                     )}
-                    <div className="flex items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-slate-100">
+                    <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1.5 border-t border-slate-50">
                       <span>{formatDateDMY(rev.createdAt)}</span>
                       <span>👍 {rev.likesCount || 0}</span>
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="text-center py-10 px-4 bg-white rounded-2xl border border-dashed border-slate-200">
-                  <MessageSquare className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-                  <p className="text-xs text-slate-500 mb-3">Әзірге пікірлеріңіз жоқ</p>
-                  <Link to="/catalog" className="inline-block px-4 py-2 rounded-xl bg-[#005494] text-white text-xs font-bold">
+                <div className="text-center py-8 px-4 bg-white rounded-2xl border border-dashed border-slate-200">
+                  <MessageSquare className="w-7 h-7 text-slate-300 mx-auto mb-1.5" />
+                  <p className="text-xs text-slate-500 mb-2.5">Әзірге пікірлеріңіз жоқ</p>
+                  <Link to="/catalog" className="inline-block px-3.5 py-1.5 rounded-xl bg-[#005494] text-white text-xs font-bold">
                     Кітап таңдау
                   </Link>
                 </div>
@@ -530,7 +526,7 @@ export const ProfilePage: React.FC = () => {
 
           {activeTab === 'shelves' && (
             <div>
-              <div className="flex items-center gap-1.5 mb-3 overflow-x-auto no-scrollbar pb-1">
+              <div className="flex items-center gap-1.5 mb-2.5 overflow-x-auto no-scrollbar pb-1">
                 {[
                   { id: 'all', label: 'Барлығы' },
                   { id: 'reading', label: 'Оқып жатырмын' },
@@ -541,7 +537,7 @@ export const ProfilePage: React.FC = () => {
                     key={f.id}
                     type="button"
                     onClick={() => setShelfFilter(f.id as any)}
-                    className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${
+                    className={`px-2.5 py-1 rounded-full text-[11px] font-semibold whitespace-nowrap ${
                       shelfFilter === f.id ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600'
                     }`}
                   >
@@ -551,12 +547,12 @@ export const ProfilePage: React.FC = () => {
               </div>
 
               {filteredShelfBooks.length > 0 ? (
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-2.5">
                   {filteredShelfBooks.map((ub: UserBookRecord) => (
                     <div
                       key={ub.bookId}
                       onClick={() => navigate(`/book/${ub.bookId}`)}
-                      className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm flex flex-col"
+                      className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm flex flex-col"
                     >
                       <div className="aspect-[3/4] relative overflow-hidden bg-slate-100">
                         {ub.coverImage ? (
@@ -568,7 +564,7 @@ export const ProfilePage: React.FC = () => {
                         )}
                         {!ub.isFree && <TandaPremiumBadge />}
                       </div>
-                      <div className="p-2.5 flex-1 flex flex-col justify-between">
+                      <div className="p-2 flex-1 flex flex-col justify-between">
                         <div>
                           <div className="font-bold text-xs text-slate-900 line-clamp-1">{ub.title || 'Кітап'}</div>
                           <div className="text-[10px] text-slate-500 line-clamp-1">{ub.author || 'Автор'}</div>
@@ -578,10 +574,10 @@ export const ProfilePage: React.FC = () => {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-10 px-4 bg-white rounded-2xl border border-dashed border-slate-200">
-                  <BookMarked className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-                  <p className="text-xs text-slate-500 mb-3">Сөреде кітаптар жоқ</p>
-                  <Link to="/catalog" className="inline-block px-4 py-2 rounded-xl bg-[#005494] text-white text-xs font-bold">
+                <div className="text-center py-8 px-4 bg-white rounded-2xl border border-dashed border-slate-200">
+                  <BookMarked className="w-7 h-7 text-slate-300 mx-auto mb-1.5" />
+                  <p className="text-xs text-slate-500 mb-2.5">Сөреде кітаптар жоқ</p>
+                  <Link to="/catalog" className="inline-block px-3.5 py-1.5 rounded-xl bg-[#005494] text-white text-xs font-bold">
                     Кітаптар қорына өту
                   </Link>
                 </div>
@@ -592,22 +588,22 @@ export const ProfilePage: React.FC = () => {
           {activeTab === 'certificates' && (
             <div>
               {isLoadingCertificates ? (
-                <div className="h-24 bg-slate-100 rounded-2xl animate-pulse" />
+                <div className="h-20 bg-slate-100 rounded-2xl animate-pulse" />
               ) : myCertificates.length > 0 ? (
-                <div className="space-y-3">
+                <div className="space-y-2.5">
                   {myCertificates.map((cert) => (
-                    <div key={cert.id} className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm">
+                    <div key={cert.id} className="p-3.5 rounded-2xl bg-white border border-slate-100 shadow-sm">
                       <div className="flex items-center justify-between gap-2 mb-1">
-                        <span className="text-[10px] font-bold uppercase text-amber-600 bg-amber-50 px-2 py-0.5 rounded">
+                        <span className="text-[9px] font-bold uppercase text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">
                           {cert.category || 'Сертификат'}
                         </span>
-                        <span className="text-[11px] text-slate-400">{formatDateDMY(cert.issuedAt)}</span>
+                        <span className="text-[10px] text-slate-400">{formatDateDMY(cert.issuedAt)}</span>
                       </div>
-                      <h4 className="font-bold text-slate-900 text-sm mb-1">{cert.title}</h4>
-                      <div className="text-[11px] font-mono text-slate-600 bg-slate-50 p-1.5 rounded mb-3">
+                      <h4 className="font-bold text-slate-900 text-xs mb-1">{cert.title}</h4>
+                      <div className="text-[10px] font-mono text-slate-600 bg-slate-50 p-1 rounded mb-2">
                         № {cert.certificateNumber}
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5">
                         <Link
                           to={`/certificate/${encodeURIComponent(cert.certificateNumber)}`}
                           className="flex-1 py-1.5 rounded-xl bg-[#005494] text-white text-xs font-bold text-center"
@@ -621,7 +617,7 @@ export const ProfilePage: React.FC = () => {
                             rel="noopener noreferrer"
                             className="p-1.5 rounded-xl border border-slate-200 text-slate-700"
                           >
-                            <ExternalLink className="w-4 h-4" />
+                            <ExternalLink className="w-3.5 h-3.5" />
                           </a>
                         )}
                       </div>
@@ -629,10 +625,10 @@ export const ProfilePage: React.FC = () => {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-10 px-4 bg-white rounded-2xl border border-dashed border-slate-200">
-                  <Award className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-                  <p className="text-xs text-slate-500 mb-3">Әзірге сертификаттар жоқ</p>
-                  <Link to="/catalog" className="inline-block px-4 py-2 rounded-xl bg-[#005494] text-white text-xs font-bold">
+                <div className="text-center py-8 px-4 bg-white rounded-2xl border border-dashed border-slate-200">
+                  <Award className="w-7 h-7 text-slate-300 mx-auto mb-1.5" />
+                  <p className="text-xs text-slate-500 mb-2.5">Әзірге сертификаттар жоқ</p>
+                  <Link to="/catalog" className="inline-block px-3.5 py-1.5 rounded-xl bg-[#005494] text-white text-xs font-bold">
                     Оқуды бастау
                   </Link>
                 </div>
@@ -641,20 +637,20 @@ export const ProfilePage: React.FC = () => {
           )}
 
           {activeTab === 'quotes' && (
-            <div className="space-y-2.5">
+            <div className="space-y-2">
               {quotes.filter((q) => q.isActive).length > 0 ? (
                 quotes
                   .filter((q) => q.isActive)
                   .slice(0, 15)
                   .map((q) => (
-                    <div key={q.id} className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm">
-                      <p className="text-xs font-serif italic text-slate-800 leading-relaxed mb-2">«{q.text}»</p>
-                      <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-[11px]">
+                    <div key={q.id} className="p-3.5 rounded-2xl bg-white border border-slate-100 shadow-sm">
+                      <p className="text-xs font-serif italic text-slate-800 leading-relaxed mb-1.5">«{q.text}»</p>
+                      <div className="flex items-center justify-between pt-1.5 border-t border-slate-50 text-[10px]">
                         <div className="font-bold text-slate-700">— {q.author}</div>
                         <button
                           type="button"
                           onClick={() => handleCopyQuote(q)}
-                          className="text-slate-500 font-semibold p-1 inline-flex items-center gap-1"
+                          className="text-slate-500 font-semibold p-0.5 inline-flex items-center gap-1"
                         >
                           {copiedQuoteId === q.id ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
                         </button>
@@ -662,10 +658,10 @@ export const ProfilePage: React.FC = () => {
                     </div>
                   ))
               ) : (
-                <div className="text-center py-10 px-4 bg-white rounded-2xl border border-dashed border-slate-200">
-                  <QuoteIcon className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-                  <p className="text-xs text-slate-500 mb-3">Дәйексөздер табылмады</p>
-                  <Link to="/quotes" className="inline-block px-4 py-2 rounded-xl bg-[#005494] text-white text-xs font-bold">
+                <div className="text-center py-8 px-4 bg-white rounded-2xl border border-dashed border-slate-200">
+                  <QuoteIcon className="w-7 h-7 text-slate-300 mx-auto mb-1.5" />
+                  <p className="text-xs text-slate-500 mb-2.5">Дәйексөздер табылмады</p>
+                  <Link to="/quotes" className="inline-block px-3.5 py-1.5 rounded-xl bg-[#005494] text-white text-xs font-bold">
                     Дәйексөздерге өту
                   </Link>
                 </div>
@@ -676,7 +672,7 @@ export const ProfilePage: React.FC = () => {
           {activeTab === 'saved' && (
             <div>
               {savedBooks.length > 0 ? (
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-2.5">
                   {savedBooks.map((book) => {
                     const hasAudio = Boolean(book.hasAudio || (book.audioUrl && book.audioUrl.trim()) || (book.audioChapters && book.audioChapters.length > 0));
                     const hasText = Boolean(book.hasEbook || (book.ebookUrl && book.ebookUrl.trim()) || (book.pdfUrl && book.pdfUrl.trim()) || (book.epubUrl && book.epubUrl.trim()) || (book.content && book.content.trim()));
@@ -685,7 +681,7 @@ export const ProfilePage: React.FC = () => {
                       <div
                         key={book.id}
                         onClick={() => navigate(`/book/${book.id}`)}
-                        className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm flex flex-col"
+                        className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm flex flex-col"
                       >
                         <div className="aspect-[3/4] relative overflow-hidden bg-slate-100">
                           {book.coverImage ? (
@@ -698,13 +694,13 @@ export const ProfilePage: React.FC = () => {
                           {!book.isFree && <TandaPremiumBadge />}
                         </div>
 
-                        <div className="p-2.5 flex-1 flex flex-col justify-between">
+                        <div className="p-2 flex-1 flex flex-col justify-between">
                           <div>
                             <div className="font-bold text-xs text-slate-900 line-clamp-1">{book.title}</div>
                             <div className="text-[10px] text-slate-500 line-clamp-1">{book.author}</div>
                           </div>
 
-                          <div className="flex items-center gap-1 mt-2 pt-2 border-t border-slate-100" onClick={(e) => e.stopPropagation()}>
+                          <div className="flex items-center gap-1 mt-1.5 pt-1.5 border-t border-slate-50" onClick={(e) => e.stopPropagation()}>
                             {hasText && (
                               <Link to={`/read/${book.id}`} className="flex-1 py-1 rounded bg-sky-50 text-[#005494] text-[10px] font-bold text-center">
                                 Оқу
@@ -738,10 +734,10 @@ export const ProfilePage: React.FC = () => {
                   })}
                 </div>
               ) : (
-                <div className="text-center py-10 px-4 bg-white rounded-2xl border border-dashed border-slate-200">
-                  <Bookmark className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-                  <p className="text-xs text-slate-500 mb-3">Сақталған кітаптар жоқ</p>
-                  <Link to="/catalog" className="inline-block px-4 py-2 rounded-xl bg-[#005494] text-white text-xs font-bold">
+                <div className="text-center py-8 px-4 bg-white rounded-2xl border border-dashed border-slate-200">
+                  <Bookmark className="w-7 h-7 text-slate-300 mx-auto mb-1.5" />
+                  <p className="text-xs text-slate-500 mb-2.5">Сақталған кітаптар жоқ</p>
+                  <Link to="/catalog" className="inline-block px-3.5 py-1.5 rounded-xl bg-[#005494] text-white text-xs font-bold">
                     Кітаптар қорына өту
                   </Link>
                 </div>
