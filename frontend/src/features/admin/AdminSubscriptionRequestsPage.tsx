@@ -19,7 +19,8 @@ import {
   Bot,
   Calendar,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  History
 } from 'lucide-react';
 import { premiumApi } from '../../shared/api/premium.api';
 import { systemApi } from '../../shared/api/system.api';
@@ -27,6 +28,35 @@ import { SubscriptionPaymentRequest } from '../../types';
 import { useToastStore } from '../../store/useToastStore';
 import { useQueryClient } from '@tanstack/react-query';
 import { Modal } from '../../components/ui/Modal';
+
+export interface UserSubscriptionGroup {
+  userId: string;
+  userName: string;
+  userEmail: string;
+  phoneOrAccount?: string;
+  latestRequest: SubscriptionPaymentRequest;
+  allRequests: SubscriptionPaymentRequest[];
+  totalCount: number;
+  approvedCount: number;
+  pendingCount: number;
+  totalPaidKzt: number;
+}
+
+const formatDateTime = (dateStr?: string) => {
+  if (!dateStr) return '-';
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    return `${day}.${month}.${year} ${hours}:${minutes}`;
+  } catch {
+    return dateStr;
+  }
+};
 
 const KAZAKH_MONTHS = [
   'Қаңтар', 'Ақпан', 'Наурыз', 'Сәуір', 'Мамыр', 'Маусым',
@@ -108,6 +138,9 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
 
   // Details modal state (for viewing rejection reason and duplicate details on click)
   const [detailsRequest, setDetailsRequest] = useState<SubscriptionPaymentRequest | null>(null);
+
+  // User payment history modal state
+  const [selectedUserHistory, setSelectedUserHistory] = useState<UserSubscriptionGroup | null>(null);
 
   const [isAiEnabled, setIsAiEnabled] = useState<boolean>(true);
   const [isTogglingAi, setIsTogglingAi] = useState<boolean>(false);
@@ -293,31 +326,77 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
     .filter((r) => r.status === 'APPROVED')
     .reduce((sum, r) => sum + (r.amountKzt || 0), 0);
 
-  const filteredRequests = useMemo(() => {
-    return dateFilteredRequests.filter((r) => {
+  // Group all requests by user so each user appears only once in the main table with their latest request
+  const userGroups = useMemo<UserSubscriptionGroup[]>(() => {
+    const map = new Map<string, SubscriptionPaymentRequest[]>();
+    for (const r of dateFilteredRequests) {
+      const key = r.userId || r.userEmail || r.id;
+      if (!map.has(key)) {
+        map.set(key, []);
+      }
+      map.get(key)!.push(r);
+    }
+
+    const groups: UserSubscriptionGroup[] = [];
+    map.forEach((items, key) => {
+      // Sort items by createdAt descending (newest first)
+      items.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      const latest = items[0];
+      const approvedItems = items.filter((i) => i.status === 'APPROVED');
+      const totalPaid = approvedItems.reduce((sum, i) => sum + (i.amountKzt || 0), 0);
+      groups.push({
+        userId: latest.userId || key,
+        userName: latest.userName || 'Аты көрсетілмеген',
+        userEmail: latest.userEmail || '',
+        phoneOrAccount: latest.phoneOrAccount,
+        latestRequest: latest,
+        allRequests: items,
+        totalCount: items.length,
+        approvedCount: approvedItems.length,
+        pendingCount: items.filter((i) => i.status === 'PENDING').length,
+        totalPaidKzt: totalPaid,
+      });
+    });
+
+    // Priority sort: users with pending requests first, then by latest request createdAt desc
+    groups.sort((a, b) => {
+      if (a.pendingCount > 0 && b.pendingCount === 0) return -1;
+      if (a.pendingCount === 0 && b.pendingCount > 0) return 1;
+      return new Date(b.latestRequest.createdAt).getTime() - new Date(a.latestRequest.createdAt).getTime();
+    });
+
+    return groups;
+  }, [dateFilteredRequests]);
+
+  const filteredUserGroups = useMemo(() => {
+    return userGroups.filter((g) => {
+      const latest = g.latestRequest;
       if (statusFilter !== 'ALL') {
-        if (statusFilter === 'APPROVED' && r.status !== 'APPROVED') return false;
-        if (statusFilter === 'REJECTED' && r.status !== 'REJECTED' && r.status !== 'REVOKED') return false;
-        if (statusFilter === 'PENDING' && r.status !== 'PENDING') return false;
+        if (statusFilter === 'APPROVED' && latest.status !== 'APPROVED') return false;
+        if (statusFilter === 'REJECTED' && latest.status !== 'REJECTED' && latest.status !== 'REVOKED') return false;
+        if (statusFilter === 'PENDING' && latest.status !== 'PENDING' && g.pendingCount === 0) return false;
       }
 
       if (!searchQuery.trim()) return true;
       const q = searchQuery.toLowerCase();
       return (
-        (r.userName && r.userName.toLowerCase().includes(q)) ||
-        (r.userEmail && r.userEmail.toLowerCase().includes(q)) ||
-        (r.phoneOrAccount && r.phoneOrAccount.toLowerCase().includes(q)) ||
-        (r.id && r.id.toLowerCase().includes(q)) ||
-        (r.receiptNumber && r.receiptNumber.toLowerCase().includes(q))
+        (g.userName && g.userName.toLowerCase().includes(q)) ||
+        (g.userEmail && g.userEmail.toLowerCase().includes(q)) ||
+        (g.phoneOrAccount && g.phoneOrAccount.toLowerCase().includes(q)) ||
+        g.allRequests.some(
+          (r) =>
+            (r.receiptNumber && r.receiptNumber.toLowerCase().includes(q)) ||
+            (r.id && r.id.toLowerCase().includes(q))
+        )
       );
     });
-  }, [dateFilteredRequests, statusFilter, searchQuery]);
+  }, [userGroups, statusFilter, searchQuery]);
 
   useEffect(() => {
     setCurrentPage(1);
   }, [selectedYear, selectedMonth, statusFilter, searchQuery]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredRequests.length / pageSize));
+  const totalPages = Math.max(1, Math.ceil(filteredUserGroups.length / pageSize));
 
   useEffect(() => {
     if (currentPage > totalPages) {
@@ -325,10 +404,10 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
     }
   }, [totalPages, currentPage]);
 
-  const paginatedRequests = useMemo(() => {
+  const paginatedGroups = useMemo(() => {
     const startIndex = (currentPage - 1) * pageSize;
-    return filteredRequests.slice(startIndex, startIndex + pageSize);
-  }, [filteredRequests, currentPage, pageSize]);
+    return filteredUserGroups.slice(startIndex, startIndex + pageSize);
+  }, [filteredUserGroups, currentPage, pageSize]);
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -477,15 +556,15 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
 
         <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl flex-wrap">
           {[
-            { label: 'Барлығы', val: 'ALL', count: dateFilteredRequests.length },
-            { label: 'Мақұлданған', val: 'APPROVED', count: approvedCount },
-            { label: 'Бас тартылған', val: 'REJECTED', count: rejectedCount },
-            { label: 'Күтілуде', val: 'PENDING', count: pendingCount },
+            { label: 'Барлығы', val: 'ALL', count: userGroups.length },
+            { label: 'Мақұлданған', val: 'APPROVED', count: userGroups.filter((g) => g.latestRequest.status === 'APPROVED').length },
+            { label: 'Бас тартылған', val: 'REJECTED', count: userGroups.filter((g) => g.latestRequest.status === 'REJECTED' || g.latestRequest.status === 'REVOKED').length },
+            { label: 'Күтілуде', val: 'PENDING', count: userGroups.filter((g) => g.latestRequest.status === 'PENDING' || g.pendingCount > 0).length },
           ].map((tab) => (
             <button
               key={tab.val}
               onClick={() => setStatusFilter(tab.val)}
-              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition flex items-center gap-1.5 cursor-pointer ${
                 statusFilter === tab.val
                   ? 'bg-white text-slate-900 shadow-sm'
                   : 'text-slate-600 hover:text-slate-900'
@@ -500,12 +579,11 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
         </div>
       </div>
 
-
       {/* Requests Table */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         {isLoading ? (
           <div className="p-12 text-center text-slate-400">Жүктелуде...</div>
-        ) : filteredRequests.length === 0 ? (
+        ) : filteredUserGroups.length === 0 ? (
           <div className="p-12 text-center text-slate-400">
             Сұраныстар табылмады
           </div>
@@ -524,140 +602,179 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-sm">
-                {paginatedRequests.map((req) => (
-                  <tr key={req.id} className="hover:bg-slate-50/50 transition">
-                    <td className="py-3 px-4">
-                      <div className="font-bold text-slate-900">{req.userName || 'Аты көрсетілмеген'}</div>
-                      <div className="text-xs text-slate-500">{req.userEmail}</div>
-                      {req.phoneOrAccount && req.phoneOrAccount.trim() && req.phoneOrAccount.trim() !== req.userEmail && (
-                        <div className="text-xs text-slate-600 font-medium mt-0.5">
-                          {req.phoneOrAccount}
-                        </div>
-                      )}
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className="font-bold text-slate-800">
-                        {formatPlanName(req.planName, req.planDays)}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 font-black text-slate-900">
-                      {req.amountKzt.toLocaleString('kk-KZ')} ₸
-                    </td>
-                    <td className="py-3 px-4">
-                      {req.receiptUrl ? (
-                        <div>
-                          <button
-                            onClick={() => setSelectedReceiptUrl(req.receiptUrl || '')}
-                            className="flex items-center gap-1 text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 px-2.5 py-1 rounded-lg transition"
-                          >
-                            <Eye className="w-3.5 h-3.5" />
-                            Чекті көру
-                          </button>
-                          {req.receiptNumber && (
-                            <div className="text-[10px] text-slate-500 font-mono mt-1">
-                              № {req.receiptNumber}
+                {paginatedGroups.map((group) => {
+                  const req = group.latestRequest;
+                  return (
+                    <tr key={group.userId || req.id} className="hover:bg-slate-50/60 transition">
+                      <td className="py-3.5 px-4">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedUserHistory(group)}
+                          className="text-left group cursor-pointer focus:outline-none"
+                          title="Оқырманның толық төлем тарихын ашу"
+                        >
+                          <div className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors flex items-center gap-1.5">
+                            <span>{group.userName || 'Аты көрсетілмеген'}</span>
+                          </div>
+                          <div className="text-xs text-slate-500">{group.userEmail}</div>
+                          {group.phoneOrAccount && group.phoneOrAccount.trim() && group.phoneOrAccount.trim() !== group.userEmail && (
+                            <div className="text-xs text-slate-600 font-medium mt-0.5">
+                              {group.phoneOrAccount}
                             </div>
                           )}
-                        </div>
-                      ) : (
-                        <span className="text-xs text-slate-400">Чек жоқ</span>
-                      )}
-                    </td>
-                    <td className="py-3 px-4 text-xs text-slate-500">
-                      {req.createdAt ? new Date(req.createdAt).toLocaleString('kk-KZ') : '-'}
-                    </td>
-                    <td className="py-3 px-4">
-                      {req.status === 'PENDING' && (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800">
-                          <Clock className="w-3 h-3" />
-                          Күтілуде
-                        </span>
-                      )}
-                      {req.status === 'APPROVED' && (
-                        <div className="inline-flex flex-col items-center">
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
-                            <CheckCircle2 className="w-3 h-3" />
-                            Мақұлданған
-                          </span>
-                          {req.reviewedBy === 'AI_AUTO' && (
-                            <span className="block text-[10px] font-bold text-emerald-600 mt-0.5 text-center">
-                              AI Авто-мақұлдаған
-                            </span>
-                          )}
-                        </div>
-                      )}
-                      {req.status === 'REJECTED' && (
-                        <div>
-                          <button
-                            type="button"
-                            onClick={() => setDetailsRequest(req)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-100 hover:bg-rose-200 text-rose-800 transition cursor-pointer"
-                            title="Бас тарту себебі мен мәліметін көру үшін басыңыз"
-                          >
-                            <XCircle className="w-3 h-3" />
-                            Бас тартылған
-                          </button>
-                        </div>
-                      )}
-                      {req.status === 'REVOKED' && (
-                        <div>
-                          <button
-                            type="button"
-                            onClick={() => setDetailsRequest(req)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-100 hover:bg-rose-200 text-rose-900 border border-rose-300 transition cursor-pointer"
-                            title="Тоқтату себебін көру үшін басыңыз"
-                          >
-                            <Ban className="w-3 h-3" />
-                            Тоқтатылған
-                          </button>
-                        </div>
-                      )}
-                    </td>
-                    <td className="py-3 px-4 text-right">
-                      {req.status === 'PENDING' ? (
-                        <div className="flex items-center justify-end gap-1.5">
-                          <button
-                            onClick={() => handleApprove(req.id, req.userName)}
-                            disabled={isProcessing}
-                            className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm transition disabled:opacity-50"
-                          >
-                            Мақұлдау
-                          </button>
-                          <button
-                            onClick={() => openRejectModal(req)}
-                            disabled={isProcessing}
-                            className="px-2.5 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 font-bold text-xs transition disabled:opacity-50"
-                          >
-                            Бас тарту
-                          </button>
-                        </div>
-                      ) : req.status === 'APPROVED' ? (
-                        <button
-                          onClick={() => openRevokeModal(req)}
-                          disabled={isProcessing}
-                          className="px-2.5 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs transition border border-rose-200 shadow-sm"
-                        >
-                          Премиумды тоқтату
+                          <div className="mt-1 flex items-center gap-1.5">
+                            {group.totalCount > 1 ? (
+                              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200/80 px-2 py-0.5 rounded-full hover:bg-indigo-100 transition shadow-2xs">
+                                <History className="w-3 h-3 text-indigo-600" />
+                                {group.totalCount} төлем тарихы
+                                <ChevronRight className="w-3 h-3 text-indigo-400" />
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-500 hover:text-slate-800 transition">
+                                <History className="w-3 h-3 text-slate-400" />
+                                1 төлем
+                              </span>
+                            )}
+                          </div>
                         </button>
-                      ) : (
-                        <span className="text-xs text-slate-400">Өңделген</span>
-                      )}
-                    </td>
-
-                  </tr>
-                ))}
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <span className="font-bold text-slate-800">
+                          {formatPlanName(req.planName, req.planDays)}
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-4 font-black text-slate-900">
+                        {req.amountKzt.toLocaleString('kk-KZ')} ₸
+                      </td>
+                      <td className="py-3.5 px-4">
+                        {req.receiptUrl ? (
+                          <div>
+                            <button
+                              type="button"
+                              onClick={() => setSelectedReceiptUrl(req.receiptUrl || '')}
+                              className="flex items-center gap-1 text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1 rounded-lg transition cursor-pointer"
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                              Чекті көру
+                            </button>
+                            {req.receiptNumber && (
+                              <div className="text-[10px] text-slate-500 font-mono mt-1">
+                                № {req.receiptNumber}
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-xs text-slate-400">Чек жоқ</span>
+                        )}
+                      </td>
+                      <td className="py-3.5 px-4 text-xs text-slate-500 whitespace-nowrap">
+                        {formatDateTime(req.createdAt)}
+                      </td>
+                      <td className="py-3.5 px-4">
+                        {req.status === 'PENDING' && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800">
+                            <Clock className="w-3 h-3" />
+                            Күтілуде
+                          </span>
+                        )}
+                        {req.status === 'APPROVED' && (
+                          <div className="inline-flex flex-col items-center">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
+                              <CheckCircle2 className="w-3 h-3" />
+                              Мақұлданған
+                            </span>
+                            {req.reviewedBy === 'AI_AUTO' && (
+                              <span className="block text-[10px] font-bold text-emerald-600 mt-0.5 text-center">
+                                AI Авто-мақұлдаған
+                              </span>
+                            )}
+                          </div>
+                        )}
+                        {req.status === 'REJECTED' && (
+                          <div>
+                            <button
+                              type="button"
+                              onClick={() => setDetailsRequest(req)}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-100 hover:bg-rose-200 text-rose-800 transition cursor-pointer"
+                              title="Бас тарту себебі мен мәліметін көру үшін басыңыз"
+                            >
+                              <XCircle className="w-3 h-3" />
+                              Бас тартылған
+                            </button>
+                          </div>
+                        )}
+                        {req.status === 'REVOKED' && (
+                          <div>
+                            <button
+                              type="button"
+                              onClick={() => setDetailsRequest(req)}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-100 hover:bg-rose-200 text-rose-900 border border-rose-300 transition cursor-pointer"
+                              title="Тоқтату себебін көру үшін басыңыз"
+                            >
+                              <Ban className="w-3 h-3" />
+                              Тоқтатылған
+                            </button>
+                          </div>
+                        )}
+                      </td>
+                      <td className="py-3.5 px-4 text-right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          {req.status === 'PENDING' ? (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => handleApprove(req.id, req.userName)}
+                                disabled={isProcessing}
+                                className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm transition disabled:opacity-50 cursor-pointer"
+                              >
+                                Мақұлдау
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => openRejectModal(req)}
+                                disabled={isProcessing}
+                                className="px-2.5 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 font-bold text-xs transition disabled:opacity-50 cursor-pointer"
+                              >
+                                Бас тарту
+                              </button>
+                            </>
+                          ) : req.status === 'APPROVED' ? (
+                            <button
+                              type="button"
+                              onClick={() => openRevokeModal(req)}
+                              disabled={isProcessing}
+                              className="px-2.5 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs transition border border-rose-200 shadow-sm cursor-pointer"
+                            >
+                              Премиумды тоқтату
+                            </button>
+                          ) : (
+                            <span className="text-xs text-slate-400">Өңделген</span>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => setSelectedUserHistory(group)}
+                            className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition cursor-pointer"
+                            title="Толық төлем тарихын ашу"
+                          >
+                            <History className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
         )}
 
         {/* Pagination controls */}
-        {!isLoading && filteredRequests.length > 0 && (
+        {!isLoading && filteredUserGroups.length > 0 && (
           <div className="flex flex-col sm:flex-row items-center justify-between flex-wrap gap-4 p-4 border-t border-slate-100 bg-white">
             {/* Page size selector */}
             <div className="flex items-center gap-2">
               <span className="text-xs sm:text-sm text-slate-500 font-medium">
-                Беттегі өтініш саны:
+                Беттегі оқырман саны:
               </span>
               <select
                 value={pageSize}
@@ -675,8 +792,8 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
                 <option value={100}>100</option>
               </select>
               <span className="text-xs sm:text-sm text-slate-400 font-medium ml-1">
-                ({filteredRequests.length === 0 ? 0 : Math.min((currentPage - 1) * pageSize + 1, filteredRequests.length)}-
-                {Math.min(currentPage * pageSize, filteredRequests.length)} / {filteredRequests.length})
+                ({filteredUserGroups.length === 0 ? 0 : Math.min((currentPage - 1) * pageSize + 1, filteredUserGroups.length)}-
+                {Math.min(currentPage * pageSize, filteredUserGroups.length)} / {filteredUserGroups.length})
               </span>
             </div>
 
@@ -1064,6 +1181,214 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setDetailsRequest(null)}
+                className="px-5 py-2 rounded-xl text-xs font-bold bg-slate-900 hover:bg-black text-white transition cursor-pointer"
+              >
+                Жабу
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* User Payment History Modal */}
+      {selectedUserHistory && (
+        <Modal
+          isOpen={Boolean(selectedUserHistory)}
+          onClose={() => setSelectedUserHistory(null)}
+          title="Оқырманның төлем тарихы"
+          maxWidth="xl"
+        >
+          <div className="space-y-4">
+            {/* User Profile Summary Header */}
+            <div className="p-4 rounded-2xl bg-gradient-to-r from-slate-50 to-indigo-50/40 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-2xl bg-indigo-600 text-white flex items-center justify-center font-black text-base shadow-sm shrink-0">
+                  {selectedUserHistory.userName.slice(0, 1).toUpperCase()}
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-slate-900 leading-snug">
+                    {selectedUserHistory.userName}
+                  </h3>
+                  <p className="text-xs text-slate-500">{selectedUserHistory.userEmail}</p>
+                  {selectedUserHistory.phoneOrAccount && (
+                    <p className="text-xs text-slate-600 font-mono mt-0.5">
+                      Kaspi: {selectedUserHistory.phoneOrAccount}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0">
+                <div className="px-3 py-1.5 rounded-xl bg-white border border-slate-200 shadow-2xs text-center">
+                  <div className="text-[10px] text-slate-400 font-bold uppercase">Барлығы</div>
+                  <div className="text-xs font-black text-slate-900">{selectedUserHistory.totalCount} өтініш</div>
+                </div>
+                <div className="px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 shadow-2xs text-center">
+                  <div className="text-[10px] text-emerald-600 font-bold uppercase">Мақұлданған</div>
+                  <div className="text-xs font-black text-emerald-800">{selectedUserHistory.approvedCount} рет</div>
+                </div>
+                <div className="px-3 py-1.5 rounded-xl bg-indigo-50 border border-indigo-200 shadow-2xs text-center">
+                  <div className="text-[10px] text-indigo-600 font-bold uppercase">Төлегені</div>
+                  <div className="text-xs font-black text-indigo-900">{selectedUserHistory.totalPaidKzt.toLocaleString('kk-KZ')} ₸</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Timeline / List of All Requests for this user */}
+            <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
+              {selectedUserHistory.allRequests.map((req, index) => {
+                const isLatest = index === 0;
+                return (
+                  <div
+                    key={req.id}
+                    className={`p-4 rounded-2xl border transition-all ${
+                      isLatest
+                        ? 'bg-white border-indigo-300 shadow-xs ring-1 ring-indigo-500/10'
+                        : 'bg-slate-50/60 border-slate-200 hover:bg-white'
+                    }`}
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-slate-100">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className={`px-2 py-0.5 rounded-md text-[11px] font-black ${
+                          isLatest ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-700'
+                        }`}>
+                          #{selectedUserHistory.totalCount - index} {isLatest && '(Соңғысы)'}
+                        </span>
+                        <span className="font-bold text-slate-900 text-xs sm:text-sm">
+                          {formatPlanName(req.planName, req.planDays)}
+                        </span>
+                        <span className="font-black text-slate-900 text-xs sm:text-sm">
+                          {req.amountKzt.toLocaleString('kk-KZ')} ₸
+                        </span>
+                      </div>
+
+                      <div className="text-xs text-slate-500 font-medium">
+                        {formatDateTime(req.createdAt)}
+                      </div>
+                    </div>
+
+                    <div className="pt-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="flex items-center gap-3 flex-wrap">
+                        {/* Status Badge */}
+                        {req.status === 'PENDING' && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800">
+                            <Clock className="w-3 h-3" />
+                            Күтілуде
+                          </span>
+                        )}
+                        {req.status === 'APPROVED' && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
+                            <CheckCircle2 className="w-3 h-3" />
+                            Мақұлданған {req.reviewedBy === 'AI_AUTO' ? '(ЖИ)' : '(Админ)'}
+                          </span>
+                        )}
+                        {req.status === 'REJECTED' && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-800">
+                            <XCircle className="w-3 h-3" />
+                            Бас тартылған {req.reviewedBy === 'AI_AUTO' ? '(ЖИ)' : ''}
+                          </span>
+                        )}
+                        {req.status === 'REVOKED' && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-900 border border-rose-300">
+                            <Ban className="w-3 h-3" />
+                            Тоқтатылған
+                          </span>
+                        )}
+
+                        {/* Kaspi Receipt Button */}
+                        {req.receiptUrl ? (
+                          <button
+                            type="button"
+                            onClick={() => setSelectedReceiptUrl(req.receiptUrl || '')}
+                            className="inline-flex items-center gap-1 text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1 rounded-lg transition cursor-pointer"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                            Чекті қарау
+                            {req.receiptNumber && (
+                              <span className="text-[10px] text-indigo-500 font-mono">
+                                (№{req.receiptNumber})
+                              </span>
+                            )}
+                          </button>
+                        ) : (
+                          <span className="text-xs text-slate-400">Чек жүктелмеген</span>
+                        )}
+                      </div>
+
+                      {/* Action buttons if Pending or Approved */}
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {req.status === 'PENDING' && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                handleApprove(req.id, req.userName);
+                                setSelectedUserHistory(null);
+                              }}
+                              disabled={isProcessing}
+                              className="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition disabled:opacity-50 cursor-pointer"
+                            >
+                              Мақұлдау
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                openRejectModal(req);
+                                setSelectedUserHistory(null);
+                              }}
+                              disabled={isProcessing}
+                              className="px-2.5 py-1 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 font-bold text-xs transition disabled:opacity-50 cursor-pointer"
+                            >
+                              Бас тарту
+                            </button>
+                          </>
+                        )}
+                        {req.status === 'APPROVED' && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              openRevokeModal(req);
+                              setSelectedUserHistory(null);
+                            }}
+                            disabled={isProcessing}
+                            className="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs transition border border-rose-200 shadow-2xs cursor-pointer"
+                          >
+                            Премиумды тоқтату
+                          </button>
+                        )}
+                        {(req.status === 'REJECTED' || req.status === 'REVOKED') && req.rejectionReason && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setDetailsRequest(req);
+                              setSelectedUserHistory(null);
+                            }}
+                            className="text-xs font-semibold text-slate-500 hover:text-slate-800 underline cursor-pointer"
+                          >
+                            Себебін көру
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Rejection / Revoke reason inline preview if exists */}
+                    {(req.status === 'REJECTED' || req.status === 'REVOKED') && req.rejectionReason && (
+                      <div className="mt-2.5 p-2.5 rounded-xl bg-rose-50/70 border border-rose-100 text-xs text-rose-900 leading-relaxed">
+                        <span className="font-bold">
+                          {req.status === 'REVOKED' ? 'Тоқтату себебі: ' : 'Бас тарту себебі: '}
+                        </span>
+                        {req.rejectionReason}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="flex items-center justify-end pt-3 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setSelectedUserHistory(null)}
                 className="px-5 py-2 rounded-xl text-xs font-bold bg-slate-900 hover:bg-black text-white transition cursor-pointer"
               >
                 Жабу
