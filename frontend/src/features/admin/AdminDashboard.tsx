@@ -19,6 +19,7 @@ export const AdminDashboard: React.FC = () => {
   const canCreateBooks = isAdminOrStaff && hasAdminPermission(user, 'books_create');
   const canEditBooks = isAdminOrStaff && hasAdminPermission(user, 'books_edit');
   const canDeleteBooks = isAdminOrStaff && hasAdminPermission(user, 'books_delete');
+  const canManageReviews = isAdminOrStaff && (hasAdminPermission(user, 'reviews_manage') || hasAdminPermission(user, 'books_view'));
 
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'archived' | 'deleted'>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -335,6 +336,35 @@ export const AdminDashboard: React.FC = () => {
                   </button>
                 )}
               </div>
+
+              {/* Reviews Button (navigates to /admin/reviews) */}
+              {canManageReviews && (
+                <Link
+                  to="/admin/reviews"
+                  style={{
+                    textDecoration: 'none',
+                    padding: '9px 18px',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    background: '#FFFFFF',
+                    color: '#D97706',
+                    border: '1.5px solid #FCD34D',
+                    borderRadius: '8px',
+                    boxShadow: '0 2px 6px rgba(217, 119, 6, 0.08)',
+                    transition: 'all 0.15s ease',
+                  }}
+                  className="hover:bg-amber-50"
+                  title="Оқырмандардың барлық пікірлерін көру және басқару"
+                >
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                  </svg>
+                  <span>Пікірлер</span>
+                </Link>
+              )}
 
               {/* Add Book Button (navigates to /admin/books/new) */}
               {canCreateBooks && (
