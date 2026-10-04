@@ -930,7 +930,7 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
             setRevokeModalOpen(false);
             setRevokingRequest(null);
           }}
-          title="Премиум жазылымды тоқтату (Жарамсыз ету)"
+          title="Премиум жазылымды тоқтату"
         >
           <div className="space-y-4">
             <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-950 flex items-start gap-3">
@@ -947,7 +947,7 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
 
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1">
-                Тоқтату себебі (оқырманға хабарлама барады): <span className="text-red-500">*</span>
+                Тоқтату себебі: <span className="text-red-500">*</span>
               </label>
               <textarea
                 rows={3}
