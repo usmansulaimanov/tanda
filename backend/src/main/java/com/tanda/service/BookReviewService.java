@@ -7,7 +7,9 @@ import com.tanda.entity.Book;
 import com.tanda.entity.BookReview;
 import com.tanda.entity.BookReviewLike;
 import com.tanda.entity.BookReviewLikeId;
+import com.tanda.entity.ReadingProgress;
 import com.tanda.entity.User;
+import com.tanda.entity.UserBook;
 import com.tanda.exception.BadRequestException;
 import com.tanda.exception.ResourceNotFoundException;
 import com.tanda.exception.UnauthorizedException;
@@ -28,6 +30,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -97,26 +100,28 @@ public class BookReviewService {
 
         Page<BookReview> reviewsPage = bookReviewRepository.findByBookIdWithUser(bookId, pageable);
 
-        Set<Long> likedReviewIds = new HashSet<>();
+        Map<Long, String> userReactions = new HashMap<>();
         if (currentUserId != null && !reviewsPage.isEmpty()) {
             List<Long> reviewIds = reviewsPage.getContent().stream()
                     .map(BookReview::getId)
                     .collect(Collectors.toList());
-            likedReviewIds = bookReviewLikeRepository.findByIdUserIdAndIdReviewIdIn(currentUserId, reviewIds).stream()
-                    .map(like -> like.getId().getReviewId())
-                    .collect(Collectors.toSet());
+            List<BookReviewLike> likes = bookReviewLikeRepository.findByIdUserIdAndIdReviewIdIn(currentUserId, reviewIds);
+            for (BookReviewLike like : likes) {
+                userReactions.put(like.getId().getReviewId(), like.getReactionType() != null ? like.getReactionType() : "LIKE");
+            }
         }
 
-        final Set<Long> finalLikedReviewIds = likedReviewIds;
-        return reviewsPage.map(review -> mapToDtoWithLikes(review, currentUserId, isAdmin, finalLikedReviewIds.contains(review.getId())));
+        return reviewsPage.map(review -> mapToDtoWithReactions(review, currentUserId, isAdmin, userReactions.get(review.getId())));
     }
 
     @Transactional(readOnly = true)
     public BookReviewResponseDto getMyReview(String bookId, String userId) {
         return bookReviewRepository.findByBookIdAndUserId(bookId, userId)
                 .map(review -> {
-                    boolean isLiked = bookReviewLikeRepository.existsByIdReviewIdAndIdUserId(review.getId(), userId);
-                    return mapToDtoWithLikes(review, userId, false, isLiked);
+                    String reaction = bookReviewLikeRepository.findByIdReviewIdAndIdUserId(review.getId(), userId)
+                            .map(BookReviewLike::getReactionType)
+                            .orElse(null);
+                    return mapToDtoWithReactions(review, userId, false, reaction);
                 })
                 .orElse(null);
     }
@@ -163,7 +168,9 @@ public class BookReviewService {
     }
 
     @Transactional
-    public Map<String, Object> toggleLike(Long reviewId, String userId) {
+    public Map<String, Object> toggleReaction(Long reviewId, String userId, String reactionType) {
+        String normalizedType = "DISLIKE".equalsIgnoreCase(reactionType) ? "DISLIKE" : "LIKE";
+
         BookReview review = bookReviewRepository.findById(reviewId)
                 .orElseThrow(() -> new ResourceNotFoundException("BookReview", "id", reviewId));
 
@@ -171,27 +178,63 @@ public class BookReviewService {
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 
         BookReviewLikeId likeId = new BookReviewLikeId(reviewId, userId);
-        boolean isLiked;
-        if (bookReviewLikeRepository.existsById(likeId)) {
-            bookReviewLikeRepository.deleteById(likeId);
-            review.setLikesCount(Math.max(0, (review.getLikesCount() != null ? review.getLikesCount() : 1) - 1));
-            isLiked = false;
+        Optional<BookReviewLike> existingOpt = bookReviewLikeRepository.findById(likeId);
+
+        String finalReaction;
+        int likes = review.getLikesCount() != null ? review.getLikesCount() : 0;
+        int dislikes = review.getDislikesCount() != null ? review.getDislikesCount() : 0;
+
+        if (existingOpt.isPresent()) {
+            BookReviewLike existing = existingOpt.get();
+            String currentType = existing.getReactionType() != null ? existing.getReactionType() : "LIKE";
+            if (normalizedType.equalsIgnoreCase(currentType)) {
+                // Clicked same button -> toggle off (remove)
+                bookReviewLikeRepository.delete(existing);
+                if ("LIKE".equals(normalizedType)) {
+                    likes = Math.max(0, likes - 1);
+                } else {
+                    dislikes = Math.max(0, dislikes - 1);
+                }
+                finalReaction = null;
+            } else {
+                // Switched from LIKE to DISLIKE or vice versa
+                if ("LIKE".equals(normalizedType)) {
+                    likes += 1;
+                    dislikes = Math.max(0, dislikes - 1);
+                } else {
+                    dislikes += 1;
+                    likes = Math.max(0, likes - 1);
+                }
+                existing.setReactionType(normalizedType);
+                bookReviewLikeRepository.save(existing);
+                finalReaction = normalizedType;
+            }
         } else {
-            BookReviewLike like = BookReviewLike.builder()
+            // New reaction
+            BookReviewLike newReaction = BookReviewLike.builder()
                     .id(likeId)
                     .review(review)
                     .user(user)
+                    .reactionType(normalizedType)
                     .build();
-            bookReviewLikeRepository.save(like);
-            review.setLikesCount((review.getLikesCount() != null ? review.getLikesCount() : 0) + 1);
-            isLiked = true;
+            bookReviewLikeRepository.save(newReaction);
+            if ("LIKE".equals(normalizedType)) {
+                likes += 1;
+            } else {
+                dislikes += 1;
+            }
+            finalReaction = normalizedType;
         }
 
+        review.setLikesCount(likes);
+        review.setDislikesCount(dislikes);
         bookReviewRepository.save(review);
 
         Map<String, Object> response = new HashMap<>();
-        response.put("isLiked", isLiked);
+        response.put("userReaction", finalReaction);
+        response.put("isLiked", "LIKE".equals(finalReaction));
         response.put("likesCount", review.getLikesCount());
+        response.put("dislikesCount", review.getDislikesCount());
         return response;
     }
 
@@ -208,18 +251,19 @@ public class BookReviewService {
     }
 
     private BookReviewResponseDto mapToDto(BookReview review, String currentUserId, boolean isAdmin) {
-        boolean isLiked = false;
+        String reaction = null;
         if (currentUserId != null) {
-            isLiked = bookReviewLikeRepository.existsByIdReviewIdAndIdUserId(review.getId(), currentUserId);
+            reaction = bookReviewLikeRepository.findByIdReviewIdAndIdUserId(review.getId(), currentUserId)
+                    .map(BookReviewLike::getReactionType)
+                    .orElse(null);
         }
-        return mapToDtoWithLikes(review, currentUserId, isAdmin, isLiked);
+        return mapToDtoWithReactions(review, currentUserId, isAdmin, reaction);
     }
 
-    private BookReviewResponseDto mapToDtoWithLikes(BookReview review, String currentUserId, boolean isAdmin, boolean isLiked) {
+    private BookReviewResponseDto mapToDtoWithReactions(BookReview review, String currentUserId, boolean isAdmin, String userReaction) {
         User author = review.getUser();
         boolean isOwner = currentUserId != null && currentUserId.equals(author.getId());
-        boolean isVerified = readingProgressRepository.findByUserIdAndBookId(author.getId(), review.getBook().getId()).isPresent()
-                || userBookRepository.findByUserIdAndBookId(author.getId(), review.getBook().getId()).isPresent();
+        boolean isVerified = checkIsVerifiedReader(author, review.getBook());
 
         return BookReviewResponseDto.builder()
                 .id(review.getId())
@@ -232,12 +276,53 @@ public class BookReviewService {
                 .reviewText(review.getReviewText())
                 .isSpoiler(Boolean.TRUE.equals(review.getIsSpoiler()))
                 .likesCount(review.getLikesCount() != null ? review.getLikesCount() : 0)
-                .isLikedByCurrentUser(isLiked)
+                .dislikesCount(review.getDislikesCount() != null ? review.getDislikesCount() : 0)
+                .userReaction(userReaction)
+                .isLikedByCurrentUser("LIKE".equalsIgnoreCase(userReaction))
                 .isVerifiedReader(isVerified)
                 .canEdit(isOwner)
                 .canDelete(isOwner || isAdmin)
                 .createdAt(review.getCreatedAt())
                 .updatedAt(review.getUpdatedAt())
                 .build();
+    }
+
+    private boolean checkIsVerifiedReader(User author, Book book) {
+        if (author == null || book == null) return false;
+
+        // 1. Check shelf status: If marked completed or progress >= 20%
+        Optional<UserBook> userBookOpt = userBookRepository.findByUserIdAndBookId(author.getId(), book.getId());
+        if (userBookOpt.isPresent()) {
+            UserBook ub = userBookOpt.get();
+            if (Boolean.TRUE.equals(ub.getIsCompleted()) || "completed".equalsIgnoreCase(ub.getStatus())) {
+                return true;
+            }
+            if (ub.getCurrentPage() != null && book.getPages() != null && book.getPages() > 0) {
+                double pct = (double) ub.getCurrentPage() / book.getPages();
+                if (pct >= 0.20) {
+                    return true;
+                }
+            }
+        }
+
+        // 2. Check ReadingProgress
+        Optional<ReadingProgress> progressOpt = readingProgressRepository.findByUserIdAndBookId(author.getId(), book.getId());
+        if (progressOpt.isPresent()) {
+            ReadingProgress rp = progressOpt.get();
+            if (rp.getCurrentPage() != null && book.getPages() != null && book.getPages() > 0) {
+                double pct = (double) rp.getCurrentPage() / book.getPages();
+                if (pct >= 0.20) {
+                    return true;
+                }
+            }
+            if (rp.getCurrentAudioTime() != null && rp.getCurrentAudioTime() >= 120) {
+                return true;
+            }
+            if (rp.getEpubCfi() != null && !rp.getEpubCfi().isBlank()) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

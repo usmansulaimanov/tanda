@@ -23,6 +23,8 @@ public class BookReviewResponseDto {
     private String reviewText;
     private Boolean isSpoiler;
     private Integer likesCount;
+    private Integer dislikesCount;
+    private String userReaction; // "LIKE" | "DISLIKE" | null
     private Boolean isLikedByCurrentUser;
     private Boolean isVerifiedReader;
     private Boolean canEdit;

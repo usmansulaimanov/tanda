@@ -39,6 +39,10 @@ public class BookReviewLike {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Column(name = "reaction_type", length = 16, nullable = false)
+    @Builder.Default
+    private String reactionType = "LIKE"; // "LIKE" | "DISLIKE"
+
     @Column(name = "created_at")
     private OffsetDateTime createdAt;
 
@@ -46,6 +50,9 @@ public class BookReviewLike {
     public void prePersist() {
         if (createdAt == null) {
             createdAt = OffsetDateTime.now();
+        }
+        if (reactionType == null) {
+            reactionType = "LIKE";
         }
     }
 }

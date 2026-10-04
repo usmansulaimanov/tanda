@@ -489,6 +489,8 @@ export interface BookReview {
   reviewText?: string;
   isSpoiler: boolean;
   likesCount: number;
+  dislikesCount?: number;
+  userReaction?: 'LIKE' | 'DISLIKE' | null;
   isLikedByCurrentUser: boolean;
   isVerifiedReader: boolean;
   canEdit: boolean;

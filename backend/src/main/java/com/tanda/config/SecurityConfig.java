@@ -85,7 +85,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/premium/**", "/api/v1/premium/**").authenticated()
                 .requestMatchers(HttpMethod.POST, "/api/books/*/reviews", "/api/v1/books/*/reviews").authenticated()
                 .requestMatchers(HttpMethod.DELETE, "/api/books/*/reviews/*", "/api/v1/books/*/reviews/*").authenticated()
-                .requestMatchers(HttpMethod.POST, "/api/reviews/*/like", "/api/v1/reviews/*/like").authenticated()
+                .requestMatchers(HttpMethod.POST, "/api/reviews/*/like", "/api/v1/reviews/*/like", "/api/reviews/*/reaction", "/api/v1/reviews/*/reaction").authenticated()
 
                 // Admin-only endpoints
                 .requestMatchers(HttpMethod.POST, "/api/books", "/api/books/**", "/api/v1/books", "/api/v1/books/**").hasRole("ADMIN")

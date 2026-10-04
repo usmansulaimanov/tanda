@@ -121,8 +121,9 @@ class BookReviewServiceTest {
         when(bookReviewRepository.save(any(BookReview.class))).thenReturn(testReview);
         when(bookReviewRepository.getAverageRatingByBookId("book-1")).thenReturn(5.0);
         when(bookReviewRepository.countByBookId("book-1")).thenReturn(1L);
+        testBook.setPages(100);
         when(readingProgressRepository.findByUserIdAndBookId("user-1", "book-1"))
-                .thenReturn(Optional.of(ReadingProgress.builder().id("p-1").build()));
+                .thenReturn(Optional.of(ReadingProgress.builder().id("p-1").currentPage(30).currentAudioTime(300).build()));
 
         BookReviewResponseDto response = bookReviewService.addOrUpdateReview("book-1", "user-1", request);
 
@@ -197,24 +198,34 @@ class BookReviewServiceTest {
     }
 
     @Test
-    @DisplayName("Should toggle like correctly (add like then remove like)")
-    void testToggleLike() {
+    @DisplayName("Should toggle reactions correctly (LIKE, switch to DISLIKE, then remove)")
+    void testToggleReaction() {
         when(bookReviewRepository.findById(100L)).thenReturn(Optional.of(testReview));
         when(userRepository.findById("user-2")).thenReturn(Optional.of(testUser));
         BookReviewLikeId likeId = new BookReviewLikeId(100L, "user-2");
 
-        // First click: Add like
-        when(bookReviewLikeRepository.existsById(likeId)).thenReturn(false);
-        Map<String, Object> res1 = bookReviewService.toggleLike(100L, "user-2");
+        // 1. First click: Add LIKE
+        when(bookReviewLikeRepository.findById(likeId)).thenReturn(Optional.empty());
+        Map<String, Object> res1 = bookReviewService.toggleReaction(100L, "user-2", "LIKE");
+        assertThat(res1.get("userReaction")).isEqualTo("LIKE");
         assertThat(res1.get("isLiked")).isEqualTo(true);
         assertThat(res1.get("likesCount")).isEqualTo(1);
         verify(bookReviewLikeRepository).save(any(BookReviewLike.class));
 
-        // Second click: Remove like
-        when(bookReviewLikeRepository.existsById(likeId)).thenReturn(true);
-        Map<String, Object> res2 = bookReviewService.toggleLike(100L, "user-2");
+        // 2. Switch to DISLIKE
+        BookReviewLike existingLike = BookReviewLike.builder().id(likeId).review(testReview).user(testUser).reactionType("LIKE").build();
+        when(bookReviewLikeRepository.findById(likeId)).thenReturn(Optional.of(existingLike));
+        Map<String, Object> res2 = bookReviewService.toggleReaction(100L, "user-2", "DISLIKE");
+        assertThat(res2.get("userReaction")).isEqualTo("DISLIKE");
         assertThat(res2.get("isLiked")).isEqualTo(false);
         assertThat(res2.get("likesCount")).isEqualTo(0);
-        verify(bookReviewLikeRepository).deleteById(likeId);
+        assertThat(res2.get("dislikesCount")).isEqualTo(1);
+
+        // 3. Remove DISLIKE
+        existingLike.setReactionType("DISLIKE");
+        Map<String, Object> res3 = bookReviewService.toggleReaction(100L, "user-2", "DISLIKE");
+        assertThat(res3.get("userReaction")).isNull();
+        assertThat(res3.get("dislikesCount")).isEqualTo(0);
+        verify(bookReviewLikeRepository).delete(existingLike);
     }
 }

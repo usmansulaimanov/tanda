@@ -53,4 +53,19 @@ export const reviewsApi = {
     const { data } = await apiClient.post<{ isLiked: boolean; likesCount: number }>(`/api/v1/reviews/${reviewId}/like`);
     return data;
   },
+
+  toggleReaction: async (
+    reviewId: number,
+    type: 'LIKE' | 'DISLIKE'
+  ): Promise<{ userReaction: 'LIKE' | 'DISLIKE' | null; isLiked: boolean; likesCount: number; dislikesCount: number }> => {
+    const { data } = await apiClient.post<{
+      userReaction: 'LIKE' | 'DISLIKE' | null;
+      isLiked: boolean;
+      likesCount: number;
+      dislikesCount: number;
+    }>(`/api/v1/reviews/${reviewId}/reaction`, null, {
+      params: { type },
+    });
+    return data;
+  },
 };

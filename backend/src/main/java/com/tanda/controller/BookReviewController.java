@@ -120,7 +120,20 @@ public class BookReviewController {
         if (principal == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        Map<String, Object> result = bookReviewService.toggleLike(reviewId, principal.getId());
+        Map<String, Object> result = bookReviewService.toggleReaction(reviewId, principal.getId(), "LIKE");
+        return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/reviews/{reviewId}/reaction")
+    public ResponseEntity<Map<String, Object>> toggleReaction(
+            @PathVariable Long reviewId,
+            @RequestParam(defaultValue = "LIKE") String type,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        Map<String, Object> result = bookReviewService.toggleReaction(reviewId, principal.getId(), type);
         return ResponseEntity.ok(result);
     }
 }

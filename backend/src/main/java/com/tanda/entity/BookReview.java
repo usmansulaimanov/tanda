@@ -60,6 +60,10 @@ public class BookReview {
     @Builder.Default
     private Integer likesCount = 0;
 
+    @Column(name = "dislikes_count", nullable = false)
+    @Builder.Default
+    private Integer dislikesCount = 0;
+
     @Column(name = "created_at")
     private OffsetDateTime createdAt;
 
@@ -80,6 +84,9 @@ public class BookReview {
         }
         if (likesCount == null) {
             likesCount = 0;
+        }
+        if (dislikesCount == null) {
+            dislikesCount = 0;
         }
     }
 

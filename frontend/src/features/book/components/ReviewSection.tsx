@@ -181,7 +181,7 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({
     }
   };
 
-  const handleToggleLike = async (reviewId: number) => {
+  const handleToggleReaction = async (reviewId: number, type: 'LIKE' | 'DISLIKE') => {
     if (!isAuthenticated) {
       showToast('Пікірге баға беру үшін жүйеге кіріңіз', 'info');
       openAuthModal();
@@ -189,17 +189,31 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({
     }
 
     try {
-      const res = await reviewsApi.toggleLike(reviewId);
+      const res = await reviewsApi.toggleReaction(reviewId, type);
       setReviews((prev) =>
         prev.map((r) =>
           r.id === reviewId
-            ? { ...r, isLikedByCurrentUser: res.isLiked, likesCount: res.likesCount }
+            ? {
+                ...r,
+                userReaction: res.userReaction,
+                isLikedByCurrentUser: res.isLiked,
+                likesCount: res.likesCount,
+                dislikesCount: res.dislikesCount,
+              }
             : r
         )
       );
       if (myReview && myReview.id === reviewId) {
         setMyReview((prev) =>
-          prev ? { ...prev, isLikedByCurrentUser: res.isLiked, likesCount: res.likesCount } : null
+          prev
+            ? {
+                ...prev,
+                userReaction: res.userReaction,
+                isLikedByCurrentUser: res.isLiked,
+                likesCount: res.likesCount,
+                dislikesCount: res.dislikesCount,
+              }
+            : null
         );
       }
     } catch (err) {
@@ -432,11 +446,12 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-bold text-slate-900 text-sm">{rev.userName}</span>
                         {rev.isVerifiedReader && (
-                          <span className="inline-flex items-center gap-0.5 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-full border border-emerald-200">
-                            <svg className="w-3 h-3 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                            </svg>
-                            Оқырман
+                          <span className="inline-flex items-center" title="Тексерілген оқырман (Кітаптың 20%+ оқыған)">
+                            <img
+                              src="/assets/verified-reader-badge.png"
+                              alt="Тексерілген оқырман"
+                              className="w-4 h-4 object-contain inline-block drop-shadow-sm"
+                            />
                           </span>
                         )}
                       </div>
@@ -484,28 +499,57 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({
                   </div>
                 )}
 
-                {/* Like Button & Footer */}
-                <div className="mt-3 pt-2 flex items-center justify-between text-xs text-slate-400 border-t border-slate-50">
+                {/* Like / Dislike Buttons */}
+                <div className="mt-3 pt-2.5 flex items-center gap-2 text-xs text-slate-400 border-t border-slate-50">
+                  {/* Like Button */}
                   <button
                     type="button"
-                    onClick={() => handleToggleLike(rev.id)}
+                    onClick={() => handleToggleReaction(rev.id, 'LIKE')}
                     className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-bold transition-all ${
-                      rev.isLikedByCurrentUser
+                      rev.userReaction === 'LIKE' || rev.isLikedByCurrentUser
+                        ? 'bg-blue-50 text-blue-600'
+                        : 'text-slate-500 hover:bg-slate-100'
+                    }`}
+                    title="Лайк"
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      viewBox="0 0 24 24"
+                      fill={rev.userReaction === 'LIKE' || rev.isLikedByCurrentUser ? 'currentColor' : 'none'}
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3zM7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3" />
+                    </svg>
+                    {rev.likesCount > 0 && <span className="text-xs font-bold">{rev.likesCount}</span>}
+                  </button>
+
+                  {/* Dislike Button */}
+                  <button
+                    type="button"
+                    onClick={() => handleToggleReaction(rev.id, 'DISLIKE')}
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-bold transition-all ${
+                      rev.userReaction === 'DISLIKE'
                         ? 'bg-rose-50 text-rose-600'
                         : 'text-slate-500 hover:bg-slate-100'
                     }`}
+                    title="Дизлайк"
                   >
                     <svg
-                      className={`w-3.5 h-3.5 ${rev.isLikedByCurrentUser ? 'fill-rose-500 text-rose-500' : 'text-slate-400'}`}
+                      className="w-4 h-4"
                       viewBox="0 0 24 24"
-                      fill={rev.isLikedByCurrentUser ? 'currentColor' : 'none'}
+                      fill={rev.userReaction === 'DISLIKE' ? 'currentColor' : 'none'}
                       stroke="currentColor"
                       strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      style={{ transform: 'rotate(180deg)' }}
                     >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3zM7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3" />
+                      <path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3zM7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3" />
                     </svg>
-                    <span>Пайдалы</span>
-                    {rev.likesCount > 0 && <span className="text-xs ml-0.5 font-bold">({rev.likesCount})</span>}
+                    {(rev.dislikesCount || 0) > 0 && <span className="text-xs font-bold">{rev.dislikesCount}</span>}
                   </button>
                 </div>
               </div>
