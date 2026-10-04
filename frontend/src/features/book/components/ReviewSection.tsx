@@ -496,7 +496,7 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({
       </div>
 
       {/* Reviews List (Horizontal swipe on mobile, vertical stack on desktop - max 10 reviews) */}
-      <div className="flex sm:flex-col overflow-x-auto sm:overflow-visible gap-3 sm:gap-0 sm:space-y-4 -mx-4 px-4 sm:mx-0 sm:px-0 no-scrollbar snap-x snap-mandatory sm:snap-none pb-2 sm:pb-0 mt-2">
+      <div className="flex sm:flex-col overflow-x-auto sm:overflow-visible gap-3 sm:gap-0 sm:space-y-4 no-scrollbar snap-x snap-mandatory sm:snap-none pb-2 sm:pb-0 mt-2">
         {loading ? (
           <div className="flex sm:flex-col overflow-x-auto sm:overflow-visible gap-3 sm:gap-0 sm:space-y-3 no-scrollbar py-2 w-full">
             {[1, 2, 3].map((n) => (
