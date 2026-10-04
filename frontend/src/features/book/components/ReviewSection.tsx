@@ -437,14 +437,18 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({
                   <div className="mt-3 text-sm text-slate-700 leading-relaxed">
                     {isSpoilerHidden ? (
                       <div
+                        role="button"
+                        tabIndex={0}
                         onClick={() => toggleSpoiler(rev.id)}
-                        className="p-3 bg-amber-50/70 border border-amber-200/80 rounded-xl cursor-pointer hover:bg-amber-100/70 transition-all flex items-center justify-between text-amber-900"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            toggleSpoiler(rev.id);
+                          }
+                        }}
+                        className="p-3 bg-amber-50/70 border border-amber-200/80 rounded-xl cursor-pointer hover:bg-amber-100/70 transition-all flex items-center gap-2 text-amber-900 font-semibold text-xs select-none"
                       >
-                        <div className="flex items-center gap-2 font-semibold text-xs">
-                          <span>⚠️</span>
-                          <span>Бұл пікірде сюжеттік спойлер бар. Оқу үшін басыңыз.</span>
-                        </div>
-                        <span className="text-xs font-bold text-amber-700 underline">Ашу</span>
+                        <span>⚠️</span>
+                        <span>Бұл пікірде сюжеттік спойлер бар. Оқу үшін басыңыз.</span>
                       </div>
                     ) : (
                       <p className="whitespace-pre-line">{rev.reviewText}</p>
