@@ -242,9 +242,56 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({
       return;
     }
 
+    // 1. Ескі мәндерді сақтап қалу (қате болғанда кері қайтару үшін)
+    const previousReviews = reviews;
+    const previousAllReviews = allReviews;
+    const previousMyReview = myReview;
+
+    // 2. Optimistic Update: Бірден (0 секундта) UI-ды жаңарту
+    const optimisticUpdate = (r: BookReview): BookReview => {
+      if (r.id !== reviewId) return r;
+
+      const currentReaction = r.userReaction;
+      let newReaction: 'LIKE' | 'DISLIKE' | null = null;
+      let newLikes = r.likesCount || 0;
+      let newDislikes = r.dislikesCount || 0;
+
+      if (currentReaction === type) {
+        // Егер бұрын басылған реакцияны қайта басса -> алып тастау
+        newReaction = null;
+        if (type === 'LIKE') newLikes = Math.max(0, newLikes - 1);
+        if (type === 'DISLIKE') newDislikes = Math.max(0, newDislikes - 1);
+      } else {
+        // Жаңа реакция қосу
+        newReaction = type;
+        if (type === 'LIKE') {
+          newLikes += 1;
+          if (currentReaction === 'DISLIKE') newDislikes = Math.max(0, newDislikes - 1);
+        } else {
+          newDislikes += 1;
+          if (currentReaction === 'LIKE') newLikes = Math.max(0, newLikes - 1);
+        }
+      }
+
+      return {
+        ...r,
+        userReaction: newReaction,
+        isLikedByCurrentUser: newReaction === 'LIKE',
+        likesCount: newLikes,
+        dislikesCount: newDislikes,
+      };
+    };
+
+    setReviews((prev) => prev.map(optimisticUpdate));
+    setAllReviews((prev) => prev.map(optimisticUpdate));
+    if (myReview && myReview.id === reviewId) {
+      setMyReview((prev) => (prev ? optimisticUpdate(prev) : null));
+    }
+
+    // 3. Серверге фонда жіберу және сервер жауабымен растау
     try {
       const res = await reviewsApi.toggleReaction(reviewId, type);
-      const updateFn = (r: BookReview) =>
+      const serverUpdateFn = (r: BookReview) =>
         r.id === reviewId
           ? {
               ...r,
@@ -254,8 +301,8 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({
               dislikesCount: res.dislikesCount,
             }
           : r;
-      setReviews((prev) => prev.map(updateFn));
-      setAllReviews((prev) => prev.map(updateFn));
+      setReviews((prev) => prev.map(serverUpdateFn));
+      setAllReviews((prev) => prev.map(serverUpdateFn));
       if (myReview && myReview.id === reviewId) {
         setMyReview((prev) =>
           prev
@@ -270,6 +317,10 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({
         );
       }
     } catch (err) {
+      // Қате болса бастапқы қалпына қайтару (Rollback)
+      setReviews(previousReviews);
+      setAllReviews(previousAllReviews);
+      setMyReview(previousMyReview);
       showToast('Қате орын алды', 'error');
     }
   };
