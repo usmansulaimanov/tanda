@@ -488,7 +488,7 @@ export const AdminReviewsPage: React.FC = () => {
                     ))}
                   </div>
                   <span className="text-xs font-black text-slate-800">
-                    {review.rating} / 5
+                    {review.rating}
                   </span>
 
                   {review.isSpoiler && (
