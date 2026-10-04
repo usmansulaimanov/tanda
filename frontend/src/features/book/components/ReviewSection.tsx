@@ -278,47 +278,6 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({
         </button>
       </div>
 
-      {/* Ratings Breakdown Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 py-6 border-b border-slate-100">
-        {/* Big Score Card */}
-        <div className="md:col-span-4 flex flex-col items-center justify-center p-6 bg-slate-50/80 rounded-2xl text-center">
-          <div className="text-5xl sm:text-6xl font-black text-slate-900 tracking-tight">
-            {avgRating > 0 ? avgRating.toFixed(1) : '—'}
-          </div>
-          <div className="mt-2">
-            <StarRating value={avgRating} size="lg" />
-          </div>
-          <p className="text-xs sm:text-sm font-semibold text-slate-500 mt-2">
-            {totalRatingCount > 0 ? `${totalRatingCount} баға негізінде` : 'Әзірге бағаланбаған'}
-          </p>
-        </div>
-
-        {/* 5..1 Stars Progress Bars */}
-        <div className="md:col-span-8 flex flex-col justify-center gap-2 px-2 sm:px-4">
-          {[5, 4, 3, 2, 1].map((stars) => {
-            const count = summary?.distribution?.[stars] || 0;
-            const pct = summary?.percentages?.[stars] || 0;
-            return (
-              <div key={stars} className="flex items-center gap-3 text-xs sm:text-sm font-medium">
-                <span className="w-12 text-slate-600 font-bold flex items-center gap-1 justify-end">
-                  <span>{stars}</span>
-                  <span className="text-amber-400">★</span>
-                </span>
-                <div className="flex-1 h-2.5 bg-slate-100 rounded-full overflow-hidden relative">
-                  <div
-                    className="h-full bg-amber-400 rounded-full transition-all duration-500"
-                    style={{ width: `${pct}%` }}
-                  />
-                </div>
-                <span className="w-10 text-slate-400 font-semibold text-right">
-                  {pct.toFixed(0)}%
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
       {/* User's own pinned review card (if exists) */}
       {myReview && (
         <div className="my-6 p-4 sm:p-5 bg-blue-50/60 border border-blue-100 rounded-2xl">
