@@ -574,7 +574,7 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({
               {/* Textarea */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                  Пікіріңіз (міндетті емес)
+                  Пікіріңіз
                 </label>
                 <textarea
                   rows={4}
