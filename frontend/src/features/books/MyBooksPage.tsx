@@ -422,57 +422,32 @@ export const MyBooksPage: React.FC = () => {
             </svg>
           </div>
 
-          {/* 3-in-1 View Mode Switcher: Сөре (3D) | Тор (Grid) | Тізім (List) */}
-          <div className="flex items-center p-1 bg-slate-100 rounded-full border border-slate-200 shrink-0">
-            <button
-              type="button"
-              onClick={() => {
-                setViewMode('spine');
-                localStorage.setItem('tanda_my_books_view_mode', 'spine');
-              }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
-                viewMode === 'spine'
-                  ? 'bg-white text-[#005494] shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-              title="3D Кітап сөресі көрінісі"
-            >
-              <BookOpen className="w-3.5 h-3.5" />
-              <span className="text-[11px]">Сөре</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setViewMode('grid');
-                localStorage.setItem('tanda_my_books_view_mode', 'grid');
-              }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
-                viewMode === 'grid'
-                  ? 'bg-white text-[#005494] shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-              title="Тор көрінісі"
-            >
-              <LayoutGrid className="w-3.5 h-3.5" />
-              <span className="text-[11px]">Тор</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setViewMode('list');
-                localStorage.setItem('tanda_my_books_view_mode', 'list');
-              }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
-                viewMode === 'list'
-                  ? 'bg-white text-[#005494] shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-              title="Тізім көрінісі"
-            >
-              <List className="w-3.5 h-3.5" />
-              <span className="text-[11px]">Тізім</span>
-            </button>
-          </div>
+          {/* 3-in-1 View Mode Switcher: Сөре (Spine) ➔ Тор (Grid) ➔ Тізім (List) */}
+          <button
+            type="button"
+            onClick={cycleViewMode}
+            className="flex items-center justify-center gap-1.5 h-[38px] px-3 rounded-full bg-white border border-slate-200 shadow-xs hover:border-slate-300 active:scale-95 transition-all text-xs font-bold shrink-0"
+            title="Көріністі ауыстыру: Сөре / Тор / Тізім"
+          >
+            {viewMode === 'spine' && (
+              <>
+                <BookOpen className="w-4 h-4 text-[#005494]" />
+                <span className="text-[11px] font-bold text-[#005494]">Сөре</span>
+              </>
+            )}
+            {viewMode === 'grid' && (
+              <>
+                <LayoutGrid className="w-4 h-4 text-[#005494]" />
+                <span className="text-[11px] font-bold text-[#005494]">Тор</span>
+              </>
+            )}
+            {viewMode === 'list' && (
+              <>
+                <List className="w-4 h-4 text-[#005494]" />
+                <span className="text-[11px] font-bold text-[#005494]">Тізім</span>
+              </>
+            )}
+          </button>
         </div>
       </div>
 
