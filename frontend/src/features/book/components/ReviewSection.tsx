@@ -328,8 +328,8 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({
       )}
 
       {/* Sorting Tabs */}
-      <div className="flex items-center justify-between flex-wrap gap-3 pt-6 pb-4">
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+      <div className="flex items-center justify-between flex-wrap gap-2 pt-6 pb-4">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar flex-1 min-w-0">
           {[
             { id: 'newest', label: 'Ең жаңасы' },
             { id: 'helpful', label: 'Ең пайдалысы' },
@@ -340,7 +340,7 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({
               key={tab.id}
               type="button"
               onClick={() => setSort(tab.id as any)}
-              className={`px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all ${
+              className={`px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all whitespace-nowrap shrink-0 ${
                 sort === tab.id
                   ? 'bg-slate-900 text-white shadow-sm'
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -350,25 +350,32 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({
             </button>
           ))}
         </div>
+        {reviews.length > 1 && (
+          <span className="text-[11px] font-semibold text-slate-400 sm:hidden whitespace-nowrap shrink-0">
+            ← Сырғытыңыз →
+          </span>
+        )}
       </div>
 
-      {/* Reviews List */}
-      <div className="space-y-4 mt-2">
+      {/* Reviews List (Horizontal swipe on mobile, vertical stack on desktop) */}
+      <div className="flex sm:flex-col overflow-x-auto sm:overflow-visible gap-3 sm:gap-0 sm:space-y-4 -mx-5 px-5 sm:mx-0 sm:px-0 no-scrollbar snap-x snap-mandatory sm:snap-none pb-2 sm:pb-0 mt-2">
         {loading ? (
-          <div className="space-y-3 py-6">
+          <div className="flex sm:flex-col overflow-x-auto sm:overflow-visible gap-3 sm:gap-0 sm:space-y-3 -mx-5 px-5 sm:mx-0 sm:px-0 no-scrollbar py-2 w-full">
             {[1, 2, 3].map((n) => (
-              <div key={n} className="p-4 rounded-xl border border-slate-100 bg-slate-50 animate-pulse flex gap-3">
-                <div className="w-10 h-10 rounded-full bg-slate-200" />
-                <div className="flex-1 space-y-2">
-                  <div className="h-4 bg-slate-200 rounded w-1/4" />
-                  <div className="h-3 bg-slate-200 rounded w-1/6" />
-                  <div className="h-12 bg-slate-200 rounded w-full mt-2" />
+              <div key={n} className="w-[84vw] max-w-[340px] shrink-0 sm:w-full p-4 rounded-xl border border-slate-100 bg-slate-50 animate-pulse flex flex-col gap-3">
+                <div className="flex gap-3 items-center">
+                  <div className="w-10 h-10 rounded-full bg-slate-200" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 bg-slate-200 rounded w-1/2" />
+                    <div className="h-3 bg-slate-200 rounded w-1/3" />
+                  </div>
                 </div>
+                <div className="h-12 bg-slate-200 rounded w-full mt-1" />
               </div>
             ))}
           </div>
         ) : reviews.length === 0 ? (
-          <div className="text-center py-12 px-4 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
+          <div className="w-full text-center py-12 px-4 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
             <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-3">
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
@@ -387,153 +394,177 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({
             </button>
           </div>
         ) : (
-          reviews.map((rev) => {
-            const isSpoilerHidden = rev.isSpoiler && !revealedSpoilers[rev.id];
-            return (
-              <div
-                key={rev.id}
-                className="p-4 sm:p-5 rounded-2xl border border-slate-100 bg-white hover:border-slate-200 transition-all"
-              >
-                {/* Review Header */}
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    {rev.userAvatar ? (
-                      <img
-                        src={rev.userAvatar}
-                        alt={rev.userName}
-                        className="w-10 h-10 rounded-full object-cover border border-slate-200"
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none';
-                        }}
-                      />
-                    ) : (
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center font-black text-xs">
-                        {getInitials(rev.userName)}
+          <>
+            {reviews.map((rev) => {
+              const isSpoilerHidden = rev.isSpoiler && !revealedSpoilers[rev.id];
+              return (
+                <div
+                  key={rev.id}
+                  className="w-[84vw] max-w-[340px] min-w-[280px] shrink-0 snap-start flex flex-col justify-between sm:w-full sm:max-w-none sm:min-w-0 sm:shrink p-4 sm:p-5 rounded-2xl border border-slate-100 bg-white hover:border-slate-200 transition-all shadow-xs"
+                >
+                  <div>
+                    {/* Review Header */}
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        {rev.userAvatar ? (
+                          <img
+                            src={rev.userAvatar}
+                            alt={rev.userName}
+                            className="w-10 h-10 rounded-full object-cover border border-slate-200"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                            }}
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center font-black text-xs">
+                            {getInitials(rev.userName)}
+                          </div>
+                        )}
+                        <div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-bold text-slate-900 text-sm">{rev.userName}</span>
+                            {rev.isVerifiedReader && (
+                              <span
+                                className="inline-flex items-center text-blue-500 hover:text-blue-600 transition-colors"
+                                title="Тексерілген оқырман (Кітаптың 20%+ оқыған немесе тыңдаған)"
+                              >
+                                <svg className="w-4 h-4 text-blue-500 fill-current shrink-0" viewBox="0 0 24 24">
+                                  <path d="M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.67-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.33 2.19c-1.4-.46-2.91-.2-3.92.81s-1.26 2.52-.8 3.91c-1.31.67-2.2 1.91-2.2 3.34s.89 2.67 2.2 3.34c-.46 1.39-.21 2.9.8 3.91s2.52 1.26 3.91.81c.67 1.31 1.91 2.19 3.34 2.19s2.67-.88 3.34-2.19c1.39.45 2.9.2 3.91-.81s1.27-2.52.81-3.91c1.31-.67 2.19-1.91 2.19-3.34zm-11.71 4.2L6.8 12.46l1.41-1.42 2.33 2.33 4.99-4.99 1.42 1.42-6.41 6.4z" />
+                                </svg>
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <StarRating value={rev.rating} size="sm" />
+                            <span className="text-[11px] text-slate-400 font-medium">
+                              {formatDate(rev.createdAt)}
+                            </span>
+                            {(rev.isEdited || (rev.updatedAt && rev.createdAt && new Date(rev.updatedAt).getTime() - new Date(rev.createdAt).getTime() > 1000)) && (
+                              <span className="text-[11px] text-slate-400 font-normal italic">
+                                (өңделген)
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Actions (Delete if admin or owner) */}
+                      {(rev.canDelete || role === 'admin') && (
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteReview(rev.id)}
+                          title="Өшіру"
+                          className="text-slate-400 hover:text-rose-600 p-1 rounded-lg transition-colors"
+                        >
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Review Body */}
+                    {rev.reviewText && (
+                      <div className="mt-3 text-sm text-slate-700 leading-relaxed">
+                        {isSpoilerHidden ? (
+                          <button
+                            type="button"
+                            onClick={() => toggleSpoiler(rev.id)}
+                            className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors cursor-pointer py-1 text-left"
+                          >
+                            <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
+                            <span>Бұл пікірде сюжеттік спойлер бар. Оқу үшін басыңыз.</span>
+                          </button>
+                        ) : (
+                          <p className="whitespace-pre-line line-clamp-6 sm:line-clamp-none">{rev.reviewText}</p>
+                        )}
                       </div>
                     )}
-                    <div>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-bold text-slate-900 text-sm">{rev.userName}</span>
-                        {rev.isVerifiedReader && (
-                          <span
-                            className="inline-flex items-center text-blue-500 hover:text-blue-600 transition-colors"
-                            title="Тексерілген оқырман (Кітаптың 20%+ оқыған немесе тыңдаған)"
-                          >
-                            <svg className="w-4 h-4 text-blue-500 fill-current shrink-0" viewBox="0 0 24 24">
-                              <path d="M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.67-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.33 2.19c-1.4-.46-2.91-.2-3.92.81s-1.26 2.52-.8 3.91c-1.31.67-2.2 1.91-2.2 3.34s.89 2.67 2.2 3.34c-.46 1.39-.21 2.9.8 3.91s2.52 1.26 3.91.81c.67 1.31 1.91 2.19 3.34 2.19s2.67-.88 3.34-2.19c1.39.45 2.9.2 3.91-.81s1.27-2.52.81-3.91c1.31-.67 2.19-1.91 2.19-3.34zm-11.71 4.2L6.8 12.46l1.41-1.42 2.33 2.33 4.99-4.99 1.42 1.42-6.41 6.4z" />
-                            </svg>
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <StarRating value={rev.rating} size="sm" />
-                        <span className="text-[11px] text-slate-400 font-medium">
-                          {formatDate(rev.createdAt)}
-                        </span>
-                        {(rev.isEdited || (rev.updatedAt && rev.createdAt && new Date(rev.updatedAt).getTime() - new Date(rev.createdAt).getTime() > 1000)) && (
-                          <span className="text-[11px] text-slate-400 font-normal italic">
-                            (өңделген)
-                          </span>
-                        )}
-                      </div>
-                    </div>
                   </div>
 
-                  {/* Actions (Delete if admin or owner) */}
-                  {(rev.canDelete || role === 'admin') && (
+                  {/* Like / Dislike Buttons */}
+                  <div className="mt-3 pt-2.5 flex items-center gap-2 text-xs text-slate-400 border-t border-slate-50">
+                    {/* Like Button */}
                     <button
                       type="button"
-                      onClick={() => handleDeleteReview(rev.id)}
-                      title="Өшіру"
-                      className="text-slate-400 hover:text-rose-600 p-1 rounded-lg transition-colors"
+                      onClick={() => handleToggleReaction(rev.id, 'LIKE')}
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-bold transition-all ${
+                        rev.userReaction === 'LIKE' || rev.isLikedByCurrentUser
+                          ? 'bg-blue-50 text-blue-600'
+                          : 'text-slate-500 hover:bg-slate-100'
+                      }`}
+                      title="Лайк"
                     >
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
-                  )}
-                </div>
-
-                {/* Review Body */}
-                {rev.reviewText && (
-                  <div className="mt-3 text-sm text-slate-700 leading-relaxed">
-                    {isSpoilerHidden ? (
-                      <button
-                        type="button"
-                        onClick={() => toggleSpoiler(rev.id)}
-                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors cursor-pointer py-1 text-left"
+                      <svg
+                        className="w-4 h-4"
+                        viewBox="0 0 24 24"
+                        fill={rev.userReaction === 'LIKE' || rev.isLikedByCurrentUser ? 'currentColor' : 'none'}
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
                       >
-                        <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
-                        <span>Бұл пікірде сюжеттік спойлер бар. Оқу үшін басыңыз.</span>
-                      </button>
-                    ) : (
-                      <p className="whitespace-pre-line">{rev.reviewText}</p>
-                    )}
+                        <path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3zM7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3" />
+                      </svg>
+                      {rev.likesCount > 0 && <span className="text-xs font-bold">{rev.likesCount}</span>}
+                    </button>
+
+                    {/* Dislike Button */}
+                    <button
+                      type="button"
+                      onClick={() => handleToggleReaction(rev.id, 'DISLIKE')}
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-bold transition-all ${
+                        rev.userReaction === 'DISLIKE'
+                          ? 'bg-rose-50 text-rose-600'
+                          : 'text-slate-500 hover:bg-slate-100'
+                      }`}
+                      title="Дизлайк"
+                    >
+                      <svg
+                        className="w-4 h-4"
+                        viewBox="0 0 24 24"
+                        fill={rev.userReaction === 'DISLIKE' ? 'currentColor' : 'none'}
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        style={{ transform: 'rotate(180deg)' }}
+                      >
+                        <path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3zM7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3" />
+                      </svg>
+                      {(rev.dislikesCount || 0) > 0 && <span className="text-xs font-bold">{rev.dislikesCount}</span>}
+                    </button>
                   </div>
-                )}
-
-                {/* Like / Dislike Buttons */}
-                <div className="mt-3 pt-2.5 flex items-center gap-2 text-xs text-slate-400 border-t border-slate-50">
-                  {/* Like Button */}
-                  <button
-                    type="button"
-                    onClick={() => handleToggleReaction(rev.id, 'LIKE')}
-                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-bold transition-all ${
-                      rev.userReaction === 'LIKE' || rev.isLikedByCurrentUser
-                        ? 'bg-blue-50 text-blue-600'
-                        : 'text-slate-500 hover:bg-slate-100'
-                    }`}
-                    title="Лайк"
-                  >
-                    <svg
-                      className="w-4 h-4"
-                      viewBox="0 0 24 24"
-                      fill={rev.userReaction === 'LIKE' || rev.isLikedByCurrentUser ? 'currentColor' : 'none'}
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3zM7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3" />
-                    </svg>
-                    {rev.likesCount > 0 && <span className="text-xs font-bold">{rev.likesCount}</span>}
-                  </button>
-
-                  {/* Dislike Button */}
-                  <button
-                    type="button"
-                    onClick={() => handleToggleReaction(rev.id, 'DISLIKE')}
-                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-bold transition-all ${
-                      rev.userReaction === 'DISLIKE'
-                        ? 'bg-rose-50 text-rose-600'
-                        : 'text-slate-500 hover:bg-slate-100'
-                    }`}
-                    title="Дизлайк"
-                  >
-                    <svg
-                      className="w-4 h-4"
-                      viewBox="0 0 24 24"
-                      fill={rev.userReaction === 'DISLIKE' ? 'currentColor' : 'none'}
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      style={{ transform: 'rotate(180deg)' }}
-                    >
-                      <path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3zM7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3" />
-                    </svg>
-                    {(rev.dislikesCount || 0) > 0 && <span className="text-xs font-bold">{rev.dislikesCount}</span>}
-                  </button>
                 </div>
+              );
+            })}
+
+            {/* Load More Card for Mobile horizontal scroll */}
+            {hasMore && (
+              <div className="w-[140px] shrink-0 snap-start flex sm:hidden flex-col items-center justify-center p-4 rounded-2xl border border-dashed border-slate-200 bg-slate-50 text-center">
+                <button
+                  type="button"
+                  disabled={loadingMore}
+                  onClick={handleLoadMore}
+                  className="w-10 h-10 rounded-full bg-white shadow-xs border border-slate-200 flex items-center justify-center text-blue-600 mb-2 active:scale-90 transition-all"
+                  title="Тағы пікірлерді жүктеу"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+                <span className="text-xs font-bold text-slate-700">
+                  {loadingMore ? 'Жүктелуде...' : 'Тағы көру'}
+                </span>
               </div>
-            );
-          })
+            )}
+          </>
         )}
       </div>
 
-      {/* Load More Button */}
+      {/* Load More Button for Desktop */}
       {hasMore && (
-        <div className="text-center mt-6">
+        <div className="hidden sm:block text-center mt-6">
           <button
             type="button"
             disabled={loadingMore}
