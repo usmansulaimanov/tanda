@@ -13,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,6 +32,32 @@ import java.util.Map;
 public class BookReviewController {
 
     private final BookReviewService bookReviewService;
+
+    @GetMapping("/admin/reviews")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Page<BookReviewResponseDto>> getAdminReviews(
+            @RequestParam(required = false) String bookId,
+            @RequestParam(required = false) Integer rating,
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        Pageable pageable = PageRequest.of(page, Math.min(size, 100), Sort.by(Sort.Direction.DESC, "createdAt"));
+        String currentUserId = principal != null ? principal.getId() : null;
+        Page<BookReviewResponseDto> reviews = bookReviewService.getAdminReviews(bookId, rating, search, pageable, currentUserId);
+        return ResponseEntity.ok(reviews);
+    }
+
+    @DeleteMapping("/admin/reviews/{reviewId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> adminDeleteReview(
+            @PathVariable Long reviewId,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        bookReviewService.deleteReview(reviewId, principal.getId(), true);
+        return ResponseEntity.noContent().build();
+    }
 
     @GetMapping("/books/{bookId}/reviews")
     public ResponseEntity<Page<BookReviewResponseDto>> getBookReviews(

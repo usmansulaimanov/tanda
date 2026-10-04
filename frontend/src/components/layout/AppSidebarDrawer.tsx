@@ -141,6 +141,7 @@ export const AppSidebarDrawer: React.FC = () => {
   const canManageQuotes = hasAdminPermission(user, 'quotes_manage');
   const canManageMessages = hasAdminPermission(user, 'messages_manage');
   const canManageNews = hasAdminPermission(user, 'news_manage');
+  const canManageReviews = hasAdminPermission(user, 'reviews_manage') || canViewBooks;
   const canManageManagers = hasAdminPermission(user, 'managers_manage');
   const canManageUsernames = hasAdminPermission(user, 'usernames_manage');
   const canViewStats = hasAdminPermission(user, 'analytics_view');
@@ -425,6 +426,19 @@ export const AppSidebarDrawer: React.FC = () => {
                   </svg>
                   <span>Оқырмандар</span>
                   <span className="sidebar-badge">{readersCount}</span>
+                </Link>
+              )}
+
+              {canManageReviews && (
+                <Link
+                  to="/admin/reviews"
+                  className={`sidebar-nav-link ${location.pathname.startsWith('/admin/reviews') ? 'active' : ''}`}
+                  onClick={closeSidebar}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                  </svg>
+                  <span>Пікірлер</span>
                 </Link>
               )}
 

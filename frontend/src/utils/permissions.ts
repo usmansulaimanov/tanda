@@ -33,6 +33,12 @@ export const ALL_PERMISSIONS: PermissionDefinition[] = [
     description: 'Кітапты өшіру және жасыру (архивке салу)',
     category: 'books',
   },
+  {
+    key: 'reviews_manage',
+    label: 'Пікірлерді басқару (Модерация)',
+    description: 'Оқырмандардың кітаптарға жазған пікірлерін көру және өшіру',
+    category: 'books',
+  },
 
   // Readers
   {

@@ -68,4 +68,21 @@ export const reviewsApi = {
     });
     return data;
   },
+
+  getAdminReviews: async (params?: {
+    bookId?: string;
+    rating?: number;
+    search?: string;
+    page?: number;
+    size?: number;
+  }): Promise<PageResponse<BookReview>> => {
+    const { data } = await apiClient.get<PageResponse<BookReview>>('/api/v1/admin/reviews', {
+      params,
+    });
+    return data;
+  },
+
+  adminDeleteReview: async (reviewId: number): Promise<void> => {
+    await apiClient.delete(`/api/v1/admin/reviews/${reviewId}`);
+  },
 };

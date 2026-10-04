@@ -60,6 +60,7 @@ export const AdminHomePage: React.FC = () => {
   const canManageQuotes = hasAdminPermission(user, 'quotes_manage');
   const canManageMessages = hasAdminPermission(user, 'messages_manage');
   const canManageNews = hasAdminPermission(user, 'news_manage');
+  const canManageReviews = hasAdminPermission(user, 'reviews_manage') || canViewBooks;
   const canViewStats = hasAdminPermission(user, 'analytics_view');
   const canManageManagers = hasAdminPermission(user, 'managers_manage');
   const canManageUsernames = hasAdminPermission(user, 'usernames_manage');
@@ -497,6 +498,54 @@ export const AdminHomePage: React.FC = () => {
                 </div>
                 <div style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.4 }}>
                   Тіркелген оқырмандар тізімі және олардың профильдері
+                </div>
+              </div>
+            </Link>
+          )}
+
+          {canManageReviews && (
+            <Link
+              to="/admin/reviews"
+              style={{
+                textDecoration: 'none',
+                background: '#FFFFFF',
+                borderRadius: '16px',
+                padding: '20px',
+                border: '1px solid #E2E8F0',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div
+                  style={{
+                    width: '42px',
+                    height: '42px',
+                    borderRadius: '12px',
+                    background: '#FFFBEB',
+                    color: '#D97706',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                  </svg>
+                </div>
+                <span style={{ fontSize: '12.5px', fontWeight: 700, color: '#D97706', background: '#FFFBEB', padding: '4px 10px', borderRadius: '20px' }}>
+                  Модерация
+                </span>
+              </div>
+              <div>
+                <div style={{ fontSize: '16px', fontWeight: 700, color: '#1E293B', marginBottom: '4px' }}>
+                  Пікірлерді басқару
+                </div>
+                <div style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.4 }}>
+                  Оқырмандар пікірлерін, бағаларын көру және модерациялау
                 </div>
               </div>
             </Link>

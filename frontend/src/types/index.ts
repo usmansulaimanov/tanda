@@ -71,6 +71,7 @@ export type AdminPermission =
   | 'quotes_manage'     // Цитаталарды енгізу, баптау және оқырмандарға тарату
   | 'messages_manage'   // Хабарламаларды басқару және тарату
   | 'news_manage'       // Жаңалықтарды басқару және жариялау
+  | 'reviews_manage'    // Пікірлерді басқару және модерация
   | 'analytics_view'    // Статистика мен көрсеткіштерді көру
   | 'managers_manage'   // Көмекшілерді тағайындау және рұқсат беру
   | 'usernames_manage'; // Бұғатталған және арнайы юзернеймдерді басқару
@@ -481,8 +482,11 @@ export const PREDEFINED_SPINE_COLORS: SpineColorOption[] = [
 export interface BookReview {
   id: number;
   bookId: string;
+  bookTitle?: string;
+  bookCoverImage?: string;
   userId: string;
   userName: string;
+  userEmail?: string;
   userAvatar?: string;
   userRole?: string;
   rating: number;

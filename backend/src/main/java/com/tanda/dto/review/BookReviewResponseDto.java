@@ -15,8 +15,11 @@ public class BookReviewResponseDto {
 
     private Long id;
     private String bookId;
+    private String bookTitle;
+    private String bookCoverImage;
     private String userId;
     private String userName;
+    private String userEmail;
     private String userAvatar;
     private String userRole;
     private Integer rating;

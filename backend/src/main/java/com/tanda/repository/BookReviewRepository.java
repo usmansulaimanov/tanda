@@ -32,4 +32,29 @@ public interface BookReviewRepository extends JpaRepository<BookReview, Long> {
 
     @Query("SELECT r.rating, COUNT(r) FROM BookReview r WHERE r.book.id = :bookId GROUP BY r.rating")
     List<Object[]> countRatingsGroupedByRating(@Param("bookId") String bookId);
+
+    @Query(
+        value = "SELECT r FROM BookReview r JOIN FETCH r.user JOIN FETCH r.book " +
+                "WHERE (:bookId IS NULL OR :bookId = '' OR r.book.id = :bookId) " +
+                "AND (:rating IS NULL OR r.rating = :rating) " +
+                "AND (:search IS NULL OR :search = '' " +
+                "     OR LOWER(r.reviewText) LIKE LOWER(CONCAT('%', :search, '%')) " +
+                "     OR LOWER(r.user.name) LIKE LOWER(CONCAT('%', :search, '%')) " +
+                "     OR LOWER(r.user.email) LIKE LOWER(CONCAT('%', :search, '%')) " +
+                "     OR LOWER(r.book.title) LIKE LOWER(CONCAT('%', :search, '%')))",
+        countQuery = "SELECT COUNT(r) FROM BookReview r " +
+                "WHERE (:bookId IS NULL OR :bookId = '' OR r.book.id = :bookId) " +
+                "AND (:rating IS NULL OR r.rating = :rating) " +
+                "AND (:search IS NULL OR :search = '' " +
+                "     OR LOWER(r.reviewText) LIKE LOWER(CONCAT('%', :search, '%')) " +
+                "     OR LOWER(r.user.name) LIKE LOWER(CONCAT('%', :search, '%')) " +
+                "     OR LOWER(r.user.email) LIKE LOWER(CONCAT('%', :search, '%')) " +
+                "     OR LOWER(r.book.title) LIKE LOWER(CONCAT('%', :search, '%')))"
+    )
+    Page<BookReview> findAllForAdmin(
+        @Param("bookId") String bookId,
+        @Param("rating") Integer rating,
+        @Param("search") String search,
+        Pageable pageable
+    );
 }

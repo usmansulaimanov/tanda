@@ -250,6 +250,27 @@ public class BookReviewService {
         bookRepository.save(book);
     }
 
+    @Transactional(readOnly = true)
+    public Page<BookReviewResponseDto> getAdminReviews(String bookId, Integer rating, String search, Pageable pageable, String currentUserId) {
+        String searchTrimmed = (search != null && !search.trim().isEmpty()) ? search.trim() : null;
+        String bookIdTrimmed = (bookId != null && !bookId.trim().isEmpty()) ? bookId.trim() : null;
+
+        Page<BookReview> reviewsPage = bookReviewRepository.findAllForAdmin(bookIdTrimmed, rating, searchTrimmed, pageable);
+
+        Map<Long, String> userReactions = new HashMap<>();
+        if (currentUserId != null && !reviewsPage.isEmpty()) {
+            List<Long> reviewIds = reviewsPage.getContent().stream()
+                    .map(BookReview::getId)
+                    .collect(Collectors.toList());
+            List<BookReviewLike> likes = bookReviewLikeRepository.findByIdUserIdAndIdReviewIdIn(currentUserId, reviewIds);
+            for (BookReviewLike like : likes) {
+                userReactions.put(like.getId().getReviewId(), like.getReactionType() != null ? like.getReactionType() : "LIKE");
+            }
+        }
+
+        return reviewsPage.map(review -> mapToDtoWithReactions(review, currentUserId, true, userReactions.get(review.getId())));
+    }
+
     private BookReviewResponseDto mapToDto(BookReview review, String currentUserId, boolean isAdmin) {
         String reaction = null;
         if (currentUserId != null) {
@@ -262,14 +283,18 @@ public class BookReviewService {
 
     private BookReviewResponseDto mapToDtoWithReactions(BookReview review, String currentUserId, boolean isAdmin, String userReaction) {
         User author = review.getUser();
+        Book book = review.getBook();
         boolean isOwner = currentUserId != null && currentUserId.equals(author.getId());
-        boolean isVerified = checkIsVerifiedReader(author, review.getBook());
+        boolean isVerified = checkIsVerifiedReader(author, book);
 
         return BookReviewResponseDto.builder()
                 .id(review.getId())
-                .bookId(review.getBook().getId())
+                .bookId(book.getId())
+                .bookTitle(book.getTitle())
+                .bookCoverImage(book.getCoverImage())
                 .userId(author.getId())
                 .userName(author.getName())
+                .userEmail(author.getEmail())
                 .userAvatar(author.getAvatarUrl())
                 .userRole(author.getRole())
                 .rating(review.getRating())

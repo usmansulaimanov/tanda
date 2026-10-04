@@ -60,6 +60,7 @@ const NewsPage = lazyWithRetry(() => import('../features/news/NewsPage').then((m
 const NewsDetailPage = lazyWithRetry(() => import('../features/news/NewsDetailPage').then((m) => ({ default: m.NewsDetailPage })));
 const AdminNewsPage = lazyWithRetry(() => import('../features/admin/AdminNewsPage').then((m) => ({ default: m.AdminNewsPage })));
 const AdminNewsFormPage = lazyWithRetry(() => import('../features/admin/AdminNewsFormPage').then((m) => ({ default: m.AdminNewsFormPage })));
+const AdminReviewsPage = lazyWithRetry(() => import('../features/admin/AdminReviewsPage').then((m) => ({ default: m.AdminReviewsPage })));
 const AdminStatsPage = lazyWithRetry(() => import('../features/admin/AdminStatsPage').then((m) => ({ default: m.AdminStatsPage })));
 const AdminUsernamesPage = lazyWithRetry(() => import('../features/admin/AdminUsernamesPage').then((m) => ({ default: m.AdminUsernamesPage })));
 const AuthorHomePage = lazyWithRetry(() => import('../features/author/AuthorHomePage').then((m) => ({ default: m.AuthorHomePage })));
@@ -400,6 +401,16 @@ export const router = createBrowserRouter([
           <AdminRouteGuard>
             <Suspense fallback={<PageLoader />}>
               <AdminNewsPage />
+            </Suspense>
+          </AdminRouteGuard>
+        ),
+      },
+      {
+        path: 'admin/reviews',
+        element: (
+          <AdminRouteGuard>
+            <Suspense fallback={<PageLoader />}>
+              <AdminReviewsPage />
             </Suspense>
           </AdminRouteGuard>
         ),
