@@ -345,7 +345,7 @@ export const Header: React.FC = () => {
               <img
                 src={tandaLogo}
                 alt="Tanda"
-                style={{ height: '32px', width: 'auto', display: 'block', objectFit: 'contain' }}
+                style={{ height: '32px', width: 'auto', display: 'block', objectFit: 'contain', transform: 'translateY(-5px)' }}
               />
             </Link>
 
