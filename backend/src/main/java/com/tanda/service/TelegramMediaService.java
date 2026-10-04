@@ -114,21 +114,23 @@ public class TelegramMediaService {
 
             // Copy relevant streaming headers
             String contentType = connection.getContentType();
+            String lowerPath = filePath.toLowerCase();
             if (contentType == null || contentType.contains("octet-stream") || contentType.contains("text/plain")) {
-                if (filePath.endsWith(".pdf")) {
+                if (lowerPath.endsWith(".pdf")) {
                     contentType = "application/pdf";
-                } else if (filePath.endsWith(".epub")) {
+                } else if (lowerPath.endsWith(".epub")) {
                     contentType = "application/epub+zip";
-                } else if (filePath.endsWith(".txt")) {
+                } else if (lowerPath.endsWith(".txt")) {
                     contentType = "text/plain; charset=UTF-8";
-                } else if (filePath.endsWith(".mp3")) {
-                    contentType = "audio/mpeg";
-                } else if (filePath.endsWith(".m4a") || filePath.endsWith(".mp4") || filePath.endsWith(".m4r")) {
+                } else if (lowerPath.endsWith(".m4a") || lowerPath.endsWith(".mp4") || lowerPath.endsWith(".m4r") || lowerPath.endsWith(".aac")) {
                     contentType = "audio/mp4";
-                } else if (filePath.endsWith(".ogg")) {
+                } else if (lowerPath.endsWith(".ogg") || lowerPath.endsWith(".oga") || lowerPath.endsWith(".opus")) {
                     contentType = "audio/ogg";
+                } else if (lowerPath.endsWith(".wav")) {
+                    contentType = "audio/wav";
                 } else {
-                    contentType = "application/octet-stream";
+                    // Default to audio/mpeg for music, voice, or generic telegram audio files
+                    contentType = "audio/mpeg";
                 }
             }
 
@@ -139,6 +141,9 @@ public class TelegramMediaService {
             response.setHeader("Access-Control-Allow-Headers", "Range, Authorization, Content-Type, Accept");
             response.setHeader("Access-Control-Expose-Headers", "Content-Range, Content-Length, Accept-Ranges");
             String filename = filePath.contains("/") ? filePath.substring(filePath.lastIndexOf('/') + 1) : "file";
+            if (!filename.contains(".") && contentType.startsWith("audio/")) {
+                filename = filename + (contentType.contains("mp4") ? ".m4a" : ".mp3");
+            }
             response.setHeader("Content-Disposition", "inline; filename=\"" + filename + "\"");
 
             String contentRange = connection.getHeaderField("Content-Range");
