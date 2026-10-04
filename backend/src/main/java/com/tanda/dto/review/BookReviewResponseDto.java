@@ -32,6 +32,7 @@ public class BookReviewResponseDto {
     private Boolean isVerifiedReader;
     private Boolean canEdit;
     private Boolean canDelete;
+    private Boolean isEdited;
     private OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;
 }

@@ -499,6 +499,7 @@ export interface BookReview {
   isVerifiedReader: boolean;
   canEdit: boolean;
   canDelete: boolean;
+  isEdited?: boolean;
   createdAt: string;
   updatedAt: string;
 }

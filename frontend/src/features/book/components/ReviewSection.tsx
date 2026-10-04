@@ -282,6 +282,11 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({
                 Сіздің бағаңыз
               </span>
               <StarRating value={myReview.rating} size="sm" />
+              {(myReview.isEdited || (myReview.updatedAt && myReview.createdAt && new Date(myReview.updatedAt).getTime() - new Date(myReview.createdAt).getTime() > 1000)) && (
+                <span className="text-[11px] text-blue-600/80 font-normal italic ml-1">
+                  (өңделген)
+                </span>
+              )}
             </div>
             <div className="flex items-center gap-2">
               <button
@@ -414,6 +419,11 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({
                         <span className="text-[11px] text-slate-400 font-medium">
                           {formatDate(rev.createdAt)}
                         </span>
+                        {(rev.isEdited || (rev.updatedAt && rev.createdAt && new Date(rev.updatedAt).getTime() - new Date(rev.createdAt).getTime() > 1000)) && (
+                          <span className="text-[11px] text-slate-400 font-normal italic">
+                            (өңделген)
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>

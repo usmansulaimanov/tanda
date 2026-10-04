@@ -26,6 +26,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -286,6 +287,9 @@ public class BookReviewService {
         Book book = review.getBook();
         boolean isOwner = currentUserId != null && currentUserId.equals(author.getId());
         boolean isVerified = checkIsVerifiedReader(author, book);
+        boolean isEdited = review.getUpdatedAt() != null
+                && review.getCreatedAt() != null
+                && Duration.between(review.getCreatedAt(), review.getUpdatedAt()).abs().toSeconds() > 1;
 
         return BookReviewResponseDto.builder()
                 .id(review.getId())
@@ -307,6 +311,7 @@ public class BookReviewService {
                 .isVerifiedReader(isVerified)
                 .canEdit(isOwner)
                 .canDelete(isOwner || isAdmin)
+                .isEdited(isEdited)
                 .createdAt(review.getCreatedAt())
                 .updatedAt(review.getUpdatedAt())
                 .build();

@@ -438,6 +438,11 @@ export const AdminReviewsPage: React.FC = () => {
                       {review.userEmail && <span>{review.userEmail}</span>}
                       {review.userEmail && <span>•</span>}
                       <span>{formatDate(review.createdAt)}</span>
+                      {(review.isEdited || (review.updatedAt && review.createdAt && new Date(review.updatedAt).getTime() - new Date(review.createdAt).getTime() > 1000)) && (
+                        <span className="text-slate-400 font-normal italic">
+                          (өңделген)
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
