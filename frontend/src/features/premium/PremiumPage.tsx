@@ -44,6 +44,7 @@ export const PremiumPage: React.FC = () => {
   const { data: settings } = useQuery({
     queryKey: ['systemSettings'],
     queryFn: systemApi.getSettings,
+    initialData: systemApi.getCachedSettings,
     staleTime: 5 * 60 * 1000,
   });
 

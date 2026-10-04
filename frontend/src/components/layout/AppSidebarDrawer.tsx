@@ -64,6 +64,7 @@ export const AppSidebarDrawer: React.FC = () => {
   const { data: systemSettings } = useQuery({
     queryKey: ['systemSettings'],
     queryFn: systemApi.getSettings,
+    initialData: systemApi.getCachedSettings,
     staleTime: 60 * 1000,
   });
 

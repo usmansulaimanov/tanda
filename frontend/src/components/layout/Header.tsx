@@ -266,6 +266,7 @@ export const Header: React.FC = () => {
   const { data: systemSettings } = useQuery({
     queryKey: ['systemSettings'],
     queryFn: systemApi.getSettings,
+    initialData: systemApi.getCachedSettings,
     staleTime: 60_000,
   });
 

@@ -47,6 +47,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({
   const { data: settings, isLoading: isSettingsLoading } = useQuery({
     queryKey: ['systemSettings'],
     queryFn: systemApi.getSettings,
+    initialData: systemApi.getCachedSettings,
     staleTime: 5 * 60 * 1000,
   });
 
