@@ -431,16 +431,15 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({
           )}
         </div>
 
-        {/* "Барлығы: N" button */}
+        {/* "Барлығы: N" text button */}
         {totalRatingCount > 0 && (
           <button
             type="button"
             onClick={handleOpenAllReviewsModal}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200/60 transition-all active:scale-95 shrink-0"
+            className="inline-flex items-center gap-1 text-xs sm:text-sm font-black text-slate-900 hover:text-blue-600 transition-colors cursor-pointer py-1.5 px-1 shrink-0 active:opacity-75"
           >
             <span>Барлығы:</span>
-            <span className="font-black">{totalRatingCount}</span>
-            <span className="text-blue-500 text-xs">→</span>
+            <span>{totalRatingCount}</span>
           </button>
         )}
       </div>
@@ -686,14 +685,6 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({
                   </span>
                 </div>
               </div>
-
-              <button
-                type="button"
-                onClick={() => setIsAllReviewsModalOpen(false)}
-                className="p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
             </div>
 
             {/* Modal Body: Scrollable list of reviews */}
