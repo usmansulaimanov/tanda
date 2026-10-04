@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { reviewsApi } from '../../shared/api/reviews.api';
 import { booksApi } from '../../shared/api/books.api';
 import { useToastStore } from '../../store/useToastStore';
-import { BookReview } from '../../types';
+import { BookReview, Book } from '../../types';
 import { Search, Filter, Trash2, MessageSquare, Star, BookOpen, AlertTriangle, ExternalLink, User, X, ChevronRight } from 'lucide-react';
 
 const formatDate = (isoString?: string): string => {
@@ -58,7 +58,8 @@ export const AdminReviewsPage: React.FC = () => {
     staleTime: 10 * 1000,
   });
 
-  const selectedBook = allBooks.find((b) => String(b.id) === String(selectedBookId));
+  const booksList: Book[] = Array.isArray(allBooks) ? allBooks : ((allBooks as any)?.content || []);
+  const selectedBook = booksList.find((b) => String(b.id) === String(selectedBookId));
 
   const deleteMutation = useMutation({
     mutationFn: (reviewId: number) => reviewsApi.adminDeleteReview(reviewId),
@@ -139,8 +140,8 @@ export const AdminReviewsPage: React.FC = () => {
               disabled={isBooksLoading}
               className="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all text-slate-900 font-medium cursor-pointer"
             >
-              <option value="">Барлық кітаптар ({allBooks.length})</option>
-              {allBooks.map((b) => (
+              <option value="">Барлық кітаптар ({booksList.length})</option>
+              {booksList.map((b) => (
                 <option key={b.id} value={b.id}>
                   {b.title} — {b.author}
                 </option>

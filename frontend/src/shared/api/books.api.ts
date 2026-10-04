@@ -14,8 +14,16 @@ export interface BooksFilterParams {
 
 export const booksApi = {
   getAll: async (params?: BooksFilterParams): Promise<Book[]> => {
-    const { data } = await apiClient.get<Book[]>('/api/v1/books', { params });
-    return data;
+    const { data } = await apiClient.get<any>('/api/v1/books', {
+      params: { size: 1000, limit: 1000, ...params },
+    });
+    if (Array.isArray(data)) {
+      return data;
+    }
+    if (data?.content && Array.isArray(data.content)) {
+      return data.content;
+    }
+    return [];
   },
 
   getById: async (id: string): Promise<Book> => {
