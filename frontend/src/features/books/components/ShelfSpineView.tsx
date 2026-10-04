@@ -343,10 +343,10 @@ export const ShelfSpineView: React.FC<ShelfSpineViewProps> = ({
             <button
               type="button"
               onClick={() => setModalItem(null)}
-              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 active:scale-95 flex items-center justify-center text-slate-500 hover:text-slate-800 transition-all z-20"
+              className="absolute top-4 right-4 p-1.5 text-slate-400 hover:text-slate-700 active:scale-95 flex items-center justify-center transition-colors z-20"
               title="Жабу"
             >
-              <X className="w-4 h-4" />
+              <X className="w-5 h-5" />
             </button>
 
             {/* Top Book Overview */}
