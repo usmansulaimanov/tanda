@@ -609,9 +609,7 @@ export const AppSidebarDrawer: React.FC = () => {
                 className={`sidebar-nav-link ${location.pathname === '/premium' ? 'active' : ''}`}
                 onClick={closeSidebar}
                 style={{
-                  background: 'linear-gradient(135deg, rgba(240, 128, 0, 0.12), rgba(240, 128, 0, 0.06))',
-                  border: '1.5px solid rgba(240, 128, 0, 0.3)',
-                  color: '#C06800',
+                  color: '#F08000',
                   fontWeight: 800,
                 }}
               >
