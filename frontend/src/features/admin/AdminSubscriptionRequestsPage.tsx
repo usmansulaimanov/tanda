@@ -111,8 +111,8 @@ export const AdminSubscriptionRequestsPage: React.FC = () => {
 
   const [isAiEnabled, setIsAiEnabled] = useState<boolean>(true);
   const [isTogglingAi, setIsTogglingAi] = useState<boolean>(false);
-  const [selectedYear, setSelectedYear] = useState<string>('ALL');
-  const [selectedMonth, setSelectedMonth] = useState<string>('ALL');
+  const [selectedYear, setSelectedYear] = useState<string>(() => new Date().getFullYear().toString());
+  const [selectedMonth, setSelectedMonth] = useState<string>(() => String(new Date().getMonth() + 1).padStart(2, '0'));
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState<number>(1);
