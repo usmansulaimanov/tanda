@@ -278,7 +278,7 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({
         <div className="my-6 p-4 sm:p-5 bg-blue-50/60 border border-blue-100 rounded-2xl">
           <div className="flex items-center justify-between gap-2 mb-2">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-xs font-black uppercase tracking-wider text-blue-700 bg-blue-100 px-2 py-0.5 rounded-md">
+              <span className="text-xs font-black uppercase tracking-wider text-blue-700">
                 Сіздің бағаңыз
               </span>
               {myReview.isVerifiedReader && (
