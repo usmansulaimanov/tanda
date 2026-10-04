@@ -598,7 +598,7 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({
                   className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300"
                 />
                 <span className="text-xs font-semibold text-slate-700">
-                  Бұл пікірде сюжеттік спойлер бар (басқаларға жасырып қою)
+                  Бұл пікірде сюжеттік спойлер бар
                 </span>
               </label>
 
