@@ -439,7 +439,7 @@ export const AudioPlayerBar: React.FC = () => {
       if (state.currentBook && state.progress > 0) {
         const token = localStorage.getItem('tanda_token');
         if (token) {
-          const apiBase = import.meta.env.VITE_API_URL || 'https://tanda-backend-7lpj.onrender.com';
+          const apiBase = import.meta.env.VITE_API_URL || 'https://tandamen.kz';
           const payload = JSON.stringify({
             currentAudioChapterId: state.currentChapter?.id,
             currentAudioTime: Math.floor(state.progress),

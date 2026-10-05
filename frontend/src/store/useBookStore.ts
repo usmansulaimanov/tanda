@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { api } from '../lib/api';
 import { Book } from '../types';
 import { sanitizeInput, sanitizeUrl } from '../utils/security';
+import { resolveMediaUrl, formatAudioUrl } from '../utils/mediaUtils';
 
 interface BookState {
   books: Book[];
@@ -59,7 +60,12 @@ export const useBookStore = create<BookState>((set, get) => ({
         : data?.content && Array.isArray(data.content)
         ? data.content
         : [];
-      set({ books: rawList });
+      const normalizedList = rawList.map((b: Book) => ({
+        ...b,
+        coverImage: b?.coverImage ? resolveMediaUrl(b.coverImage) : b?.coverImage,
+        audioUrl: b?.audioUrl ? formatAudioUrl(b.audioUrl) : b?.audioUrl,
+      }));
+      set({ books: normalizedList });
     } finally {
       if (currentRequestId === latestFetchRequestId) {
         set({ isLoading: false, isSyncing: false });
@@ -75,12 +81,17 @@ export const useBookStore = create<BookState>((set, get) => ({
     try {
       const { data } = await api.get(`/api/v1/books/${id}`);
       if (data && data.id) {
+        const normalized = {
+          ...data,
+          coverImage: data.coverImage ? resolveMediaUrl(data.coverImage) : data.coverImage,
+          audioUrl: data.audioUrl ? formatAudioUrl(data.audioUrl) : data.audioUrl,
+        };
         set((state) => ({
           books: state.books.some((b) => b.id === data.id)
-            ? state.books.map((b) => (b.id === data.id ? { ...b, ...data } : b))
-            : [data, ...state.books],
+            ? state.books.map((b) => (b.id === data.id ? { ...b, ...normalized } : b))
+            : [normalized, ...state.books],
         }));
-        return data;
+        return normalized;
       }
     } catch {}
     return get().books.find((b) => b.id === id);

@@ -7,6 +7,7 @@ import { useSavedBooksStore } from '../../store/useSavedBooksStore';
 import { useMyBooksStore } from '../../store/useMyBooksStore';
 import { useToastStore } from '../../store/useToastStore';
 import { TandaPremiumBadge } from './TandaPremiumBadge';
+import { resolveMediaUrl } from '../../utils/mediaUtils';
 
 interface BookCardProps {
   book: Book;
@@ -98,7 +99,7 @@ export const BookCard: React.FC<BookCardProps> = ({ book }) => {
       >
         {book.coverImage && (
           <img
-            src={book.coverImage}
+            src={resolveMediaUrl(book.coverImage)}
             alt={book.title}
             referrerPolicy="no-referrer"
             style={{
