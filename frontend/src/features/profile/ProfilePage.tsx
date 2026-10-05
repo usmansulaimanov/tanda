@@ -32,6 +32,7 @@ import { useQuoteStore, QuoteItem } from '../../store/useQuoteStore';
 import { leaderboardApi } from '../../shared/api/leaderboard.api';
 import { reviewsApi } from '../../shared/api/reviews.api';
 import { certificatesApi } from '../../shared/api/certificates.api';
+import { bonusApi } from '../../shared/api/bonus.api';
 import { TandaPremiumBadge } from '../../components/ui/TandaPremiumBadge';
 import { PremiumModal } from '../premium/PremiumModal';
 import tandaPremiumBlack from '../../assets/tanda-premium-black.png';
@@ -118,6 +119,13 @@ export const ProfilePage: React.FC = () => {
     queryFn: () => certificatesApi.getMyCertificates(),
     enabled: Boolean(user?.id),
     staleTime: 60 * 1000,
+  });
+
+  // Fetch bonus settings for currency name
+  const { data: bonusSettings } = useQuery({
+    queryKey: ['bonus-settings'],
+    queryFn: () => bonusApi.getSettings(),
+    staleTime: 5 * 60 * 1000,
   });
 
   // Saved books list
@@ -333,7 +341,7 @@ export const ProfilePage: React.FC = () => {
             </div>
             <div className="text-xs text-amber-700 font-bold mt-1 flex items-center gap-1.5">
               <img src="/bonus-coin.png" alt="Бонус" className="w-3.5 h-3.5 object-contain shrink-0" />
-              <span>Бонус: {bonusBalance}</span>
+              <span>{bonusBalance.toLocaleString('kk-KZ')} {bonusSettings?.bonusCurrencyName || 'Бонус'}</span>
             </div>
           </div>
 
