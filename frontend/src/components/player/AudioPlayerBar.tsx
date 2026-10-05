@@ -336,12 +336,26 @@ export const AudioPlayerBar: React.FC = () => {
       setShowPremiumModal(true);
     };
 
+    const handlePlayTrigger = () => {
+      const state = useAudioPlayerStore.getState();
+      if (!state.isPlaying) {
+        state.setIsPlaying(true);
+      }
+      if (isYouTube && !state.isAdPlaying && ytPlayerRef.current && typeof ytPlayerRef.current.playVideo === 'function') {
+        try { ytPlayerRef.current.playVideo(); } catch {}
+      } else if (audioRef.current) {
+        audioRef.current.play().catch(() => {});
+      }
+    };
+
     window.addEventListener('tanda:audio:seek', handleSeekEvent);
     window.addEventListener('tanda:audio:skip', handleSkipEvent);
+    window.addEventListener('tanda:audio:play', handlePlayTrigger);
     window.addEventListener('tanda:premium:modal', handlePremiumModalEvent);
     return () => {
       window.removeEventListener('tanda:audio:seek', handleSeekEvent);
       window.removeEventListener('tanda:audio:skip', handleSkipEvent);
+      window.removeEventListener('tanda:audio:play', handlePlayTrigger);
       window.removeEventListener('tanda:premium:modal', handlePremiumModalEvent);
     };
   }, [isYouTube, setProgress, user?.isPremium, systemSettings?.premiumEnabled, systemSettings?.openAccessMode, isAuthorOrStaff, checkPreviewLimit]);
@@ -1692,7 +1706,7 @@ export const AudioPlayerBar: React.FC = () => {
                         <Volume2 className="w-3 h-3 animate-pulse" />
                         Аудио-жарнама ойналуда
                       </span>
-                      <span className="font-mono">{Math.max(0, Math.ceil((adDuration || 15) - adProgress))} сек қалды</span>
+                      <span className="font-mono">{adDuration > 0 ? `${Math.max(0, Math.ceil(adDuration - adProgress))} сек қалды` : 'Жарнама'}</span>
                     </div>
                   )}
                   <div className="flex items-center gap-2 w-full text-[10px] sm:text-[11px] text-slate-500 font-mono font-bold">
@@ -1702,7 +1716,7 @@ export const AudioPlayerBar: React.FC = () => {
                     <input
                       type="range"
                       min={0}
-                      max={isAdPlaying ? (adDuration && isFinite(adDuration) ? adDuration : 15) : (duration && isFinite(duration) ? duration : 100)}
+                      max={isAdPlaying ? (adDuration && isFinite(adDuration) && adDuration > 0 ? adDuration : 1) : (duration && isFinite(duration) ? duration : 100)}
                       value={isAdPlaying ? (isFinite(adProgress) ? adProgress : 0) : (isFinite(progress) ? progress : 0)}
                       onChange={handleSeek}
                       disabled={isAdPlaying}
@@ -1712,7 +1726,7 @@ export const AudioPlayerBar: React.FC = () => {
                       style={{ accentColor: isAdPlaying ? '#F59E0B' : '#005494' }}
                     />
                     <span className={`w-8 sm:w-10 text-left shrink-0 ${isAdPlaying ? 'text-amber-600 font-black' : ''}`}>
-                      {formatTime(isAdPlaying ? (adDuration || 15) : duration)}
+                      {formatTime(isAdPlaying ? adDuration : duration)}
                     </span>
                   </div>
                 </div>

@@ -435,12 +435,16 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
       showDailyLimitModal: false,
       isAdPlaying: false,
       adProgress: 0,
-      adDuration: 15,
+      adDuration: 0,
       adTitle: '',
 
       setIsAdPlaying: (isAdPlaying) => set({ isAdPlaying }),
       setAdProgress: (adProgress) => set({ adProgress }),
-      setAdDuration: (adDuration) => set({ adDuration }),
+      setAdDuration: (adDuration) => {
+        if (typeof adDuration === 'number' && !isNaN(adDuration) && isFinite(adDuration) && adDuration > 0) {
+          set({ adDuration });
+        }
+      },
       setAdTitle: (adTitle) => set({ adTitle }),
 
       openDailyLimitModal: () => set({ showDailyLimitModal: true }),
@@ -587,7 +591,7 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
           duration: chapterDur,
           isAdPlaying: needsAd,
           adProgress: 0,
-          adDuration: cachedSettings?.audioAdDuration || 15,
+          adDuration: cachedSettings?.audioAdDuration || 0,
           adTitle: cachedSettings?.audioAdTitle || 'Tanda Аудио-Жарнама',
         });
 

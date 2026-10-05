@@ -124,6 +124,7 @@ export const BookDetailPage: React.FC = () => {
     if (currentBook?.id !== book.id) {
       playBook(book);
     }
+    window.dispatchEvent(new CustomEvent('tanda:audio:play'));
     navigate(`/listen/${book.id}`);
   };
 
@@ -145,6 +146,7 @@ export const BookDetailPage: React.FC = () => {
     } else {
       playChapter(idx);
     }
+    window.dispatchEvent(new CustomEvent('tanda:audio:play'));
     navigate(`/listen/${book.id}`);
   };
 

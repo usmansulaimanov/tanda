@@ -108,6 +108,7 @@ export const AudioPlayerPage: React.FC = () => {
     if (book && isAuthenticated) {
       if (!currentBook || currentBook.id !== book.id) {
         playBook(book);
+        window.dispatchEvent(new CustomEvent('tanda:audio:play'));
       } else {
         const isExempt = isUserExemptFromPremium();
         if (book.isFree === false && !isExempt) {
@@ -305,6 +306,13 @@ export const AudioPlayerPage: React.FC = () => {
     window.dispatchEvent(new CustomEvent('tanda:audio:skip', { detail: { seconds } }));
   };
 
+  const handlePlayClick = () => {
+    togglePlay();
+    if (!isPlaying) {
+      window.dispatchEvent(new CustomEvent('tanda:audio:play'));
+    }
+  };
+
   const handleChapterSelect = (idx: number) => {
     const isExempt = isUserExemptFromPremium();
     if (activeBook.isFree === false && !isExempt && idx > 0) {
@@ -318,6 +326,7 @@ export const AudioPlayerPage: React.FC = () => {
     } else if (chapterIndex !== idx) {
       playChapter(idx);
     }
+    window.dispatchEvent(new CustomEvent('tanda:audio:play'));
   };
 
   const handleToggleBookmark = async () => {
@@ -443,7 +452,7 @@ export const AudioPlayerPage: React.FC = () => {
                 </span>
               </div>
               <span className="text-[11px] font-mono font-black text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded shrink-0">
-                {Math.max(0, Math.ceil((adDuration || 15) - adProgress))} сек
+                {adDuration > 0 ? `${Math.max(0, Math.ceil(adDuration - adProgress))} сек` : 'Жарнама'}
               </span>
             </div>
           )}
@@ -454,7 +463,7 @@ export const AudioPlayerPage: React.FC = () => {
           <input
             type="range"
             min={0}
-            max={isAdPlaying ? (adDuration && isFinite(adDuration) ? adDuration : 15) : (duration && isFinite(duration) ? duration : 100)}
+            max={isAdPlaying ? (adDuration && isFinite(adDuration) && adDuration > 0 ? adDuration : 1) : (duration && isFinite(duration) ? duration : 100)}
             value={isAdPlaying ? (isFinite(adProgress) ? adProgress : 0) : (isFinite(progress) ? progress : 0)}
             onChange={handleSeek}
             disabled={isAdPlaying}
@@ -466,7 +475,7 @@ export const AudioPlayerPage: React.FC = () => {
               {formatTime(isAdPlaying ? adProgress : progress)}
             </span>
             <span className={isAdPlaying ? 'text-amber-600 font-bold' : ''}>
-              {formatTime(isAdPlaying ? (adDuration || 15) : duration)}
+              {formatTime(isAdPlaying ? adDuration : duration)}
             </span>
           </div>
         </div>
@@ -496,7 +505,7 @@ export const AudioPlayerPage: React.FC = () => {
           {/* HERO Big Center Play / Pause Button */}
           <button
             type="button"
-            onClick={togglePlay}
+            onClick={handlePlayClick}
             className="w-16 h-16 rounded-full bg-[#EF7E00] active:bg-[#e07500] text-white flex items-center justify-center shadow-xl shadow-orange-500/30 active:scale-95 transition-transform border-2 border-white cursor-pointer shrink-0"
             title={isPlaying ? 'Тоқтату (Пауза)' : 'Ойнату'}
           >
@@ -1083,7 +1092,7 @@ export const AudioPlayerPage: React.FC = () => {
                 </div>
                 {isAdPlaying && (
                   <span className="text-xs font-black text-amber-600 bg-amber-500/20 px-2.5 py-1 rounded-lg shrink-0 font-mono">
-                    {Math.max(0, Math.ceil((adDuration || 15) - adProgress))} сек қалды
+                    {adDuration > 0 ? `${Math.max(0, Math.ceil(adDuration - adProgress))} сек қалды` : 'Жарнама'}
                   </span>
                 )}
               </div>
@@ -1096,7 +1105,7 @@ export const AudioPlayerPage: React.FC = () => {
                   <input
                     type="range"
                     min={0}
-                    max={isAdPlaying ? (adDuration && isFinite(adDuration) ? adDuration : 15) : (duration && isFinite(duration) ? duration : 100)}
+                    max={isAdPlaying ? (adDuration && isFinite(adDuration) && adDuration > 0 ? adDuration : 1) : (duration && isFinite(duration) ? duration : 100)}
                     value={isAdPlaying ? (isFinite(adProgress) ? adProgress : 0) : (isFinite(progress) ? progress : 0)}
                     onChange={handleSeek}
                     disabled={isAdPlaying}
@@ -1110,7 +1119,7 @@ export const AudioPlayerPage: React.FC = () => {
                       {formatTime(isAdPlaying ? adProgress : progress)}
                     </span>
                     <span className={isAdPlaying ? 'text-amber-600 font-black' : 'text-slate-500'}>
-                      {formatTime(isAdPlaying ? (adDuration || 15) : duration)}
+                      {formatTime(isAdPlaying ? adDuration : duration)}
                     </span>
                   </div>
                 </div>
@@ -1163,7 +1172,7 @@ export const AudioPlayerPage: React.FC = () => {
                   {/* Center Big Play / Pause Button */}
                   <button
                     type="button"
-                    onClick={togglePlay}
+                    onClick={handlePlayClick}
                     className="w-12 h-12 sm:w-13 sm:h-13 rounded-full bg-gradient-to-r from-[#EF7E00] to-[#FF9800] text-white flex items-center justify-center shadow-lg transition-transform active:scale-95 cursor-pointer hover:shadow-orange-500/30 border-2 border-white mx-1"
                     title={isPlaying ? 'Тоқтату (Пауза)' : 'Ойнату'}
                   >
