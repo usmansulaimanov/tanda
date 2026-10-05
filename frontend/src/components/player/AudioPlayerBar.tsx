@@ -90,6 +90,7 @@ export const AudioPlayerBar: React.FC = () => {
   );
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const preloaderRef = useRef<HTMLAudioElement | null>(null);
   const ytPlayerRef = useRef<any>(null);
   const pendingSeekTimeRef = useRef<number | null>(null);
   const currentPlayingSrcRef = useRef<string>('');
@@ -169,6 +170,23 @@ export const AudioPlayerBar: React.FC = () => {
     }
     return false;
   }, [user?.isPremium, systemSettings?.premiumEnabled, systemSettings?.openAccessMode, isAuthorOrStaff, setProgress]);
+
+  // Background Preload: While the ad is playing, pre-buffer the upcoming book audio for seamless transition
+  useEffect(() => {
+    if (isAdPlaying && audioSrc && !isYouTube) {
+      try {
+        if (preloaderRef.current) {
+          preloaderRef.current.src = audioSrc;
+          preloaderRef.current.load();
+        }
+        // Warm up HTTP cache and backend stream connection with initial chunk
+        fetch(audioSrc, {
+          method: 'GET',
+          headers: { Range: 'bytes=0-524288' },
+        }).catch(() => {});
+      } catch {}
+    }
+  }, [isAdPlaying, audioSrc, isYouTube]);
 
   // Media Session API for iOS Safari, Android Chrome & Lock Screen Controls
   useEffect(() => {
@@ -1212,7 +1230,7 @@ export const AudioPlayerBar: React.FC = () => {
                 currentPlayingSrcRef.current = audioSrc;
                 audioRef.current.src = audioSrc;
                 if (targetTime > 0) {
-                  audioRef.current.currentTime = targetTime;
+                  pendingSeekTimeRef.current = targetTime;
                 }
                 if (useAudioPlayerStore.getState().isPlaying) {
                   const playPromise = audioRef.current.play();
@@ -1250,7 +1268,7 @@ export const AudioPlayerBar: React.FC = () => {
                 currentPlayingSrcRef.current = audioSrc;
                 audioRef.current.src = audioSrc;
                 if (targetTime > 0) {
-                  audioRef.current.currentTime = targetTime;
+                  pendingSeekTimeRef.current = targetTime;
                 }
                 if (useAudioPlayerStore.getState().isPlaying) {
                   audioRef.current.play().catch(() => {});
@@ -1259,6 +1277,15 @@ export const AudioPlayerBar: React.FC = () => {
             }
           }}
         />
+
+      {/* Hidden audio preloader element for instant ad-to-book transition */}
+      <audio
+        ref={preloaderRef}
+        preload="auto"
+        muted
+        playsInline
+        style={{ display: 'none' }}
+      />
 
       {/* Main Bottom Audio Player Bar - Only shown when NOT on full player page */}
       {currentBook && !isListenPage && (
