@@ -296,8 +296,8 @@ export const ProfilePage: React.FC = () => {
               <span className="mx-1.5 text-slate-300">|</span>
               <span className="text-slate-600 font-semibold">@{user.username || 'username'}</span>
             </div>
-            <div className="text-xs text-slate-700 font-semibold mt-1 flex items-center gap-1">
-              <span>🪙</span>
+            <div className="text-xs text-amber-700 font-bold mt-1 flex items-center gap-1.5">
+              <img src="/bonus-coin.png" alt="Бонус" className="w-3.5 h-3.5 object-contain shrink-0" />
               <span>Бонус: {bonusBalance}</span>
             </div>
           </div>
@@ -308,7 +308,7 @@ export const ProfilePage: React.FC = () => {
             <div className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm">
               <div className="text-[11px] text-slate-500 font-medium">Бонус балансы</div>
               <div className="flex items-center gap-1.5 text-sm font-bold text-slate-900 mt-1">
-                <span>🪙</span>
+                <img src="/bonus-coin.png" alt="Бонус" className="w-4 h-4 object-contain shrink-0" />
                 <span>{bonusBalance}</span>
               </div>
             </div>
