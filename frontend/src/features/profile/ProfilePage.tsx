@@ -340,25 +340,34 @@ export const ProfilePage: React.FC = () => {
           {/* 2x2 Stats Grid */}
           <div className="grid grid-cols-2 gap-2 mb-4">
             {/* Card 1: Сол жақ жоғары - Бүгін */}
-            <div className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm flex flex-col justify-between min-h-[66px]">
+            <Link
+              to="/rating?tab=personal"
+              className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm flex flex-col justify-between min-h-[66px] hover:border-slate-200 active:scale-95 transition-all"
+            >
               <div className="text-[11px] text-slate-500 font-medium">Бүгін</div>
               <div className="flex items-center gap-1.5 text-sm font-bold text-slate-900 mt-1">
                 <Clock className="w-4 h-4 text-sky-500 shrink-0" />
                 <span>{formatReadingTime(personalStats?.todaySeconds || 0)}</span>
               </div>
-            </div>
+            </Link>
 
             {/* Card 2: Оң жақ жоғары - Бұл ай */}
-            <div className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm flex flex-col justify-between min-h-[66px]">
+            <Link
+              to="/rating?tab=personal"
+              className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm flex flex-col justify-between min-h-[66px] hover:border-slate-200 active:scale-95 transition-all"
+            >
               <div className="text-[11px] text-slate-500 font-medium">Бұл ай</div>
               <div className="flex items-center gap-1.5 text-sm font-bold text-slate-900 mt-1">
                 <Calendar className="w-4 h-4 text-emerald-500 shrink-0" />
                 <span>{formatReadingTime(personalStats?.thisMonthSeconds || 0)}</span>
               </div>
-            </div>
+            </Link>
 
             {/* Card 3: Сол жақ төмен - Бұл айдағы пик тыңдаған күні мен минуты */}
-            <div className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm flex flex-col justify-between min-h-[66px]">
+            <Link
+              to="/rating?tab=personal"
+              className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm flex flex-col justify-between min-h-[66px] hover:border-slate-200 active:scale-95 transition-all"
+            >
               <div className="text-[11px] text-slate-500 font-medium truncate">Пик тыңдау</div>
               <div className="mt-1">
                 <div className="flex items-center gap-1.5 text-sm font-bold text-slate-900">
@@ -371,16 +380,19 @@ export const ProfilePage: React.FC = () => {
                   </div>
                 )}
               </div>
-            </div>
+            </Link>
 
             {/* Card 4: Оң жақ төмен - Соңғы 7 күн */}
-            <div className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm flex flex-col justify-between min-h-[66px]">
+            <Link
+              to="/rating?tab=personal"
+              className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm flex flex-col justify-between min-h-[66px] hover:border-slate-200 active:scale-95 transition-all"
+            >
               <div className="text-[11px] text-slate-500 font-medium">Соңғы 7 күн</div>
               <div className="flex items-center gap-1.5 text-sm font-bold text-slate-900 mt-1">
                 <BarChart2 className="w-4 h-4 text-indigo-500 shrink-0" />
                 <span>{formatReadingTime(last7DaysSeconds)}</span>
               </div>
-            </div>
+            </Link>
           </div>
 
           {/* Mobile Tabs */}
