@@ -509,9 +509,6 @@ export const LeaderboardPage: React.FC = () => {
                       <h3 className="text-sm sm:text-base font-bold text-slate-900">
                         Тыңдау белсенділігі: {personalStats.selectedMonthName}
                       </h3>
-                      <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
-                        1 мен {personalStats.daysInMonth} {personalStats.selectedMonthName.toLowerCase()} аралығындағы тыңдау динамикасы
-                      </p>
                     </div>
 
                     <div className="flex items-center gap-2 sm:gap-3">
