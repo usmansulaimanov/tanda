@@ -313,10 +313,10 @@ export const LeaderboardPage: React.FC = () => {
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="border-b border-slate-200 bg-slate-50 text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                        <th className="py-2.5 pl-3 pr-1 sm:pl-4 sm:pr-2 w-12 sm:w-16 text-center">Орын</th>
-                        <th className="py-2.5 pl-1 pr-3 sm:pl-2 sm:pr-4">Оқырман</th>
-                        <th className="py-2.5 px-3 sm:px-4 text-right">{getPeriodDisplayLabel(selectedPeriod)}</th>
-                        <th className="py-2.5 px-3 sm:px-6 text-right hidden sm:table-cell">Жалпы</th>
+                        <th className="py-2 pl-3 pr-1 sm:pl-4 sm:pr-2 w-12 sm:w-16 text-center">Орын</th>
+                        <th className="py-2 pl-1 pr-3 sm:pl-2 sm:pr-4">Оқырман</th>
+                        <th className="py-2 px-3 sm:px-4 text-right">{getPeriodDisplayLabel(selectedPeriod)}</th>
+                        <th className="py-2 px-3 sm:px-6 text-right hidden sm:table-cell">Жалпы</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 text-xs sm:text-sm">
@@ -337,7 +337,7 @@ export const LeaderboardPage: React.FC = () => {
                             }`}
                           >
                             {/* Rank Column */}
-                            <td className="py-2.5 pl-3 pr-1 sm:pl-4 sm:pr-2 text-center w-12 sm:w-16">
+                            <td className="py-1.5 sm:py-2 pl-3 pr-1 sm:pl-4 sm:pr-2 text-center w-12 sm:w-16">
                               {isTop1 ? (
                                 <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-amber-100 text-amber-800 text-base font-bold border border-amber-300 shadow-sm">
                                   🥇
@@ -362,7 +362,7 @@ export const LeaderboardPage: React.FC = () => {
                             </td>
 
                             {/* User Info */}
-                            <td className="py-2.5 pl-1 pr-3 sm:pl-2 sm:pr-4">
+                            <td className="py-1.5 sm:py-2 pl-1 pr-3 sm:pl-2 sm:pr-4">
                               <div className="flex items-center gap-2 sm:gap-2.5">
                                 <div className="w-8 h-8 rounded-full bg-slate-200 border border-slate-300 flex items-center justify-center text-xs font-bold text-slate-700 overflow-hidden flex-shrink-0">
                                   {entry.avatarUrl ? (
@@ -397,14 +397,14 @@ export const LeaderboardPage: React.FC = () => {
                             </td>
 
                             {/* Period Minutes */}
-                            <td className="py-2.5 px-3 sm:px-4 text-right whitespace-nowrap">
+                            <td className="py-1.5 sm:py-2 px-3 sm:px-4 text-right whitespace-nowrap">
                               <div className="font-bold text-emerald-700 text-xs sm:text-sm">
                                 {formatMinutes(entry.periodMinutes)}
                               </div>
                             </td>
 
                             {/* All-time Minutes */}
-                            <td className="py-2.5 px-3 sm:px-6 text-right hidden sm:table-cell whitespace-nowrap">
+                            <td className="py-1.5 sm:py-2 px-3 sm:px-6 text-right hidden sm:table-cell whitespace-nowrap">
                               <div className="text-slate-600 text-xs sm:text-sm font-medium">
                                 {formatMinutes(entry.allTimeMinutes)}
                               </div>
