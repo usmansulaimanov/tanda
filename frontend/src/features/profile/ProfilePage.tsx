@@ -296,15 +296,6 @@ export const ProfilePage: React.FC = () => {
               <span className="mx-1.5 text-slate-300">|</span>
               <span className="text-slate-600 font-semibold">@{user.username || 'username'}</span>
             </div>
-            <div className="text-xs text-slate-500 mt-1 flex items-center gap-1">
-              <span>📅</span>
-              <span>{formatDateDMY(user.createdAt)} ж. тіркелген</span>
-            </div>
-            <div className="text-xs text-slate-600 mt-1 mb-3.5">
-              <span className="font-bold text-slate-900">0</span> пікірлес
-              <span className="mx-1.5 text-slate-300">|</span>
-              <span className="font-bold text-slate-900">0</span> қауымдас
-            </div>
           </div>
 
           {/* 2x2 Stats Grid */}
