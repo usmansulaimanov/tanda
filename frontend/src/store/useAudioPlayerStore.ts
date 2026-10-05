@@ -818,7 +818,11 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
         }
       },
 
-      setDuration: (duration) => set({ duration }),
+      setDuration: (duration) => {
+        if (typeof duration === 'number' && !isNaN(duration) && isFinite(duration) && duration > 0) {
+          set({ duration });
+        }
+      },
       setPlaybackRate: (playbackRate) => set({ playbackRate }),
       setVolume: (volume) => set({ volume }),
 

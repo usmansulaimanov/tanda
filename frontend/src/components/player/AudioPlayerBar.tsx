@@ -579,7 +579,7 @@ export const AudioPlayerBar: React.FC = () => {
               if (!isMounted) return;
               event.target.setPlaybackRate(playbackRate);
               const dur = event.target.getDuration();
-              if (dur && !isNaN(dur) && dur > 0) {
+              if (dur && !isNaN(dur) && isFinite(dur) && dur > 0) {
                 setDuration(dur);
               }
               const savedProgress = useAudioPlayerStore.getState().progress || 0;
@@ -608,7 +608,7 @@ export const AudioPlayerBar: React.FC = () => {
                 }
                 setIsPlaying(true);
                 const dur = event.target.getDuration();
-                if (dur && !isNaN(dur) && dur > 0) {
+                if (dur && !isNaN(dur) && isFinite(dur) && dur > 0) {
                   setDuration(dur);
                 }
               } else if (event.data === 0) {
@@ -882,7 +882,7 @@ export const AudioPlayerBar: React.FC = () => {
             if (checkPreviewLimit(current)) return;
             setProgress(current);
           }
-          if (dur !== undefined && !isNaN(dur) && dur > 0) {
+          if (dur !== undefined && !isNaN(dur) && isFinite(dur) && dur > 0) {
             setDuration(dur);
           }
 
@@ -911,7 +911,7 @@ export const AudioPlayerBar: React.FC = () => {
   }, [isYouTube, isPlaying, setProgress, setDuration, handleTrackEnd, checkPreviewLimit]);
 
   const formatTime = (secs: number) => {
-    if (!secs || isNaN(secs)) return '0:00';
+    if (!secs || isNaN(secs) || !isFinite(secs) || secs < 0) return '0:00';
     const hours = Math.floor(secs / 3600);
     const mins = Math.floor((secs % 3600) / 60);
     const s = Math.floor(secs % 60);
@@ -1099,11 +1099,11 @@ export const AudioPlayerBar: React.FC = () => {
           onLoadedMetadata={(e) => {
             const dur = e.currentTarget.duration;
             if (useAudioPlayerStore.getState().isAdPlaying) {
-              if (dur && !isNaN(dur) && dur > 0) {
+              if (dur && !isNaN(dur) && isFinite(dur) && dur > 0) {
                 setAdDuration(dur);
               }
             } else {
-              if (dur && !isNaN(dur) && dur > 0) setDuration(dur);
+              if (dur && !isNaN(dur) && isFinite(dur) && dur > 0) setDuration(dur);
               const savedProgress = useAudioPlayerStore.getState().progress || 0;
               const target = pendingSeekTimeRef.current !== null && pendingSeekTimeRef.current !== undefined
                 ? pendingSeekTimeRef.current
@@ -1157,7 +1157,7 @@ export const AudioPlayerBar: React.FC = () => {
 
             if (useAudioPlayerStore.getState().isAdPlaying) {
               setAdProgress(current);
-              if (dur && !isNaN(dur) && dur > 0) {
+              if (dur && !isNaN(dur) && isFinite(dur) && dur > 0) {
                 setAdDuration(dur);
               }
               return;
@@ -1173,7 +1173,7 @@ export const AudioPlayerBar: React.FC = () => {
 
             targetResumeTimeRef.current = current;
             setProgress(current);
-            if (dur && !isNaN(dur)) setDuration(dur);
+            if (dur && !isNaN(dur) && isFinite(dur) && dur > 0) setDuration(dur);
 
             // Check if virtual chapter boundary reached (single audio with multiple timestamp chapters)
             const curBook = useAudioPlayerStore.getState().currentBook;
@@ -1702,8 +1702,8 @@ export const AudioPlayerBar: React.FC = () => {
                     <input
                       type="range"
                       min={0}
-                      max={isAdPlaying ? (adDuration || 15) : (duration || 100)}
-                      value={isAdPlaying ? adProgress : progress}
+                      max={isAdPlaying ? (adDuration && isFinite(adDuration) ? adDuration : 15) : (duration && isFinite(duration) ? duration : 100)}
+                      value={isAdPlaying ? (isFinite(adProgress) ? adProgress : 0) : (isFinite(progress) ? progress : 0)}
                       onChange={handleSeek}
                       disabled={isAdPlaying}
                       className={`flex-1 h-1.5 sm:h-2 rounded-lg appearance-none transition-all ${

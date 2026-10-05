@@ -265,7 +265,7 @@ export const AudioPlayerPage: React.FC = () => {
   const currentChapterTitle = currentChapter?.title || chapters[chapterIndex]?.title || '1-бөлім';
 
   const formatTime = (secs: number) => {
-    if (!secs || isNaN(secs)) return '0:00';
+    if (!secs || isNaN(secs) || !isFinite(secs) || secs < 0) return '0:00';
     const hours = Math.floor(secs / 3600);
     const mins = Math.floor((secs % 3600) / 60);
     const s = Math.floor(secs % 60);
@@ -454,8 +454,8 @@ export const AudioPlayerPage: React.FC = () => {
           <input
             type="range"
             min={0}
-            max={isAdPlaying ? (adDuration || 15) : (duration || 100)}
-            value={isAdPlaying ? adProgress : progress}
+            max={isAdPlaying ? (adDuration && isFinite(adDuration) ? adDuration : 15) : (duration && isFinite(duration) ? duration : 100)}
+            value={isAdPlaying ? (isFinite(adProgress) ? adProgress : 0) : (isFinite(progress) ? progress : 0)}
             onChange={handleSeek}
             disabled={isAdPlaying}
             className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[#EF7E00]"
@@ -1096,8 +1096,8 @@ export const AudioPlayerPage: React.FC = () => {
                   <input
                     type="range"
                     min={0}
-                    max={isAdPlaying ? (adDuration || 15) : (duration || 100)}
-                    value={isAdPlaying ? adProgress : progress}
+                    max={isAdPlaying ? (adDuration && isFinite(adDuration) ? adDuration : 15) : (duration && isFinite(duration) ? duration : 100)}
+                    value={isAdPlaying ? (isFinite(adProgress) ? adProgress : 0) : (isFinite(progress) ? progress : 0)}
                     onChange={handleSeek}
                     disabled={isAdPlaying}
                     className={`w-full h-2 rounded-lg appearance-none transition-all ${
