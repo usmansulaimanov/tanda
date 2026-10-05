@@ -31,6 +31,7 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { useToastStore } from '../../store/useToastStore';
 import { extractYouTubeVideoId, loadYouTubeIFrameApi } from '../../utils/youtube';
 import { systemApi } from '../../shared/api/system.api';
+import { formatAudioUrl } from '../../utils/mediaUtils';
 import { SystemSettings } from '../../types';
 import { PremiumModal } from '../../features/premium/PremiumModal';
 
@@ -118,36 +119,6 @@ export const AudioPlayerBar: React.FC = () => {
       saveCachedSystemSettings(data);
     }).catch(() => {});
   }, []);
-
-  const formatAudioUrl = (rawUrl?: string): string => {
-    if (!rawUrl) return '';
-    const trimmed = rawUrl.trim();
-    // Raw telegram file ID (e.g. CQACAgIA...)
-    if (!trimmed.includes('/') && !trimmed.includes('.') && trimmed.length > 20) {
-      const apiBase = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
-      return `${apiBase}/api/v1/media/telegram/${trimmed}`;
-    }
-    // Relative api URL
-    if (trimmed.startsWith('/api/')) {
-      const apiBase = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
-      return `${apiBase}${trimmed}`;
-    }
-    // Route render telegram links through local backend if on custom domain
-    if (trimmed.includes('/api/v1/media/telegram/') || trimmed.includes('/api/media/telegram/')) {
-      const idx = trimmed.indexOf('/api/');
-      const rel = trimmed.substring(idx);
-      const apiBase = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
-      if (!import.meta.env.VITE_API_URL) {
-        return rel;
-      }
-      return `${apiBase}${rel}`;
-    }
-    // If it's an old 489q domain, replace with current 7lpj domain
-    if (trimmed.includes('tanda-backend-489q.onrender.com')) {
-      return trimmed.replace('tanda-backend-489q.onrender.com', 'tanda-backend-7lpj.onrender.com');
-    }
-    return trimmed;
-  };
 
   const DEFAULT_SAMPLE_AUDIO = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3';
   const rawAudioSource = currentChapter?.audioUrl || currentBook?.audioUrl || (currentBook?.hasAudio ? DEFAULT_SAMPLE_AUDIO : '');
@@ -336,15 +307,27 @@ export const AudioPlayerBar: React.FC = () => {
       setShowPremiumModal(true);
     };
 
-    const handlePlayTrigger = () => {
+    const handlePlayTrigger = (e?: any) => {
       const state = useAudioPlayerStore.getState();
       if (!state.isPlaying) {
         state.setIsPlaying(true);
       }
+      const customSrc = e?.detail?.src;
+      const srcToPlay = customSrc || currentActiveSrc;
+
       if (isYouTube && !state.isAdPlaying && ytPlayerRef.current && typeof ytPlayerRef.current.playVideo === 'function') {
         try { ytPlayerRef.current.playVideo(); } catch {}
       } else if (audioRef.current) {
-        audioRef.current.play().catch(() => {});
+        if (srcToPlay) {
+          if (currentPlayingSrcRef.current !== srcToPlay || audioRef.current.src !== srcToPlay) {
+            currentPlayingSrcRef.current = srcToPlay;
+            audioRef.current.src = srcToPlay;
+            audioRef.current.load();
+          }
+        }
+        audioRef.current.play().catch((err) => {
+          console.warn('Audio play trigger error:', err);
+        });
       }
     };
 
@@ -826,6 +809,9 @@ export const AudioPlayerBar: React.FC = () => {
           currentPlayingSrcRef.current = srcToPlay;
           audioRef.current.src = srcToPlay;
           audioRef.current.load();
+          if (useAudioPlayerStore.getState().isPlaying) {
+            audioRef.current.play().catch(() => {});
+          }
         } else {
           if (!isAdPlaying) {
             audioRef.current.currentTime = targetTime;
@@ -1068,19 +1054,19 @@ export const AudioPlayerBar: React.FC = () => {
   }, [isAuthorOrStaff, currentBook, isPlaying, closePlayer]);
 
   const hasToken = typeof window !== 'undefined' && Boolean(localStorage.getItem('tanda_token'));
-  if (!currentBook || isAuthorOrStaff) return null;
+  if (isAuthorOrStaff) return null;
   if (isAuthInitialized && !isAuthenticated && !hasToken) return null;
 
-  const chapters = currentBook.audioChapters && currentBook.audioChapters.length > 0
+  const chapters = currentBook?.audioChapters && currentBook.audioChapters.length > 0
     ? currentBook.audioChapters
-    : [
+    : (currentBook ? [
         {
           id: `${currentBook.id}-ch-1`,
           title: '1-бөлім',
           duration: currentBook.audioDuration || '05:00',
           audioUrl: currentBook.audioUrl || '',
         },
-      ];
+      ] : []);
   const currentChapterTitle = currentChapter?.title || chapters[chapterIndex]?.title || '1-бөлім';
 
   return (
@@ -1103,13 +1089,12 @@ export const AudioPlayerBar: React.FC = () => {
       </div>
 
       {/* Standard HTML5 Audio element — unified single element handles both Pre-Roll Ad and Book Audio */}
-      {currentActiveSrc && (
-        <audio
-          ref={audioRef}
-          src={currentActiveSrc}
-          playsInline
-          preload="auto"
-          controlsList="nodownload"
+      <audio
+        ref={audioRef}
+        src={currentActiveSrc || undefined}
+        playsInline
+        preload="auto"
+        controlsList="nodownload"
           onLoadedMetadata={(e) => {
             const dur = e.currentTarget.duration;
             if (useAudioPlayerStore.getState().isAdPlaying) {
@@ -1274,11 +1259,9 @@ export const AudioPlayerBar: React.FC = () => {
             }
           }}
         />
-      )}
-
 
       {/* Main Bottom Audio Player Bar - Only shown when NOT on full player page */}
-      {!isListenPage && (
+      {currentBook && !isListenPage && (
         <div className="fixed bottom-[var(--mobile-bottom-nav-height)] md:bottom-0 inset-x-0 z-50 bg-white border-t border-slate-200 shadow-2xl transition-all">
           
           {/* Mobile Top Progress Line */}

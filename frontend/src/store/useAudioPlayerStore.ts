@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Book, AudioChapter } from '../types';
 import { api } from '../lib/api';
+import { formatAudioUrl } from '../utils/mediaUtils';
 import { useMyBooksStore } from './useMyBooksStore';
 import { useAuthStore } from './useAuthStore';
 
@@ -466,7 +467,7 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
         }
       },
 
-      playBook: async (book, targetChapterIndex?: number, explicitProgress?: number) => {
+      playBook: (book, targetChapterIndex?: number, explicitProgress?: number) => {
         if (get().isDailyLimitReached) {
           set({ showDailyLimitModal: true, isPlaying: false });
           return;
@@ -483,14 +484,14 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
           }
         }
 
-        // Flush and sync previous book's progress before loading new book
+        // Flush and sync previous book's progress in background
         const prevBook = get().currentBook;
         const prevChapter = get().currentChapter;
         const prevProgress = get().progress;
         const prevChapterIndex = get().chapterIndex;
         if (prevBook && prevBook.id !== book.id && prevProgress > 0) {
-          await syncProgressNow(prevBook.id, prevChapter?.id, prevProgress, prevChapterIndex);
-          await endAudioSession(prevProgress);
+          syncProgressNow(prevBook.id, prevChapter?.id, prevProgress, prevChapterIndex).catch(() => {});
+          endAudioSession(prevProgress).catch(() => {});
         }
 
         let chapters = book.audioChapters || [];
@@ -514,7 +515,7 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
             resolvedProgress = get().progress;
             resolvedChapterIndex = get().chapterIndex;
           } else {
-            // 1. Check local backup first for instant restore
+            // Check local backup first for instant 0ms restore
             try {
               const localSaved = localStorage.getItem(`tanda_book_progress_${book.id}`);
               if (localSaved) {
@@ -530,25 +531,6 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
                 }
               }
             } catch {}
-
-            // 2. Fetch from backend API (cross-device sync)
-            try {
-              const token = localStorage.getItem('tanda_token');
-              if (token) {
-                const { data } = await api.get(`/api/v1/progress/${book.id}`);
-                if (data && data.currentAudioTime !== undefined && data.currentAudioTime > 0) {
-                  resolvedProgress = data.currentAudioTime;
-                  if (data.currentAudioChapterId) {
-                    const chIdx = chapters.findIndex((c) => c.id === data.currentAudioChapterId);
-                    if (chIdx >= 0) {
-                      resolvedChapterIndex = chIdx;
-                    }
-                  }
-                }
-              }
-            } catch {
-              // fallback
-            }
           }
         } else if (targetChapterIndex !== undefined && explicitProgress === undefined) {
           const targetChap = chapters[targetChapterIndex];
@@ -598,8 +580,45 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
         if (!needsAd) {
           startAudioSession(book.id, chapter?.id);
         }
-        syncProgressNow(book.id, chapter?.id, startProgress, resolvedChapterIndex);
+        syncProgressNow(book.id, chapter?.id, startProgress, resolvedChapterIndex).catch(() => {});
         window.dispatchEvent(new CustomEvent('tanda:audio:seek', { detail: { time: startProgress } }));
+
+        // Calculate and synchronously prime audio playback on mobile Safari
+        const adAudioUrl = (!isExempt && cachedSettings?.audioAdUrl) ? formatAudioUrl(cachedSettings.audioAdUrl) : '';
+        const rawBookAudio = chapter?.audioUrl || book.audioUrl || '';
+        const bookAudioUrl = formatAudioUrl(rawBookAudio);
+        const primeSrc = (needsAd && adAudioUrl) ? adAudioUrl : bookAudioUrl;
+        window.dispatchEvent(new CustomEvent('tanda:audio:play', { detail: { src: primeSrc } }));
+
+        // Background server sync: fetch cloud progress if not previously loaded
+        if (targetChapterIndex === undefined && explicitProgress === undefined && !isSameBook) {
+          try {
+            const token = localStorage.getItem('tanda_token');
+            if (token) {
+              api.get(`/api/v1/progress/${book.id}`).then(({ data }) => {
+                if (data && data.currentAudioTime !== undefined && data.currentAudioTime > 0) {
+                  const curState = get();
+                  if (curState.currentBook?.id === book.id && curState.progress <= startProgress) {
+                    let sIdx = resolvedChapterIndex;
+                    if (data.currentAudioChapterId) {
+                      const chIdx = chapters.findIndex((c) => c.id === data.currentAudioChapterId);
+                      if (chIdx >= 0) sIdx = chIdx;
+                    }
+                    const newChap = chapters[sIdx] || chapter;
+                    set({
+                      progress: data.currentAudioTime,
+                      chapterIndex: sIdx,
+                      currentChapter: newChap,
+                    });
+                    if (!curState.isAdPlaying) {
+                      window.dispatchEvent(new CustomEvent('tanda:audio:seek', { detail: { time: data.currentAudioTime } }));
+                    }
+                  }
+                }
+              }).catch(() => {});
+            }
+          } catch {}
+        }
       },
 
       playChapter: (index, explicitProgress) => {
@@ -622,7 +641,7 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
 
         // 1. Save previous chapter's position before switching
         if (prevChap && prevProg > 0) {
-          syncProgressNow(currentBook.id, prevChap.id, prevProg, prevIdx);
+          syncProgressNow(currentBook.id, prevChap.id, prevProg, prevIdx).catch(() => {});
         }
 
         const chapters = currentBook.audioChapters || [];
@@ -664,8 +683,12 @@ export const useAudioPlayerStore = create<AudioPlayerState>()(
           });
 
           startAudioSession(currentBook.id, chapter?.id);
-          syncProgressNow(currentBook.id, chapter?.id, startProgress, index);
+          syncProgressNow(currentBook.id, chapter?.id, startProgress, index).catch(() => {});
           window.dispatchEvent(new CustomEvent('tanda:audio:seek', { detail: { time: startProgress } }));
+
+          const rawChapAudio = chapter.audioUrl || currentBook.audioUrl || '';
+          const chapSrc = formatAudioUrl(rawChapAudio);
+          window.dispatchEvent(new CustomEvent('tanda:audio:play', { detail: { src: chapSrc } }));
         }
       },
 
