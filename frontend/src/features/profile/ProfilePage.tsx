@@ -16,6 +16,10 @@ import {
   Award,
   Quote as QuoteIcon,
   Bookmark,
+  Clock,
+  Calendar,
+  Zap,
+  BarChart2,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useBookStore } from '../../store/useBookStore';
@@ -43,13 +47,13 @@ const formatDateDMY = (dateStr?: string | Date | null): string => {
 };
 
 const formatReadingTime = (seconds?: number): string => {
-  if (!seconds || seconds <= 0) return '0 daq';
+  if (!seconds || seconds <= 0) return '0 мин';
   const mins = Math.floor(seconds / 60);
-  if (mins < 60) return `${mins} daq`;
+  if (mins < 60) return `${mins} мин`;
   const hours = Math.floor(mins / 60);
   const remainingMins = mins % 60;
-  if (remainingMins === 0) return `${hours} saǵ`;
-  return `${hours} saǵ ${remainingMins} daq`;
+  if (remainingMins === 0) return `${hours} сағ`;
+  return `${hours} сағ ${remainingMins} мин`;
 };
 
 const getInitials = (name?: string): string => {
@@ -321,7 +325,7 @@ export const ProfilePage: React.FC = () => {
             <div className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm flex flex-col justify-between min-h-[66px]">
               <div className="text-[11px] text-slate-500 font-medium">Бүгін</div>
               <div className="flex items-center gap-1.5 text-sm font-bold text-slate-900 mt-1">
-                <span>⏱️</span>
+                <Clock className="w-4 h-4 text-sky-500 shrink-0" />
                 <span>{formatReadingTime(personalStats?.todaySeconds || 0)}</span>
               </div>
             </div>
@@ -330,7 +334,7 @@ export const ProfilePage: React.FC = () => {
             <div className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm flex flex-col justify-between min-h-[66px]">
               <div className="text-[11px] text-slate-500 font-medium">Бұл ай</div>
               <div className="flex items-center gap-1.5 text-sm font-bold text-slate-900 mt-1">
-                <span>📅</span>
+                <Calendar className="w-4 h-4 text-emerald-500 shrink-0" />
                 <span>{formatReadingTime(personalStats?.thisMonthSeconds || 0)}</span>
               </div>
             </div>
@@ -340,8 +344,8 @@ export const ProfilePage: React.FC = () => {
               <div className="text-[11px] text-slate-500 font-medium truncate">Пик тыңдау</div>
               <div className="mt-1">
                 <div className="flex items-center gap-1.5 text-sm font-bold text-slate-900">
-                  <span>⚡</span>
-                  <span>{peakDay ? formatReadingTime(peakDay.seconds) : '0 daq'}</span>
+                  <Zap className="w-4 h-4 text-amber-500 shrink-0" />
+                  <span>{peakDay ? formatReadingTime(peakDay.seconds) : '0 мин'}</span>
                 </div>
                 {peakDay && (
                   <div className="text-[10px] text-slate-400 font-medium mt-0.5">
@@ -355,7 +359,7 @@ export const ProfilePage: React.FC = () => {
             <div className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm flex flex-col justify-between min-h-[66px]">
               <div className="text-[11px] text-slate-500 font-medium">Соңғы 7 күн</div>
               <div className="flex items-center gap-1.5 text-sm font-bold text-slate-900 mt-1">
-                <span>📊</span>
+                <BarChart2 className="w-4 h-4 text-indigo-500 shrink-0" />
                 <span>{formatReadingTime(last7DaysSeconds)}</span>
               </div>
             </div>
