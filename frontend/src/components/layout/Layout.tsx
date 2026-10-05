@@ -81,11 +81,7 @@ export const Layout: React.FC = () => {
           <Outlet />
         </ErrorBoundary>
       </main>
-      {!isListenPage && !isMyBooksPage && !isCatalogPage && (
-        <div className={isRatingPage ? 'hidden md:block' : ''}>
-          <Footer />
-        </div>
-      )}
+      {!isListenPage && !isMyBooksPage && !isCatalogPage && !isRatingPage && <Footer />}
       <MobileBottomNav />
       {!isAuthorOrStaff && <AudioPlayerBar />}
       {!isAuthorOrStaff && <DailyLimitModal />}
