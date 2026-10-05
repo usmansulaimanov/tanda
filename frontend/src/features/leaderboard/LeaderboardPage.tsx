@@ -140,28 +140,28 @@ export const LeaderboardPage: React.FC = () => {
 
         {/* Main Tabs Navigation (Segmented Switcher) */}
         <div className="flex justify-center">
-          <div className="inline-flex p-1.5 bg-slate-200/80 rounded-2xl shadow-inner">
+          <div className="inline-flex p-1 bg-slate-200/80 rounded-xl shadow-inner">
             <button
               type="button"
               onClick={() => setActiveMainTab('leaderboard')}
-              className={`flex items-center px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-200 ${
+              className={`flex items-center justify-center px-4 sm:px-5 py-1.5 rounded-lg font-bold text-xs sm:text-sm whitespace-nowrap transition-all duration-200 ${
                 activeMainTab === 'leaderboard'
                   ? 'bg-white text-emerald-700 shadow-sm'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <span>Топ 100 оқырман</span>
+              <span>Топ 100</span>
             </button>
             <button
               type="button"
               onClick={() => setActiveMainTab('personal')}
-              className={`flex items-center px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-200 ${
+              className={`flex items-center justify-center px-4 sm:px-5 py-1.5 rounded-lg font-bold text-xs sm:text-sm whitespace-nowrap transition-all duration-200 ${
                 activeMainTab === 'personal'
                   ? 'bg-white text-emerald-700 shadow-sm'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <span>Менің статистикам</span>
+              <span>Статистикам</span>
             </button>
           </div>
         </div>
