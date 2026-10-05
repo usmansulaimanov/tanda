@@ -20,6 +20,7 @@ import {
   Calendar,
   Zap,
   BarChart2,
+  ThumbsUp,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useBookStore } from '../../store/useBookStore';
@@ -491,7 +492,10 @@ export const ProfilePage: React.FC = () => {
                     )}
                     <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1.5 border-t border-slate-50">
                       <span>{formatDateDMY(rev.createdAt)}</span>
-                      <span>👍 {rev.likesCount || 0}</span>
+                      <div className="flex items-center gap-1">
+                        <ThumbsUp className="w-3 h-3 text-slate-400" />
+                        <span>{rev.likesCount || 0}</span>
+                      </div>
                     </div>
                   </div>
                 ))
