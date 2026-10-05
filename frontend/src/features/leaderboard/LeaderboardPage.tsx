@@ -503,36 +503,36 @@ export const LeaderboardPage: React.FC = () => {
                 </div>
 
                 {/* Monthly Activity Bar Chart */}
-                <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-sm space-y-6">
+                <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm space-y-4">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                      <h3 className="text-base sm:text-lg font-bold text-slate-900">
+                      <h3 className="text-sm sm:text-base font-bold text-slate-900">
                         Тыңдау белсенділігі: {personalStats.selectedMonthName}
                       </h3>
-                      <p className="text-xs text-slate-500 mt-0.5">
+                      <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
                         1 мен {personalStats.daysInMonth} {personalStats.selectedMonthName.toLowerCase()} аралығындағы тыңдау динамикасы
                       </p>
                     </div>
 
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 sm:gap-3">
                       {/* Month Navigation Switcher */}
-                      <div className="flex items-center bg-slate-100 rounded-xl p-1 border border-slate-200">
+                      <div className="flex items-center bg-slate-100 rounded-xl p-0.5 border border-slate-200">
                         <button
                           type="button"
                           onClick={handlePrevMonth}
                           disabled={isFirstMonth}
                           title="Өткен ай"
-                          className={`p-1.5 rounded-lg transition-colors ${
+                          className={`p-1 rounded-lg transition-colors ${
                             isFirstMonth
                               ? 'text-slate-300 cursor-not-allowed'
                               : 'hover:bg-white text-slate-600 hover:text-slate-900 shadow-sm cursor-pointer'
                           }`}
                         >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                           </svg>
                         </button>
-                        <span className="text-xs font-bold text-slate-700 px-2.5 min-w-[80px] text-center select-none">
+                        <span className="text-xs font-bold text-slate-700 px-2 min-w-[70px] text-center select-none">
                           {personalStats.selectedMonthName}
                         </span>
                         <button
@@ -540,29 +540,29 @@ export const LeaderboardPage: React.FC = () => {
                           onClick={handleNextMonth}
                           disabled={isCurrentOrFutureMonth}
                           title="Келесі ай"
-                          className={`p-1.5 rounded-lg transition-colors ${
+                          className={`p-1 rounded-lg transition-colors ${
                             isCurrentOrFutureMonth
                               ? 'text-slate-300 cursor-not-allowed'
                               : 'hover:bg-white text-slate-600 hover:text-slate-900 shadow-sm cursor-pointer'
                           }`}
                         >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                           </svg>
                         </button>
                       </div>
 
-                      <div className="text-xs text-emerald-700 font-bold bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200 whitespace-nowrap">
+                      <div className="text-xs text-emerald-700 font-bold bg-emerald-50 px-2.5 py-1 rounded-xl border border-emerald-200 whitespace-nowrap">
                         Жалпы: {formatMinutes(personalStats.selectedMonthMinutes)}
                       </div>
                     </div>
                   </div>
 
                   {/* SVG/CSS Interactive Bar Graph */}
-                  <div className="overflow-x-auto pb-2 -mx-2 px-2">
-                    <div className="h-64 sm:h-72 min-w-[760px] sm:min-w-[840px] flex items-end justify-between gap-1 sm:gap-1.5 pt-12 pb-2 px-2 sm:px-3 border-b border-slate-200">
+                  <div className="overflow-x-auto pb-1 -mx-2 px-2">
+                    <div className="h-32 sm:h-36 min-w-[680px] sm:min-w-[780px] flex items-end justify-between gap-1 sm:gap-1.5 pt-5 pb-1 px-2 sm:px-3 border-b border-slate-200">
                       {personalStats.dailyActivity.map((day, idx) => {
-                        const heightPercent = maxChartMinutes > 0 ? (day.minutes / maxChartMinutes) * 72 : 0;
+                        const heightPercent = maxChartMinutes > 0 ? (day.minutes / maxChartMinutes) * 75 : 0;
                         const isZero = day.minutes === 0;
                         const isFirstFew = idx < 2;
                         const isLastFew = idx > personalStats.dailyActivity.length - 3;
@@ -577,11 +577,11 @@ export const LeaderboardPage: React.FC = () => {
                         return (
                           <div
                             key={day.date}
-                            className="flex-1 flex flex-col items-center h-full justify-end group relative min-w-[18px]"
+                            className="flex-1 flex flex-col items-center h-full justify-end group relative min-w-[16px]"
                           >
                             {/* Tooltip on hover - positioned safely inside chart container header */}
                             <div
-                              className={`opacity-0 group-hover:opacity-100 transition-all duration-150 absolute top-1 ${tooltipPosClass} bg-slate-900 text-white text-[11px] py-1 px-2.5 rounded-lg shadow-xl pointer-events-none whitespace-nowrap z-30 flex items-center gap-1.5 border border-slate-700`}
+                              className={`opacity-0 group-hover:opacity-100 transition-all duration-150 absolute top-0 ${tooltipPosClass} bg-slate-900 text-white text-[11px] py-1 px-2.5 rounded-lg shadow-xl pointer-events-none whitespace-nowrap z-30 flex items-center gap-1.5 border border-slate-700`}
                             >
                               <span className="text-slate-300">{day.dayLabel}:</span>
                               <span className="text-emerald-400 font-bold">{day.minutes} мин</span>
@@ -589,7 +589,7 @@ export const LeaderboardPage: React.FC = () => {
 
                             {/* Bar Value above bar */}
                             {day.minutes > 0 && (
-                              <span className="text-[9px] sm:text-[10px] text-emerald-800 mb-1 group-hover:text-emerald-600 font-bold transition-colors block">
+                              <span className="text-[9px] sm:text-[10px] text-emerald-800 mb-0.5 group-hover:text-emerald-600 font-bold transition-colors block">
                                 {day.minutes}
                               </span>
                             )}
@@ -597,7 +597,7 @@ export const LeaderboardPage: React.FC = () => {
                             {/* Bar column */}
                             <div
                               style={{ height: `${Math.max(heightPercent, 4)}%` }}
-                              className={`w-full max-w-[18px] sm:max-w-[22px] rounded-t-sm transition-all duration-300 ${
+                              className={`w-full max-w-[16px] sm:max-w-[20px] rounded-t-sm transition-all duration-300 ${
                                 isZero
                                   ? 'bg-slate-200 group-hover:bg-slate-300'
                                   : 'bg-emerald-500 group-hover:bg-emerald-600 shadow-sm'
@@ -605,7 +605,7 @@ export const LeaderboardPage: React.FC = () => {
                             ></div>
 
                             {/* Day Number at bottom - 2-digit format without ellipsis */}
-                            <span className="text-[8.5px] sm:text-[9.5px] text-slate-500 font-medium mt-2 group-hover:text-slate-900 transition-colors whitespace-nowrap text-center">
+                            <span className="text-[8.5px] sm:text-[9.5px] text-slate-500 font-medium mt-1.5 group-hover:text-slate-900 transition-colors whitespace-nowrap text-center">
                               {formattedDayNum}
                             </span>
                           </div>
