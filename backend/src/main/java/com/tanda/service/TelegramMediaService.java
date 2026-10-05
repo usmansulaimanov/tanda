@@ -31,6 +31,9 @@ public class TelegramMediaService {
     @Value("${telegram.bot.token:8656738239:AAE0ryDJRET9vBeVXSTS-08SKt2FRSi435Q}")
     private String botToken;
 
+    @Value("${app.base-url:https://tandamen.kz}")
+    private String baseUrl;
+
     private final ObjectMapper objectMapper;
     private final Map<String, CachedTelegramFile> fileCache = new ConcurrentHashMap<>();
     private final HttpClient httpClient = HttpClient.newBuilder()
@@ -323,7 +326,8 @@ public class TelegramMediaService {
             }
 
             if (fileId != null && !fileId.isBlank()) {
-                String streamUrl = "https://tanda-backend-7lpj.onrender.com/api/v1/media/telegram/" + fileId;
+                String cleanBaseUrl = (baseUrl != null && !baseUrl.isBlank()) ? baseUrl.replaceAll("/+$", "") : "https://tandamen.kz";
+                String streamUrl = cleanBaseUrl + "/api/v1/media/telegram/" + fileId;
                 String replyText = "✅ <b>" + fileTypeTitle + " қабылданды!</b>\n"
                         + "📁 <b>Файл:</b> " + fileName + "\n\n"
                         + "🔗 <b>Tanda үшін сілтеме:</b>\n"
