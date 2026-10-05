@@ -90,7 +90,7 @@ export const AudioPlayerBar: React.FC = () => {
   );
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const preloaderRef = useRef<HTMLAudioElement | null>(null);
+  const adAudioRef = useRef<HTMLAudioElement | null>(null);
   const ytPlayerRef = useRef<any>(null);
   const pendingSeekTimeRef = useRef<number | null>(null);
   const currentPlayingSrcRef = useRef<string>('');
@@ -170,23 +170,6 @@ export const AudioPlayerBar: React.FC = () => {
     }
     return false;
   }, [user?.isPremium, systemSettings?.premiumEnabled, systemSettings?.openAccessMode, isAuthorOrStaff, setProgress]);
-
-  // Background Preload: While the ad is playing, pre-buffer the upcoming book audio for seamless transition
-  useEffect(() => {
-    if (isAdPlaying && audioSrc && !isYouTube) {
-      try {
-        if (preloaderRef.current) {
-          preloaderRef.current.src = audioSrc;
-          preloaderRef.current.load();
-        }
-        // Warm up HTTP cache and backend stream connection with initial chunk
-        fetch(audioSrc, {
-          method: 'GET',
-          headers: { Range: 'bytes=0-524288' },
-        }).catch(() => {});
-      } catch {}
-    }
-  }, [isAdPlaying, audioSrc, isYouTube]);
 
   // Media Session API for iOS Safari, Android Chrome & Lock Screen Controls
   useEffect(() => {
@@ -330,22 +313,53 @@ export const AudioPlayerBar: React.FC = () => {
       if (!state.isPlaying) {
         state.setIsPlaying(true);
       }
-      const customSrc = e?.detail?.src;
-      const srcToPlay = customSrc || currentActiveSrc;
 
-      if (isYouTube && !state.isAdPlaying && ytPlayerRef.current && typeof ytPlayerRef.current.playVideo === 'function') {
-        try { ytPlayerRef.current.playVideo(); } catch {}
-      } else if (audioRef.current) {
-        if (srcToPlay) {
-          if (currentPlayingSrcRef.current !== srcToPlay || audioRef.current.src !== srcToPlay) {
-            currentPlayingSrcRef.current = srcToPlay;
-            audioRef.current.src = srcToPlay;
-            audioRef.current.load();
+      if (state.isAdPlaying && adAudioSrc) {
+        // 1. Play Ad immediately with audio on adAudioRef
+        if (adAudioRef.current) {
+          if (adAudioRef.current.src !== adAudioSrc) {
+            adAudioRef.current.src = adAudioSrc;
+          }
+          adAudioRef.current.play().catch((err) => {
+            console.warn('Ad play error:', err);
+          });
+        }
+        // 2. Synchronously prime and buffer Book audio on audioRef during user gesture!
+        if (audioRef.current && audioSrc && !isYouTube) {
+          if (audioRef.current.src !== audioSrc) {
+            audioRef.current.src = audioSrc;
+          }
+          audioRef.current.muted = true;
+          const unlockPromise = audioRef.current.play();
+          if (unlockPromise !== undefined) {
+            unlockPromise.then(() => {
+              if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current.muted = false;
+              }
+            }).catch(() => {
+              if (audioRef.current) {
+                audioRef.current.muted = false;
+              }
+            });
           }
         }
-        audioRef.current.play().catch((err) => {
-          console.warn('Audio play trigger error:', err);
-        });
+      } else {
+        // Normal playback without ad
+        if (isYouTube && ytPlayerRef.current && typeof ytPlayerRef.current.playVideo === 'function') {
+          try { ytPlayerRef.current.playVideo(); } catch {}
+        } else if (audioRef.current) {
+          if (audioSrc) {
+            if (currentPlayingSrcRef.current !== audioSrc || audioRef.current.src !== audioSrc) {
+              currentPlayingSrcRef.current = audioSrc;
+              audioRef.current.src = audioSrc;
+              audioRef.current.load();
+            }
+          }
+          audioRef.current.play().catch((err) => {
+            console.warn('Audio play trigger error:', err);
+          });
+        }
       }
     };
 
@@ -821,13 +835,12 @@ export const AudioPlayerBar: React.FC = () => {
         }
       }
     } else if (audioRef.current) {
-      const srcToPlay = currentActiveSrc;
-      if (srcToPlay) {
-        if (currentPlayingSrcRef.current !== srcToPlay) {
-          currentPlayingSrcRef.current = srcToPlay;
-          audioRef.current.src = srcToPlay;
+      if (audioSrc) {
+        if (currentPlayingSrcRef.current !== audioSrc) {
+          currentPlayingSrcRef.current = audioSrc;
+          audioRef.current.src = audioSrc;
           audioRef.current.load();
-          if (useAudioPlayerStore.getState().isPlaying) {
+          if (useAudioPlayerStore.getState().isPlaying && !isAdPlaying) {
             audioRef.current.play().catch(() => {});
           }
         } else {
@@ -835,7 +848,7 @@ export const AudioPlayerBar: React.FC = () => {
             audioRef.current.currentTime = targetTime;
             pendingSeekTimeRef.current = null;
           }
-          if (useAudioPlayerStore.getState().isPlaying) {
+          if (useAudioPlayerStore.getState().isPlaying && !isAdPlaying) {
             audioRef.current.play().catch(() => {});
           } else {
             audioRef.current.pause();
@@ -843,11 +856,25 @@ export const AudioPlayerBar: React.FC = () => {
         }
       }
     }
-  }, [currentChapter?.id, chapterIndex, isYouTube, ytVideoId, currentBook?.id, isAdPlaying, currentActiveSrc]);
+  }, [currentChapter?.id, chapterIndex, isYouTube, ytVideoId, currentBook?.id, isAdPlaying, audioSrc]);
 
   // Sync play/pause with players
   useEffect(() => {
-    if (isYouTube && !isAdPlaying) {
+    if (isAdPlaying) {
+      if (adAudioRef.current) {
+        if (isPlaying) {
+          adAudioRef.current.play().catch(() => {});
+        } else {
+          adAudioRef.current.pause();
+        }
+      }
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      return;
+    }
+
+    if (isYouTube) {
       if (audioRef.current) audioRef.current.pause();
       if (ytPlayerRef.current && typeof ytPlayerRef.current.playVideo === 'function') {
         if (isPlaying) {
@@ -973,13 +1000,17 @@ export const AudioPlayerBar: React.FC = () => {
       if (isYouTube && ytPlayerRef.current && typeof ytPlayerRef.current.pauseVideo === 'function') {
         ytPlayerRef.current.pauseVideo();
       }
-      if (audioRef.current && currentPlayingSrcRef.current !== adAudioSrc) {
-        currentPlayingSrcRef.current = adAudioSrc;
-        audioRef.current.src = adAudioSrc;
-        audioRef.current.load();
-        if (isPlaying) {
-          audioRef.current.play().catch(() => {});
+      if (adAudioRef.current) {
+        if (adAudioRef.current.src !== adAudioSrc) {
+          adAudioRef.current.src = adAudioSrc;
+          adAudioRef.current.load();
         }
+        if (isPlaying) {
+          adAudioRef.current.play().catch(() => {});
+        }
+      }
+      if (audioRef.current) {
+        audioRef.current.pause();
       }
     }
   }, [currentBook?.id, isPlaying, isExempt, isAdPlaying, setIsAdPlaying, adAudioSrc, isYouTube]);
@@ -1106,185 +1137,180 @@ export const AudioPlayerBar: React.FC = () => {
         <div id="tanda-yt-iframe-container" style={{ width: '100%', height: '100%' }} />
       </div>
 
-      {/* Standard HTML5 Audio element — unified single element handles both Pre-Roll Ad and Book Audio */}
+      {/* 1. Primary HTML5 Audio Element — Dedicated exclusively to Book & Chapter audio */}
       <audio
         ref={audioRef}
-        src={currentActiveSrc || undefined}
+        src={audioSrc || undefined}
         playsInline
         preload="auto"
         controlsList="nodownload"
-          onLoadedMetadata={(e) => {
-            const dur = e.currentTarget.duration;
-            if (useAudioPlayerStore.getState().isAdPlaying) {
-              if (dur && !isNaN(dur) && isFinite(dur) && dur > 0) {
-                setAdDuration(dur);
-              }
-            } else {
-              if (dur && !isNaN(dur) && isFinite(dur) && dur > 0) setDuration(dur);
-              const savedProgress = useAudioPlayerStore.getState().progress || 0;
-              const target = pendingSeekTimeRef.current !== null && pendingSeekTimeRef.current !== undefined
-                ? pendingSeekTimeRef.current
-                : savedProgress;
-              if (target > 0) {
-                e.currentTarget.currentTime = target;
-              }
-              pendingSeekTimeRef.current = null;
-            }
-            if (isPlaying) {
-              e.currentTarget.play().catch(() => {});
-            } else {
-              e.currentTarget.pause();
-            }
-          }}
-          onCanPlay={(e) => {
-            if (!useAudioPlayerStore.getState().isAdPlaying) {
-              const savedProgress = useAudioPlayerStore.getState().progress || 0;
-              const target = pendingSeekTimeRef.current !== null && pendingSeekTimeRef.current !== undefined
-                ? pendingSeekTimeRef.current
-                : savedProgress;
-              if (target > 0 && Math.abs(e.currentTarget.currentTime - target) > 0.5) {
-                e.currentTarget.currentTime = target;
-              }
-              if (pendingSeekTimeRef.current !== null) {
-                pendingSeekTimeRef.current = null;
-              }
-            }
-            if (isPlaying) {
-              e.currentTarget.play().catch(() => {});
-            } else {
-              e.currentTarget.pause();
-            }
-          }}
-          onPlay={() => {
-            if (!useAudioPlayerStore.getState().isPlaying) {
-              useAudioPlayerStore.getState().setIsPlaying(true);
-            }
-          }}
-          onPause={(e) => {
-            const el = e.currentTarget;
-            if (!el.ended && el.currentTime < (el.duration || 0) - 0.5) {
-              if (useAudioPlayerStore.getState().isPlaying) {
-                useAudioPlayerStore.getState().setIsPlaying(false);
-              }
-            }
-          }}
-          onTimeUpdate={(e) => {
-            const current = e.currentTarget.currentTime;
-            const dur = e.currentTarget.duration;
+        onLoadedMetadata={(e) => {
+          const dur = e.currentTarget.duration;
+          if (dur && !isNaN(dur) && isFinite(dur) && dur > 0) setDuration(dur);
+          const savedProgress = useAudioPlayerStore.getState().progress || 0;
+          const target = pendingSeekTimeRef.current !== null && pendingSeekTimeRef.current !== undefined
+            ? pendingSeekTimeRef.current
+            : savedProgress;
+          if (target > 0) {
+            e.currentTarget.currentTime = target;
+          }
+          pendingSeekTimeRef.current = null;
 
-            if (useAudioPlayerStore.getState().isAdPlaying) {
-              setAdProgress(current);
-              if (dur && !isNaN(dur) && isFinite(dur) && dur > 0) {
-                setAdDuration(dur);
-              }
-              return;
+          if (useAudioPlayerStore.getState().isPlaying && !useAudioPlayerStore.getState().isAdPlaying) {
+            e.currentTarget.play().catch(() => {});
+          } else {
+            e.currentTarget.pause();
+          }
+        }}
+        onCanPlay={(e) => {
+          const savedProgress = useAudioPlayerStore.getState().progress || 0;
+          const target = pendingSeekTimeRef.current !== null && pendingSeekTimeRef.current !== undefined
+            ? pendingSeekTimeRef.current
+            : savedProgress;
+          if (target > 0 && Math.abs(e.currentTarget.currentTime - target) > 0.5) {
+            e.currentTarget.currentTime = target;
+          }
+          if (pendingSeekTimeRef.current !== null) {
+            pendingSeekTimeRef.current = null;
+          }
+          if (useAudioPlayerStore.getState().isPlaying && !useAudioPlayerStore.getState().isAdPlaying) {
+            e.currentTarget.play().catch(() => {});
+          }
+        }}
+        onPlay={() => {
+          if (!useAudioPlayerStore.getState().isAdPlaying && !useAudioPlayerStore.getState().isPlaying) {
+            useAudioPlayerStore.getState().setIsPlaying(true);
+          }
+        }}
+        onPause={(e) => {
+          const el = e.currentTarget;
+          if (!useAudioPlayerStore.getState().isAdPlaying && !el.ended && el.currentTime < (el.duration || 0) - 0.5) {
+            if (useAudioPlayerStore.getState().isPlaying) {
+              useAudioPlayerStore.getState().setIsPlaying(false);
             }
+          }
+        }}
+        onTimeUpdate={(e) => {
+          if (useAudioPlayerStore.getState().isAdPlaying) return;
 
-            if (checkPreviewLimit(current)) return;
+          const current = e.currentTarget.currentTime;
+          const dur = e.currentTarget.duration;
 
-            // Protect against initial transient 0s clobbering stored progress before seek completes
-            const storeProg = useAudioPlayerStore.getState().progress || 0;
-            if (current === 0 && storeProg > 1 && pendingSeekTimeRef.current !== 0) {
-              return;
+          if (checkPreviewLimit(current)) return;
+
+          // Protect against initial transient 0s clobbering stored progress before seek completes
+          const storeProg = useAudioPlayerStore.getState().progress || 0;
+          if (current === 0 && storeProg > 1 && pendingSeekTimeRef.current !== 0) {
+            return;
+          }
+
+          targetResumeTimeRef.current = current;
+          setProgress(current);
+          if (dur && !isNaN(dur) && isFinite(dur) && dur > 0) setDuration(dur);
+
+          // Check if virtual chapter boundary reached (single audio with multiple timestamp chapters)
+          const curBook = useAudioPlayerStore.getState().currentBook;
+          const curIdx = useAudioPlayerStore.getState().chapterIndex;
+          const curChaps = curBook?.audioChapters || [];
+          const curChap = curChaps[curIdx];
+          const hasOwn = Boolean(curChap?.audioUrl && curChap.audioUrl.trim());
+
+          if (!hasOwn && curChaps.length > 1 && curChap?.duration) {
+            const chStart = getChapterStartTime(curChaps, curIdx);
+            const chDur = parseDurationToSeconds(curChap.duration);
+            const chEnd = chStart + chDur;
+            if (current >= chEnd - 0.3) {
+              handleTrackEnd();
             }
-
-            targetResumeTimeRef.current = current;
-            setProgress(current);
-            if (dur && !isNaN(dur) && isFinite(dur) && dur > 0) setDuration(dur);
-
-            // Check if virtual chapter boundary reached (single audio with multiple timestamp chapters)
-            const curBook = useAudioPlayerStore.getState().currentBook;
-            const curIdx = useAudioPlayerStore.getState().chapterIndex;
-            const curChaps = curBook?.audioChapters || [];
-            const curChap = curChaps[curIdx];
-            const hasOwn = Boolean(curChap?.audioUrl && curChap.audioUrl.trim());
-
-            if (!hasOwn && curChaps.length > 1 && curChap?.duration) {
-              const chStart = getChapterStartTime(curChaps, curIdx);
-              const chDur = parseDurationToSeconds(curChap.duration);
-              const chEnd = chStart + chDur;
-              if (current >= chEnd - 0.3) {
-                handleTrackEnd();
-              }
-            }
-          }}
-          onEnded={() => {
-            if (useAudioPlayerStore.getState().isAdPlaying) {
-              adPlayedForCurrentBookRef.current = true;
-              setIsAdPlaying(false);
-              setAdProgress(0);
-
-              const currentBookState = useAudioPlayerStore.getState();
-              const targetTime = currentBookState.progress > 0
-                ? currentBookState.progress
-                : (targetResumeTimeRef.current > 0 ? targetResumeTimeRef.current : 0);
-
-              if (currentBookState.currentBook) {
-                startAudioSession(currentBookState.currentBook.id, currentBookState.currentChapter?.id);
-              }
-
-              if (isYouTube && ytPlayerRef.current && typeof ytPlayerRef.current.seekTo === 'function') {
-                if (targetTime > 0) ytPlayerRef.current.seekTo(targetTime, true);
-                if (useAudioPlayerStore.getState().isPlaying) ytPlayerRef.current.playVideo();
-              } else if (audioRef.current && audioSrc) {
-                currentPlayingSrcRef.current = audioSrc;
-                audioRef.current.src = audioSrc;
-                if (targetTime > 0) {
-                  pendingSeekTimeRef.current = targetTime;
-                }
-                if (useAudioPlayerStore.getState().isPlaying) {
-                  const playPromise = audioRef.current.play();
-                  if (playPromise !== undefined) {
-                    playPromise.catch((err) => {
-                      console.debug('Autoplay after ad:', err);
-                    });
-                  }
-                }
-              }
-              return;
-            }
-
+          }
+        }}
+        onEnded={() => {
+          if (!useAudioPlayerStore.getState().isAdPlaying) {
             handleTrackEnd();
-          }}
-          onError={() => {
-            if (useAudioPlayerStore.getState().isAdPlaying) {
-              adPlayedForCurrentBookRef.current = true;
-              setIsAdPlaying(false);
-              setAdProgress(0);
+          }
+        }}
+      />
 
-              const currentBookState = useAudioPlayerStore.getState();
-              const targetTime = currentBookState.progress > 0
-                ? currentBookState.progress
-                : (targetResumeTimeRef.current > 0 ? targetResumeTimeRef.current : 0);
-
-              if (currentBookState.currentBook) {
-                startAudioSession(currentBookState.currentBook.id, currentBookState.currentChapter?.id);
-              }
-
-              if (isYouTube && ytPlayerRef.current && typeof ytPlayerRef.current.seekTo === 'function') {
-                if (targetTime > 0) ytPlayerRef.current.seekTo(targetTime, true);
-                if (useAudioPlayerStore.getState().isPlaying) ytPlayerRef.current.playVideo();
-              } else if (audioRef.current && audioSrc) {
-                currentPlayingSrcRef.current = audioSrc;
-                audioRef.current.src = audioSrc;
-                if (targetTime > 0) {
-                  pendingSeekTimeRef.current = targetTime;
-                }
-                if (useAudioPlayerStore.getState().isPlaying) {
-                  audioRef.current.play().catch(() => {});
-                }
-              }
-            }
-          }}
-        />
-
-      {/* Hidden audio preloader element for instant ad-to-book transition */}
+      {/* 2. Secondary HTML5 Audio Element — Dedicated exclusively to Pre-Roll Ad audio */}
       <audio
-        ref={preloaderRef}
-        preload="auto"
-        muted
+        ref={adAudioRef}
+        src={isAdPlaying && adAudioSrc ? adAudioSrc : undefined}
         playsInline
-        style={{ display: 'none' }}
+        preload="auto"
+        controlsList="nodownload"
+        onLoadedMetadata={(e) => {
+          const dur = e.currentTarget.duration;
+          if (dur && !isNaN(dur) && isFinite(dur) && dur > 0) {
+            setAdDuration(dur);
+          }
+          if (useAudioPlayerStore.getState().isPlaying && useAudioPlayerStore.getState().isAdPlaying) {
+            e.currentTarget.play().catch(() => {});
+          }
+        }}
+        onTimeUpdate={(e) => {
+          if (!useAudioPlayerStore.getState().isAdPlaying) return;
+          const current = e.currentTarget.currentTime;
+          const dur = e.currentTarget.duration;
+          setAdProgress(current);
+          if (dur && !isNaN(dur) && isFinite(dur) && dur > 0) {
+            setAdDuration(dur);
+          }
+        }}
+        onEnded={() => {
+          adPlayedForCurrentBookRef.current = true;
+          setIsAdPlaying(false);
+          setAdProgress(0);
+
+          const currentBookState = useAudioPlayerStore.getState();
+          const targetTime = currentBookState.progress > 0
+            ? currentBookState.progress
+            : (targetResumeTimeRef.current > 0 ? targetResumeTimeRef.current : 0);
+
+          if (currentBookState.currentBook) {
+            startAudioSession(currentBookState.currentBook.id, currentBookState.currentChapter?.id);
+          }
+
+          if (isYouTube && ytPlayerRef.current && typeof ytPlayerRef.current.seekTo === 'function') {
+            if (targetTime > 0) ytPlayerRef.current.seekTo(targetTime, true);
+            if (useAudioPlayerStore.getState().isPlaying) ytPlayerRef.current.playVideo();
+          } else if (audioRef.current) {
+            if (targetTime > 0) {
+              pendingSeekTimeRef.current = targetTime;
+            }
+            if (useAudioPlayerStore.getState().isPlaying) {
+              audioRef.current.play().catch((err) => {
+                console.warn('Seamless autoplay after ad failed:', err);
+              });
+            }
+          }
+        }}
+        onError={() => {
+          console.warn('Ad error, transitioning to book audio immediately');
+          adPlayedForCurrentBookRef.current = true;
+          setIsAdPlaying(false);
+          setAdProgress(0);
+
+          const currentBookState = useAudioPlayerStore.getState();
+          const targetTime = currentBookState.progress > 0
+            ? currentBookState.progress
+            : (targetResumeTimeRef.current > 0 ? targetResumeTimeRef.current : 0);
+
+          if (currentBookState.currentBook) {
+            startAudioSession(currentBookState.currentBook.id, currentBookState.currentChapter?.id);
+          }
+
+          if (isYouTube && ytPlayerRef.current && typeof ytPlayerRef.current.seekTo === 'function') {
+            if (targetTime > 0) ytPlayerRef.current.seekTo(targetTime, true);
+            if (useAudioPlayerStore.getState().isPlaying) ytPlayerRef.current.playVideo();
+          } else if (audioRef.current) {
+            if (targetTime > 0) {
+              pendingSeekTimeRef.current = targetTime;
+            }
+            if (useAudioPlayerStore.getState().isPlaying) {
+              audioRef.current.play().catch(() => {});
+            }
+          }
+        }}
       />
 
       {/* Main Bottom Audio Player Bar - Only shown when NOT on full player page */}
