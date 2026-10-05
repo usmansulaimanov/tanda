@@ -312,14 +312,14 @@ export const LeaderboardPage: React.FC = () => {
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="border-b border-slate-200 bg-slate-50 text-[11px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">
-                        <th className="py-3.5 px-4 sm:px-6 w-16 text-center">Орын</th>
-                        <th className="py-3.5 px-4">Оқырман</th>
-                        <th className="py-3.5 px-4 text-right">{getPeriodDisplayLabel(selectedPeriod)}</th>
-                        <th className="py-3.5 px-4 sm:px-6 text-right hidden sm:table-cell">Жалпы</th>
+                      <tr className="border-b border-slate-200 bg-slate-50 text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                        <th className="py-2.5 pl-3 pr-1 sm:pl-4 sm:pr-2 w-12 sm:w-16 text-center">Орын</th>
+                        <th className="py-2.5 pl-1 pr-3 sm:pl-2 sm:pr-4">Оқырман</th>
+                        <th className="py-2.5 px-3 sm:px-4 text-right">{getPeriodDisplayLabel(selectedPeriod)}</th>
+                        <th className="py-2.5 px-3 sm:px-6 text-right hidden sm:table-cell">Жалпы</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 text-sm">
+                    <tbody className="divide-y divide-slate-100 text-xs sm:text-sm">
                       {filteredEntries.map((entry) => {
                         const isMe = user?.id === entry.userId;
                         const isTop1 = entry.rank === 1;
@@ -337,34 +337,34 @@ export const LeaderboardPage: React.FC = () => {
                             }`}
                           >
                             {/* Rank Column */}
-                            <td className="py-3.5 px-4 sm:px-6 text-center">
+                            <td className="py-2.5 pl-3 pr-1 sm:pl-4 sm:pr-2 text-center w-12 sm:w-16">
                               {isTop1 ? (
-                                <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-amber-100 text-amber-800 text-lg font-bold border border-amber-300 shadow-sm">
+                                <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-amber-100 text-amber-800 text-base font-bold border border-amber-300 shadow-sm">
                                   🥇
                                 </span>
                               ) : isTop2 ? (
-                                <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-slate-200 text-slate-700 text-lg font-bold border border-slate-300 shadow-sm">
+                                <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-slate-200 text-slate-700 text-base font-bold border border-slate-300 shadow-sm">
                                   🥈
                                 </span>
                               ) : isTop3 ? (
-                                <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-orange-100 text-orange-800 text-lg font-bold border border-orange-300 shadow-sm">
+                                <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-orange-100 text-orange-800 text-base font-bold border border-orange-300 shadow-sm">
                                   🥉
                                 </span>
                               ) : isTop10 ? (
-                                <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold border border-emerald-200">
+                                <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold border border-emerald-200">
                                   {entry.rank}
                                 </span>
                               ) : (
-                                <span className="text-slate-500 font-medium text-xs sm:text-sm">
+                                <span className="text-slate-500 font-medium text-xs">
                                   #{entry.rank}
                                 </span>
                               )}
                             </td>
 
                             {/* User Info */}
-                            <td className="py-3.5 px-4">
-                              <div className="flex items-center gap-3">
-                                <div className="w-9 h-9 rounded-full bg-slate-200 border border-slate-300 flex items-center justify-center text-xs font-bold text-slate-700 overflow-hidden flex-shrink-0">
+                            <td className="py-2.5 pl-1 pr-3 sm:pl-2 sm:pr-4">
+                              <div className="flex items-center gap-2 sm:gap-2.5">
+                                <div className="w-8 h-8 rounded-full bg-slate-200 border border-slate-300 flex items-center justify-center text-xs font-bold text-slate-700 overflow-hidden flex-shrink-0">
                                   {entry.avatarUrl ? (
                                     <img
                                       src={entry.avatarUrl}
@@ -377,17 +377,17 @@ export const LeaderboardPage: React.FC = () => {
                                   )}
                                 </div>
                                 <div className="min-w-0">
-                                  <div className="flex items-center gap-2">
-                                    <span className={`truncate text-sm sm:text-base ${isMe ? 'text-emerald-900 font-bold' : 'text-slate-900 font-medium'}`}>
+                                  <div className="flex items-center gap-1.5 flex-wrap">
+                                    <span className={`truncate text-xs sm:text-sm ${isMe ? 'text-emerald-900 font-bold' : 'text-slate-900 font-medium'}`}>
                                       {entry.fullName}
                                     </span>
                                     {isMe && (
-                                      <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200 text-[10px] font-bold">
+                                      <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200 text-[9px] font-bold">
                                         Сіз
                                       </span>
                                     )}
                                     {isTop10 && (
-                                      <span className="hidden md:inline-flex items-center text-[11px] text-amber-700 font-bold">
+                                      <span className="hidden md:inline-flex items-center text-[10px] text-amber-700 font-bold">
                                         🎖️ Топ 10
                                       </span>
                                     )}
@@ -397,15 +397,15 @@ export const LeaderboardPage: React.FC = () => {
                             </td>
 
                             {/* Period Minutes */}
-                            <td className="py-3.5 px-4 text-right">
-                              <div className="font-extrabold text-emerald-700 text-sm sm:text-base">
+                            <td className="py-2.5 px-3 sm:px-4 text-right whitespace-nowrap">
+                              <div className="font-bold text-emerald-700 text-xs sm:text-sm">
                                 {formatMinutes(entry.periodMinutes)}
                               </div>
                             </td>
 
                             {/* All-time Minutes */}
-                            <td className="py-3.5 px-4 sm:px-6 text-right hidden sm:table-cell">
-                              <div className="text-slate-600 text-sm font-medium">
+                            <td className="py-2.5 px-3 sm:px-6 text-right hidden sm:table-cell whitespace-nowrap">
+                              <div className="text-slate-600 text-xs sm:text-sm font-medium">
                                 {formatMinutes(entry.allTimeMinutes)}
                               </div>
                             </td>
