@@ -300,49 +300,11 @@ export const ProfilePage: React.FC = () => {
               <span>📅</span>
               <span>{formatDateDMY(user.createdAt)} ж. тіркелген</span>
             </div>
-            <div className="text-xs text-slate-600 mt-1">
+            <div className="text-xs text-slate-600 mt-1 mb-3.5">
               <span className="font-bold text-slate-900">0</span> пікірлес
               <span className="mx-1.5 text-slate-300">|</span>
               <span className="font-bold text-slate-900">0</span> қауымдас
             </div>
-          </div>
-
-          {/* Orange Tanda Premium Card */}
-          <div
-            onClick={() => (!isPremiumActive ? setIsPremiumModalOpen(true) : navigate('/premium'))}
-            className="w-full rounded-2xl p-3.5 text-white mb-3 cursor-pointer shadow-sm active:scale-[0.99] flex items-center justify-between gap-2.5 transition-all"
-            style={{
-              background: 'linear-gradient(90deg, #FF6000 0%, #FF7A00 100%)',
-            }}
-          >
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
-                <Sparkles className="w-4 h-4 text-amber-200" />
-              </div>
-              <div className="min-w-0">
-                <div className="font-bold text-[14px] leading-tight flex items-center gap-1.5">
-                  Tanda Premium
-                  {isPremiumActive && (
-                    <span className="text-[9px] bg-white/30 text-white font-bold px-1.5 py-0.2 rounded-full uppercase">
-                      Белсенді
-                    </span>
-                  )}
-                </div>
-                <div className="text-[11px] text-white/90 truncate mt-0.5">
-                  {isPremiumActive
-                    ? 'Барлық мүмкіндіктер қолжетімді'
-                    : 'Өзіңіз үшін премиум мүмкіндіктерді ашыңыз'}
-                </div>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              className="shrink-0 px-2.5 py-1 rounded-full bg-white/20 border border-white/30 text-[11px] font-bold flex items-center gap-0.5 text-white"
-            >
-              {isPremiumActive ? 'Толығырақ' : 'Премиум'}
-              <ChevronRight className="w-3 h-3" />
-            </button>
           </div>
 
           {/* 2x2 Stats Grid */}
