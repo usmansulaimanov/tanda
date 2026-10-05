@@ -296,6 +296,10 @@ export const ProfilePage: React.FC = () => {
               <span className="mx-1.5 text-slate-300">|</span>
               <span className="text-slate-600 font-semibold">@{user.username || 'username'}</span>
             </div>
+            <div className="text-xs text-slate-700 font-semibold mt-1 flex items-center gap-1">
+              <span>🪙</span>
+              <span>Бонус: {bonusBalance}</span>
+            </div>
           </div>
 
           {/* 2x2 Stats Grid */}
