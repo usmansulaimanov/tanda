@@ -272,18 +272,12 @@ export const ProfilePage: React.FC = () => {
               )}
             </div>
 
-            {/* Action buttons: Profil tahrirlash + Share */}
+            {/* Action button: Share */}
             <div className="flex items-center gap-1.5 mb-1">
-              <Link
-                to="/settings"
-                className="px-3.5 py-1.5 rounded-lg bg-[#F1F5F9] text-slate-800 text-xs font-semibold hover:bg-slate-200 transition-colors shadow-none"
-              >
-                Профильді өңдеу
-              </Link>
               <button
                 type="button"
                 onClick={handleShareProfile}
-                className="p-1.5 rounded-lg bg-[#F1F5F9] text-slate-700 hover:bg-slate-200 transition-colors"
+                className="p-2 rounded-xl bg-[#F1F5F9] text-slate-700 hover:bg-slate-200 transition-colors"
                 title="Бөлісу"
                 aria-label="Профильмен бөлісу"
               >
