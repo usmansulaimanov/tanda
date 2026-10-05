@@ -33,6 +33,7 @@ import { reviewsApi } from '../../shared/api/reviews.api';
 import { certificatesApi } from '../../shared/api/certificates.api';
 import { TandaPremiumBadge } from '../../components/ui/TandaPremiumBadge';
 import { PremiumModal } from '../premium/PremiumModal';
+import tandaPremiumBlack from '../../assets/tanda-premium-black.png';
 
 type ActiveTab = 'reviews' | 'shelves' | 'certificates' | 'quotes' | 'saved';
 
@@ -305,13 +306,29 @@ export const ProfilePage: React.FC = () => {
 
           {/* User Name and Meta */}
           <div className="mb-3.5">
-            <h1 className="text-xl font-black text-slate-900 leading-snug">
-              {user.name || 'Оқырман'}
-            </h1>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <h1 className="text-xl font-black text-slate-900 leading-snug">
+                {user.name || 'Оқырман'}
+              </h1>
+              {isPremiumActive && (
+                <img
+                  src={tandaPremiumBlack}
+                  alt="Premium"
+                  className="w-4 h-4 object-contain shrink-0 inline-block mb-0.5"
+                  title="Tanda Premium"
+                />
+              )}
+            </div>
             <div className="text-xs text-slate-500 font-medium mt-0.5">
               <span>ID: {user.idNumber || user.id?.substring(0, 7)}</span>
-              <span className="mx-1.5 text-slate-300">|</span>
-              <span className="text-slate-600 font-semibold">@{user.username || 'username'}</span>
+              {user.username && user.username.trim().length > 0 && (
+                <>
+                  <span className="mx-1.5 text-slate-300">|</span>
+                  <span className="text-slate-600 font-semibold">
+                    @{user.username.replace(/^@/, '')}
+                  </span>
+                </>
+              )}
             </div>
             <div className="text-xs text-amber-700 font-bold mt-1 flex items-center gap-1.5">
               <img src="/bonus-coin.png" alt="Бонус" className="w-3.5 h-3.5 object-contain shrink-0" />
