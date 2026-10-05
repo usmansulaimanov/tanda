@@ -130,6 +130,19 @@ export const ProfilePage: React.FC = () => {
     });
   }, [shelfBooks, shelfFilter]);
 
+  // Peak listening day of current month
+  const peakDay = useMemo(() => {
+    if (!personalStats?.dailyActivity || personalStats.dailyActivity.length === 0) return null;
+    let max = personalStats.dailyActivity[0];
+    for (const item of personalStats.dailyActivity) {
+      if (item.seconds > max.seconds) {
+        max = item;
+      }
+    }
+    if (!max || max.seconds <= 0) return null;
+    return max;
+  }, [personalStats]);
+
   // Leaderboard rank value
   const userRank = leaderboardData?.currentUserEntry?.rank;
 
@@ -304,49 +317,47 @@ export const ProfilePage: React.FC = () => {
 
           {/* 2x2 Stats Grid */}
           <div className="grid grid-cols-2 gap-2 mb-4">
-            {/* Card 1 */}
-            <div className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm">
-              <div className="text-[11px] text-slate-500 font-medium">Бонус балансы</div>
-              <div className="flex items-center gap-1.5 text-sm font-bold text-slate-900 mt-1">
-                <img src="/bonus-coin.png" alt="Бонус" className="w-4 h-4 object-contain shrink-0" />
-                <span>{bonusBalance}</span>
-              </div>
-            </div>
-
-            {/* Card 2 */}
-            <div className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm">
-              <div className="text-[11px] text-slate-500 font-medium">Жалпы оқу</div>
+            {/* Card 1: Сол жақ жоғары - Бүгін */}
+            <div className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm flex flex-col justify-between min-h-[66px]">
+              <div className="text-[11px] text-slate-500 font-medium">Бүгін</div>
               <div className="flex items-center gap-1.5 text-sm font-bold text-slate-900 mt-1">
                 <span>⏱️</span>
-                <span>{formatReadingTime(totalSecondsRead)}</span>
+                <span>{formatReadingTime(personalStats?.todaySeconds || 0)}</span>
               </div>
             </div>
 
-            {/* Card 3 */}
-            <Link
-              to="/leaderboard"
-              className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm flex items-center justify-between"
-            >
-              <div>
-                <div className="text-[11px] text-slate-500 font-medium">Марра рейтингі</div>
-                <div className="flex items-center gap-1.5 text-sm font-bold text-slate-900 mt-1">
-                  <span>🏆</span>
-                  <span>{userRank ? `#${userRank}` : '-'}</span>
-                </div>
+            {/* Card 2: Оң жақ жоғары - Бұл ай */}
+            <div className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm flex flex-col justify-between min-h-[66px]">
+              <div className="text-[11px] text-slate-500 font-medium">Бұл ай</div>
+              <div className="flex items-center gap-1.5 text-sm font-bold text-slate-900 mt-1">
+                <span>📅</span>
+                <span>{formatReadingTime(personalStats?.thisMonthSeconds || 0)}</span>
               </div>
-              <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-            </Link>
+            </div>
 
-            {/* Card 4 */}
-            <div className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm flex items-center justify-between">
-              <div>
-                <div className="text-[11px] text-slate-500 font-medium">Соңғы 7 күн</div>
-                <div className="flex items-center gap-1.5 text-sm font-bold text-slate-900 mt-1">
-                  <span>📅</span>
-                  <span>{formatReadingTime(last7DaysSeconds)}</span>
+            {/* Card 3: Сол жақ төмен - Бұл айдағы пик тыңдаған күні мен минуты */}
+            <div className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm flex flex-col justify-between min-h-[66px]">
+              <div className="text-[11px] text-slate-500 font-medium truncate">Пик тыңдау</div>
+              <div className="mt-1">
+                <div className="flex items-center gap-1.5 text-sm font-bold text-slate-900">
+                  <span>⚡</span>
+                  <span>{peakDay ? formatReadingTime(peakDay.seconds) : '0 daq'}</span>
                 </div>
+                {peakDay && (
+                  <div className="text-[10px] text-slate-400 font-medium mt-0.5">
+                    {formatDateDMY(peakDay.date)}
+                  </div>
+                )}
               </div>
-              <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+            </div>
+
+            {/* Card 4: Оң жақ төмен - Соңғы 7 күн */}
+            <div className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm flex flex-col justify-between min-h-[66px]">
+              <div className="text-[11px] text-slate-500 font-medium">Соңғы 7 күн</div>
+              <div className="flex items-center gap-1.5 text-sm font-bold text-slate-900 mt-1">
+                <span>📊</span>
+                <span>{formatReadingTime(last7DaysSeconds)}</span>
+              </div>
             </div>
           </div>
 
