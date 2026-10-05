@@ -171,12 +171,12 @@ export const LeaderboardPage: React.FC = () => {
           <div className="space-y-5">
             
             {/* Period Selector Tabs */}
-            <div className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-3">
-              <div className="flex flex-wrap items-center gap-2">
+            <div className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3">
+              <div className="grid grid-cols-4 gap-1.5 sm:gap-2 w-full md:w-auto">
                 <button
                   type="button"
                   onClick={() => setSelectedPeriod('THIS_MONTH')}
-                  className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
+                  className={`px-1.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all text-center whitespace-nowrap flex items-center justify-center ${
                     selectedPeriod === 'THIS_MONTH'
                       ? 'bg-emerald-600 text-white shadow-sm'
                       : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
@@ -187,7 +187,7 @@ export const LeaderboardPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setSelectedPeriod('LAST_MONTH')}
-                  className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
+                  className={`px-1.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all text-center whitespace-nowrap flex items-center justify-center ${
                     selectedPeriod === 'LAST_MONTH'
                       ? 'bg-amber-600 text-white shadow-sm'
                       : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
@@ -198,7 +198,7 @@ export const LeaderboardPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setSelectedPeriod('THIS_WEEK')}
-                  className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
+                  className={`px-1.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all text-center whitespace-nowrap flex items-center justify-center ${
                     selectedPeriod === 'THIS_WEEK'
                       ? 'bg-emerald-600 text-white shadow-sm'
                       : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
@@ -209,7 +209,7 @@ export const LeaderboardPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setSelectedPeriod('LAST_WEEK')}
-                  className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
+                  className={`px-1.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all text-center whitespace-nowrap flex items-center justify-center ${
                     selectedPeriod === 'LAST_WEEK'
                       ? 'bg-amber-600 text-white shadow-sm'
                       : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
@@ -220,7 +220,7 @@ export const LeaderboardPage: React.FC = () => {
               </div>
 
               {/* Period Label */}
-              <div className="text-xs sm:text-sm text-slate-600 font-semibold px-2">
+              <div className="text-xs sm:text-sm text-slate-600 font-semibold px-1 sm:px-2">
                 {leaderboardData?.periodLabel || ''}
               </div>
             </div>
