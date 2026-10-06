@@ -461,8 +461,8 @@ export const BookDetailPage: React.FC = () => {
                       {ch.title}
                     </span>
                     {isLocked && (
-                      <span className="text-[10px] font-bold text-amber-700 bg-amber-100/80 px-1.5 py-0.5 rounded">
-                        Премиум
+                      <span className="text-[11px] font-bold text-amber-600 flex items-center gap-1 shrink-0">
+                        🔒 Премиум
                       </span>
                     )}
                   </div>

@@ -1375,8 +1375,8 @@ export const AudioPlayerPage: React.FC = () => {
                             {ch.title}
                           </h4>
                           {isLocked && (
-                            <span className="text-[10px] font-bold text-amber-700 bg-amber-100/80 px-1.5 py-0.5 rounded flex items-center gap-0.5 shrink-0">
-                              <Lock className="w-2.5 h-2.5" />
+                            <span className="text-[11px] font-bold text-amber-600 flex items-center gap-1 shrink-0">
+                              <Lock className="w-3 h-3" />
                               Премиум
                             </span>
                           )}
