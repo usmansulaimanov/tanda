@@ -11,10 +11,40 @@ const isIOS = () => {
   return /iphone|ipad|ipod/i.test(ua);
 };
 
-const isInStandaloneMode = () =>
-  'standalone' in window.navigator && (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
+export const isAppInstalledOrStandalone = (): boolean => {
+  if (typeof window === 'undefined') return false;
 
-const isMobile = () => window.innerWidth < 768;
+  // 1. Check if already marked as installed in localStorage
+  if (localStorage.getItem('pwa_installed') === 'true') {
+    return true;
+  }
+
+  // 2. Check standard display-mode media queries (Android, Chrome, Edge, etc.)
+  if (
+    window.matchMedia('(display-mode: standalone)').matches ||
+    window.matchMedia('(display-mode: fullscreen)').matches ||
+    window.matchMedia('(display-mode: minimal-ui)').matches
+  ) {
+    return true;
+  }
+
+  // 3. Check iOS Safari standalone mode
+  if (
+    'standalone' in window.navigator &&
+    (window.navigator as Navigator & { standalone?: boolean }).standalone === true
+  ) {
+    return true;
+  }
+
+  // 4. Check Android TWA / app referrer
+  if (document.referrer.startsWith('android-app://')) {
+    return true;
+  }
+
+  return false;
+};
+
+const isMobile = () => typeof window !== 'undefined' && window.innerWidth < 768;
 
 export const PWAInstallBanner: React.FC = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
@@ -23,26 +53,63 @@ export const PWAInstallBanner: React.FC = () => {
 
   useEffect(() => {
     // Don't show if already installed or not mobile
-    if (isInStandaloneMode() || !isMobile()) return;
+    if (isAppInstalledOrStandalone() || !isMobile()) return;
+
+    // Check navigator.getInstalledRelatedApps API if available
+    if (typeof window !== 'undefined' && 'getInstalledRelatedApps' in window.navigator) {
+      (window.navigator as any).getInstalledRelatedApps()
+        .then((relatedApps: any[]) => {
+          if (relatedApps && relatedApps.length > 0) {
+            localStorage.setItem('pwa_installed', 'true');
+            setShowBanner(false);
+            setShowIOSGuide(false);
+          }
+        })
+        .catch(() => {});
+    }
 
     // Don't show if user already dismissed this session
     if (sessionStorage.getItem('pwa_dismissed')) return;
 
+    // Listen for successful installation event from browser
+    const onAppInstalled = () => {
+      localStorage.setItem('pwa_installed', 'true');
+      setShowBanner(false);
+      setShowIOSGuide(false);
+      setDeferredPrompt(null);
+    };
+    window.addEventListener('appinstalled', onAppInstalled);
+
     if (isIOS()) {
-      // iOS: show manual guide after short delay
-      const timer = setTimeout(() => setShowIOSGuide(true), 3000);
-      return () => clearTimeout(timer);
+      // iOS: show manual guide after short delay only if not installed
+      const timer = setTimeout(() => {
+        if (!isAppInstalledOrStandalone()) {
+          setShowIOSGuide(true);
+        }
+      }, 3000);
+      return () => {
+        clearTimeout(timer);
+        window.removeEventListener('appinstalled', onAppInstalled);
+      };
     }
 
     // Android Chrome: listen for install prompt
     const handler = (e: Event) => {
+      if (isAppInstalledOrStandalone()) return;
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      setTimeout(() => setShowBanner(true), 2000);
+      setTimeout(() => {
+        if (!isAppInstalledOrStandalone()) {
+          setShowBanner(true);
+        }
+      }, 2000);
     };
 
     window.addEventListener('beforeinstallprompt', handler);
-    return () => window.removeEventListener('beforeinstallprompt', handler);
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handler);
+      window.removeEventListener('appinstalled', onAppInstalled);
+    };
   }, []);
 
   const handleInstall = async () => {
@@ -50,6 +117,7 @@ export const PWAInstallBanner: React.FC = () => {
     await deferredPrompt.prompt();
     const result = await deferredPrompt.userChoice;
     if (result.outcome === 'accepted') {
+      localStorage.setItem('pwa_installed', 'true');
       setShowBanner(false);
     }
     setDeferredPrompt(null);
@@ -138,21 +206,32 @@ export const PWAInstallSidebarCard: React.FC = () => {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    if (isInStandaloneMode() || !isMobile()) return;
+    if (isAppInstalledOrStandalone() || !isMobile()) return;
+
+    const onAppInstalled = () => {
+      localStorage.setItem('pwa_installed', 'true');
+      setReady(false);
+      setDeferredPrompt(null);
+    };
+    window.addEventListener('appinstalled', onAppInstalled);
 
     if (isIOS()) {
       setReady(true);
-      return;
+      return () => window.removeEventListener('appinstalled', onAppInstalled);
     }
 
     const handler = (e: Event) => {
+      if (isAppInstalledOrStandalone()) return;
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
       setReady(true);
     };
 
     window.addEventListener('beforeinstallprompt', handler);
-    return () => window.removeEventListener('beforeinstallprompt', handler);
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handler);
+      window.removeEventListener('appinstalled', onAppInstalled);
+    };
   }, []);
 
   const handleInstall = async () => {
@@ -162,12 +241,15 @@ export const PWAInstallSidebarCard: React.FC = () => {
     }
     if (!deferredPrompt) return;
     await deferredPrompt.prompt();
-    await deferredPrompt.userChoice;
+    const result = await deferredPrompt.userChoice;
+    if (result.outcome === 'accepted') {
+      localStorage.setItem('pwa_installed', 'true');
+    }
     setDeferredPrompt(null);
     setReady(false);
   };
 
-  if (!ready) return null;
+  if (!ready || isAppInstalledOrStandalone()) return null;
 
   return (
     <div className="mx-4 mb-4">
