@@ -1128,13 +1128,15 @@ export const ReadersPage: React.FC = () => {
                   ? (searchQuery.trim() ? 'Іздеу бойынша оқырман табылмады' : 'Оқырмандар табылмады немесе тізім бос')
                   : (searchQuery.trim() ? 'Іздеу бойынша мұрағаттан табылмады' : 'Әзірге өшірілген оқырмандар мұрағаты бос')}
               </div>
-              <p style={{ fontSize: '13px', margin: '0 0 16px 0', maxWidth: '400px', marginLeft: 'auto', marginRight: 'auto' }}>
-                {searchQuery.trim()
-                  ? `«${searchQuery}» сұранысы бойынша ешқандай жазба табылмады. Іздеу сөзін өзгертіп көріңіз.`
-                  : activeTab === 'active'
-                    ? 'Жүйеде әлі тіркелген оқырмандар жоқ немесе желідегі деректерді жаңарту қажет.'
-                    : 'Пайдаланушылар өз аккаунтын өшірген кезде олардың барлық аудит мәліметтері осы жерде сақталады.'}
-              </p>
+              {searchQuery.trim() ? (
+                <p style={{ fontSize: '13px', margin: '0 0 16px 0', maxWidth: '400px', marginLeft: 'auto', marginRight: 'auto' }}>
+                  {`«${searchQuery}» сұранысы бойынша ешқандай жазба табылмады. Іздеу сөзін өзгертіп көріңіз.`}
+                </p>
+              ) : activeTab === 'active' ? (
+                <p style={{ fontSize: '13px', margin: '0 0 16px 0', maxWidth: '400px', marginLeft: 'auto', marginRight: 'auto' }}>
+                  Жүйеде әлі тіркелген оқырмандар жоқ немесе желідегі деректерді жаңарту қажет.
+                </p>
+              ) : null}
               <button
                 type="button"
                 onClick={activeTab === 'active' ? fetchReaders : fetchArchives}
