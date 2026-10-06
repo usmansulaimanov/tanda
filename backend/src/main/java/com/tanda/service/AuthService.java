@@ -126,6 +126,7 @@ public class AuthService {
         if (isNewGoogleUser) {
             bonusService.awardSignupBonus(user);
             messageService.sendNewUserOnboardingMessages(user.getId(), user.getName());
+            emailVerificationService.sendWelcomeEmail(user.getEmail(), user.getName(), 100, "пілдә");
         }
         bonusService.checkAndAwardDailyBonus(user);
         String token = jwtTokenProvider.generateToken(user);
@@ -268,6 +269,7 @@ public class AuthService {
         bonusService.awardSignupBonus(user);
         bonusService.checkAndAwardDailyBonus(user);
         messageService.sendNewUserOnboardingMessages(user.getId(), user.getName());
+        emailVerificationService.sendWelcomeEmail(user.getEmail(), user.getName(), 100, "пілдә");
 
         String token = jwtTokenProvider.generateToken(user);
         String rawRefreshToken = refreshTokenService.createRefreshToken(user, userAgent, ipAddress);

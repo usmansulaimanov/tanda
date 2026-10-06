@@ -118,7 +118,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialMode }) => {
           showToast(`Қош келдіңіз, ${cleanName}! Промокод қатесі: ${promoRes.error}`, 'info');
         }
       } else {
-        showToast(`Қош келдіңіз, ${cleanName}! Тіркелу сәтті аяқталды.`, 'success');
+        showToast(`🎉 Қош келдіңіз, ${cleanName}! Сізге 100 пілдә сыйға берілді 🎁`, 'success');
       }
 
       const updatedRole = useAuthStore.getState().role;
