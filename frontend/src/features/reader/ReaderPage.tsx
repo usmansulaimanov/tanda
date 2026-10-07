@@ -267,6 +267,22 @@ export const ReaderPage: React.FC = () => {
         )))
   );
 
+  // Lock body vertical scroll on mobile when reading epub
+  useEffect(() => {
+    if (isEpub) {
+      const prevBodyOverflow = document.body.style.overflow;
+      const prevHtmlOverflow = document.documentElement.style.overflow;
+      if (typeof window !== 'undefined' && window.innerWidth < 640) {
+        document.body.style.overflow = 'hidden';
+        document.documentElement.style.overflow = 'hidden';
+      }
+      return () => {
+        document.body.style.overflow = prevBodyOverflow;
+        document.documentElement.style.overflow = prevHtmlOverflow;
+      };
+    }
+  }, [isEpub]);
+
   useEffect(() => {
     if (!resolvedEbookUrl || isTg) {
       setPdfBlobUrl(null);
@@ -448,11 +464,13 @@ export const ReaderPage: React.FC = () => {
   return (
     <div
       style={{
-        minHeight: '100vh',
         backgroundColor: pageBg,
         color: pageTextColor,
         transition: 'background-color 0.25s ease, color 0.25s ease',
       }}
+      className={isEpub
+        ? "w-full h-[100dvh] fixed inset-0 sm:static sm:h-auto sm:min-h-screen overflow-hidden sm:overflow-visible flex flex-col"
+        : "min-h-screen"}
     >
       {/* Top Bar */}
       <div
@@ -529,7 +547,7 @@ export const ReaderPage: React.FC = () => {
       </div>
 
       {/* Reader Body */}
-      <main className={`max-w-5xl mx-auto ${isEpub ? 'p-0 m-0 sm:my-6 sm:px-6 sm:mb-20' : 'my-2 sm:my-6 px-2 sm:px-6 mb-10 sm:mb-20'}`}>
+      <main className={`w-full flex-1 flex flex-col ${isEpub ? 'p-0 m-0 sm:my-6 sm:px-6 sm:mb-20 max-w-5xl mx-auto h-full overflow-hidden' : 'max-w-5xl mx-auto my-2 sm:my-6 px-2 sm:px-6 mb-10 sm:mb-20'}`}>
         {resolvedEbookUrl ? (
           isTg ? (
             <div

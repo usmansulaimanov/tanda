@@ -176,6 +176,9 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         margin: 0 !important;
         padding: 0 !important;
         box-sizing: border-box !important;
+        overflow: hidden !important;
+        height: 100% !important;
+        max-height: 100% !important;
       }
       p, div, span, h1, h2, h3, h4, h5, h6, li {
         color: ${current.text} !important;
@@ -188,7 +191,16 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         -webkit-text-fill-color: ${current.text} !important;
         background-color: transparent !important;
       }
-      img, svg, video, audio {
+      img, svg {
+        background-color: transparent !important;
+        max-width: 95% !important;
+        max-height: 45vh !important;
+        height: auto !important;
+        object-fit: contain !important;
+        display: block !important;
+        margin: 6px auto !important;
+      }
+      video, audio {
         background-color: transparent !important;
         max-width: 100% !important;
       }
@@ -862,7 +874,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         backgroundColor: activeTheme.containerBg,
         borderColor: activeTheme.border,
       }}
-      className="w-full flex flex-col h-[100dvh] sm:h-[calc(100vh-120px)] sm:min-h-[480px] rounded-none sm:rounded-2xl border-0 sm:border-[1.5px] shadow-none sm:shadow-lg overflow-hidden relative transition-colors duration-200"
+      className="w-full flex-1 flex flex-col h-full sm:h-[calc(100vh-120px)] sm:min-h-[480px] rounded-none sm:rounded-2xl border-0 sm:border-[1.5px] shadow-none sm:shadow-lg overflow-hidden relative transition-colors duration-200"
     >
       {/* Top Controls Bar (Toggleable on mobile, always visible on desktop) */}
       <div
