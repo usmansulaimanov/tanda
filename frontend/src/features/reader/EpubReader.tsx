@@ -267,9 +267,9 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
   }, [fontSize]);
 
   const isNavigatingRef = useRef(false);
-  const containerTouchStartXRef = useRef<number>(0);
-  const containerTouchStartYRef = useRef<number>(0);
-  const containerTouchStartTimeRef = useRef<number>(0);
+  const touchStartXRef = useRef<number>(0);
+  const touchStartYRef = useRef<number>(0);
+  const touchStartTimeRef = useRef<number>(0);
 
   const handleNextPage = useCallback(() => {
     if (isNavigatingRef.current) return;
@@ -1321,32 +1321,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
       )}
 
       {/* Main Reading Area */}
-      <div
-        style={{ flex: 1, position: 'relative', overflow: 'hidden', backgroundColor: activeTheme.bg }}
-        onTouchStart={(e) => {
-          if (e.touches && e.touches.length === 1) {
-            containerTouchStartXRef.current = e.touches[0].screenX || e.touches[0].clientX;
-            containerTouchStartYRef.current = e.touches[0].screenY || e.touches[0].clientY;
-            containerTouchStartTimeRef.current = Date.now();
-          }
-        }}
-        onTouchEnd={(e) => {
-          if (e.changedTouches && e.changedTouches.length === 1) {
-            const endX = e.changedTouches[0].screenX || e.changedTouches[0].clientX;
-            const endY = e.changedTouches[0].screenY || e.changedTouches[0].clientY;
-            const deltaX = endX - containerTouchStartXRef.current;
-            const deltaY = endY - containerTouchStartYRef.current;
-            const elapsed = Date.now() - containerTouchStartTimeRef.current;
-            if (Math.abs(deltaX) >= 25 && Math.abs(deltaX) > Math.abs(deltaY) * 0.6 && elapsed < 800) {
-              if (deltaX < 0) {
-                handleNextPage();
-              } else {
-                handlePrevPage();
-              }
-            }
-          }
-        }}
-      >
+      <div style={{ flex: 1, position: 'relative', overflow: 'hidden', backgroundColor: activeTheme.bg }}>
         {/* Loading Spinner */}
         {isLoading && (
           <div
@@ -1424,6 +1399,63 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
             boxSizing: 'border-box',
           }}
         />
+
+        {/* Mobile Dedicated Touch & Swipe Gesture Layer (iOS Safari & Android optimized) */}
+        {!isLoading && !loadError && (
+          <div
+            className="block sm:hidden absolute inset-0 z-20 select-none cursor-pointer"
+            style={{
+              touchAction: 'none',
+              WebkitTouchCallout: 'none',
+              WebkitUserSelect: 'none',
+              userSelect: 'none',
+              backgroundColor: 'transparent',
+            }}
+            onTouchStart={(e) => {
+              if (e.touches && e.touches.length === 1) {
+                touchStartXRef.current = e.touches[0].clientX;
+                touchStartYRef.current = e.touches[0].clientY;
+                touchStartTimeRef.current = Date.now();
+              }
+            }}
+            onTouchEnd={(e) => {
+              if (e.changedTouches && e.changedTouches.length === 1) {
+                const endX = e.changedTouches[0].clientX;
+                const endY = e.changedTouches[0].clientY;
+                const deltaX = endX - touchStartXRef.current;
+                const deltaY = endY - touchStartYRef.current;
+                const elapsed = Date.now() - touchStartTimeRef.current;
+
+                // 1. Horizontal Swipe Gesture (Left = Next, Right = Prev)
+                if (Math.abs(deltaX) >= 28 && Math.abs(deltaX) > Math.abs(deltaY) * 0.6 && elapsed < 800) {
+                  if (deltaX < 0) {
+                    handleNextPage();
+                  } else {
+                    handlePrevPage();
+                  }
+                  return;
+                }
+
+                // 2. Single Tap Gesture (Minimal movement)
+                if (Math.abs(deltaX) < 18 && Math.abs(deltaY) < 18 && elapsed < 450) {
+                  const screenWidth = typeof window !== 'undefined' ? window.innerWidth : 360;
+                  const leftZone = screenWidth * 0.22;
+                  const rightZone = screenWidth * 0.78;
+
+                  if (endX < leftZone) {
+                    handlePrevPage();
+                  } else if (endX > rightZone) {
+                    handleNextPage();
+                  } else {
+                    // Center tap: Toggle top and bottom controls
+                    setShowMobileControls((prev) => !prev);
+                    setIsMobileSettingsOpen(false);
+                  }
+                }
+              }
+            }}
+          />
+        )}
 
         {/* Left / Right Page Flip Overlay Controls (hidden on mobile, visible on desktop) */}
         {!isLoading && !loadError && (
