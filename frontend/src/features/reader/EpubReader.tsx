@@ -1433,7 +1433,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
           }}
         />
 
-        {/* Left / Right Page Flip Overlay Controls (hidden on mobile when clean mode active) */}
+        {/* Left / Right Page Flip Overlay Controls (hidden on mobile, visible on desktop) */}
         {!isLoading && !loadError && (
           <>
             <button
@@ -1441,7 +1441,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
               disabled={isAtStart}
               title={isAtStart ? 'Кітаптың басы' : 'Алдыңғы бет (←)'}
               aria-label="Алдыңғы бет"
-              className={showMobileControls ? 'flex' : 'hidden sm:flex'}
+              className="hidden sm:flex"
               style={{
                 position: 'absolute',
                 top: '50%',
@@ -1483,7 +1483,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
               disabled={isAtEnd}
               title={isAtEnd ? 'Кітаптың соңы' : 'Келесі бет (→)'}
               aria-label="Келесі бет"
-              className={showMobileControls ? 'flex' : 'hidden sm:flex'}
+              className="hidden sm:flex"
               style={{
                 position: 'absolute',
                 top: '50%',
