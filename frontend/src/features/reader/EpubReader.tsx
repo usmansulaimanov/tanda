@@ -115,7 +115,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
   const [isAtStart, setIsAtStart] = useState<boolean>(true);
   const [isAtEnd, setIsAtEnd] = useState<boolean>(false);
   const [isMobileSettingsOpen, setIsMobileSettingsOpen] = useState<boolean>(false);
-  const [showMobileControls, setShowMobileControls] = useState<boolean>(false);
+  const [showMobileControls, setShowMobileControls] = useState<boolean>(true);
 
   const isAtStartRef = useRef(true);
   useEffect(() => {
@@ -280,8 +280,14 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
     }
   }, []);
 
+  const lastTapTimeRef = useRef<number>(0);
+
   const handleReaderTap = useCallback((clientX: number, targetWidth: number) => {
     if (typeof window !== 'undefined' && window.innerWidth >= 640) return; // Desktop unaffected
+    const now = Date.now();
+    if (now - lastTapTimeRef.current < 400) return; // Ignore duplicate synthetic events (touchend + click)
+    lastTapTimeRef.current = now;
+
     const width = targetWidth > 0 ? targetWidth : (typeof window !== 'undefined' ? window.innerWidth : 360);
     const leftZone = width * 0.28;
     const rightZone = width * 0.72;
@@ -765,6 +771,48 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
 
       rendition.on('relocated', (location: any) => {
         updateProgressFromLocation(location);
+      });
+
+      // Direct rendition event listeners
+      let touchStartX = 0;
+      let touchStartY = 0;
+      let touchStartTime = 0;
+
+      rendition.on('touchstart', (e: TouchEvent) => {
+        if (e.touches && e.touches.length === 1) {
+          touchStartX = e.touches[0].clientX;
+          touchStartY = e.touches[0].clientY;
+          touchStartTime = Date.now();
+        }
+      });
+
+      rendition.on('touchend', (e: TouchEvent) => {
+        if (e.changedTouches && e.changedTouches.length === 1) {
+          const deltaX = e.changedTouches[0].clientX - touchStartX;
+          const deltaY = e.changedTouches[0].clientY - touchStartY;
+          const elapsed = Date.now() - touchStartTime;
+
+          // Swipe gesture
+          if (Math.abs(deltaX) > 40 && Math.abs(deltaY) < 60 && elapsed < 500) {
+            if (deltaX < 0) {
+              handleNextPage();
+            } else {
+              handlePrevPage();
+            }
+            return;
+          }
+
+          // Tap gesture
+          if (Math.abs(deltaX) < 15 && Math.abs(deltaY) < 15 && elapsed < 400) {
+            const clientX = e.changedTouches[0].clientX;
+            handleReaderTapRef.current(clientX, window.innerWidth);
+          }
+        }
+      });
+
+      rendition.on('click', (e: MouseEvent) => {
+        const clientX = e.clientX;
+        handleReaderTapRef.current(clientX, window.innerWidth);
       });
 
       // Single centralized keyboard listener for rendition iframe
