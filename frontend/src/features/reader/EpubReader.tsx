@@ -319,10 +319,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
     handleReaderTapRef.current = handleReaderTap;
   }, [handleReaderTap]);
 
-  const executeSeek = useCallback(async (targetPercent: number) => {
-    const clamped = Math.max(0, Math.min(100, targetPercent));
-    setProgressPercent(clamped);
-
+  const executeSeek = useCallback(async (targetVal: number, isPageNumber = false) => {
     if (!bookRef.current || !renditionRef.current) {
       setSliderDragPercent(null);
       isDraggingSliderRef.current = false;
@@ -330,16 +327,43 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
     }
     const book = bookRef.current;
     const rendition = renditionRef.current;
+    const totalLocs = (book.locations as any)?.total || (book.locations ? book.locations.length() : 0);
+    const hasTrueLocations = Boolean(
+      totalLocs > 1 &&
+      ((book.locations as any)?._locations?.length > 1 || (book.locations as any)?.total > 1 || book.locations?.length() > 1)
+    );
 
     try {
-      if (clamped <= 1) {
+      let targetPage = 1;
+      let targetPct = 0;
+
+      if (isPageNumber && hasTrueLocations) {
+        targetPage = Math.max(1, Math.min(totalLocs, Math.round(targetVal)));
+        targetPct = Math.max(0, Math.min(100, Math.round(((targetPage - 1) / (totalLocs - 1)) * 100)));
+      } else if (hasTrueLocations) {
+        targetPct = Math.max(0, Math.min(100, targetVal));
+        targetPage = Math.max(1, Math.min(totalLocs, Math.round((targetPct / 100) * (totalLocs - 1)) + 1));
+      } else {
+        targetPct = Math.max(0, Math.min(100, targetVal));
+      }
+
+      setProgressPercent(targetPct);
+
+      if (targetPct <= 0 || (hasTrueLocations && targetPage <= 1)) {
         const firstSpine = (book.spine as any)?.get?.(0);
         if (firstSpine && (firstSpine.cfiBase || firstSpine.href)) {
           await rendition.display(firstSpine.cfiBase || firstSpine.href);
         } else {
           await rendition.display(0);
         }
-      } else if (clamped >= 99) {
+      } else if (targetPct >= 100 || (hasTrueLocations && targetPage >= totalLocs)) {
+        if (hasTrueLocations && typeof (book.locations as any).cfiFromLocation === 'function') {
+          const lastCfi = (book.locations as any).cfiFromLocation(totalLocs - 1);
+          if (lastCfi) {
+            await rendition.display(lastCfi);
+            return;
+          }
+        }
         const spineLen = (book.spine as any)?.length || 0;
         if (spineLen > 0) {
           const lastSpine = (book.spine as any).get(spineLen - 1);
@@ -347,13 +371,22 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
             await rendition.display(lastSpine.cfiBase || lastSpine.href);
           }
         }
+      } else if (hasTrueLocations && typeof (book.locations as any).cfiFromLocation === 'function') {
+        const pageIdx = targetPage - 1;
+        const cfi = (book.locations as any).cfiFromLocation(pageIdx);
+        if (cfi) {
+          await rendition.display(cfi);
+        } else {
+          const fallbackCfi = book.locations.cfiFromPercentage(targetPct / 100);
+          if (fallbackCfi) await rendition.display(fallbackCfi);
+        }
       } else if (book.locations && book.locations.length() > 0) {
-        const cfi = book.locations.cfiFromPercentage(clamped / 100);
+        const cfi = book.locations.cfiFromPercentage(targetPct / 100);
         if (cfi) {
           await rendition.display(cfi);
         } else if (book.spine && (book.spine as any).length > 0) {
           const spineLen = (book.spine as any).length;
-          const targetSpineIdx = Math.min(spineLen - 1, Math.max(0, Math.floor((clamped / 100) * spineLen)));
+          const targetSpineIdx = Math.min(spineLen - 1, Math.max(0, Math.floor((targetPct / 100) * spineLen)));
           const spineItem = (book.spine as any).get(targetSpineIdx);
           if (spineItem && (spineItem.cfiBase || spineItem.href)) {
             await rendition.display(spineItem.cfiBase || spineItem.href);
@@ -361,7 +394,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         }
       } else if (book.spine && (book.spine as any).length > 0) {
         const spineLen = (book.spine as any).length;
-        const targetSpineIdx = Math.min(spineLen - 1, Math.max(0, Math.floor((clamped / 100) * spineLen)));
+        const targetSpineIdx = Math.min(spineLen - 1, Math.max(0, Math.floor((targetPct / 100) * spineLen)));
         const spineItem = (book.spine as any).get(targetSpineIdx);
         if (spineItem && (spineItem.cfiBase || spineItem.href)) {
           await rendition.display(spineItem.cfiBase || spineItem.href);
@@ -1642,8 +1675,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
           {(() => {
             if (sliderDragPercent !== null) {
               if (totalBookPages > 1) {
-                const draggedPage = Math.max(1, Math.min(totalBookPages, Math.round((sliderDragPercent / 100) * totalBookPages) || 1));
-                return `${draggedPage} / ${totalBookPages} бет`;
+                return `${sliderDragPercent} / ${totalBookPages} бет`;
               }
               const spineLen = (bookRef.current?.spine as any)?.length || 0;
               if (spineLen > 1) {
@@ -1652,7 +1684,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
               }
               return 'Оқу барысы';
             }
-            return currentLocationText || (totalBookPages > 1 ? `${Math.max(1, Math.min(totalBookPages, Math.round((progressPercent / 100) * totalBookPages) || 1))} / ${totalBookPages} бет` : (progressPercent > 0 ? `${progressPercent}%` : 'Оқу барысы'));
+            return currentLocationText || (totalBookPages > 1 ? `${Math.max(1, Math.min(totalBookPages, Math.round((progressPercent / 100) * (totalBookPages - 1)) + 1))} / ${totalBookPages} бет` : (progressPercent > 0 ? `${progressPercent}%` : 'Оқу барысы'));
           })()}
         </div>
 
@@ -1666,99 +1698,96 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
             justifyContent: 'center',
           }}
         >
-          <input
-            type="range"
-            className="epub-progress-slider"
-            tabIndex={-1}
-            min="0"
-            max="100"
-            value={sliderDragPercent !== null ? sliderDragPercent : progressPercent}
-            onPointerDown={(e) => {
-              isDraggingSliderRef.current = true;
-              const target = e.currentTarget;
-              const rect = target.getBoundingClientRect();
-              if (rect.width > 0) {
-                const pct = Math.max(0, Math.min(100, Math.round(((e.clientX - rect.left) / rect.width) * 100)));
-                setSliderDragPercent(pct);
+          {(() => {
+            const isMultiPage = totalBookPages > 1;
+            const currentSliderVal = isMultiPage
+              ? (sliderDragPercent !== null ? sliderDragPercent : Math.max(1, Math.min(totalBookPages, Math.round((progressPercent / 100) * (totalBookPages - 1)) + 1)))
+              : (sliderDragPercent !== null ? sliderDragPercent : progressPercent);
+            const sliderFillPct = isMultiPage
+              ? Math.max(0, Math.min(100, Math.round(((currentSliderVal - 1) / (totalBookPages - 1)) * 100)))
+              : (sliderDragPercent !== null ? sliderDragPercent : progressPercent);
+
+            const getTargetFromEvent = (clientX: number, rect: DOMRect): number => {
+              if (rect.width <= 0) return currentSliderVal;
+              const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+              if (isMultiPage) {
+                return Math.max(1, Math.min(totalBookPages, Math.round(ratio * (totalBookPages - 1)) + 1));
               }
-            }}
-            onPointerMove={(e) => {
-              if (isDraggingSliderRef.current) {
-                const target = e.currentTarget;
-                const rect = target.getBoundingClientRect();
-                if (rect.width > 0) {
-                  const pct = Math.max(0, Math.min(100, Math.round(((e.clientX - rect.left) / rect.width) * 100)));
-                  setSliderDragPercent(pct);
-                }
-              }
-            }}
-            onTouchStart={(e) => {
-              isDraggingSliderRef.current = true;
-              if (e.touches.length > 0) {
-                const target = e.currentTarget;
-                const rect = target.getBoundingClientRect();
-                if (rect.width > 0) {
-                  const pct = Math.max(0, Math.min(100, Math.round(((e.touches[0].clientX - rect.left) / rect.width) * 100)));
-                  setSliderDragPercent(pct);
-                }
-              }
-            }}
-            onTouchMove={(e) => {
-              if (isDraggingSliderRef.current && e.touches.length > 0) {
-                const target = e.currentTarget;
-                const rect = target.getBoundingClientRect();
-                if (rect.width > 0) {
-                  const pct = Math.max(0, Math.min(100, Math.round(((e.touches[0].clientX - rect.left) / rect.width) * 100)));
-                  setSliderDragPercent(pct);
-                }
-              }
-            }}
-            onChange={(e) => {
-              const val = parseInt(e.target.value, 10);
-              if (!isNaN(val)) {
-                setSliderDragPercent(val);
-              }
-            }}
-            onPointerUp={(e) => {
-              const target = e.currentTarget;
-              target.blur();
-              const rect = target.getBoundingClientRect();
-              let finalPct = sliderDragPercent;
-              if (rect.width > 0) {
-                finalPct = Math.max(0, Math.min(100, Math.round(((e.clientX - rect.left) / rect.width) * 100)));
-              }
-              const seekVal = finalPct ?? parseInt(target.value, 10) ?? progressPercent;
-              executeSeek(seekVal);
-            }}
-            onTouchEnd={(e) => {
-              const target = e.currentTarget;
-              target.blur();
-              let finalPct = sliderDragPercent;
-              if (e.changedTouches.length > 0) {
-                const rect = target.getBoundingClientRect();
-                if (rect.width > 0) {
-                  finalPct = Math.max(0, Math.min(100, Math.round(((e.changedTouches[0].clientX - rect.left) / rect.width) * 100)));
-                }
-              }
-              const seekVal = finalPct ?? parseInt(target.value, 10) ?? progressPercent;
-              executeSeek(seekVal);
-            }}
-            onKeyDown={(e) => {
-              if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-                e.preventDefault();
-                e.stopPropagation();
-                (e.target as HTMLElement).blur();
-                processKeyActionRef.current(e.nativeEvent);
-              }
-            }}
-            title={totalBookPages > 0
-              ? `${Math.max(1, Math.min(totalBookPages, Math.round(((sliderDragPercent !== null ? sliderDragPercent : progressPercent) / 100) * totalBookPages) || 1))} / ${totalBookPages} бет`
-              : 'Оқу барысы'}
-            aria-label="Оқу барысын жылжыту"
-            style={{
-              background: `linear-gradient(to right, var(--blue, #2563EB) 0%, var(--blue, #2563EB) ${sliderDragPercent !== null ? sliderDragPercent : progressPercent}%, ${activeTheme.border} ${sliderDragPercent !== null ? sliderDragPercent : progressPercent}%, ${activeTheme.border} 100%)`,
-            }}
-          />
+              return Math.max(0, Math.min(100, Math.round(ratio * 100)));
+            };
+
+            return (
+              <input
+                type="range"
+                className="epub-progress-slider"
+                tabIndex={-1}
+                min={isMultiPage ? '1' : '0'}
+                max={isMultiPage ? String(totalBookPages) : '100'}
+                step="1"
+                value={currentSliderVal}
+                onPointerDown={(e) => {
+                  isDraggingSliderRef.current = true;
+                  const val = getTargetFromEvent(e.clientX, e.currentTarget.getBoundingClientRect());
+                  setSliderDragPercent(val);
+                }}
+                onPointerMove={(e) => {
+                  if (isDraggingSliderRef.current) {
+                    const val = getTargetFromEvent(e.clientX, e.currentTarget.getBoundingClientRect());
+                    setSliderDragPercent(val);
+                  }
+                }}
+                onTouchStart={(e) => {
+                  isDraggingSliderRef.current = true;
+                  if (e.touches.length > 0) {
+                    const val = getTargetFromEvent(e.touches[0].clientX, e.currentTarget.getBoundingClientRect());
+                    setSliderDragPercent(val);
+                  }
+                }}
+                onTouchMove={(e) => {
+                  if (isDraggingSliderRef.current && e.touches.length > 0) {
+                    const val = getTargetFromEvent(e.touches[0].clientX, e.currentTarget.getBoundingClientRect());
+                    setSliderDragPercent(val);
+                  }
+                }}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value, 10);
+                  if (!isNaN(val)) {
+                    setSliderDragPercent(val);
+                  }
+                }}
+                onPointerUp={(e) => {
+                  const target = e.currentTarget;
+                  target.blur();
+                  const val = getTargetFromEvent(e.clientX, target.getBoundingClientRect());
+                  executeSeek(val, isMultiPage);
+                }}
+                onTouchEnd={(e) => {
+                  const target = e.currentTarget;
+                  target.blur();
+                  let val = sliderDragPercent ?? parseInt(target.value, 10);
+                  if (e.changedTouches.length > 0) {
+                    val = getTargetFromEvent(e.changedTouches[0].clientX, target.getBoundingClientRect());
+                  }
+                  executeSeek(val, isMultiPage);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    (e.target as HTMLElement).blur();
+                    processKeyActionRef.current(e.nativeEvent);
+                  }
+                }}
+                title={totalBookPages > 1
+                  ? `${currentSliderVal} / ${totalBookPages} бет`
+                  : 'Оқу барысы'}
+                aria-label="Оқу барысын жылжыту"
+                style={{
+                  background: `linear-gradient(to right, var(--blue, #2563EB) 0%, var(--blue, #2563EB) ${sliderFillPct}%, ${activeTheme.border} ${sliderFillPct}%, ${activeTheme.border} 100%)`,
+                }}
+              />
+            );
+          })()}
         </div>
 
         <div className="hidden sm:block" style={{ flex: '1 1 0', minWidth: 0, textAlign: 'right', fontSize: '11px', opacity: 0.7, userSelect: 'none', whiteSpace: 'nowrap' }}>
