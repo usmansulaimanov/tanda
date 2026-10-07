@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import ePub, { Book as EpubBookInstance, Rendition } from 'epubjs';
-import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Sun, Moon, BookOpen, AlertCircle, RefreshCw } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Sun, Moon, BookOpen, AlertCircle, RefreshCw, X, SlidersHorizontal, Type, ArrowLeft } from 'lucide-react';
 import { resolveMediaUrl } from '../../utils/mediaUtils';
 
 export interface EpubReaderProps {
@@ -13,6 +13,7 @@ export interface EpubReaderProps {
   onThemeChange?: (theme: 'light' | 'sepia' | 'dark') => void;
   colorTemperature?: number;
   onColorTemperatureChange?: (temp: number) => void;
+  onBack?: () => void;
 }
 
 export function getLightBgByTemp(temp: number): { bg: string; containerBg: string; border: string; headerBg: string } {
@@ -67,6 +68,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
   onThemeChange,
   colorTemperature: propColorTemperature,
   onColorTemperatureChange,
+  onBack,
 }) => {
   const viewerRef = useRef<HTMLDivElement>(null);
   const bookRef = useRef<EpubBookInstance | null>(null);
@@ -112,6 +114,8 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
   const isDraggingSliderRef = useRef(false);
   const [isAtStart, setIsAtStart] = useState<boolean>(true);
   const [isAtEnd, setIsAtEnd] = useState<boolean>(false);
+  const [isMobileSettingsOpen, setIsMobileSettingsOpen] = useState<boolean>(false);
+  const [showMobileControls, setShowMobileControls] = useState<boolean>(false);
 
   const isAtStartRef = useRef(true);
   useEffect(() => {
@@ -275,6 +279,27 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
       });
     }
   }, []);
+
+  const handleReaderTap = useCallback((clientX: number, targetWidth: number) => {
+    if (typeof window !== 'undefined' && window.innerWidth >= 640) return; // Desktop unaffected
+    const width = targetWidth > 0 ? targetWidth : (typeof window !== 'undefined' ? window.innerWidth : 360);
+    const leftZone = width * 0.28;
+    const rightZone = width * 0.72;
+
+    if (clientX < leftZone) {
+      handlePrevPage();
+    } else if (clientX > rightZone) {
+      handleNextPage();
+    } else {
+      setShowMobileControls((prev) => !prev);
+      setIsMobileSettingsOpen(false);
+    }
+  }, [handlePrevPage, handleNextPage]);
+
+  const handleReaderTapRef = useRef(handleReaderTap);
+  useEffect(() => {
+    handleReaderTapRef.current = handleReaderTap;
+  }, [handleReaderTap]);
 
   const executeSeek = useCallback(async (targetPercent: number) => {
     const clamped = Math.max(0, Math.min(100, targetPercent));
@@ -669,7 +694,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
 
       applyThemeToRendition(rendition, themeRef.current, fontSizeRef.current);
 
-      // Clean up any browser parsererror elements from DOM and inject CSS overrides
+      // Clean up any browser parsererror elements from DOM and inject CSS overrides + touch/tap gestures
       rendition.hooks.content.register((contents: any) => {
         try {
           const doc = contents.document || contents.window?.document;
@@ -677,6 +702,52 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
             const parserErrors = doc.querySelectorAll('parsererror');
             parserErrors.forEach((el: Element) => el.remove());
             applyDirectThemeStyleToDoc(doc, themeRef.current, colorTempRef.current);
+
+            let touchStartX = 0;
+            let touchStartY = 0;
+            let touchStartTime = 0;
+
+            doc.addEventListener('touchstart', (e: TouchEvent) => {
+              if (e.touches.length === 1) {
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+                touchStartTime = Date.now();
+              }
+            }, { passive: true });
+
+            doc.addEventListener('touchend', (e: TouchEvent) => {
+              if (e.changedTouches.length === 1) {
+                const deltaX = e.changedTouches[0].clientX - touchStartX;
+                const deltaY = e.changedTouches[0].clientY - touchStartY;
+                const elapsed = Date.now() - touchStartTime;
+
+                // Swipe gesture: horizontal distance > 45px, vertical movement < 60px
+                if (Math.abs(deltaX) > 45 && Math.abs(deltaY) < 60 && elapsed < 500) {
+                  if (deltaX < 0) {
+                    handleNextPage();
+                  } else {
+                    handlePrevPage();
+                  }
+                  return;
+                }
+
+                // Tap gesture: minimal movement < 15px
+                if (Math.abs(deltaX) < 15 && Math.abs(deltaY) < 15 && elapsed < 400) {
+                  const clientX = e.changedTouches[0].clientX;
+                  const targetWidth = contents.window?.innerWidth || window.innerWidth;
+                  handleReaderTapRef.current(clientX, targetWidth);
+                }
+              }
+            }, { passive: true });
+
+            doc.addEventListener('click', (e: MouseEvent) => {
+              const selection = doc.getSelection()?.toString();
+              if (!selection) {
+                const clientX = e.clientX;
+                const targetWidth = contents.window?.innerWidth || window.innerWidth;
+                handleReaderTapRef.current(clientX, targetWidth);
+              }
+            });
           }
         } catch {}
       });
@@ -740,49 +811,57 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
   return (
     <div
       style={{
-        display: 'flex',
-        flexDirection: 'column',
-        height: 'calc(100vh - 120px)',
-        minHeight: '620px',
         backgroundColor: activeTheme.containerBg,
-        borderRadius: '16px',
-        border: `1.5px solid ${activeTheme.border}`,
-        overflow: 'hidden',
-        position: 'relative',
-        boxShadow: '0 8px 30px rgba(0, 0, 0, 0.06)',
-        transition: 'background-color 0.25s ease, border-color 0.25s ease',
+        borderColor: activeTheme.border,
       }}
+      className="w-full flex flex-col h-[100dvh] sm:h-[calc(100vh-120px)] sm:min-h-[480px] rounded-none sm:rounded-2xl border-0 sm:border-[1.5px] shadow-none sm:shadow-lg overflow-hidden relative transition-colors duration-200"
     >
-      {/* Top Controls Bar */}
+      {/* Top Controls Bar (Toggleable on mobile, always visible on desktop) */}
       <div
         style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '12px 20px',
+          padding: '10px 16px',
           backgroundColor: activeTheme.headerBg,
           borderBottom: `1px solid ${activeTheme.border}`,
-          zIndex: 10,
-          flexWrap: 'wrap',
-          gap: '12px',
+          zIndex: 25,
           transition: 'background-color 0.25s ease, border-color 0.25s ease',
         }}
+        className={`w-full ${showMobileControls ? 'flex' : 'hidden sm:flex'} items-center justify-between gap-2.5 flex-nowrap flex-shrink-0`}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div>
-            <div style={{ fontSize: '14px', fontWeight: 800, color: activeTheme.text, lineHeight: 1.2 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+          {onBack && (
+            <button
+              onClick={onBack}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: activeTheme.text,
+                padding: '4px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                borderRadius: '6px',
+                flexShrink: 0,
+              }}
+              title="Артқа қайту"
+              aria-label="Артқа қайту"
+            >
+              <ArrowLeft size={18} />
+            </button>
+          )}
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: '13px', fontWeight: 800, color: activeTheme.text, lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {bookTitle || 'Электронды кітап'}
             </div>
             {bookAuthor && (
-              <div style={{ fontSize: '11px', opacity: 0.7, color: activeTheme.text }}>
+              <div style={{ fontSize: '10px', opacity: 0.7, color: activeTheme.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {bookAuthor}
               </div>
             )}
           </div>
         </div>
 
-        {/* Right side controls: White balance slider, font size, theme switcher */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+        {/* Desktop Controls (hidden on mobile, visible on sm+) */}
+        <div className="hidden sm:flex items-center gap-2.5 flex-wrap flex-shrink-0">
           {/* 1. White Balance / Color Temperature Slider (Only in Light mode) */}
           {theme === 'light' && (
             <div
@@ -935,7 +1014,283 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
             </button>
           </div>
         </div>
+
+        {/* Mobile Aa button (visible only on mobile sm:hidden) */}
+        <div className="flex sm:hidden items-center flex-shrink-0">
+          <button
+            onClick={() => setIsMobileSettingsOpen((prev) => !prev)}
+            aria-label="Оқу параметрлері"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 12px',
+              borderRadius: '20px',
+              backgroundColor: isMobileSettingsOpen ? activeTheme.border : activeTheme.containerBg,
+              border: `1.5px solid ${activeTheme.border}`,
+              color: activeTheme.text,
+              fontSize: '13px',
+              fontWeight: 800,
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+            }}
+          >
+            <span style={{ fontFamily: 'Georgia, serif', fontSize: '15px', fontWeight: 900, letterSpacing: '-0.5px' }}>Aa</span>
+            <span style={{ fontSize: '11px', opacity: 0.85 }}>{fontSize}px</span>
+          </button>
+        </div>
       </div>
+
+      {/* Mobile Settings Bottom Sheet / Modal Drawer */}
+      {isMobileSettingsOpen && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: 40,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'flex-end',
+            backgroundColor: 'rgba(0, 0, 0, 0.45)',
+            backdropFilter: 'blur(3px)',
+            WebkitBackdropFilter: 'blur(3px)',
+          }}
+          onClick={() => setIsMobileSettingsOpen(false)}
+        >
+          <div
+            style={{
+              backgroundColor: activeTheme.headerBg,
+              borderTop: `1.5px solid ${activeTheme.border}`,
+              borderTopLeftRadius: '20px',
+              borderTopRightRadius: '20px',
+              padding: '18px 18px 24px',
+              boxShadow: '0 -10px 30px rgba(0,0,0,0.2)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '16px',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Sheet Header */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <SlidersHorizontal size={17} color={activeTheme.text} />
+                <span style={{ fontSize: '14px', fontWeight: 800, color: activeTheme.text }}>
+                  Оқу параметрлері
+                </span>
+              </div>
+              <button
+                onClick={() => setIsMobileSettingsOpen(false)}
+                style={{
+                  background: activeTheme.containerBg,
+                  border: `1px solid ${activeTheme.border}`,
+                  borderRadius: '50%',
+                  width: '30px',
+                  height: '30px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: activeTheme.text,
+                  cursor: 'pointer',
+                }}
+                aria-label="Жабу"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* 1. Font Size Row */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <div style={{ fontSize: '12px', fontWeight: 700, color: activeTheme.text, opacity: 0.8 }}>
+                Қаріп өлшемі
+              </div>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  backgroundColor: activeTheme.containerBg,
+                  borderRadius: '12px',
+                  border: `1px solid ${activeTheme.border}`,
+                  padding: '6px 8px',
+                }}
+              >
+                <button
+                  onClick={() => handleFontSizeChange(-2)}
+                  disabled={fontSize <= 12}
+                  style={{
+                    padding: '8px 14px',
+                    borderRadius: '8px',
+                    border: `1px solid ${activeTheme.border}`,
+                    background: activeTheme.headerBg,
+                    color: activeTheme.text,
+                    fontSize: '13px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    opacity: fontSize <= 12 ? 0.4 : 1,
+                  }}
+                >
+                  A - Кішірейту
+                </button>
+                <span style={{ fontSize: '15px', fontWeight: 800, color: activeTheme.text }}>
+                  {fontSize} px
+                </span>
+                <button
+                  onClick={() => handleFontSizeChange(2)}
+                  disabled={fontSize >= 32}
+                  style={{
+                    padding: '8px 14px',
+                    borderRadius: '8px',
+                    border: `1px solid ${activeTheme.border}`,
+                    background: activeTheme.headerBg,
+                    color: activeTheme.text,
+                    fontSize: '13px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    opacity: fontSize >= 32 ? 0.4 : 1,
+                  }}
+                >
+                  A + Үлкейту
+                </button>
+              </div>
+            </div>
+
+            {/* 2. Theme Selection Row */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <div style={{ fontSize: '12px', fontWeight: 700, color: activeTheme.text, opacity: 0.8 }}>
+                Оқу режимі
+              </div>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr 1fr',
+                  gap: '8px',
+                }}
+              >
+                <button
+                  onClick={() => handleThemeChange('light')}
+                  style={{
+                    padding: '10px 4px',
+                    borderRadius: '10px',
+                    border: theme === 'light' ? '2px solid #2563EB' : `1.5px solid ${activeTheme.border}`,
+                    background: '#FFFFFF',
+                    color: '#0F172A',
+                    fontWeight: 800,
+                    fontSize: '12px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '4px',
+                    boxShadow: theme === 'light' ? '0 0 0 2px rgba(37,99,235,0.25)' : 'none',
+                  }}
+                >
+                  <span style={{ width: '16px', height: '16px', borderRadius: '50%', background: '#F8FAFC', border: '1.5px solid #CBD5E1' }} />
+                  Ашық
+                </button>
+                <button
+                  onClick={() => handleThemeChange('sepia')}
+                  style={{
+                    padding: '10px 4px',
+                    borderRadius: '10px',
+                    border: theme === 'sepia' ? '2px solid #D97706' : `1.5px solid ${activeTheme.border}`,
+                    background: '#FBF0D9',
+                    color: '#433422',
+                    fontWeight: 800,
+                    fontSize: '12px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '4px',
+                    boxShadow: theme === 'sepia' ? '0 0 0 2px rgba(217,119,6,0.25)' : 'none',
+                  }}
+                >
+                  <span style={{ width: '16px', height: '16px', borderRadius: '50%', background: '#F4E8CD', border: '1.5px solid #EAD7B5' }} />
+                  Сепия
+                </button>
+                <button
+                  onClick={() => handleThemeChange('dark')}
+                  style={{
+                    padding: '10px 4px',
+                    borderRadius: '10px',
+                    border: theme === 'dark' ? '2px solid #38BDF8' : `1.5px solid ${activeTheme.border}`,
+                    background: '#0F172A',
+                    color: '#F1F5F9',
+                    fontWeight: 800,
+                    fontSize: '12px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '4px',
+                    boxShadow: theme === 'dark' ? '0 0 0 2px rgba(56,189,248,0.25)' : 'none',
+                  }}
+                >
+                  <span style={{ width: '16px', height: '16px', borderRadius: '50%', background: '#020617', border: '1.5px solid #334155' }} />
+                  Түнгі
+                </button>
+              </div>
+            </div>
+
+            {/* 3. Color Temperature (Only for light theme) */}
+            {theme === 'light' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700, color: activeTheme.text, opacity: 0.8 }}>
+                  <span>❄️ Салқын ақ</span>
+                  <span>Жарық реңкі</span>
+                  <span>☀️ Жылы ақ</span>
+                </div>
+                <div
+                  style={{
+                    position: 'relative',
+                    display: 'flex',
+                    alignItems: 'center',
+                    background: activeTheme.containerBg,
+                    padding: '10px 14px',
+                    borderRadius: '12px',
+                    border: `1px solid ${activeTheme.border}`,
+                  }}
+                >
+                  <input
+                    type="range"
+                    min="-50"
+                    max="50"
+                    step="1"
+                    value={colorTemperature}
+                    onChange={(e) => handleColorTempChange(parseInt(e.target.value, 10))}
+                    style={{
+                      width: '100%',
+                      height: '6px',
+                      borderRadius: '3px',
+                      background: '#CBD5E1',
+                      accentColor: '#0F172A',
+                      appearance: 'auto',
+                      outline: 'none',
+                      cursor: 'pointer',
+                    }}
+                  />
+                  <div
+                    style={{
+                      position: 'absolute',
+                      left: '50%',
+                      top: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      width: '2px',
+                      height: '12px',
+                      backgroundColor: '#0F172A',
+                      borderRadius: '1px',
+                      pointerEvents: 'none',
+                      opacity: 0.5,
+                      zIndex: 0,
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Main Reading Area */}
       <div style={{ flex: 1, position: 'relative', overflow: 'hidden', backgroundColor: activeTheme.bg }}>
@@ -1008,12 +1363,8 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         {/* EPUB Render Mount Point */}
         <div
           ref={viewerRef}
+          className="absolute inset-0 left-2 right-2 sm:left-11 sm:right-11"
           style={{
-            position: 'absolute',
-            top: 0,
-            bottom: 0,
-            left: '44px',
-            right: '44px',
             backgroundColor: activeTheme.bg,
             padding: 0,
             margin: 0,
@@ -1021,7 +1372,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
           }}
         />
 
-        {/* Left / Right Page Flip Overlay Controls */}
+        {/* Left / Right Page Flip Overlay Controls (hidden on mobile when clean mode active) */}
         {!isLoading && !loadError && (
           <>
             <button
@@ -1029,6 +1380,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
               disabled={isAtStart}
               title={isAtStart ? 'Кітаптың басы' : 'Алдыңғы бет (←)'}
               aria-label="Алдыңғы бет"
+              className={showMobileControls ? 'flex' : 'hidden sm:flex'}
               style={{
                 position: 'absolute',
                 top: '50%',
@@ -1040,7 +1392,6 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
                 backgroundColor: activeTheme.headerBg,
                 border: `1.5px solid ${activeTheme.border}`,
                 color: activeTheme.text,
-                display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: isAtStart ? 'not-allowed' : 'pointer',
@@ -1071,6 +1422,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
               disabled={isAtEnd}
               title={isAtEnd ? 'Кітаптың соңы' : 'Келесі бет (→)'}
               aria-label="Келесі бет"
+              className={showMobileControls ? 'flex' : 'hidden sm:flex'}
               style={{
                 position: 'absolute',
                 top: '50%',
@@ -1082,7 +1434,6 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
                 backgroundColor: activeTheme.headerBg,
                 border: `1.5px solid ${activeTheme.border}`,
                 color: activeTheme.text,
-                display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: isAtEnd ? 'not-allowed' : 'pointer',
@@ -1156,13 +1507,10 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         }
       `}</style>
 
-      {/* Bottom Progress Bar & Seek Slider */}
+      {/* Bottom Progress Bar & Seek Slider (Toggleable on mobile, always visible on desktop) */}
       <div
         style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '8px 20px',
+          padding: '8px 16px',
           backgroundColor: activeTheme.headerBg,
           borderTop: `1px solid ${activeTheme.border}`,
           fontSize: '12px',
@@ -1170,7 +1518,9 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
           opacity: 0.9,
           fontWeight: 600,
           gap: '12px',
+          zIndex: 20,
         }}
+        className={`w-full ${showMobileControls ? 'flex' : 'hidden sm:flex'} items-center justify-between flex-shrink-0`}
       >
         <div style={{ flex: '1 1 0', minWidth: 0, textAlign: 'left', userSelect: 'none', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {(() => {
@@ -1261,10 +1611,30 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
           />
         </div>
 
-        <div style={{ flex: '1 1 0', minWidth: 0, textAlign: 'right', fontSize: '11px', opacity: 0.7, userSelect: 'none', whiteSpace: 'nowrap' }}>
+        <div className="hidden sm:block" style={{ flex: '1 1 0', minWidth: 0, textAlign: 'right', fontSize: '11px', opacity: 0.7, userSelect: 'none', whiteSpace: 'nowrap' }}>
           Парақтау: ⬅ ➡
         </div>
       </div>
+
+      {/* Minimal clean page number at bottom on mobile when controls are hidden */}
+      {!showMobileControls && (
+        <div
+          className="flex sm:hidden items-center justify-center w-full py-1.5 flex-shrink-0"
+          style={{
+            backgroundColor: activeTheme.bg,
+            color: activeTheme.text,
+            fontSize: '11px',
+            opacity: 0.55,
+            fontWeight: 700,
+            userSelect: 'none',
+            zIndex: 10,
+          }}
+        >
+          {totalBookPages > 0
+            ? `${Math.max(1, Math.min(totalBookPages, Math.round((progressPercent / 100) * totalBookPages) || 1))} / ${totalBookPages}`
+            : (currentLocationText || '1')}
+        </div>
+      )}
     </div>
   );
 };

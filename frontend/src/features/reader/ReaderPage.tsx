@@ -14,7 +14,7 @@ export const ReaderPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { books, fetchBookById } = useBookStore();
-  const { role, isAuthenticated, openAuthModal } = useAuthStore();
+  const { role, isAuthenticated, isAuthInitialized, openAuthModal } = useAuthStore();
   const { markAsReading, updateReadingProgress } = useMyBooksStore();
 
   const [book, setBook] = useState<Book | null>(books.find((b) => b.id === id) || null);
@@ -326,7 +326,7 @@ export const ReaderPage: React.FC = () => {
     };
   }, [resolvedEbookUrl, isTg]);
 
-  if (isBookLoading) {
+  if (isBookLoading || !isAuthInitialized) {
     return (
       <div style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ textAlign: 'center' }}>
@@ -463,7 +463,7 @@ export const ReaderPage: React.FC = () => {
           transition: 'background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease',
         }}
       >
-        <div className="px-3 sm:px-6 py-2.5 sm:py-4 max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-2.5">
+        <div className={`px-3 sm:px-6 py-2 sm:py-4 max-w-5xl mx-auto ${isEpub ? 'hidden sm:flex' : 'flex'} items-center justify-between gap-2.5`}>
           <button
             onClick={() => navigate(-1)}
             style={{
@@ -478,7 +478,7 @@ export const ReaderPage: React.FC = () => {
             ← Артқа
           </button>
 
-          <div className="text-center order-first sm:order-none w-full sm:w-auto">
+          <div className={`text-center ${isEpub ? 'hidden sm:block' : 'order-first sm:order-none w-full sm:w-auto'}`}>
             <h3 style={{ fontSize: '15px', fontWeight: 800, margin: 0, color: pageTextColor }}>{book.title}</h3>
             <span style={{ fontSize: '12px', opacity: 0.75, color: pageTextColor }}>
               {book.author} {isEpub ? '' : `(Бет: ${currentPage})`}
@@ -529,7 +529,7 @@ export const ReaderPage: React.FC = () => {
       </div>
 
       {/* Reader Body */}
-      <main className="max-w-5xl mx-auto my-3 sm:my-6 px-3 sm:px-6 mb-20">
+      <main className={`max-w-5xl mx-auto ${isEpub ? 'p-0 m-0 sm:my-6 sm:px-6 sm:mb-20' : 'my-2 sm:my-6 px-2 sm:px-6 mb-10 sm:mb-20'}`}>
         {resolvedEbookUrl ? (
           isTg ? (
             <div
@@ -598,6 +598,7 @@ export const ReaderPage: React.FC = () => {
                 colorTemperature={colorTemperature}
                 onColorTemperatureChange={handleColorTempChange}
                 onProgressChange={handleProgressChange}
+                onBack={() => navigate(-1)}
               />
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '400px' }}>
