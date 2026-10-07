@@ -332,14 +332,14 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
     const rendition = renditionRef.current;
 
     try {
-      if (clamped === 0) {
+      if (clamped <= 1) {
         const firstSpine = (book.spine as any)?.get?.(0);
         if (firstSpine && (firstSpine.cfiBase || firstSpine.href)) {
           await rendition.display(firstSpine.cfiBase || firstSpine.href);
         } else {
           await rendition.display(0);
         }
-      } else if (clamped === 100) {
+      } else if (clamped >= 99) {
         const spineLen = (book.spine as any)?.length || 0;
         if (spineLen > 0) {
           const lastSpine = (book.spine as any).get(spineLen - 1);
@@ -351,6 +351,13 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         const cfi = book.locations.cfiFromPercentage(clamped / 100);
         if (cfi) {
           await rendition.display(cfi);
+        } else if (book.spine && (book.spine as any).length > 0) {
+          const spineLen = (book.spine as any).length;
+          const targetSpineIdx = Math.min(spineLen - 1, Math.max(0, Math.floor((clamped / 100) * spineLen)));
+          const spineItem = (book.spine as any).get(targetSpineIdx);
+          if (spineItem && (spineItem.cfiBase || spineItem.href)) {
+            await rendition.display(spineItem.cfiBase || spineItem.href);
+          }
         }
       } else if (book.spine && (book.spine as any).length > 0) {
         const spineLen = (book.spine as any).length;
@@ -1636,17 +1643,45 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
             min="0"
             max="100"
             value={sliderDragPercent !== null ? sliderDragPercent : progressPercent}
-            onPointerDown={() => {
+            onPointerDown={(e) => {
               isDraggingSliderRef.current = true;
-              setSliderDragPercent(progressPercent);
+              const target = e.currentTarget;
+              const rect = target.getBoundingClientRect();
+              if (rect.width > 0) {
+                const pct = Math.max(0, Math.min(100, Math.round(((e.clientX - rect.left) / rect.width) * 100)));
+                setSliderDragPercent(pct);
+              }
             }}
-            onMouseDown={() => {
-              isDraggingSliderRef.current = true;
-              setSliderDragPercent(progressPercent);
+            onPointerMove={(e) => {
+              if (isDraggingSliderRef.current) {
+                const target = e.currentTarget;
+                const rect = target.getBoundingClientRect();
+                if (rect.width > 0) {
+                  const pct = Math.max(0, Math.min(100, Math.round(((e.clientX - rect.left) / rect.width) * 100)));
+                  setSliderDragPercent(pct);
+                }
+              }
             }}
-            onTouchStart={() => {
+            onTouchStart={(e) => {
               isDraggingSliderRef.current = true;
-              setSliderDragPercent(progressPercent);
+              if (e.touches.length > 0) {
+                const target = e.currentTarget;
+                const rect = target.getBoundingClientRect();
+                if (rect.width > 0) {
+                  const pct = Math.max(0, Math.min(100, Math.round(((e.touches[0].clientX - rect.left) / rect.width) * 100)));
+                  setSliderDragPercent(pct);
+                }
+              }
+            }}
+            onTouchMove={(e) => {
+              if (isDraggingSliderRef.current && e.touches.length > 0) {
+                const target = e.currentTarget;
+                const rect = target.getBoundingClientRect();
+                if (rect.width > 0) {
+                  const pct = Math.max(0, Math.min(100, Math.round(((e.touches[0].clientX - rect.left) / rect.width) * 100)));
+                  setSliderDragPercent(pct);
+                }
+              }
             }}
             onChange={(e) => {
               const val = parseInt(e.target.value, 10);
@@ -1655,22 +1690,28 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
               }
             }}
             onPointerUp={(e) => {
-              const el = e.target as HTMLInputElement;
-              el.blur();
-              const val = parseInt(el.value, 10);
-              executeSeek(!isNaN(val) ? val : (sliderDragPercent ?? progressPercent));
-            }}
-            onMouseUp={(e) => {
-              const el = e.target as HTMLInputElement;
-              el.blur();
-              const val = parseInt(el.value, 10);
-              executeSeek(!isNaN(val) ? val : (sliderDragPercent ?? progressPercent));
+              const target = e.currentTarget;
+              target.blur();
+              const rect = target.getBoundingClientRect();
+              let finalPct = sliderDragPercent;
+              if (rect.width > 0) {
+                finalPct = Math.max(0, Math.min(100, Math.round(((e.clientX - rect.left) / rect.width) * 100)));
+              }
+              const seekVal = finalPct ?? parseInt(target.value, 10) ?? progressPercent;
+              executeSeek(seekVal);
             }}
             onTouchEnd={(e) => {
-              const el = e.target as HTMLInputElement;
-              el.blur();
-              const val = parseInt(el.value, 10);
-              executeSeek(!isNaN(val) ? val : (sliderDragPercent ?? progressPercent));
+              const target = e.currentTarget;
+              target.blur();
+              let finalPct = sliderDragPercent;
+              if (e.changedTouches.length > 0) {
+                const rect = target.getBoundingClientRect();
+                if (rect.width > 0) {
+                  finalPct = Math.max(0, Math.min(100, Math.round(((e.changedTouches[0].clientX - rect.left) / rect.width) * 100)));
+                }
+              }
+              const seekVal = finalPct ?? parseInt(target.value, 10) ?? progressPercent;
+              executeSeek(seekVal);
             }}
             onKeyDown={(e) => {
               if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
