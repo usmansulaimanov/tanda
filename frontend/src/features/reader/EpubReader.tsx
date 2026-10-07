@@ -176,10 +176,6 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         margin: 0 !important;
         padding: 0 !important;
         box-sizing: border-box !important;
-        overflow: hidden !important;
-        height: 100% !important;
-        max-height: 100% !important;
-        touch-action: pan-y !important;
         -webkit-user-select: none !important;
         user-select: none !important;
         -webkit-touch-callout: none !important;
@@ -190,11 +186,6 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         max-width: 100% !important;
         word-break: break-word !important;
       }
-      *, *::before, *::after {
-        color: ${current.text} !important;
-        -webkit-text-fill-color: ${current.text} !important;
-        background-color: transparent !important;
-      }
       img, svg {
         background-color: transparent !important;
         max-width: 95% !important;
@@ -203,6 +194,8 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         object-fit: contain !important;
         display: block !important;
         margin: 6px auto !important;
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
       }
       video, audio {
         background-color: transparent !important;
