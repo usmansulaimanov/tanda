@@ -876,16 +876,17 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
       }}
       className="w-full flex-1 flex flex-col h-full sm:h-[calc(100vh-120px)] sm:min-h-[480px] rounded-none sm:rounded-2xl border-0 sm:border-[1.5px] shadow-none sm:shadow-lg overflow-hidden relative transition-colors duration-200"
     >
-      {/* Top Controls Bar (Toggleable on mobile, always visible on desktop) */}
+      {/* Top Controls Bar (Toggleable on mobile as overlay, always visible on desktop) */}
       <div
         style={{
           padding: '10px 16px',
           backgroundColor: activeTheme.headerBg,
           borderBottom: `1px solid ${activeTheme.border}`,
-          zIndex: 25,
+          zIndex: 30,
           transition: 'background-color 0.25s ease, border-color 0.25s ease',
+          boxShadow: showMobileControls ? '0 4px 12px rgba(0,0,0,0.12)' : 'none',
         }}
-        className={`w-full ${showMobileControls ? 'flex' : 'hidden sm:flex'} items-center justify-between gap-2.5 flex-nowrap flex-shrink-0`}
+        className={`w-full ${showMobileControls ? 'flex absolute top-0 left-0 right-0 sm:relative' : 'hidden sm:flex'} items-center justify-between gap-2.5 flex-nowrap flex-shrink-0`}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
           {onBack && (
@@ -1423,7 +1424,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         {/* EPUB Render Mount Point */}
         <div
           ref={viewerRef}
-          className="absolute inset-0 left-2 right-2 sm:left-11 sm:right-11"
+          className="absolute inset-0 left-2 right-2 top-2 bottom-6 sm:top-0 sm:bottom-0 sm:left-11 sm:right-11"
           style={{
             backgroundColor: activeTheme.bg,
             padding: 0,
@@ -1567,7 +1568,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         }
       `}</style>
 
-      {/* Bottom Progress Bar & Seek Slider (Toggleable on mobile, always visible on desktop) */}
+      {/* Bottom Progress Bar & Seek Slider (Toggleable on mobile as overlay, always visible on desktop) */}
       <div
         style={{
           padding: '8px 16px',
@@ -1575,12 +1576,13 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
           borderTop: `1px solid ${activeTheme.border}`,
           fontSize: '12px',
           color: activeTheme.text,
-          opacity: 0.9,
+          opacity: 0.95,
           fontWeight: 600,
           gap: '12px',
-          zIndex: 20,
+          zIndex: 30,
+          boxShadow: showMobileControls ? '0 -4px 12px rgba(0,0,0,0.12)' : 'none',
         }}
-        className={`w-full ${showMobileControls ? 'flex' : 'hidden sm:flex'} items-center justify-between flex-shrink-0`}
+        className={`w-full ${showMobileControls ? 'flex absolute bottom-0 left-0 right-0 sm:relative' : 'hidden sm:flex'} items-center justify-between flex-shrink-0`}
       >
         <div style={{ flex: '1 1 0', minWidth: 0, textAlign: 'left', userSelect: 'none', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {(() => {
@@ -1679,9 +1681,9 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
       {/* Minimal clean page number at bottom on mobile when controls are hidden */}
       {!showMobileControls && (
         <div
-          className="flex sm:hidden items-center justify-center w-full py-1.5 flex-shrink-0"
+          className="flex sm:hidden absolute bottom-0 left-0 right-0 items-center justify-center w-full py-1.5 pointer-events-none"
           style={{
-            backgroundColor: activeTheme.bg,
+            backgroundColor: 'transparent',
             color: activeTheme.text,
             fontSize: '11px',
             opacity: 0.55,
