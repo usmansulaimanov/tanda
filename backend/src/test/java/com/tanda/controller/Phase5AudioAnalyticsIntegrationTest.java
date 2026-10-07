@@ -5,6 +5,7 @@ import com.tanda.dto.audio.AudioHeartbeatRequestDto;
 import com.tanda.dto.audio.StartAudioSessionRequestDto;
 import com.tanda.entity.Book;
 import com.tanda.entity.User;
+import com.tanda.repository.AudioSessionRepository;
 import com.tanda.repository.BookRepository;
 import com.tanda.repository.UserRepository;
 import com.tanda.security.JwtTokenProvider;
@@ -47,6 +48,9 @@ public class Phase5AudioAnalyticsIntegrationTest {
     private BookRepository bookRepository;
 
     @Autowired
+    private AudioSessionRepository audioSessionRepository;
+
+    @Autowired
     private JwtTokenProvider jwtTokenProvider;
 
     @Autowired
@@ -63,6 +67,7 @@ public class Phase5AudioAnalyticsIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        audioSessionRepository.deleteAll();
         adminUser = userRepository.save(User.builder()
                 .id("admin-" + UUID.randomUUID().toString().substring(0, 6))
                 .name("Admin User")

@@ -342,7 +342,9 @@ export const ReaderPage: React.FC = () => {
     };
   }, [resolvedEbookUrl, isTg]);
 
-  if (isBookLoading || !isAuthInitialized) {
+  const hasToken = typeof window !== 'undefined' && Boolean(localStorage.getItem('tanda_token') || localStorage.getItem('tanda_refresh_token'));
+
+  if (isBookLoading || !isAuthInitialized || (!isAuthenticated && hasToken)) {
     return (
       <div style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ textAlign: 'center' }}>
