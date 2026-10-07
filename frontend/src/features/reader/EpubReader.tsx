@@ -179,6 +179,10 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         overflow: hidden !important;
         height: 100% !important;
         max-height: 100% !important;
+        touch-action: pan-y !important;
+        -webkit-user-select: none !important;
+        user-select: none !important;
+        -webkit-touch-callout: none !important;
       }
       p, div, span, h1, h2, h3, h4, h5, h6, li {
         color: ${current.text} !important;
@@ -263,32 +267,35 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
   }, [fontSize]);
 
   const isNavigatingRef = useRef(false);
+  const containerTouchStartXRef = useRef<number>(0);
+  const containerTouchStartYRef = useRef<number>(0);
+  const containerTouchStartTimeRef = useRef<number>(0);
 
   const handleNextPage = useCallback(() => {
-    if (isAtEndRef.current || isNavigatingRef.current) return;
+    if (isNavigatingRef.current) return;
     if (renditionRef.current) {
       isNavigatingRef.current = true;
-      renditionRef.current.next().then(() => {
-        setTimeout(() => {
-          isNavigatingRef.current = false;
-        }, 120);
-      }).catch(() => {
-        isNavigatingRef.current = false;
-      });
+      renditionRef.current.next()
+        .catch(() => {})
+        .finally(() => {
+          setTimeout(() => {
+            isNavigatingRef.current = false;
+          }, 80);
+        });
     }
   }, []);
 
   const handlePrevPage = useCallback(() => {
-    if (isAtStartRef.current || isNavigatingRef.current) return;
+    if (isNavigatingRef.current) return;
     if (renditionRef.current) {
       isNavigatingRef.current = true;
-      renditionRef.current.prev().then(() => {
-        setTimeout(() => {
-          isNavigatingRef.current = false;
-        }, 120);
-      }).catch(() => {
-        isNavigatingRef.current = false;
-      });
+      renditionRef.current.prev()
+        .catch(() => {})
+        .finally(() => {
+          setTimeout(() => {
+            isNavigatingRef.current = false;
+          }, 80);
+        });
     }
   }, []);
 
@@ -297,12 +304,12 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
   const handleReaderTap = useCallback((clientX: number, targetWidth: number) => {
     if (typeof window !== 'undefined' && window.innerWidth >= 640) return; // Desktop unaffected
     const now = Date.now();
-    if (now - lastTapTimeRef.current < 400) return; // Ignore duplicate synthetic events (touchend + click)
+    if (now - lastTapTimeRef.current < 300) return; // Ignore duplicate synthetic events
     lastTapTimeRef.current = now;
 
     const width = targetWidth > 0 ? targetWidth : (typeof window !== 'undefined' ? window.innerWidth : 360);
-    const leftZone = width * 0.28;
-    const rightZone = width * 0.72;
+    const leftZone = width * 0.22;
+    const rightZone = width * 0.78;
 
     if (clientX < leftZone) {
       handlePrevPage();
@@ -726,21 +733,23 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
             let touchStartTime = 0;
 
             doc.addEventListener('touchstart', (e: TouchEvent) => {
-              if (e.touches.length === 1) {
-                touchStartX = e.touches[0].clientX;
-                touchStartY = e.touches[0].clientY;
+              if (e.touches && e.touches.length === 1) {
+                touchStartX = e.touches[0].screenX || e.touches[0].clientX;
+                touchStartY = e.touches[0].screenY || e.touches[0].clientY;
                 touchStartTime = Date.now();
               }
             }, { passive: true });
 
             doc.addEventListener('touchend', (e: TouchEvent) => {
-              if (e.changedTouches.length === 1) {
-                const deltaX = e.changedTouches[0].clientX - touchStartX;
-                const deltaY = e.changedTouches[0].clientY - touchStartY;
+              if (e.changedTouches && e.changedTouches.length === 1) {
+                const endX = e.changedTouches[0].screenX || e.changedTouches[0].clientX;
+                const endY = e.changedTouches[0].screenY || e.changedTouches[0].clientY;
+                const deltaX = endX - touchStartX;
+                const deltaY = endY - touchStartY;
                 const elapsed = Date.now() - touchStartTime;
 
-                // Swipe gesture: horizontal distance > 45px, vertical movement < 60px
-                if (Math.abs(deltaX) > 45 && Math.abs(deltaY) < 60 && elapsed < 500) {
+                // Swipe gesture: horizontal movement >= 25px, more horizontal than vertical, under 800ms
+                if (Math.abs(deltaX) >= 25 && Math.abs(deltaX) > Math.abs(deltaY) * 0.6 && elapsed < 800) {
                   if (deltaX < 0) {
                     handleNextPage();
                   } else {
@@ -750,7 +759,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
                 }
 
                 // Tap gesture: minimal movement < 15px
-                if (Math.abs(deltaX) < 15 && Math.abs(deltaY) < 15 && elapsed < 400) {
+                if (Math.abs(deltaX) < 15 && Math.abs(deltaY) < 15 && elapsed < 450) {
                   const clientX = e.changedTouches[0].clientX;
                   const targetWidth = contents.window?.innerWidth || window.innerWidth;
                   handleReaderTapRef.current(clientX, targetWidth);
@@ -785,49 +794,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         updateProgressFromLocation(location);
       });
 
-      // Direct rendition event listeners
-      let touchStartX = 0;
-      let touchStartY = 0;
-      let touchStartTime = 0;
-
-      rendition.on('touchstart', (e: TouchEvent) => {
-        if (e.touches && e.touches.length === 1) {
-          touchStartX = e.touches[0].clientX;
-          touchStartY = e.touches[0].clientY;
-          touchStartTime = Date.now();
-        }
-      });
-
-      rendition.on('touchend', (e: TouchEvent) => {
-        if (e.changedTouches && e.changedTouches.length === 1) {
-          const deltaX = e.changedTouches[0].clientX - touchStartX;
-          const deltaY = e.changedTouches[0].clientY - touchStartY;
-          const elapsed = Date.now() - touchStartTime;
-
-          // Swipe gesture
-          if (Math.abs(deltaX) > 40 && Math.abs(deltaY) < 60 && elapsed < 500) {
-            if (deltaX < 0) {
-              handleNextPage();
-            } else {
-              handlePrevPage();
-            }
-            return;
-          }
-
-          // Tap gesture
-          if (Math.abs(deltaX) < 15 && Math.abs(deltaY) < 15 && elapsed < 400) {
-            const clientX = e.changedTouches[0].clientX;
-            handleReaderTapRef.current(clientX, window.innerWidth);
-          }
-        }
-      });
-
-      rendition.on('click', (e: MouseEvent) => {
-        const clientX = e.clientX;
-        handleReaderTapRef.current(clientX, window.innerWidth);
-      });
-
-      // Single centralized keyboard listener for rendition iframe
+      // Centralized keyboard listener for rendition iframe
       rendition.on('keydown', (e: KeyboardEvent) => {
         processKeyActionRef.current(e);
       });
@@ -1354,7 +1321,32 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
       )}
 
       {/* Main Reading Area */}
-      <div style={{ flex: 1, position: 'relative', overflow: 'hidden', backgroundColor: activeTheme.bg }}>
+      <div
+        style={{ flex: 1, position: 'relative', overflow: 'hidden', backgroundColor: activeTheme.bg }}
+        onTouchStart={(e) => {
+          if (e.touches && e.touches.length === 1) {
+            containerTouchStartXRef.current = e.touches[0].screenX || e.touches[0].clientX;
+            containerTouchStartYRef.current = e.touches[0].screenY || e.touches[0].clientY;
+            containerTouchStartTimeRef.current = Date.now();
+          }
+        }}
+        onTouchEnd={(e) => {
+          if (e.changedTouches && e.changedTouches.length === 1) {
+            const endX = e.changedTouches[0].screenX || e.changedTouches[0].clientX;
+            const endY = e.changedTouches[0].screenY || e.changedTouches[0].clientY;
+            const deltaX = endX - containerTouchStartXRef.current;
+            const deltaY = endY - containerTouchStartYRef.current;
+            const elapsed = Date.now() - containerTouchStartTimeRef.current;
+            if (Math.abs(deltaX) >= 25 && Math.abs(deltaX) > Math.abs(deltaY) * 0.6 && elapsed < 800) {
+              if (deltaX < 0) {
+                handleNextPage();
+              } else {
+                handlePrevPage();
+              }
+            }
+          }
+        }}
+      >
         {/* Loading Spinner */}
         {isLoading && (
           <div
