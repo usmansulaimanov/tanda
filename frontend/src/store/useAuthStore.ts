@@ -1291,9 +1291,8 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
           const currentRefreshToken = localStorage.getItem('tanda_refresh_token');
           if (!currentRefreshToken) return null;
           try {
-            const refreshUrl = (import.meta.env.VITE_API_URL || '') + '/api/v1/auth/refresh';
             const { data } = await api.post(
-              refreshUrl,
+              '/api/v1/auth/refresh',
               { refreshToken: currentRefreshToken },
               { withCredentials: true }
             );

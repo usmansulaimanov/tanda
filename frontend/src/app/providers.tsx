@@ -28,13 +28,17 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
     const initAuth = async () => {
       try {
         const token = localStorage.getItem('tanda_token');
-        if (token) {
+        const refreshToken = localStorage.getItem('tanda_refresh_token');
+        if (token || refreshToken) {
           await restoreSession();
         } else {
           // Attempt silent refresh via httpOnly cookie
           const data = await authApi.refresh();
           if (data?.token && data?.user) {
             localStorage.setItem('tanda_token', data.token);
+            if (data.refreshToken) {
+              localStorage.setItem('tanda_refresh_token', data.refreshToken);
+            }
             useAuthStore.setState({
               user: data.user,
               role: data.user.role as 'admin' | 'client',
