@@ -602,6 +602,23 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         });
       }
 
+      // Try loading cached locations immediately for instant 0ms page rendering
+      const locCacheKey = `tanda_epub_locs_${url}`;
+      let cachedLoaded = false;
+      try {
+        const cached = localStorage.getItem(locCacheKey);
+        if (cached) {
+          book.locations.load(cached);
+          const totalLocs = (book.locations as any).total || book.locations.length();
+          if (typeof totalLocs === 'number' && totalLocs > 1) {
+            setTotalBookPages(totalLocs);
+            cachedLoaded = true;
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to load cached locations:', e);
+      }
+
       const updateProgressFromLocation = (location: any) => {
         if (!location || !location.start || !book) return;
         const start = location.start;
@@ -611,16 +628,21 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         let totalLocs = 0;
         let curPage = 1;
 
-        if (book.locations && book.locations.length() > 0) {
-          totalLocs = (book.locations as any).total || book.locations.length();
-        }
+        // True locations exist if length > 1 or loaded from cache
+        const hasTrueLocations = Boolean(
+          book.locations &&
+          ((book.locations as any)._locations?.length > 1 || (book.locations as any).total > 1 || book.locations.length() > 1)
+        );
 
-        if (totalLocs > 0) {
-          setTotalBookPages(totalLocs);
+        if (hasTrueLocations) {
+          totalLocs = (book.locations as any).total || book.locations.length();
+          if (totalLocs > 1) {
+            setTotalBookPages(totalLocs);
+          }
         }
 
         // 1. Calculate true book-wide percentage and page number
-        if (book.locations && book.locations.length() > 0 && cfi) {
+        if (hasTrueLocations && cfi) {
           try {
             const rawPct = book.locations.percentageFromCfi(cfi);
             if (typeof rawPct === 'number' && !isNaN(rawPct)) {
@@ -650,7 +672,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         } else if (start.index === 0) {
           if (totalLocs > 0 && curPage <= 1) {
             atStart = true;
-          } else if (book.locations && book.locations.length() > 0 && cfi) {
+          } else if (hasTrueLocations && cfi) {
             const locIdx = book.locations.locationFromCfi(cfi) as any;
             atStart = typeof locIdx === 'number' && locIdx <= 0;
           } else {
@@ -665,7 +687,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         } else if (spineLen > 0 && typeof start.index === 'number' && start.index >= spineLen - 1) {
           if (totalLocs > 0 && curPage >= totalLocs) {
             atEnd = true;
-          } else if (book.locations && book.locations.length() > 0 && cfi) {
+          } else if (hasTrueLocations && cfi) {
             const locIdx = book.locations.locationFromCfi(cfi) as any;
             atEnd = typeof locIdx === 'number' && locIdx >= totalLocs - 1;
           }
@@ -678,7 +700,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
 
         // Compute page text info
         let pageText = '';
-        if (totalLocs > 0) {
+        if (totalLocs > 1 && hasTrueLocations) {
           pageText = `${curPage} / ${totalLocs} бет`;
         } else if (book.spine && (book.spine as any).length > 1) {
           const curSpine = (start.index ?? 0) + 1;
@@ -686,17 +708,25 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
           pageText = `${curSpine} / ${totSpine} бөлім`;
         }
 
-        setCurrentLocationText(pageText || (pct > 0 ? `${pct}%` : 'Басы'));
+        setCurrentLocationText(pageText || (pct > 0 ? `${pct}%` : ''));
         onProgressChangeRef.current?.(pct, cfi);
       };
 
       // Generate locations for accurate progress calculation (2400 chars per standard book page)
       book.ready.then(async () => {
         try {
-          await book.locations.generate(2400);
-          const totalLocs = (book.locations as any).total || book.locations.length();
-          if (typeof totalLocs === 'number' && totalLocs > 0) {
-            setTotalBookPages(totalLocs);
+          if (!cachedLoaded || !book.locations || book.locations.length() <= 1) {
+            await book.locations.generate(2400);
+            const totalLocs = (book.locations as any).total || book.locations.length();
+            if (typeof totalLocs === 'number' && totalLocs > 1) {
+              setTotalBookPages(totalLocs);
+              try {
+                const saved = book.locations.save();
+                if (saved) {
+                  localStorage.setItem(locCacheKey, saved);
+                }
+              } catch (e) {}
+            }
           }
           if (renditionRef.current) {
             const loc = (renditionRef.current as any).currentLocation();
@@ -1611,7 +1641,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         <div style={{ flex: '1 1 0', minWidth: 0, textAlign: 'left', userSelect: 'none', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {(() => {
             if (sliderDragPercent !== null) {
-              if (totalBookPages > 0) {
+              if (totalBookPages > 1) {
                 const draggedPage = Math.max(1, Math.min(totalBookPages, Math.round((sliderDragPercent / 100) * totalBookPages) || 1));
                 return `${draggedPage} / ${totalBookPages} бет`;
               }
@@ -1622,7 +1652,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
               }
               return 'Оқу барысы';
             }
-            return currentLocationText || (totalBookPages > 0 ? `${Math.max(1, Math.min(totalBookPages, Math.round((progressPercent / 100) * totalBookPages) || 1))} / ${totalBookPages} бет` : 'Басы');
+            return currentLocationText || (totalBookPages > 1 ? `${Math.max(1, Math.min(totalBookPages, Math.round((progressPercent / 100) * totalBookPages) || 1))} / ${totalBookPages} бет` : (progressPercent > 0 ? `${progressPercent}%` : 'Оқу барысы'));
           })()}
         </div>
 
@@ -1750,9 +1780,9 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
             zIndex: 10,
           }}
         >
-          {totalBookPages > 0
+          {totalBookPages > 1
             ? `${Math.max(1, Math.min(totalBookPages, Math.round((progressPercent / 100) * totalBookPages) || 1))} / ${totalBookPages}`
-            : (currentLocationText || '1')}
+            : (currentLocationText || (progressPercent > 0 ? `${progressPercent}%` : ''))}
         </div>
       )}
     </div>
