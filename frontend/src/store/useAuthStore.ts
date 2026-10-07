@@ -203,6 +203,8 @@ const storedToken = typeof window !== 'undefined' ? localStorage.getItem('tanda_
 const storedRefreshToken = typeof window !== 'undefined' ? localStorage.getItem('tanda_refresh_token') : null;
 const isInitiallyAuthenticated = Boolean(storedUser && (storedToken || storedRefreshToken));
 
+let restoreSessionPromise: Promise<void> | null = null;
+
 export const useAuthStore = create<AuthState>()((set, get) => ({
       user: storedUser,
       role: (storedUser?.role as 'admin' | 'client' | 'author') || 'client',
@@ -1284,96 +1286,108 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       },
 
       restoreSession: async () => {
-        let token = localStorage.getItem('tanda_token');
-        const refreshToken = localStorage.getItem('tanda_refresh_token');
+        if (restoreSessionPromise) {
+          return restoreSessionPromise;
+        }
 
-        const tryRefresh = async (): Promise<string | null> => {
-          const currentRefreshToken = localStorage.getItem('tanda_refresh_token');
-          if (!currentRefreshToken) return null;
+        restoreSessionPromise = (async () => {
           try {
-            const { data } = await api.post(
-              '/api/v1/auth/refresh',
-              { refreshToken: currentRefreshToken },
-              { withCredentials: true }
-            );
-            if (data?.token) {
-              localStorage.setItem('tanda_token', data.token);
-              if (data.refreshToken) {
-                localStorage.setItem('tanda_refresh_token', data.refreshToken);
-              }
-              return data.token;
-            }
-          } catch {
-            // Refresh failed
-          }
-          return null;
-        };
+            let token = localStorage.getItem('tanda_token');
+            const refreshToken = localStorage.getItem('tanda_refresh_token');
 
-        if (!token || token.startsWith('mock-')) {
-          if (token?.startsWith('mock-')) {
-            localStorage.removeItem('tanda_token');
-            localStorage.removeItem('tanda_refresh_token');
-            saveStoredUser(null);
-          }
-          token = await tryRefresh();
-          if (!token) {
-            saveStoredUser(null);
-            set({ user: null, role: 'client', isAuthenticated: false, isAuthInitialized: true });
-            return;
-          }
-        }
-
-        try {
-          const { data } = await api.get('/api/v1/auth/me');
-          const normalized = normalizeUser(data);
-          saveStoredUser(normalized);
-          set({
-            user: normalized,
-            role: data.role as 'admin' | 'client' | 'author',
-            isAuthenticated: true,
-            isAuthInitialized: true,
-          });
-
-          if (data.role === 'admin') {
-            get().fetchClients();
-            get().fetchManagers();
-            get().fetchAuthors();
-            get().fetchReservedUsernames();
-          }
-        } catch (err: any) {
-          if (err?.response?.status === 401) {
-            const newToken = await tryRefresh();
-            if (newToken) {
+            const tryRefresh = async (): Promise<string | null> => {
+              const currentRefreshToken = localStorage.getItem('tanda_refresh_token');
+              if (!currentRefreshToken) return null;
               try {
-                const { data } = await api.get('/api/v1/auth/me');
-                const normalized = normalizeUser(data);
-                saveStoredUser(normalized);
-                set({
-                  user: normalized,
-                  role: data.role as 'admin' | 'client' | 'author',
-                  isAuthenticated: true,
-                  isAuthInitialized: true,
-                });
-                if (data.role === 'admin') {
-                  get().fetchClients();
-                  get().fetchManagers();
-                  get().fetchAuthors();
-                  get().fetchReservedUsernames();
+                const { data } = await api.post(
+                  '/api/v1/auth/refresh',
+                  { refreshToken: currentRefreshToken },
+                  { withCredentials: true }
+                );
+                if (data?.token) {
+                  localStorage.setItem('tanda_token', data.token);
+                  if (data.refreshToken) {
+                    localStorage.setItem('tanda_refresh_token', data.refreshToken);
+                  }
+                  return data.token;
                 }
-                return;
               } catch {
-                // Secondary check failed
+                // Refresh failed
+              }
+              return null;
+            };
+
+            if (!token || token.startsWith('mock-')) {
+              if (token?.startsWith('mock-')) {
+                localStorage.removeItem('tanda_token');
+                localStorage.removeItem('tanda_refresh_token');
+                saveStoredUser(null);
+              }
+              token = await tryRefresh();
+              if (!token) {
+                saveStoredUser(null);
+                set({ user: null, role: 'client', isAuthenticated: false, isAuthInitialized: true });
+                return;
               }
             }
-            localStorage.removeItem('tanda_token');
-            localStorage.removeItem('tanda_refresh_token');
-            saveStoredUser(null);
-            set({ user: null, role: 'client', isAuthenticated: false, isAuthInitialized: true });
-          } else {
-            // Network error - keep cached user session intact for seamless offline UX
-            set({ isAuthInitialized: true });
+
+            try {
+              const { data } = await api.get('/api/v1/auth/me');
+              const normalized = normalizeUser(data);
+              saveStoredUser(normalized);
+              set({
+                user: normalized,
+                role: data.role as 'admin' | 'client' | 'author',
+                isAuthenticated: true,
+                isAuthInitialized: true,
+              });
+
+              if (data.role === 'admin') {
+                get().fetchClients();
+                get().fetchManagers();
+                get().fetchAuthors();
+                get().fetchReservedUsernames();
+              }
+            } catch (err: any) {
+              if (err?.response?.status === 401) {
+                const newToken = await tryRefresh();
+                if (newToken) {
+                  try {
+                    const { data } = await api.get('/api/v1/auth/me');
+                    const normalized = normalizeUser(data);
+                    saveStoredUser(normalized);
+                    set({
+                      user: normalized,
+                      role: data.role as 'admin' | 'client' | 'author',
+                      isAuthenticated: true,
+                      isAuthInitialized: true,
+                    });
+                    if (data.role === 'admin') {
+                      get().fetchClients();
+                      get().fetchManagers();
+                      get().fetchAuthors();
+                      get().fetchReservedUsernames();
+                    }
+                    return;
+                  } catch {
+                    // Secondary check failed
+                  }
+                }
+                localStorage.removeItem('tanda_token');
+                localStorage.removeItem('tanda_refresh_token');
+                saveStoredUser(null);
+                set({ user: null, role: 'client', isAuthenticated: false, isAuthInitialized: true });
+              } else {
+                // Network error - keep cached user session intact for seamless offline UX
+                set({ isAuthInitialized: true });
+              }
+            }
+          } finally {
+            restoreSessionPromise = null;
           }
-        }
+        })();
+
+        return restoreSessionPromise;
       },
 }));
 

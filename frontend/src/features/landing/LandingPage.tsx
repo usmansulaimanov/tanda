@@ -70,13 +70,7 @@ export const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { books } = useBookStore();
-  const { user, isAuthenticated, restoreSession } = useAuthStore();
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      restoreSession();
-    }
-  }, [isAuthenticated, restoreSession]);
+  const { user, isAuthenticated } = useAuthStore();
 
   const [selectedCat, setSelectedCat] = useState('Бәрі');
   const [search, setSearch] = useState('');

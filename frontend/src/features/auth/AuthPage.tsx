@@ -41,7 +41,11 @@ export const AuthPage: React.FC<AuthPageProps> = ({ initialMode }) => {
     } else if (isStaff) {
       navigate('/admin/home', { replace: true });
     } else {
-      navigate('/', { replace: true });
+      if (redirectUrl && redirectUrl !== '/' && !redirectUrl.startsWith('/auth') && !redirectUrl.startsWith('/login') && !redirectUrl.startsWith('/signup')) {
+        navigate(redirectUrl, { replace: true });
+      } else {
+        navigate('/', { replace: true });
+      }
     }
   };
 
