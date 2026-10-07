@@ -131,8 +131,17 @@ apiClient.interceptors.response.use(
       return apiClient(originalRequest);
     } catch (refreshError: any) {
       processQueue(refreshError, null);
-      localStorage.removeItem('tanda_token');
-      localStorage.removeItem('tanda_refresh_token');
+      // ONLY clear stored session if backend explicitly rejected the refresh token (401/403).
+      // Do NOT wipe tokens on network dropouts, 502/503 cold-starts, or request timeouts!
+      const status = refreshError?.response?.status;
+      if (status === 401 || status === 403) {
+        localStorage.removeItem('tanda_token');
+        localStorage.removeItem('tanda_refresh_token');
+        try { localStorage.removeItem('tanda_user'); } catch {}
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('tanda:logout'));
+        }
+      }
       return Promise.reject(refreshError);
     } finally {
       isRefreshing = false;

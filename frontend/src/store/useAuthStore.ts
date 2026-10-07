@@ -1295,9 +1295,9 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
             let token = localStorage.getItem('tanda_token');
             const refreshToken = localStorage.getItem('tanda_refresh_token');
 
-            const tryRefresh = async (): Promise<string | null> => {
+            const tryRefresh = async (): Promise<{ token: string | null; isAuthError: boolean }> => {
               const currentRefreshToken = localStorage.getItem('tanda_refresh_token');
-              if (!currentRefreshToken) return null;
+              if (!currentRefreshToken) return { token: null, isAuthError: true };
               try {
                 const { data } = await api.post(
                   '/api/v1/auth/refresh',
@@ -1309,12 +1309,14 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
                   if (data.refreshToken) {
                     localStorage.setItem('tanda_refresh_token', data.refreshToken);
                   }
-                  return data.token;
+                  return { token: data.token, isAuthError: false };
                 }
-              } catch {
-                // Refresh failed
+              } catch (e: any) {
+                const status = e?.response?.status;
+                const isAuthError = status === 401 || status === 403;
+                return { token: null, isAuthError };
               }
-              return null;
+              return { token: null, isAuthError: false };
             };
 
             if (!token || token.startsWith('mock-')) {
@@ -1323,10 +1325,18 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
                 localStorage.removeItem('tanda_refresh_token');
                 saveStoredUser(null);
               }
-              token = await tryRefresh();
+              const refreshRes = await tryRefresh();
+              token = refreshRes.token;
               if (!token) {
-                saveStoredUser(null);
-                set({ user: null, role: 'client', isAuthenticated: false, isAuthInitialized: true });
+                if (refreshRes.isAuthError) {
+                  localStorage.removeItem('tanda_token');
+                  localStorage.removeItem('tanda_refresh_token');
+                  saveStoredUser(null);
+                  set({ user: null, role: 'client', isAuthenticated: false, isAuthInitialized: true });
+                } else {
+                  // Temporary network outage or server wake-up - keep session intact
+                  set({ isAuthInitialized: true });
+                }
                 return;
               }
             }
@@ -1350,8 +1360,8 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
               }
             } catch (err: any) {
               if (err?.response?.status === 401) {
-                const newToken = await tryRefresh();
-                if (newToken) {
+                const refreshRes = await tryRefresh();
+                if (refreshRes.token) {
                   try {
                     const { data } = await api.get('/api/v1/auth/me');
                     const normalized = normalizeUser(data);
@@ -1373,10 +1383,14 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
                     // Secondary check failed
                   }
                 }
-                localStorage.removeItem('tanda_token');
-                localStorage.removeItem('tanda_refresh_token');
-                saveStoredUser(null);
-                set({ user: null, role: 'client', isAuthenticated: false, isAuthInitialized: true });
+                if (refreshRes.isAuthError) {
+                  localStorage.removeItem('tanda_token');
+                  localStorage.removeItem('tanda_refresh_token');
+                  saveStoredUser(null);
+                  set({ user: null, role: 'client', isAuthenticated: false, isAuthInitialized: true });
+                } else {
+                  set({ isAuthInitialized: true });
+                }
               } else {
                 // Network error - keep cached user session intact for seamless offline UX
                 set({ isAuthInitialized: true });

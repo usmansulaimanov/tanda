@@ -37,7 +37,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@org.springframework.test.context.TestPropertySource(properties = "app.auth.max-concurrent-devices=2")
+@org.springframework.test.context.TestPropertySource(properties = {
+        "app.auth.max-concurrent-devices=2",
+        "app.auth.rotation-grace-period-seconds=0"
+})
 public class RefreshTokenIntegrationTest {
 
     @Autowired

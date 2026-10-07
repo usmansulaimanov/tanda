@@ -39,8 +39,11 @@ public class RefreshTokenService {
 
     public static final long REFRESH_TOKEN_DAYS = 30L;
 
-    @Value("${app.auth.max-concurrent-devices:2}")
-    private int maxConcurrentDevices = 2;
+    @Value("${app.auth.max-concurrent-devices:5}")
+    private int maxConcurrentDevices = 5;
+
+    @Value("${app.auth.rotation-grace-period-seconds:30}")
+    private long rotationGracePeriodSeconds = 30L;
 
     public record TokenRotationResult(String newAccessToken, String newRawRefreshToken, User user) {}
 
@@ -115,7 +118,14 @@ public class RefreshTokenService {
                 throw new UnauthorizedException("Сессияңыз әкімші тарапынан тоқтатылды.");
             }
 
-            // Suspicious reuse detection: revoke all sessions
+            // Benign rotation race condition within grace period (parallel or in-flight requests from same device)
+            if ("ROTATED".equals(reason) && rotationGracePeriodSeconds > 0 && existing.getLastActiveAt() != null
+                    && existing.getLastActiveAt().isAfter(OffsetDateTime.now().minusSeconds(rotationGracePeriodSeconds))) {
+                log.info("Benign token rotation replay detected within {}s grace period for userId={}", rotationGracePeriodSeconds, existing.getUserId());
+                throw new UnauthorizedException("Token already rotated");
+            }
+
+            // Suspicious reuse detection outside grace period: revoke all sessions
             log.warn("Refresh token reuse detected for userId={}! Revoking all sessions.", existing.getUserId());
             var activeTokens = refreshTokenRepository.findAllByUserIdAndRevokedFalse(existing.getUserId());
             for (RefreshToken token : activeTokens) {

@@ -36,7 +36,8 @@ app:
   admin:
     initial-password: ${ADMIN_INITIAL_PASSWORD:admin123}
   auth:
-    max-concurrent-devices: ${MAX_CONCURRENT_DEVICES:2}
+    max-concurrent-devices: ${MAX_CONCURRENT_DEVICES:5}
+    rotation-grace-period-seconds: ${ROTATION_GRACE_PERIOD_SECONDS:30}
   rate-limiting:
     enabled: ${RATE_LIMITING_ENABLED:true}
   cors:
