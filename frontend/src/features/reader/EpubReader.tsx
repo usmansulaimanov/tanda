@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import ePub, { Book as EpubBookInstance, Rendition } from 'epubjs';
-import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Sun, Moon, BookOpen, AlertCircle, RefreshCw, X, SlidersHorizontal, Type, ArrowLeft } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Sun, Moon, BookOpen, FileText, AlertCircle, RefreshCw, X, SlidersHorizontal, Type, ArrowLeft } from 'lucide-react';
 import { resolveMediaUrl } from '../../utils/mediaUtils';
 
 export interface EpubReaderProps {
@@ -108,6 +108,18 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
   const colorTemperature = propColorTemperature !== undefined ? propColorTemperature : internalColorTemperature;
 
   const [currentLocationText, setCurrentLocationText] = useState<string>('');
+  const [spreadMode, setSpreadMode] = useState<'single' | 'double'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('tanda_reader_spread');
+      if (saved === 'single' || saved === 'double') return saved;
+      return window.innerWidth >= 1024 ? 'double' : 'single';
+    }
+    return 'single';
+  });
+  const spreadModeRef = useRef(spreadMode);
+  useEffect(() => {
+    spreadModeRef.current = spreadMode;
+  }, [spreadMode]);
   const [progressPercent, setProgressPercent] = useState<number>(0);
   const [totalBookPages, setTotalBookPages] = useState<number>(0);
   const [sliderDragPercent, setSliderDragPercent] = useState<number | null>(null);
@@ -507,6 +519,37 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
     }
   }, [applyDirectThemeStyleToDoc, onColorTemperatureChange]);
 
+  const handleSpreadChange = useCallback((mode: 'single' | 'double') => {
+    setSpreadMode(mode);
+    spreadModeRef.current = mode;
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('tanda_reader_spread', mode);
+      } catch {}
+    }
+    if (renditionRef.current) {
+      let anchorCfi: string | null = null;
+      try {
+        const loc = (renditionRef.current as any)?.currentLocation?.();
+        anchorCfi = loc?.start?.cfi ?? null;
+      } catch {}
+
+      const spreadVal = mode === 'double' ? 'always' : 'none';
+      try {
+        (renditionRef.current as any).spread(spreadVal);
+      } catch (e) {
+        console.warn('Failed to switch rendition spread mode:', e);
+      }
+
+      if (anchorCfi) {
+        const cfi = anchorCfi;
+        setTimeout(() => {
+          renditionRef.current?.display(cfi).catch(() => {});
+        }, 150);
+      }
+    }
+  }, []);
+
   const lastKeyTimeRef = useRef<number>(0);
 
   const processKeyAction = useCallback((e: KeyboardEvent) => {
@@ -772,11 +815,14 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         }
       });
 
+      const isLargeScreen = typeof window !== 'undefined' && window.innerWidth >= 1024;
+      const initialSpread = isLargeScreen && spreadModeRef.current === 'double' ? 'always' : 'none';
+
       const rendition = book.renderTo(viewerRef.current, {
         width: '100%',
         height: '100%',
         flow: 'paginated',
-        spread: 'none',
+        spread: initialSpread,
       });
       renditionRef.current = rendition;
 
@@ -1102,6 +1148,54 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
               }}
             >
               Түнгі
+            </button>
+          </div>
+
+          {/* 4. Spread Mode Switcher (2 беттік / 1 беттік) */}
+          <div className="hidden lg:flex" style={{ alignItems: 'center', gap: '4px', background: activeTheme.containerBg, padding: '3px', borderRadius: '8px', border: `1px solid ${activeTheme.border}` }}>
+            <button
+              onClick={() => handleSpreadChange('double')}
+              title="2 беттік кітап көрінісі (екі жақты)"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                padding: '4px 8px',
+                border: 'none',
+                borderRadius: '4px',
+                background: spreadMode === 'double' ? (theme === 'dark' ? '#334155' : theme === 'sepia' ? '#FBF0D9' : '#FFFFFF') : 'transparent',
+                color: spreadMode === 'double' ? (theme === 'dark' ? '#F1F5F9' : theme === 'sepia' ? '#433422' : '#0F172A') : activeTheme.text,
+                fontWeight: spreadMode === 'double' ? 700 : 600,
+                fontSize: '11px',
+                cursor: 'pointer',
+                boxShadow: spreadMode === 'double' ? (theme === 'dark' ? '0 1px 3px rgba(0,0,0,0.2)' : '0 1px 3px rgba(0,0,0,0.1)') : 'none',
+                opacity: spreadMode === 'double' ? 1 : 0.85,
+              }}
+            >
+              <BookOpen className="w-3.5 h-3.5" />
+              <span>2 бет</span>
+            </button>
+            <button
+              onClick={() => handleSpreadChange('single')}
+              title="1 беттік тұтас көрініс"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                padding: '4px 8px',
+                border: 'none',
+                borderRadius: '4px',
+                background: spreadMode === 'single' ? (theme === 'dark' ? '#334155' : theme === 'sepia' ? '#FBF0D9' : '#FFFFFF') : 'transparent',
+                color: spreadMode === 'single' ? (theme === 'dark' ? '#F1F5F9' : theme === 'sepia' ? '#433422' : '#0F172A') : activeTheme.text,
+                fontWeight: spreadMode === 'single' ? 700 : 600,
+                fontSize: '11px',
+                cursor: 'pointer',
+                boxShadow: spreadMode === 'single' ? (theme === 'dark' ? '0 1px 3px rgba(0,0,0,0.2)' : '0 1px 3px rgba(0,0,0,0.1)') : 'none',
+                opacity: spreadMode === 'single' ? 1 : 0.85,
+              }}
+            >
+              <FileText className="w-3.5 h-3.5" />
+              <span>1 бет</span>
             </button>
           </div>
         </div>
