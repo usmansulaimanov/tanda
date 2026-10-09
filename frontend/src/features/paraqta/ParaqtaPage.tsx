@@ -426,9 +426,6 @@ export const ParaqtaPage: React.FC = () => {
       <div className="bg-gradient-to-r from-amber-500/10 via-orange-500/15 to-amber-600/10 border border-orange-500/20 rounded-3xl p-6 md:p-8 mb-8 backdrop-blur-md relative overflow-hidden">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/20 text-[#F08000] text-xs font-bold uppercase tracking-wider mb-3">
-              <Sparkles className="w-3.5 h-3.5" /> Парақта &bull; Оқу кеңістігі
-            </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
               Оқу уақытын қадағалаңыз & Достармен жарысыңыз
             </h1>
