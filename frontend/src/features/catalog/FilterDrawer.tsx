@@ -57,13 +57,18 @@ export const FilterDrawer: React.FC<FilterDrawerProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-      setIsVisible(true);
+      const frame = requestAnimationFrame(() => {
+        setIsVisible(true);
+      });
+      return () => cancelAnimationFrame(frame);
+    } else {
+      setIsVisible(false);
     }
   }, [isOpen]);
 
   const handleClose = () => {
     setIsVisible(false);
-    setTimeout(onClose, 280);
+    setTimeout(onClose, 320);
   };
 
   const toggleSection = (key: SectionKey) => {
@@ -237,30 +242,35 @@ export const FilterDrawer: React.FC<FilterDrawerProps> = ({
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-[950] transition-opacity duration-280"
+        className="fixed inset-0 z-[950]"
         style={{
           background: 'rgba(0,0,0,0.45)',
           opacity: isVisible ? 1 : 0,
           backdropFilter: 'blur(2px)',
+          WebkitBackdropFilter: 'blur(2px)',
+          transition: 'opacity 0.32s cubic-bezier(0.16, 1, 0.3, 1)',
         }}
         onClick={handleClose}
       />
 
       {/* Drawer — slides in from right */}
       <div
-        className="fixed top-0 right-0 bottom-0 z-[960] flex flex-col"
+        className="fixed top-0 right-0 bottom-0 z-[960] flex flex-col w-full sm:w-[420px] sm:max-w-[420px]"
         style={{
-          width: 'min(100vw, 420px)',
           background: '#FFFFFF',
-          boxShadow: '-8px 0 32px rgba(0,0,0,0.12)',
+          boxShadow: '-8px 0 32px rgba(0,0,0,0.16)',
           transform: isVisible ? 'translateX(0)' : 'translateX(100%)',
-          transition: 'transform 0.28s cubic-bezier(0.32,0,0.67,0)',
+          transition: 'transform 0.32s cubic-bezier(0.16, 1, 0.3, 1)',
+          willChange: 'transform',
         }}
       >
         {/* Header */}
         <div
           className="flex items-center justify-between px-5 py-4 shrink-0"
-          style={{ borderBottom: '1px solid #F1F5F9' }}
+          style={{
+            borderBottom: '1px solid #F1F5F9',
+            paddingTop: 'max(calc(env(safe-area-inset-top, 0px) + 12px), 16px)',
+          }}
         >
           <button
             type="button"
@@ -460,7 +470,7 @@ export const FilterDrawer: React.FC<FilterDrawerProps> = ({
             )}
           </div>
 
-          <div className="h-10" />
+          <div style={{ height: 'max(calc(env(safe-area-inset-bottom, 0px) + 24px), 40px)' }} />
         </div>
       </div>
     </>

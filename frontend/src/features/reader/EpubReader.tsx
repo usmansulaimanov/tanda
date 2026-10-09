@@ -1064,7 +1064,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
       {/* Top Controls Bar (Toggleable on mobile as overlay, always visible on desktop) */}
       <div
         style={{
-          padding: '10px 16px',
+          padding: 'max(calc(env(safe-area-inset-top, 0px) + 8px), 10px) 16px 10px',
           backgroundColor: activeTheme.headerBg,
           borderBottom: `1px solid ${activeTheme.border}`,
           zIndex: 30,
@@ -1388,7 +1388,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
               borderTop: `1.5px solid ${activeTheme.border}`,
               borderTopLeftRadius: '20px',
               borderTopRightRadius: '20px',
-              padding: '18px 18px 24px',
+              padding: '18px 18px max(calc(env(safe-area-inset-bottom, 0px) + 20px), 24px)',
               boxShadow: '0 -10px 30px rgba(0,0,0,0.2)',
               display: 'flex',
               flexDirection: 'column',
@@ -1746,12 +1746,13 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         {/* EPUB Render Mount Point */}
         <div
           ref={viewerRef}
-          className={`absolute inset-0 top-2 bottom-6 sm:top-0 sm:bottom-0 ${
+          className={`absolute inset-0 top-2 sm:top-0 sm:bottom-0 ${
             spreadMode === 'single'
               ? 'left-2 right-2 sm:left-1/2 sm:-translate-x-1/2 sm:w-full sm:max-w-2xl lg:max-w-3xl'
               : 'left-2 right-2 sm:left-11 sm:right-11'
           }`}
           style={{
+            bottom: 'max(calc(env(safe-area-inset-bottom, 0px) + 24px), 30px)',
             backgroundColor: activeTheme.bg,
             padding: 0,
             margin: 0,
@@ -1954,7 +1955,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
       {/* Bottom Progress Bar & Seek Slider (Toggleable on mobile as overlay, always visible on desktop) */}
       <div
         style={{
-          padding: '8px 16px max(calc(env(safe-area-inset-bottom, 0px) + 6px), 8px)',
+          padding: '10px 16px max(calc(env(safe-area-inset-bottom, 0px) + 12px), 16px)',
           backgroundColor: activeTheme.headerBg,
           borderTop: `1px solid ${activeTheme.border}`,
           fontSize: '12px',
@@ -2132,12 +2133,14 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
       {/* Minimal clean page number at bottom on mobile when controls are hidden */}
       {!showMobileControls && (
         <div
-          className="flex sm:hidden absolute bottom-0 left-0 right-0 items-center justify-center w-full py-1.5 pointer-events-none"
+          className="flex sm:hidden absolute bottom-0 left-0 right-0 items-center justify-center w-full pointer-events-none"
           style={{
+            paddingBottom: 'max(calc(env(safe-area-inset-bottom, 0px) + 8px), 16px)',
+            paddingTop: '6px',
             backgroundColor: 'transparent',
             color: activeTheme.text,
             fontSize: '11px',
-            opacity: 0.55,
+            opacity: 0.6,
             fontWeight: 700,
             userSelect: 'none',
             zIndex: 10,

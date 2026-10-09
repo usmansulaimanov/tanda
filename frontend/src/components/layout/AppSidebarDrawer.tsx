@@ -678,6 +678,19 @@ export const AppSidebarDrawer: React.FC = () => {
               {isAuthenticated && (
                 <>
                   <Link
+                    to="/paraqta"
+                    className={`sidebar-nav-link ${location.pathname.startsWith('/paraqta') ? 'active' : ''}`}
+                    onClick={closeSidebar}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <span>Парақта (Таймер)</span>
+                    <span className="sidebar-badge" style={{ backgroundColor: '#FEF3C7', color: '#B45309', fontWeight: 800 }}>Жаңа</span>
+                  </Link>
+
+                  <Link
                     to="/my-books"
                     className={`sidebar-nav-link ${location.pathname === '/my-books' ? 'active' : ''}`}
                     onClick={closeSidebar}

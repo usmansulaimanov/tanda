@@ -13,10 +13,16 @@ export interface QuoteItem {
   createdAt: string;
 }
 
+export interface QuoteTimeSlot {
+  time: string;
+  enabled: boolean;
+}
+
 export interface QuoteSettings {
   isEnabled: boolean;
   frequencyPerDay: number;
   scheduledTimes: string[];
+  slots: [QuoteTimeSlot, QuoteTimeSlot, QuoteTimeSlot];
   browserPushEnabled: boolean;
   soundEnabled: boolean;
 }
@@ -39,6 +45,7 @@ interface QuoteState {
   isLoading: boolean;
 
   fetchQuotes: (asAdmin?: boolean) => Promise<void>;
+  fetchSettings: () => Promise<void>;
   fetchRandomQuote: () => Promise<QuoteItem | null>;
   addQuote: (data: { text: string; author?: string; bookId?: string; bookTitle?: string; isActive?: boolean }) => Promise<QuoteItem | null>;
   addBulkQuotes: (items: Array<{ text: string; author?: string; bookId?: string; bookTitle?: string }>) => Promise<number>;
@@ -47,7 +54,7 @@ interface QuoteState {
   deleteQuote: (id: string) => Promise<void>;
   deleteQuotes: (ids: string[]) => Promise<void>;
   toggleQuoteActive: (id: string) => Promise<void>;
-  updateSettings: (partial: Partial<QuoteSettings>) => void;
+  updateSettings: (partial: Partial<QuoteSettings>) => Promise<void>;
 
   triggerQuoteNotification: (quoteId?: string) => QuoteItem | null;
   dismissNotification: () => void;
@@ -59,6 +66,11 @@ const DEFAULT_SETTINGS: QuoteSettings = {
   isEnabled: true,
   frequencyPerDay: 3,
   scheduledTimes: ['09:00', '14:00', '20:00'],
+  slots: [
+    { time: '09:00', enabled: true },
+    { time: '14:00', enabled: true },
+    { time: '20:00', enabled: true },
+  ],
   browserPushEnabled: true,
   soundEnabled: true,
 };
@@ -70,9 +82,45 @@ export const useQuoteStore = create<QuoteState>((set, get) => ({
   deliveredHistory: [],
   isLoading: false,
 
+  fetchSettings: async () => {
+    try {
+      const { data } = await api.get('/api/v1/system/settings');
+      if (data) {
+        const dispatchEnabled = data.quoteDispatchEnabled !== false;
+        const t1 = data.quoteTime1 || '09:00';
+        const t1On = data.quoteTime1Enabled !== false;
+        const t2 = data.quoteTime2 || '14:00';
+        const t2On = data.quoteTime2Enabled !== false;
+        const t3 = data.quoteTime3 || '20:00';
+        const t3On = data.quoteTime3Enabled !== false;
+
+        const activeTimes: string[] = [];
+        if (t1On && t1) activeTimes.push(t1);
+        if (t2On && t2) activeTimes.push(t2);
+        if (t3On && t3) activeTimes.push(t3);
+
+        set((state) => ({
+          settings: {
+            ...state.settings,
+            isEnabled: dispatchEnabled,
+            slots: [
+              { time: t1, enabled: t1On },
+              { time: t2, enabled: t2On },
+              { time: t3, enabled: t3On },
+            ],
+            scheduledTimes: activeTimes,
+          },
+        }));
+      }
+    } catch (err) {
+      console.error('Failed to fetch quote settings:', err);
+    }
+  },
+
   fetchQuotes: async (asAdmin = false) => {
     set({ isLoading: true });
     try {
+      get().fetchSettings().catch(() => {});
       const endpoint = asAdmin ? '/api/v1/admin/quotes' : '/api/v1/quotes';
       const { data } = await api.get(endpoint);
       if (Array.isArray(data)) {
@@ -190,10 +238,29 @@ export const useQuoteStore = create<QuoteState>((set, get) => ({
     await get().updateQuote(id, { isActive: newStatus });
   },
 
-  updateSettings: (partial) => {
-    set((state) => ({
-      settings: { ...state.settings, ...partial },
-    }));
+  updateSettings: async (partial) => {
+    const prev = get().settings;
+    const next = { ...prev, ...partial };
+
+    if (partial.slots) {
+      next.scheduledTimes = partial.slots.filter((s) => s.enabled && s.time).map((s) => s.time);
+    }
+
+    set({ settings: next });
+
+    try {
+      await api.put('/api/v1/admin/system/settings', {
+        quoteDispatchEnabled: next.isEnabled,
+        quoteTime1: next.slots[0]?.time || '09:00',
+        quoteTime1Enabled: next.slots[0]?.enabled ?? true,
+        quoteTime2: next.slots[1]?.time || '14:00',
+        quoteTime2Enabled: next.slots[1]?.enabled ?? true,
+        quoteTime3: next.slots[2]?.time || '20:00',
+        quoteTime3Enabled: next.slots[2]?.enabled ?? true,
+      });
+    } catch (err) {
+      console.error('Failed to save quote settings to server:', err);
+    }
   },
 
   triggerQuoteNotification: (quoteId) => {

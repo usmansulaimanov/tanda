@@ -83,15 +83,29 @@ export const AdminQuotesPage: React.FC = () => {
   const [filterAuthor, setFilterAuthor] = useState<string>('all');
 
   // Time slots local editor
-  const [time1, setTime1] = useState(settings.scheduledTimes[0] || '09:00');
-  const [time2, setTime2] = useState(settings.scheduledTimes[1] || '14:00');
-  const [time3, setTime3] = useState(settings.scheduledTimes[2] || '20:00');
+  const [time1, setTime1] = useState(settings.slots?.[0]?.time || '09:00');
+  const [time1Enabled, setTime1Enabled] = useState(settings.slots?.[0]?.enabled ?? true);
+
+  const [time2, setTime2] = useState(settings.slots?.[1]?.time || '14:00');
+  const [time2Enabled, setTime2Enabled] = useState(settings.slots?.[1]?.enabled ?? true);
+
+  const [time3, setTime3] = useState(settings.slots?.[2]?.time || '20:00');
+  const [time3Enabled, setTime3Enabled] = useState(settings.slots?.[2]?.enabled ?? true);
 
   useEffect(() => {
-    setTime1(settings.scheduledTimes[0] || '09:00');
-    setTime2(settings.scheduledTimes[1] || '14:00');
-    setTime3(settings.scheduledTimes[2] || '20:00');
-  }, [settings.scheduledTimes]);
+    if (settings.slots) {
+      setTime1(settings.slots[0]?.time || '09:00');
+      setTime1Enabled(settings.slots[0]?.enabled ?? true);
+      setTime2(settings.slots[1]?.time || '14:00');
+      setTime2Enabled(settings.slots[1]?.enabled ?? true);
+      setTime3(settings.slots[2]?.time || '20:00');
+      setTime3Enabled(settings.slots[2]?.enabled ?? true);
+    } else if (settings.scheduledTimes) {
+      setTime1(settings.scheduledTimes[0] || '09:00');
+      setTime2(settings.scheduledTimes[1] || '14:00');
+      setTime3(settings.scheduledTimes[2] || '20:00');
+    }
+  }, [settings.slots, settings.scheduledTimes]);
 
   // Active books for selector
   const availableBooks = useMemo(() => {
@@ -376,17 +390,22 @@ export const AdminQuotesPage: React.FC = () => {
     showToast('Цитата сәтті өзгертілді', 'success');
   };
 
-  const handleSaveScheduleTimes = () => {
-    const updatedTimes = [time1, time2, time3].filter(Boolean);
-    updateSettings({ scheduledTimes: updatedTimes });
-    showToast(`Уақыт кестесі сақталды: ${updatedTimes.join(', ')}`, 'success');
+  const handleSaveScheduleTimes = async () => {
+    await updateSettings({
+      slots: [
+        { time: time1, enabled: time1Enabled },
+        { time: time2, enabled: time2Enabled },
+        { time: time3, enabled: time3Enabled },
+      ],
+    });
+    showToast('Уақыт баптаулары мен кесте сәтті сақталды!', 'success');
   };
 
-  const handleToggleMasterSwitch = () => {
+  const handleToggleMasterSwitch = async () => {
     const nextVal = !settings.isEnabled;
-    updateSettings({ isEnabled: nextVal });
+    await updateSettings({ isEnabled: nextVal });
     if (nextVal) {
-      showToast('Цитаталар таратылымы ҚОСЫЛДЫ. Оқырмандарға күнделікті 3 рет жіберіледі.', 'success');
+      showToast('Цитаталар таратылымы ҚОСЫЛДЫ. Оқырмандарға күнделікті белсенді уақыттарда жіберіледі.', 'success');
     } else {
       showToast('Цитаталар таратылымы ӨШІРІЛДІ. Уақытша оқырмандарға уведомление бармайды.', 'info');
     }
@@ -540,136 +559,294 @@ export const AdminQuotesPage: React.FC = () => {
                   Уақыт баптаулары
                 </h2>
               </div>
+              <p style={{ margin: '4px 0 0 16px', fontSize: '12px', color: '#64748B' }}>
+                Цитаталар функциясының жалпы күйі мен әр уақытты жеке қосып/өшіру кестесі
+              </p>
             </div>
 
-            {/* Clean toggle button */}
+            {/* Master Toggle Switch */}
             <button
               type="button"
               onClick={handleToggleMasterSwitch}
               style={{
-                padding: '8px 16px',
-                borderRadius: '8px',
+                padding: '9px 18px',
+                borderRadius: '10px',
                 fontSize: '13px',
-                fontWeight: 700,
+                fontWeight: 800,
                 cursor: 'pointer',
                 background: settings.isEnabled ? '#ECFDF5' : '#FEF2F2',
                 color: settings.isEnabled ? '#047857' : '#B91C1C',
                 border: `1.5px solid ${settings.isEnabled ? '#A7F3D0' : '#FECACA'}`,
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '8px',
+                gap: '10px',
                 transition: 'all 0.15s',
+                boxShadow: settings.isEnabled ? '0 2px 8px rgba(16, 185, 129, 0.15)' : 'none',
               }}
-              title={settings.isEnabled ? 'Таратылымды уақытша тоқтату үшін басыңыз' : 'Таратылымды қосу үшін басыңыз'}
+              title={settings.isEnabled ? 'Цитаталар функциясын толық өшіру үшін басыңыз' : 'Цитаталар функциясын қосу үшін басыңыз'}
             >
-              <span
+              {/* Custom Switch Visual */}
+              <div
                 style={{
-                  width: '8px',
-                  height: '8px',
-                  borderRadius: '50%',
-                  background: settings.isEnabled ? '#10B981' : '#EF4444',
+                  width: '36px',
+                  height: '20px',
+                  borderRadius: '10px',
+                  background: settings.isEnabled ? '#10B981' : '#CBD5E1',
+                  position: 'relative',
+                  transition: 'background 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: '2px',
+                  boxSizing: 'border-box',
                 }}
-              />
-              {settings.isEnabled ? 'Таратылым қосулы' : 'Таратылым өшірулі'}
+              >
+                <div
+                  style={{
+                    width: '16px',
+                    height: '16px',
+                    borderRadius: '50%',
+                    background: '#FFFFFF',
+                    transform: settings.isEnabled ? 'translateX(16px)' : 'translateX(0)',
+                    transition: 'transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                  }}
+                />
+              </div>
+              <span>{settings.isEnabled ? 'Функция қосулы' : 'Функция өшірулі'}</span>
             </button>
           </div>
+
+          {!settings.isEnabled && (
+            <div
+              style={{
+                marginBottom: '20px',
+                padding: '12px 16px',
+                borderRadius: '12px',
+                background: '#FFFBEB',
+                border: '1.5px solid #FDE68A',
+                color: '#B45309',
+                fontSize: '13px',
+                fontWeight: 600,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+              }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                <line x1="12" y1="9" x2="12" y2="13"></line>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+              </svg>
+              <span>Цитаталар функциясы жалпы өшірулі тұр. Барлық оқырмандарға жоспарлы уведомлениелер уақытша жіберілмейді.</span>
+            </div>
+          )}
 
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
               gap: '16px',
-              alignItems: 'flex-end',
+              alignItems: 'flex-start',
             }}
           >
-            <div>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
-                1-цитата уақыты
-              </label>
+            {/* Slot 1 */}
+            <div
+              style={{
+                background: time1Enabled ? '#F8FAFC' : '#F1F5F9',
+                borderRadius: '14px',
+                padding: '16px',
+                border: `1.5px solid ${time1Enabled ? '#CBD5E1' : '#E2E8F0'}`,
+                transition: 'all 0.15s',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                <label style={{ fontSize: '13px', fontWeight: 800, color: time1Enabled ? '#1E293B' : '#94A3B8' }}>
+                  1-цитата уақыты
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setTime1Enabled(!time1Enabled)}
+                  style={{
+                    padding: '3px 8px',
+                    borderRadius: '6px',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    border: 'none',
+                    background: time1Enabled ? '#DCFCE7' : '#E2E8F0',
+                    color: time1Enabled ? '#15803D' : '#64748B',
+                    transition: 'all 0.15s',
+                  }}
+                  title={time1Enabled ? '1-цитатаны өшіру' : '1-цитатаны қосу'}
+                >
+                  {time1Enabled ? 'Қосулы' : 'Өшірулі'}
+                </button>
+              </div>
               <input
                 type="time"
                 value={time1}
+                disabled={!time1Enabled}
                 onChange={(e) => setTime1(e.target.value)}
                 style={{
                   width: '100%',
                   padding: '10px 14px',
                   borderRadius: '10px',
-                  border: '1.5px solid #CBD5E1',
-                  fontSize: '14px',
-                  fontWeight: 700,
+                  border: `1.5px solid ${time1Enabled ? '#94A3B8' : '#CBD5E1'}`,
+                  fontSize: '15px',
+                  fontWeight: 800,
                   outline: 'none',
-                  background: '#F8FAFC',
+                  background: time1Enabled ? '#FFFFFF' : '#E2E8F0',
+                  color: time1Enabled ? '#0F172A' : '#94A3B8',
+                  cursor: time1Enabled ? 'text' : 'not-allowed',
                   boxSizing: 'border-box',
+                  opacity: time1Enabled ? 1 : 0.6,
                 }}
               />
+              <div style={{ marginTop: '6px', fontSize: '11px', color: time1Enabled ? '#059669' : '#94A3B8', fontWeight: 600 }}>
+                {time1Enabled ? '✓ Таңғы цитата белсенді' : '✕ Бұл уақыт өшірілген'}
+              </div>
             </div>
 
-            <div>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
-                2-цитата уақыты
-              </label>
+            {/* Slot 2 */}
+            <div
+              style={{
+                background: time2Enabled ? '#F8FAFC' : '#F1F5F9',
+                borderRadius: '14px',
+                padding: '16px',
+                border: `1.5px solid ${time2Enabled ? '#CBD5E1' : '#E2E8F0'}`,
+                transition: 'all 0.15s',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                <label style={{ fontSize: '13px', fontWeight: 800, color: time2Enabled ? '#1E293B' : '#94A3B8' }}>
+                  2-цитата уақыты
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setTime2Enabled(!time2Enabled)}
+                  style={{
+                    padding: '3px 8px',
+                    borderRadius: '6px',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    border: 'none',
+                    background: time2Enabled ? '#DCFCE7' : '#E2E8F0',
+                    color: time2Enabled ? '#15803D' : '#64748B',
+                    transition: 'all 0.15s',
+                  }}
+                  title={time2Enabled ? '2-цитатаны өшіру' : '2-цитатаны қосу'}
+                >
+                  {time2Enabled ? 'Қосулы' : 'Өшірулі'}
+                </button>
+              </div>
               <input
                 type="time"
                 value={time2}
+                disabled={!time2Enabled}
                 onChange={(e) => setTime2(e.target.value)}
                 style={{
                   width: '100%',
                   padding: '10px 14px',
                   borderRadius: '10px',
-                  border: '1.5px solid #CBD5E1',
-                  fontSize: '14px',
-                  fontWeight: 700,
+                  border: `1.5px solid ${time2Enabled ? '#94A3B8' : '#CBD5E1'}`,
+                  fontSize: '15px',
+                  fontWeight: 800,
                   outline: 'none',
-                  background: '#F8FAFC',
+                  background: time2Enabled ? '#FFFFFF' : '#E2E8F0',
+                  color: time2Enabled ? '#0F172A' : '#94A3B8',
+                  cursor: time2Enabled ? 'text' : 'not-allowed',
                   boxSizing: 'border-box',
+                  opacity: time2Enabled ? 1 : 0.6,
                 }}
               />
+              <div style={{ marginTop: '6px', fontSize: '11px', color: time2Enabled ? '#059669' : '#94A3B8', fontWeight: 600 }}>
+                {time2Enabled ? '✓ Түскі цитата белсенді' : '✕ Бұл уақыт өшірілген'}
+              </div>
             </div>
 
-            <div>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
-                3-цитата уақыты
-              </label>
+            {/* Slot 3 */}
+            <div
+              style={{
+                background: time3Enabled ? '#F8FAFC' : '#F1F5F9',
+                borderRadius: '14px',
+                padding: '16px',
+                border: `1.5px solid ${time3Enabled ? '#CBD5E1' : '#E2E8F0'}`,
+                transition: 'all 0.15s',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                <label style={{ fontSize: '13px', fontWeight: 800, color: time3Enabled ? '#1E293B' : '#94A3B8' }}>
+                  3-цитата уақыты
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setTime3Enabled(!time3Enabled)}
+                  style={{
+                    padding: '3px 8px',
+                    borderRadius: '6px',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    border: 'none',
+                    background: time3Enabled ? '#DCFCE7' : '#E2E8F0',
+                    color: time3Enabled ? '#15803D' : '#64748B',
+                    transition: 'all 0.15s',
+                  }}
+                  title={time3Enabled ? '3-цитатаны өшіру' : '3-цитатаны қосу'}
+                >
+                  {time3Enabled ? 'Қосулы' : 'Өшірулі'}
+                </button>
+              </div>
               <input
                 type="time"
                 value={time3}
+                disabled={!time3Enabled}
                 onChange={(e) => setTime3(e.target.value)}
                 style={{
                   width: '100%',
                   padding: '10px 14px',
                   borderRadius: '10px',
-                  border: '1.5px solid #CBD5E1',
-                  fontSize: '14px',
-                  fontWeight: 700,
+                  border: `1.5px solid ${time3Enabled ? '#94A3B8' : '#CBD5E1'}`,
+                  fontSize: '15px',
+                  fontWeight: 800,
                   outline: 'none',
-                  background: '#F8FAFC',
+                  background: time3Enabled ? '#FFFFFF' : '#E2E8F0',
+                  color: time3Enabled ? '#0F172A' : '#94A3B8',
+                  cursor: time3Enabled ? 'text' : 'not-allowed',
                   boxSizing: 'border-box',
+                  opacity: time3Enabled ? 1 : 0.6,
                 }}
               />
+              <div style={{ marginTop: '6px', fontSize: '11px', color: time3Enabled ? '#059669' : '#94A3B8', fontWeight: 600 }}>
+                {time3Enabled ? '✓ Кешкі цитата белсенді' : '✕ Бұл уақыт өшірілген'}
+              </div>
             </div>
 
-            <div>
+            {/* Save Button Card */}
+            <div style={{ alignSelf: 'stretch', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
               <button
                 type="button"
                 onClick={handleSaveScheduleTimes}
                 style={{
                   width: '100%',
-                  padding: '11px 20px',
-                  borderRadius: '10px',
+                  padding: '14px 20px',
+                  borderRadius: '12px',
                   fontSize: '14px',
                   fontWeight: 800,
                   color: '#FFFFFF',
                   background: 'var(--blue)',
                   border: 'none',
                   cursor: 'pointer',
-                  boxShadow: '0 4px 12px rgba(0, 84, 148, 0.2)',
+                  boxShadow: '0 4px 14px rgba(0, 84, 148, 0.25)',
                   display: 'inline-flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: '6px',
+                  gap: '8px',
+                  transition: 'all 0.15s',
                 }}
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <polyline points="20 6 9 17 4 12"></polyline>
                 </svg>
                 Кестені сақтау

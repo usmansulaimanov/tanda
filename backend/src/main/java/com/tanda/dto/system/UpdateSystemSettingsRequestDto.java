@@ -48,4 +48,11 @@ public class UpdateSystemSettingsRequestDto {
     private String headerBannerButtonText;
     private String headerBannerPresets;
     private Boolean aiReceiptVerificationEnabled;
+    private Boolean quoteDispatchEnabled;
+    private String quoteTime1;
+    private Boolean quoteTime1Enabled;
+    private String quoteTime2;
+    private Boolean quoteTime2Enabled;
+    private String quoteTime3;
+    private Boolean quoteTime3Enabled;
 }

@@ -53,5 +53,12 @@ public class SystemSettingsResponseDto {
     private boolean bonusSystemEnabled;
     private String bonusCurrencyName;
     private String bonusDescription;
+    private boolean quoteDispatchEnabled;
+    private String quoteTime1;
+    private boolean quoteTime1Enabled;
+    private String quoteTime2;
+    private boolean quoteTime2Enabled;
+    private String quoteTime3;
+    private boolean quoteTime3Enabled;
     private OffsetDateTime updatedAt;
 }

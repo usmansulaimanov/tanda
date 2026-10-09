@@ -92,6 +92,13 @@ public class SystemSettingService {
                 .bonusSystemEnabled(!"false".equalsIgnoreCase(map.getOrDefault("bonus_system_enabled", "true")))
                 .bonusCurrencyName(map.getOrDefault("bonus_currency_name", "Бонус"))
                 .bonusDescription(map.getOrDefault("bonus_description", "Белсенді оқырмандарға берілетін бонус. Күн сайын сайтқа кіру, кітап тыңдау немесе пікір жазу арқылы жинап, оны жазылымға айырбастауға болады."))
+                .quoteDispatchEnabled(!"false".equalsIgnoreCase(map.getOrDefault("quote_dispatch_enabled", "true")))
+                .quoteTime1(map.getOrDefault("quote_time_1", "09:00"))
+                .quoteTime1Enabled(!"false".equalsIgnoreCase(map.getOrDefault("quote_time_1_enabled", "true")))
+                .quoteTime2(map.getOrDefault("quote_time_2", "14:00"))
+                .quoteTime2Enabled(!"false".equalsIgnoreCase(map.getOrDefault("quote_time_2_enabled", "true")))
+                .quoteTime3(map.getOrDefault("quote_time_3", "20:00"))
+                .quoteTime3Enabled(!"false".equalsIgnoreCase(map.getOrDefault("quote_time_3_enabled", "true")))
                 .updatedAt(lastUpdated)
                 .build();
     }
@@ -238,6 +245,27 @@ public class SystemSettingService {
         }
         if (dto.getAiReceiptVerificationEnabled() != null) {
             saveSetting("ai_receipt_verification_enabled", String.valueOf(dto.getAiReceiptVerificationEnabled()));
+        }
+        if (dto.getQuoteDispatchEnabled() != null) {
+            saveSetting("quote_dispatch_enabled", String.valueOf(dto.getQuoteDispatchEnabled()));
+        }
+        if (dto.getQuoteTime1() != null) {
+            saveSetting("quote_time_1", dto.getQuoteTime1().trim());
+        }
+        if (dto.getQuoteTime1Enabled() != null) {
+            saveSetting("quote_time_1_enabled", String.valueOf(dto.getQuoteTime1Enabled()));
+        }
+        if (dto.getQuoteTime2() != null) {
+            saveSetting("quote_time_2", dto.getQuoteTime2().trim());
+        }
+        if (dto.getQuoteTime2Enabled() != null) {
+            saveSetting("quote_time_2_enabled", String.valueOf(dto.getQuoteTime2Enabled()));
+        }
+        if (dto.getQuoteTime3() != null) {
+            saveSetting("quote_time_3", dto.getQuoteTime3().trim());
+        }
+        if (dto.getQuoteTime3Enabled() != null) {
+            saveSetting("quote_time_3_enabled", String.valueOf(dto.getQuoteTime3Enabled()));
         }
 
         log.info("System settings updated successfully: {}", dto);

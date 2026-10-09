@@ -277,20 +277,16 @@ export const ProfilePage: React.FC = () => {
           <div className="flex items-end justify-between -mt-10 mb-3">
             {/* Avatar */}
             <div className="relative">
-              <div className="w-[74px] h-[74px] rounded-full border-2 border-white bg-[#25453D] text-white shadow flex items-center justify-center font-bold text-xl select-none overflow-hidden">
-                {user.avatarUrl ? (
-                  <img
-                    src={user.avatarUrl}
-                    alt={user.name || 'User'}
-                    referrerPolicy="no-referrer"
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none';
-                    }}
-                  />
-                ) : (
-                  <span>{getInitials(user.name)}</span>
-                )}
+              <div className="w-[74px] h-[74px] rounded-full border-2 border-white bg-slate-100 text-white shadow flex items-center justify-center font-bold text-xl select-none overflow-hidden">
+                <img
+                  src={user.avatarUrl || '/default-reader-avatar.jpg'}
+                  alt={user.name || 'User'}
+                  referrerPolicy="no-referrer"
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.src = '/default-reader-avatar.jpg';
+                  }}
+                />
               </div>
               {isPremiumActive && (
                 <div className="absolute bottom-0 right-0 w-5 h-5 bg-amber-500 rounded-full border-2 border-white flex items-center justify-center text-white text-[10px]">
@@ -482,8 +478,15 @@ export const ProfilePage: React.FC = () => {
                 className="flex items-center justify-between p-3 rounded-2xl bg-white border border-slate-100 shadow-sm"
               >
                 <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-full bg-[#EA580C] text-white font-bold flex items-center justify-center text-sm shrink-0">
-                    {getInitials(user.name)[0]}
+                  <div className="w-9 h-9 rounded-full bg-slate-100 overflow-hidden shrink-0 border border-slate-200 flex items-center justify-center">
+                    <img
+                      src={user.avatarUrl || '/default-reader-avatar.jpg'}
+                      alt={user.name || 'Avatar'}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.src = '/default-reader-avatar.jpg';
+                      }}
+                    />
                   </div>
                   <div>
                     <div className="text-xs font-bold text-slate-800">{user.name}</div>

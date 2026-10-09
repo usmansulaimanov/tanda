@@ -98,6 +98,14 @@ public class User {
     @Builder.Default
     private Long totalListenedSeconds = 0L;
 
+    @Column(name = "total_reading_seconds", nullable = false)
+    @Builder.Default
+    private Long totalReadingSeconds = 0L;
+
+    @Column(name = "allow_group_invites", nullable = false)
+    @Builder.Default
+    private Boolean allowGroupInvites = true;
+
     @PrePersist
     public void prePersist() {
         if (createdAt == null) {
@@ -120,6 +128,12 @@ public class User {
         }
         if (totalListenedSeconds == null) {
             totalListenedSeconds = 0L;
+        }
+        if (totalReadingSeconds == null) {
+            totalReadingSeconds = 0L;
+        }
+        if (allowGroupInvites == null) {
+            allowGroupInvites = true;
         }
     }
 }
