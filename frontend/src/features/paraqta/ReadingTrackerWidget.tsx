@@ -343,7 +343,7 @@ export const ReadingTrackerWidget: React.FC<ReadingTrackerWidgetProps> = ({
       </div>
 
       {/* Book & Group Selector Config */}
-      <div className="w-full max-w-md my-6 space-y-3 text-left">
+      <div className="w-full max-w-xl my-6 space-y-3 text-left">
         <div>
           <label className="text-xs font-bold text-slate-600 dark:text-slate-400 block mb-1">
             Оқып жатқан кітабыңыз (міндетті емес):
@@ -391,7 +391,7 @@ export const ReadingTrackerWidget: React.FC<ReadingTrackerWidgetProps> = ({
           myGroups.length > 0 && (
             <div>
               <label className="text-xs font-bold text-slate-600 dark:text-slate-400 block mb-1">
-                Топтық жарысқа қосу (міндетті емес):
+                Топтық жарысқа қосу:
               </label>
               <select
                 disabled={isRunning}
@@ -399,7 +399,7 @@ export const ReadingTrackerWidget: React.FC<ReadingTrackerWidgetProps> = ({
                 onChange={(e) => setSelectedGroupId(e.target.value)}
                 className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F08000]"
               >
-                <option value="">Жеке оқу (Топсыз)</option>
+                <option value="">Жеке оқу</option>
                 {myGroups.map((g) => (
                   <option key={g.id} value={g.id}>
                     👥 {g.name}
