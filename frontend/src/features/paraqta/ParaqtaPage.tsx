@@ -298,7 +298,7 @@ export const ParaqtaPage: React.FC = () => {
       )}
 
       {/* Header Banner */}
-      <div className="relative overflow-hidden rounded-2xl py-3.5 px-5 sm:py-4 sm:px-6 mb-5 sm:mb-6 shadow-md w-full max-w-full bg-gradient-to-r from-amber-500/15 via-orange-500/20 to-amber-600/15 border border-orange-500/30 backdrop-blur-md">
+      <div className="relative overflow-hidden rounded-2xl py-3 px-4 sm:py-3.5 sm:px-6 mb-3 sm:mb-4 shadow-sm w-full max-w-full bg-gradient-to-r from-amber-500/15 via-orange-500/20 to-amber-600/15 border border-orange-500/30 backdrop-blur-md">
         <div className="relative z-10 flex items-center justify-between gap-4">
           <div>
             <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
@@ -309,7 +309,7 @@ export const ParaqtaPage: React.FC = () => {
           <div className="flex items-center gap-3 shrink-0">
             <button
               onClick={() => setShowCreateModal(true)}
-              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#F08000] to-orange-500 text-white font-bold text-sm shadow-md shadow-orange-500/25 hover:shadow-orange-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+              className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-[#F08000] to-orange-500 text-white font-bold text-xs sm:text-sm shadow-md shadow-orange-500/25 hover:shadow-orange-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
             >
               Топ ашу
             </button>
@@ -319,21 +319,21 @@ export const ParaqtaPage: React.FC = () => {
 
       {/* Pending Invitations Banner */}
       {invitations.length > 0 && (
-        <div className="mb-6 space-y-3">
+        <div className="mb-3 sm:mb-4 space-y-2.5">
           {invitations.map((inv) => (
             <div
               key={inv.id}
-              className="p-4 sm:p-5 bg-gradient-to-r from-amber-500/15 via-orange-500/15 to-amber-600/15 border border-orange-500/30 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm"
+              className="p-3.5 sm:p-4 bg-gradient-to-r from-amber-500/15 via-orange-500/15 to-amber-600/15 border border-orange-500/30 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm"
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-[#F08000] text-white flex items-center justify-center font-bold text-lg shadow-md shadow-orange-500/30 shrink-0">
-                  <Bell className="w-5 h-5 animate-bounce" />
+                <div className="w-9 h-9 rounded-xl bg-[#F08000] text-white flex items-center justify-center font-bold text-base shadow-md shadow-orange-500/30 shrink-0">
+                  <Bell className="w-4 h-4 animate-bounce" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-slate-900 dark:text-white text-sm sm:text-base">
+                  <h4 className="font-bold text-slate-900 dark:text-white text-xs sm:text-sm">
                     Топтық шақырту келді!
                   </h4>
-                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-0.5">
+                  <p className="text-xs text-slate-600 dark:text-slate-300">
                     {inv.inviterName ? (
                       <>
                         <strong className="text-slate-900 dark:text-white">{inv.inviterName}</strong> сізді «<strong className="text-slate-900 dark:text-white">{inv.groupName}</strong>» тобына шақырды
@@ -348,14 +348,14 @@ export const ParaqtaPage: React.FC = () => {
                 <button
                   onClick={() => acceptInviteMutation.mutate(inv.token)}
                   disabled={acceptInviteMutation.isPending}
-                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition-all shadow-sm cursor-pointer disabled:opacity-50"
+                  className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition-all shadow-sm cursor-pointer disabled:opacity-50"
                 >
                   Қабылдау
                 </button>
                 <button
                   onClick={() => rejectInviteMutation.mutate(inv.token)}
                   disabled={rejectInviteMutation.isPending}
-                  className="px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 font-semibold text-xs rounded-xl transition-all cursor-pointer disabled:opacity-50"
+                  className="px-3.5 py-1.5 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 font-semibold text-xs rounded-xl transition-all cursor-pointer disabled:opacity-50"
                 >
                   Бас тарту
                 </button>
@@ -366,10 +366,10 @@ export const ParaqtaPage: React.FC = () => {
       )}
 
       {/* Tabs Navigation */}
-      <div className="flex items-center gap-2 p-1.5 bg-slate-100 dark:bg-slate-800/60 rounded-2xl mb-8 border border-slate-200 dark:border-slate-700/60">
+      <div className="flex items-center gap-1.5 p-1 sm:p-1.5 bg-slate-100 dark:bg-slate-800/60 rounded-2xl mb-4 sm:mb-5 border border-slate-200 dark:border-slate-700/60">
         <button
           onClick={() => setActiveTab('tracker')}
-          className={`flex-1 py-3 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all ${
+          className={`flex-1 py-2 sm:py-2.5 px-3 sm:px-4 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all ${
             activeTab === 'tracker'
               ? 'bg-white dark:bg-slate-900 text-[#F08000] shadow-md shadow-black/5 dark:shadow-black/20'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
@@ -380,7 +380,7 @@ export const ParaqtaPage: React.FC = () => {
 
         <button
           onClick={() => setActiveTab('groups')}
-          className={`flex-1 py-3 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all ${
+          className={`flex-1 py-2 sm:py-2.5 px-3 sm:px-4 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all ${
             activeTab === 'groups'
               ? 'bg-white dark:bg-slate-900 text-[#F08000] shadow-md shadow-black/5 dark:shadow-black/20'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
@@ -391,7 +391,7 @@ export const ParaqtaPage: React.FC = () => {
 
         <button
           onClick={() => setActiveTab('explore')}
-          className={`flex-1 py-3 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all ${
+          className={`flex-1 py-2 sm:py-2.5 px-3 sm:px-4 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all ${
             activeTab === 'explore'
               ? 'bg-white dark:bg-slate-900 text-[#F08000] shadow-md shadow-black/5 dark:shadow-black/20'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
