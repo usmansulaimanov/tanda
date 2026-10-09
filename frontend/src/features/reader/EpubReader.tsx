@@ -1367,7 +1367,63 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
               </div>
             </div>
 
-            {/* 2. Theme Selection Row */}
+            {/* 2. Color Temperature (Only for light theme) */}
+            {theme === 'light' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700, color: activeTheme.text, opacity: 0.8 }}>
+                  <span>❄️ Салқын ақ</span>
+                  <span>Жарық реңкі</span>
+                  <span>☀️ Жылы ақ</span>
+                </div>
+                <div
+                  style={{
+                    position: 'relative',
+                    display: 'flex',
+                    alignItems: 'center',
+                    background: activeTheme.containerBg,
+                    padding: '10px 14px',
+                    borderRadius: '12px',
+                    border: `1px solid ${activeTheme.border}`,
+                  }}
+                >
+                  <input
+                    type="range"
+                    min="-50"
+                    max="50"
+                    step="1"
+                    value={colorTemperature}
+                    onChange={(e) => handleColorTempChange(parseInt(e.target.value, 10))}
+                    style={{
+                      width: '100%',
+                      height: '6px',
+                      borderRadius: '3px',
+                      background: '#CBD5E1',
+                      accentColor: '#0F172A',
+                      appearance: 'auto',
+                      outline: 'none',
+                      cursor: 'pointer',
+                    }}
+                  />
+                  <div
+                    style={{
+                      position: 'absolute',
+                      left: '50%',
+                      top: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      width: '2px',
+                      height: '12px',
+                      backgroundColor: '#0F172A',
+                      borderRadius: '1px',
+                      pointerEvents: 'none',
+                      opacity: 0.5,
+                      zIndex: 0,
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* 3. Theme Selection Row */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               <div style={{ fontSize: '12px', fontWeight: 700, color: activeTheme.text, opacity: 0.8 }}>
                 Оқу режимі
@@ -1465,62 +1521,6 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
                 </button>
               </div>
             </div>
-
-            {/* 3. Color Temperature (Only for light theme) */}
-            {theme === 'light' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700, color: activeTheme.text, opacity: 0.8 }}>
-                  <span>❄️ Салқын ақ</span>
-                  <span>Жарық реңкі</span>
-                  <span>☀️ Жылы ақ</span>
-                </div>
-                <div
-                  style={{
-                    position: 'relative',
-                    display: 'flex',
-                    alignItems: 'center',
-                    background: activeTheme.containerBg,
-                    padding: '10px 14px',
-                    borderRadius: '12px',
-                    border: `1px solid ${activeTheme.border}`,
-                  }}
-                >
-                  <input
-                    type="range"
-                    min="-50"
-                    max="50"
-                    step="1"
-                    value={colorTemperature}
-                    onChange={(e) => handleColorTempChange(parseInt(e.target.value, 10))}
-                    style={{
-                      width: '100%',
-                      height: '6px',
-                      borderRadius: '3px',
-                      background: '#CBD5E1',
-                      accentColor: '#0F172A',
-                      appearance: 'auto',
-                      outline: 'none',
-                      cursor: 'pointer',
-                    }}
-                  />
-                  <div
-                    style={{
-                      position: 'absolute',
-                      left: '50%',
-                      top: '50%',
-                      transform: 'translate(-50%, -50%)',
-                      width: '2px',
-                      height: '12px',
-                      backgroundColor: '#0F172A',
-                      borderRadius: '1px',
-                      pointerEvents: 'none',
-                      opacity: 0.5,
-                      zIndex: 0,
-                    }}
-                  />
-                </div>
-              </div>
-            )}
           </div>
         </div>
       )}
