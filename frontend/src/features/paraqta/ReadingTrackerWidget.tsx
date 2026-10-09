@@ -14,6 +14,7 @@ import {
   CheckCircle2,
   XCircle,
   Users,
+  AlertCircle,
 } from 'lucide-react';
 import { paraqtaApi, ReadingGroup, ReadingSessionRequest } from '../../shared/api/paraqta.api';
 import { useMyBooksStore } from '../../store/useMyBooksStore';
@@ -73,6 +74,8 @@ export const ReadingTrackerWidget: React.FC<ReadingTrackerWidgetProps> = ({
   const [selectedGroupId, setSelectedGroupId] = useState<string>(fixedGroupId || '');
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
   const [showReminderModal, setShowReminderModal] = useState<boolean>(false);
+  const [showOverrideConfirmModal, setShowOverrideConfirmModal] = useState<boolean>(false);
+  const [pendingOverrideInfo, setPendingOverrideInfo] = useState<{ isGroup: boolean; name: string } | null>(null);
   const [toastMessage, setToastMessage] = useState<{ title: string; type: 'success' | 'error' } | null>(null);
 
   const showToast = (title: string, type: 'success' | 'error' = 'success') => {
@@ -93,7 +96,13 @@ export const ReadingTrackerWidget: React.FC<ReadingTrackerWidgetProps> = ({
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed.startTime && parsed.isRunning) {
-          // If in a fixed group page, only load if it matches or allow syncing
+          // If in a fixed group page, ONLY restore if it belongs to this exact group!
+          if (fixedGroupId) {
+            if (parsed.groupId !== fixedGroupId) {
+              return;
+            }
+          }
+
           const now = Date.now();
           const runningElapsed = Math.floor((now - parsed.startTime) / 1000);
           setMode(parsed.mode || 'STOPWATCH');
@@ -123,6 +132,7 @@ export const ReadingTrackerWidget: React.FC<ReadingTrackerWidgetProps> = ({
 
   // Persist session to localStorage
   useEffect(() => {
+    const currentTargetGroupId = fixedGroupId || selectedGroupId || '';
     if (isRunning && sessionStartTime) {
       localStorage.setItem(
         'tanda_active_reading_session',
@@ -131,14 +141,25 @@ export const ReadingTrackerWidget: React.FC<ReadingTrackerWidgetProps> = ({
           mode,
           timerDuration,
           bookTitle: selectedBookTitle || customBookTitle,
-          groupId: fixedGroupId || selectedGroupId,
+          groupId: currentTargetGroupId,
+          groupName: fixedGroupName || (myGroups.find((g) => g.id === selectedGroupId)?.name) || '',
           isRunning: true,
         })
       );
     } else {
-      localStorage.removeItem('tanda_active_reading_session');
+      const saved = localStorage.getItem('tanda_active_reading_session');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (parsed.groupId === currentTargetGroupId) {
+            localStorage.removeItem('tanda_active_reading_session');
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }
     }
-  }, [isRunning, sessionStartTime, mode, timerDuration, selectedBookTitle, customBookTitle, selectedGroupId, fixedGroupId]);
+  }, [isRunning, sessionStartTime, mode, timerDuration, selectedBookTitle, customBookTitle, selectedGroupId, fixedGroupId, fixedGroupName, myGroups]);
 
   const triggerNotification = (title: string, body: string) => {
     if ('Notification' in window && Notification.permission === 'granted') {
@@ -215,6 +236,30 @@ export const ReadingTrackerWidget: React.FC<ReadingTrackerWidgetProps> = ({
   });
 
   const handleStartSession = () => {
+    try {
+      const saved = localStorage.getItem('tanda_active_reading_session');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.startTime && parsed.isRunning) {
+          const currentTargetGroupId = fixedGroupId || selectedGroupId || '';
+          if (parsed.groupId !== currentTargetGroupId) {
+            setPendingOverrideInfo({
+              isGroup: Boolean(parsed.groupId),
+              name: parsed.groupName || (parsed.groupId ? 'Басқа топ' : 'Жеке оқу'),
+            });
+            setShowOverrideConfirmModal(true);
+            return;
+          }
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+
+    startSessionInternal();
+  };
+
+  const startSessionInternal = () => {
     const now = Date.now();
     setSessionStartTime(now);
     setIsRunning(true);
@@ -224,6 +269,13 @@ export const ReadingTrackerWidget: React.FC<ReadingTrackerWidgetProps> = ({
       setTimerDuration(duration);
       setRemainingSeconds(duration);
     }
+  };
+
+  const handleConfirmOverride = () => {
+    setShowOverrideConfirmModal(false);
+    setPendingOverrideInfo(null);
+    localStorage.removeItem('tanda_active_reading_session');
+    startSessionInternal();
   };
 
   const handlePauseSession = () => {
@@ -486,6 +538,53 @@ export const ReadingTrackerWidget: React.FC<ReadingTrackerWidgetProps> = ({
                 className="flex-1 py-3 bg-gradient-to-r from-[#F08000] to-orange-500 text-white font-bold text-xs rounded-xl shadow-md"
               >
                 Жалғастыру
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Override Confirmation Modal */}
+      {showOverrideConfirmModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl border border-slate-100 dark:border-slate-800 space-y-4 animate-scaleUp">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-amber-500/15 text-amber-600 flex items-center justify-center font-bold shrink-0">
+                <AlertCircle className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  Оқу сессиясын ауыстыру
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Қазір басқа оқу сессиясы жүріп жатыр
+                </p>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-900/40 text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+              Сізде қазір <strong className="text-amber-700 dark:text-amber-400">{pendingOverrideInfo?.isGroup ? `«${pendingOverrideInfo.name}» тобында` : '«Жеке оқу» режимінде'}</strong> белсенді секундомер жүріп жатыр.
+              <br /><br />
+              Жаңадан <strong className="text-slate-900 dark:text-white">{fixedGroupName ? `«${fixedGroupName}» тобында` : 'жаңа сессияны'}</strong> бастасаңыз, алдыңғы секундомер тоқтатылады және уақыт осы жаңа сессияға есептеледі.
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowOverrideConfirmModal(false);
+                  setPendingOverrideInfo(null);
+                }}
+                className="px-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer"
+              >
+                Болдырмау
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmOverride}
+                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#F08000] to-orange-500 text-white font-bold text-xs shadow-md shadow-orange-500/25 hover:shadow-orange-500/40 cursor-pointer"
+              >
+                Иә, осы жерде бастау
               </button>
             </div>
           </div>
