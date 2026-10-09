@@ -31,6 +31,7 @@ import { premiumApi } from '../../shared/api/premium.api';
 import { useMyBooksStore } from '../../store/useMyBooksStore';
 import { useBookStore } from '../../store/useBookStore';
 import { Skeleton } from '../../shared/ui';
+import { ReadingTrackerWidget } from './ReadingTrackerWidget';
 
 // Utility to format seconds to "X сағ Y мин Z сек" or "00:00:00"
 export const formatDurationHMS = (totalSeconds: number): string => {
@@ -108,20 +109,6 @@ export const ParaqtaPage: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<'tracker' | 'groups' | 'explore'>('tracker');
 
-  // --- Tracker State ---
-  const [mode, setMode] = useState<'STOPWATCH' | 'TIMER'>('STOPWATCH');
-  const [timerDuration, setTimerDuration] = useState<number>(30 * 60); // 30 mins
-  const [customMinutes, setCustomMinutes] = useState<string>('30');
-  const [isRunning, setIsRunning] = useState<boolean>(false);
-  const [isPaused, setIsPaused] = useState<boolean>(false);
-  const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
-  const [remainingSeconds, setRemainingSeconds] = useState<number>(30 * 60);
-  const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
-  const [selectedBookTitle, setSelectedBookTitle] = useState<string>('');
-  const [customBookTitle, setCustomBookTitle] = useState<string>('');
-  const [selectedGroupId, setSelectedGroupId] = useState<string>('');
-  const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
-  const [showReminderModal, setShowReminderModal] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<{ title: string; type: 'success' | 'error' } | null>(null);
 
   // Group creation modal state
@@ -133,117 +120,6 @@ export const ParaqtaPage: React.FC = () => {
   const [inviteEmailError, setInviteEmailError] = useState<string>('');
   const [isVerifyingInvitee, setIsVerifyingInvitee] = useState<boolean>(false);
   const [selectedInvitees, setSelectedInvitees] = useState<UserSearchResult[]>([]);
-
-  // Request browser notification permissions
-  useEffect(() => {
-    if ('Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission();
-    }
-  }, []);
-
-  // Restore active session from localStorage on mount
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem('tanda_active_reading_session');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed.startTime && parsed.isRunning) {
-          const now = Date.now();
-          const runningElapsed = Math.floor((now - parsed.startTime) / 1000);
-          setMode(parsed.mode || 'STOPWATCH');
-          setSelectedBookTitle(parsed.bookTitle || '');
-          setSelectedGroupId(parsed.groupId || '');
-          setSessionStartTime(parsed.startTime);
-          setIsRunning(true);
-          setIsPaused(false);
-
-          if (parsed.mode === 'TIMER') {
-            const target = parsed.timerDuration || 1800;
-            setTimerDuration(target);
-            const left = Math.max(0, target - runningElapsed);
-            setRemainingSeconds(left);
-            setElapsedSeconds(runningElapsed);
-          } else {
-            setElapsedSeconds(runningElapsed);
-          }
-        }
-      }
-    } catch (e) {
-      console.error('Failed to restore session', e);
-    }
-  }, []);
-
-  // Save session state to localStorage
-  useEffect(() => {
-    if (isRunning && sessionStartTime) {
-      localStorage.setItem(
-        'tanda_active_reading_session',
-        JSON.stringify({
-          startTime: sessionStartTime,
-          mode,
-          timerDuration,
-          bookTitle: selectedBookTitle || customBookTitle,
-          groupId: selectedGroupId,
-          isRunning: true,
-        })
-      );
-    } else {
-      localStorage.removeItem('tanda_active_reading_session');
-    }
-  }, [isRunning, sessionStartTime, mode, timerDuration, selectedBookTitle, customBookTitle, selectedGroupId]);
-
-  // Main Timer / Stopwatch Ticker
-  useEffect(() => {
-    let interval: any = null;
-
-    if (isRunning && !isPaused && sessionStartTime) {
-      interval = setInterval(() => {
-        const now = Date.now();
-        const totalSec = Math.floor((now - sessionStartTime) / 1000);
-
-        if (mode === 'STOPWATCH') {
-          setElapsedSeconds(totalSec);
-
-          // 30 minute periodic reminder
-          if (totalSec > 0 && totalSec % 1800 === 0) {
-            triggerNotification('Оқуды жалғастырасыз ба?', '30 минут өтті. Өте керемет нәтиже! Жалғастырамыз ба?');
-            setShowReminderModal(true);
-          }
-        } else {
-          // TIMER Mode
-          const left = timerDuration - totalSec;
-          if (left <= 0) {
-            setRemainingSeconds(0);
-            setElapsedSeconds(timerDuration);
-            setIsRunning(false);
-            if (soundEnabled) playChimeSound();
-            triggerNotification('Таймер аяқталды! ⏰', 'Бүгінгі оқу сессияңыз сәтті аяқталды! Нәтижеңіз сақталды.');
-            handleStopSession(timerDuration);
-          } else {
-            setRemainingSeconds(left);
-            setElapsedSeconds(totalSec);
-          }
-        }
-      }, 1000);
-    }
-
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [isRunning, isPaused, sessionStartTime, mode, timerDuration, soundEnabled]);
-
-  const triggerNotification = (title: string, body: string) => {
-    if ('Notification' in window && Notification.permission === 'granted') {
-      try {
-        new Notification(title, {
-          body,
-          icon: '/favicon.ico',
-        });
-      } catch (e) {
-        console.error('Notification error', e);
-      }
-    }
-  };
 
   const showToast = (title: string, type: 'success' | 'error' = 'success') => {
     setToastMessage({ title, type });
@@ -405,55 +281,8 @@ export const ParaqtaPage: React.FC = () => {
     },
   });
 
-  // Start / Pause / Stop Handlers
-  const handleStartSession = () => {
-    const now = Date.now();
-    setSessionStartTime(now);
-    setIsRunning(true);
-    setIsPaused(false);
-    if (mode === 'TIMER') {
-      const dur = parseInt(customMinutes, 10) * 60 || 1800;
-      setTimerDuration(dur);
-      setRemainingSeconds(dur);
-    }
-  };
-
-  const handlePauseSession = () => {
-    setIsPaused(!isPaused);
-  };
-
-  const handleStopSession = (overrideDuration?: number) => {
-    if (!sessionStartTime) return;
-    const now = Date.now();
-    const finalDuration = overrideDuration !== undefined ? overrideDuration : elapsedSeconds;
-
-    if (finalDuration >= 10) {
-      const startedAt = new Date(sessionStartTime).toISOString();
-      const endedAt = new Date(now).toISOString();
-
-      saveSessionMutation.mutate({
-        groupId: selectedGroupId || undefined,
-        bookTitle: selectedBookTitle || customBookTitle || 'Кітап оқу',
-        sessionType: mode,
-        durationSeconds: finalDuration,
-        startedAt,
-        endedAt,
-      });
-    } else {
-      showToast('10 секундтан аз сессиялар есепке алынбайды', 'error');
-    }
-
-    setIsRunning(false);
-    setIsPaused(false);
-    setElapsedSeconds(0);
-    setSessionStartTime(null);
-    localStorage.removeItem('tanda_active_reading_session');
-  };
-
-  const displayTime = mode === 'STOPWATCH' ? formatDurationHMS(elapsedSeconds) : formatDurationHMS(remainingSeconds);
-
   return (
-    <div className="min-h-screen pb-24 max-w-5xl mx-auto px-4 sm:px-6 pt-6 animate-fadeIn">
+    <div className="min-h-screen pb-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 animate-fadeIn">
       {/* Toast Notification */}
       {toastMessage && (
         <div
@@ -600,170 +429,7 @@ export const ParaqtaPage: React.FC = () => {
           </div>
 
           {/* Main Stopwatch / Timer Card */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-10 shadow-lg relative overflow-hidden flex flex-col items-center text-center">
-            {/* Mode Switcher */}
-            <div className="inline-flex p-1 bg-slate-100 dark:bg-slate-800 rounded-2xl mb-8">
-              <button
-                disabled={isRunning}
-                onClick={() => setMode('STOPWATCH')}
-                className={`px-6 py-2.5 rounded-xl font-bold text-sm transition-all ${
-                  mode === 'STOPWATCH'
-                    ? 'bg-white dark:bg-slate-900 text-[#F08000] shadow-md'
-                    : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
-                } ${isRunning ? 'opacity-50 cursor-not-allowed' : ''}`}
-              >
-                Секундомер
-              </button>
-              <button
-                disabled={isRunning}
-                onClick={() => setMode('TIMER')}
-                className={`px-6 py-2.5 rounded-xl font-bold text-sm transition-all ${
-                  mode === 'TIMER'
-                    ? 'bg-white dark:bg-slate-900 text-[#F08000] shadow-md'
-                    : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
-                } ${isRunning ? 'opacity-50 cursor-not-allowed' : ''}`}
-              >
-                Таймер
-              </button>
-            </div>
-
-            {/* Timer Presets */}
-            {mode === 'TIMER' && !isRunning && (
-              <div className="flex flex-wrap items-center justify-center gap-2 mb-8 animate-fadeIn">
-                {[15, 30, 45, 60].map((mins) => (
-                  <button
-                    key={mins}
-                    onClick={() => {
-                      setCustomMinutes(String(mins));
-                      setTimerDuration(mins * 60);
-                      setRemainingSeconds(mins * 60);
-                    }}
-                    className={`px-4 py-2 rounded-xl text-sm font-bold border transition-all ${
-                      parseInt(customMinutes, 10) === mins
-                        ? 'border-[#F08000] bg-orange-500/10 text-[#F08000]'
-                        : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-orange-500/50'
-                    }`}
-                  >
-                    {mins} мин
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {/* Big Digital Clock Display */}
-            <div className="my-4 relative">
-              <div className="text-6xl sm:text-8xl font-mono font-black tracking-wider text-slate-900 dark:text-white select-none">
-                {displayTime}
-              </div>
-              <div className="text-xs font-bold text-slate-400 mt-2 uppercase tracking-widest">
-                {mode === 'STOPWATCH' ? 'Өткен уақыт' : 'Қалған уақыт'}
-              </div>
-            </div>
-
-            {/* Book & Group Selector Config */}
-            <div className="w-full max-w-md my-6 space-y-3 text-left">
-              <div>
-                <label className="text-xs font-bold text-slate-600 dark:text-slate-400 block mb-1">
-                  Оқып жатқан кітабыңыз (міндетті емес):
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    disabled={isRunning}
-                    placeholder="Мысалы: Абай жолы, 1-том немесе Қағаз кітап"
-                    value={customBookTitle}
-                    onChange={(e) => {
-                      setCustomBookTitle(e.target.value);
-                      setSelectedBookTitle('');
-                    }}
-                    className="flex-1 px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F08000]"
-                  />
-                  {myShelfBooks && myShelfBooks.length > 0 && (
-                    <select
-                      disabled={isRunning}
-                      value={selectedBookTitle}
-                      onChange={(e) => {
-                        setSelectedBookTitle(e.target.value);
-                        setCustomBookTitle(e.target.value);
-                      }}
-                      className="px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#F08000]"
-                    >
-                      <option value="">Сөреден таңдау...</option>
-                      {myShelfBooks.map((b: any) => (
-                        <option key={b.id} value={b.title}>
-                          {b.title}
-                        </option>
-                      ))}
-                    </select>
-                  )}
-                </div>
-              </div>
-
-              {myGroups.length > 0 && (
-                <div>
-                  <label className="text-xs font-bold text-slate-600 dark:text-slate-400 block mb-1">
-                    Топтық жарысқа қосу (міндетті емес):
-                  </label>
-                  <select
-                    disabled={isRunning}
-                    value={selectedGroupId}
-                    onChange={(e) => setSelectedGroupId(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F08000]"
-                  >
-                    <option value="">Жеке оқу (Топсыз)</option>
-                    {myGroups.map((g) => (
-                      <option key={g.id} value={g.id}>
-                        👥 {g.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex items-center gap-4 mt-4">
-              {!isRunning ? (
-                <button
-                  onClick={handleStartSession}
-                  className="px-8 py-4 rounded-2xl bg-gradient-to-r from-[#F08000] to-orange-500 text-white font-extrabold text-base sm:text-lg shadow-xl shadow-orange-500/30 hover:scale-105 active:scale-95 transition-all flex items-center gap-3"
-                >
-                  <Play className="w-5 h-5 fill-current" /> Оқуды бастау
-                </button>
-              ) : (
-                <>
-                  <button
-                    onClick={handlePauseSession}
-                    className={`px-6 py-4 rounded-2xl font-bold text-sm sm:text-base flex items-center gap-2 transition-all ${
-                      isPaused
-                        ? 'bg-emerald-600 text-white hover:bg-emerald-700'
-                        : 'bg-amber-500 text-white hover:bg-amber-600'
-                    }`}
-                  >
-                    {isPaused ? <Play className="w-4 h-4 fill-current" /> : <Pause className="w-4 h-4" />}
-                    {isPaused ? 'Жалғастыру' : 'Үзіліс'}
-                  </button>
-
-                  <button
-                    onClick={() => handleStopSession()}
-                    disabled={saveSessionMutation.isPending}
-                    className="px-6 py-4 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm sm:text-base flex items-center gap-2 shadow-lg shadow-rose-600/30 active:scale-95 transition-all"
-                  >
-                    <Square className="w-4 h-4 fill-current" /> Аяқтау & Сақтау
-                  </button>
-                </>
-              )}
-
-              {/* Sound Toggle */}
-              <button
-                onClick={() => setSoundEnabled(!soundEnabled)}
-                title={soundEnabled ? 'Дыбысты өшіру' : 'Дыбысты қосу'}
-                className="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
-              >
-                {soundEnabled ? <Volume2 className="w-5 h-5 text-[#F08000]" /> : <VolumeX className="w-5 h-5" />}
-              </button>
-            </div>
-          </div>
+          <ReadingTrackerWidget />
         </div>
       )}
 
@@ -821,11 +487,15 @@ export const ParaqtaPage: React.FC = () => {
                 >
                   <div>
                     <div className="flex items-start justify-between gap-4 mb-3">
-                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 text-white flex items-center justify-center font-black text-xl shadow-md shadow-orange-500/20 shrink-0">
-                        {group.name.charAt(0).toUpperCase()}
+                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 text-white flex items-center justify-center font-black text-xl shadow-md shadow-orange-500/20 shrink-0 overflow-hidden">
+                        {group.coverImageUrl ? (
+                          <img src={group.coverImageUrl} alt={group.name} className="w-full h-full object-cover" />
+                        ) : (
+                          group.name.charAt(0).toUpperCase()
+                        )}
                       </div>
                       <span className="px-3 py-1 rounded-full text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
-                        {group.memberCount} / {group.maxMembers} адам
+                        {group.memberCount} мүше
                       </span>
                     </div>
 
@@ -877,8 +547,12 @@ export const ParaqtaPage: React.FC = () => {
               >
                 <div>
                   <div className="flex items-start justify-between gap-4 mb-3">
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-teal-500 to-emerald-500 text-white flex items-center justify-center font-black text-xl shadow-md shrink-0">
-                      {group.name.charAt(0).toUpperCase()}
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-teal-500 to-emerald-500 text-white flex items-center justify-center font-black text-xl shadow-md shrink-0 overflow-hidden">
+                      {group.coverImageUrl ? (
+                        <img src={group.coverImageUrl} alt={group.name} className="w-full h-full object-cover" />
+                      ) : (
+                        group.name.charAt(0).toUpperCase()
+                      )}
                     </div>
                     <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-600">
                       Ашық &bull; {group.memberCount} мүше
@@ -1050,38 +724,6 @@ export const ParaqtaPage: React.FC = () => {
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
-
-      {/* ===================== 30-MIN REMINDER MODAL ===================== */}
-      {showReminderModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 max-w-sm w-full text-center shadow-2xl">
-            <div className="w-16 h-16 rounded-3xl bg-orange-500/10 text-[#F08000] flex items-center justify-center mx-auto mb-4">
-              <Clock className="w-8 h-8" />
-            </div>
-            <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">30 минут оқыдыңыз! 👏</h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 mb-6">
-              Өте жақсы қарқын! Оқу сессиясын ары қарай жалғастырасыз ба?
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => {
-                  setShowReminderModal(false);
-                  handleStopSession();
-                }}
-                className="flex-1 py-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs"
-              >
-                Тоқтату
-              </button>
-              <button
-                onClick={() => setShowReminderModal(false)}
-                className="flex-1 py-3 rounded-xl bg-[#F08000] text-white font-bold text-xs shadow-md"
-              >
-                Жалғастыру
-              </button>
-            </div>
           </div>
         </div>
       )}
