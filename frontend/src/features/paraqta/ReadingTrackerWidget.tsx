@@ -309,30 +309,7 @@ export const ReadingTrackerWidget: React.FC<ReadingTrackerWidgetProps> = ({
         </button>
       </div>
 
-      {/* Timer Presets */}
-      {mode === 'TIMER' && !isRunning && (
-        <div className="flex flex-wrap items-center justify-center gap-2 mb-5 animate-fadeIn">
-          {[15, 30, 45, 60].map((mins) => (
-            <button
-              key={mins}
-              onClick={() => {
-                setCustomMinutes(String(mins));
-                setTimerDuration(mins * 60);
-                setRemainingSeconds(mins * 60);
-              }}
-              className={`px-3.5 py-1.5 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold border transition-all ${
-                parseInt(customMinutes, 10) === mins
-                  ? 'border-[#F08000] bg-orange-500/10 text-[#F08000]'
-                  : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-orange-500/50'
-              }`}
-            >
-              {mins} мин
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* Digital Clock Display */}
+      {/* Digital Clock Display (Stays in exact same position) */}
       <div className="my-2 sm:my-3 relative">
         <div className="text-5xl sm:text-6xl md:text-7xl font-mono font-black tracking-wider text-slate-900 dark:text-white select-none">
           {displayTime}
@@ -340,6 +317,31 @@ export const ReadingTrackerWidget: React.FC<ReadingTrackerWidgetProps> = ({
         <div className="text-[11px] font-bold text-slate-400 mt-1 uppercase tracking-widest">
           {mode === 'STOPWATCH' ? 'Өткен уақыт' : 'Қалған уақыт'}
         </div>
+      </div>
+
+      {/* Timer Presets Slot (Fixed height to prevent widget resizing/jumping) */}
+      <div className="h-9 flex items-center justify-center gap-2 my-2">
+        {mode === 'TIMER' && !isRunning ? (
+          [15, 30, 45, 60].map((mins) => (
+            <button
+              key={mins}
+              onClick={() => {
+                setCustomMinutes(String(mins));
+                setTimerDuration(mins * 60);
+                setRemainingSeconds(mins * 60);
+              }}
+              className={`px-3 py-1 rounded-lg text-xs font-bold border transition-all ${
+                parseInt(customMinutes, 10) === mins
+                  ? 'border-[#F08000] bg-orange-500/10 text-[#F08000]'
+                  : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-orange-500/50'
+              }`}
+            >
+              {mins} мин
+            </button>
+          ))
+        ) : (
+          <div className="h-7" />
+        )}
       </div>
 
       {/* Book & Group Selector Config */}
