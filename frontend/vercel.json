@@ -2,11 +2,11 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://tandamen.kz/dev-api/:path*"
+      "destination": "https://tanda-backend-7lpj.onrender.com/api/:path*"
     },
     {
       "source": "/uploads/:path*",
-      "destination": "https://tandamen.kz/dev-uploads/:path*"
+      "destination": "https://tanda-backend-7lpj.onrender.com/uploads/:path*"
     },
     {
       "source": "/(.*)",
