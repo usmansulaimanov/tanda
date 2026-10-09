@@ -31,7 +31,7 @@ export const GroupDetailPage: React.FC = () => {
 
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
-  const [userSearchQuery, setUserSearchQuery] = useState('');
+  const [inviteError, setInviteError] = useState('');
   const [activeTab, setActiveTab] = useState<'leaderboard' | 'archive'>('leaderboard');
   const [copiedLink, setCopiedLink] = useState(false);
   const [toastMessage, setToastMessage] = useState<{ title: string; type: 'success' | 'error' } | null>(null);
@@ -47,22 +47,21 @@ export const GroupDetailPage: React.FC = () => {
     enabled: Boolean(id),
   });
 
-  const { data: searchResults = [] } = useQuery({
-    queryKey: ['searchUsersForGroupDetail', userSearchQuery],
-    queryFn: () => paraqtaApi.searchUsers(userSearchQuery),
-    enabled: userSearchQuery.trim().length >= 2,
-  });
-
   const sendInviteMutation = useMutation({
     mutationFn: (email: string) => paraqtaApi.sendInvitation(id!, email),
     onSuccess: () => {
       setShowInviteModal(false);
       setInviteEmail('');
-      setUserSearchQuery('');
+      setInviteError('');
       showToast('Шақыру хаты сәтті жіберілді!');
     },
     onError: (err: any) => {
-      showToast(err?.response?.data?.message || 'Шақыру мүмкін болмады', 'error');
+      const msg = err?.response?.data?.message || '';
+      if (msg.includes('тіркелмеген') || err?.response?.status === 404) {
+        setInviteError('Оқырман табылмады');
+      } else {
+        setInviteError(msg || 'Шақыру мүмкін болмады');
+      }
     },
   });
 
@@ -403,40 +402,32 @@ export const GroupDetailPage: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl">
             <h3 className="text-lg font-extrabold text-slate-900 dark:text-white mb-1">Оқырманды топқа шақыру</h3>
-            <p className="text-xs text-slate-500 mb-4">Почтасын немесе атын жазып іздеңіз:</p>
+            <p className="text-xs text-slate-500 mb-4">Оқырманның тіркелген почтасын жазыңыз:</p>
 
             <div className="space-y-4">
-              <div className="relative">
+              <div>
                 <input
-                  type="text"
-                  placeholder="asylkhan@gmail.com"
-                  value={userSearchQuery}
+                  type="email"
+                  placeholder="Мысалы: asylkhan@gmail.com"
+                  value={inviteEmail}
                   onChange={(e) => {
-                    setUserSearchQuery(e.target.value);
                     setInviteEmail(e.target.value);
+                    if (inviteError) setInviteError('');
                   }}
-                  className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-[#F08000] focus:outline-none"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && inviteEmail.trim() && !sendInviteMutation.isPending) {
+                      e.preventDefault();
+                      sendInviteMutation.mutate(inviteEmail.trim());
+                    }
+                  }}
+                  className={`w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border rounded-xl text-sm focus:ring-2 focus:ring-[#F08000] focus:outline-none ${
+                    inviteError ? 'border-rose-500' : 'border-slate-200 dark:border-slate-700'
+                  }`}
                 />
-
-                {searchResults.length > 0 && userSearchQuery.trim().length >= 2 && (
-                  <div className="absolute left-0 right-0 top-full mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl z-20 max-h-48 overflow-y-auto">
-                    {searchResults.map((u) => (
-                      <div
-                        key={u.id}
-                        onClick={() => {
-                          setInviteEmail(u.email);
-                          setUserSearchQuery(`${u.name} (${u.email})`);
-                        }}
-                        className="px-4 py-2 hover:bg-orange-500/10 cursor-pointer flex items-center justify-between text-xs"
-                      >
-                        <div>
-                          <span className="font-bold text-slate-900 dark:text-white">{u.name}</span>{' '}
-                          <span className="text-slate-400">({u.email})</span>
-                        </div>
-                        {!u.allowGroupInvites && <span className="text-rose-500 text-[10px]">Шақыру жабық</span>}
-                      </div>
-                    ))}
-                  </div>
+                {inviteError && (
+                  <p className="text-xs text-rose-500 font-semibold mt-1.5 animate-fadeIn">
+                    {inviteError}
+                  </p>
                 )}
               </div>
 

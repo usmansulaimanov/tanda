@@ -129,7 +129,9 @@ export const ParaqtaPage: React.FC = () => {
   const [groupName, setGroupName] = useState<string>('');
   const [groupDesc, setGroupDesc] = useState<string>('');
   const [groupIsPublic, setGroupIsPublic] = useState<boolean>(false);
-  const [userSearchQuery, setUserSearchQuery] = useState<string>('');
+  const [inviteEmailInput, setInviteEmailInput] = useState<string>('');
+  const [inviteEmailError, setInviteEmailError] = useState<string>('');
+  const [isVerifyingInvitee, setIsVerifyingInvitee] = useState<boolean>(false);
   const [selectedInvitees, setSelectedInvitees] = useState<UserSearchResult[]>([]);
 
   // Request browser notification permissions
@@ -282,12 +284,54 @@ export const ParaqtaPage: React.FC = () => {
     enabled: activeTab === 'explore',
   });
 
-  // User search query for group invites
-  const { data: searchResults = [] } = useQuery({
-    queryKey: ['searchUsersForGroup', userSearchQuery],
-    queryFn: () => paraqtaApi.searchUsers(userSearchQuery),
-    enabled: userSearchQuery.trim().length >= 2,
-  });
+  // Handle adding invitee by verified email
+  const handleAddInvitee = async () => {
+    const rawEmail = inviteEmailInput.trim().toLowerCase();
+    if (!rawEmail) return;
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rawEmail)) {
+      setInviteEmailError('Почтаны толық әрі дұрыс жазыңыз (мысалы: name@gmail.com)');
+      return;
+    }
+
+    if (user?.email && rawEmail === user.email.toLowerCase()) {
+      setInviteEmailError('Өзіңіздің почтаңызды шақыра алмайсыз');
+      return;
+    }
+
+    if (selectedInvitees.some((u) => u.email.toLowerCase() === rawEmail)) {
+      setInviteEmailError('Бұл оқырман тізімге қосылған');
+      return;
+    }
+
+    const maxAllowed = isPremium ? 50 : 5;
+    if (selectedInvitees.length >= maxAllowed) {
+      setInviteEmailError(`Тариф бойынша ең көп дегенде ${maxAllowed} адам шақыра аласыз`);
+      return;
+    }
+
+    setIsVerifyingInvitee(true);
+    setInviteEmailError('');
+
+    try {
+      const results = await paraqtaApi.searchUsers(rawEmail);
+      const found = results.find((u) => u.email.toLowerCase() === rawEmail);
+
+      if (!found) {
+        setInviteEmailError('Оқырман табылмады');
+      } else if (!found.allowGroupInvites) {
+        setInviteEmailError('Бұл оқырман топтық шақыртуларды жапқан');
+      } else {
+        setSelectedInvitees((prev) => [...prev, found]);
+        setInviteEmailInput('');
+        setInviteEmailError('');
+      }
+    } catch (err) {
+      setInviteEmailError('Тексеру кезінде қате кетті');
+    } finally {
+      setIsVerifyingInvitee(false);
+    }
+  };
 
   // Mutations
   const saveSessionMutation = useMutation({
@@ -309,6 +353,8 @@ export const ParaqtaPage: React.FC = () => {
       setShowCreateModal(false);
       setGroupName('');
       setGroupDesc('');
+      setInviteEmailInput('');
+      setInviteEmailError('');
       setSelectedInvitees([]);
       showToast(`"${newGroup.name}" тобы сәтті құрылды!`);
       navigate(`/paraqta/groups/${newGroup.id}`);
@@ -874,12 +920,7 @@ export const ParaqtaPage: React.FC = () => {
       {showCreateModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl relative max-h-[90vh] overflow-y-auto">
-            <h3 className="text-xl font-extrabold text-slate-900 dark:text-white mb-2">Жаңа оқу тобын құру</h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mb-6">
-              {isPremium
-                ? '⭐ Премиум тариф: 10 топқа дейін, әр топқа 50 адам шақыра аласыз.'
-                : '🔹 Қарапайым тариф: 3 топқа дейін, әр топқа 5 адам шақыра аласыз.'}
-            </p>
+            <h3 className="text-xl font-extrabold text-slate-900 dark:text-white mb-6">Жаңа оқу тобын құру</h3>
 
             <form
               onSubmit={(e) => {
@@ -926,60 +967,63 @@ export const ParaqtaPage: React.FC = () => {
                   className="w-4 h-4 text-[#F08000] rounded focus:ring-orange-500"
                 />
                 <label htmlFor="publicGroup" className="text-xs font-bold text-slate-800 dark:text-slate-200 cursor-pointer">
-                  Барлық оқырмандарға ашық топ (Каталогта көрінеді)
+                  Ашық топ
                 </label>
               </div>
 
-              {/* Autocomplete User Invitation */}
+              {/* Add User Invitation by Email */}
               <div>
                 <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
-                  Оқырмандарды шақыру (Почтасы немесе атымен іздеу):
+                  Оқырмандарды шақыру (Почтасы):
                 </label>
-                <div className="relative">
+                <div className="flex gap-2">
                   <input
-                    type="text"
+                    type="email"
                     placeholder="Мысалы: asylkhan@gmail.com"
-                    value={userSearchQuery}
-                    onChange={(e) => setUserSearchQuery(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-[#F08000] focus:outline-none"
+                    value={inviteEmailInput}
+                    onChange={(e) => {
+                      setInviteEmailInput(e.target.value);
+                      if (inviteEmailError) setInviteEmailError('');
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddInvitee();
+                      }
+                    }}
+                    className={`flex-1 px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border rounded-xl text-sm focus:ring-2 focus:ring-[#F08000] focus:outline-none ${
+                      inviteEmailError ? 'border-rose-500' : 'border-slate-200 dark:border-slate-700'
+                    }`}
                   />
-                  {searchResults.length > 0 && userSearchQuery.trim().length >= 2 && (
-                    <div className="absolute left-0 right-0 top-full mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl z-20 max-h-48 overflow-y-auto">
-                      {searchResults.map((u) => (
-                        <div
-                          key={u.id}
-                          onClick={() => {
-                            if (!selectedInvitees.find((item) => item.id === u.id)) {
-                              setSelectedInvitees([...selectedInvitees, u]);
-                            }
-                            setUserSearchQuery('');
-                          }}
-                          className="px-4 py-2 hover:bg-orange-500/10 cursor-pointer flex items-center justify-between text-xs"
-                        >
-                          <div>
-                            <span className="font-bold text-slate-900 dark:text-white">{u.name}</span>{' '}
-                            <span className="text-slate-400">({u.email})</span>
-                          </div>
-                          {!u.allowGroupInvites && <span className="text-rose-500 text-[10px]">Шақыру жабық</span>}
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  <button
+                    type="button"
+                    disabled={!inviteEmailInput.trim() || isVerifyingInvitee}
+                    onClick={handleAddInvitee}
+                    className="px-4 py-2.5 bg-gradient-to-r from-[#F08000] to-orange-500 text-white font-bold text-xs rounded-xl shadow-sm hover:shadow transition-all disabled:opacity-50 shrink-0"
+                  >
+                    {isVerifyingInvitee ? 'Тексерілуде...' : 'Қосу'}
+                  </button>
                 </div>
+
+                {inviteEmailError && (
+                  <p className="text-xs text-rose-500 font-semibold mt-1.5 animate-fadeIn">
+                    {inviteEmailError}
+                  </p>
+                )}
 
                 {/* Selected Invitees Badges */}
                 {selectedInvitees.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-2">
+                  <div className="flex flex-wrap gap-2 mt-3">
                     {selectedInvitees.map((u) => (
                       <span
                         key={u.id}
                         className="px-3 py-1 bg-orange-500/10 border border-orange-500/20 text-[#F08000] rounded-full text-xs font-bold flex items-center gap-1.5"
                       >
-                        {u.name}
+                        <span>{u.name || u.email}</span>
                         <button
                           type="button"
                           onClick={() => setSelectedInvitees(selectedInvitees.filter((i) => i.id !== u.id))}
-                          className="hover:text-rose-600"
+                          className="hover:text-rose-600 font-bold ml-1 text-sm leading-none"
                         >
                           &times;
                         </button>
