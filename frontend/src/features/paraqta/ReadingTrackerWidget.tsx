@@ -314,9 +314,6 @@ export const ReadingTrackerWidget: React.FC<ReadingTrackerWidgetProps> = ({
         <div className="text-5xl sm:text-6xl md:text-7xl font-mono font-black tracking-wider text-slate-900 dark:text-white select-none">
           {displayTime}
         </div>
-        <div className="text-[11px] font-bold text-slate-400 mt-1 uppercase tracking-widest">
-          {mode === 'STOPWATCH' ? 'Өткен уақыт' : 'Қалған уақыт'}
-        </div>
       </div>
 
       {/* Timer Presets Slot (Fixed height to prevent widget resizing/jumping) */}
