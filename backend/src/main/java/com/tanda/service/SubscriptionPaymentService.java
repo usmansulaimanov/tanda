@@ -78,7 +78,7 @@ public class SubscriptionPaymentService {
                     .build();
         }
 
-        // Find consecutive rejections today (Asia/Almaty) since the latest APPROVED request
+        // Find consecutive rejections within the past 24 hours since the latest APPROVED request
         List<SubscriptionPaymentRequest> todayRejections = new ArrayList<>();
         for (SubscriptionPaymentRequest r : requests) {
             if ("APPROVED".equalsIgnoreCase(r.getStatus())) {
@@ -87,11 +87,11 @@ public class SubscriptionPaymentService {
             if ("REJECTED".equalsIgnoreCase(r.getStatus())) {
                 OffsetDateTime reqTime = r.getReviewedAt() != null ? r.getReviewedAt() : r.getCreatedAt();
                 if (reqTime != null) {
-                    LocalDate reqDate = reqTime.atZoneSameInstant(kzZone).toLocalDate();
-                    if (reqDate.equals(todayKz)) {
+                    long hoursAgo = Duration.between(reqTime, now).toHours();
+                    if (hoursAgo < 24) {
                         todayRejections.add(r);
                     } else {
-                        break; // Older than today
+                        break; // Older than 24 hours
                     }
                 }
             }
