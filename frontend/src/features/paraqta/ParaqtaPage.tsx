@@ -427,7 +427,7 @@ export const ParaqtaPage: React.FC = () => {
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-              Оқу уақытын қадағалаңыз & Достармен жарысыңыз
+              Парақта оқу кеңістігі
             </h1>
           </div>
 
