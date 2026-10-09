@@ -383,33 +383,26 @@ export const ReadingTrackerWidget: React.FC<ReadingTrackerWidgetProps> = ({
           </div>
         </div>
 
-        {/* Group Info Badge or Dropdown */}
-        {fixedGroupId ? (
-          <div className="p-2.5 bg-orange-500/10 border border-orange-500/20 rounded-xl flex items-center gap-2 text-xs font-bold text-[#F08000]">
-            <Users className="w-4 h-4 shrink-0" />
-            <span>Оқылған минуттар «{fixedGroupName || 'осы топ'}» айлық рейтингіне және жеке парақшаңызға есептеледі</span>
+        {/* Group Dropdown (only when not inside a fixed group page) */}
+        {!fixedGroupId && myGroups.length > 0 && (
+          <div>
+            <label className="text-xs font-bold text-slate-600 dark:text-slate-400 block mb-1">
+              Топтық жарысқа қосу:
+            </label>
+            <select
+              disabled={isRunning}
+              value={selectedGroupId}
+              onChange={(e) => setSelectedGroupId(e.target.value)}
+              className="w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#F08000]"
+            >
+              <option value="">Жеке оқу</option>
+              {myGroups.map((g) => (
+                <option key={g.id} value={g.id}>
+                  👥 {g.name}
+                </option>
+              ))}
+            </select>
           </div>
-        ) : (
-          myGroups.length > 0 && (
-            <div>
-              <label className="text-xs font-bold text-slate-600 dark:text-slate-400 block mb-1">
-                Топтық жарысқа қосу:
-              </label>
-              <select
-                disabled={isRunning}
-                value={selectedGroupId}
-                onChange={(e) => setSelectedGroupId(e.target.value)}
-                className="w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#F08000]"
-              >
-                <option value="">Жеке оқу</option>
-                {myGroups.map((g) => (
-                  <option key={g.id} value={g.id}>
-                    👥 {g.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )
         )}
       </div>
 
