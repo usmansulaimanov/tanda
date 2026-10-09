@@ -17,11 +17,11 @@ import java.util.List;
 @Builder
 public class ReadingGroupCreateRequestDto {
 
-    @NotBlank(message = "Group name is required")
-    @Size(min = 2, max = 100, message = "Group name must be between 2 and 100 characters")
+    @NotBlank(message = "Топ атауы міндетті")
+    @Size(min = 2, max = 100, message = "Топ атауы 2 мен 100 таңба аралығында болуы керек")
     private String name;
 
-    @Size(max = 1000, message = "Description must not exceed 1000 characters")
+    @Size(max = 1000, message = "Сипаттама 1000 таңбадан аспауы керек")
     private String description;
 
     private String coverImageUrl;

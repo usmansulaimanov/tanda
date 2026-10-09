@@ -15,7 +15,7 @@ import lombok.Setter;
 @Builder
 public class ReadingGroupInviteRequestDto {
 
-    @NotBlank(message = "Email is required")
-    @Email(message = "Invalid email format")
+    @NotBlank(message = "Электронды пошта міндетті")
+    @Email(message = "Электронды пошта форматы дұрыс емес")
     private String email;
 }

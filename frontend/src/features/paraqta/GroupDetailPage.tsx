@@ -26,8 +26,23 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { Skeleton } from '../../shared/ui';
 import { resizeAndCompressImage } from '../../utils/imageUtils';
 import { ReadingTrackerWidget } from './ReadingTrackerWidget';
+const KAZAKH_MONTHS = [
+  'Қаңтар',
+  'Ақпан',
+  'Наурыз',
+  'Сәуір',
+  'Мамыр',
+  'Маусым',
+  'Шілде',
+  'Тамыз',
+  'Қыркүйек',
+  'Қазан',
+  'Қараша',
+  'Желтоқсан',
+];
 
 export const GroupDetailPage: React.FC = () => {
+  const currentMonthName = KAZAKH_MONTHS[new Date().getMonth()];
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -65,7 +80,13 @@ export const GroupDetailPage: React.FC = () => {
     onError: (err: any) => {
       const msg = err?.response?.data?.message || '';
       if (msg.includes('тіркелмеген') || err?.response?.status === 404) {
-        setInviteError('Оқырман табылмады');
+        setInviteError('Бұл email-мен оқырман тіркелмеген');
+      } else if (
+        msg.toLowerCase().includes('email') ||
+        msg.toLowerCase().includes('format') ||
+        msg.toLowerCase().includes('invalid')
+      ) {
+        setInviteError('Электронды пошта форматы дұрыс емес');
       } else {
         setInviteError(msg || 'Шақыру мүмкін болмады');
       }
@@ -168,6 +189,16 @@ export const GroupDetailPage: React.FC = () => {
   const { group, members, archives } = detail;
   const isCreator = user?.id === group.creatorId;
   const isAdmin = group.myRole === 'ADMIN' || isCreator;
+
+  const handleSendInvite = () => {
+    const clean = inviteEmail.trim().toLowerCase();
+    if (!clean) return;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clean)) {
+      setInviteError('Электронды пошта форматы дұрыс емес');
+      return;
+    }
+    sendInviteMutation.mutate(clean);
+  };
 
   return (
     <div className="max-w-7xl mx-auto my-4 sm:my-8 px-3 sm:px-6 w-full min-w-0 max-w-full overflow-hidden pb-24 animate-fadeIn">
@@ -495,7 +526,7 @@ export const GroupDetailPage: React.FC = () => {
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && inviteEmail.trim() && !sendInviteMutation.isPending) {
                       e.preventDefault();
-                      sendInviteMutation.mutate(inviteEmail.trim());
+                      handleSendInvite();
                     }
                   }}
                   className={`w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border rounded-xl text-sm focus:ring-2 focus:ring-[#F08000] focus:outline-none ${
@@ -520,7 +551,7 @@ export const GroupDetailPage: React.FC = () => {
                 <button
                   type="button"
                   disabled={!inviteEmail.trim() || sendInviteMutation.isPending}
-                  onClick={() => sendInviteMutation.mutate(inviteEmail.trim())}
+                  onClick={handleSendInvite}
                   className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#F08000] to-orange-500 text-white font-bold text-xs shadow-md disabled:opacity-50"
                 >
                   {sendInviteMutation.isPending ? 'Жіберілуде...' : 'Шақыру хатын жіберу'}
