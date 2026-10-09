@@ -21,9 +21,10 @@ import {
   BookOpen,
   ArrowRight,
   Search,
-  Crown,
   Bell,
   Sparkles,
+  Mail,
+  X,
 } from 'lucide-react';
 import { paraqtaApi, ReadingGroup, ReadingGroupInvitation, UserReadingStats, UserSearchResult } from '../../shared/api/paraqta.api';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -113,6 +114,7 @@ export const ParaqtaPage: React.FC = () => {
 
   // Group creation modal state
   const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
+  const [showInvitationsModal, setShowInvitationsModal] = useState<boolean>(false);
   const [groupName, setGroupName] = useState<string>('');
   const [groupDesc, setGroupDesc] = useState<string>('');
   const [groupIsPublic, setGroupIsPublic] = useState<boolean>(false);
@@ -243,6 +245,7 @@ export const ParaqtaPage: React.FC = () => {
   const acceptInviteMutation = useMutation({
     mutationFn: paraqtaApi.acceptInvitation,
     onSuccess: (group) => {
+      setShowInvitationsModal(false);
       refetchInvitations();
       refetchMyGroups();
       showToast(`Сіз "${group.name}" тобына қосылдыңыз!`);
@@ -307,63 +310,31 @@ export const ParaqtaPage: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-3 shrink-0">
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-[#F08000] to-orange-500 text-white font-bold text-xs sm:text-sm shadow-md shadow-orange-500/25 hover:shadow-orange-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
-            >
-              Топ ашу
-            </button>
+            {activeTab === 'tracker' ? (
+              <button
+                onClick={() => setShowInvitationsModal(true)}
+                className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-[#F08000] to-orange-500 text-white font-bold text-xs sm:text-sm shadow-md shadow-orange-500/25 hover:shadow-orange-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer flex items-center gap-2"
+              >
+                <Mail className="w-4 h-4" />
+                <span>Шақыртулар</span>
+                {invitations.length > 0 && (
+                  <span className="px-1.5 py-0.5 bg-white text-[#F08000] text-[11px] font-black rounded-full leading-none shadow-sm animate-pulse">
+                    {invitations.length}
+                  </span>
+                )}
+              </button>
+            ) : (
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-[#F08000] to-orange-500 text-white font-bold text-xs sm:text-sm shadow-md shadow-orange-500/25 hover:shadow-orange-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer flex items-center gap-1.5"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Топ қосу</span>
+              </button>
+            )}
           </div>
         </div>
       </div>
-
-      {/* Pending Invitations Banner */}
-      {invitations.length > 0 && (
-        <div className="mb-3 sm:mb-4 space-y-2.5">
-          {invitations.map((inv) => (
-            <div
-              key={inv.id}
-              className="p-3.5 sm:p-4 bg-gradient-to-r from-amber-500/15 via-orange-500/15 to-amber-600/15 border border-orange-500/30 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-[#F08000] text-white flex items-center justify-center font-bold text-base shadow-md shadow-orange-500/30 shrink-0">
-                  <Bell className="w-4 h-4 animate-bounce" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-slate-900 dark:text-white text-xs sm:text-sm">
-                    Топтық шақырту келді!
-                  </h4>
-                  <p className="text-xs text-slate-600 dark:text-slate-300">
-                    {inv.inviterName ? (
-                      <>
-                        <strong className="text-slate-900 dark:text-white">{inv.inviterName}</strong> сізді «<strong className="text-slate-900 dark:text-white">{inv.groupName}</strong>» тобына шақырды
-                      </>
-                    ) : (
-                      <>«<strong className="text-slate-900 dark:text-white">{inv.groupName}</strong>» тобына шақырту жіберілді</>
-                    )}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
-                <button
-                  onClick={() => acceptInviteMutation.mutate(inv.token)}
-                  disabled={acceptInviteMutation.isPending}
-                  className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition-all shadow-sm cursor-pointer disabled:opacity-50"
-                >
-                  Қабылдау
-                </button>
-                <button
-                  onClick={() => rejectInviteMutation.mutate(inv.token)}
-                  disabled={rejectInviteMutation.isPending}
-                  className="px-3.5 py-1.5 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 font-semibold text-xs rounded-xl transition-all cursor-pointer disabled:opacity-50"
-                >
-                  Бас тарту
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
 
       {/* Tabs Navigation */}
       <div className="flex items-center gap-1.5 p-1 sm:p-1.5 bg-slate-100 dark:bg-slate-800/60 rounded-2xl mb-4 sm:mb-5 border border-slate-200 dark:border-slate-700/60">
@@ -741,6 +712,103 @@ export const ParaqtaPage: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Invitations Modal */}
+      {showInvitationsModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl border border-slate-100 dark:border-slate-800 space-y-5 animate-scaleUp">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-orange-500/10 text-[#F08000] flex items-center justify-center font-bold">
+                  <Mail className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+                    Топтық шақыртулар
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Сізге келген барлық топтық шақырулар
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowInvitationsModal(false)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {invitations.length === 0 ? (
+              <div className="py-10 text-center space-y-2">
+                <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center mx-auto">
+                  <Mail className="w-6 h-6" />
+                </div>
+                <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                  Сізде әзірге жаңа шақырту жоқ
+                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Басқа оқырмандар сізді топтарына шақырғанда, осы жерде көрінеді.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
+                {invitations.map((inv) => (
+                  <div
+                    key={inv.id}
+                    className="p-4 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                  >
+                    <div>
+                      <h4 className="font-bold text-slate-900 dark:text-white text-sm">
+                        «{inv.groupName}»
+                      </h4>
+                      <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
+                        {inv.inviterName ? (
+                          <>
+                            Шақырған: <strong className="text-slate-800 dark:text-slate-200">{inv.inviterName}</strong>
+                          </>
+                        ) : (
+                          'Топтық жарысқа шақыру'
+                        )}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => acceptInviteMutation.mutate(inv.token)}
+                        disabled={acceptInviteMutation.isPending}
+                        className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition-all shadow-sm cursor-pointer disabled:opacity-50"
+                      >
+                        {acceptInviteMutation.isPending ? 'Қосылуда...' : 'Қабылдау'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => rejectInviteMutation.mutate(inv.token)}
+                        disabled={rejectInviteMutation.isPending}
+                        className="px-3.5 py-1.5 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 font-semibold text-xs rounded-xl transition-all cursor-pointer disabled:opacity-50"
+                      >
+                        Бас тарту
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setShowInvitationsModal(false)}
+                className="px-5 py-2 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer"
+              >
+                Жабу
+              </button>
+            </div>
           </div>
         </div>
       )}
