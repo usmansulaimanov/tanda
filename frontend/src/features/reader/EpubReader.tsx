@@ -287,28 +287,95 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
 
   const handleNextPage = useCallback(() => {
     if (isNavigatingRef.current) return;
-    if (renditionRef.current) {
-      isNavigatingRef.current = true;
-      renditionRef.current.next()
+    if (!renditionRef.current || !bookRef.current) return;
+    isNavigatingRef.current = true;
+
+    const book = bookRef.current;
+    const rendition = renditionRef.current;
+
+    try {
+      const loc = (rendition as any).currentLocation?.();
+      const totalLocs = (book.locations as any)?.total || (book.locations ? book.locations.length() : 0);
+      const hasTrueLocations = Boolean(
+        totalLocs > 1 &&
+        ((book.locations as any)?._locations?.length > 1 || (book.locations as any)?.total > 1 || book.locations?.length() > 1)
+      );
+
+      const isAtSectionEnd = loc?.end?.displayed?.page === loc?.end?.displayed?.total || loc?.atEnd;
+
+      if (isAtSectionEnd && loc?.end?.cfi && hasTrueLocations && typeof (book.locations as any).locationFromCfi === 'function') {
+        const curLoc = (book.locations as any).locationFromCfi(loc.end.cfi);
+        if (typeof curLoc === 'number' && curLoc < totalLocs - 1) {
+          const nextCfi = (book.locations as any).cfiFromLocation(curLoc + 1);
+          if (nextCfi) {
+            rendition.display(nextCfi)
+              .catch(() => rendition.next())
+              .finally(() => {
+                setTimeout(() => { isNavigatingRef.current = false; }, 80);
+              });
+            return;
+          }
+        }
+      }
+
+      rendition.next()
         .catch(() => {})
         .finally(() => {
-          setTimeout(() => {
-            isNavigatingRef.current = false;
-          }, 80);
+          setTimeout(() => { isNavigatingRef.current = false; }, 80);
+        });
+    } catch {
+      rendition.next()
+        .catch(() => {})
+        .finally(() => {
+          setTimeout(() => { isNavigatingRef.current = false; }, 80);
         });
     }
   }, []);
 
   const handlePrevPage = useCallback(() => {
     if (isNavigatingRef.current) return;
-    if (renditionRef.current) {
-      isNavigatingRef.current = true;
-      renditionRef.current.prev()
+    if (!renditionRef.current || !bookRef.current) return;
+    isNavigatingRef.current = true;
+
+    const book = bookRef.current;
+    const rendition = renditionRef.current;
+
+    try {
+      const loc = (rendition as any).currentLocation?.();
+      const totalLocs = (book.locations as any)?.total || (book.locations ? book.locations.length() : 0);
+      const hasTrueLocations = Boolean(
+        totalLocs > 1 &&
+        ((book.locations as any)?._locations?.length > 1 || (book.locations as any)?.total > 1 || book.locations?.length() > 1)
+      );
+
+      // When at the start of a chapter/section, jump precisely to the last page of the previous chapter
+      const isAtSectionStart = loc?.start?.displayed?.page === 1 || loc?.atStart;
+
+      if (isAtSectionStart && loc?.start?.cfi && hasTrueLocations && typeof (book.locations as any).locationFromCfi === 'function') {
+        const curLoc = (book.locations as any).locationFromCfi(loc.start.cfi);
+        if (typeof curLoc === 'number' && curLoc > 0) {
+          const prevCfi = (book.locations as any).cfiFromLocation(curLoc - 1);
+          if (prevCfi) {
+            rendition.display(prevCfi)
+              .catch(() => rendition.prev())
+              .finally(() => {
+                setTimeout(() => { isNavigatingRef.current = false; }, 80);
+              });
+            return;
+          }
+        }
+      }
+
+      rendition.prev()
         .catch(() => {})
         .finally(() => {
-          setTimeout(() => {
-            isNavigatingRef.current = false;
-          }, 80);
+          setTimeout(() => { isNavigatingRef.current = false; }, 80);
+        });
+    } catch {
+      rendition.prev()
+        .catch(() => {})
+        .finally(() => {
+          setTimeout(() => { isNavigatingRef.current = false; }, 80);
         });
     }
   }, []);
