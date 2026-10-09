@@ -290,7 +290,7 @@ export const ParaqtaPage: React.FC = () => {
     if (!rawEmail) return;
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rawEmail)) {
-      setInviteEmailError('Почтаны толық әрі дұрыс жазыңыз (мысалы: name@gmail.com)');
+      setInviteEmailError('Почтаны толық әрі дұрыс жазыңыз');
       return;
     }
 
@@ -480,9 +480,9 @@ export const ParaqtaPage: React.FC = () => {
           <div className="flex items-center gap-3 shrink-0">
             <button
               onClick={() => setShowCreateModal(true)}
-              className="px-5 py-3 rounded-2xl bg-gradient-to-r from-[#F08000] to-orange-500 text-white font-bold text-sm shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2"
+              className="px-5 py-3 rounded-2xl bg-gradient-to-r from-[#F08000] to-orange-500 text-white font-bold text-sm shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all"
             >
-              <Plus className="w-4 h-4" /> Топ ашу
+              Топ ашу
             </button>
           </div>
         </div>
@@ -974,7 +974,7 @@ export const ParaqtaPage: React.FC = () => {
               {/* Add User Invitation by Email */}
               <div>
                 <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
-                  Оқырмандарды шақыру (Почтасы):
+                  Оқырмандарды шақыру:
                 </label>
                 <div className="flex gap-2">
                   <input
