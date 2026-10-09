@@ -319,36 +319,49 @@ export const ParaqtaPage: React.FC = () => {
 
       {/* Pending Invitations Banner */}
       {invitations.length > 0 && (
-        <div className="mb-8 p-5 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-orange-500/30 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-orange-500 text-white flex items-center justify-center font-bold text-lg shadow-md shadow-orange-500/30 shrink-0">
-              <Bell className="w-5 h-5 animate-bounce" />
-            </div>
-            <div>
-              <h4 className="font-bold text-slate-900 dark:text-white text-sm sm:text-base">
-                Сізге {invitations.length} топтық шақырту келді!
-              </h4>
-              <p className="text-xs text-slate-600 dark:text-slate-300">
-                «{invitations[0].groupName}» тобына шақырту жіберілді
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => acceptInviteMutation.mutate(invitations[0].token)}
-              disabled={acceptInviteMutation.isPending}
-              className="px-4 py-2 bg-emerald-600 text-white font-bold text-xs rounded-xl hover:bg-emerald-700 transition-colors shadow-sm"
+        <div className="mb-6 space-y-3">
+          {invitations.map((inv) => (
+            <div
+              key={inv.id}
+              className="p-4 sm:p-5 bg-gradient-to-r from-amber-500/15 via-orange-500/15 to-amber-600/15 border border-orange-500/30 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm"
             >
-              Қабылдау
-            </button>
-            <button
-              onClick={() => rejectInviteMutation.mutate(invitations[0].token)}
-              disabled={rejectInviteMutation.isPending}
-              className="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold text-xs rounded-xl hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
-            >
-              Бас тарту
-            </button>
-          </div>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#F08000] text-white flex items-center justify-center font-bold text-lg shadow-md shadow-orange-500/30 shrink-0">
+                  <Bell className="w-5 h-5 animate-bounce" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-slate-900 dark:text-white text-sm sm:text-base">
+                    Топтық шақырту келді!
+                  </h4>
+                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-0.5">
+                    {inv.inviterName ? (
+                      <>
+                        <strong className="text-slate-900 dark:text-white">{inv.inviterName}</strong> сізді «<strong className="text-slate-900 dark:text-white">{inv.groupName}</strong>» тобына шақырды
+                      </>
+                    ) : (
+                      <>«<strong className="text-slate-900 dark:text-white">{inv.groupName}</strong>» тобына шақырту жіберілді</>
+                    )}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={() => acceptInviteMutation.mutate(inv.token)}
+                  disabled={acceptInviteMutation.isPending}
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition-all shadow-sm cursor-pointer disabled:opacity-50"
+                >
+                  Қабылдау
+                </button>
+                <button
+                  onClick={() => rejectInviteMutation.mutate(inv.token)}
+                  disabled={rejectInviteMutation.isPending}
+                  className="px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 font-semibold text-xs rounded-xl transition-all cursor-pointer disabled:opacity-50"
+                >
+                  Бас тарту
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
