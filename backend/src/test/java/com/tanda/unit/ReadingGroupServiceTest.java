@@ -12,6 +12,7 @@ import com.tanda.repository.ReadingGroupInvitationRepository;
 import com.tanda.repository.ReadingGroupMemberRepository;
 import com.tanda.repository.ReadingGroupMonthlyArchiveRepository;
 import com.tanda.repository.ReadingGroupRepository;
+import com.tanda.repository.ReadingSessionRepository;
 import com.tanda.repository.UserRepository;
 import com.tanda.service.PremiumService;
 import com.tanda.service.ReadingGroupService;
@@ -46,6 +47,9 @@ class ReadingGroupServiceTest {
     private ReadingGroupMonthlyArchiveRepository archiveRepository;
 
     @Mock
+    private ReadingSessionRepository sessionRepository;
+
+    @Mock
     private UserRepository userRepository;
 
     @Mock
@@ -60,6 +64,7 @@ class ReadingGroupServiceTest {
                 memberRepository,
                 invitationRepository,
                 archiveRepository,
+                sessionRepository,
                 userRepository,
                 premiumService
         );

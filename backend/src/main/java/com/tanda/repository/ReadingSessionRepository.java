@@ -26,4 +26,7 @@ public interface ReadingSessionRepository extends JpaRepository<ReadingSession, 
 
     @Query("SELECT COALESCE(SUM(rs.durationSeconds), 0) FROM ReadingSession rs WHERE rs.userId = :userId AND rs.groupId = :groupId AND rs.startedAt >= :since")
     Long sumDurationSecondsByUserIdAndGroupIdSince(@Param("userId") String userId, @Param("groupId") String groupId, @Param("since") OffsetDateTime since);
+
+    @Query("SELECT rs.userId, COALESCE(SUM(rs.durationSeconds), 0) FROM ReadingSession rs WHERE rs.groupId = :groupId AND rs.startedAt >= :since GROUP BY rs.userId")
+    List<Object[]> sumDurationSecondsByGroupIdGroupedByUser(@Param("groupId") String groupId, @Param("since") OffsetDateTime since);
 }

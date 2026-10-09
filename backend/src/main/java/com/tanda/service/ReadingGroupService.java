@@ -33,10 +33,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -242,9 +244,21 @@ public class ReadingGroupService {
         Map<String, User> userMap = userRepository.findAllById(userIds).stream()
                 .collect(Collectors.toMap(User::getId, u -> u));
 
+        ZoneId kzZone = ZoneId.of("Asia/Almaty");
+        OffsetDateTime startOfToday = LocalDate.now(kzZone).atStartOfDay(kzZone).toOffsetDateTime();
+
+        List<Object[]> todayRows = sessionRepository.sumDurationSecondsByGroupIdGroupedByUser(groupId, startOfToday);
+        Map<String, Long> todayMap = new HashMap<>();
+        for (Object[] row : todayRows) {
+            String uId = (String) row[0];
+            Long sec = ((Number) row[1]).longValue();
+            todayMap.put(uId, sec);
+        }
+
         AtomicInteger rankCounter = new AtomicInteger(1);
         List<ReadingGroupMemberDto> memberDtos = members.stream().map(m -> {
             User u = userMap.get(m.getUserId());
+            Long todaySec = todayMap.getOrDefault(m.getUserId(), 0L);
             return ReadingGroupMemberDto.builder()
                     .id(m.getId())
                     .userId(m.getUserId())
@@ -252,6 +266,7 @@ public class ReadingGroupService {
                     .username(u != null ? u.getUsername() : null)
                     .avatarUrl(u != null ? u.getAvatarUrl() : null)
                     .role(m.getRole())
+                    .todayReadingSeconds(todaySec)
                     .monthlyReadingSeconds(m.getMonthlyReadingSeconds())
                     .totalReadingSeconds(m.getTotalReadingSeconds())
                     .rank(rankCounter.getAndIncrement())
@@ -271,9 +286,7 @@ public class ReadingGroupService {
                 .createdAt(a.getCreatedAt())
                 .build()).collect(Collectors.toList());
 
-        OffsetDateTime startOfToday = OffsetDateTime.now().toLocalDate().atStartOfDay().atOffset(ZoneOffset.UTC);
-        Long myToday = (currentUserId != null && isMember) ?
-                sessionRepository.sumDurationSecondsByUserIdAndGroupIdSince(currentUserId, groupId, startOfToday) : 0L;
+        Long myToday = (currentUserId != null && isMember) ? todayMap.getOrDefault(currentUserId, 0L) : 0L;
 
         return ReadingGroupDetailResponseDto.builder()
                 .group(toDto(group, creator, memberCount, isMember, myRole, myToday, myMonthly, myTotal))

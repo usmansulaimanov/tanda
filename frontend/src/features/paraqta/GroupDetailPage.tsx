@@ -505,8 +505,15 @@ export const GroupDetailPage: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Monthly Score & Admin Actions */}
-                    <div className="flex items-center gap-4">
+                    {/* Today & Monthly Score & Admin Actions */}
+                    <div className="flex items-center gap-3 sm:gap-6">
+                      <div className="text-right">
+                        <div className="text-sm sm:text-base font-bold text-slate-700 dark:text-slate-300">
+                          {formatDurationHuman(member.todayReadingSeconds || 0)}
+                        </div>
+                        <div className="text-[10px] uppercase font-bold text-slate-400">Бүгін</div>
+                      </div>
+
                       <div className="text-right">
                         <div className="text-base sm:text-lg font-black text-[#F08000]">
                           {formatDurationHuman(member.monthlyReadingSeconds)}

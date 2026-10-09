@@ -57,6 +57,7 @@ export interface ReadingGroupMember {
   username?: string;
   avatarUrl?: string;
   role: 'CREATOR' | 'ADMIN' | 'MEMBER';
+  todayReadingSeconds?: number;
   monthlyReadingSeconds: number;
   totalReadingSeconds: number;
   rank: number;

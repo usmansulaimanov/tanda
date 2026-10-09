@@ -21,6 +21,7 @@ public class ReadingGroupMemberDto {
     private String username;
     private String avatarUrl;
     private String role;
+    private Long todayReadingSeconds;
     private Long monthlyReadingSeconds;
     private Long totalReadingSeconds;
     private Integer rank;
