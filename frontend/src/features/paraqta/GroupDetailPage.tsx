@@ -360,7 +360,7 @@ export const GroupDetailPage: React.FC = () => {
               : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
-          <Trophy className="w-4 h-4" /> Айлық рейтинг (Осы ай)
+          <Trophy className="w-4 h-4" /> {currentMonthName}
         </button>
 
         <button
