@@ -21,10 +21,10 @@ export const ReaderPage: React.FC = () => {
   const [isBookLoading, setIsBookLoading] = useState<boolean>(!books.find((b) => b.id === id));
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [fontSize, setFontSize] = useState<number>(17);
-  const [theme, setTheme] = useState<'light' | 'sepia' | 'dark'>(() => {
+  const [theme, setTheme] = useState<'light' | 'sepia' | 'gray' | 'dark'>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('tanda_reader_theme');
-      if (saved === 'sepia' || saved === 'dark' || saved === 'light') return saved;
+      if (saved === 'sepia' || saved === 'dark' || saved === 'light' || saved === 'gray') return saved;
     }
     return 'light';
   });
@@ -99,7 +99,7 @@ export const ReaderPage: React.FC = () => {
     return 18;
   };
 
-  const handleThemeChange = (newTheme: 'light' | 'sepia' | 'dark') => {
+  const handleThemeChange = (newTheme: 'light' | 'sepia' | 'gray' | 'dark') => {
     setTheme(newTheme);
     try { localStorage.setItem('tanda_reader_theme', newTheme); } catch {}
     // Immediately save to backend so settings survive cross-device login

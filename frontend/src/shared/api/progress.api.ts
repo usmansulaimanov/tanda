@@ -3,7 +3,7 @@ import { apiClient } from './client';
 export interface ReadingProgressSavePayload {
   epubCfi?: string;
   fontSize?: number;
-  readerTheme?: 'light' | 'sepia' | 'dark';
+  readerTheme?: 'light' | 'sepia' | 'gray' | 'dark';
   colorTemperature?: number;
   currentPage?: number;
   currentAudioTime?: number;
@@ -19,7 +19,7 @@ export interface ReadingProgressResponse {
   currentAudioChapterId?: string;
   epubCfi?: string;
   fontSize?: number;
-  readerTheme?: 'light' | 'sepia' | 'dark';
+  readerTheme?: 'light' | 'sepia' | 'gray' | 'dark';
   colorTemperature?: number;
 }
 

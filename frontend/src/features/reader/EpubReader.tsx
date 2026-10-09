@@ -3,14 +3,16 @@ import ePub, { Book as EpubBookInstance, Rendition } from 'epubjs';
 import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Sun, Moon, BookOpen, FileText, AlertCircle, RefreshCw, X, SlidersHorizontal, Type, ArrowLeft } from 'lucide-react';
 import { resolveMediaUrl } from '../../utils/mediaUtils';
 
+export type ReaderTheme = 'light' | 'sepia' | 'gray' | 'dark';
+
 export interface EpubReaderProps {
   url: string;
   bookTitle?: string;
   bookAuthor?: string;
   onProgressChange?: (progressPercent: number, locationCfi: string) => void;
   initialLocation?: string;
-  theme?: 'light' | 'sepia' | 'dark';
-  onThemeChange?: (theme: 'light' | 'sepia' | 'dark') => void;
+  theme?: ReaderTheme;
+  onThemeChange?: (theme: ReaderTheme) => void;
   colorTemperature?: number;
   onColorTemperatureChange?: (temp: number) => void;
   onBack?: () => void;
@@ -86,10 +88,10 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
     }
     return 18;
   });
-  const [internalTheme, setInternalTheme] = useState<'light' | 'sepia' | 'dark'>(() => {
+  const [internalTheme, setInternalTheme] = useState<ReaderTheme>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('tanda_reader_theme');
-      if (saved === 'sepia' || saved === 'dark' || saved === 'light') return saved;
+      if (saved === 'sepia' || saved === 'dark' || saved === 'light' || saved === 'gray') return saved;
     }
     return 'light';
   });
@@ -141,7 +143,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
 
   const lightBgInfo = getLightBgByTemp(colorTemperature);
 
-  const themeStyles = {
+  const themeStyles: Record<ReaderTheme, { bg: string; text: string; containerBg: string; border: string; headerBg: string }> = {
     light: {
       bg: lightBgInfo.bg,
       text: '#0F172A',
@@ -155,6 +157,13 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
       containerBg: '#F4E8CD',
       border: '#EAD7B5',
       headerBg: '#FBF0D9',
+    },
+    gray: {
+      bg: '#333742',
+      text: '#E2E8F0',
+      containerBg: '#262A32',
+      border: '#475060',
+      headerBg: '#333742',
     },
     dark: {
       bg: '#0F172A',
@@ -176,7 +185,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
     colorTempRef.current = colorTemperature;
   }, [colorTemperature]);
 
-  const getThemeCss = (selectedTheme: 'light' | 'sepia' | 'dark', temp: number) => {
+  const getThemeCss = (selectedTheme: ReaderTheme, temp: number) => {
     const lightDynamic = getLightBgByTemp(temp);
     const current = selectedTheme === 'light' ? { ...themeStyles.light, ...lightDynamic } : themeStyles[selectedTheme];
     return `
@@ -225,7 +234,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
     `;
   };
 
-  const applyDirectThemeStyleToDoc = useCallback((doc: Document | null | undefined, selectedTheme: 'light' | 'sepia' | 'dark', temp: number) => {
+  const applyDirectThemeStyleToDoc = useCallback((doc: Document | null | undefined, selectedTheme: ReaderTheme, temp: number) => {
     if (!doc) return;
     try {
       const lightDynamic = getLightBgByTemp(temp);
@@ -258,7 +267,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
   }, []);
 
   // Apply themes to rendition
-  const applyThemeToRendition = useCallback((rendition: Rendition, _selectedTheme: 'light' | 'sepia' | 'dark', size: number) => {
+  const applyThemeToRendition = useCallback((rendition: Rendition, _selectedTheme: ReaderTheme, size: number) => {
     try {
       rendition.themes.fontSize(`${size}px`);
     } catch (e) {
@@ -450,7 +459,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
     }
   }, []);
 
-  const handleThemeChange = useCallback((newTheme: 'light' | 'sepia' | 'dark') => {
+  const handleThemeChange = useCallback((newTheme: ReaderTheme) => {
     setInternalTheme(newTheme);
     onThemeChange?.(newTheme);
     themeRef.current = newTheme;
@@ -595,9 +604,9 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
       return;
     }
 
-    // 2. Control / Command + Arrow: Switch theme (light -> sepia -> dark)
+    // 2. Control / Command + Arrow: Switch theme (light -> sepia -> gray -> dark)
     if (isCtrl && !isShift && !isAlt) {
-      const themes: ('light' | 'sepia' | 'dark')[] = ['light', 'sepia', 'dark'];
+      const themes: ReaderTheme[] = ['light', 'sepia', 'gray', 'dark'];
       const curIdx = themes.indexOf(themeRef.current);
       const nextIdx = isRight
         ? (curIdx + 1) % themes.length
@@ -1132,6 +1141,24 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
               Сепия
             </button>
             <button
+              onClick={() => handleThemeChange('gray')}
+              title="Сұр режим"
+              style={{
+                padding: '4px 8px',
+                border: 'none',
+                borderRadius: '4px',
+                background: theme === 'gray' ? '#333742' : 'transparent',
+                color: theme === 'gray' ? '#E2E8F0' : activeTheme.text,
+                fontWeight: theme === 'gray' ? 700 : 600,
+                fontSize: '11px',
+                cursor: 'pointer',
+                boxShadow: theme === 'gray' ? '0 1px 3px rgba(0,0,0,0.2)' : 'none',
+                opacity: theme === 'gray' ? 1 : 0.85,
+              }}
+            >
+              Сұр
+            </button>
+            <button
               onClick={() => handleThemeChange('dark')}
               title="Түнгі режим"
               style={{
@@ -1163,12 +1190,12 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
                 padding: '4px 8px',
                 border: 'none',
                 borderRadius: '4px',
-                background: spreadMode === 'double' ? (theme === 'dark' ? '#334155' : theme === 'sepia' ? '#FBF0D9' : '#FFFFFF') : 'transparent',
-                color: spreadMode === 'double' ? (theme === 'dark' ? '#F1F5F9' : theme === 'sepia' ? '#433422' : '#0F172A') : activeTheme.text,
+                background: spreadMode === 'double' ? (theme === 'dark' ? '#334155' : theme === 'gray' ? '#475060' : theme === 'sepia' ? '#FBF0D9' : '#FFFFFF') : 'transparent',
+                color: spreadMode === 'double' ? (theme === 'dark' || theme === 'gray' ? '#F1F5F9' : theme === 'sepia' ? '#433422' : '#0F172A') : activeTheme.text,
                 fontWeight: spreadMode === 'double' ? 700 : 600,
                 fontSize: '11px',
                 cursor: 'pointer',
-                boxShadow: spreadMode === 'double' ? (theme === 'dark' ? '0 1px 3px rgba(0,0,0,0.2)' : '0 1px 3px rgba(0,0,0,0.1)') : 'none',
+                boxShadow: spreadMode === 'double' ? (theme === 'dark' || theme === 'gray' ? '0 1px 3px rgba(0,0,0,0.2)' : '0 1px 3px rgba(0,0,0,0.1)') : 'none',
                 opacity: spreadMode === 'double' ? 1 : 0.85,
               }}
             >
@@ -1185,12 +1212,12 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
                 padding: '4px 8px',
                 border: 'none',
                 borderRadius: '4px',
-                background: spreadMode === 'single' ? (theme === 'dark' ? '#334155' : theme === 'sepia' ? '#FBF0D9' : '#FFFFFF') : 'transparent',
-                color: spreadMode === 'single' ? (theme === 'dark' ? '#F1F5F9' : theme === 'sepia' ? '#433422' : '#0F172A') : activeTheme.text,
+                background: spreadMode === 'single' ? (theme === 'dark' ? '#334155' : theme === 'gray' ? '#475060' : theme === 'sepia' ? '#FBF0D9' : '#FFFFFF') : 'transparent',
+                color: spreadMode === 'single' ? (theme === 'dark' || theme === 'gray' ? '#F1F5F9' : theme === 'sepia' ? '#433422' : '#0F172A') : activeTheme.text,
                 fontWeight: spreadMode === 'single' ? 700 : 600,
                 fontSize: '11px',
                 cursor: 'pointer',
-                boxShadow: spreadMode === 'single' ? (theme === 'dark' ? '0 1px 3px rgba(0,0,0,0.2)' : '0 1px 3px rgba(0,0,0,0.1)') : 'none',
+                boxShadow: spreadMode === 'single' ? (theme === 'dark' || theme === 'gray' ? '0 1px 3px rgba(0,0,0,0.2)' : '0 1px 3px rgba(0,0,0,0.1)') : 'none',
                 opacity: spreadMode === 'single' ? 1 : 0.85,
               }}
             >
@@ -1348,14 +1375,14 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
               <div
                 style={{
                   display: 'grid',
-                  gridTemplateColumns: '1fr 1fr 1fr',
-                  gap: '8px',
+                  gridTemplateColumns: 'repeat(4, 1fr)',
+                  gap: '6px',
                 }}
               >
                 <button
                   onClick={() => handleThemeChange('light')}
                   style={{
-                    padding: '10px 4px',
+                    padding: '10px 2px',
                     borderRadius: '10px',
                     border: theme === 'light' ? '2px solid #2563EB' : `1.5px solid ${activeTheme.border}`,
                     background: '#FFFFFF',
@@ -1376,7 +1403,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
                 <button
                   onClick={() => handleThemeChange('sepia')}
                   style={{
-                    padding: '10px 4px',
+                    padding: '10px 2px',
                     borderRadius: '10px',
                     border: theme === 'sepia' ? '2px solid #D97706' : `1.5px solid ${activeTheme.border}`,
                     background: '#FBF0D9',
@@ -1395,9 +1422,30 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
                   Сепия
                 </button>
                 <button
+                  onClick={() => handleThemeChange('gray')}
+                  style={{
+                    padding: '10px 2px',
+                    borderRadius: '10px',
+                    border: theme === 'gray' ? '2px solid #94A3B8' : `1.5px solid ${activeTheme.border}`,
+                    background: '#333742',
+                    color: '#E2E8F0',
+                    fontWeight: 800,
+                    fontSize: '12px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '4px',
+                    boxShadow: theme === 'gray' ? '0 0 0 2px rgba(148,163,184,0.3)' : 'none',
+                  }}
+                >
+                  <span style={{ width: '16px', height: '16px', borderRadius: '50%', background: '#262A32', border: '1.5px solid #475060' }} />
+                  Сұр
+                </button>
+                <button
                   onClick={() => handleThemeChange('dark')}
                   style={{
-                    padding: '10px 4px',
+                    padding: '10px 2px',
                     borderRadius: '10px',
                     border: theme === 'dark' ? '2px solid #38BDF8' : `1.5px solid ${activeTheme.border}`,
                     background: '#0F172A',
