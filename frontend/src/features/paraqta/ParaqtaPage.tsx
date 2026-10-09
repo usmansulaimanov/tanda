@@ -48,6 +48,30 @@ export const formatDurationHuman = (totalSeconds: number): string => {
   return `${h} сағ ${m} мин`;
 };
 
+export const renderDurationWithSubSeconds = (totalSeconds: number, isAccent = false) => {
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = totalSeconds % 60;
+
+  let mainText = '0 мин';
+  if (h > 0) {
+    mainText = `${h} сағ ${m} мин`;
+  } else if (m > 0) {
+    mainText = `${m} мин`;
+  }
+
+  return (
+    <div>
+      <div className={`text-xl sm:text-2xl font-extrabold leading-tight ${isAccent ? 'text-[#F08000]' : 'text-slate-900 dark:text-white'}`}>
+        {mainText}
+      </div>
+      <div className={`text-xs font-bold mt-0.5 ${isAccent ? 'text-orange-500/80' : 'text-slate-400 dark:text-slate-500'}`}>
+        {s} сек
+      </div>
+    </div>
+  );
+};
+
 // Play pleasant web audio chime
 const playChimeSound = () => {
   try {
@@ -504,36 +528,28 @@ export const ParaqtaPage: React.FC = () => {
               <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1 flex items-center gap-1.5">
                 <Clock className="w-3.5 h-3.5 text-amber-500" /> Бүгін
               </div>
-              <div className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
-                {formatDurationHuman(stats?.todayReadingSeconds || 0)}
-              </div>
+              {renderDurationWithSubSeconds(stats?.todayReadingSeconds || 0)}
             </div>
 
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
               <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1 flex items-center gap-1.5">
                 <Flame className="w-3.5 h-3.5 text-orange-500" /> Осы аптада
               </div>
-              <div className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
-                {formatDurationHuman(stats?.weekReadingSeconds || 0)}
-              </div>
+              {renderDurationWithSubSeconds(stats?.weekReadingSeconds || 0)}
             </div>
 
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
               <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1 flex items-center gap-1.5">
                 <Trophy className="w-3.5 h-3.5 text-yellow-500" /> Осы айда
               </div>
-              <div className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
-                {formatDurationHuman(stats?.monthReadingSeconds || 0)}
-              </div>
+              {renderDurationWithSubSeconds(stats?.monthReadingSeconds || 0)}
             </div>
 
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm bg-gradient-to-br from-orange-500/5 to-amber-500/10">
               <div className="text-xs font-semibold text-[#F08000] mb-1 flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5 text-[#F08000]" /> Жалпы оқыған
               </div>
-              <div className="text-xl sm:text-2xl font-extrabold text-[#F08000]">
-                {formatDurationHuman(stats?.totalReadingSeconds || 0)}
-              </div>
+              {renderDurationWithSubSeconds(stats?.totalReadingSeconds || 0, true)}
             </div>
           </div>
 
