@@ -1850,7 +1850,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
       {/* Bottom Progress Bar & Seek Slider (Toggleable on mobile as overlay, always visible on desktop) */}
       <div
         style={{
-          padding: '10px 16px max(calc(env(safe-area-inset-bottom, 0px) + 8px), 10px)',
+          padding: '8px 16px max(calc(env(safe-area-inset-bottom, 0px) + 6px), 8px)',
           backgroundColor: activeTheme.headerBg,
           borderTop: `1px solid ${activeTheme.border}`,
           fontSize: '12px',
@@ -1860,12 +1860,18 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
           zIndex: 30,
           boxShadow: showMobileControls ? '0 -4px 12px rgba(0,0,0,0.12)' : 'none',
         }}
-        className={`w-full ${showMobileControls ? 'flex absolute bottom-0 left-0 right-0 sm:relative' : 'hidden sm:flex'} flex-col sm:flex-row items-center justify-between gap-2 sm:gap-3 flex-shrink-0`}
+        className={`w-full ${showMobileControls ? 'flex absolute bottom-0 left-0 right-0 sm:relative' : 'hidden sm:flex'} items-center justify-between gap-2.5 sm:gap-4 flex-nowrap flex-shrink-0`}
       >
-        {/* Page progress indicator: Centered on mobile, Left on desktop */}
+        {/* Page progress indicator (Left) */}
         <div
-          className="w-full sm:w-auto text-center sm:text-left"
-          style={{ flex: '1 1 0', minWidth: 0, userSelect: 'none', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: '12px', fontWeight: 700 }}
+          style={{
+            flexShrink: 0,
+            userSelect: 'none',
+            whiteSpace: 'nowrap',
+            fontSize: '12px',
+            fontWeight: 700,
+            color: activeTheme.text,
+          }}
         >
           {(() => {
             if (sliderDragPercent !== null) {
@@ -1883,17 +1889,14 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
           })()}
         </div>
 
-        {/* Interactive Seek Slider (Centered on both mobile & desktop) */}
+        {/* Interactive Seek Slider (Expands to fill center space) */}
         <div
-          className="w-full sm:w-auto"
           style={{
-            flex: '0 0 auto',
-            width: '100%',
-            maxWidth: '480px',
+            flex: '1 1 auto',
+            minWidth: '80px',
+            maxWidth: '560px',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            padding: '0 4px',
           }}
         >
           {(() => {
@@ -1989,33 +1992,35 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
           })()}
         </div>
 
-        {/* Mobile Aa button positioned underneath slider (visible only on mobile sm:hidden) */}
-        <div className="flex sm:hidden items-center justify-center w-full pt-1">
+        {/* Mobile Aa button (Right side in same row, sm:hidden) */}
+        <div className="flex sm:hidden items-center flex-shrink-0">
           <button
             onClick={() => setIsMobileSettingsOpen((prev) => !prev)}
             aria-label="Оқу параметрлері"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '6px',
-              padding: '6px 16px',
-              borderRadius: '20px',
+              gap: '4px',
+              padding: '5px 10px',
+              borderRadius: '16px',
               backgroundColor: isMobileSettingsOpen ? activeTheme.border : activeTheme.containerBg,
               border: `1.5px solid ${activeTheme.border}`,
               color: activeTheme.text,
-              fontSize: '13px',
+              fontSize: '12px',
               fontWeight: 800,
               cursor: 'pointer',
-              boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+              flexShrink: 0,
+              boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
               transition: 'all 0.2s',
             }}
           >
-            <span style={{ fontFamily: 'Georgia, serif', fontSize: '15px', fontWeight: 900, letterSpacing: '-0.5px' }}>Aa</span>
-            <span style={{ fontSize: '11px', opacity: 0.85 }}>{fontSize}px</span>
+            <span style={{ fontFamily: 'Georgia, serif', fontSize: '14px', fontWeight: 900, letterSpacing: '-0.5px' }}>Aa</span>
+            <span style={{ fontSize: '10px', opacity: 0.85 }}>{fontSize}px</span>
           </button>
         </div>
 
-        <div className="hidden sm:block" style={{ flex: '1 1 0', minWidth: 0, textAlign: 'right', fontSize: '11px', opacity: 0.7, userSelect: 'none', whiteSpace: 'nowrap' }}>
+        {/* Desktop Keyboard Hint (hidden on mobile, visible on desktop) */}
+        <div className="hidden sm:block" style={{ flexShrink: 0, textAlign: 'right', fontSize: '11px', opacity: 0.7, userSelect: 'none', whiteSpace: 'nowrap' }}>
           Парақтау: ⬅ ➡
         </div>
       </div>
