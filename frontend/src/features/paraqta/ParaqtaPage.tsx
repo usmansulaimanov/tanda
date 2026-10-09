@@ -429,9 +429,6 @@ export const ParaqtaPage: React.FC = () => {
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
               Оқу уақытын қадағалаңыз & Достармен жарысыңыз
             </h1>
-            <p className="text-slate-600 dark:text-slate-300 text-sm sm:text-base mt-2 max-w-2xl">
-              Қағаз, электронды немесе аудиокітап оқу уақытын тіркеңіз. Топ құрып, достарыңызбен бірге кітап оқу әдетін қалыптастырыңыз!
-            </p>
           </div>
 
           <div className="flex items-center gap-3 shrink-0">
