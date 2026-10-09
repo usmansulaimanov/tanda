@@ -2,7 +2,7 @@ import { apiClient } from './client';
 
 export interface ReadingSessionRequest {
   groupId?: string;
-  bookId?: number;
+  bookId?: string;
   bookTitle?: string;
   sessionType?: 'STOPWATCH' | 'TIMER';
   durationSeconds: number;
@@ -14,7 +14,7 @@ export interface ReadingSessionResponse {
   id: string;
   userId: string;
   groupId?: string;
-  bookId?: number;
+  bookId?: string;
   bookTitle?: string;
   sessionType: string;
   durationSeconds: number;

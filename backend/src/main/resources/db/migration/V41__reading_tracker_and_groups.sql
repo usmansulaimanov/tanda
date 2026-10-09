@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS reading_sessions (
     id VARCHAR(64) PRIMARY KEY,
     user_id VARCHAR(64) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     group_id VARCHAR(64) REFERENCES reading_groups(id) ON DELETE SET NULL,
-    book_id BIGINT REFERENCES books(id) ON DELETE SET NULL,
+    book_id VARCHAR(64) REFERENCES books(id) ON DELETE SET NULL,
     book_title VARCHAR(255),
     session_type VARCHAR(20) DEFAULT 'STOPWATCH' NOT NULL, -- 'STOPWATCH', 'TIMER'
     duration_seconds BIGINT NOT NULL,

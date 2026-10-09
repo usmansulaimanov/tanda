@@ -32,8 +32,8 @@ public class ReadingSession {
     @Column(name = "group_id", length = 64)
     private String groupId;
 
-    @Column(name = "book_id")
-    private Long bookId;
+    @Column(name = "book_id", length = 64)
+    private String bookId;
 
     @Column(name = "book_title", length = 255)
     private String bookTitle;

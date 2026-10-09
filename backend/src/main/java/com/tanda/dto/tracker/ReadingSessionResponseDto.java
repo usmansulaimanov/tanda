@@ -18,7 +18,7 @@ public class ReadingSessionResponseDto {
     private String id;
     private String userId;
     private String groupId;
-    private Long bookId;
+    private String bookId;
     private String bookTitle;
     private String sessionType;
     private Long durationSeconds;

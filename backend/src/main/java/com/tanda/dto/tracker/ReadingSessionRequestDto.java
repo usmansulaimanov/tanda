@@ -19,7 +19,7 @@ import java.time.OffsetDateTime;
 public class ReadingSessionRequestDto {
 
     private String groupId;
-    private Long bookId;
+    private String bookId;
     private String bookTitle;
 
     @Builder.Default
