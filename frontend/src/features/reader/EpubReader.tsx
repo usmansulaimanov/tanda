@@ -1022,25 +1022,45 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
               }}
               title="Ақ түс балансы: солға — салқын, оңға — жылы"
             >
-              <div style={{ position: 'relative', display: 'flex', alignItems: 'center', width: '80px' }}>
-                <input
-                  type="range"
-                  min="-50"
-                  max="50"
-                  step="1"
-                  value={colorTemperature}
-                  onChange={(e) => handleColorTempChange(parseInt(e.target.value, 10))}
+              <div style={{ position: 'relative', display: 'flex', alignItems: 'center', width: '80px', height: '18px' }}>
+                {/* Base Track */}
+                <div
                   style={{
-                    width: '100%',
+                    position: 'absolute',
+                    left: 0,
+                    right: 0,
                     height: '4px',
                     borderRadius: '2px',
-                    background: '#CBD5E1',
-                    accentColor: '#0F172A',
-                    appearance: 'auto',
-                    outline: 'none',
-                    cursor: 'pointer',
+                    backgroundColor: '#CBD5E1',
+                    overflow: 'hidden',
                   }}
-                />
+                >
+                  {colorTemperature > 0 && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        left: '50%',
+                        width: `${(colorTemperature / 50) * 50}%`,
+                        height: '100%',
+                        backgroundColor: '#0F172A',
+                        borderRadius: '0 2px 2px 0',
+                      }}
+                    />
+                  )}
+                  {colorTemperature < 0 && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        right: '50%',
+                        width: `${(Math.abs(colorTemperature) / 50) * 50}%`,
+                        height: '100%',
+                        backgroundColor: '#0F172A',
+                        borderRadius: '2px 0 0 2px',
+                      }}
+                    />
+                  )}
+                </div>
+
                 {/* Center marker dot */}
                 <div
                   style={{
@@ -1049,12 +1069,30 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
                     top: '50%',
                     transform: 'translate(-50%, -50%)',
                     width: '2px',
-                    height: '8px',
+                    height: '10px',
                     backgroundColor: '#0F172A',
                     borderRadius: '1px',
                     pointerEvents: 'none',
-                    opacity: 0.5,
-                    zIndex: 0,
+                    opacity: 0.6,
+                    zIndex: 2,
+                  }}
+                />
+
+                <input
+                  type="range"
+                  min="-50"
+                  max="50"
+                  step="1"
+                  value={colorTemperature}
+                  onChange={(e) => handleColorTempChange(parseInt(e.target.value, 10))}
+                  className="bipolar-temp-slider"
+                  style={{
+                    position: 'relative',
+                    width: '100%',
+                    height: '18px',
+                    margin: 0,
+                    zIndex: 3,
+                    cursor: 'pointer',
                   }}
                 />
               </div>
@@ -1381,26 +1419,48 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
                     padding: '10px 14px',
                     borderRadius: '12px',
                     border: `1px solid ${activeTheme.border}`,
+                    height: '46px',
                   }}
                 >
-                  <input
-                    type="range"
-                    min="-50"
-                    max="50"
-                    step="1"
-                    value={colorTemperature}
-                    onChange={(e) => handleColorTempChange(parseInt(e.target.value, 10))}
+                  {/* Base Track */}
+                  <div
                     style={{
-                      width: '100%',
+                      position: 'absolute',
+                      left: '14px',
+                      right: '14px',
                       height: '6px',
                       borderRadius: '3px',
-                      background: '#CBD5E1',
-                      accentColor: '#0F172A',
-                      appearance: 'auto',
-                      outline: 'none',
-                      cursor: 'pointer',
+                      backgroundColor: '#CBD5E1',
+                      overflow: 'hidden',
                     }}
-                  />
+                  >
+                    {colorTemperature > 0 && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          left: '50%',
+                          width: `${(colorTemperature / 50) * 50}%`,
+                          height: '100%',
+                          backgroundColor: '#0F172A',
+                          borderRadius: '0 3px 3px 0',
+                        }}
+                      />
+                    )}
+                    {colorTemperature < 0 && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          right: '50%',
+                          width: `${(Math.abs(colorTemperature) / 50) * 50}%`,
+                          height: '100%',
+                          backgroundColor: '#0F172A',
+                          borderRadius: '3px 0 0 3px',
+                        }}
+                      />
+                    )}
+                  </div>
+
+                  {/* Center tick mark (0 point) */}
                   <div
                     style={{
                       position: 'absolute',
@@ -1408,12 +1468,30 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
                       top: '50%',
                       transform: 'translate(-50%, -50%)',
                       width: '2px',
-                      height: '12px',
+                      height: '14px',
                       backgroundColor: '#0F172A',
                       borderRadius: '1px',
                       pointerEvents: 'none',
-                      opacity: 0.5,
-                      zIndex: 0,
+                      opacity: 0.6,
+                      zIndex: 2,
+                    }}
+                  />
+
+                  <input
+                    type="range"
+                    min="-50"
+                    max="50"
+                    step="1"
+                    value={colorTemperature}
+                    onChange={(e) => handleColorTempChange(parseInt(e.target.value, 10))}
+                    className="bipolar-temp-slider"
+                    style={{
+                      position: 'relative',
+                      width: '100%',
+                      height: '24px',
+                      margin: 0,
+                      zIndex: 3,
+                      cursor: 'pointer',
                     }}
                   />
                 </div>

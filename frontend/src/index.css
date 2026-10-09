@@ -1800,4 +1800,49 @@ button:hover .avatar-hover-overlay {
   transform: skewX(1deg);
 }
 
+/* Bipolar Center-Origin Temperature Slider */
+.bipolar-temp-slider {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+}
+
+.bipolar-temp-slider::-webkit-slider-runnable-track {
+  background: transparent !important;
+  border: none !important;
+}
+
+.bipolar-temp-slider::-moz-range-track {
+  background: transparent !important;
+  border: none !important;
+}
+
+.bipolar-temp-slider::-moz-range-progress {
+  background: transparent !important;
+}
+
+.bipolar-temp-slider::-webkit-slider-thumb {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #0F172A;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  border: 2px solid #FFFFFF;
+}
+
+.bipolar-temp-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #0F172A;
+  cursor: pointer;
+  border: 2px solid #FFFFFF;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+}
+
 
