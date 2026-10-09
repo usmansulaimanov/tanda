@@ -300,12 +300,14 @@ export const GroupDetailPage: React.FC = () => {
               </button>
             )}
 
-            <button
-              onClick={handleCopyInviteLink}
-              className="px-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs flex items-center gap-1.5 hover:bg-slate-50"
-            >
-              <Share2 className="w-3.5 h-3.5" /> {copiedLink ? 'Көшірілді!' : 'Сілтеме'}
-            </button>
+            {isAdmin && (
+              <button
+                onClick={handleCopyInviteLink}
+                className="px-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs flex items-center gap-1.5 hover:bg-slate-50 cursor-pointer"
+              >
+                <Share2 className="w-3.5 h-3.5" /> {copiedLink ? 'Көшірілді!' : 'Сілтеме'}
+              </button>
+            )}
 
             {isCreator ? (
               <button
