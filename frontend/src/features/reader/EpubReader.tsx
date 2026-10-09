@@ -959,7 +959,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         backgroundColor: activeTheme.containerBg,
         borderColor: activeTheme.border,
       }}
-      className="w-full flex-1 flex flex-col h-full sm:h-[calc(100vh-120px)] sm:min-h-[480px] rounded-none sm:rounded-2xl border-0 sm:border-[1.5px] shadow-none sm:shadow-lg overflow-hidden relative transition-colors duration-200"
+      className="w-full flex-1 flex flex-col h-full rounded-none border-0 shadow-none overflow-hidden relative transition-colors duration-200"
     >
       {/* Top Controls Bar (Toggleable on mobile as overlay, always visible on desktop) */}
       <div

@@ -471,10 +471,10 @@ export const ReaderPage: React.FC = () => {
         transition: 'background-color 0.25s ease, color 0.25s ease',
       }}
       className={isEpub
-        ? "w-full h-[100dvh] fixed inset-0 sm:static sm:h-auto sm:min-h-screen overflow-hidden sm:overflow-visible flex flex-col"
+        ? "w-full h-[100dvh] fixed inset-0 overflow-hidden flex flex-col"
         : "min-h-screen"}
     >
-      {/* Top Bar */}
+      {/* Top Bar - hidden when reading EPUB */}
       <div
         style={{
           backgroundColor: topBarBg,
@@ -482,7 +482,7 @@ export const ReaderPage: React.FC = () => {
           color: pageTextColor,
           transition: 'background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease',
         }}
-        className={isEpub ? 'hidden sm:block' : ''}
+        className={isEpub ? 'hidden' : ''}
       >
         <div className={`px-3 sm:px-6 py-2 sm:py-4 max-w-5xl mx-auto ${isEpub ? 'hidden sm:flex' : 'flex'} items-center justify-between gap-2.5`}>
           <button
@@ -556,7 +556,7 @@ export const ReaderPage: React.FC = () => {
       </div>
 
       {/* Reader Body */}
-      <main className={`w-full flex-1 flex flex-col ${isEpub ? 'p-0 m-0 sm:my-6 sm:px-6 sm:mb-20 max-w-5xl mx-auto h-full overflow-hidden' : 'max-w-5xl mx-auto my-2 sm:my-6 px-2 sm:px-6 mb-10 sm:mb-20'}`}>
+      <main className={`w-full flex-1 flex flex-col ${isEpub ? 'p-0 m-0 w-full h-full overflow-hidden' : 'max-w-5xl mx-auto my-2 sm:my-6 px-2 sm:px-6 mb-10 sm:mb-20'}`}>
         {resolvedEbookUrl ? (
           isTg ? (
             <div
