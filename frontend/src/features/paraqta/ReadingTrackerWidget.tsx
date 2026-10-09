@@ -348,7 +348,7 @@ export const ReadingTrackerWidget: React.FC<ReadingTrackerWidgetProps> = ({
       <div className="w-full max-w-xl my-4 sm:my-5 space-y-3 text-left">
         <div>
           <label className="text-xs font-bold text-slate-600 dark:text-slate-400 block mb-1">
-            Оқып жатқан кітабыңыз (міндетті емес):
+            Оқып жатқан кітабыңыз:
           </label>
           <div className="flex gap-2">
             <input
