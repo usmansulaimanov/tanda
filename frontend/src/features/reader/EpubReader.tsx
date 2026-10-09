@@ -550,12 +550,14 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         console.warn('Failed to switch rendition spread mode:', e);
       }
 
-      if (anchorCfi) {
-        const cfi = anchorCfi;
-        setTimeout(() => {
-          renditionRef.current?.display(cfi).catch(() => {});
-        }, 150);
-      }
+      setTimeout(() => {
+        try {
+          (renditionRef.current as any)?.resize?.();
+        } catch {}
+        if (anchorCfi) {
+          renditionRef.current?.display(anchorCfi).catch(() => {});
+        }
+      }, 150);
     }
   }, []);
 
@@ -1646,7 +1648,11 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
         {/* EPUB Render Mount Point */}
         <div
           ref={viewerRef}
-          className="absolute inset-0 left-2 right-2 top-2 bottom-6 sm:top-0 sm:bottom-0 sm:left-11 sm:right-11"
+          className={`absolute inset-0 top-2 bottom-6 sm:top-0 sm:bottom-0 ${
+            spreadMode === 'single'
+              ? 'left-2 right-2 sm:left-1/2 sm:-translate-x-1/2 sm:w-full sm:max-w-2xl lg:max-w-3xl'
+              : 'left-2 right-2 sm:left-11 sm:right-11'
+          }`}
           style={{
             backgroundColor: activeTheme.bg,
             padding: 0,
