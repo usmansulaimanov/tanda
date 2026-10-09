@@ -285,98 +285,129 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
   const touchStartYRef = useRef<number>(0);
   const touchStartTimeRef = useRef<number>(0);
 
-  const handleNextPage = useCallback(() => {
+  const handleNextPage = useCallback(async () => {
     if (isNavigatingRef.current) return;
     if (!renditionRef.current || !bookRef.current) return;
     isNavigatingRef.current = true;
 
     const book = bookRef.current;
     const rendition = renditionRef.current;
+    const manager = (rendition as any).manager;
 
     try {
-      const loc = (rendition as any).currentLocation?.();
-      const totalLocs = (book.locations as any)?.total || (book.locations ? book.locations.length() : 0);
-      const hasTrueLocations = Boolean(
-        totalLocs > 1 &&
-        ((book.locations as any)?._locations?.length > 1 || (book.locations as any)?.total > 1 || book.locations?.length() > 1)
-      );
+      const currentView = manager?.views?.first?.() || manager?.views?._views?.[0];
+      const curSectionIndex = currentView?.index ?? currentView?.section?.index;
+      const spineLen = (book.spine as any)?.length || 0;
 
-      const isAtSectionEnd = loc?.end?.displayed?.page === loc?.end?.displayed?.total || loc?.atEnd;
-
-      if (isAtSectionEnd && loc?.end?.cfi && hasTrueLocations && typeof (book.locations as any).locationFromCfi === 'function') {
-        const curLoc = (book.locations as any).locationFromCfi(loc.end.cfi);
-        if (typeof curLoc === 'number' && curLoc < totalLocs - 1) {
-          const nextCfi = (book.locations as any).cfiFromLocation(curLoc + 1);
-          if (nextCfi) {
-            rendition.display(nextCfi)
-              .catch(() => rendition.next())
-              .finally(() => {
-                setTimeout(() => { isNavigatingRef.current = false; }, 80);
-              });
-            return;
+      // 1. Try navigating forward within the current view/section first
+      let movedWithinView = false;
+      if (currentView && typeof currentView.next === 'function') {
+        try {
+          const res = currentView.next();
+          if (res !== false && res !== undefined) {
+            movedWithinView = true;
           }
+        } catch {}
+      }
+
+      if (movedWithinView) {
+        setTimeout(() => { isNavigatingRef.current = false; }, 80);
+        return;
+      }
+
+      // 2. If at the end of current section, navigate to the beginning of the next section
+      if (typeof curSectionIndex === 'number' && curSectionIndex < spineLen - 1) {
+        const nextSection = book.spine.get(curSectionIndex + 1);
+        if (nextSection) {
+          await rendition.display(nextSection.href);
+          setTimeout(() => { isNavigatingRef.current = false; }, 80);
+          return;
         }
       }
 
-      rendition.next()
-        .catch(() => {})
-        .finally(() => {
-          setTimeout(() => { isNavigatingRef.current = false; }, 80);
-        });
+      // Fallback
+      await rendition.next();
     } catch {
-      rendition.next()
-        .catch(() => {})
-        .finally(() => {
-          setTimeout(() => { isNavigatingRef.current = false; }, 80);
-        });
+      try {
+        await rendition.next();
+      } catch {}
+    } finally {
+      setTimeout(() => { isNavigatingRef.current = false; }, 80);
     }
   }, []);
 
-  const handlePrevPage = useCallback(() => {
+  const handlePrevPage = useCallback(async () => {
     if (isNavigatingRef.current) return;
     if (!renditionRef.current || !bookRef.current) return;
     isNavigatingRef.current = true;
 
     const book = bookRef.current;
     const rendition = renditionRef.current;
+    const manager = (rendition as any).manager;
 
     try {
-      const loc = (rendition as any).currentLocation?.();
-      const totalLocs = (book.locations as any)?.total || (book.locations ? book.locations.length() : 0);
-      const hasTrueLocations = Boolean(
-        totalLocs > 1 &&
-        ((book.locations as any)?._locations?.length > 1 || (book.locations as any)?.total > 1 || book.locations?.length() > 1)
-      );
+      const currentView = manager?.views?.first?.() || manager?.views?._views?.[0];
+      const curSectionIndex = currentView?.index ?? currentView?.section?.index;
 
-      // When at the start of a chapter/section, jump precisely to the last page of the previous chapter
-      const isAtSectionStart = loc?.start?.displayed?.page === 1 || loc?.atStart;
-
-      if (isAtSectionStart && loc?.start?.cfi && hasTrueLocations && typeof (book.locations as any).locationFromCfi === 'function') {
-        const curLoc = (book.locations as any).locationFromCfi(loc.start.cfi);
-        if (typeof curLoc === 'number' && curLoc > 0) {
-          const prevCfi = (book.locations as any).cfiFromLocation(curLoc - 1);
-          if (prevCfi) {
-            rendition.display(prevCfi)
-              .catch(() => rendition.prev())
-              .finally(() => {
-                setTimeout(() => { isNavigatingRef.current = false; }, 80);
-              });
-            return;
+      // 1. Try navigating backward within the current view/section first
+      let movedWithinView = false;
+      if (currentView && typeof currentView.prev === 'function') {
+        try {
+          const res = currentView.prev();
+          if (res !== false && res !== undefined) {
+            movedWithinView = true;
           }
+        } catch {}
+      }
+
+      if (movedWithinView) {
+        setTimeout(() => { isNavigatingRef.current = false; }, 80);
+        return;
+      }
+
+      // 2. If at the start of current section, navigate to the PREVIOUS section and land on its LAST page
+      if (typeof curSectionIndex === 'number' && curSectionIndex > 0) {
+        const prevSection = book.spine.get(curSectionIndex - 1);
+        if (prevSection) {
+          await rendition.display(prevSection.href);
+
+          // Once the previous section renders, immediately scroll to its last column/page
+          setTimeout(() => {
+            try {
+              const newView = manager?.views?.first?.() || manager?.views?._views?.[0];
+              if (newView) {
+                const doc = newView.document || newView.iframe?.contentDocument;
+                const scrollW = doc?.documentElement?.scrollWidth || doc?.body?.scrollWidth || 0;
+                const pageW = newView.layout?.pageWidth || newView.width || 1;
+                const computedPages = Math.max(1, Math.round(scrollW / pageW));
+                const totalPages = newView.pages || newView.displayedPages || computedPages;
+
+                if (totalPages > 1) {
+                  if (typeof newView.page === 'function') {
+                    newView.page(totalPages);
+                  } else if (typeof newView.scrollTo === 'function') {
+                    newView.scrollTo((totalPages - 1) * pageW, 0, true);
+                  }
+                }
+              }
+            } catch (err) {
+              console.warn('Error scrolling to last page of prev section:', err);
+            } finally {
+              isNavigatingRef.current = false;
+            }
+          }, 80);
+          return;
         }
       }
 
-      rendition.prev()
-        .catch(() => {})
-        .finally(() => {
-          setTimeout(() => { isNavigatingRef.current = false; }, 80);
-        });
+      // Fallback
+      await rendition.prev();
     } catch {
-      rendition.prev()
-        .catch(() => {})
-        .finally(() => {
-          setTimeout(() => { isNavigatingRef.current = false; }, 80);
-        });
+      try {
+        await rendition.prev();
+      } catch {}
+    } finally {
+      setTimeout(() => { isNavigatingRef.current = false; }, 80);
     }
   }, []);
 
