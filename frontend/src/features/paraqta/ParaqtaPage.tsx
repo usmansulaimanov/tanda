@@ -298,10 +298,10 @@ export const ParaqtaPage: React.FC = () => {
       )}
 
       {/* Header Banner */}
-      <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-10 mb-6 sm:mb-8 shadow-lg w-full max-w-full bg-gradient-to-r from-amber-500/15 via-orange-500/20 to-amber-600/15 border border-orange-500/30 backdrop-blur-md">
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="relative overflow-hidden rounded-2xl py-3.5 px-5 sm:py-4 sm:px-6 mb-5 sm:mb-6 shadow-md w-full max-w-full bg-gradient-to-r from-amber-500/15 via-orange-500/20 to-amber-600/15 border border-orange-500/30 backdrop-blur-md">
+        <div className="relative z-10 flex items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
               Парақта оқу кеңістігі
             </h1>
           </div>
@@ -309,7 +309,7 @@ export const ParaqtaPage: React.FC = () => {
           <div className="flex items-center gap-3 shrink-0">
             <button
               onClick={() => setShowCreateModal(true)}
-              className="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-[#F08000] to-orange-500 text-white font-bold text-sm shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#F08000] to-orange-500 text-white font-bold text-sm shadow-md shadow-orange-500/25 hover:shadow-orange-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
             >
               Топ ашу
             </button>
