@@ -371,7 +371,7 @@ export const GroupDetailPage: React.FC = () => {
               : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
-          <Calendar className="w-4 h-4" /> Өткен айлардың жеңімпаздары {archives.length > 0 && `(${archives.length})`}
+          <Calendar className="w-4 h-4" /> Өткен ай
         </button>
       </div>
 
@@ -470,37 +470,38 @@ export const GroupDetailPage: React.FC = () => {
         </div>
       )}
 
-      {/* ================= ARCHIVE TAB ================= */}
+      {/* ================= ARCHIVE TAB (ONLY PREVIOUS MONTH) ================= */}
       {activeTab === 'archive' && (
         <div className="space-y-4 animate-fadeIn">
           {archives.length === 0 ? (
             <div className="text-center py-16 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8">
               <Calendar className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
-              <h3 className="font-bold text-slate-900 dark:text-white">Өткен айлар тарихы әлі жоқ</h3>
-              <p className="text-xs text-slate-500 mt-1">Ай аяқталған соң жеңімпаз осында жазылады.</p>
+              <h3 className="font-bold text-slate-900 dark:text-white">Өткен ай нәтижесі әлі жоқ</h3>
+              <p className="text-xs text-slate-500 mt-1">Ай аяқталған соң өткен айдың жеңімпазы осында жазылады.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {archives.map((arch) => (
-                <div
-                  key={arch.id}
-                  className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex items-center justify-between"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="text-2xl">🏆</div>
-                    <div>
-                      <div className="text-xs font-bold text-slate-400 uppercase">{arch.yearMonth} жеңімпазы</div>
-                      <div className="text-sm font-extrabold text-slate-900 dark:text-white">{arch.winnerName}</div>
-                    </div>
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm max-w-xl mx-auto">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center text-3xl shrink-0 shadow-sm">
+                    🏆
                   </div>
-                  <div className="text-right">
-                    <div className="text-sm font-black text-amber-500">
-                      {formatDurationHuman(arch.winnerReadingSeconds)}
+                  <div>
+                    <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                      Өткен ай ({archives[0].yearMonth}) жеңімпазы
                     </div>
-                    <div className="text-[10px] text-slate-400">Нәтижесі</div>
+                    <div className="text-lg font-extrabold text-slate-900 dark:text-white mt-0.5">
+                      {archives[0].winnerName || 'Анықталмаған'}
+                    </div>
                   </div>
                 </div>
-              ))}
+                <div className="text-right">
+                  <div className="text-base sm:text-lg font-black text-amber-500">
+                    {formatDurationHuman(archives[0].winnerReadingSeconds || 0)}
+                  </div>
+                  <div className="text-[10px] text-slate-400">Нәтижесі</div>
+                </div>
+              </div>
             </div>
           )}
         </div>
