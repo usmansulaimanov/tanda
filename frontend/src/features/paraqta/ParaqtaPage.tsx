@@ -535,21 +535,27 @@ export const ParaqtaPage: React.FC = () => {
               <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1 flex items-center gap-1.5">
                 <Flame className="w-3.5 h-3.5 text-orange-500" /> Осы аптада
               </div>
-              {renderDurationWithSubSeconds(stats?.weekReadingSeconds || 0)}
+              <div className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
+                {formatDurationHuman(stats?.weekReadingSeconds || 0)}
+              </div>
             </div>
 
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
               <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1 flex items-center gap-1.5">
                 <Trophy className="w-3.5 h-3.5 text-yellow-500" /> Осы айда
               </div>
-              {renderDurationWithSubSeconds(stats?.monthReadingSeconds || 0)}
+              <div className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
+                {formatDurationHuman(stats?.monthReadingSeconds || 0)}
+              </div>
             </div>
 
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm bg-gradient-to-br from-orange-500/5 to-amber-500/10">
               <div className="text-xs font-semibold text-[#F08000] mb-1 flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5 text-[#F08000]" /> Жалпы оқыған
               </div>
-              {renderDurationWithSubSeconds(stats?.totalReadingSeconds || 0, true)}
+              <div className="text-xl sm:text-2xl font-extrabold text-[#F08000]">
+                {formatDurationHuman(stats?.totalReadingSeconds || 0)}
+              </div>
             </div>
           </div>
 
