@@ -458,10 +458,10 @@ export const ReaderPage: React.FC = () => {
   }
 
   const lightBgInfo = getLightBgByTemp(colorTemperature);
-  const pageBg = theme === 'dark' ? '#020617' : theme === 'sepia' ? '#F4E8CD' : lightBgInfo.containerBg;
-  const pageTextColor = theme === 'dark' ? '#F1F5F9' : theme === 'sepia' ? '#433422' : '#0F172A';
-  const pageBorderColor = theme === 'dark' ? '#1E293B' : theme === 'sepia' ? '#EAD7B5' : lightBgInfo.border;
-  const topBarBg = theme === 'dark' ? '#0F172A' : theme === 'sepia' ? '#FBF0D9' : lightBgInfo.headerBg;
+  const pageBg = theme === 'dark' ? '#020617' : theme === 'gray' ? '#262A32' : theme === 'sepia' ? '#F4E8CD' : lightBgInfo.containerBg;
+  const pageTextColor = theme === 'dark' || theme === 'gray' ? '#F1F5F9' : theme === 'sepia' ? '#433422' : '#0F172A';
+  const pageBorderColor = theme === 'dark' ? '#1E293B' : theme === 'gray' ? '#475060' : theme === 'sepia' ? '#EAD7B5' : lightBgInfo.border;
+  const topBarBg = theme === 'dark' ? '#0F172A' : theme === 'gray' ? '#333742' : theme === 'sepia' ? '#FBF0D9' : lightBgInfo.headerBg;
 
   return (
     <div
@@ -482,6 +482,7 @@ export const ReaderPage: React.FC = () => {
           color: pageTextColor,
           transition: 'background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease',
         }}
+        className={isEpub ? 'hidden sm:block' : ''}
       >
         <div className={`px-3 sm:px-6 py-2 sm:py-4 max-w-5xl mx-auto ${isEpub ? 'hidden sm:flex' : 'flex'} items-center justify-between gap-2.5`}>
           <button
@@ -536,6 +537,12 @@ export const ReaderPage: React.FC = () => {
                 onClick={() => setTheme('sepia')}
               >
                 Сепия
+              </button>
+              <button
+                className={`reader-theme-btn ${theme === 'gray' ? 'active' : ''}`}
+                onClick={() => setTheme('gray')}
+              >
+                Сұр
               </button>
               <button
                 className={`reader-theme-btn ${theme === 'dark' ? 'active' : ''}`}
