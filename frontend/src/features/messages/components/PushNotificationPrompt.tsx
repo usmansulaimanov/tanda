@@ -1,5 +1,5 @@
-import React from 'react';
-import { Bell, BellRing, BellOff, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Bell, BellRing, BellOff, CheckCircle2, AlertCircle, Loader2, X } from 'lucide-react';
 import { usePushNotifications } from '../hooks/usePushNotifications';
 import { useToastStore } from '../../../store/useToastStore';
 
@@ -15,10 +15,25 @@ export const PushNotificationPrompt: React.FC = () => {
   } = usePushNotifications();
 
   const { showToast } = useToastStore();
+  const [isDismissed, setIsDismissed] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return Boolean(
+      sessionStorage.getItem('tanda_push_prompt_dismissed') ||
+      localStorage.getItem('tanda_push_prompt_dismissed')
+    );
+  });
 
-  if (!isSupported) {
+  if (!isSupported || isDismissed) {
     return null;
   }
+
+  const handleDismiss = () => {
+    setIsDismissed(true);
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('tanda_push_prompt_dismissed', 'true');
+      localStorage.setItem('tanda_push_prompt_dismissed', 'true');
+    }
+  };
 
   const handleSubscribe = async () => {
     const success = await subscribe();
@@ -52,7 +67,7 @@ export const PushNotificationPrompt: React.FC = () => {
               </span>
             </div>
             <p className="text-xs text-slate-500 m-0 mt-0.5">
-              Жаңа кітаптар, нақыл сөздер мен маңызды хабарламалар телефоныңызға келеді.
+              Жаңа кітаптар, нақыл сөздер мен маңызды хабарламалар құрылғыңызға келеді.
             </p>
           </div>
         </div>
@@ -60,7 +75,7 @@ export const PushNotificationPrompt: React.FC = () => {
         <button
           onClick={handleUnsubscribe}
           disabled={isLoading}
-          className="text-xs font-semibold text-slate-500 hover:text-rose-600 px-3 py-1.5 rounded-lg hover:bg-rose-50 transition-colors shrink-0 self-start sm:self-auto flex items-center gap-1.5"
+          className="text-xs font-semibold text-slate-500 hover:text-rose-600 px-3 py-1.5 rounded-lg hover:bg-rose-50 transition-colors shrink-0 self-start sm:self-auto flex items-center gap-1.5 cursor-pointer"
         >
           {isLoading ? (
             <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -76,36 +91,55 @@ export const PushNotificationPrompt: React.FC = () => {
   // If permission was previously denied
   if (permission === 'denied') {
     return (
-      <div className="bg-amber-50/70 border border-amber-200/80 rounded-2xl p-4 sm:p-5 mb-6 shadow-sm flex items-start gap-3.5">
-        <div className="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 mt-0.5">
-          <AlertCircle className="w-5 h-5" />
+      <div className="bg-amber-50/80 border border-amber-200/90 rounded-2xl p-4 sm:p-5 mb-6 shadow-sm flex items-start justify-between gap-3.5 relative">
+        <div className="flex items-start gap-3.5">
+          <div className="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 mt-0.5">
+            <AlertCircle className="w-5 h-5" />
+          </div>
+          <div>
+            <h4 className="text-sm font-bold text-amber-900 m-0">
+              Хабарламалар браузерде бұғатталған
+            </h4>
+            <p className="text-xs text-amber-800 m-0 mt-1 leading-relaxed">
+              Құрылғы экранына жедел хабарламалар (уведомление) келуі үшін браузердің мекенжай жолағындағы (🔒 немесе ⚙️) белгіні басып, хабарламаларға рұқсат (Разрешить) беріңіз.
+            </p>
+          </div>
         </div>
-        <div>
-          <h4 className="text-sm font-bold text-amber-900 m-0">
-            Хабарламалар браузерде бұғатталған
-          </h4>
-          <p className="text-xs text-amber-700 m-0 mt-1 leading-relaxed">
-            Телефон экранына уведомление келуі үшін браузердің мекенжай жолағындағы (🔒 немесе ⚙️) белгіні басып, хабарламаларға рұқсат (Разрешить) беріңіз.
-          </p>
-        </div>
+        <button
+          onClick={handleDismiss}
+          className="text-amber-600 hover:text-amber-900 p-1.5 rounded-lg hover:bg-amber-100 transition-colors shrink-0 cursor-pointer"
+          title="Жабу"
+          aria-label="Жабу"
+        >
+          <X className="w-4 h-4" />
+        </button>
       </div>
     );
   }
 
   // Default: Prompt user to enable push notifications
   return (
-    <div className="bg-gradient-to-r from-sky-50 via-indigo-50/50 to-blue-50 border border-sky-100 rounded-2xl p-4 sm:p-6 mb-6 shadow-sm">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="bg-gradient-to-r from-sky-50 via-indigo-50/50 to-blue-50 border border-sky-100 rounded-2xl p-4 sm:p-6 mb-6 shadow-sm relative">
+      <button
+        onClick={handleDismiss}
+        className="absolute top-3 right-3 text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-white/60 transition-colors cursor-pointer"
+        title="Жабу"
+        aria-label="Жабу"
+      >
+        <X className="w-4 h-4" />
+      </button>
+
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pr-6 sm:pr-0">
         <div className="flex items-start gap-3.5">
           <div className="w-11 h-11 rounded-2xl bg-sky-600 text-white flex items-center justify-center shadow-md shadow-sky-600/20 shrink-0">
             <BellRing className="w-6 h-6 animate-pulse" />
           </div>
           <div>
             <h3 className="text-sm sm:text-base font-bold text-slate-900 m-0">
-              Телефонға жедел хабарлама (Push) алғыңыз келе ме?
+              Құрылғыға жедел хабарлама (Push) алғыңыз келе ме?
             </h3>
             <p className="text-xs sm:text-sm text-slate-600 m-0 mt-1 leading-relaxed max-w-xl">
-              Сайт жабық болса да, жаңа кітаптар мен күнделікті нақыл сөздер телефоныңыздың экранына уведомление болып шығады.
+              Сайт жабық болса да, жаңа кітаптар мен күнделікті нақыл сөздер экраныңызға уведомление болып шығады.
             </p>
             {error && (
               <p className="text-xs text-rose-600 font-medium m-0 mt-1.5">{error}</p>

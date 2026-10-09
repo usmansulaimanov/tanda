@@ -44,6 +44,7 @@ export interface ReadingGroup {
   memberCount: number;
   isMember: boolean;
   myRole?: 'CREATOR' | 'ADMIN' | 'MEMBER';
+  myTodaySeconds?: number;
   myMonthlySeconds: number;
   myTotalSeconds: number;
   createdAt: string;

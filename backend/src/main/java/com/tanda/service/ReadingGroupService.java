@@ -21,6 +21,7 @@ import com.tanda.repository.ReadingGroupInvitationRepository;
 import com.tanda.repository.ReadingGroupMemberRepository;
 import com.tanda.repository.ReadingGroupMonthlyArchiveRepository;
 import com.tanda.repository.ReadingGroupRepository;
+import com.tanda.repository.ReadingSessionRepository;
 import com.tanda.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -51,6 +53,7 @@ public class ReadingGroupService {
     private final ReadingGroupMemberRepository memberRepository;
     private final ReadingGroupInvitationRepository invitationRepository;
     private final ReadingGroupMonthlyArchiveRepository archiveRepository;
+    private final ReadingSessionRepository sessionRepository;
     private final UserRepository userRepository;
     private final PremiumService premiumService;
 
@@ -268,8 +271,12 @@ public class ReadingGroupService {
                 .createdAt(a.getCreatedAt())
                 .build()).collect(Collectors.toList());
 
+        OffsetDateTime startOfToday = OffsetDateTime.now().toLocalDate().atStartOfDay().atOffset(ZoneOffset.UTC);
+        Long myToday = (currentUserId != null && isMember) ?
+                sessionRepository.sumDurationSecondsByUserIdAndGroupIdSince(currentUserId, groupId, startOfToday) : 0L;
+
         return ReadingGroupDetailResponseDto.builder()
-                .group(toDto(group, creator, memberCount, isMember, myRole, myMonthly, myTotal))
+                .group(toDto(group, creator, memberCount, isMember, myRole, myToday, myMonthly, myTotal))
                 .members(memberDtos)
                 .archives(archiveDtos)
                 .build();
@@ -594,7 +601,7 @@ public class ReadingGroupService {
         log.info("Monthly reading groups reset complete for month: {}", previousMonth);
     }
 
-    private ReadingGroupResponseDto toDto(ReadingGroup g, User creator, long memberCount, boolean isMember, String myRole, Long myMonthly, Long myTotal) {
+    private ReadingGroupResponseDto toDto(ReadingGroup g, User creator, long memberCount, boolean isMember, String myRole, Long myToday, Long myMonthly, Long myTotal) {
         return ReadingGroupResponseDto.builder()
                 .id(g.getId())
                 .name(g.getName())
@@ -608,10 +615,15 @@ public class ReadingGroupService {
                 .memberCount(memberCount)
                 .isMember(isMember)
                 .myRole(myRole)
+                .myTodaySeconds(myToday != null ? myToday : 0L)
                 .myMonthlySeconds(myMonthly != null ? myMonthly : 0L)
                 .myTotalSeconds(myTotal != null ? myTotal : 0L)
                 .createdAt(g.getCreatedAt())
                 .build();
+    }
+
+    private ReadingGroupResponseDto toDto(ReadingGroup g, User creator, long memberCount, boolean isMember, String myRole, Long myMonthly, Long myTotal) {
+        return toDto(g, creator, memberCount, isMember, myRole, 0L, myMonthly, myTotal);
     }
 
     private ReadingGroupInvitationResponseDto toInvitationDto(ReadingGroupInvitation inv, ReadingGroup g, User inviter) {

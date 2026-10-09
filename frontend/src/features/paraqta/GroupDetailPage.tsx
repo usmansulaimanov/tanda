@@ -19,6 +19,8 @@ import {
   Search,
   Camera,
   Loader2,
+  Clock,
+  Flame,
 } from 'lucide-react';
 import { paraqtaApi, ReadingGroupDetail, UserSearchResult } from '../../shared/api/paraqta.api';
 import { formatDurationHuman } from './ParaqtaPage';
@@ -189,6 +191,7 @@ export const GroupDetailPage: React.FC = () => {
   const { group, members, archives } = detail;
   const isCreator = user?.id === group.creatorId;
   const isAdmin = group.myRole === 'ADMIN' || isCreator;
+  const myMember = members.find((m) => m.userId === user?.id);
 
   const handleSendInvite = () => {
     const clean = inviteEmail.trim().toLowerCase();
@@ -338,17 +341,78 @@ export const GroupDetailPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Tracker / Stopwatch Widget for this Group */}
+      {/* Tracker & Stats Section for this Group */}
       {group.isMember && (
-        <div className="mb-8 animate-fadeIn">
-          <ReadingTrackerWidget
-            fixedGroupId={group.id}
-            fixedGroupName={group.name}
-            onSessionSaved={() => {
-              queryClient.invalidateQueries({ queryKey: ['readingGroupDetail', id] });
-              queryClient.invalidateQueries({ queryKey: ['readingStats'] });
-            }}
-          />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start mb-8 animate-fadeIn">
+          {/* Left Column (Approx 40%): 2x2 Stats Grid for this Group */}
+          <div className="lg:col-span-5 flex flex-col gap-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[110px]">
+                <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-orange-500" /> Бүгін
+                </div>
+                <div>
+                  <div className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
+                    {Math.floor((group.myTodaySeconds || 0) / 60)} мин
+                  </div>
+                  <div className="text-[11px] text-slate-400 font-medium">
+                    {(group.myTodaySeconds || 0) % 60} сек
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[110px]">
+                <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 flex items-center gap-1.5">
+                  <Crown className="w-3.5 h-3.5 text-orange-500" /> Топтағы орныңыз
+                </div>
+                <div className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
+                  {myMember?.rank ? (
+                    myMember.rank === 1 ? (
+                      <span className="text-amber-500">🥇 1-орын</span>
+                    ) : myMember.rank === 2 ? (
+                      <span className="text-slate-400">🥈 2-орын</span>
+                    ) : myMember.rank === 3 ? (
+                      <span className="text-amber-700">🥉 3-орын</span>
+                    ) : (
+                      `#${myMember.rank} орын`
+                    )
+                  ) : (
+                    '—'
+                  )}
+                </div>
+              </div>
+
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[110px]">
+                <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 flex items-center gap-1.5">
+                  <Trophy className="w-3.5 h-3.5 text-amber-500" /> Осы айда
+                </div>
+                <div className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
+                  {formatDurationHuman(group.myMonthlySeconds || 0)}
+                </div>
+              </div>
+
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm bg-gradient-to-br from-orange-500/5 to-amber-500/10 flex flex-col justify-between min-h-[110px]">
+                <div className="text-xs font-semibold text-[#F08000] mb-2 flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-[#F08000]" /> Жалпы оқыған
+                </div>
+                <div className="text-xl sm:text-2xl font-extrabold text-[#F08000]">
+                  {formatDurationHuman(group.myTotalSeconds || 0)}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column (Approx 60%): Main Stopwatch / Timer Card */}
+          <div className="lg:col-span-7">
+            <ReadingTrackerWidget
+              fixedGroupId={group.id}
+              fixedGroupName={group.name}
+              onSessionSaved={() => {
+                queryClient.invalidateQueries({ queryKey: ['readingGroupDetail', id] });
+                queryClient.invalidateQueries({ queryKey: ['readingStats'] });
+              }}
+            />
+          </div>
         </div>
       )}
 

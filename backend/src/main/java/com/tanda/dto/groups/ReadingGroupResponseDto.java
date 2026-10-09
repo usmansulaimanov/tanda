@@ -27,6 +27,7 @@ public class ReadingGroupResponseDto {
     private Long memberCount;
     private Boolean isMember;
     private String myRole;
+    private Long myTodaySeconds;
     private Long myMonthlySeconds;
     private Long myTotalSeconds;
     private OffsetDateTime createdAt;
