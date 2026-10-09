@@ -1370,10 +1370,8 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
             {/* 2. Color Temperature (Only for light theme) */}
             {theme === 'light' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700, color: activeTheme.text, opacity: 0.8 }}>
-                  <span>❄️ Салқын ақ</span>
-                  <span>Жарық реңкі</span>
-                  <span>☀️ Жылы ақ</span>
+                <div style={{ fontSize: '12px', fontWeight: 700, color: activeTheme.text, opacity: 0.8 }}>
+                  Жарық реңкі
                 </div>
                 <div
                   style={{
