@@ -282,7 +282,7 @@ export const ParaqtaPage: React.FC = () => {
   });
 
   return (
-    <div className="min-h-screen pb-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 animate-fadeIn">
+    <div className="max-w-7xl mx-auto my-4 sm:my-8 px-3 sm:px-6 w-full min-w-0 max-w-full overflow-hidden pb-24 animate-fadeIn">
       {/* Toast Notification */}
       {toastMessage && (
         <div
@@ -298,10 +298,10 @@ export const ParaqtaPage: React.FC = () => {
       )}
 
       {/* Header Banner */}
-      <div className="bg-gradient-to-r from-amber-500/10 via-orange-500/15 to-amber-600/10 border border-orange-500/20 rounded-3xl p-6 md:p-8 mb-8 backdrop-blur-md relative overflow-hidden">
+      <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-10 mb-6 sm:mb-8 shadow-lg w-full max-w-full bg-gradient-to-r from-amber-500/15 via-orange-500/20 to-amber-600/15 border border-orange-500/30 backdrop-blur-md">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
               Парақта оқу кеңістігі
             </h1>
           </div>
@@ -309,7 +309,7 @@ export const ParaqtaPage: React.FC = () => {
           <div className="flex items-center gap-3 shrink-0">
             <button
               onClick={() => setShowCreateModal(true)}
-              className="px-5 py-3 rounded-2xl bg-gradient-to-r from-[#F08000] to-orange-500 text-white font-bold text-sm shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all"
+              className="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-[#F08000] to-orange-500 text-white font-bold text-sm shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
             >
               Топ ашу
             </button>
@@ -478,7 +478,7 @@ export const ParaqtaPage: React.FC = () => {
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {myGroups.map((group) => (
                 <Link
                   to={`/paraqta/groups/${group.id}`}
@@ -539,7 +539,7 @@ export const ParaqtaPage: React.FC = () => {
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {publicGroupsData?.content?.map((group) => (
               <div
                 key={group.id}

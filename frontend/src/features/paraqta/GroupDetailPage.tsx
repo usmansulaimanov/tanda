@@ -146,7 +146,7 @@ export const GroupDetailPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-10 space-y-6">
+      <div className="w-full px-4 sm:px-6 md:px-8 lg:px-10 py-10 space-y-6">
         <Skeleton className="h-48 w-full rounded-3xl" />
         <Skeleton className="h-64 w-full rounded-2xl" />
       </div>
@@ -170,7 +170,7 @@ export const GroupDetailPage: React.FC = () => {
   const isAdmin = group.myRole === 'ADMIN' || isCreator;
 
   return (
-    <div className="min-h-screen pb-24 max-w-4xl mx-auto px-4 sm:px-6 pt-6 animate-fadeIn">
+    <div className="max-w-7xl mx-auto my-4 sm:my-8 px-3 sm:px-6 w-full min-w-0 max-w-full overflow-hidden pb-24 animate-fadeIn">
       {/* Toast Notification */}
       {toastMessage && (
         <div
@@ -193,7 +193,7 @@ export const GroupDetailPage: React.FC = () => {
       </Link>
 
       {/* Group Header Card */}
-      <div className="bg-gradient-to-br from-amber-500/10 via-orange-500/10 to-amber-600/5 border border-orange-500/20 rounded-3xl p-6 sm:p-8 mb-8 backdrop-blur-md relative overflow-hidden">
+      <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-10 mb-6 sm:mb-8 shadow-lg w-full max-w-full bg-gradient-to-br from-amber-500/15 via-orange-500/15 to-amber-600/10 border border-orange-500/30 backdrop-blur-md">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
           <div className="flex items-start gap-4">
             <div className="relative shrink-0">
