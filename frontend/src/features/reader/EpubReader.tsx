@@ -1294,11 +1294,9 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
               <button
                 onClick={() => setIsMobileSettingsOpen(false)}
                 style={{
-                  background: activeTheme.containerBg,
-                  border: `1px solid ${activeTheme.border}`,
-                  borderRadius: '50%',
-                  width: '30px',
-                  height: '30px',
+                  background: 'none',
+                  border: 'none',
+                  padding: '4px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -1307,7 +1305,7 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
                 }}
                 aria-label="Жабу"
               >
-                <X size={16} />
+                <X size={20} />
               </button>
             </div>
 
@@ -1321,45 +1319,46 @@ export const EpubReader: React.FC<EpubReaderProps> = ({
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  backgroundColor: activeTheme.containerBg,
-                  borderRadius: '12px',
-                  border: `1px solid ${activeTheme.border}`,
-                  padding: '6px 8px',
+                  gap: '8px',
                 }}
               >
                 <button
                   onClick={() => handleFontSizeChange(-2)}
                   disabled={fontSize <= 12}
                   style={{
-                    padding: '8px 14px',
-                    borderRadius: '8px',
+                    flex: 1,
+                    padding: '10px 12px',
+                    borderRadius: '10px',
                     border: `1px solid ${activeTheme.border}`,
-                    background: activeTheme.headerBg,
+                    background: activeTheme.containerBg,
                     color: activeTheme.text,
                     fontSize: '13px',
                     fontWeight: 800,
                     cursor: 'pointer',
                     opacity: fontSize <= 12 ? 0.4 : 1,
+                    textAlign: 'center',
                   }}
                 >
                   A - Кішірейту
                 </button>
-                <span style={{ fontSize: '15px', fontWeight: 800, color: activeTheme.text }}>
+                <span style={{ fontSize: '14px', fontWeight: 800, color: activeTheme.text, minWidth: '48px', textAlign: 'center' }}>
                   {fontSize} px
                 </span>
                 <button
                   onClick={() => handleFontSizeChange(2)}
                   disabled={fontSize >= 32}
                   style={{
-                    padding: '8px 14px',
-                    borderRadius: '8px',
+                    flex: 1,
+                    padding: '10px 12px',
+                    borderRadius: '10px',
                     border: `1px solid ${activeTheme.border}`,
-                    background: activeTheme.headerBg,
+                    background: activeTheme.containerBg,
                     color: activeTheme.text,
                     fontSize: '13px',
                     fontWeight: 800,
                     cursor: 'pointer',
                     opacity: fontSize >= 32 ? 0.4 : 1,
+                    textAlign: 'center',
                   }}
                 >
                   A + Үлкейту
