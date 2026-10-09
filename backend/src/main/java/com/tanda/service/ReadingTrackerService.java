@@ -22,6 +22,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.Optional;
 import java.util.UUID;
@@ -96,10 +97,11 @@ public class ReadingTrackerService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
 
-        OffsetDateTime now = OffsetDateTime.now();
-        OffsetDateTime startOfToday = now.toLocalDate().atStartOfDay().atOffset(ZoneOffset.UTC);
-        OffsetDateTime startOfWeek = now.toLocalDate().minusDays(now.getDayOfWeek().getValue() - 1).atStartOfDay().atOffset(ZoneOffset.UTC);
-        OffsetDateTime startOfMonth = now.toLocalDate().withDayOfMonth(1).atStartOfDay().atOffset(ZoneOffset.UTC);
+        ZoneId kzZone = ZoneId.of("Asia/Almaty");
+        LocalDate todayKz = LocalDate.now(kzZone);
+        OffsetDateTime startOfToday = todayKz.atStartOfDay(kzZone).toOffsetDateTime();
+        OffsetDateTime startOfWeek = todayKz.minusDays(todayKz.getDayOfWeek().getValue() - 1).atStartOfDay(kzZone).toOffsetDateTime();
+        OffsetDateTime startOfMonth = todayKz.withDayOfMonth(1).atStartOfDay(kzZone).toOffsetDateTime();
 
         Long todaySeconds = sessionRepository.sumDurationSecondsByUserIdSince(userId, startOfToday);
         Long weekSeconds = sessionRepository.sumDurationSecondsByUserIdSince(userId, startOfWeek);
