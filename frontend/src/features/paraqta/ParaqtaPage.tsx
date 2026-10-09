@@ -357,7 +357,7 @@ export const ParaqtaPage: React.FC = () => {
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
-          <Users className="w-4 h-4" /> Менің топтарым {myGroups.length > 0 && `(${myGroups.length})`}
+          <Users className="w-4 h-4" /> Менің топтарым
         </button>
 
         <button
