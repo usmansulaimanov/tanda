@@ -268,7 +268,7 @@ export const ReadingTrackerWidget: React.FC<ReadingTrackerWidgetProps> = ({
   const displayTime = mode === 'STOPWATCH' ? formatDurationHMS(elapsedSeconds) : formatDurationHMS(remainingSeconds);
 
   return (
-    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-10 shadow-lg relative overflow-hidden flex flex-col items-center text-center">
+    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl sm:rounded-3xl p-5 sm:p-7 shadow-md relative overflow-hidden flex flex-col items-center text-center">
       {/* Toast Notification */}
       {toastMessage && (
         <div
@@ -284,13 +284,13 @@ export const ReadingTrackerWidget: React.FC<ReadingTrackerWidgetProps> = ({
       )}
 
       {/* Mode Switcher */}
-      <div className="inline-flex p-1 bg-slate-100 dark:bg-slate-800 rounded-2xl mb-8">
+      <div className="inline-flex p-1 bg-slate-100 dark:bg-slate-800 rounded-xl sm:rounded-2xl mb-5">
         <button
           disabled={isRunning}
           onClick={() => setMode('STOPWATCH')}
-          className={`px-6 py-2.5 rounded-xl font-bold text-sm transition-all ${
+          className={`px-5 py-2 rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm transition-all ${
             mode === 'STOPWATCH'
-              ? 'bg-white dark:bg-slate-900 text-[#F08000] shadow-md'
+              ? 'bg-white dark:bg-slate-900 text-[#F08000] shadow-sm'
               : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
           } ${isRunning ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
@@ -299,9 +299,9 @@ export const ReadingTrackerWidget: React.FC<ReadingTrackerWidgetProps> = ({
         <button
           disabled={isRunning}
           onClick={() => setMode('TIMER')}
-          className={`px-6 py-2.5 rounded-xl font-bold text-sm transition-all ${
+          className={`px-5 py-2 rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm transition-all ${
             mode === 'TIMER'
-              ? 'bg-white dark:bg-slate-900 text-[#F08000] shadow-md'
+              ? 'bg-white dark:bg-slate-900 text-[#F08000] shadow-sm'
               : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
           } ${isRunning ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
@@ -311,7 +311,7 @@ export const ReadingTrackerWidget: React.FC<ReadingTrackerWidgetProps> = ({
 
       {/* Timer Presets */}
       {mode === 'TIMER' && !isRunning && (
-        <div className="flex flex-wrap items-center justify-center gap-2 mb-8 animate-fadeIn">
+        <div className="flex flex-wrap items-center justify-center gap-2 mb-5 animate-fadeIn">
           {[15, 30, 45, 60].map((mins) => (
             <button
               key={mins}
@@ -320,7 +320,7 @@ export const ReadingTrackerWidget: React.FC<ReadingTrackerWidgetProps> = ({
                 setTimerDuration(mins * 60);
                 setRemainingSeconds(mins * 60);
               }}
-              className={`px-4 py-2 rounded-xl text-sm font-bold border transition-all ${
+              className={`px-3.5 py-1.5 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold border transition-all ${
                 parseInt(customMinutes, 10) === mins
                   ? 'border-[#F08000] bg-orange-500/10 text-[#F08000]'
                   : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-orange-500/50'
@@ -332,18 +332,18 @@ export const ReadingTrackerWidget: React.FC<ReadingTrackerWidgetProps> = ({
         </div>
       )}
 
-      {/* Big Digital Clock Display */}
-      <div className="my-4 relative">
-        <div className="text-6xl sm:text-8xl font-mono font-black tracking-wider text-slate-900 dark:text-white select-none">
+      {/* Digital Clock Display */}
+      <div className="my-2 sm:my-3 relative">
+        <div className="text-5xl sm:text-6xl md:text-7xl font-mono font-black tracking-wider text-slate-900 dark:text-white select-none">
           {displayTime}
         </div>
-        <div className="text-xs font-bold text-slate-400 mt-2 uppercase tracking-widest">
+        <div className="text-[11px] font-bold text-slate-400 mt-1 uppercase tracking-widest">
           {mode === 'STOPWATCH' ? 'Өткен уақыт' : 'Қалған уақыт'}
         </div>
       </div>
 
       {/* Book & Group Selector Config */}
-      <div className="w-full max-w-xl my-6 space-y-3 text-left">
+      <div className="w-full max-w-xl my-4 sm:my-5 space-y-3 text-left">
         <div>
           <label className="text-xs font-bold text-slate-600 dark:text-slate-400 block mb-1">
             Оқып жатқан кітабыңыз (міндетті емес):
@@ -358,7 +358,7 @@ export const ReadingTrackerWidget: React.FC<ReadingTrackerWidgetProps> = ({
                 setCustomBookTitle(e.target.value);
                 setSelectedBookTitle('');
               }}
-              className="flex-1 px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F08000]"
+              className="flex-1 px-3.5 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#F08000]"
             />
             {myShelfBooks && myShelfBooks.length > 0 && (
               <select
@@ -368,7 +368,7 @@ export const ReadingTrackerWidget: React.FC<ReadingTrackerWidgetProps> = ({
                   setSelectedBookTitle(e.target.value);
                   setCustomBookTitle(e.target.value);
                 }}
-                className="px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#F08000]"
+                className="px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#F08000]"
               >
                 <option value="">Сөреден...</option>
                 {myShelfBooks.map((b: any) => (
@@ -383,7 +383,7 @@ export const ReadingTrackerWidget: React.FC<ReadingTrackerWidgetProps> = ({
 
         {/* Group Info Badge or Dropdown */}
         {fixedGroupId ? (
-          <div className="p-3 bg-orange-500/10 border border-orange-500/20 rounded-xl flex items-center gap-2 text-xs font-bold text-[#F08000]">
+          <div className="p-2.5 bg-orange-500/10 border border-orange-500/20 rounded-xl flex items-center gap-2 text-xs font-bold text-[#F08000]">
             <Users className="w-4 h-4 shrink-0" />
             <span>Оқылған минуттар «{fixedGroupName || 'осы топ'}» айлық рейтингіне және жеке парақшаңызға есептеледі</span>
           </div>
@@ -397,7 +397,7 @@ export const ReadingTrackerWidget: React.FC<ReadingTrackerWidgetProps> = ({
                 disabled={isRunning}
                 value={selectedGroupId}
                 onChange={(e) => setSelectedGroupId(e.target.value)}
-                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F08000]"
+                className="w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#F08000]"
               >
                 <option value="">Жеке оқу</option>
                 {myGroups.map((g) => (
@@ -412,11 +412,11 @@ export const ReadingTrackerWidget: React.FC<ReadingTrackerWidgetProps> = ({
       </div>
 
       {/* Action Buttons */}
-      <div className="flex items-center gap-4 mt-4">
+      <div className="flex items-center gap-3 sm:gap-4 mt-2 sm:mt-3">
         {!isRunning ? (
           <button
             onClick={handleStartSession}
-            className="px-8 py-4 rounded-2xl bg-gradient-to-r from-[#F08000] to-orange-500 text-white font-extrabold text-base sm:text-lg shadow-xl shadow-orange-500/30 hover:scale-105 active:scale-95 transition-all flex items-center gap-3"
+            className="px-7 py-3 rounded-xl sm:rounded-2xl bg-gradient-to-r from-[#F08000] to-orange-500 text-white font-extrabold text-sm sm:text-base shadow-lg shadow-orange-500/25 hover:scale-105 active:scale-95 transition-all flex items-center gap-2.5 cursor-pointer"
           >
             <Play className="w-5 h-5 fill-current" /> Оқуды бастау
           </button>
