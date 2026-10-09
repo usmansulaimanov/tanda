@@ -351,7 +351,7 @@ export const ReadingTrackerWidget: React.FC<ReadingTrackerWidgetProps> = ({
             <input
               type="text"
               disabled={isRunning}
-              placeholder="Мысалы: Абай жолы немесе Қағаз кітап"
+              placeholder="Абай жолы"
               value={customBookTitle}
               onChange={(e) => {
                 setCustomBookTitle(e.target.value);
