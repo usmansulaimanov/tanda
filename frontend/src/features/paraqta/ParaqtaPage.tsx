@@ -374,9 +374,9 @@ export const ParaqtaPage: React.FC = () => {
 
       {/* ===================== TAB 1: TRACKER ===================== */}
       {activeTab === 'tracker' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start animate-fadeIn">
-          {/* Left Column (Approx 40%): 2x2 Stats Grid */}
-          <div className="lg:col-span-5 flex flex-col gap-4">
+        <div className="flex flex-col lg:grid lg:grid-cols-12 gap-6 items-start animate-fadeIn">
+          {/* 1. 2x2 Stats Grid (Desktop Left Top) */}
+          <div className="w-full lg:col-span-5 lg:col-start-1 lg:row-start-1">
             <div className="grid grid-cols-2 gap-4">
               <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[110px]">
                 <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 flex items-center gap-1.5">
@@ -412,14 +412,16 @@ export const ParaqtaPage: React.FC = () => {
                 </div>
               </div>
             </div>
-
-            {/* Ambient Reading Sounds */}
-            <AmbientSoundWidget />
           </div>
 
-          {/* Right Column (Approx 60%): Main Stopwatch / Timer Card */}
-          <div className="lg:col-span-7">
+          {/* 2. Main Stopwatch / Timer Card (Mobile 2nd, Desktop Right Col 6-12) */}
+          <div className="w-full lg:col-span-7 lg:col-start-6 lg:row-start-1 lg:row-span-2">
             <ReadingTrackerWidget />
+          </div>
+
+          {/* 3. Ambient Reading Sounds (Mobile 3rd, Desktop Left Bottom Col 1-5 Row 2) */}
+          <div className="w-full lg:col-span-5 lg:col-start-1 lg:row-start-2">
+            <AmbientSoundWidget />
           </div>
         </div>
       )}
