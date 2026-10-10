@@ -42,7 +42,7 @@ public class TelegramMediaService {
     private final ObjectMapper objectMapper;
     private final Map<String, CachedTelegramFile> fileCache = new ConcurrentHashMap<>();
     private final HttpClient httpClient = HttpClient.newBuilder()
-            .connectTimeout(Duration.ofSeconds(10))
+            .connectTimeout(Duration.ofSeconds(60))
             .build();
 
     private String getCleanBotApiUrl() {
@@ -79,7 +79,7 @@ public class TelegramMediaService {
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(getFileUrl))
                     .GET()
-                    .timeout(Duration.ofSeconds(10))
+                    .timeout(Duration.ofSeconds(60))
                     .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
