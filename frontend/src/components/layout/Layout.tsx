@@ -17,6 +17,7 @@ import { useBookStore } from '../../store/useBookStore';
 import { ErrorBoundary } from '../common/ErrorBoundary';
 import { PWAInstallBanner } from './PWAInstallBanner';
 import { MobileBottomNav } from './MobileBottomNav';
+import { FloatingReadingTracker } from '../../features/paraqta/FloatingReadingTracker';
 
 
 export const Layout: React.FC = () => {
@@ -84,6 +85,7 @@ export const Layout: React.FC = () => {
       {!isListenPage && !isMyBooksPage && !isCatalogPage && !isRatingPage && <Footer />}
       <MobileBottomNav />
       {!isAuthorOrStaff && <AudioPlayerBar />}
+      <FloatingReadingTracker />
       {!isAuthorOrStaff && <DailyLimitModal />}
       <ToastContainer />
       {!isAuthorOrStaff && <QuoteNotificationPopup />}
