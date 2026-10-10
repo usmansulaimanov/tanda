@@ -20,19 +20,29 @@ interface AmbientSoundState {
 }
 
 const DEFAULT_VOLUME = 0.4;
-const FADE_IN_DURATION_MS = 3000;
-const FADE_INTERVAL_MS = 50;
+const FADE_IN_DURATION_MS = 3000; // 3 seconds smooth fade-in
 
 // Global audio elements cache per sound ID
 const audioInstances = new Map<number, HTMLAudioElement>();
-// Global fade timer interval IDs per sound ID
-const fadeTimers = new Map<number, number>();
+// Global animation frame IDs per sound ID
+const fadeFrameIds = new Map<number, number>();
+// Global 'playing' listener callbacks per sound ID to cancel if toggled off before playback starts
+const playingListeners = new Map<number, () => void>();
 
-const clearFadeTimer = (soundId: number) => {
-  const timer = fadeTimers.get(soundId);
-  if (timer !== undefined) {
-    window.clearInterval(timer);
-    fadeTimers.delete(soundId);
+const cancelActiveFade = (soundId: number) => {
+  // Cancel animation frame if running
+  const frameId = fadeFrameIds.get(soundId);
+  if (frameId !== undefined) {
+    cancelAnimationFrame(frameId);
+    fadeFrameIds.delete(soundId);
+  }
+
+  // Remove playing listener if pending
+  const listener = playingListeners.get(soundId);
+  const audio = audioInstances.get(soundId);
+  if (listener && audio) {
+    audio.removeEventListener('playing', listener);
+    playingListeners.delete(soundId);
   }
 };
 
@@ -70,7 +80,7 @@ export const useAmbientSoundStore = create<AmbientSoundState>((set, get) => ({
     const { activeSounds } = get();
     const isActive = Boolean(activeSounds[sound.id]);
 
-    clearFadeTimer(sound.id);
+    cancelActiveFade(sound.id);
 
     if (isActive) {
       // Stop and reset this sound immediately
@@ -78,6 +88,7 @@ export const useAmbientSoundStore = create<AmbientSoundState>((set, get) => ({
       if (audio) {
         audio.pause();
         audio.currentTime = 0;
+        audio.volume = 0;
       }
 
       const nextActive = { ...activeSounds };
@@ -92,33 +103,50 @@ export const useAmbientSoundStore = create<AmbientSoundState>((set, get) => ({
       const audio = getOrCreateAudio(sound);
       if (audio) {
         audio.currentTime = 0;
-        audio.volume = 0;
+        audio.volume = 0; // strictly mute at start
         audio.loop = true;
-        
+
+        const targetVol = DEFAULT_VOLUME;
+
+        // Function that executes the smooth 3-second fade-in once playback actually begins
+        const startSmoothFadeIn = () => {
+          playingListeners.delete(sound.id);
+          const startTime = performance.now();
+
+          const animateFade = (now: number) => {
+            const elapsed = now - startTime;
+            const progress = Math.min(1, Math.max(0, elapsed / FADE_IN_DURATION_MS));
+            const currentVol = targetVol * progress;
+
+            if (audio) {
+              audio.volume = currentVol;
+            }
+
+            if (progress < 1) {
+              fadeFrameIds.set(sound.id, requestAnimationFrame(animateFade));
+            } else {
+              fadeFrameIds.delete(sound.id);
+              if (audio) {
+                audio.volume = targetVol;
+              }
+            }
+          };
+
+          fadeFrameIds.set(sound.id, requestAnimationFrame(animateFade));
+        };
+
+        // Attach listener for 'playing' event so fade-in starts only when sound actually begins streaming
+        const onPlaying = () => {
+          audio.removeEventListener('playing', onPlaying);
+          startSmoothFadeIn();
+        };
+
+        playingListeners.set(sound.id, onPlaying);
+        audio.addEventListener('playing', onPlaying);
+
         audio.play().catch((err) => {
           console.error(`Error playing ambient sound ${sound.name}:`, err);
         });
-
-        // 3-second smooth fade-in ramp
-        const targetVol = DEFAULT_VOLUME;
-        const totalSteps = Math.max(1, Math.round(FADE_IN_DURATION_MS / FADE_INTERVAL_MS));
-        const stepIncrement = targetVol / totalSteps;
-        let currentVol = 0;
-
-        const timer = window.setInterval(() => {
-          currentVol = Math.min(targetVol, currentVol + stepIncrement);
-          if (audio) {
-            audio.volume = currentVol;
-          }
-          if (currentVol >= targetVol) {
-            clearFadeTimer(sound.id);
-            if (audio) {
-              audio.volume = targetVol;
-            }
-          }
-        }, FADE_INTERVAL_MS);
-
-        fadeTimers.set(sound.id, timer);
       }
 
       const nextActive = {
@@ -137,7 +165,7 @@ export const useAmbientSoundStore = create<AmbientSoundState>((set, get) => ({
   },
 
   setSoundVolume: (soundId: number, volume: number) => {
-    clearFadeTimer(soundId);
+    cancelActiveFade(soundId);
     const safeVol = Math.max(0, Math.min(1, volume));
     const { activeSounds } = get();
     const current = activeSounds[soundId];
@@ -161,11 +189,12 @@ export const useAmbientSoundStore = create<AmbientSoundState>((set, get) => ({
   },
 
   stopSound: (soundId: number) => {
-    clearFadeTimer(soundId);
+    cancelActiveFade(soundId);
     const audio = audioInstances.get(soundId);
     if (audio) {
       audio.pause();
       audio.currentTime = 0;
+      audio.volume = 0;
     }
 
     const { activeSounds } = get();
@@ -179,12 +208,14 @@ export const useAmbientSoundStore = create<AmbientSoundState>((set, get) => ({
   },
 
   stopAll: () => {
-    fadeTimers.forEach((timer) => window.clearInterval(timer));
-    fadeTimers.clear();
+    audioInstances.forEach((_, soundId) => {
+      cancelActiveFade(soundId);
+    });
 
     audioInstances.forEach((audio) => {
       audio.pause();
       audio.currentTime = 0;
+      audio.volume = 0;
     });
 
     set({
