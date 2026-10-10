@@ -28,6 +28,7 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { Skeleton } from '../../shared/ui';
 import { resizeAndCompressImage } from '../../utils/imageUtils';
 import { ReadingTrackerWidget } from './ReadingTrackerWidget';
+import { AmbientSoundWidget } from './components/AmbientSoundWidget';
 const KAZAKH_MONTHS = [
   'Қаңтар',
   'Ақпан',
@@ -405,6 +406,9 @@ export const GroupDetailPage: React.FC = () => {
                 </div>
               </div>
             </div>
+
+            {/* Ambient Background Sounds Widget */}
+            <AmbientSoundWidget />
           </div>
 
           {/* Right Column (Approx 60%): Main Stopwatch / Timer Card */}

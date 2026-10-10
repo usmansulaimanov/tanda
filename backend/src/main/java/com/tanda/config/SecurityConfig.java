@@ -61,6 +61,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/news", "/api/news/**", "/api/v1/news", "/api/v1/news/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/news/*/views", "/api/v1/news/*/views").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/quotes", "/api/quotes/**", "/api/v1/quotes", "/api/v1/quotes/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/paraqta/ambient-sounds", "/api/paraqta/ambient-sounds/**", "/api/v1/paraqta/ambient-sounds", "/api/v1/paraqta/ambient-sounds/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/leaderboard", "/api/v1/leaderboard").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/certificates/verify/**", "/api/v1/certificates/verify/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/v1/promo-codes/validate").permitAll()

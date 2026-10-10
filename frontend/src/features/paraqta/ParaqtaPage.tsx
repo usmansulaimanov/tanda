@@ -33,6 +33,7 @@ import { useMyBooksStore } from '../../store/useMyBooksStore';
 import { useBookStore } from '../../store/useBookStore';
 import { Skeleton } from '../../shared/ui';
 import { ReadingTrackerWidget } from './ReadingTrackerWidget';
+import { AmbientSoundWidget } from './components/AmbientSoundWidget';
 
 // Utility to format seconds to "X сағ Y мин Z сек" or "00:00:00"
 export const formatDurationHMS = (totalSeconds: number): string => {
@@ -411,6 +412,9 @@ export const ParaqtaPage: React.FC = () => {
                 </div>
               </div>
             </div>
+
+            {/* Ambient Reading Sounds */}
+            <AmbientSoundWidget />
           </div>
 
           {/* Right Column (Approx 60%): Main Stopwatch / Timer Card */}

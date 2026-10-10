@@ -78,6 +78,7 @@ const PremiumPage = lazyWithRetry(() => import('../features/premium/PremiumPage'
 const AdminSubscriptionRequestsPage = lazyWithRetry(() => import('../features/admin/AdminSubscriptionRequestsPage').then((m) => ({ default: m.AdminSubscriptionRequestsPage })));
 const AdminSystemSettingsPage = lazyWithRetry(() => import('../features/admin/AdminSystemSettingsPage').then((m) => ({ default: m.AdminSystemSettingsPage })));
 const AdminBonusesPage = lazyWithRetry(() => import('../features/admin/AdminBonusesPage').then((m) => ({ default: m.AdminBonusesPage })));
+const AdminAmbientSoundsPage = lazyWithRetry(() => import('../features/admin/AdminAmbientSoundsPage').then((m) => ({ default: m.AdminAmbientSoundsPage })));
 const AboutPage = lazyWithRetry(() => import('../features/about/AboutPage').then((m) => ({ default: m.AboutPage })));
 const ParaqtaPage = lazyWithRetry(() => import('../features/paraqta/ParaqtaPage').then((m) => ({ default: m.ParaqtaPage })));
 const GroupDetailPage = lazyWithRetry(() => import('../features/paraqta/GroupDetailPage').then((m) => ({ default: m.GroupDetailPage })));
@@ -745,6 +746,20 @@ export const router = createBrowserRouter([
             </Suspense>
           </AdminRouteGuard>
         ),
+      },
+      {
+        path: 'admin/ambient-sounds',
+        element: (
+          <AdminRouteGuard>
+            <Suspense fallback={<PageLoader />}>
+              <AdminAmbientSoundsPage />
+            </Suspense>
+          </AdminRouteGuard>
+        ),
+      },
+      {
+        path: 'admin/paraqta',
+        element: <Navigate to="/admin/ambient-sounds" replace />,
       },
       {
         path: 'admin/settings',
