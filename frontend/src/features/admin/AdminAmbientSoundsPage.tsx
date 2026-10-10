@@ -2,7 +2,6 @@ import React, { useState, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Headphones,
-  Plus,
   Play,
   Pause,
   Edit2,
@@ -200,9 +199,9 @@ export const AdminAmbientSoundsPage: React.FC = () => {
         <button
           type="button"
           onClick={openCreateModal}
-          className="px-5 py-3 rounded-2xl bg-gradient-to-r from-[#F08000] to-orange-500 hover:from-orange-500 hover:to-[#F08000] text-white font-bold text-sm shadow-lg shadow-orange-500/25 flex items-center justify-center gap-2 transition-all cursor-pointer"
+          className="px-5 py-3 rounded-2xl bg-gradient-to-r from-[#F08000] to-orange-500 hover:from-orange-500 hover:to-[#F08000] text-white font-bold text-sm shadow-lg shadow-orange-500/25 flex items-center justify-center transition-all cursor-pointer"
         >
-          <Plus className="w-4 h-4" /> Жаңа дыбыс қосу
+          Жаңа дыбыс қосу
         </button>
       </div>
 
