@@ -214,10 +214,9 @@ export const ParaqtaPage: React.FC = () => {
   // Mutations
   const saveSessionMutation = useMutation({
     mutationFn: paraqtaApi.saveSession,
-    onSuccess: (res) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['readingStats'] });
       queryClient.invalidateQueries({ queryKey: ['myReadingGroups'] });
-      showToast(`+${Math.round(res.durationSeconds / 60)} минут оқу уақытыңызға қосылды! 🎉`);
     },
     onError: (err: any) => {
       showToast(err?.response?.data?.message || 'Сессияны сақтау кезінде қате кетті', 'error');

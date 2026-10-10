@@ -261,12 +261,6 @@ export const ReadingTrackerWidget: React.FC<ReadingTrackerWidgetProps> = ({
         queryClient.invalidateQueries({ queryKey: ['readingGroupDetail', selectedGroupId] });
       }
 
-      const mins = Math.round(res.durationSeconds / 60);
-      const msg = (fixedGroupId || selectedGroupId)
-        ? `+${mins} минут жеке парақшаңызға және топ рейтингіне қосылды! 🎉`
-        : `+${mins} минут оқу уақытыңызға қосылды! 🎉`;
-
-      showToast(msg);
       if (onSessionSaved) {
         onSessionSaved(res.durationSeconds);
       }
