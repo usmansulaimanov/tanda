@@ -459,7 +459,7 @@ export const GroupDetailPage: React.FC = () => {
       {/* ================= LEADERBOARD TAB ================= */}
       {activeTab === 'leaderboard' && (
         <div className="space-y-4 animate-fadeIn">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-sm">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl sm:rounded-3xl overflow-hidden shadow-sm">
             <div className="divide-y divide-slate-100 dark:divide-slate-800">
               {members.map((member, index) => {
                 const isCurrentUser = member.userId === user?.id;
@@ -470,9 +470,7 @@ export const GroupDetailPage: React.FC = () => {
                 return (
                   <div
                     key={member.id}
-                    className={`p-4 sm:p-5 flex items-center justify-between gap-4 transition-colors ${
-                      isCurrentUser ? 'bg-orange-500/5 dark:bg-orange-500/10' : 'hover:bg-slate-50 dark:hover:bg-slate-800/40'
-                    }`}
+                    className="p-3.5 sm:p-4.5 flex items-center justify-between gap-3 sm:gap-4 transition-colors hover:bg-slate-50/50 dark:hover:bg-slate-800/30"
                   >
                     <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
                       {/* Rank Badge */}
