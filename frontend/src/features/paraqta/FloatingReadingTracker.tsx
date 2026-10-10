@@ -240,12 +240,12 @@ export const FloatingReadingTracker: React.FC = () => {
       }`}
     >
       {/* Drag Grip Indicator */}
-      <div className="text-slate-600 hover:text-slate-400 hidden sm:flex items-center -mr-1">
-        <GripVertical className="w-3.5 h-3.5" />
+      <div className="text-slate-500 hover:text-slate-300 flex items-center shrink-0 cursor-grab active:cursor-grabbing">
+        <GripVertical className="w-4 h-4" />
       </div>
 
       {/* Icon */}
-      <div className="w-10 h-10 rounded-xl bg-orange-500/20 text-[#F08000] flex items-center justify-center shrink-0 shadow-inner">
+      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-orange-500/20 text-[#F08000] flex items-center justify-center shrink-0 shadow-inner">
         {mode === 'TIMER' ? (
           <Timer className="w-5 h-5 text-amber-400 animate-pulse" />
         ) : (
@@ -255,12 +255,17 @@ export const FloatingReadingTracker: React.FC = () => {
 
       {/* Info & Timer */}
       <div className="min-w-0 pr-1 text-left pointer-events-none">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           <span className="font-mono text-base sm:text-lg font-black tracking-wider text-white">
             {displayTime}
           </span>
+          {isPaused && (
+            <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-amber-500/25 text-amber-400 uppercase">
+              Үзіліс
+            </span>
+          )}
         </div>
-        <div className="text-[11px] text-slate-400 truncate max-w-[120px] sm:max-w-[170px] flex items-center gap-1">
+        <div className="text-[11px] text-slate-400 truncate max-w-[110px] sm:max-w-[160px] flex items-center gap-1">
           <span className="truncate">{displayLabel}</span>
           <ExternalLink className="w-3 h-3 text-slate-500 shrink-0" />
         </div>
@@ -295,10 +300,10 @@ export const FloatingReadingTracker: React.FC = () => {
         <button
           type="button"
           onClick={handleCloseDismiss}
-          className="w-6 h-6 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/80 flex items-center justify-center transition-colors ml-0.5 cursor-pointer"
+          className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-slate-800 hover:bg-rose-500 text-slate-400 hover:text-white flex items-center justify-center transition-all cursor-pointer ml-0.5 shadow-sm"
           title="Терезені жабу (оқу тоқтатылмайды)"
         >
-          <X className="w-3.5 h-3.5" />
+          <X className="w-4 h-4" />
         </button>
       </div>
     </div>
