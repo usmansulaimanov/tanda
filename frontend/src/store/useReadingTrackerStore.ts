@@ -6,6 +6,7 @@ export interface ReadingTrackerSessionData {
   customMinutes: string;
   isRunning: boolean;
   isPaused: boolean;
+  isFloatingDismissed: boolean;
   accumulatedSeconds: number;
   segmentStartTime: number | null;
   sessionInitialStartTime: number | null;
@@ -25,6 +26,7 @@ interface ReadingTrackerStore extends ReadingTrackerSessionData {
   setCustomBookTitle: (title: string) => void;
   setSelectedGroupId: (id: string) => void;
   setSoundEnabled: (enabled: boolean) => void;
+  setFloatingDismissed: (dismissed: boolean) => void;
 
   startSession: (options?: Partial<ReadingTrackerSessionData>) => void;
   pauseSession: () => void;
@@ -45,6 +47,7 @@ const loadInitialState = (): ReadingTrackerSessionData => {
     customMinutes: '30',
     isRunning: false,
     isPaused: false,
+    isFloatingDismissed: false,
     accumulatedSeconds: 0,
     segmentStartTime: null,
     sessionInitialStartTime: null,
@@ -148,6 +151,10 @@ export const useReadingTrackerStore = create<ReadingTrackerStore>((set, get) => 
     set({ soundEnabled });
   },
 
+  setFloatingDismissed: (isFloatingDismissed) => {
+    set({ isFloatingDismissed });
+  },
+
   startSession: (options) => {
     const now = Date.now();
     const current = get();
@@ -160,6 +167,7 @@ export const useReadingTrackerStore = create<ReadingTrackerStore>((set, get) => 
       timerDuration,
       isRunning: true,
       isPaused: false,
+      isFloatingDismissed: false,
       accumulatedSeconds: 0,
       segmentStartTime: now,
       sessionInitialStartTime: now,
