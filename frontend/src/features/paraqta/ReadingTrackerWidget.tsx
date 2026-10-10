@@ -359,8 +359,8 @@ export const ReadingTrackerWidget: React.FC<ReadingTrackerWidgetProps> = ({
       }
     }
 
-    if (finalSeconds < 5) {
-      showToast('Оқу сессиясы тым қысқа (5 секундтан аз), сақталмады', 'error');
+    if (finalSeconds < 10) {
+      showToast('Оқу сессиясы тым қысқа (10 секундтан аз), сақталмады', 'error');
       handleResetSession();
       return;
     }

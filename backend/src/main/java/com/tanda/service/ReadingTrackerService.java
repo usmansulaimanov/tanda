@@ -49,11 +49,15 @@ public class ReadingTrackerService {
             throw new BadRequestException("EndedAt cannot be before StartedAt");
         }
 
+        if (dto.getDurationSeconds() == null || dto.getDurationSeconds() < 10) {
+            throw new BadRequestException("Оқу сессиясы кемінде 10 секунд болуы қажет");
+        }
+
         long actualDuration = Duration.between(dto.getStartedAt(), dto.getEndedAt()).getSeconds();
         // Allow up to 10 seconds grace period for network delays/client timings
         if (dto.getDurationSeconds() > actualDuration + 10) {
             log.warn("Potential cheat detected for user {}: claimed {}s, actual {}s", userId, dto.getDurationSeconds(), actualDuration);
-            dto.setDurationSeconds(Math.max(1, actualDuration));
+            dto.setDurationSeconds(Math.max(10, actualDuration));
         }
 
         ReadingSession session = ReadingSession.builder()

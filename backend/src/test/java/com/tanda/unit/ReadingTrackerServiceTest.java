@@ -128,6 +128,25 @@ class ReadingTrackerServiceTest {
     }
 
     @Test
+    @DisplayName("Should throw BadRequestException if duration is less than 10 seconds")
+    void shouldThrowWhenDurationLessThan10Seconds() {
+        User user = User.builder().id("user-1").build();
+        when(userRepository.findById("user-1")).thenReturn(Optional.of(user));
+
+        OffsetDateTime start = OffsetDateTime.now().minusSeconds(5);
+        OffsetDateTime end = OffsetDateTime.now();
+        ReadingSessionRequestDto dto = ReadingSessionRequestDto.builder()
+                .durationSeconds(5L)
+                .startedAt(start)
+                .endedAt(end)
+                .build();
+
+        assertThatThrownBy(() -> trackerService.saveSession("user-1", dto))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("10 секунд");
+    }
+
+    @Test
     @DisplayName("Should toggle allowGroupInvites setting")
     void shouldToggleInviteSetting() {
         User user = User.builder().id("user-1").allowGroupInvites(true).build();
