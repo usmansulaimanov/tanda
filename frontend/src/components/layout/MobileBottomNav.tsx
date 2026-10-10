@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { Home, Compass, BookMarked, User, BarChart3, Users, BookOpen, Settings } from 'lucide-react';
+import { Home, Compass, BookMarked, User, BarChart3, Users, BookOpen, Settings, Timer } from 'lucide-react';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useMessageStore } from '../../store/useMessageStore';
 import { hasAdminPermission } from '../../utils/permissions';
@@ -39,7 +39,7 @@ export const MobileBottomNav: React.FC = () => {
         paddingBottom: 'var(--mobile-bottom-nav-pb)',
       }}
     >
-      <div className="grid grid-cols-4 h-[58px] items-center px-1 w-full max-w-lg mx-auto -translate-y-1">
+      <div className={`grid ${isAdmin || isAuthor ? 'grid-cols-4' : 'grid-cols-5'} h-[58px] items-center px-1 w-full max-w-lg mx-auto -translate-y-1`}>
         {isAdmin ? (
           // Admin navigation items
           <>
@@ -175,7 +175,7 @@ export const MobileBottomNav: React.FC = () => {
             </NavLink>
           </>
         ) : (
-          // Reader / Client / Guest navigation items
+          // Reader / Client / Guest navigation items (5 items)
           <>
             <NavLink
               to="/"
@@ -188,8 +188,8 @@ export const MobileBottomNav: React.FC = () => {
                 }`
               }
             >
-              <Home className="w-[22px] h-[22px]" strokeWidth={2.2} />
-              <span className="text-[11px] leading-none">Басты бет</span>
+              <Home className="w-[21px] h-[21px]" strokeWidth={2.2} />
+              <span className="text-[10.5px] leading-none">Басты бет</span>
             </NavLink>
 
             <NavLink
@@ -202,8 +202,8 @@ export const MobileBottomNav: React.FC = () => {
                 }`
               }
             >
-              <Compass className="w-[22px] h-[22px]" strokeWidth={2.2} />
-              <span className="text-[11px] leading-none">Каталог</span>
+              <Compass className="w-[21px] h-[21px]" strokeWidth={2.2} />
+              <span className="text-[10.5px] leading-none">Каталог</span>
             </NavLink>
 
             <NavLink
@@ -216,8 +216,22 @@ export const MobileBottomNav: React.FC = () => {
                 }`
               }
             >
-              <BookMarked className="w-[22px] h-[22px]" strokeWidth={2.2} />
-              <span className="text-[11px] leading-none">Менің сөрем</span>
+              <BookMarked className="w-[21px] h-[21px]" strokeWidth={2.2} />
+              <span className="text-[10.5px] leading-none">Менің сөрем</span>
+            </NavLink>
+
+            <NavLink
+              to="/paraqta"
+              className={({ isActive }) =>
+                `flex flex-col items-center justify-center gap-1 transition-all py-1 active:scale-95 ${
+                  isActive || location.pathname.startsWith('/paraqta')
+                    ? 'text-[#005494] font-black'
+                    : 'text-slate-500 hover:text-slate-800 font-medium'
+                }`
+              }
+            >
+              <Timer className="w-[21px] h-[21px]" strokeWidth={2.2} />
+              <span className="text-[10.5px] leading-none">Парақта</span>
             </NavLink>
 
             <NavLink
@@ -235,14 +249,14 @@ export const MobileBottomNav: React.FC = () => {
               }
             >
               <div className="relative">
-                <User className="w-[22px] h-[22px]" strokeWidth={2.2} />
+                <User className="w-[21px] h-[21px]" strokeWidth={2.2} />
                 {unreadMessagesCount > 0 && (
                   <span className="absolute -top-1 -right-1.5 min-w-[14px] h-[14px] bg-rose-600 text-white text-[9px] font-black rounded-full flex items-center justify-center px-0.5 border border-white">
                     {unreadMessagesCount > 9 ? '9+' : unreadMessagesCount}
                   </span>
                 )}
               </div>
-              <span className="text-[11px] leading-none">
+              <span className="text-[10.5px] leading-none">
                 {isAuthenticated ? 'Профиль' : 'Кіру'}
               </span>
             </NavLink>
