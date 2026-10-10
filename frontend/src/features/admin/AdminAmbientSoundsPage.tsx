@@ -86,18 +86,6 @@ export const AdminAmbientSoundsPage: React.FC = () => {
     },
   });
 
-  const toggleMutation = useMutation({
-    mutationFn: ambientSoundApi.toggleActive,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['adminAmbientSounds'] });
-      queryClient.invalidateQueries({ queryKey: ['ambientSounds'] });
-      showToast('Күйі өзгертілді', 'success');
-    },
-    onError: () => {
-      showToast('Қате орын алды', 'error');
-    },
-  });
-
   const deleteMutation = useMutation({
     mutationFn: ambientSoundApi.deleteSound,
     onSuccess: () => {
@@ -296,17 +284,15 @@ export const AdminAmbientSoundsPage: React.FC = () => {
                         </button>
                       </td>
                       <td className="py-4 px-5 text-center">
-                        <button
-                          type="button"
-                          onClick={() => toggleMutation.mutate(sound.id)}
-                          className={`px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                        <span
+                          className={`text-xs font-medium ${
                             sound.isActive
-                              ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'
-                              : 'bg-slate-100 dark:bg-slate-800 text-slate-400 border border-slate-200 dark:border-slate-700'
+                              ? 'text-slate-900 dark:text-white'
+                              : 'text-slate-400 dark:text-slate-500'
                           }`}
                         >
                           {sound.isActive ? 'Белсенді' : 'Өшірулі'}
-                        </button>
+                        </span>
                       </td>
                       <td className="py-4 px-5 text-right space-x-2">
                         <button
