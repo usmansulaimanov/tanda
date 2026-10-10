@@ -12,7 +12,7 @@ import { hasAdminPermission } from '../../utils/permissions';
 import { api } from '../../lib/api';
 import tandaLogo from '../../assets/tanda-logo.png';
 import tandaPremiumWhite from '../../assets/tanda-premium-white.png';
-import { Crown, CreditCard, Sliders, Gift, Coins, X } from 'lucide-react';
+import { Crown, CreditCard, Sliders, Gift, Coins, X, Headphones } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { premiumApi } from '../../shared/api/premium.api';
 import { systemApi } from '../../shared/api/system.api';
@@ -577,6 +577,15 @@ export const AppSidebarDrawer: React.FC = () => {
               >
                 <Gift className="w-[18px] h-[18px]" />
                 <span>Бонустар</span>
+              </Link>
+
+              <Link
+                to="/admin/ambient-sounds"
+                className={`sidebar-nav-link ${location.pathname.startsWith('/admin/ambient-sounds') ? 'active' : ''}`}
+                onClick={closeSidebar}
+              >
+                <Headphones className="w-[18px] h-[18px]" />
+                <span>Парақта (Фондық дыбыстар)</span>
               </Link>
 
               <Link
