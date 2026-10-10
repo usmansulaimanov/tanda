@@ -64,6 +64,9 @@ export const GroupDetailPage: React.FC = () => {
   const [memberToKick, setMemberToKick] = useState<ReadingGroupMember | null>(null);
   const [kickConfirmationText, setKickConfirmationText] = useState('');
 
+  const [showLeaveModal, setShowLeaveModal] = useState(false);
+  const [leaveConfirmationText, setLeaveConfirmationText] = useState('');
+
   const showToast = (title: string, type: 'success' | 'error' = 'success') => {
     setToastMessage({ title, type });
     setTimeout(() => setToastMessage(null), 4000);
@@ -334,11 +337,10 @@ export const GroupDetailPage: React.FC = () => {
             ) : (
               <button
                 onClick={() => {
-                  if (confirm('Топтан шыққыңыз келе ме? Рейтингтегі минуттарыңыз 0-ге түседі.')) {
-                    leaveGroupMutation.mutate();
-                  }
+                  setShowLeaveModal(true);
+                  setLeaveConfirmationText('');
                 }}
-                className="px-3 py-2 rounded-xl bg-white/80 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-slate-200/80 dark:border-slate-700/80 text-xs font-bold transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer"
+                className="text-rose-500 hover:text-rose-600 hover:underline text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer py-1 px-1.5"
                 title="Топтан шығу"
               >
                 <LogOut className="w-3.5 h-3.5 text-rose-500" />
@@ -722,6 +724,75 @@ export const GroupDetailPage: React.FC = () => {
                 className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-md shadow-rose-600/25 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-all"
               >
                 {kickMemberMutation.isPending ? 'Шығарылуда...' : 'Шығару'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Leave Group Confirmation Modal */}
+      {showLeaveModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl border border-slate-100 dark:border-slate-800 space-y-4 animate-scaleUp">
+            <div>
+              <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+                Топтан шығу
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Әрекетті растау қажет
+              </p>
+            </div>
+
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+              <strong>«{group.name}»</strong> тобынан шыққыңыз келетінін растау үшін төмендегі өріске <strong>«шығамын»</strong> деп жазыңыз:
+            </p>
+
+            <div>
+              <input
+                type="text"
+                autoFocus
+                placeholder="шығамын"
+                value={leaveConfirmationText}
+                onChange={(e) => setLeaveConfirmationText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (
+                    e.key === 'Enter' &&
+                    leaveConfirmationText.trim().toLowerCase() === 'шығамын' &&
+                    !leaveGroupMutation.isPending
+                  ) {
+                    e.preventDefault();
+                    leaveGroupMutation.mutate();
+                  }
+                }}
+                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-rose-500 focus:outline-none"
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowLeaveModal(false);
+                  setLeaveConfirmationText('');
+                }}
+                className="px-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer"
+              >
+                Болдырмау
+              </button>
+              <button
+                type="button"
+                disabled={
+                  leaveConfirmationText.trim().toLowerCase() !== 'шығамын' ||
+                  leaveGroupMutation.isPending
+                }
+                onClick={() => {
+                  if (leaveConfirmationText.trim().toLowerCase() === 'шығамын') {
+                    leaveGroupMutation.mutate();
+                  }
+                }}
+                className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-md shadow-rose-600/25 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-all"
+              >
+                {leaveGroupMutation.isPending ? 'Шығуда...' : 'Шығу'}
               </button>
             </div>
           </div>
