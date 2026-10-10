@@ -382,9 +382,7 @@ export const ParaqtaPage: React.FC = () => {
                 <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 flex items-center gap-1.5">
                   <Clock className="w-3.5 h-3.5 text-amber-500" /> Бүгін
                 </div>
-                <div className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
-                  {formatDurationHuman(stats?.todayReadingSeconds || 0)}
-                </div>
+                {renderDurationWithSubSeconds(stats?.todayReadingSeconds || 0)}
               </div>
 
               <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[110px]">
