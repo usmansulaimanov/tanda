@@ -17,8 +17,15 @@ const processQueue = (error: any, token: string | null = null) => {
   failedQueue = [];
 };
 
+const getApiBaseUrl = (): string => {
+  if (typeof import.meta !== 'undefined' && import.meta.env && typeof import.meta.env.VITE_API_URL === 'string' && import.meta.env.VITE_API_URL.trim() !== '') {
+    return import.meta.env.VITE_API_URL.trim();
+  }
+  return '';
+};
+
 export const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'https://tanda-backend-7lpj.onrender.com',
+  baseURL: getApiBaseUrl(),
   withCredentials: true, // required for httpOnly refresh cookies
   timeout: 60000,
   headers: {
@@ -99,7 +106,7 @@ apiClient.interceptors.response.use(
         }
 
         const refreshToken = localStorage.getItem('tanda_refresh_token');
-        const refreshUrl = (import.meta.env.VITE_API_URL || 'https://tanda-backend-7lpj.onrender.com') + '/api/v1/auth/refresh';
+        const refreshUrl = `${getApiBaseUrl()}/api/v1/auth/refresh`;
         const { data } = await axios.post(
           refreshUrl,
           refreshToken ? { refreshToken } : {},
