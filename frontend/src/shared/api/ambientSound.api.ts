@@ -48,4 +48,8 @@ export const ambientSoundApi = {
   deleteSound: async (id: number): Promise<void> => {
     await apiClient.delete(`/api/v1/admin/ambient-sounds/${id}`);
   },
+
+  reorderSounds: async (soundIds: number[]): Promise<void> => {
+    await apiClient.put('/api/v1/admin/ambient-sounds/reorder', soundIds);
+  },
 };

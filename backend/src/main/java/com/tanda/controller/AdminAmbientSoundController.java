@@ -63,6 +63,13 @@ public class AdminAmbientSoundController {
         return ResponseEntity.ok(ambientSoundService.toggleActive(id));
     }
 
+    @PutMapping("/reorder")
+    @Operation(summary = "Админ: Атмосфералық дыбыстардың ретін ауыстыру")
+    public ResponseEntity<Void> reorderSounds(@RequestBody List<Long> soundIds) {
+        ambientSoundService.reorderSounds(soundIds);
+        return ResponseEntity.ok().build();
+    }
+
     @DeleteMapping("/{id}")
     @Operation(summary = "Админ: Дыбысты өшіру")
     public ResponseEntity<Void> deleteSound(@PathVariable Long id) {

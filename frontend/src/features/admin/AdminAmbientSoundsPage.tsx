@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Headphones,
@@ -18,6 +18,7 @@ import {
   Music,
   ArrowUpDown,
   ExternalLink,
+  GripVertical,
 } from 'lucide-react';
 import { ambientSoundApi, AmbientSound, AmbientSoundRequest } from '../../shared/api/ambientSound.api';
 import { useToastStore } from '../../store/useToastStore';
@@ -45,6 +46,11 @@ export const AdminAmbientSoundsPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editingSound, setEditingSound] = useState<AmbientSound | null>(null);
 
+  // Drag & Drop State
+  const [items, setItems] = useState<AmbientSound[]>([]);
+  const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
+  const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
+
   // Form State
   const [formData, setFormData] = useState<AmbientSoundRequest>({
     name: '',
@@ -58,6 +64,12 @@ export const AdminAmbientSoundsPage: React.FC = () => {
     queryKey: ['adminAmbientSounds'],
     queryFn: ambientSoundApi.getAllAdminSounds,
   });
+
+  useEffect(() => {
+    if (sounds) {
+      setItems(sounds);
+    }
+  }, [sounds]);
 
   const createMutation = useMutation({
     mutationFn: ambientSoundApi.createSound,
@@ -86,6 +98,19 @@ export const AdminAmbientSoundsPage: React.FC = () => {
     },
   });
 
+  const reorderMutation = useMutation({
+    mutationFn: ambientSoundApi.reorderSounds,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['adminAmbientSounds'] });
+      queryClient.invalidateQueries({ queryKey: ['ambientSounds'] });
+      showToast('Реттілігі сақталды', 'success');
+    },
+    onError: () => {
+      queryClient.invalidateQueries({ queryKey: ['adminAmbientSounds'] });
+      showToast('Реттілікті сақтау қатесі', 'error');
+    },
+  });
+
   const deleteMutation = useMutation({
     mutationFn: ambientSoundApi.deleteSound,
     onSuccess: () => {
@@ -97,6 +122,51 @@ export const AdminAmbientSoundsPage: React.FC = () => {
       showToast('Өшіру кезінде қате орын алды', 'error');
     },
   });
+
+  // Drag & drop handlers
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIdx(index);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', index.toString());
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (dragOverIdx !== index) {
+      setDragOverIdx(index);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent, targetIndex: number) => {
+    e.preventDefault();
+    if (draggedIdx === null || draggedIdx === targetIndex) {
+      setDraggedIdx(null);
+      setDragOverIdx(null);
+      return;
+    }
+
+    const updatedList = [...items];
+    const [movedItem] = updatedList.splice(draggedIdx, 1);
+    updatedList.splice(targetIndex, 0, movedItem);
+
+    const reindexed = updatedList.map((item, idx) => ({
+      ...item,
+      sortOrder: idx + 1,
+    }));
+
+    setItems(reindexed);
+    setDraggedIdx(null);
+    setDragOverIdx(null);
+
+    const ids = reindexed.map((s) => s.id);
+    reorderMutation.mutate(ids);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIdx(null);
+    setDragOverIdx(null);
+  };
 
   const handlePreview = (sound: AmbientSound) => {
     if (!audioRef.current) {
@@ -228,16 +298,39 @@ export const AdminAmbientSoundsPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {sounds.map((sound: AmbientSound) => {
+                {items.map((sound: AmbientSound, index: number) => {
                   const isAudioPreviewing = previewSoundId === sound.id;
+                  const isDragging = draggedIdx === index;
+                  const isDragOver = dragOverIdx === index && draggedIdx !== index;
 
                   return (
                     <tr
                       key={sound.id}
-                      className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors"
+                      draggable={true}
+                      onDragStart={(e) => handleDragStart(e, index)}
+                      onDragOver={(e) => handleDragOver(e, index)}
+                      onDrop={(e) => handleDrop(e, index)}
+                      onDragEnd={handleDragEnd}
+                      className={`transition-all ${
+                        isDragging
+                          ? 'opacity-30 bg-orange-50/50 dark:bg-orange-950/20 scale-[0.99]'
+                          : isDragOver
+                          ? 'bg-orange-50/70 dark:bg-orange-950/30 border-t-2 border-orange-500'
+                          : 'hover:bg-slate-50/70 dark:hover:bg-slate-800/40'
+                      }`}
                     >
-                      <td className="py-4 px-5 font-mono text-xs text-slate-400">
-                        #{sound.sortOrder}
+                      <td className="py-4 px-5">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className="cursor-grab active:cursor-grabbing text-slate-300 hover:text-[#F08000] dark:hover:text-orange-400 transition-colors p-1"
+                            title="Орнын ауыстыру үшін сүйреңіз (Drag & drop)"
+                          >
+                            <GripVertical className="w-4 h-4" />
+                          </span>
+                          <span className="font-mono text-xs text-slate-400 font-bold">
+                            #{index + 1}
+                          </span>
+                        </div>
                       </td>
                       <td className="py-4 px-5">
                         <div className="flex items-center gap-3">

@@ -92,6 +92,18 @@ public class AmbientSoundService {
     }
 
     @Transactional
+    public void reorderSounds(List<Long> soundIds) {
+        if (soundIds == null || soundIds.isEmpty()) {
+            return;
+        }
+        log.info("Reordering {} ambient sounds", soundIds.size());
+        for (int i = 0; i < soundIds.size(); i++) {
+            Long id = soundIds.get(i);
+            ambientSoundRepository.updateSortOrder(id, i + 1);
+        }
+    }
+
+    @Transactional
     public void deleteSound(Long id) {
         log.info("Deleting ambient sound id: {}", id);
         if (!ambientSoundRepository.existsById(id)) {
