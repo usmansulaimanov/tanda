@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { createPortal } from 'react-dom';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Play, Pause, Square, ExternalLink, Flame, Timer, X, GripVertical, AppWindow } from 'lucide-react';
+import { Play, Pause, Square, ExternalLink, Flame, Timer, X, GripVertical } from 'lucide-react';
 import { useReadingTrackerStore } from '../../store/useReadingTrackerStore';
 import { useAudioPlayerStore } from '../../store/useAudioPlayerStore';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -67,22 +66,11 @@ export const FloatingReadingTracker: React.FC = () => {
   const [currentElapsed, setCurrentElapsed] = useState<number>(0);
   const [position, setPosition] = useState<{ x: number; y: number } | null>(getInitialPosition);
   const [isDragging, setIsDragging] = useState<boolean>(false);
-  const [pipWindow, setPipWindow] = useState<Window | null>(null);
-
-  const isPipSupported = typeof window !== 'undefined' && 'documentPictureInPicture' in window;
 
   const cardRef = useRef<HTMLDivElement>(null);
   const dragStartRef = useRef<{ startX: number; startY: number; initialX: number; initialY: number } | null>(null);
   const latestPosRef = useRef<{ x: number; y: number } | null>(null);
   const hasMovedSignificantlyRef = useRef<boolean>(false);
-
-  // Close PiP window when session stops
-  useEffect(() => {
-    if (!isRunning && pipWindow) {
-      pipWindow.close();
-      setPipWindow(null);
-    }
-  }, [isRunning, pipWindow]);
 
   // Bounds adjustment on mount
   useEffect(() => {
@@ -259,75 +247,10 @@ export const FloatingReadingTracker: React.FC = () => {
       ? formatDurationHMS(currentElapsed)
       : formatDurationHMS(Math.max(0, timerDuration - currentElapsed));
 
-  const openPip = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!('documentPictureInPicture' in window)) {
-      alert('Бұл мүмкіндік Chrome / Edge немесе Chromium браузерлерінде қолжетімді.');
-      return;
-    }
-
-    try {
-      if (pipWindow) {
-        pipWindow.close();
-        setPipWindow(null);
-        return;
-      }
-
-      const pip = await (window as any).documentPictureInPicture.requestWindow({
-        width: 320,
-        height: 75,
-      });
-
-      // Copy styles from main document to PiP window
-      document.querySelectorAll('link[rel="stylesheet"], style').forEach((node) => {
-        pip.document.head.appendChild(node.cloneNode(true));
-      });
-
-      const baseStyle = pip.document.createElement('style');
-      baseStyle.textContent = `
-        * { box-sizing: border-box; }
-        html, body {
-          margin: 0;
-          padding: 0;
-          width: 100%;
-          height: 100%;
-          background-color: #ffffff;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          overflow: hidden;
-          user-select: none;
-          font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        }
-      `;
-      pip.document.head.appendChild(baseStyle);
-
-      pip.addEventListener('pagehide', () => {
-        setPipWindow(null);
-      });
-
-      setPipWindow(pip);
-    } catch (err) {
-      console.error('Failed to open Document PiP window', err);
-    }
-  };
-
-  const closePip = () => {
-    if (pipWindow) {
-      pipWindow.close();
-      setPipWindow(null);
-    }
-  };
-
   const handleStopAndSave = (e: React.MouseEvent) => {
     e.stopPropagation();
     const now = Date.now();
     const finalSeconds = currentElapsed;
-
-    if (pipWindow) {
-      pipWindow.close();
-      setPipWindow(null);
-    }
 
     if (finalSeconds < 10) {
       resetSession();
@@ -360,10 +283,6 @@ export const FloatingReadingTracker: React.FC = () => {
 
   const handleCloseDismiss = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (pipWindow) {
-      pipWindow.close();
-      setPipWindow(null);
-    }
     setFloatingDismissed(true);
   };
 
@@ -384,166 +303,84 @@ export const FloatingReadingTracker: React.FC = () => {
     : `fixed ${currentBook ? 'bottom-36 md:bottom-24' : 'bottom-20 md:bottom-6'} right-4 sm:right-6`;
 
   return (
-    <>
-      <div
-        ref={cardRef}
-        style={inlineStyle}
-        onClick={handleCardClick}
-        onMouseDown={handlePointerDown}
-        onTouchStart={handlePointerDown}
-        className={`${defaultPositionClasses} z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md text-slate-900 dark:text-white shadow-xl hover:shadow-2xl rounded-2xl sm:rounded-3xl p-3 sm:p-3.5 pr-2.5 border border-slate-200/90 dark:border-slate-800 hover:border-orange-500/50 flex items-center gap-2.5 sm:gap-3.5 cursor-grab active:cursor-grabbing select-none transition-shadow ${
-          isDragging ? 'scale-[1.02] shadow-orange-500/20 shadow-2xl opacity-95' : 'animate-slideUp'
-        }`}
-      >
-        {/* Drag Grip Indicator */}
-        <div className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 flex items-center shrink-0 cursor-grab active:cursor-grabbing">
-          <GripVertical className="w-4 h-4" />
+    <div
+      ref={cardRef}
+      style={inlineStyle}
+      onClick={handleCardClick}
+      onMouseDown={handlePointerDown}
+      onTouchStart={handlePointerDown}
+      className={`${defaultPositionClasses} z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md text-slate-900 dark:text-white shadow-xl hover:shadow-2xl rounded-2xl sm:rounded-3xl p-3 sm:p-3.5 pr-2.5 border border-slate-200/90 dark:border-slate-800 hover:border-orange-500/50 flex items-center gap-2.5 sm:gap-3.5 cursor-grab active:cursor-grabbing select-none transition-shadow ${
+        isDragging ? 'scale-[1.02] shadow-orange-500/20 shadow-2xl opacity-95' : 'animate-slideUp'
+      }`}
+    >
+      {/* Drag Grip Indicator */}
+      <div className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 flex items-center shrink-0 cursor-grab active:cursor-grabbing">
+        <GripVertical className="w-4 h-4" />
+      </div>
+
+      {/* Icon */}
+      <div className="flex items-center justify-center shrink-0">
+        {mode === 'TIMER' ? (
+          <Timer className="w-5 h-5 sm:w-6 sm:h-6 text-amber-500 animate-pulse" />
+        ) : (
+          <Flame className="w-5 h-5 sm:w-6 sm:h-6 text-orange-500 animate-pulse" />
+        )}
+      </div>
+
+      {/* Info & Timer */}
+      <div className="min-w-0 pr-1 text-left pointer-events-none">
+        <div className="font-mono text-base sm:text-lg font-black tracking-wider text-slate-900 dark:text-white">
+          {displayTime}
         </div>
-
-        {/* Icon */}
-        <div className="flex items-center justify-center shrink-0">
-          {mode === 'TIMER' ? (
-            <Timer className="w-5 h-5 sm:w-6 sm:h-6 text-amber-500 animate-pulse" />
-          ) : (
-            <Flame className="w-5 h-5 sm:w-6 sm:h-6 text-orange-500 animate-pulse" />
-          )}
-        </div>
-
-        {/* Info & Timer */}
-        <div className="min-w-0 pr-1 text-left pointer-events-none">
-          <div className="font-mono text-base sm:text-lg font-black tracking-wider text-slate-900 dark:text-white">
-            {displayTime}
-          </div>
-          <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate max-w-[110px] sm:max-w-[160px] flex items-center gap-1">
-            <span className="truncate">{displayLabel}</span>
-            <ExternalLink className="w-3 h-3 text-slate-400 dark:text-slate-500 shrink-0" />
-          </div>
-        </div>
-
-        {/* Quick Controls & Close button */}
-        <div
-          className="flex items-center gap-1.5 shrink-0"
-          onClick={(e) => e.stopPropagation()}
-          onMouseDown={(e) => e.stopPropagation()}
-          onTouchStart={(e) => e.stopPropagation()}
-        >
-          {/* Picture-in-Picture Popout button */}
-          {isPipSupported && (
-            <button
-              type="button"
-              onClick={openPip}
-              className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-90 border shadow-sm ${
-                pipWindow
-                  ? 'bg-orange-500 text-white border-orange-500 shadow-orange-500/30'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200/90 dark:border-slate-700 hover:bg-orange-500 hover:text-white hover:border-orange-500'
-              }`}
-              title={pipWindow ? 'Бөлек терезені жабу' : 'Басқа программалар мен вкладкалар үстіне шығару (Picture-in-Picture)'}
-            >
-              <AppWindow className="w-4 h-4" />
-            </button>
-          )}
-
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              togglePause();
-            }}
-            className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-90 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/90 dark:border-slate-700 shadow-sm ${
-              isPaused
-                ? 'hover:bg-emerald-600 hover:text-white hover:border-emerald-600 hover:shadow-md hover:shadow-emerald-600/30'
-                : 'hover:bg-amber-500 hover:text-white hover:border-amber-500 hover:shadow-md hover:shadow-amber-500/30'
-            }`}
-            title={isPaused ? 'Жалғастыру' : 'Үзіліс'}
-          >
-            {isPaused ? <Play className="w-4 h-4 fill-current ml-0.5" /> : <Pause className="w-4 h-4" />}
-          </button>
-
-          <button
-            type="button"
-            onClick={handleStopAndSave}
-            disabled={saveSessionMutation.isPending}
-            className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/90 dark:border-slate-700 hover:bg-rose-600 hover:text-white hover:border-rose-600 hover:shadow-md hover:shadow-rose-600/30 flex items-center justify-center transition-all shadow-sm active:scale-90 cursor-pointer"
-            title="Аяқтау және сақтау"
-          >
-            <Square className="w-4 h-4 fill-current" />
-          </button>
-
-          {/* Close (X) Dismiss button */}
-          <button
-            type="button"
-            onClick={handleCloseDismiss}
-            className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-slate-100 hover:bg-rose-500 text-slate-400 hover:text-white dark:bg-slate-800 dark:text-slate-400 dark:hover:text-white border border-slate-200/90 dark:border-slate-700 hover:border-rose-500 flex items-center justify-center transition-all cursor-pointer ml-0.5 shadow-sm"
-            title="Терезені жабу (оқу тоқтатылмайды)"
-          >
-            <X className="w-4 h-4" />
-          </button>
+        <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate max-w-[110px] sm:max-w-[160px] flex items-center gap-1">
+          <span className="truncate">{displayLabel}</span>
+          <ExternalLink className="w-3 h-3 text-slate-400 dark:text-slate-500 shrink-0" />
         </div>
       </div>
 
-      {/* Picture-in-Picture External Window Content */}
-      {pipWindow &&
-        createPortal(
-          <div className="w-full h-full p-2.5 px-3 bg-white text-slate-900 flex items-center justify-between gap-2.5 select-none font-sans border-b border-slate-100">
-            {/* Icon & Time */}
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="flex items-center justify-center shrink-0">
-                {mode === 'TIMER' ? (
-                  <Timer className="w-5 h-5 text-amber-500 animate-pulse" />
-                ) : (
-                  <Flame className="w-5 h-5 text-orange-500 animate-pulse" />
-                )}
-              </div>
-              <div className="min-w-0">
-                <div className="font-mono text-base font-black tracking-wider text-slate-900 leading-tight">
-                  {displayTime}
-                </div>
-                <div className="text-[11px] text-slate-500 truncate max-w-[110px] leading-tight">
-                  {displayLabel}
-                </div>
-              </div>
-            </div>
+      {/* Quick Controls & Close button */}
+      <div
+        className="flex items-center gap-1.5 shrink-0"
+        onClick={(e) => e.stopPropagation()}
+        onMouseDown={(e) => e.stopPropagation()}
+        onTouchStart={(e) => e.stopPropagation()}
+      >
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            togglePause();
+          }}
+          className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-90 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/90 dark:border-slate-700 shadow-sm ${
+            isPaused
+              ? 'hover:bg-emerald-600 hover:text-white hover:border-emerald-600 hover:shadow-md hover:shadow-emerald-600/30'
+              : 'hover:bg-amber-500 hover:text-white hover:border-amber-500 hover:shadow-md hover:shadow-amber-500/30'
+          }`}
+          title={isPaused ? 'Жалғастыру' : 'Үзіліс'}
+        >
+          {isPaused ? <Play className="w-4 h-4 fill-current ml-0.5" /> : <Pause className="w-4 h-4" />}
+        </button>
 
-            {/* Controls */}
-            <div className="flex items-center gap-1.5 shrink-0">
-              <button
-                type="button"
-                onClick={togglePause}
-                className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-90 bg-slate-100 text-slate-700 border border-slate-200 shadow-sm ${
-                  isPaused
-                    ? 'hover:bg-emerald-600 hover:text-white hover:border-emerald-600'
-                    : 'hover:bg-amber-500 hover:text-white hover:border-amber-500'
-                }`}
-                title={isPaused ? 'Жалғастыру' : 'Үзіліс'}
-              >
-                {isPaused ? <Play className="w-4 h-4 fill-current ml-0.5" /> : <Pause className="w-4 h-4" />}
-              </button>
+        <button
+          type="button"
+          onClick={handleStopAndSave}
+          disabled={saveSessionMutation.isPending}
+          className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/90 dark:border-slate-700 hover:bg-rose-600 hover:text-white hover:border-rose-600 hover:shadow-md hover:shadow-rose-600/30 flex items-center justify-center transition-all shadow-sm active:scale-90 cursor-pointer"
+          title="Аяқтау және сақтау"
+        >
+          <Square className="w-4 h-4 fill-current" />
+        </button>
 
-              <button
-                type="button"
-                onClick={(e) => {
-                  handleStopAndSave(e);
-                  closePip();
-                }}
-                disabled={saveSessionMutation.isPending}
-                className="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 hover:bg-rose-600 hover:text-white hover:border-rose-600 flex items-center justify-center transition-all shadow-sm active:scale-90 cursor-pointer"
-                title="Аяқтау және сақтау"
-              >
-                <Square className="w-4 h-4 fill-current" />
-              </button>
-
-              <button
-                type="button"
-                onClick={() => closePip()}
-                className="w-7 h-7 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-all cursor-pointer ml-0.5"
-                title="Бөлек терезені жауып, сайтқа қайтару"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-          </div>,
-          pipWindow.document.body
-        )}
-    </>
+        {/* Close (X) Dismiss button */}
+        <button
+          type="button"
+          onClick={handleCloseDismiss}
+          className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-slate-100 hover:bg-rose-500 text-slate-400 hover:text-white dark:bg-slate-800 dark:text-slate-400 dark:hover:text-white border border-slate-200/90 dark:border-slate-700 hover:border-rose-500 flex items-center justify-center transition-all cursor-pointer ml-0.5 shadow-sm"
+          title="Терезені жабу (оқу тоқтатылмайды)"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
   );
 };
