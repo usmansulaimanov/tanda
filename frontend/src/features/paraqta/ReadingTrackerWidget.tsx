@@ -19,29 +19,35 @@ import {
 import { paraqtaApi, ReadingGroup, ReadingSessionRequest } from '../../shared/api/paraqta.api';
 import { useMyBooksStore } from '../../store/useMyBooksStore';
 import { useReadingTrackerStore } from '../../store/useReadingTrackerStore';
+import { useAmbientSoundStore } from '../../store/useAmbientSoundStore';
 import { formatDurationHMS } from './ParaqtaPage';
 
-// Play pleasant web audio chime
+// Play pleasant 3-tone focus chime (C5 -> E5 -> G5)
 export const playChimeSound = () => {
   try {
     const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
     if (!AudioContextClass) return;
     const ctx = new AudioContextClass();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
 
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
-    osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.3); // A5
+    const notes = [523.25, 659.25, 783.99]; // C5, E5, G5
+    notes.forEach((freq, idx) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const startTime = ctx.currentTime + idx * 0.22;
 
-    gain.gain.setValueAtTime(0.3, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, startTime);
 
-    osc.connect(gain);
-    gain.connect(ctx.destination);
+      gain.gain.setValueAtTime(0, startTime);
+      gain.gain.linearRampToValueAtTime(0.35, startTime + 0.04);
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.9);
 
-    osc.start();
-    osc.stop(ctx.currentTime + 0.8);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(startTime);
+      osc.stop(startTime + 0.9);
+    });
   } catch (e) {
     console.error('Audio play error', e);
   }
@@ -133,6 +139,18 @@ export const ReadingTrackerWidget: React.FC<ReadingTrackerWidgetProps> = ({
         setCurrentElapsed(totalSec);
 
         if (mode === 'STOPWATCH') {
+          // 1-hour automatic stop limit (3600 seconds)
+          if (totalSec >= 3600) {
+            if (soundEnabled) playChimeSound();
+            try {
+              useAmbientSoundStore.getState().stopAll();
+            } catch (e) {}
+            triggerNotification('1 сағаттық оқу уақыты аяқталды! ⏰', '1 сағат оқыдыңыз. Оқу сессиясы сәтті аяқталып сақталды.');
+            showToast('1 сағаттық оқу уақыты аяқталды! Сессия сақталды.', 'success');
+            handleStopSession(3600);
+            return;
+          }
+
           if (totalSec > 0 && totalSec % 1800 === 0) {
             triggerNotification('Оқуды жалғастырасыз ба?', '30 минут өтті. Өте керемет нәтиже! Жалғастырамыз ба?');
             setShowReminderModal(true);

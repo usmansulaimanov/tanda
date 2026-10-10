@@ -3,8 +3,10 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Play, Pause, Square, ExternalLink, Flame, Timer, X, GripVertical } from 'lucide-react';
 import { useReadingTrackerStore } from '../../store/useReadingTrackerStore';
 import { useAudioPlayerStore } from '../../store/useAudioPlayerStore';
+import { useAmbientSoundStore } from '../../store/useAmbientSoundStore';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { paraqtaApi, ReadingSessionRequest } from '../../shared/api/paraqta.api';
+import { playChimeSound } from './ReadingTrackerWidget';
 
 const formatDurationHMS = (totalSeconds: number): string => {
   const s = Math.max(0, Math.floor(totalSeconds));
@@ -128,7 +130,33 @@ export const FloatingReadingTracker: React.FC = () => {
       } else {
         const now = Date.now();
         const seg = Math.max(0, Math.floor((now - segmentStartTime) / 1000));
-        setCurrentElapsed(accumulatedSeconds + seg);
+        const totalSec = accumulatedSeconds + seg;
+        setCurrentElapsed(totalSec);
+
+        // 1-hour automatic stop limit for stopwatch (3600 seconds)
+        if (mode === 'STOPWATCH' && totalSec >= 3600) {
+          playChimeSound();
+          try {
+            useAmbientSoundStore.getState().stopAll();
+          } catch (e) {}
+          if ('Notification' in window && Notification.permission === 'granted') {
+            try {
+              new Notification('1 сағаттық оқу уақыты аяқталды! ⏰', {
+                body: '1 сағат өтті. Оқу сессиясы сәтті аяқталып сақталды.',
+                icon: '/favicon.ico',
+              });
+            } catch (e) {}
+          }
+          const payload: ReadingSessionRequest = {
+            durationSeconds: 3600,
+            sessionType: mode,
+            bookTitle: (selectedBookTitle || customBookTitle).trim() || undefined,
+            groupId: (fixedGroupId || selectedGroupId) || undefined,
+            startedAt: new Date(sessionInitialStartTime || now - 3600 * 1000).toISOString(),
+            endedAt: new Date(now).toISOString(),
+          };
+          saveSessionMutation.mutate(payload);
+        }
       }
     };
 
