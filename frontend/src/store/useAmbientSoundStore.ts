@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { AmbientSound } from '../shared/api/ambientSound.api';
+import { formatAudioUrl } from '../utils/mediaUtils';
 
 interface AmbientSoundState {
   currentSound: AmbientSound | null;
@@ -56,7 +57,7 @@ export const useAmbientSoundStore = create<AmbientSoundState>((set, get) => ({
     }
 
     // Switch sound
-    audio.src = sound.audioUrl;
+    audio.src = formatAudioUrl(sound.audioUrl);
     audio.volume = get().volume;
     audio.play().catch(console.error);
     set({ currentSound: sound, isPlaying: true });

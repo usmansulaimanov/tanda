@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { ambientSoundApi, AmbientSound, AmbientSoundRequest } from '../../shared/api/ambientSound.api';
 import { useToastStore } from '../../store/useToastStore';
+import { formatAudioUrl } from '../../utils/mediaUtils';
 
 const AVAILABLE_ICONS = [
   { name: 'Waves', label: 'Теңіз/Су', icon: Waves },
@@ -121,7 +122,7 @@ export const AdminAmbientSoundsPage: React.FC = () => {
       return;
     }
 
-    audioRef.current.src = sound.audioUrl;
+    audioRef.current.src = formatAudioUrl(sound.audioUrl);
     audioRef.current.play().catch(() => {
       showToast('Аудио ойнату сәтсіз аяқталды (URL тексеріңіз)', 'error');
     });
@@ -376,12 +377,12 @@ export const AdminAmbientSoundsPage: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                  Аудио сілтемесі (MP3 / OGG URL) *
+                  Аудио сілтемесі (Telegram сілтеме / ID немесе URL) *
                 </label>
                 <input
-                  type="url"
+                  type="text"
                   required
-                  placeholder="https://example.com/audio/waves.mp3"
+                  placeholder="https://tandamen.kz/api/v1/media/telegram/... немесе файл ID"
                   value={formData.audioUrl}
                   onChange={(e) => setFormData({ ...formData, audioUrl: e.target.value })}
                   className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-orange-500 font-mono text-xs"
