@@ -19,6 +19,25 @@ const formatDurationHMS = (totalSeconds: number): string => {
   return `${pad(mins)}:${pad(secs)}`;
 };
 
+const POSITION_STORAGE_KEY = 'tanda_floating_tracker_pos';
+
+const getInitialPosition = (): { x: number; y: number } | null => {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem(POSITION_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (typeof parsed?.x === 'number' && typeof parsed?.y === 'number') {
+      const safeX = Math.min(Math.max(8, parsed.x), Math.max(8, window.innerWidth - 60));
+      const safeY = Math.min(Math.max(8, parsed.y), Math.max(8, window.innerHeight - 60));
+      return { x: safeX, y: safeY };
+    }
+  } catch (e) {
+    // Ignore invalid JSON
+  }
+  return null;
+};
+
 export const FloatingReadingTracker: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -45,12 +64,56 @@ export const FloatingReadingTracker: React.FC = () => {
   } = useReadingTrackerStore();
 
   const [currentElapsed, setCurrentElapsed] = useState<number>(0);
-  const [position, setPosition] = useState<{ x: number; y: number } | null>(null);
+  const [position, setPosition] = useState<{ x: number; y: number } | null>(getInitialPosition);
   const [isDragging, setIsDragging] = useState<boolean>(false);
 
   const cardRef = useRef<HTMLDivElement>(null);
   const dragStartRef = useRef<{ startX: number; startY: number; initialX: number; initialY: number } | null>(null);
+  const latestPosRef = useRef<{ x: number; y: number } | null>(null);
   const hasMovedSignificantlyRef = useRef<boolean>(false);
+
+  // Bounds adjustment on mount
+  useEffect(() => {
+    if (position && cardRef.current) {
+      const rect = cardRef.current.getBoundingClientRect();
+      const maxX = window.innerWidth - rect.width - 8;
+      const maxY = window.innerHeight - rect.height - 8;
+      const safeX = Math.min(Math.max(8, position.x), Math.max(8, maxX));
+      const safeY = Math.min(Math.max(8, position.y), Math.max(8, maxY));
+      if (safeX !== position.x || safeY !== position.y) {
+        const adjusted = { x: safeX, y: safeY };
+        setPosition(adjusted);
+        try {
+          localStorage.setItem(POSITION_STORAGE_KEY, JSON.stringify(adjusted));
+        } catch (e) {}
+      }
+    }
+  }, []);
+
+  // Handle window resize
+  useEffect(() => {
+    const handleResize = () => {
+      setPosition((prev) => {
+        if (!prev || !cardRef.current) return prev;
+        const rect = cardRef.current.getBoundingClientRect();
+        const maxX = window.innerWidth - rect.width - 8;
+        const maxY = window.innerHeight - rect.height - 8;
+        const safeX = Math.min(Math.max(8, prev.x), Math.max(8, maxX));
+        const safeY = Math.min(Math.max(8, prev.y), Math.max(8, maxY));
+        if (safeX !== prev.x || safeY !== prev.y) {
+          const adjusted = { x: safeX, y: safeY };
+          try {
+            localStorage.setItem(POSITION_STORAGE_KEY, JSON.stringify(adjusted));
+          } catch (e) {}
+          return adjusted;
+        }
+        return prev;
+      });
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Live ticking counter
   useEffect(() => {
@@ -124,13 +187,22 @@ export const FloatingReadingTracker: React.FC = () => {
       const newX = Math.min(Math.max(8, dragStartRef.current.initialX + deltaX), maxX);
       const newY = Math.min(Math.max(8, dragStartRef.current.initialY + deltaY), maxY);
 
-      setPosition({ x: newX, y: newY });
+      const newPos = { x: newX, y: newY };
+      setPosition(newPos);
+      latestPosRef.current = newPos;
     };
 
     const handlePointerUp = () => {
       if (dragStartRef.current) {
         dragStartRef.current = null;
         setIsDragging(false);
+        if (hasMovedSignificantlyRef.current && latestPosRef.current) {
+          try {
+            localStorage.setItem(POSITION_STORAGE_KEY, JSON.stringify(latestPosRef.current));
+          } catch (e) {
+            console.error('Failed to save floating tracker position', e);
+          }
+        }
       }
     };
 
