@@ -429,18 +429,16 @@ export const ParaqtaPage: React.FC = () => {
       {/* ===================== TAB 2: MY GROUPS ===================== */}
       {activeTab === 'groups' && (
         <div className="space-y-8 animate-fadeIn">
-          {/* Privacy Toggle & Limit info */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm">
-            <div>
-              <div className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <Settings2 className="w-4 h-4 text-orange-500" /> Топтық шақырулар баптауы
-              </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                Басқа оқырмандар сізді жаңа топтарға шақыра ала ма?
-              </p>
+          {/* Privacy Toggle */}
+          <div className="flex items-center justify-between gap-3 p-3.5 sm:p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl sm:rounded-2xl shadow-sm">
+            <div className="flex items-center gap-2">
+              <Settings2 className="w-4 h-4 text-orange-500 shrink-0" />
+              <span className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
+                Шақыртуларды қабылдау
+              </span>
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center shrink-0">
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
                   type="checkbox"
