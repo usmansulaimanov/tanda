@@ -12,6 +12,7 @@ import {
   Volume2,
   VolumeX,
   Volume1,
+  Square,
 } from 'lucide-react';
 import { ambientSoundApi, AmbientSound } from '../../../shared/api/ambientSound.api';
 import { useAmbientSoundStore } from '../../../store/useAmbientSoundStore';
@@ -49,8 +50,17 @@ export const AmbientSoundWidget: React.FC = () => {
     staleTime: 5 * 60 * 1000,
   });
 
-  const { currentSound, isPlaying, volume, setVolume, selectAndPlaySound, stopSound } =
-    useAmbientSoundStore();
+  const {
+    activeSounds,
+    activeSoundIds,
+    isSoundActive,
+    getSoundVolume,
+    toggleSound,
+    setSoundVolume,
+    stopAll,
+  } = useAmbientSoundStore();
+
+  const playingCount = activeSoundIds.length;
 
   if (isLoading && sounds.length === 0) {
     return (
@@ -69,14 +79,6 @@ export const AmbientSoundWidget: React.FC = () => {
     return null;
   }
 
-  const handleToggle = (sound: AmbientSound) => {
-    if (currentSound?.id === sound.id && isPlaying) {
-      stopSound();
-    } else {
-      selectAndPlaySound(sound);
-    }
-  };
-
   return (
     <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm space-y-4 transition-all">
       {/* Header */}
@@ -90,23 +92,39 @@ export const AmbientSoundWidget: React.FC = () => {
               Оқу атмосферасы
             </h4>
             <p className="text-[11px] text-slate-400 mt-1">
-              Кітап оқуға арналған фокустық дыбыстар
+              Бірнеше дыбысты бір уақытта қосып тыңдауға болады
             </p>
           </div>
         </div>
 
-        {isPlaying && currentSound && (
-          <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200/80 dark:border-emerald-800/80 px-2.5 py-1 rounded-full animate-pulse">
-            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-            {currentSound.name} ойнауда
-          </span>
-        )}
+        <div className="flex items-center gap-2.5">
+          {playingCount > 0 && (
+            <>
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200/80 dark:border-emerald-800/80 px-2.5 py-1 rounded-full animate-pulse">
+                <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                {playingCount === 1
+                  ? `${activeSounds[activeSoundIds[0]]?.sound.name} ойнауда`
+                  : `${playingCount} дыбыс ойнауда`}
+              </span>
+
+              <button
+                type="button"
+                onClick={stopAll}
+                className="text-[11px] font-semibold text-slate-400 hover:text-rose-500 transition-colors flex items-center gap-1 cursor-pointer"
+                title="Барлық дыбыстарды өшіру"
+              >
+                <Square className="w-3 h-3 fill-current" /> Барлығын өшіру
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Sounds 1-Column Vertical List */}
       <div className="flex flex-col gap-2.5">
         {sounds.map((sound: AmbientSound) => {
-          const isActive = currentSound?.id === sound.id && isPlaying;
+          const isActive = isSoundActive(sound.id);
+          const soundVol = getSoundVolume(sound.id);
 
           return (
             <div
@@ -147,14 +165,14 @@ export const AmbientSoundWidget: React.FC = () => {
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
-                        setVolume(volume === 0 ? 0.6 : 0);
+                        setSoundVolume(sound.id, soundVol === 0 ? 0.6 : 0);
                       }}
                       className="text-orange-500 hover:text-orange-600 transition-colors p-0.5"
-                      title={volume === 0 ? 'Дыбысты қосу' : 'Дыбысты басу'}
+                      title={soundVol === 0 ? 'Дыбысты қосу' : 'Дыбысты басу'}
                     >
-                      {volume === 0 ? (
+                      {soundVol === 0 ? (
                         <VolumeX className="w-4 h-4" />
-                      ) : volume < 0.5 ? (
+                      ) : soundVol < 0.5 ? (
                         <Volume1 className="w-4 h-4" />
                       ) : (
                         <Volume2 className="w-4 h-4" />
@@ -166,13 +184,13 @@ export const AmbientSoundWidget: React.FC = () => {
                       min="0"
                       max="1"
                       step="0.05"
-                      value={volume}
-                      onChange={(e) => setVolume(parseFloat(e.target.value))}
+                      value={soundVol}
+                      onChange={(e) => setSoundVolume(sound.id, parseFloat(e.target.value))}
                       className="w-20 sm:w-28 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-[#F08000]"
                     />
 
                     <span className="text-[11px] font-mono font-bold text-orange-600 dark:text-orange-400 min-w-[30px] text-right shrink-0">
-                      {Math.round(volume * 100)}%
+                      {Math.round(soundVol * 100)}%
                     </span>
                   </div>
                 )}
@@ -180,13 +198,13 @@ export const AmbientSoundWidget: React.FC = () => {
                 {/* Switch Toggle */}
                 <button
                   type="button"
-                  onClick={() => handleToggle(sound)}
+                  onClick={() => toggleSound(sound)}
                   className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
                     isActive ? 'bg-[#F08000]' : 'bg-slate-300 dark:bg-slate-700'
                   }`}
                   role="switch"
                   aria-checked={isActive}
-                  title={isActive ? 'Өшіру' : 'Қосу'}
+                  title={isActive ? `${sound.name} өшіру` : `${sound.name} қосу`}
                 >
                   <span
                     aria-hidden="true"

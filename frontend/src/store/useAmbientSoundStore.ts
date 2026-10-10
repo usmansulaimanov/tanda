@@ -2,87 +2,146 @@ import { create } from 'zustand';
 import { AmbientSound } from '../shared/api/ambientSound.api';
 import { formatAudioUrl } from '../utils/mediaUtils';
 
-interface AmbientSoundState {
-  currentSound: AmbientSound | null;
-  isPlaying: boolean;
+interface ActiveSoundInfo {
+  sound: AmbientSound;
   volume: number; // 0 to 1
-  setVolume: (volume: number) => void;
-  selectAndPlaySound: (sound: AmbientSound) => void;
-  togglePlay: () => void;
-  stopSound: () => void;
 }
 
-let globalAudio: HTMLAudioElement | null = null;
+interface AmbientSoundState {
+  activeSounds: Record<number, ActiveSoundInfo>; // soundId -> info
+  activeSoundIds: number[];
+  
+  toggleSound: (sound: AmbientSound) => void;
+  setSoundVolume: (soundId: number, volume: number) => void;
+  isSoundActive: (soundId: number) => boolean;
+  getSoundVolume: (soundId: number) => number;
+  stopSound: (soundId: number) => void;
+  stopAll: () => void;
+}
 
-const getAudio = () => {
+// Global audio elements cache per sound ID
+const audioInstances = new Map<number, HTMLAudioElement>();
+
+const getOrCreateAudio = (sound: AmbientSound, volume: number) => {
   if (typeof window === 'undefined') return null;
-  if (!globalAudio) {
-    globalAudio = new Audio();
-    globalAudio.loop = true;
+
+  let audio = audioInstances.get(sound.id);
+  if (!audio) {
+    audio = new Audio();
+    audio.loop = true;
+    audioInstances.set(sound.id, audio);
   }
-  return globalAudio;
+
+  const resolvedSrc = formatAudioUrl(sound.audioUrl);
+  if (audio.src !== resolvedSrc) {
+    audio.src = resolvedSrc;
+  }
+  audio.volume = Math.max(0, Math.min(1, volume));
+  return audio;
 };
 
 export const useAmbientSoundStore = create<AmbientSoundState>((set, get) => ({
-  currentSound: null,
-  isPlaying: false,
-  volume: 0.6,
+  activeSounds: {},
+  activeSoundIds: [],
 
-  setVolume: (volume: number) => {
-    const safeVol = Math.max(0, Math.min(1, volume));
-    set({ volume: safeVol });
-    const audio = getAudio();
-    if (audio) {
-      audio.volume = safeVol;
-    }
+  isSoundActive: (soundId: number) => {
+    return Boolean(get().activeSounds[soundId]);
   },
 
-  selectAndPlaySound: (sound: AmbientSound) => {
-    const current = get().currentSound;
-    const isPlaying = get().isPlaying;
-    const audio = getAudio();
+  getSoundVolume: (soundId: number) => {
+    return get().activeSounds[soundId]?.volume ?? 0.6;
+  },
 
-    if (!audio) return;
+  toggleSound: (sound: AmbientSound) => {
+    const { activeSounds } = get();
+    const isActive = Boolean(activeSounds[sound.id]);
 
-    // If same sound clicked while playing, toggle pause
-    if (current?.id === sound.id) {
-      if (isPlaying) {
+    if (isActive) {
+      // Stop and remove this sound
+      const audio = audioInstances.get(sound.id);
+      if (audio) {
         audio.pause();
-        set({ isPlaying: false });
-      } else {
-        audio.play().catch(console.error);
-        set({ isPlaying: true });
       }
-      return;
-    }
 
-    // Switch sound
-    audio.src = formatAudioUrl(sound.audioUrl);
-    audio.volume = get().volume;
-    audio.play().catch(console.error);
-    set({ currentSound: sound, isPlaying: true });
-  },
+      const nextActive = { ...activeSounds };
+      delete nextActive[sound.id];
 
-  togglePlay: () => {
-    const { currentSound, isPlaying } = get();
-    const audio = getAudio();
-    if (!audio || !currentSound) return;
-
-    if (isPlaying) {
-      audio.pause();
-      set({ isPlaying: false });
+      set({
+        activeSounds: nextActive,
+        activeSoundIds: Object.keys(nextActive).map(Number),
+      });
     } else {
-      audio.play().catch(console.error);
-      set({ isPlaying: true });
+      // Start this sound
+      const defaultVol = 0.6;
+      const audio = getOrCreateAudio(sound, defaultVol);
+      if (audio) {
+        audio.play().catch((err) => {
+          console.error(`Error playing ambient sound ${sound.name}:`, err);
+        });
+      }
+
+      const nextActive = {
+        ...activeSounds,
+        [sound.id]: {
+          sound,
+          volume: defaultVol,
+        },
+      };
+
+      set({
+        activeSounds: nextActive,
+        activeSoundIds: Object.keys(nextActive).map(Number),
+      });
     }
   },
 
-  stopSound: () => {
-    const audio = getAudio();
+  setSoundVolume: (soundId: number, volume: number) => {
+    const safeVol = Math.max(0, Math.min(1, volume));
+    const { activeSounds } = get();
+    const current = activeSounds[soundId];
+
+    if (current) {
+      const audio = audioInstances.get(soundId);
+      if (audio) {
+        audio.volume = safeVol;
+      }
+
+      set({
+        activeSounds: {
+          ...activeSounds,
+          [soundId]: {
+            ...current,
+            volume: safeVol,
+          },
+        },
+      });
+    }
+  },
+
+  stopSound: (soundId: number) => {
+    const audio = audioInstances.get(soundId);
     if (audio) {
       audio.pause();
-      audio.currentTime = 0;
     }
-    set({ currentSound: null, isPlaying: false });
+
+    const { activeSounds } = get();
+    const nextActive = { ...activeSounds };
+    delete nextActive[soundId];
+
+    set({
+      activeSounds: nextActive,
+      activeSoundIds: Object.keys(nextActive).map(Number),
+    });
+  },
+
+  stopAll: () => {
+    audioInstances.forEach((audio) => {
+      audio.pause();
+    });
+
+    set({
+      activeSounds: {},
+      activeSoundIds: [],
+    });
   },
 }));
