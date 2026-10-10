@@ -353,29 +353,29 @@ export const GroupDetailPage: React.FC = () => {
 
       {/* Tracker & Stats Section for this Group */}
       {group.isMember && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-2.5 sm:gap-4 lg:gap-6 items-start mb-8 animate-fadeIn">
-          {/* Left Column (Approx 40%): 2x2 Stats Grid for this Group */}
-          <div className="lg:col-span-5 flex flex-col gap-2.5 sm:gap-4">
-            <div className="grid grid-cols-2 gap-2.5 sm:gap-4">
-              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl sm:rounded-2xl p-3 sm:p-5 shadow-sm flex flex-col justify-between min-h-[78px] sm:min-h-[110px]">
-                <div className="text-[11px] sm:text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1 sm:mb-2 flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5 text-orange-500" /> Бүгін
+        <div className="flex flex-col lg:grid lg:grid-cols-12 gap-2.5 sm:gap-4 lg:gap-6 items-start mb-8 animate-fadeIn">
+          {/* 1. 2x2 Stats Grid (Desktop Left Top, Mobile 1st) */}
+          <div className="w-full lg:col-span-5 lg:col-start-1 lg:row-start-1 order-1 lg:order-none">
+            <div className="grid grid-cols-2 gap-2 sm:gap-3">
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl sm:rounded-2xl p-2.5 sm:p-3.5 shadow-sm flex flex-col justify-between min-h-[60px] sm:min-h-[84px]">
+                <div className="text-[10px] sm:text-xs font-semibold text-slate-500 dark:text-slate-400 mb-0.5 sm:mb-1 flex items-center gap-1.5">
+                  <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-orange-500" /> Бүгін
                 </div>
                 <div>
-                  <div className="text-lg sm:text-2xl font-extrabold text-slate-900 dark:text-white leading-tight">
+                  <div className="text-base sm:text-xl font-extrabold text-slate-900 dark:text-white leading-tight">
                     {Math.floor((group.myTodaySeconds || 0) / 60)} мин
                   </div>
-                  <div className="text-[10px] sm:text-[11px] text-slate-400 font-bold mt-0.5">
+                  <div className="text-[9px] sm:text-[11px] text-slate-400 font-bold">
                     {(group.myTodaySeconds || 0) % 60} сек
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl sm:rounded-2xl p-3 sm:p-5 shadow-sm flex flex-col justify-between min-h-[78px] sm:min-h-[110px]">
-                <div className="text-[11px] sm:text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1 sm:mb-2 flex items-center gap-1.5">
-                  <Crown className="w-3.5 h-3.5 text-orange-500" /> Топтағы орныңыз
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl sm:rounded-2xl p-2.5 sm:p-3.5 shadow-sm flex flex-col justify-between min-h-[60px] sm:min-h-[84px]">
+                <div className="text-[10px] sm:text-xs font-semibold text-slate-500 dark:text-slate-400 mb-0.5 sm:mb-1 flex items-center gap-1.5">
+                  <Crown className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-orange-500" /> Топтағы орныңыз
                 </div>
-                <div className="text-lg sm:text-2xl font-extrabold text-slate-900 dark:text-white">
+                <div className="text-base sm:text-xl font-extrabold text-slate-900 dark:text-white leading-tight">
                   {myMember?.rank ? (
                     myMember.rank === 1 ? (
                       <span className="text-amber-500">🥇 1-орын</span>
@@ -392,31 +392,28 @@ export const GroupDetailPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl sm:rounded-2xl p-3 sm:p-5 shadow-sm flex flex-col justify-between min-h-[78px] sm:min-h-[110px]">
-                <div className="text-[11px] sm:text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1 sm:mb-2 flex items-center gap-1.5">
-                  <Trophy className="w-3.5 h-3.5 text-amber-500" /> Осы айда
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl sm:rounded-2xl p-2.5 sm:p-3.5 shadow-sm flex flex-col justify-between min-h-[60px] sm:min-h-[84px]">
+                <div className="text-[10px] sm:text-xs font-semibold text-slate-500 dark:text-slate-400 mb-0.5 sm:mb-1 flex items-center gap-1.5">
+                  <Trophy className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-500" /> Осы айда
                 </div>
-                <div className="text-lg sm:text-2xl font-extrabold text-slate-900 dark:text-white">
+                <div className="text-base sm:text-xl font-extrabold text-slate-900 dark:text-white leading-tight">
                   {formatDurationHuman(group.myMonthlySeconds || 0)}
                 </div>
               </div>
 
-              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl sm:rounded-2xl p-3 sm:p-5 shadow-sm bg-gradient-to-br from-orange-500/5 to-amber-500/10 flex flex-col justify-between min-h-[78px] sm:min-h-[110px]">
-                <div className="text-[11px] sm:text-xs font-semibold text-[#F08000] mb-1 sm:mb-2 flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-[#F08000]" /> Жалпы оқыған
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl sm:rounded-2xl p-2.5 sm:p-3.5 shadow-sm bg-gradient-to-br from-orange-500/5 to-amber-500/10 flex flex-col justify-between min-h-[60px] sm:min-h-[84px]">
+                <div className="text-[10px] sm:text-xs font-semibold text-[#F08000] mb-0.5 sm:mb-1 flex items-center gap-1.5">
+                  <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#F08000]" /> Жалпы оқыған
                 </div>
-                <div className="text-lg sm:text-2xl font-extrabold text-[#F08000]">
+                <div className="text-base sm:text-xl font-extrabold text-[#F08000] leading-tight">
                   {formatDurationHuman(group.myTotalSeconds || 0)}
                 </div>
               </div>
             </div>
-
-            {/* Ambient Background Sounds Widget */}
-            <AmbientSoundWidget />
           </div>
 
-          {/* Right Column (Approx 60%): Main Stopwatch / Timer Card */}
-          <div className="lg:col-span-7">
+          {/* 2. Main Stopwatch / Timer Card (Mobile 2nd, Desktop Right Col 6-12) */}
+          <div className="w-full lg:col-span-7 lg:col-start-6 lg:row-start-1 lg:row-span-2 order-2 lg:order-none">
             <ReadingTrackerWidget
               fixedGroupId={group.id}
               fixedGroupName={group.name}
@@ -425,6 +422,11 @@ export const GroupDetailPage: React.FC = () => {
                 queryClient.invalidateQueries({ queryKey: ['readingStats'] });
               }}
             />
+          </div>
+
+          {/* 3. Ambient Background Sounds Widget (Mobile 3rd, Desktop Left Bottom Col 1-5 Row 2) */}
+          <div className="w-full lg:col-span-5 lg:col-start-1 lg:row-start-2 order-3 lg:order-none">
+            <AmbientSoundWidget />
           </div>
         </div>
       )}
@@ -607,8 +609,14 @@ export const GroupDetailPage: React.FC = () => {
 
       {/* ================= INVITE MODAL ================= */}
       {showInviteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl">
+        <div
+          onClick={() => setShowInviteModal(false)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn cursor-pointer"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl cursor-default"
+          >
             <h3 className="text-lg font-extrabold text-slate-900 dark:text-white mb-1">Оқырманды топқа шақыру</h3>
             <p className="text-xs text-slate-500 mb-4">Оқырманның тіркелген почтасын жазыңыз:</p>
 
@@ -643,7 +651,7 @@ export const GroupDetailPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowInviteModal(false)}
-                  className="px-4 py-2 text-xs font-bold text-slate-500"
+                  className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 cursor-pointer"
                 >
                   Болдырмау
                 </button>
@@ -651,7 +659,7 @@ export const GroupDetailPage: React.FC = () => {
                   type="button"
                   disabled={!inviteEmail.trim() || sendInviteMutation.isPending}
                   onClick={handleSendInvite}
-                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#F08000] to-orange-500 text-white font-bold text-xs shadow-md disabled:opacity-50"
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#F08000] to-orange-500 text-white font-bold text-xs shadow-md disabled:opacity-50 cursor-pointer"
                 >
                   {sendInviteMutation.isPending ? 'Жіберілуде...' : 'Шақыру хатын жіберу'}
                 </button>
@@ -663,8 +671,17 @@ export const GroupDetailPage: React.FC = () => {
 
       {/* Kick Member Confirmation Modal */}
       {memberToKick && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl border border-slate-100 dark:border-slate-800 space-y-4 animate-scaleUp">
+        <div
+          onClick={() => {
+            setMemberToKick(null);
+            setKickConfirmationText('');
+          }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn cursor-pointer"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl border border-slate-100 dark:border-slate-800 space-y-4 animate-scaleUp cursor-default"
+          >
             <div>
               <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
                 Оқырманды топтан шығару
@@ -732,8 +749,17 @@ export const GroupDetailPage: React.FC = () => {
 
       {/* Leave Group Confirmation Modal */}
       {showLeaveModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl border border-slate-100 dark:border-slate-800 space-y-4 animate-scaleUp">
+        <div
+          onClick={() => {
+            setShowLeaveModal(false);
+            setLeaveConfirmationText('');
+          }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn cursor-pointer"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl border border-slate-100 dark:border-slate-800 space-y-4 animate-scaleUp cursor-default"
+          >
             <div>
               <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
                 Топтан шығу
