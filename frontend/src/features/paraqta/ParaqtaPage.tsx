@@ -300,39 +300,37 @@ export const ParaqtaPage: React.FC = () => {
         </div>
       )}
 
-      {/* Header Banner */}
-      <div className="relative overflow-hidden rounded-xl sm:rounded-2xl py-2 px-3.5 sm:py-2.5 sm:px-5 mb-2.5 sm:mb-3 shadow-sm w-full max-w-full bg-gradient-to-r from-amber-500/15 via-orange-500/20 to-amber-600/15 border border-orange-500/30 backdrop-blur-md">
-        <div className="relative z-10 flex items-center justify-between gap-3">
-          <div>
-            <h1 className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-              Парақта
-            </h1>
-          </div>
+      {/* Header Row */}
+      <div className="flex items-center justify-between gap-3 mb-3 sm:mb-4 px-1">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+            Парақта
+          </h1>
+        </div>
 
-          <div className="flex items-center gap-2 shrink-0">
-            {activeTab === 'tracker' ? (
-              <button
-                onClick={() => setShowInvitationsModal(true)}
-                className="px-3 sm:px-4 h-8 sm:h-9 rounded-lg sm:rounded-xl bg-gradient-to-r from-[#F08000] to-orange-500 text-white font-bold text-xs sm:text-sm shadow-md shadow-orange-500/25 hover:shadow-orange-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5"
-              >
-                <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-                <span>Шақыртулар</span>
-                {invitations.length > 0 && (
-                  <span className="px-1.5 py-0.5 bg-white text-[#F08000] text-[10px] font-black rounded-full leading-none shadow-sm animate-pulse">
-                    {invitations.length}
-                  </span>
-                )}
-              </button>
-            ) : (
-              <button
-                onClick={() => setShowCreateModal(true)}
-                className="px-3 sm:px-4 h-8 sm:h-9 rounded-lg sm:rounded-xl bg-gradient-to-r from-[#F08000] to-orange-500 text-white font-bold text-xs sm:text-sm shadow-md shadow-orange-500/25 hover:shadow-orange-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5"
-              >
-                <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-                <span>Топ қосу</span>
-              </button>
-            )}
-          </div>
+        <div className="flex items-center gap-2 shrink-0">
+          {activeTab === 'tracker' ? (
+            <button
+              onClick={() => setShowInvitationsModal(true)}
+              className="px-3.5 sm:px-4 h-8 sm:h-9 rounded-xl bg-gradient-to-r from-[#F08000] to-orange-500 text-white font-bold text-xs sm:text-sm shadow-md shadow-orange-500/25 hover:shadow-orange-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5"
+            >
+              <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+              <span>Шақыртулар</span>
+              {invitations.length > 0 && (
+                <span className="px-1.5 py-0.5 bg-white text-[#F08000] text-[10px] font-black rounded-full leading-none shadow-sm animate-pulse">
+                  {invitations.length}
+                </span>
+              )}
+            </button>
+          ) : (
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="px-3.5 sm:px-4 h-8 sm:h-9 rounded-xl bg-gradient-to-r from-[#F08000] to-orange-500 text-white font-bold text-xs sm:text-sm shadow-md shadow-orange-500/25 hover:shadow-orange-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5"
+            >
+              <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+              <span>Топ қосу</span>
+            </button>
+          )}
         </div>
       </div>
 
