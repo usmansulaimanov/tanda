@@ -49,7 +49,7 @@ export const useBookStore = create<BookState>((set, get) => ({
 
   fetchBooks: async (params = {}) => {
     const currentRequestId = ++latestFetchRequestId;
-    set({ isSyncing: true });
+    set({ isSyncing: true, isLoading: get().books.length === 0 });
     try {
       const { data } = await api.get('/api/v1/books', { params });
       if (currentRequestId !== latestFetchRequestId) {
@@ -66,6 +66,24 @@ export const useBookStore = create<BookState>((set, get) => ({
         audioUrl: b?.audioUrl ? formatAudioUrl(b.audioUrl) : b?.audioUrl,
       }));
       set({ books: normalizedList });
+
+      // If list is empty and no specific filters applied, schedule auto-retry in case backend was cold booting
+      if (normalizedList.length === 0 && Object.keys(params).length === 0) {
+        setTimeout(() => {
+          if (get().books.length === 0) {
+            get().fetchBooks(params).catch(() => {});
+          }
+        }, 3500);
+      }
+    } catch {
+      // If network error/timeout (e.g. Render cold boot), retry after 3 seconds
+      if (get().books.length === 0 && Object.keys(params).length === 0) {
+        setTimeout(() => {
+          if (get().books.length === 0) {
+            get().fetchBooks(params).catch(() => {});
+          }
+        }, 3500);
+      }
     } finally {
       if (currentRequestId === latestFetchRequestId) {
         set({ isLoading: false, isSyncing: false });

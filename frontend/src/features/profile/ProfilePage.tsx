@@ -94,7 +94,9 @@ export const ProfilePage: React.FC = () => {
     queryKey: ['personal-stats', user?.id],
     queryFn: () => leaderboardApi.getPersonalStats(),
     enabled: Boolean(user?.id),
-    staleTime: 60 * 1000,
+    staleTime: 10 * 1000,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
   });
 
   // Fetch leaderboard ranking
@@ -102,7 +104,9 @@ export const ProfilePage: React.FC = () => {
     queryKey: ['leaderboard-rank', user?.id],
     queryFn: () => leaderboardApi.getLeaderboard('THIS_WEEK'),
     enabled: Boolean(user?.id),
-    staleTime: 60 * 1000,
+    staleTime: 10 * 1000,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
   });
 
   // Fetch user reviews

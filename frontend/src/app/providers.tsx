@@ -68,8 +68,33 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
 
     window.addEventListener('tanda:user-status-changed', checkBlocked);
 
+    // Auto-refresh data when app re-opens or regains network connectivity
+    const handleReopenOrReconnect = () => {
+      import('../store/useBookStore').then(({ useBookStore }) => {
+        if (useBookStore.getState().books.length === 0) {
+          useBookStore.getState().fetchBooks().catch(() => {});
+        }
+      });
+      queryClient.invalidateQueries({ queryKey: ['personal-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['leaderboard-rank'] });
+      queryClient.invalidateQueries({ queryKey: ['bonus-settings'] });
+    };
+
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        handleReopenOrReconnect();
+      }
+    };
+
+    window.addEventListener('focus', handleReopenOrReconnect);
+    window.addEventListener('online', handleReopenOrReconnect);
+    document.addEventListener('visibilitychange', handleVisibility);
+
     return () => {
       window.removeEventListener('tanda:user-status-changed', checkBlocked);
+      window.removeEventListener('focus', handleReopenOrReconnect);
+      window.removeEventListener('online', handleReopenOrReconnect);
+      document.removeEventListener('visibilitychange', handleVisibility);
     };
   }, []);
 
