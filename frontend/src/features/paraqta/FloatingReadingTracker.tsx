@@ -259,11 +259,6 @@ export const FloatingReadingTracker: React.FC = () => {
           <span className="font-mono text-base sm:text-lg font-black tracking-wider text-white">
             {displayTime}
           </span>
-          {isPaused && (
-            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-400 uppercase">
-              Үзіліс
-            </span>
-          )}
         </div>
         <div className="text-[11px] text-slate-400 truncate max-w-[120px] sm:max-w-[170px] flex items-center gap-1">
           <span className="truncate">{displayLabel}</span>
