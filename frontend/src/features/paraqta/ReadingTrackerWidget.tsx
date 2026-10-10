@@ -392,7 +392,7 @@ export const ReadingTrackerWidget: React.FC<ReadingTrackerWidgetProps> = ({
         {!isRunning ? (
           <button
             onClick={handleStartSession}
-            className="px-7 py-3 rounded-xl sm:rounded-2xl bg-gradient-to-r from-[#F08000] to-orange-500 text-white font-extrabold text-sm sm:text-base shadow-lg shadow-orange-500/25 hover:scale-105 active:scale-95 transition-all flex items-center gap-2.5 cursor-pointer"
+            className="px-7 py-4 rounded-2xl bg-gradient-to-r from-[#F08000] to-orange-500 text-white font-extrabold text-sm sm:text-base shadow-lg shadow-orange-500/25 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2.5 cursor-pointer min-w-[170px]"
           >
             <Play className="w-5 h-5 fill-current" /> Оқуды бастау
           </button>
@@ -400,23 +400,23 @@ export const ReadingTrackerWidget: React.FC<ReadingTrackerWidgetProps> = ({
           <>
             <button
               onClick={togglePause}
-              className={`px-6 py-4 rounded-2xl font-bold text-sm sm:text-base flex items-center gap-2 transition-all ${
+              className={`py-4 rounded-2xl font-bold text-sm sm:text-base flex items-center justify-center gap-2 transition-colors cursor-pointer w-40 sm:w-44 select-none ${
                 isPaused
                   ? 'bg-emerald-600 text-white hover:bg-emerald-700'
                   : 'bg-amber-500 text-white hover:bg-amber-600'
               }`}
             >
               {isPaused ? <Play className="w-4 h-4 fill-current" /> : <Pause className="w-4 h-4" />}
-              {isPaused ? 'Жалғастыру' : 'Үзіліс'}
+              <span>{isPaused ? 'Жалғастыру' : 'Үзіліс'}</span>
             </button>
 
             <button
               onClick={() => handleStopSession()}
               disabled={saveSessionMutation.isPending}
-              className="px-6 py-4 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm sm:text-base flex items-center gap-2 shadow-lg shadow-rose-600/30 active:scale-95 transition-all"
+              className="py-4 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm sm:text-base flex items-center justify-center gap-2 shadow-lg shadow-rose-600/30 active:scale-95 transition-all cursor-pointer w-36 sm:w-40 select-none"
             >
               <Square className="w-4 h-4 fill-current" />
-              {saveSessionMutation.isPending ? 'Сақталуда...' : 'Аяқтау'}
+              <span>{saveSessionMutation.isPending ? 'Сақталуда...' : 'Аяқтау'}</span>
             </button>
           </>
         )}
