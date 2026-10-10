@@ -197,8 +197,10 @@ export const FloatingReadingTracker: React.FC = () => {
     saveSessionMutation.mutate(payload);
   };
 
-  const handleCardClick = () => {
+  const handleCardClick = (e: React.MouseEvent) => {
     if (hasMovedSignificantlyRef.current) return;
+    if ((e.target as HTMLElement).closest('button')) return;
+
     const targetGroupId = fixedGroupId || selectedGroupId;
     if (targetGroupId) {
       navigate(`/paraqta/groups/${targetGroupId}`);
@@ -265,10 +267,18 @@ export const FloatingReadingTracker: React.FC = () => {
       </div>
 
       {/* Quick Controls & Close button */}
-      <div className="flex items-center gap-1.5 shrink-0" onMouseDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()}>
+      <div
+        className="flex items-center gap-1.5 shrink-0"
+        onClick={(e) => e.stopPropagation()}
+        onMouseDown={(e) => e.stopPropagation()}
+        onTouchStart={(e) => e.stopPropagation()}
+      >
         <button
           type="button"
-          onClick={togglePause}
+          onClick={(e) => {
+            e.stopPropagation();
+            togglePause();
+          }}
           className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center text-white transition-all shadow-md active:scale-90 cursor-pointer ${
             isPaused
               ? 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-600/30'
