@@ -22,7 +22,7 @@ import {
   Clock,
   Flame,
 } from 'lucide-react';
-import { paraqtaApi, ReadingGroupDetail, UserSearchResult } from '../../shared/api/paraqta.api';
+import { paraqtaApi, ReadingGroupDetail, ReadingGroupMember, UserSearchResult } from '../../shared/api/paraqta.api';
 import { formatDurationHuman } from './ParaqtaPage';
 import { useAuthStore } from '../../store/useAuthStore';
 import { Skeleton } from '../../shared/ui';
@@ -59,6 +59,9 @@ export const GroupDetailPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'leaderboard' | 'archive'>('leaderboard');
   const [copiedLink, setCopiedLink] = useState(false);
   const [toastMessage, setToastMessage] = useState<{ title: string; type: 'success' | 'error' } | null>(null);
+
+  const [memberToKick, setMemberToKick] = useState<ReadingGroupMember | null>(null);
+  const [kickConfirmationText, setKickConfirmationText] = useState('');
 
   const showToast = (title: string, type: 'success' | 'error' = 'success') => {
     setToastMessage({ title, type });
@@ -122,6 +125,8 @@ export const GroupDetailPage: React.FC = () => {
   const kickMemberMutation = useMutation({
     mutationFn: (targetUserId: string) => paraqtaApi.kickMember(id!, targetUserId),
     onSuccess: () => {
+      setMemberToKick(null);
+      setKickConfirmationText('');
       queryClient.invalidateQueries({ queryKey: ['readingGroupDetail', id] });
       showToast('Мүше топтан шығарылды');
     },
@@ -523,13 +528,13 @@ export const GroupDetailPage: React.FC = () => {
 
                       {isAdmin && member.role !== 'CREATOR' && !isCurrentUser && (
                         <button
+                          type="button"
                           onClick={() => {
-                            if (confirm(`«${member.name}» оқырманын топтан шығарғыңыз келе ме?`)) {
-                              kickMemberMutation.mutate(member.userId);
-                            }
+                            setMemberToKick(member);
+                            setKickConfirmationText('');
                           }}
-                          className="p-2 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-500/10 transition-colors"
-                          title="Топтан шығару (Kick)"
+                          className="p-2 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                          title="Топтан шығару"
                         >
                           <UserMinus className="w-4 h-4" />
                         </button>
@@ -631,6 +636,80 @@ export const GroupDetailPage: React.FC = () => {
                   {sendInviteMutation.isPending ? 'Жіберілуде...' : 'Шақыру хатын жіберу'}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Kick Member Confirmation Modal */}
+      {memberToKick && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl border border-slate-100 dark:border-slate-800 space-y-4 animate-scaleUp">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-rose-500/15 text-rose-600 flex items-center justify-center font-bold shrink-0">
+                <UserMinus className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  Оқырманды топтан шығару
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Әрекетті растау қажет
+                </p>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200/60 dark:border-rose-900/40 text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+              <strong>«{memberToKick.name}»</strong> оқырманын топтан шығарғыңыз келетінін растау үшін төмендегі өріске <strong>«шығару»</strong> деп жазыңыз:
+            </div>
+
+            <div>
+              <input
+                type="text"
+                autoFocus
+                placeholder="шығару"
+                value={kickConfirmationText}
+                onChange={(e) => setKickConfirmationText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (
+                    e.key === 'Enter' &&
+                    kickConfirmationText.trim().toLowerCase() === 'шығару' &&
+                    !kickMemberMutation.isPending
+                  ) {
+                    e.preventDefault();
+                    kickMemberMutation.mutate(memberToKick.userId);
+                  }
+                }}
+                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-rose-500 focus:outline-none"
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setMemberToKick(null);
+                  setKickConfirmationText('');
+                }}
+                className="px-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer"
+              >
+                Болдырмау
+              </button>
+              <button
+                type="button"
+                disabled={
+                  kickConfirmationText.trim().toLowerCase() !== 'шығару' ||
+                  kickMemberMutation.isPending
+                }
+                onClick={() => {
+                  if (kickConfirmationText.trim().toLowerCase() === 'шығару') {
+                    kickMemberMutation.mutate(memberToKick.userId);
+                  }
+                }}
+                className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-md shadow-rose-600/25 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-all"
+              >
+                {kickMemberMutation.isPending ? 'Шығарылуда...' : 'Шығару'}
+              </button>
             </div>
           </div>
         </div>
