@@ -511,12 +511,10 @@ export const GroupDetailPage: React.FC = () => {
                         <div className="text-[10px] sm:text-[11px] text-slate-400 flex items-center gap-1 sm:gap-1.5 flex-wrap">
                           {member.email && (
                             <>
-                              <span className="text-slate-500 dark:text-slate-400 font-medium truncate max-w-[110px] sm:max-w-none">{member.email}</span>
-                              <span className="text-slate-300 dark:text-slate-700">•</span>
+                              <span className="text-slate-500 dark:text-slate-400 font-medium truncate max-w-[120px] sm:max-w-none">{member.email}</span>
+                              <span className="sm:hidden text-slate-300 dark:text-slate-700">•</span>
                             </>
                           )}
-                          <span>Жалпы: {formatDurationHuman(member.totalReadingSeconds)}</span>
-                          <span className="sm:hidden text-slate-300 dark:text-slate-700">•</span>
                           <span className="sm:hidden font-medium text-slate-600 dark:text-slate-300">
                             Бүгін: {formatDurationHuman(member.todayReadingSeconds || 0)}
                           </span>
