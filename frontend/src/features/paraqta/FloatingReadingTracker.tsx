@@ -319,11 +319,11 @@ export const FloatingReadingTracker: React.FC = () => {
       </div>
 
       {/* Icon */}
-      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-orange-500/20 text-[#F08000] flex items-center justify-center shrink-0 shadow-inner">
+      <div className="flex items-center justify-center shrink-0">
         {mode === 'TIMER' ? (
-          <Timer className="w-5 h-5 text-amber-400 animate-pulse" />
+          <Timer className="w-5 h-5 sm:w-6 sm:h-6 text-amber-400 animate-pulse" />
         ) : (
-          <Flame className="w-5 h-5 text-orange-500 animate-pulse" />
+          <Flame className="w-5 h-5 sm:w-6 sm:h-6 text-orange-500 animate-pulse" />
         )}
       </div>
 
