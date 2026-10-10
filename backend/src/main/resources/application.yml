@@ -62,6 +62,7 @@ brevo:
 telegram:
   bot:
     token: ${TELEGRAM_BOT_TOKEN:8656738239:AAE0ryDJRET9vBeVXSTS-08SKt2FRSi435Q}
+    api-url: ${TELEGRAM_BOT_API_URL:https://api.telegram.org}
 
 openai:
   api-key: ${OPENAI_API_KEY:}

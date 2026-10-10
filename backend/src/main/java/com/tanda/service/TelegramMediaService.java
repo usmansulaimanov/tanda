@@ -10,8 +10,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.RandomAccessFile;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
@@ -31,6 +33,9 @@ public class TelegramMediaService {
     @Value("${telegram.bot.token:8656738239:AAE0ryDJRET9vBeVXSTS-08SKt2FRSi435Q}")
     private String botToken;
 
+    @Value("${telegram.bot.api-url:https://api.telegram.org}")
+    private String botApiUrl;
+
     @Value("${app.base-url:https://tandamen.kz}")
     private String baseUrl;
 
@@ -39,6 +44,13 @@ public class TelegramMediaService {
     private final HttpClient httpClient = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(10))
             .build();
+
+    private String getCleanBotApiUrl() {
+        if (botApiUrl == null || botApiUrl.isBlank()) {
+            return "https://api.telegram.org";
+        }
+        return botApiUrl.replaceAll("/+$", "");
+    }
 
     private static class CachedTelegramFile {
         final String filePath;
@@ -63,7 +75,7 @@ public class TelegramMediaService {
         }
 
         try {
-            String getFileUrl = "https://api.telegram.org/bot" + botToken.trim() + "/getFile?file_id=" + fileId.trim();
+            String getFileUrl = getCleanBotApiUrl() + "/bot" + botToken.trim() + "/getFile?file_id=" + fileId.trim();
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(getFileUrl))
                     .GET()
@@ -97,7 +109,15 @@ public class TelegramMediaService {
             return;
         }
 
-        String downloadUrl = "https://api.telegram.org/file/bot" + botToken.trim() + "/" + filePath;
+        // 1. If Local Telegram Bot API returned direct local file path and it exists on disk
+        File localFile = new File(filePath);
+        if (localFile.exists() && localFile.isFile() && localFile.canRead()) {
+            streamLocalFile(localFile, filePath, request, response);
+            return;
+        }
+
+        // 2. HTTP streaming via Telegram Bot API server
+        String downloadUrl = getCleanBotApiUrl() + "/file/bot" + botToken.trim() + "/" + filePath;
         HttpURLConnection connection = null;
 
         try {
@@ -341,6 +361,64 @@ public class TelegramMediaService {
         }
     }
 
+    private void streamLocalFile(File file, String path, HttpServletRequest request, HttpServletResponse response) {
+        long fileLength = file.length();
+        String contentType = detectContentType(path, null, 0, null);
+        response.setContentType(contentType);
+        response.setHeader("Accept-Ranges", "bytes");
+        response.setHeader("Access-Control-Allow-Origin", "*");
+        response.setHeader("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS");
+        response.setHeader("Access-Control-Allow-Headers", "Range, Authorization, Content-Type, Accept");
+        response.setHeader("Access-Control-Expose-Headers", "Content-Range, Content-Length, Accept-Ranges");
+        response.setHeader("Cache-Control", "public, max-age=86400");
+
+        String filename = path.contains("/") ? path.substring(path.lastIndexOf('/') + 1) : "file";
+        response.setHeader("Content-Disposition", "inline; filename=\"" + filename + "\"");
+
+        String rangeHeader = request.getHeader("Range");
+        if (rangeHeader != null && rangeHeader.startsWith("bytes=")) {
+            String[] ranges = rangeHeader.substring(6).split("-");
+            long start = Long.parseLong(ranges[0]);
+            long end = (ranges.length > 1 && !ranges[1].isBlank()) ? Long.parseLong(ranges[1]) : fileLength - 1;
+            if (end >= fileLength) end = fileLength - 1;
+            long contentLength = end - start + 1;
+
+            response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
+            response.setHeader("Content-Range", "bytes " + start + "-" + end + "/" + fileLength);
+            response.setHeader("Content-Length", String.valueOf(contentLength));
+
+            try (RandomAccessFile raf = new RandomAccessFile(file, "r");
+                 OutputStream out = response.getOutputStream()) {
+                raf.seek(start);
+                byte[] buffer = new byte[16384];
+                long bytesRemaining = contentLength;
+                while (bytesRemaining > 0) {
+                    int read = raf.read(buffer, 0, (int) Math.min(buffer.length, bytesRemaining));
+                    if (read == -1) break;
+                    out.write(buffer, 0, read);
+                    bytesRemaining -= read;
+                }
+                out.flush();
+            } catch (Exception e) {
+                log.debug("Local stream ended or disconnected: {}", e.getMessage());
+            }
+        } else {
+            response.setStatus(HttpServletResponse.SC_OK);
+            response.setHeader("Content-Length", String.valueOf(fileLength));
+            try (InputStream is = new BufferedInputStream(new java.io.FileInputStream(file), 16384);
+                 OutputStream out = response.getOutputStream()) {
+                byte[] buffer = new byte[16384];
+                int read;
+                while ((read = is.read(buffer)) != -1) {
+                    out.write(buffer, 0, read);
+                }
+                out.flush();
+            } catch (Exception e) {
+                log.debug("Local stream ended or disconnected: {}", e.getMessage());
+            }
+        }
+    }
+
     public void sendTelegramMessage(long chatId, int replyToMessageId, String htmlText) {
         try {
             Map<String, Object> body = new HashMap<>();
@@ -354,7 +432,7 @@ public class TelegramMediaService {
             String json = objectMapper.writeValueAsString(body);
 
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create("https://api.telegram.org/bot" + botToken.trim() + "/sendMessage"))
+                    .uri(URI.create(getCleanBotApiUrl() + "/bot" + botToken.trim() + "/sendMessage"))
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(json))
                     .timeout(Duration.ofSeconds(10))
