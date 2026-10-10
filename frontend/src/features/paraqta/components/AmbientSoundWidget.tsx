@@ -56,7 +56,8 @@ export const AmbientSoundWidget: React.FC = () => {
     return (
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm animate-pulse space-y-3">
         <div className="h-5 bg-slate-200 dark:bg-slate-800 rounded w-1/4 mb-2"></div>
-        <div className="space-y-2">
+        <div className="space-y-2.5">
+          <div className="h-14 bg-slate-100 dark:bg-slate-800/60 rounded-2xl"></div>
           <div className="h-14 bg-slate-100 dark:bg-slate-800/60 rounded-2xl"></div>
           <div className="h-14 bg-slate-100 dark:bg-slate-800/60 rounded-2xl"></div>
         </div>
@@ -102,22 +103,22 @@ export const AmbientSoundWidget: React.FC = () => {
         )}
       </div>
 
-      {/* Sounds List with Switch & Volume Slider */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+      {/* Sounds 1-Column Vertical List */}
+      <div className="flex flex-col gap-2.5">
         {sounds.map((sound: AmbientSound) => {
           const isActive = currentSound?.id === sound.id && isPlaying;
 
           return (
             <div
               key={sound.id}
-              className={`p-3 rounded-2xl border transition-all flex items-center justify-between gap-3 ${
+              className={`p-3 sm:p-3.5 rounded-2xl border transition-all flex items-center justify-between gap-3 ${
                 isActive
-                  ? 'bg-orange-50/60 dark:bg-orange-950/20 border-orange-300 dark:border-orange-800/60 shadow-sm shadow-orange-500/5'
+                  ? 'bg-orange-50/70 dark:bg-orange-950/25 border-orange-300 dark:border-orange-800/80 shadow-sm shadow-orange-500/5'
                   : 'bg-slate-50/70 hover:bg-slate-100/80 dark:bg-slate-800/50 dark:hover:bg-slate-800/80 border-slate-200/80 dark:border-slate-800'
               }`}
             >
               {/* Left: Icon + Title */}
-              <div className="flex items-center gap-2.5 min-w-0 flex-1">
+              <div className="flex items-center gap-3 min-w-0 flex-1">
                 <div
                   className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
                     isActive
@@ -128,7 +129,7 @@ export const AmbientSoundWidget: React.FC = () => {
                   {getSoundIcon(sound.icon)}
                 </div>
                 <span
-                  className={`text-xs font-bold truncate transition-colors ${
+                  className={`text-sm font-bold truncate transition-colors ${
                     isActive
                       ? 'text-[#D97706] dark:text-orange-400'
                       : 'text-slate-700 dark:text-slate-200'
@@ -138,10 +139,10 @@ export const AmbientSoundWidget: React.FC = () => {
                 </span>
               </div>
 
-              {/* Right: Volume Slider (if active) + Toggle Switch */}
-              <div className="flex items-center gap-2.5 shrink-0">
+              {/* Right: Volume Slider (When active) + Switch Toggle */}
+              <div className="flex items-center gap-3 shrink-0">
                 {isActive && (
-                  <div className="flex items-center gap-1.5 animate-in fade-in zoom-in-95 duration-200 bg-white/90 dark:bg-slate-900/90 px-2 py-1 rounded-xl border border-orange-200 dark:border-orange-800/60">
+                  <div className="flex items-center gap-2 animate-in fade-in zoom-in-95 duration-200 bg-white dark:bg-slate-900 px-3 py-1.5 rounded-xl border border-orange-200 dark:border-orange-800/60 shadow-sm">
                     <button
                       type="button"
                       onClick={(e) => {
@@ -152,11 +153,11 @@ export const AmbientSoundWidget: React.FC = () => {
                       title={volume === 0 ? 'Дыбысты қосу' : 'Дыбысты басу'}
                     >
                       {volume === 0 ? (
-                        <VolumeX className="w-3.5 h-3.5" />
+                        <VolumeX className="w-4 h-4" />
                       ) : volume < 0.5 ? (
-                        <Volume1 className="w-3.5 h-3.5" />
+                        <Volume1 className="w-4 h-4" />
                       ) : (
-                        <Volume2 className="w-3.5 h-3.5" />
+                        <Volume2 className="w-4 h-4" />
                       )}
                     </button>
 
@@ -167,16 +168,16 @@ export const AmbientSoundWidget: React.FC = () => {
                       step="0.05"
                       value={volume}
                       onChange={(e) => setVolume(parseFloat(e.target.value))}
-                      className="w-16 sm:w-20 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-[#F08000]"
+                      className="w-20 sm:w-28 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-[#F08000]"
                     />
 
-                    <span className="text-[10px] font-mono font-bold text-orange-600 dark:text-orange-400 w-6 text-right shrink-0">
+                    <span className="text-[11px] font-mono font-bold text-orange-600 dark:text-orange-400 min-w-[30px] text-right shrink-0">
                       {Math.round(volume * 100)}%
                     </span>
                   </div>
                 )}
 
-                {/* Toggle Switch */}
+                {/* Switch Toggle */}
                 <button
                   type="button"
                   onClick={() => handleToggle(sound)}
