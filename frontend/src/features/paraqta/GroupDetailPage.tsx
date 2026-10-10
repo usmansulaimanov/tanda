@@ -468,22 +468,22 @@ export const GroupDetailPage: React.FC = () => {
                       isCurrentUser ? 'bg-orange-500/5 dark:bg-orange-500/10' : 'hover:bg-slate-50 dark:hover:bg-slate-800/40'
                     }`}
                   >
-                    <div className="flex items-center gap-3 sm:gap-4">
+                    <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
                       {/* Rank Badge */}
-                      <div className="w-8 flex items-center justify-center font-black text-sm">
+                      <div className="w-7 sm:w-8 flex items-center justify-center font-black text-sm shrink-0">
                         {isTop1 ? (
-                          <span className="text-2xl" title="1-орын">🥇</span>
+                          <span className="text-xl sm:text-2xl" title="1-орын">🥇</span>
                         ) : isTop2 ? (
-                          <span className="text-2xl" title="2-орын">🥈</span>
+                          <span className="text-xl sm:text-2xl" title="2-орын">🥈</span>
                         ) : isTop3 ? (
-                          <span className="text-2xl" title="3-орын">🥉</span>
+                          <span className="text-xl sm:text-2xl" title="3-орын">🥉</span>
                         ) : (
                           <span className="text-slate-400 font-mono">#{index + 1}</span>
                         )}
                       </div>
 
                       {/* Avatar */}
-                      <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-400 to-orange-500 text-white font-bold flex items-center justify-center shrink-0 shadow-sm">
+                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-amber-400 to-orange-500 text-white font-bold flex items-center justify-center shrink-0 shadow-sm text-sm sm:text-base">
                         {member.avatarUrl ? (
                           <img src={member.avatarUrl} alt={member.name} className="w-full h-full object-cover rounded-xl" />
                         ) : (
@@ -492,52 +492,56 @@ export const GroupDetailPage: React.FC = () => {
                       </div>
 
                       {/* Name & Role */}
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="font-extrabold text-sm text-slate-900 dark:text-white truncate">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5 sm:gap-2">
+                          <span className="font-extrabold text-xs sm:text-sm text-slate-900 dark:text-white truncate">
                             {member.name}
                           </span>
                           {isCurrentUser && (
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#F08000] text-white shrink-0">
+                            <span className="px-1.5 sm:px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold bg-[#F08000] text-white shrink-0">
                               Сіз
                             </span>
                           )}
                           {member.role === 'CREATOR' && (
-                            <span className="text-[10px] font-bold text-amber-500 flex items-center gap-0.5 shrink-0">
-                              <Crown className="w-3 h-3" /> Админ
+                            <span className="text-[9px] sm:text-[10px] font-bold text-amber-500 flex items-center gap-0.5 shrink-0">
+                              <Crown className="w-2.5 h-2.5 sm:w-3 sm:h-3" /> Админ
                             </span>
                           )}
                         </div>
-                        <div className="text-[11px] text-slate-400 flex items-center gap-1.5 flex-wrap">
+                        <div className="text-[10px] sm:text-[11px] text-slate-400 flex items-center gap-1 sm:gap-1.5 flex-wrap">
                           {member.email && (
                             <>
-                              <span className="text-slate-500 dark:text-slate-400 font-medium truncate">{member.email}</span>
+                              <span className="text-slate-500 dark:text-slate-400 font-medium truncate max-w-[110px] sm:max-w-none">{member.email}</span>
                               <span className="text-slate-300 dark:text-slate-700">•</span>
                             </>
                           )}
                           <span>Жалпы: {formatDurationHuman(member.totalReadingSeconds)}</span>
+                          <span className="sm:hidden text-slate-300 dark:text-slate-700">•</span>
+                          <span className="sm:hidden font-medium text-slate-600 dark:text-slate-300">
+                            Бүгін: {formatDurationHuman(member.todayReadingSeconds || 0)}
+                          </span>
                         </div>
                       </div>
                     </div>
 
-                    {/* Today & Monthly Score & Admin Actions */}
-                    <div className="flex items-center gap-3 sm:gap-6 shrink-0">
-                      <div className="text-right min-w-[60px] sm:min-w-[75px]">
+                    {/* Today (desktop) & Monthly Score & Admin Actions */}
+                    <div className="flex items-center gap-2 sm:gap-6 shrink-0">
+                      <div className="hidden sm:block text-right min-w-[75px]">
                         <div className="text-sm sm:text-base font-bold text-slate-700 dark:text-slate-300 whitespace-nowrap">
                           {formatDurationHuman(member.todayReadingSeconds || 0)}
                         </div>
                         <div className="text-[10px] uppercase font-bold text-slate-400">Бүгін</div>
                       </div>
 
-                      <div className="text-right min-w-[65px] sm:min-w-[85px]">
-                        <div className="text-base sm:text-lg font-black text-[#F08000] whitespace-nowrap">
+                      <div className="text-right min-w-[55px] sm:min-w-[85px]">
+                        <div className="text-sm sm:text-lg font-black text-[#F08000] whitespace-nowrap">
                           {formatDurationHuman(member.monthlyReadingSeconds)}
                         </div>
-                        <div className="text-[10px] uppercase font-bold text-slate-400">Осы айда</div>
+                        <div className="text-[9px] sm:text-[10px] uppercase font-bold text-slate-400">Осы айда</div>
                       </div>
 
                       {isAdmin && (
-                        <div className="w-7 flex items-center justify-center shrink-0">
+                        <div className="w-6 sm:w-7 flex items-center justify-center shrink-0">
                           {member.role !== 'CREATOR' && !isCurrentUser && (
                             <button
                               type="button"
@@ -545,10 +549,10 @@ export const GroupDetailPage: React.FC = () => {
                                 setMemberToKick(member);
                                 setKickConfirmationText('');
                               }}
-                              className="p-1.5 text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
+                              className="p-1 sm:p-1.5 text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
                               title="Топтан шығару"
                             >
-                              <UserMinus className="w-4 h-4" />
+                              <UserMinus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                             </button>
                           )}
                         </div>
