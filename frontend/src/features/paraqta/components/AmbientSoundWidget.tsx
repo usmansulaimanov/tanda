@@ -112,7 +112,7 @@ export const AmbientSoundWidget: React.FC = () => {
               {/* Right: Volume Slider (When active) + Switch Toggle */}
               <div className="flex items-center gap-3 shrink-0">
                 {isActive && (
-                  <div className="flex items-center gap-1.5 animate-in fade-in duration-200">
+                  <div className="flex items-center gap-2 animate-in fade-in duration-200">
                     <button
                       type="button"
                       onClick={(e) => {
@@ -135,13 +135,13 @@ export const AmbientSoundWidget: React.FC = () => {
                       type="range"
                       min="0"
                       max="1"
-                      step="0.05"
+                      step="0.01"
                       value={soundVol}
                       onChange={(e) => setSoundVolume(sound.id, parseFloat(e.target.value))}
-                      className="w-16 sm:w-24 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-[#F08000]"
+                      className="w-24 sm:w-36 md:w-44 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-[#F08000]"
                     />
 
-                    <span className="text-[11px] font-mono font-bold text-orange-600 dark:text-orange-400 min-w-[28px] text-right shrink-0">
+                    <span className="text-[11px] font-mono font-bold text-orange-600 dark:text-orange-400 min-w-[32px] text-right shrink-0">
                       {Math.round(soundVol * 100)}%
                     </span>
                   </div>
