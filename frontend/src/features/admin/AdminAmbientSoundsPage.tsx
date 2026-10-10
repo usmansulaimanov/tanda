@@ -79,8 +79,9 @@ export const AdminAmbientSoundsPage: React.FC = () => {
       showToast('Атмосфералық дыбыс сәтті қосылды!', 'success');
       closeModal();
     },
-    onError: () => {
-      showToast('Қосу кезінде қате орын алды', 'error');
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message || 'Қосу кезінде қате орын алды';
+      showToast(msg, 'error');
     },
   });
 
@@ -93,8 +94,9 @@ export const AdminAmbientSoundsPage: React.FC = () => {
       showToast('Дыбыс мәліметтері жаңартылды!', 'success');
       closeModal();
     },
-    onError: () => {
-      showToast('Жаңарту кезінде қате орын алды', 'error');
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message || 'Жаңарту кезінде қате орын алды';
+      showToast(msg, 'error');
     },
   });
 
@@ -105,9 +107,10 @@ export const AdminAmbientSoundsPage: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['ambientSounds'] });
       showToast('Реттілігі сақталды', 'success');
     },
-    onError: () => {
+    onError: (err: any) => {
       queryClient.invalidateQueries({ queryKey: ['adminAmbientSounds'] });
-      showToast('Реттілікті сақтау қатесі', 'error');
+      const msg = err?.response?.data?.message || 'Реттілікті сақтау қатесі';
+      showToast(msg, 'error');
     },
   });
 
@@ -118,8 +121,9 @@ export const AdminAmbientSoundsPage: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['ambientSounds'] });
       showToast('Дыбыс өшірілді', 'success');
     },
-    onError: () => {
-      showToast('Өшіру кезінде қате орын алды', 'error');
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message || 'Өшіру кезінде қате орын алды';
+      showToast(msg, 'error');
     },
   });
 
