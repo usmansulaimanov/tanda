@@ -66,9 +66,11 @@ export const ReadingTrackerWidget: React.FC<ReadingTrackerWidgetProps> = ({
   const [customMinutes, setCustomMinutes] = useState<string>('30');
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [isPaused, setIsPaused] = useState<boolean>(false);
+  const [accumulatedSeconds, setAccumulatedSeconds] = useState<number>(0);
+  const [segmentStartTime, setSegmentStartTime] = useState<number | null>(null);
+  const [sessionInitialStartTime, setSessionInitialStartTime] = useState<number | null>(null);
   const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
   const [remainingSeconds, setRemainingSeconds] = useState<number>(30 * 60);
-  const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
   const [selectedBookTitle, setSelectedBookTitle] = useState<string>('');
   const [customBookTitle, setCustomBookTitle] = useState<string>('');
   const [selectedGroupId, setSelectedGroupId] = useState<string>(fixedGroupId || '');
@@ -95,7 +97,7 @@ export const ReadingTrackerWidget: React.FC<ReadingTrackerWidgetProps> = ({
       const saved = localStorage.getItem('tanda_active_reading_session');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed.startTime && parsed.isRunning) {
+        if (parsed.isRunning) {
           // If in a fixed group page, ONLY restore if it belongs to this exact group!
           if (fixedGroupId) {
             if (parsed.groupId !== fixedGroupId) {
@@ -103,25 +105,46 @@ export const ReadingTrackerWidget: React.FC<ReadingTrackerWidgetProps> = ({
             }
           }
 
-          const now = Date.now();
-          const runningElapsed = Math.floor((now - parsed.startTime) / 1000);
-          setMode(parsed.mode || 'STOPWATCH');
+          const savedMode = parsed.mode || 'STOPWATCH';
+          const targetDuration = parsed.timerDuration || 1800;
+          const baseAccumulated = parsed.accumulatedSeconds || 0;
+          const initialStart = parsed.sessionInitialStartTime || parsed.startTime || Date.now();
+
+          setMode(savedMode);
           setSelectedBookTitle(parsed.bookTitle || '');
           if (!fixedGroupId) {
             setSelectedGroupId(parsed.groupId || '');
           }
-          setSessionStartTime(parsed.startTime);
-          setIsRunning(true);
-          setIsPaused(false);
+          setSessionInitialStartTime(initialStart);
+          setTimerDuration(targetDuration);
 
-          if (parsed.mode === 'TIMER') {
-            const target = parsed.timerDuration || 1800;
-            setTimerDuration(target);
-            const left = Math.max(0, target - runningElapsed);
-            setRemainingSeconds(left);
-            setElapsedSeconds(runningElapsed);
+          if (parsed.isPaused) {
+            // Restore in PAUSED state
+            setIsRunning(true);
+            setIsPaused(true);
+            setAccumulatedSeconds(baseAccumulated);
+            setSegmentStartTime(null);
+            setElapsedSeconds(baseAccumulated);
+            if (savedMode === 'TIMER') {
+              setRemainingSeconds(Math.max(0, targetDuration - baseAccumulated));
+            }
           } else {
-            setElapsedSeconds(runningElapsed);
+            // Restore in RUNNING state
+            const segStart = parsed.segmentStartTime || parsed.startTime || Date.now();
+            const now = Date.now();
+            const currentSegmentSec = Math.max(0, Math.floor((now - segStart) / 1000));
+            const totalElapsed = baseAccumulated + currentSegmentSec;
+
+            setIsRunning(true);
+            setIsPaused(false);
+            setAccumulatedSeconds(baseAccumulated);
+            setSegmentStartTime(segStart);
+            setElapsedSeconds(totalElapsed);
+
+            if (savedMode === 'TIMER') {
+              const left = Math.max(0, targetDuration - totalElapsed);
+              setRemainingSeconds(left);
+            }
           }
         }
       }
@@ -133,17 +156,20 @@ export const ReadingTrackerWidget: React.FC<ReadingTrackerWidgetProps> = ({
   // Persist session to localStorage
   useEffect(() => {
     const currentTargetGroupId = fixedGroupId || selectedGroupId || '';
-    if (isRunning && sessionStartTime) {
+    if (isRunning) {
       localStorage.setItem(
         'tanda_active_reading_session',
         JSON.stringify({
-          startTime: sessionStartTime,
           mode,
           timerDuration,
           bookTitle: selectedBookTitle || customBookTitle,
           groupId: currentTargetGroupId,
           groupName: fixedGroupName || (myGroups.find((g) => g.id === selectedGroupId)?.name) || '',
           isRunning: true,
+          isPaused,
+          accumulatedSeconds,
+          segmentStartTime,
+          sessionInitialStartTime,
         })
       );
     } else {
@@ -159,7 +185,21 @@ export const ReadingTrackerWidget: React.FC<ReadingTrackerWidgetProps> = ({
         }
       }
     }
-  }, [isRunning, sessionStartTime, mode, timerDuration, selectedBookTitle, customBookTitle, selectedGroupId, fixedGroupId, fixedGroupName, myGroups]);
+  }, [
+    isRunning,
+    isPaused,
+    accumulatedSeconds,
+    segmentStartTime,
+    sessionInitialStartTime,
+    mode,
+    timerDuration,
+    selectedBookTitle,
+    customBookTitle,
+    selectedGroupId,
+    fixedGroupId,
+    fixedGroupName,
+    myGroups,
+  ]);
 
   const triggerNotification = (title: string, body: string) => {
     if ('Notification' in window && Notification.permission === 'granted') {
@@ -175,10 +215,11 @@ export const ReadingTrackerWidget: React.FC<ReadingTrackerWidgetProps> = ({
   useEffect(() => {
     let interval: any = null;
 
-    if (isRunning && !isPaused && sessionStartTime) {
+    if (isRunning && !isPaused && segmentStartTime) {
       interval = setInterval(() => {
         const now = Date.now();
-        const totalSec = Math.floor((now - sessionStartTime) / 1000);
+        const currentSegmentSec = Math.max(0, Math.floor((now - segmentStartTime) / 1000));
+        const totalSec = accumulatedSeconds + currentSegmentSec;
 
         if (mode === 'STOPWATCH') {
           setElapsedSeconds(totalSec);
@@ -207,7 +248,7 @@ export const ReadingTrackerWidget: React.FC<ReadingTrackerWidgetProps> = ({
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isRunning, isPaused, sessionStartTime, mode, timerDuration, soundEnabled]);
+  }, [isRunning, isPaused, segmentStartTime, accumulatedSeconds, mode, timerDuration, soundEnabled]);
 
   const saveSessionMutation = useMutation({
     mutationFn: paraqtaApi.saveSession,
@@ -240,7 +281,7 @@ export const ReadingTrackerWidget: React.FC<ReadingTrackerWidgetProps> = ({
       const saved = localStorage.getItem('tanda_active_reading_session');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed.startTime && parsed.isRunning) {
+        if (parsed.isRunning) {
           const currentTargetGroupId = fixedGroupId || selectedGroupId || '';
           if (parsed.groupId !== currentTargetGroupId) {
             setPendingOverrideInfo({
@@ -261,7 +302,10 @@ export const ReadingTrackerWidget: React.FC<ReadingTrackerWidgetProps> = ({
 
   const startSessionInternal = () => {
     const now = Date.now();
-    setSessionStartTime(now);
+    setSessionInitialStartTime(now);
+    setSegmentStartTime(now);
+    setAccumulatedSeconds(0);
+    setElapsedSeconds(0);
     setIsRunning(true);
     setIsPaused(false);
     if (mode === 'TIMER') {
@@ -279,13 +323,41 @@ export const ReadingTrackerWidget: React.FC<ReadingTrackerWidgetProps> = ({
   };
 
   const handlePauseSession = () => {
-    setIsPaused(!isPaused);
+    if (!isRunning) return;
+
+    if (!isPaused) {
+      // Transitioning: RUNNING -> PAUSED
+      const now = Date.now();
+      const currentSegmentSec = segmentStartTime ? Math.max(0, Math.floor((now - segmentStartTime) / 1000)) : 0;
+      const totalAccumulated = accumulatedSeconds + currentSegmentSec;
+
+      setAccumulatedSeconds(totalAccumulated);
+      setSegmentStartTime(null);
+      setIsPaused(true);
+      setElapsedSeconds(totalAccumulated);
+      if (mode === 'TIMER') {
+        setRemainingSeconds(Math.max(0, timerDuration - totalAccumulated));
+      }
+    } else {
+      // Transitioning: PAUSED -> RUNNING
+      const now = Date.now();
+      setSegmentStartTime(now);
+      setIsPaused(false);
+    }
   };
 
   const handleStopSession = (forcedDuration?: number) => {
-    if (!sessionStartTime) return;
     const now = Date.now();
-    const finalSeconds = forcedDuration || Math.floor((now - sessionStartTime) / 1000);
+    let finalSeconds = forcedDuration;
+    if (finalSeconds === undefined) {
+      if (isPaused) {
+        finalSeconds = accumulatedSeconds;
+      } else if (segmentStartTime) {
+        finalSeconds = accumulatedSeconds + Math.max(0, Math.floor((now - segmentStartTime) / 1000));
+      } else {
+        finalSeconds = accumulatedSeconds;
+      }
+    }
 
     if (finalSeconds < 5) {
       showToast('Оқу сессиясы тым қысқа (5 секундтан аз), сақталмады', 'error');
@@ -298,7 +370,7 @@ export const ReadingTrackerWidget: React.FC<ReadingTrackerWidgetProps> = ({
       sessionType: mode,
       bookTitle: (selectedBookTitle || customBookTitle).trim() || undefined,
       groupId: (fixedGroupId || selectedGroupId) || undefined,
-      startedAt: new Date(sessionStartTime).toISOString(),
+      startedAt: new Date(sessionInitialStartTime || now - finalSeconds * 1000).toISOString(),
       endedAt: new Date(now).toISOString(),
     };
 
@@ -309,8 +381,10 @@ export const ReadingTrackerWidget: React.FC<ReadingTrackerWidgetProps> = ({
   const handleResetSession = () => {
     setIsRunning(false);
     setIsPaused(false);
+    setAccumulatedSeconds(0);
+    setSegmentStartTime(null);
+    setSessionInitialStartTime(null);
     setElapsedSeconds(0);
-    setSessionStartTime(null);
     localStorage.removeItem('tanda_active_reading_session');
     if (mode === 'TIMER') {
       setRemainingSeconds(timerDuration);
