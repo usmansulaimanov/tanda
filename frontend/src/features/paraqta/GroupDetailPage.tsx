@@ -349,9 +349,9 @@ export const GroupDetailPage: React.FC = () => {
 
       {/* Tracker & Stats Section for this Group */}
       {group.isMember && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start mb-8 animate-fadeIn">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-2.5 sm:gap-4 lg:gap-6 items-start mb-8 animate-fadeIn">
           {/* Left Column (Approx 40%): 2x2 Stats Grid for this Group */}
-          <div className="lg:col-span-5 flex flex-col gap-4">
+          <div className="lg:col-span-5 flex flex-col gap-2.5 sm:gap-4">
             <div className="grid grid-cols-2 gap-2.5 sm:gap-4">
               <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl sm:rounded-2xl p-3 sm:p-5 shadow-sm flex flex-col justify-between min-h-[78px] sm:min-h-[110px]">
                 <div className="text-[11px] sm:text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1 sm:mb-2 flex items-center gap-1.5">

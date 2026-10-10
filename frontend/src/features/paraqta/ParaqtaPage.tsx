@@ -301,24 +301,24 @@ export const ParaqtaPage: React.FC = () => {
       )}
 
       {/* Header Banner */}
-      <div className="relative overflow-hidden rounded-2xl py-3 px-4 sm:py-3.5 sm:px-6 mb-3 sm:mb-4 shadow-sm w-full max-w-full bg-gradient-to-r from-amber-500/15 via-orange-500/20 to-amber-600/15 border border-orange-500/30 backdrop-blur-md">
-        <div className="relative z-10 flex items-center justify-between gap-4">
+      <div className="relative overflow-hidden rounded-xl sm:rounded-2xl py-2 px-3.5 sm:py-2.5 sm:px-5 mb-2.5 sm:mb-3 shadow-sm w-full max-w-full bg-gradient-to-r from-amber-500/15 via-orange-500/20 to-amber-600/15 border border-orange-500/30 backdrop-blur-md">
+        <div className="relative z-10 flex items-center justify-between gap-3">
           <div>
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-              Парақта оқу кеңістігі
+            <h1 className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+              Парақта
             </h1>
           </div>
 
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-2 shrink-0">
             {activeTab === 'tracker' ? (
               <button
                 onClick={() => setShowInvitationsModal(true)}
-                className="w-[145px] sm:w-[160px] h-9 sm:h-10 rounded-xl bg-gradient-to-r from-[#F08000] to-orange-500 text-white font-bold text-xs sm:text-sm shadow-md shadow-orange-500/25 hover:shadow-orange-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2"
+                className="px-3 sm:px-4 h-8 sm:h-9 rounded-lg sm:rounded-xl bg-gradient-to-r from-[#F08000] to-orange-500 text-white font-bold text-xs sm:text-sm shadow-md shadow-orange-500/25 hover:shadow-orange-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5"
               >
-                <Mail className="w-4 h-4 shrink-0" />
+                <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
                 <span>Шақыртулар</span>
                 {invitations.length > 0 && (
-                  <span className="px-1.5 py-0.5 bg-white text-[#F08000] text-[11px] font-black rounded-full leading-none shadow-sm animate-pulse">
+                  <span className="px-1.5 py-0.5 bg-white text-[#F08000] text-[10px] font-black rounded-full leading-none shadow-sm animate-pulse">
                     {invitations.length}
                   </span>
                 )}
@@ -326,9 +326,9 @@ export const ParaqtaPage: React.FC = () => {
             ) : (
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="w-[145px] sm:w-[160px] h-9 sm:h-10 rounded-xl bg-gradient-to-r from-[#F08000] to-orange-500 text-white font-bold text-xs sm:text-sm shadow-md shadow-orange-500/25 hover:shadow-orange-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                className="px-3 sm:px-4 h-8 sm:h-9 rounded-lg sm:rounded-xl bg-gradient-to-r from-[#F08000] to-orange-500 text-white font-bold text-xs sm:text-sm shadow-md shadow-orange-500/25 hover:shadow-orange-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5"
               >
-                <Plus className="w-4 h-4 shrink-0" />
+                <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
                 <span>Топ қосу</span>
               </button>
             )}
@@ -374,7 +374,7 @@ export const ParaqtaPage: React.FC = () => {
 
       {/* ===================== TAB 1: TRACKER ===================== */}
       {activeTab === 'tracker' && (
-        <div className="flex flex-col lg:grid lg:grid-cols-12 gap-6 items-start animate-fadeIn">
+        <div className="flex flex-col lg:grid lg:grid-cols-12 gap-2.5 sm:gap-4 lg:gap-6 items-start animate-fadeIn">
           {/* 1. 2x2 Stats Grid (Desktop Left Top) */}
           <div className="w-full lg:col-span-5 lg:col-start-1 lg:row-start-1">
             <div className="grid grid-cols-2 gap-2 sm:gap-3">
