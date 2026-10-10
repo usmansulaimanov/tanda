@@ -28,6 +28,7 @@ export const Layout: React.FC = () => {
   const isMyBooksPage = location.pathname.startsWith('/my-books');
   const isCatalogPage = location.pathname.startsWith('/catalog');
   const isRatingPage = location.pathname.startsWith('/rating') || location.pathname.startsWith('/leaderboard');
+  const isParaqtaPage = location.pathname.startsWith('/paraqta');
 
   const isAuthorOrStaff = Boolean(
     isAuthenticated && user && (role === 'author' || role === 'admin' || user.role === 'author' || user.role === 'admin' || user.isAuthor || user.isSuperAdmin || Boolean(user.duty))
@@ -82,7 +83,11 @@ export const Layout: React.FC = () => {
           <Outlet />
         </ErrorBoundary>
       </main>
-      {!isListenPage && !isMyBooksPage && !isCatalogPage && !isRatingPage && <Footer />}
+      {!isListenPage && !isMyBooksPage && !isCatalogPage && !isRatingPage && (
+        <div className={isParaqtaPage ? 'hidden md:block' : ''}>
+          <Footer />
+        </div>
+      )}
       <MobileBottomNav />
       {!isAuthorOrStaff && <AudioPlayerBar />}
       <FloatingReadingTracker />
