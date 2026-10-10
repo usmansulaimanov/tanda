@@ -533,7 +533,7 @@ export const GroupDetailPage: React.FC = () => {
                             setMemberToKick(member);
                             setKickConfirmationText('');
                           }}
-                          className="p-2 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                          className="p-1.5 text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
                           title="Топтан шығару"
                         >
                           <UserMinus className="w-4 h-4" />
