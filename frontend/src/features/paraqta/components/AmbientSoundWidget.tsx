@@ -11,7 +11,6 @@ import {
   Volume2,
   VolumeX,
   Volume1,
-  Square,
 } from 'lucide-react';
 import { ambientSoundApi, AmbientSound } from '../../../shared/api/ambientSound.api';
 import { useAmbientSoundStore } from '../../../store/useAmbientSoundStore';
@@ -50,16 +49,11 @@ export const AmbientSoundWidget: React.FC = () => {
   });
 
   const {
-    activeSounds,
-    activeSoundIds,
     isSoundActive,
     getSoundVolume,
     toggleSound,
     setSoundVolume,
-    stopAll,
   } = useAmbientSoundStore();
-
-  const playingCount = activeSoundIds.length;
 
   if (isLoading && sounds.length === 0) {
     return (
@@ -79,29 +73,8 @@ export const AmbientSoundWidget: React.FC = () => {
   }
 
   return (
-    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm space-y-4 transition-all">
-      {/* Active playing indicator & stop all (shown only when playing) */}
-      {playingCount > 0 && (
-        <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800/60">
-          <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200/80 dark:border-emerald-800/80 px-2.5 py-1 rounded-full animate-pulse">
-            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-            {playingCount === 1
-              ? `${activeSounds[activeSoundIds[0]]?.sound.name} ойнауда`
-              : `${playingCount} дыбыс ойнауда`}
-          </span>
-
-          <button
-            type="button"
-            onClick={stopAll}
-            className="text-[11px] font-semibold text-slate-400 hover:text-rose-500 transition-colors flex items-center gap-1 cursor-pointer"
-            title="Барлық дыбыстарды өшіру"
-          >
-            <Square className="w-3 h-3 fill-current" /> Барлығын өшіру
-          </button>
-        </div>
-      )}
-
-      {/* Sounds Compact List (No heavy blocks, closer spacing) */}
+    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm transition-all">
+      {/* Sounds Compact List */}
       <div className="flex flex-col divide-y divide-slate-100 dark:divide-slate-800/60">
         {sounds.map((sound: AmbientSound) => {
           const isActive = isSoundActive(sound.id);
