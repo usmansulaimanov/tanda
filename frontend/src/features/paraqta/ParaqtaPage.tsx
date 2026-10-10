@@ -312,9 +312,9 @@ export const ParaqtaPage: React.FC = () => {
             {activeTab === 'tracker' ? (
               <button
                 onClick={() => setShowInvitationsModal(true)}
-                className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-[#F08000] to-orange-500 text-white font-bold text-xs sm:text-sm shadow-md shadow-orange-500/25 hover:shadow-orange-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer flex items-center gap-2"
+                className="w-[145px] sm:w-[160px] h-9 sm:h-10 rounded-xl bg-gradient-to-r from-[#F08000] to-orange-500 text-white font-bold text-xs sm:text-sm shadow-md shadow-orange-500/25 hover:shadow-orange-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2"
               >
-                <Mail className="w-4 h-4" />
+                <Mail className="w-4 h-4 shrink-0" />
                 <span>Шақыртулар</span>
                 {invitations.length > 0 && (
                   <span className="px-1.5 py-0.5 bg-white text-[#F08000] text-[11px] font-black rounded-full leading-none shadow-sm animate-pulse">
@@ -325,9 +325,9 @@ export const ParaqtaPage: React.FC = () => {
             ) : (
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-[#F08000] to-orange-500 text-white font-bold text-xs sm:text-sm shadow-md shadow-orange-500/25 hover:shadow-orange-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer flex items-center gap-1.5"
+                className="w-[145px] sm:w-[160px] h-9 sm:h-10 rounded-xl bg-gradient-to-r from-[#F08000] to-orange-500 text-white font-bold text-xs sm:text-sm shadow-md shadow-orange-500/25 hover:shadow-orange-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5"
               >
-                <Plus className="w-4 h-4" />
+                <Plus className="w-4 h-4 shrink-0" />
                 <span>Топ қосу</span>
               </button>
             )}
