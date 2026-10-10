@@ -120,8 +120,8 @@ export const AmbientSoundWidget: React.FC = () => {
         </div>
       </div>
 
-      {/* Sounds 1-Column Vertical List */}
-      <div className="flex flex-col gap-2.5">
+      {/* Sounds Compact List (No heavy blocks, closer spacing) */}
+      <div className="flex flex-col divide-y divide-slate-100 dark:divide-slate-800/60">
         {sounds.map((sound: AmbientSound) => {
           const isActive = isSoundActive(sound.id);
           const soundVol = getSoundVolume(sound.id);
@@ -129,27 +129,25 @@ export const AmbientSoundWidget: React.FC = () => {
           return (
             <div
               key={sound.id}
-              className={`p-3 sm:p-3.5 rounded-2xl border transition-all flex items-center justify-between gap-3 ${
-                isActive
-                  ? 'bg-orange-50/70 dark:bg-orange-950/25 border-orange-300 dark:border-orange-800/80 shadow-sm shadow-orange-500/5'
-                  : 'bg-slate-50/70 hover:bg-slate-100/80 dark:bg-slate-800/50 dark:hover:bg-slate-800/80 border-slate-200/80 dark:border-slate-800'
+              className={`py-2 px-1.5 transition-colors flex items-center justify-between gap-3 ${
+                isActive ? 'text-slate-900 dark:text-white' : 'text-slate-700 dark:text-slate-300'
               }`}
             >
               {/* Left: Icon + Title */}
-              <div className="flex items-center gap-3 min-w-0 flex-1">
+              <div className="flex items-center gap-2.5 min-w-0 flex-1">
                 <div
-                  className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                  className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
                     isActive
-                      ? 'bg-gradient-to-tr from-[#F08000] to-orange-400 text-white shadow-sm shadow-orange-500/20'
-                      : 'bg-slate-200/80 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
+                      ? 'bg-orange-500 text-white shadow-xs'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
                   }`}
                 >
                   {getSoundIcon(sound.icon)}
                 </div>
                 <span
-                  className={`text-sm font-bold truncate transition-colors ${
+                  className={`text-sm font-semibold truncate transition-colors ${
                     isActive
-                      ? 'text-[#D97706] dark:text-orange-400'
+                      ? 'text-[#D97706] dark:text-orange-400 font-bold'
                       : 'text-slate-700 dark:text-slate-200'
                   }`}
                 >
@@ -158,9 +156,9 @@ export const AmbientSoundWidget: React.FC = () => {
               </div>
 
               {/* Right: Volume Slider (When active) + Switch Toggle */}
-              <div className="flex items-center gap-3 shrink-0">
+              <div className="flex items-center gap-2.5 shrink-0">
                 {isActive && (
-                  <div className="flex items-center gap-2 animate-in fade-in zoom-in-95 duration-200 bg-white dark:bg-slate-900 px-3 py-1.5 rounded-xl border border-orange-200 dark:border-orange-800/60 shadow-sm">
+                  <div className="flex items-center gap-2 animate-in fade-in zoom-in-95 duration-200 bg-slate-100/90 dark:bg-slate-800/90 px-2.5 py-1 rounded-lg border border-slate-200/70 dark:border-slate-700/60">
                     <button
                       type="button"
                       onClick={(e) => {
@@ -171,11 +169,11 @@ export const AmbientSoundWidget: React.FC = () => {
                       title={soundVol === 0 ? 'Дыбысты қосу' : 'Дыбысты басу'}
                     >
                       {soundVol === 0 ? (
-                        <VolumeX className="w-4 h-4" />
+                        <VolumeX className="w-3.5 h-3.5" />
                       ) : soundVol < 0.5 ? (
-                        <Volume1 className="w-4 h-4" />
+                        <Volume1 className="w-3.5 h-3.5" />
                       ) : (
-                        <Volume2 className="w-4 h-4" />
+                        <Volume2 className="w-3.5 h-3.5" />
                       )}
                     </button>
 
@@ -186,10 +184,10 @@ export const AmbientSoundWidget: React.FC = () => {
                       step="0.05"
                       value={soundVol}
                       onChange={(e) => setSoundVolume(sound.id, parseFloat(e.target.value))}
-                      className="w-20 sm:w-28 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-[#F08000]"
+                      className="w-16 sm:w-24 h-1.5 bg-slate-300 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-[#F08000]"
                     />
 
-                    <span className="text-[11px] font-mono font-bold text-orange-600 dark:text-orange-400 min-w-[30px] text-right shrink-0">
+                    <span className="text-[10px] font-mono font-bold text-orange-600 dark:text-orange-400 min-w-[26px] text-right shrink-0">
                       {Math.round(soundVol * 100)}%
                     </span>
                   </div>
@@ -199,7 +197,7 @@ export const AmbientSoundWidget: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => toggleSound(sound)}
-                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                  className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
                     isActive ? 'bg-[#F08000]' : 'bg-slate-300 dark:bg-slate-700'
                   }`}
                   role="switch"
@@ -208,8 +206,8 @@ export const AmbientSoundWidget: React.FC = () => {
                 >
                   <span
                     aria-hidden="true"
-                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
-                      isActive ? 'translate-x-5' : 'translate-x-0'
+                    className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                      isActive ? 'translate-x-4' : 'translate-x-0'
                     }`}
                   />
                 </button>
