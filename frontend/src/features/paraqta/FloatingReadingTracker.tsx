@@ -309,19 +309,19 @@ export const FloatingReadingTracker: React.FC = () => {
       onClick={handleCardClick}
       onMouseDown={handlePointerDown}
       onTouchStart={handlePointerDown}
-      className={`${defaultPositionClasses} z-40 bg-slate-900/95 dark:bg-slate-950/95 backdrop-blur-md text-white shadow-2xl rounded-2xl sm:rounded-3xl p-3 sm:p-3.5 pr-2.5 border border-slate-700/80 hover:border-orange-500/50 flex items-center gap-2.5 sm:gap-3.5 cursor-grab active:cursor-grabbing select-none transition-shadow ${
+      className={`${defaultPositionClasses} z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md text-slate-900 dark:text-white shadow-xl hover:shadow-2xl rounded-2xl sm:rounded-3xl p-3 sm:p-3.5 pr-2.5 border border-slate-200/90 dark:border-slate-800 hover:border-orange-500/50 flex items-center gap-2.5 sm:gap-3.5 cursor-grab active:cursor-grabbing select-none transition-shadow ${
         isDragging ? 'scale-[1.02] shadow-orange-500/20 shadow-2xl opacity-95' : 'animate-slideUp'
       }`}
     >
       {/* Drag Grip Indicator */}
-      <div className="text-slate-500 hover:text-slate-300 flex items-center shrink-0 cursor-grab active:cursor-grabbing">
+      <div className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 flex items-center shrink-0 cursor-grab active:cursor-grabbing">
         <GripVertical className="w-4 h-4" />
       </div>
 
       {/* Icon */}
       <div className="flex items-center justify-center shrink-0">
         {mode === 'TIMER' ? (
-          <Timer className="w-5 h-5 sm:w-6 sm:h-6 text-amber-400 animate-pulse" />
+          <Timer className="w-5 h-5 sm:w-6 sm:h-6 text-amber-500 animate-pulse" />
         ) : (
           <Flame className="w-5 h-5 sm:w-6 sm:h-6 text-orange-500 animate-pulse" />
         )}
@@ -329,12 +329,12 @@ export const FloatingReadingTracker: React.FC = () => {
 
       {/* Info & Timer */}
       <div className="min-w-0 pr-1 text-left pointer-events-none">
-        <div className="font-mono text-base sm:text-lg font-black tracking-wider text-white">
+        <div className="font-mono text-base sm:text-lg font-black tracking-wider text-slate-900 dark:text-white">
           {displayTime}
         </div>
-        <div className="text-[11px] text-slate-400 truncate max-w-[110px] sm:max-w-[160px] flex items-center gap-1">
+        <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate max-w-[110px] sm:max-w-[160px] flex items-center gap-1">
           <span className="truncate">{displayLabel}</span>
-          <ExternalLink className="w-3 h-3 text-slate-500 shrink-0" />
+          <ExternalLink className="w-3 h-3 text-slate-400 dark:text-slate-500 shrink-0" />
         </div>
       </div>
 
@@ -375,7 +375,7 @@ export const FloatingReadingTracker: React.FC = () => {
         <button
           type="button"
           onClick={handleCloseDismiss}
-          className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-slate-800 hover:bg-rose-500 text-slate-400 hover:text-white flex items-center justify-center transition-all cursor-pointer ml-0.5 shadow-sm"
+          className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-slate-100 hover:bg-rose-500 text-slate-500 hover:text-white dark:bg-slate-800 dark:text-slate-400 dark:hover:text-white flex items-center justify-center transition-all cursor-pointer ml-0.5 shadow-sm"
           title="Терезені жабу (оқу тоқтатылмайды)"
         >
           <X className="w-4 h-4" />
