@@ -511,33 +511,37 @@ export const GroupDetailPage: React.FC = () => {
                     </div>
 
                     {/* Today & Monthly Score & Admin Actions */}
-                    <div className="flex items-center gap-3 sm:gap-6">
-                      <div className="text-right">
-                        <div className="text-sm sm:text-base font-bold text-slate-700 dark:text-slate-300">
+                    <div className="flex items-center gap-3 sm:gap-6 shrink-0">
+                      <div className="text-right min-w-[60px] sm:min-w-[75px]">
+                        <div className="text-sm sm:text-base font-bold text-slate-700 dark:text-slate-300 whitespace-nowrap">
                           {formatDurationHuman(member.todayReadingSeconds || 0)}
                         </div>
                         <div className="text-[10px] uppercase font-bold text-slate-400">Бүгін</div>
                       </div>
 
-                      <div className="text-right">
-                        <div className="text-base sm:text-lg font-black text-[#F08000]">
+                      <div className="text-right min-w-[65px] sm:min-w-[85px]">
+                        <div className="text-base sm:text-lg font-black text-[#F08000] whitespace-nowrap">
                           {formatDurationHuman(member.monthlyReadingSeconds)}
                         </div>
                         <div className="text-[10px] uppercase font-bold text-slate-400">Осы айда</div>
                       </div>
 
-                      {isAdmin && member.role !== 'CREATOR' && !isCurrentUser && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setMemberToKick(member);
-                            setKickConfirmationText('');
-                          }}
-                          className="p-1.5 text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
-                          title="Топтан шығару"
-                        >
-                          <UserMinus className="w-4 h-4" />
-                        </button>
+                      {isAdmin && (
+                        <div className="w-7 flex items-center justify-center shrink-0">
+                          {member.role !== 'CREATOR' && !isCurrentUser && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setMemberToKick(member);
+                                setKickConfirmationText('');
+                              }}
+                              className="p-1.5 text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
+                              title="Топтан шығару"
+                            >
+                              <UserMinus className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
                       )}
                     </div>
                   </div>
