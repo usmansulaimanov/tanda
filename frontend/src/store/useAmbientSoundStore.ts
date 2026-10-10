@@ -19,10 +19,24 @@ interface AmbientSoundState {
   stopAll: () => void;
 }
 
+const DEFAULT_VOLUME = 0.4;
+const FADE_IN_DURATION_MS = 3000;
+const FADE_INTERVAL_MS = 50;
+
 // Global audio elements cache per sound ID
 const audioInstances = new Map<number, HTMLAudioElement>();
+// Global fade timer interval IDs per sound ID
+const fadeTimers = new Map<number, number>();
 
-const getOrCreateAudio = (sound: AmbientSound, volume: number) => {
+const clearFadeTimer = (soundId: number) => {
+  const timer = fadeTimers.get(soundId);
+  if (timer !== undefined) {
+    window.clearInterval(timer);
+    fadeTimers.delete(soundId);
+  }
+};
+
+const getOrCreateAudio = (sound: AmbientSound) => {
   if (typeof window === 'undefined') return null;
 
   let audio = audioInstances.get(sound.id);
@@ -36,7 +50,7 @@ const getOrCreateAudio = (sound: AmbientSound, volume: number) => {
   if (audio.src !== resolvedSrc) {
     audio.src = resolvedSrc;
   }
-  audio.volume = Math.max(0, Math.min(1, volume));
+  audio.loop = true;
   return audio;
 };
 
@@ -49,18 +63,21 @@ export const useAmbientSoundStore = create<AmbientSoundState>((set, get) => ({
   },
 
   getSoundVolume: (soundId: number) => {
-    return get().activeSounds[soundId]?.volume ?? 0.6;
+    return get().activeSounds[soundId]?.volume ?? DEFAULT_VOLUME;
   },
 
   toggleSound: (sound: AmbientSound) => {
     const { activeSounds } = get();
     const isActive = Boolean(activeSounds[sound.id]);
 
+    clearFadeTimer(sound.id);
+
     if (isActive) {
-      // Stop and remove this sound
+      // Stop and reset this sound immediately
       const audio = audioInstances.get(sound.id);
       if (audio) {
         audio.pause();
+        audio.currentTime = 0;
       }
 
       const nextActive = { ...activeSounds };
@@ -71,20 +88,44 @@ export const useAmbientSoundStore = create<AmbientSoundState>((set, get) => ({
         activeSoundIds: Object.keys(nextActive).map(Number),
       });
     } else {
-      // Start this sound
-      const defaultVol = 0.6;
-      const audio = getOrCreateAudio(sound, defaultVol);
+      // Start this sound from the beginning with smooth 3s fade-in (0% -> 40%)
+      const audio = getOrCreateAudio(sound);
       if (audio) {
+        audio.currentTime = 0;
+        audio.volume = 0;
+        audio.loop = true;
+        
         audio.play().catch((err) => {
           console.error(`Error playing ambient sound ${sound.name}:`, err);
         });
+
+        // 3-second smooth fade-in ramp
+        const targetVol = DEFAULT_VOLUME;
+        const totalSteps = Math.max(1, Math.round(FADE_IN_DURATION_MS / FADE_INTERVAL_MS));
+        const stepIncrement = targetVol / totalSteps;
+        let currentVol = 0;
+
+        const timer = window.setInterval(() => {
+          currentVol = Math.min(targetVol, currentVol + stepIncrement);
+          if (audio) {
+            audio.volume = currentVol;
+          }
+          if (currentVol >= targetVol) {
+            clearFadeTimer(sound.id);
+            if (audio) {
+              audio.volume = targetVol;
+            }
+          }
+        }, FADE_INTERVAL_MS);
+
+        fadeTimers.set(sound.id, timer);
       }
 
       const nextActive = {
         ...activeSounds,
         [sound.id]: {
           sound,
-          volume: defaultVol,
+          volume: DEFAULT_VOLUME,
         },
       };
 
@@ -96,6 +137,7 @@ export const useAmbientSoundStore = create<AmbientSoundState>((set, get) => ({
   },
 
   setSoundVolume: (soundId: number, volume: number) => {
+    clearFadeTimer(soundId);
     const safeVol = Math.max(0, Math.min(1, volume));
     const { activeSounds } = get();
     const current = activeSounds[soundId];
@@ -119,9 +161,11 @@ export const useAmbientSoundStore = create<AmbientSoundState>((set, get) => ({
   },
 
   stopSound: (soundId: number) => {
+    clearFadeTimer(soundId);
     const audio = audioInstances.get(soundId);
     if (audio) {
       audio.pause();
+      audio.currentTime = 0;
     }
 
     const { activeSounds } = get();
@@ -135,8 +179,12 @@ export const useAmbientSoundStore = create<AmbientSoundState>((set, get) => ({
   },
 
   stopAll: () => {
+    fadeTimers.forEach((timer) => window.clearInterval(timer));
+    fadeTimers.clear();
+
     audioInstances.forEach((audio) => {
       audio.pause();
+      audio.currentTime = 0;
     });
 
     set({

@@ -117,7 +117,7 @@ export const AmbientSoundWidget: React.FC = () => {
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
-                        setSoundVolume(sound.id, soundVol === 0 ? 0.6 : 0);
+                        setSoundVolume(sound.id, soundVol === 0 ? 0.4 : 0);
                       }}
                       className="text-orange-500 hover:text-orange-600 transition-colors p-0.5"
                       title={soundVol === 0 ? 'Дыбысты қосу' : 'Дыбысты басу'}
