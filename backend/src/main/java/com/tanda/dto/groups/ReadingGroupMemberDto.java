@@ -19,6 +19,7 @@ public class ReadingGroupMemberDto {
     private String userId;
     private String name;
     private String username;
+    private String email;
     private String avatarUrl;
     private String role;
     private Long todayReadingSeconds;

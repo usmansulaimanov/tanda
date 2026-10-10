@@ -488,24 +488,30 @@ export const GroupDetailPage: React.FC = () => {
                       </div>
 
                       {/* Name & Role */}
-                      <div>
+                      <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="font-extrabold text-sm text-slate-900 dark:text-white">
+                          <span className="font-extrabold text-sm text-slate-900 dark:text-white truncate">
                             {member.name}
                           </span>
                           {isCurrentUser && (
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#F08000] text-white">
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#F08000] text-white shrink-0">
                               Сіз
                             </span>
                           )}
                           {member.role === 'CREATOR' && (
-                            <span className="text-[10px] font-bold text-amber-500 flex items-center gap-0.5">
+                            <span className="text-[10px] font-bold text-amber-500 flex items-center gap-0.5 shrink-0">
                               <Crown className="w-3 h-3" /> Админ
                             </span>
                           )}
                         </div>
-                        <div className="text-[11px] text-slate-400">
-                          Жалпы: {formatDurationHuman(member.totalReadingSeconds)}
+                        <div className="text-[11px] text-slate-400 flex items-center gap-1.5 flex-wrap">
+                          {member.email && (
+                            <>
+                              <span className="text-slate-500 dark:text-slate-400 font-medium truncate">{member.email}</span>
+                              <span className="text-slate-300 dark:text-slate-700">•</span>
+                            </>
+                          )}
+                          <span>Жалпы: {formatDurationHuman(member.totalReadingSeconds)}</span>
                         </div>
                       </div>
                     </div>

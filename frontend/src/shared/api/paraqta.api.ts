@@ -55,6 +55,7 @@ export interface ReadingGroupMember {
   userId: string;
   name: string;
   username?: string;
+  email?: string;
   avatarUrl?: string;
   role: 'CREATOR' | 'ADMIN' | 'MEMBER';
   todayReadingSeconds?: number;

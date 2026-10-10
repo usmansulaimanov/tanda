@@ -255,6 +255,9 @@ public class ReadingGroupService {
             todayMap.put(uId, sec);
         }
 
+        boolean isGroupAdmin = "CREATOR".equalsIgnoreCase(myRole) || "ADMIN".equalsIgnoreCase(myRole)
+                || (group.getCreatorId() != null && group.getCreatorId().equals(currentUserId));
+
         AtomicInteger rankCounter = new AtomicInteger(1);
         List<ReadingGroupMemberDto> memberDtos = members.stream().map(m -> {
             User u = userMap.get(m.getUserId());
@@ -264,6 +267,7 @@ public class ReadingGroupService {
                     .userId(m.getUserId())
                     .name(u != null ? u.getName() : "Оқырман")
                     .username(u != null ? u.getUsername() : null)
+                    .email(isGroupAdmin && u != null ? u.getEmail() : null)
                     .avatarUrl(u != null ? u.getAvatarUrl() : null)
                     .role(m.getRole())
                     .todayReadingSeconds(todaySec)
