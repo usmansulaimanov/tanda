@@ -377,7 +377,7 @@ export const AdminAmbientSoundsPage: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                  Аудио сілтемесі (Telegram сілтеме / ID немесе URL) *
+                  Аудио сілтемесі
                 </label>
                 <input
                   type="text"
