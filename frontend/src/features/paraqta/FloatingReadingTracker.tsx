@@ -351,10 +351,10 @@ export const FloatingReadingTracker: React.FC = () => {
             e.stopPropagation();
             togglePause();
           }}
-          className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center text-white transition-all shadow-md active:scale-90 cursor-pointer ${
+          className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-90 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/90 dark:border-slate-700 shadow-sm ${
             isPaused
-              ? 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-600/30'
-              : 'bg-amber-500 hover:bg-amber-400 shadow-amber-500/30'
+              ? 'hover:bg-emerald-600 hover:text-white hover:border-emerald-600 hover:shadow-md hover:shadow-emerald-600/30'
+              : 'hover:bg-amber-500 hover:text-white hover:border-amber-500 hover:shadow-md hover:shadow-amber-500/30'
           }`}
           title={isPaused ? 'Жалғастыру' : 'Үзіліс'}
         >
@@ -365,7 +365,7 @@ export const FloatingReadingTracker: React.FC = () => {
           type="button"
           onClick={handleStopAndSave}
           disabled={saveSessionMutation.isPending}
-          className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-rose-600 hover:bg-rose-500 text-white flex items-center justify-center transition-all shadow-md shadow-rose-600/30 active:scale-90 cursor-pointer"
+          className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/90 dark:border-slate-700 hover:bg-rose-600 hover:text-white hover:border-rose-600 hover:shadow-md hover:shadow-rose-600/30 flex items-center justify-center transition-all shadow-sm active:scale-90 cursor-pointer"
           title="Аяқтау және сақтау"
         >
           <Square className="w-4 h-4 fill-current" />
@@ -375,7 +375,7 @@ export const FloatingReadingTracker: React.FC = () => {
         <button
           type="button"
           onClick={handleCloseDismiss}
-          className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-slate-100 hover:bg-rose-500 text-slate-500 hover:text-white dark:bg-slate-800 dark:text-slate-400 dark:hover:text-white flex items-center justify-center transition-all cursor-pointer ml-0.5 shadow-sm"
+          className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-slate-100 hover:bg-rose-500 text-slate-400 hover:text-white dark:bg-slate-800 dark:text-slate-400 dark:hover:text-white border border-slate-200/90 dark:border-slate-700 hover:border-rose-500 flex items-center justify-center transition-all cursor-pointer ml-0.5 shadow-sm"
           title="Терезені жабу (оқу тоқтатылмайды)"
         >
           <X className="w-4 h-4" />
