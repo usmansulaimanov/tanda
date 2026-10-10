@@ -53,7 +53,12 @@ export const AmbientSoundWidget: React.FC = () => {
     getSoundVolume,
     toggleSound,
     setSoundVolume,
+    resumeActiveSounds,
   } = useAmbientSoundStore();
+
+  React.useEffect(() => {
+    resumeActiveSounds();
+  }, [resumeActiveSounds]);
 
   if (isLoading && sounds.length === 0) {
     return (
