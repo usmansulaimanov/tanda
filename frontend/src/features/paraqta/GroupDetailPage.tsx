@@ -659,9 +659,9 @@ export const GroupDetailPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200/60 dark:border-rose-900/40 text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
               <strong>«{memberToKick.name}»</strong> оқырманын топтан шығарғыңыз келетінін растау үшін төмендегі өріске <strong>«шығару»</strong> деп жазыңыз:
-            </div>
+            </p>
 
             <div>
               <input
