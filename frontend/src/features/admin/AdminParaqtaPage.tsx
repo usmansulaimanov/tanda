@@ -837,7 +837,7 @@ export const AdminParaqtaPage: React.FC = () => {
               <div className="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300">
                 <span className="flex items-center gap-1.5">
                   <Users className="w-4 h-4 text-orange-600" />
-                  Топ мүшелері ({groupDetail?.members?.length || activeDetailGroup.memberCount})
+                  Топ мүшелері: {groupDetail?.members?.length || activeDetailGroup.memberCount}
                 </span>
                 {isLoadingDetail && <span className="text-[11px] text-slate-400">Жүктелуде...</span>}
               </div>
