@@ -26,10 +26,82 @@ const FADE_IN_DURATION_MS = 3000; // 3 seconds smooth fade-in
 
 // Global audio elements cache per sound ID
 const audioInstances = new Map<number, HTMLAudioElement>();
+// Global GainNodes and MediaElementAudioSourceNodes for Web Audio API (iOS / mobile volume control)
+const gainNodes = new Map<number, GainNode>();
+const sourceNodes = new Map<number, MediaElementAudioSourceNode>();
+// Global AudioContext singleton
+let sharedAudioContext: AudioContext | null = null;
+
 // Global animation frame IDs per sound ID
 const fadeFrameIds = new Map<number, number>();
 // Global 'playing' listener callbacks per sound ID to cancel if toggled off before playback starts
 const playingListeners = new Map<number, () => void>();
+
+const getOrCreateAudioContext = (): AudioContext | null => {
+  if (typeof window === 'undefined') return null;
+  const AudioCtx =
+    window.AudioContext ||
+    (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+  if (!AudioCtx) return null;
+
+  if (!sharedAudioContext) {
+    try {
+      sharedAudioContext = new AudioCtx();
+    } catch (e) {
+      console.warn('Failed to create AudioContext for ambient sounds:', e);
+      return null;
+    }
+  }
+
+  if (sharedAudioContext.state === 'suspended') {
+    sharedAudioContext.resume().catch(() => {});
+  }
+
+  return sharedAudioContext;
+};
+
+const setupGainNode = (soundId: number, audio: HTMLAudioElement): GainNode | null => {
+  const existingGain = gainNodes.get(soundId);
+  if (existingGain) return existingGain;
+
+  const ctx = getOrCreateAudioContext();
+  if (!ctx) return null;
+
+  try {
+    let source = sourceNodes.get(soundId);
+    if (!source) {
+      source = ctx.createMediaElementSource(audio);
+      sourceNodes.set(soundId, source);
+    }
+    const gainNode = ctx.createGain();
+    source.connect(gainNode);
+    gainNode.connect(ctx.destination);
+    gainNodes.set(soundId, gainNode);
+    return gainNode;
+  } catch (err) {
+    console.warn(`Web Audio API could not be connected for ambient sound ${soundId}:`, err);
+    return null;
+  }
+};
+
+const applySoundVolume = (soundId: number, audio: HTMLAudioElement, volume: number) => {
+  const safeVol = Math.max(0, Math.min(1, volume));
+  const gainNode = gainNodes.get(soundId) ?? setupGainNode(soundId, audio);
+
+  if (gainNode) {
+    const ctx = getOrCreateAudioContext();
+    if (ctx) {
+      gainNode.gain.setValueAtTime(safeVol, ctx.currentTime);
+    } else {
+      gainNode.gain.value = safeVol;
+    }
+    // Keep HTMLAudioElement volume at 1.0 so GainNode exclusively controls the amplitude
+    audio.volume = 1;
+  } else {
+    // Graceful fallback for environments where Web Audio API is unavailable
+    audio.volume = safeVol;
+  }
+};
 
 const cancelActiveFade = (soundId: number) => {
   // Cancel animation frame if running
@@ -54,6 +126,7 @@ const getOrCreateAudio = (sound: AmbientSound) => {
   let audio = audioInstances.get(sound.id);
   if (!audio) {
     audio = new Audio();
+    audio.crossOrigin = 'anonymous';
     audio.loop = true;
     audioInstances.set(sound.id, audio);
   }
@@ -62,6 +135,7 @@ const getOrCreateAudio = (sound: AmbientSound) => {
   if (audio.src !== resolvedSrc) {
     audio.src = resolvedSrc;
   }
+  audio.crossOrigin = 'anonymous';
   audio.loop = true;
   return audio;
 };
@@ -86,7 +160,8 @@ export const useAmbientSoundStore = create<AmbientSoundState>()(
         Object.values(activeSounds).forEach(({ sound, volume }) => {
           const audio = getOrCreateAudio(sound);
           if (audio) {
-            audio.volume = Math.max(0, Math.min(1, volume));
+            setupGainNode(sound.id, audio);
+            applySoundVolume(sound.id, audio, volume);
             audio.loop = true;
             if (audio.paused) {
               audio.play().catch(() => {
@@ -95,6 +170,10 @@ export const useAmbientSoundStore = create<AmbientSoundState>()(
                   window.removeEventListener('click', resumeOnInteraction);
                   window.removeEventListener('touchstart', resumeOnInteraction);
                   window.removeEventListener('keydown', resumeOnInteraction);
+                  const ctx = getOrCreateAudioContext();
+                  if (ctx && ctx.state === 'suspended') {
+                    ctx.resume().catch(() => {});
+                  }
                   audio.play().catch(() => {});
                 };
                 window.addEventListener('click', resumeOnInteraction, { once: true });
@@ -118,7 +197,7 @@ export const useAmbientSoundStore = create<AmbientSoundState>()(
           if (audio) {
             audio.pause();
             audio.currentTime = 0;
-            audio.volume = 0;
+            applySoundVolume(sound.id, audio, 0);
           }
 
           const nextActive = { ...activeSounds };
@@ -132,8 +211,15 @@ export const useAmbientSoundStore = create<AmbientSoundState>()(
           // Start this sound from the beginning with smooth 3s fade-in (0% -> 40%)
           const audio = getOrCreateAudio(sound);
           if (audio) {
+            const ctx = getOrCreateAudioContext();
+            if (ctx && ctx.state === 'suspended') {
+              ctx.resume().catch(() => {});
+            }
+
+            setupGainNode(sound.id, audio);
+            applySoundVolume(sound.id, audio, 0); // strictly mute at start
+
             audio.currentTime = 0;
-            audio.volume = 0; // strictly mute at start
             audio.loop = true;
 
             const targetVol = DEFAULT_VOLUME;
@@ -149,7 +235,7 @@ export const useAmbientSoundStore = create<AmbientSoundState>()(
                 const currentVol = targetVol * progress;
 
                 if (audio) {
-                  audio.volume = currentVol;
+                  applySoundVolume(sound.id, audio, currentVol);
                 }
 
                 if (progress < 1) {
@@ -157,7 +243,7 @@ export const useAmbientSoundStore = create<AmbientSoundState>()(
                 } else {
                   fadeFrameIds.delete(sound.id);
                   if (audio) {
-                    audio.volume = targetVol;
+                    applySoundVolume(sound.id, audio, targetVol);
                   }
                 }
               };
@@ -203,7 +289,7 @@ export const useAmbientSoundStore = create<AmbientSoundState>()(
         if (current) {
           const audio = audioInstances.get(soundId);
           if (audio) {
-            audio.volume = safeVol;
+            applySoundVolume(soundId, audio, safeVol);
           }
 
           set({
@@ -224,7 +310,7 @@ export const useAmbientSoundStore = create<AmbientSoundState>()(
         if (audio) {
           audio.pause();
           audio.currentTime = 0;
-          audio.volume = 0;
+          applySoundVolume(soundId, audio, 0);
         }
 
         const { activeSounds } = get();
@@ -238,14 +324,11 @@ export const useAmbientSoundStore = create<AmbientSoundState>()(
       },
 
       stopAll: () => {
-        audioInstances.forEach((_, soundId) => {
+        audioInstances.forEach((audio, soundId) => {
           cancelActiveFade(soundId);
-        });
-
-        audioInstances.forEach((audio) => {
           audio.pause();
           audio.currentTime = 0;
-          audio.volume = 0;
+          applySoundVolume(soundId, audio, 0);
         });
 
         set({
