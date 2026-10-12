@@ -742,7 +742,7 @@ export const ParaqtaPage: React.FC = () => {
                       <p className="text-[11px] text-rose-500 font-semibold">{groupUsernameError}</p>
                     ) : (
                       <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                        Ашық топтар үшін юзернейм соңы міндетті түрде <span className="font-mono font-bold text-orange-600 dark:text-orange-400">club</span> деп аяқталуы тиіс. Осы юзернейм арқылы адамдар топты іздеуден табады.
+                        Ашық топтар үшін юзернеймнің соңы міндетті түрде <span className="font-mono font-bold text-orange-600 dark:text-orange-400">club</span> деп аяқталуы тиіс. Осы юзернейм арқылы адамдар топты іздеп таба алады.
                       </p>
                     )}
                   </div>
