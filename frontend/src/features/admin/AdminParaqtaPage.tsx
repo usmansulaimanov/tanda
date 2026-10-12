@@ -201,7 +201,7 @@ export const AdminParaqtaPage: React.FC = () => {
             }`}
           >
             <Clock className="w-4 h-4" />
-            <span>Күтілуде</span>
+            <span>Модерацияда</span>
             {pendingCount > 0 && (
               <span
                 className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
@@ -246,7 +246,7 @@ export const AdminParaqtaPage: React.FC = () => {
             }`}
           >
             <CheckCircle2 className="w-4 h-4" />
-            <span>Мақұлданған</span>
+            <span>Қабылданды</span>
           </button>
 
           <button
@@ -262,7 +262,7 @@ export const AdminParaqtaPage: React.FC = () => {
             }`}
           >
             <XCircle className="w-4 h-4" />
-            <span>Қабылданбаған</span>
+            <span>Қабылданбады</span>
           </button>
         </div>
 
@@ -330,21 +330,21 @@ export const AdminParaqtaPage: React.FC = () => {
                       {isPending && (
                         <span className="inline-flex items-center gap-1 text-[11px] font-black text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/50 px-2.5 py-0.5 rounded-full border border-amber-300 dark:border-amber-700 animate-pulse">
                           <Clock className="w-3 h-3" />
-                          Күтілуде
+                          Модерацияда
                         </span>
                       )}
 
                       {isApproved && (
                         <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 px-2.5 py-0.5 rounded-full border border-emerald-300 dark:border-emerald-700">
                           <CheckCircle2 className="w-3 h-3" />
-                          Мақұлданған
+                          Қабылданды
                         </span>
                       )}
 
                       {isRejected && (
                         <span className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/50 px-2.5 py-0.5 rounded-full border border-rose-300 dark:border-rose-700">
                           <XCircle className="w-3 h-3" />
-                          Қабылданбаған
+                          Қабылданбады
                         </span>
                       )}
                     </div>
@@ -735,13 +735,13 @@ export const AdminParaqtaPage: React.FC = () => {
               <span className="text-slate-400 dark:text-slate-500 select-none">|</span>
 
               {activeDetailGroup.status === 'PENDING_APPROVAL' && (
-                <span>Модерацияда (Күтілуде)</span>
+                <span>Модерацияда</span>
               )}
               {activeDetailGroup.status === 'APPROVED' && (
-                <span>Мақұлданған (Сайтта жарияланған)</span>
+                <span>Қабылданды</span>
               )}
               {activeDetailGroup.status === 'REJECTED' && (
-                <span>Қабылданбаған</span>
+                <span>Қабылданбады</span>
               )}
 
               {activeDetailGroup.isVerified && (
