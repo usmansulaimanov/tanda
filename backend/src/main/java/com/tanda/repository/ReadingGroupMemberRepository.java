@@ -23,6 +23,9 @@ public interface ReadingGroupMemberRepository extends JpaRepository<ReadingGroup
 
     long countByGroupIdAndStatus(String groupId, String status);
 
+    @Query("SELECT m.groupId, COUNT(m) FROM ReadingGroupMember m WHERE m.groupId IN :groupIds AND m.status = :status GROUP BY m.groupId")
+    List<Object[]> countMembersByGroupIdsAndStatus(@Param("groupIds") List<String> groupIds, @Param("status") String status);
+
     boolean existsByGroupIdAndUserIdAndStatus(String groupId, String userId, String status);
 
     @Modifying

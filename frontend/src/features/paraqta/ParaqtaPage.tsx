@@ -148,23 +148,30 @@ export const ParaqtaPage: React.FC = () => {
   });
   const isPremium = Boolean(premiumStatus?.isPremium);
 
-  const { data: myGroups = [], refetch: refetchMyGroups } = useQuery<ReadingGroup[]>({
+  const {
+    data: myGroups = [],
+    refetch: refetchMyGroups,
+    isLoading: isLoadingMyGroups,
+  } = useQuery<ReadingGroup[]>({
     queryKey: ['myReadingGroups'],
     queryFn: paraqtaApi.getMyGroups,
     enabled: isAuthenticated,
+    staleTime: 60 * 1000,
   });
 
   const { data: invitations = [], refetch: refetchInvitations } = useQuery<ReadingGroupInvitation[]>({
     queryKey: ['myGroupInvitations'],
     queryFn: paraqtaApi.getMyInvitations,
     enabled: isAuthenticated,
+    staleTime: 60 * 1000,
   });
 
   const [exploreQuery, setExploreQuery] = useState('');
-  const { data: publicGroupsData } = useQuery({
+  const { data: publicGroupsData, isLoading: isLoadingPublicGroups } = useQuery({
     queryKey: ['publicGroups', exploreQuery],
     queryFn: () => paraqtaApi.getPublicGroups(exploreQuery),
     enabled: activeTab === 'explore',
+    staleTime: 60 * 1000,
   });
 
   // Handle adding invitee by verified email
@@ -463,7 +470,27 @@ export const ParaqtaPage: React.FC = () => {
           </div>
 
           {/* Groups List */}
-          {myGroups.length === 0 ? (
+          {isLoadingMyGroups ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm animate-pulse space-y-4"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="w-12 h-12 rounded-2xl bg-slate-200 dark:bg-slate-800" />
+                    <div className="w-16 h-5 rounded-full bg-slate-200 dark:bg-slate-800" />
+                  </div>
+                  <div className="w-36 h-6 rounded-lg bg-slate-200 dark:bg-slate-800" />
+                  <div className="w-48 h-4 rounded-md bg-slate-100 dark:bg-slate-800/60" />
+                  <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-between">
+                    <div className="w-24 h-4 rounded bg-slate-200 dark:bg-slate-800" />
+                    <div className="w-16 h-4 rounded bg-slate-200 dark:bg-slate-800" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : myGroups.length === 0 ? (
             <div className="text-center py-16 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8">
               <div className="w-16 h-16 rounded-3xl bg-orange-500/10 text-[#F08000] flex items-center justify-center mx-auto mb-4">
                 <Users className="w-8 h-8" />
@@ -572,7 +599,28 @@ export const ParaqtaPage: React.FC = () => {
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {isLoadingPublicGroups ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm animate-pulse space-y-4"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="w-12 h-12 rounded-2xl bg-slate-200 dark:bg-slate-800" />
+                    <div className="w-20 h-5 rounded-full bg-slate-200 dark:bg-slate-800" />
+                  </div>
+                  <div className="w-36 h-6 rounded-lg bg-slate-200 dark:bg-slate-800" />
+                  <div className="w-48 h-4 rounded-md bg-slate-100 dark:bg-slate-800/60" />
+                  <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-between">
+                    <div className="w-24 h-4 rounded bg-slate-200 dark:bg-slate-800" />
+                    <div className="w-16 h-4 rounded bg-slate-200 dark:bg-slate-800" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {publicGroupsData?.content?.map((group) => (
               <div
                 key={group.id}
@@ -627,7 +675,8 @@ export const ParaqtaPage: React.FC = () => {
                 </div>
               </div>
             ))}
-          </div>
+            </div>
+          )}
         </div>
       )}
 

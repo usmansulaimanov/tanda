@@ -41,6 +41,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -204,16 +205,41 @@ public class ReadingGroupService {
             groups = groupRepository.findByIsPublicTrueAndStatusOrderByCreatedAtDesc("APPROVED", pageable);
         }
 
-        return groups.map(g -> {
-            User creator = userRepository.findById(g.getCreatorId()).orElse(null);
-            long memberCount = memberRepository.countByGroupIdAndStatus(g.getId(), "ACTIVE");
-            Optional<ReadingGroupMember> myMember = currentUserId != null ?
-                    memberRepository.findByGroupIdAndUserId(g.getId(), currentUserId) : Optional.empty();
+        List<ReadingGroup> content = groups.getContent();
+        if (content.isEmpty()) {
+            return groups.map(g -> toDto(g, null, 0L, false, null, 0L, 0L));
+        }
 
-            boolean isMember = myMember.isPresent() && "ACTIVE".equalsIgnoreCase(myMember.get().getStatus());
-            String myRole = myMember.map(ReadingGroupMember::getRole).orElse(null);
-            Long myMonthly = myMember.map(ReadingGroupMember::getMonthlyReadingSeconds).orElse(0L);
-            Long myTotal = myMember.map(ReadingGroupMember::getTotalReadingSeconds).orElse(0L);
+        List<String> groupIds = content.stream().map(ReadingGroup::getId).collect(Collectors.toList());
+        List<String> creatorIds = content.stream().map(ReadingGroup::getCreatorId).filter(Objects::nonNull).distinct().collect(Collectors.toList());
+
+        Map<String, User> creatorMap = creatorIds.isEmpty() ? Collections.emptyMap() :
+                userRepository.findAllById(creatorIds).stream().collect(Collectors.toMap(User::getId, u -> u));
+
+        Map<String, Long> countMap = new HashMap<>();
+        List<Object[]> countRows = memberRepository.countMembersByGroupIdsAndStatus(groupIds, "ACTIVE");
+        for (Object[] row : countRows) {
+            String gId = (String) row[0];
+            Long cnt = ((Number) row[1]).longValue();
+            countMap.put(gId, cnt);
+        }
+
+        Map<String, ReadingGroupMember> myMembershipMap = new HashMap<>();
+        if (currentUserId != null) {
+            for (String gId : groupIds) {
+                memberRepository.findByGroupIdAndUserId(gId, currentUserId).ifPresent(m -> myMembershipMap.put(gId, m));
+            }
+        }
+
+        return groups.map(g -> {
+            User creator = g.getCreatorId() != null ? creatorMap.get(g.getCreatorId()) : null;
+            long memberCount = countMap.getOrDefault(g.getId(), 0L);
+            ReadingGroupMember myMember = myMembershipMap.get(g.getId());
+
+            boolean isMember = myMember != null && "ACTIVE".equalsIgnoreCase(myMember.getStatus());
+            String myRole = myMember != null ? myMember.getRole() : null;
+            Long myMonthly = myMember != null ? myMember.getMonthlyReadingSeconds() : 0L;
+            Long myTotal = myMember != null ? myMember.getTotalReadingSeconds() : 0L;
 
             return toDto(g, creator, memberCount, isMember, myRole, myMonthly, myTotal);
         });
@@ -358,12 +384,33 @@ public class ReadingGroupService {
         Map<String, ReadingGroup> groupMap = groupRepository.findAllById(groupIds).stream()
                 .collect(Collectors.toMap(ReadingGroup::getId, g -> g));
 
+        // Batch fetch creators
+        List<String> creatorIds = groupMap.values().stream()
+                .map(ReadingGroup::getCreatorId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .collect(Collectors.toList());
+        Map<String, User> creatorMap = creatorIds.isEmpty() ? Collections.emptyMap() :
+                userRepository.findAllById(creatorIds).stream()
+                        .collect(Collectors.toMap(User::getId, u -> u));
+
+        // Batch fetch member counts
+        Map<String, Long> countMap = new HashMap<>();
+        if (!groupIds.isEmpty()) {
+            List<Object[]> countRows = memberRepository.countMembersByGroupIdsAndStatus(groupIds, "ACTIVE");
+            for (Object[] row : countRows) {
+                String gId = (String) row[0];
+                Long cnt = ((Number) row[1]).longValue();
+                countMap.put(gId, cnt);
+            }
+        }
+
         List<ReadingGroupResponseDto> result = new ArrayList<>();
         for (ReadingGroupMember m : memberships) {
             ReadingGroup g = groupMap.get(m.getGroupId());
             if (g != null) {
-                User creator = userRepository.findById(g.getCreatorId()).orElse(null);
-                long memberCount = memberRepository.countByGroupIdAndStatus(g.getId(), "ACTIVE");
+                User creator = g.getCreatorId() != null ? creatorMap.get(g.getCreatorId()) : null;
+                long memberCount = countMap.getOrDefault(g.getId(), 0L);
                 result.add(toDto(g, creator, memberCount, true, m.getRole(), m.getMonthlyReadingSeconds(), m.getTotalReadingSeconds()));
             }
         }
