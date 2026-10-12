@@ -29,5 +29,8 @@ public class ReadingGroupCreateRequestDto {
     @Builder.Default
     private Boolean isPublic = false;
 
+    @Size(max = 64, message = "Юзернейм 64 таңбадан аспауы керек")
+    private String username;
+
     private List<String> inviteeEmails;
 }

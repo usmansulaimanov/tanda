@@ -40,6 +40,20 @@ public class ReadingGroup {
     @Builder.Default
     private Boolean isPublic = false;
 
+    @Column(name = "username", length = 64)
+    private String username;
+
+    @Column(name = "status", length = 30, nullable = false)
+    @Builder.Default
+    private String status = "APPROVED";
+
+    @Column(name = "is_verified", nullable = false)
+    @Builder.Default
+    private Boolean isVerified = false;
+
+    @Column(name = "admin_note", columnDefinition = "TEXT")
+    private String adminNote;
+
     @Column(name = "creator_id", length = 64, nullable = false)
     private String creatorId;
 
@@ -67,6 +81,12 @@ public class ReadingGroup {
         }
         if (maxMembers == null) {
             maxMembers = 5;
+        }
+        if (status == null) {
+            status = "APPROVED";
+        }
+        if (isVerified == null) {
+            isVerified = false;
         }
     }
 

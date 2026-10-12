@@ -25,6 +25,7 @@ import {
   Sparkles,
   Mail,
   X,
+  AlertTriangle,
 } from 'lucide-react';
 import { paraqtaApi, ReadingGroup, ReadingGroupInvitation, UserReadingStats, UserSearchResult } from '../../shared/api/paraqta.api';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -34,6 +35,7 @@ import { useBookStore } from '../../store/useBookStore';
 import { Skeleton } from '../../shared/ui';
 import { ReadingTrackerWidget } from './ReadingTrackerWidget';
 import { AmbientSoundWidget } from './components/AmbientSoundWidget';
+import { VerifiedBadge } from '../../components/ui/VerifiedBadge';
 
 // Utility to format seconds to "X сағ Y мин Z сек" or "00:00:00"
 export const formatDurationHMS = (totalSeconds: number): string => {
@@ -119,6 +121,8 @@ export const ParaqtaPage: React.FC = () => {
   const [groupName, setGroupName] = useState<string>('');
   const [groupDesc, setGroupDesc] = useState<string>('');
   const [groupIsPublic, setGroupIsPublic] = useState<boolean>(false);
+  const [groupUsername, setGroupUsername] = useState<string>('');
+  const [groupUsernameError, setGroupUsernameError] = useState<string>('');
   const [inviteEmailInput, setInviteEmailInput] = useState<string>('');
   const [inviteEmailError, setInviteEmailError] = useState<string>('');
   const [isVerifyingInvitee, setIsVerifyingInvitee] = useState<boolean>(false);
@@ -230,11 +234,20 @@ export const ParaqtaPage: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['myReadingGroups'] });
       setShowCreateModal(false);
       setGroupName('');
+      setGroupUsername('');
+      setGroupUsernameError('');
       setGroupDesc('');
       setInviteEmailInput('');
       setInviteEmailError('');
       setSelectedInvitees([]);
-      showToast(`"${newGroup.name}" тобы сәтті құрылды!`);
+      if (newGroup.isPublic && newGroup.status === 'PENDING_APPROVAL') {
+        showToast(
+          `«${newGroup.name}» тобы сәтті құрылды және модераторға тексеруге жіберілді. Админ мақұлдаған соң сайтта жарияланады!`,
+          'success'
+        );
+      } else {
+        showToast(`«${newGroup.name}» тобы сәтті құрылды!`, 'success');
+      }
       navigate(`/paraqta/groups/${newGroup.id}`);
     },
     onError: (err: any) => {
@@ -488,13 +501,44 @@ export const ParaqtaPage: React.FC = () => {
                       </span>
                     </div>
 
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-[#F08000] transition-colors">
-                      {group.name}
-                    </h3>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-[#F08000] transition-colors">
+                        {group.name}
+                      </h3>
+                      {group.isVerified && <VerifiedBadge size="w-4 h-4" title="Расталған топ" />}
+                    </div>
+                    {group.username && (
+                      <p className="font-mono text-xs font-semibold text-orange-600 dark:text-orange-400 mt-0.5">
+                        @{group.username}
+                      </p>
+                    )}
                     {group.description && (
                       <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">
                         {group.description}
                       </p>
+                    )}
+
+                    {/* Moderation / Admin note badges */}
+                    {group.isPublic && group.status === 'PENDING_APPROVAL' && (
+                      <div className="mt-2.5 p-2 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 rounded-xl text-[11px] font-bold text-amber-700 dark:text-amber-300 flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5 shrink-0" />
+                        <span>Модерацияда (сайтта әлі жарияланбаған)</span>
+                      </div>
+                    )}
+                    {group.status === 'REJECTED' && (
+                      <div className="mt-2.5 p-2 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 rounded-xl text-[11px] font-bold text-rose-700 dark:text-rose-300 flex items-center gap-1.5">
+                        <XCircle className="w-3.5 h-3.5 shrink-0" />
+                        <span>Өтінім қабылданбады</span>
+                      </div>
+                    )}
+                    {group.adminNote && (
+                      <div className="mt-2.5 p-2.5 bg-amber-100/70 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-800 rounded-xl text-xs text-amber-900 dark:text-amber-200 flex items-start gap-1.5">
+                        <AlertTriangle className="w-3.5 h-3.5 shrink-0 text-amber-600 mt-0.5" />
+                        <div>
+                          <span className="font-bold">Әкімші ескертуі: </span>
+                          <span>{group.adminNote}</span>
+                        </div>
+                      </div>
                     )}
                   </div>
 
@@ -521,7 +565,7 @@ export const ParaqtaPage: React.FC = () => {
             <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
-              placeholder="Ашық топтарды іздеу..."
+              placeholder="Топ атауы немесе @username бойынша іздеу..."
               value={exploreQuery}
               onChange={(e) => setExploreQuery(e.target.value)}
               className="w-full pl-12 pr-4 py-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-[#F08000]"
@@ -548,7 +592,15 @@ export const ParaqtaPage: React.FC = () => {
                     </span>
                   </div>
 
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">{group.name}</h3>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">{group.name}</h3>
+                    {group.isVerified && <VerifiedBadge size="w-4 h-4" title="Расталған топ" />}
+                  </div>
+                  {group.username && (
+                    <p className="font-mono text-xs font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5">
+                      @{group.username}
+                    </p>
+                  )}
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">
                     {group.description || 'Жалпы оқырмандарға арналған ашық клуб.'}
                   </p>
@@ -595,9 +647,17 @@ export const ParaqtaPage: React.FC = () => {
               onSubmit={(e) => {
                 e.preventDefault();
                 if (!groupName.trim()) return;
+                if (groupIsPublic) {
+                  const u = groupUsername.trim().toLowerCase();
+                  if (!u || !u.endsWith('club') || u.length < 4) {
+                    setGroupUsernameError("Юзернеймнің соңы «club» сөзімен аяқталуы керек (мысалы: abay_club)");
+                    return;
+                  }
+                }
                 createGroupMutation.mutate({
-                  name: groupName,
-                  description: groupDesc,
+                  name: groupName.trim(),
+                  username: groupIsPublic ? groupUsername.trim().toLowerCase() : undefined,
+                  description: groupDesc.trim() || undefined,
                   isPublic: groupIsPublic,
                   inviteeEmails: selectedInvitees.map((u) => u.email),
                 });
@@ -632,13 +692,63 @@ export const ParaqtaPage: React.FC = () => {
                   type="checkbox"
                   id="publicGroup"
                   checked={groupIsPublic}
-                  onChange={(e) => setGroupIsPublic(e.target.checked)}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    setGroupIsPublic(checked);
+                    if (!checked) {
+                      setGroupUsername('');
+                      setGroupUsernameError('');
+                    }
+                  }}
                   className="w-4 h-4 text-[#F08000] rounded focus:ring-orange-500"
                 />
-                <label htmlFor="publicGroup" className="text-xs font-bold text-slate-800 dark:text-slate-200 cursor-pointer">
-                  Ашық топ
-                </label>
+                <div>
+                  <label htmlFor="publicGroup" className="text-xs font-bold text-slate-800 dark:text-slate-200 cursor-pointer block">
+                    Ашық топ
+                  </label>
+                  <p className="text-[11px] text-slate-500">
+                    Ашық топты алдымен әкімші тексереді. Мақұлданған соң барлық оқырмандарға көрінеді.
+                  </p>
+                </div>
               </div>
+
+              {groupIsPublic && (
+                <div className="animate-fadeIn space-y-1">
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
+                    Топтың юзернеймі *
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-mono font-bold text-sm">
+                      @
+                    </span>
+                    <input
+                      type="text"
+                      required={groupIsPublic}
+                      placeholder="kitap_club"
+                      value={groupUsername}
+                      onChange={(e) => {
+                        const val = e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '');
+                        setGroupUsername(val);
+                        if (val && !val.endsWith('club')) {
+                          setGroupUsernameError("Юзернеймнің соңы «club» сөзімен аяқталуы керек (мысалы: abay_club)");
+                        } else {
+                          setGroupUsernameError('');
+                        }
+                      }}
+                      className={`w-full pl-8 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border rounded-xl text-sm font-mono focus:ring-2 focus:ring-[#F08000] focus:outline-none ${
+                        groupUsernameError ? 'border-rose-500' : 'border-slate-200 dark:border-slate-700'
+                      }`}
+                    />
+                  </div>
+                  {groupUsernameError ? (
+                    <p className="text-[11px] text-rose-500 font-semibold">{groupUsernameError}</p>
+                  ) : (
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                      Ашық топтар үшін юзернейм соңы міндетті түрде <span className="font-mono font-bold text-orange-600">club</span> деп аяқталуы тиіс. Осы юзернейм арқылы адамдар топты іздеуден табады.
+                    </p>
+                  )}
+                </div>
+              )}
 
               {/* Add User Invitation by Email */}
               <div>

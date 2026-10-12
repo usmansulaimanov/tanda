@@ -30,5 +30,9 @@ public class ReadingGroupResponseDto {
     private Long myTodaySeconds;
     private Long myMonthlySeconds;
     private Long myTotalSeconds;
+    private String username;
+    private String status;
+    private Boolean isVerified;
+    private String adminNote;
     private OffsetDateTime createdAt;
 }

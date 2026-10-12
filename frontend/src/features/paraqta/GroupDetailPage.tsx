@@ -21,6 +21,7 @@ import {
   Loader2,
   Clock,
   Flame,
+  AlertTriangle,
 } from 'lucide-react';
 import { paraqtaApi, ReadingGroupDetail, ReadingGroupMember, UserSearchResult } from '../../shared/api/paraqta.api';
 import { formatDurationHuman } from './ParaqtaPage';
@@ -29,6 +30,7 @@ import { Skeleton } from '../../shared/ui';
 import { resizeAndCompressImage } from '../../utils/imageUtils';
 import { ReadingTrackerWidget } from './ReadingTrackerWidget';
 import { AmbientSoundWidget } from './components/AmbientSoundWidget';
+import { VerifiedBadge } from '../../components/ui/VerifiedBadge';
 const KAZAKH_MONTHS = [
   'Қаңтар',
   'Ақпан',
@@ -279,9 +281,15 @@ export const GroupDetailPage: React.FC = () => {
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 mb-0.5 sm:mb-1 flex-wrap">
-                <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight truncate">
-                  {group.name}
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight truncate flex items-center gap-1.5">
+                  <span>{group.name}</span>
+                  {group.isVerified && <VerifiedBadge size="w-5 h-5 sm:w-6 sm:h-6" title="Расталған топ" />}
                 </h1>
+                {group.username && (
+                  <span className="font-mono text-xs font-bold text-orange-600 dark:text-orange-400 bg-orange-500/10 px-2.5 py-0.5 rounded-lg border border-orange-500/20">
+                    @{group.username}
+                  </span>
+                )}
                 {group.isPublic && (
                   <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 shrink-0">
                     Ашық топ
@@ -293,7 +301,31 @@ export const GroupDetailPage: React.FC = () => {
                   {group.description}
                 </p>
               )}
-              <div className="flex items-center gap-2 sm:gap-4 mt-1.5 sm:mt-2 text-xs font-semibold text-slate-500 flex-wrap">
+
+              {/* Moderation / Admin note banners */}
+              {group.isPublic && group.status === 'PENDING_APPROVAL' && (
+                <div className="mt-2.5 p-2.5 bg-amber-500/10 border border-amber-500/30 rounded-2xl text-xs font-bold text-amber-800 dark:text-amber-200 flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-amber-600 shrink-0" />
+                  <span>Бұл топ модерацияда (тексерілуде). Әкімші мақұлдағаннан кейін көпшілікке жарияланады.</span>
+                </div>
+              )}
+              {group.status === 'REJECTED' && (
+                <div className="mt-2.5 p-2.5 bg-rose-500/10 border border-rose-500/30 rounded-2xl text-xs font-bold text-rose-800 dark:text-rose-200 flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+                  <span>Бұл топты әкімші қабылдамады. Төмендегі ескертуді оқып, топты өңдеңіз.</span>
+                </div>
+              )}
+              {group.adminNote && (
+                <div className="mt-2.5 p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 rounded-2xl text-xs text-amber-900 dark:text-amber-200 flex items-start gap-2">
+                  <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-black">Әкімші ескертуі: </span>
+                    <span>{group.adminNote}</span>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex items-center gap-2 sm:gap-4 mt-2 sm:mt-2.5 text-xs font-semibold text-slate-500 flex-wrap">
                 <span className="flex items-center gap-1 shrink-0">
                   <Users className="w-3.5 h-3.5 text-orange-500" /> {group.memberCount} мүше
                 </span>

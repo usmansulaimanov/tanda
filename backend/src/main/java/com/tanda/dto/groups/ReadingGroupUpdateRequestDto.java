@@ -22,5 +22,8 @@ public class ReadingGroupUpdateRequestDto {
 
     private String coverImageUrl;
 
+    @Size(max = 64, message = "Юзернейм 64 таңбадан аспауы керек")
+    private String username;
+
     private Boolean isPublic;
 }

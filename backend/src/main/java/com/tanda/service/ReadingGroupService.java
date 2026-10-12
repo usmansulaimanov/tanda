@@ -74,8 +74,12 @@ public class ReadingGroupService {
             throw new BadRequestException("Сіздің тарифтегі топ ашу лимитіңіз (" + maxAllowedGroups + " топ) толған. Жүйені кеңейту үшін Премиумды жаңартыңыз.");
         }
 
+        boolean isPublic = Boolean.TRUE.equals(dto.getIsPublic());
+        String validatedUsername = normalizeAndValidateUsername(dto.getUsername(), isPublic, null);
+        String initialStatus = isPublic ? "PENDING_APPROVAL" : "APPROVED";
+
         int maxMembers;
-        if (Boolean.TRUE.equals(dto.getIsPublic())) {
+        if (isPublic) {
             maxMembers = 500;
         } else {
             maxMembers = isPremium ? 50 : 5;
@@ -87,7 +91,10 @@ public class ReadingGroupService {
                 .name(dto.getName().trim())
                 .description(dto.getDescription() != null ? dto.getDescription().trim() : null)
                 .coverImageUrl(dto.getCoverImageUrl())
-                .isPublic(Boolean.TRUE.equals(dto.getIsPublic()))
+                .isPublic(isPublic)
+                .username(validatedUsername)
+                .status(initialStatus)
+                .isVerified(false)
                 .creatorId(userId)
                 .maxMembers(maxMembers)
                 .createdAt(OffsetDateTime.now())
@@ -153,6 +160,15 @@ public class ReadingGroupService {
                 group.setMaxMembers(500);
             }
         }
+        if (dto.getUsername() != null) {
+            String newUsername = normalizeAndValidateUsername(dto.getUsername(), group.getIsPublic(), groupId);
+            group.setUsername(newUsername);
+        }
+
+        // If creator updates a group that had warning note or was rejected, and it is public, allow re-review
+        if (group.getIsPublic() && "REJECTED".equalsIgnoreCase(group.getStatus())) {
+            group.setStatus("PENDING_APPROVAL");
+        }
 
         group.setUpdatedAt(OffsetDateTime.now());
         groupRepository.save(group);
@@ -179,9 +195,13 @@ public class ReadingGroupService {
     public Page<ReadingGroupResponseDto> getPublicGroups(String query, Pageable pageable, String currentUserId) {
         Page<ReadingGroup> groups;
         if (query != null && !query.trim().isBlank()) {
-            groups = groupRepository.searchPublicGroups(query.trim(), pageable);
+            String cleanQuery = query.trim();
+            if (cleanQuery.startsWith("@")) {
+                cleanQuery = cleanQuery.substring(1).trim();
+            }
+            groups = groupRepository.searchPublicApprovedGroups(cleanQuery, pageable);
         } else {
-            groups = groupRepository.findByIsPublicTrueOrderByCreatedAtDesc(pageable);
+            groups = groupRepository.findByIsPublicTrueAndStatusOrderByCreatedAtDesc("APPROVED", pageable);
         }
 
         return groups.map(g -> {
@@ -197,6 +217,134 @@ public class ReadingGroupService {
 
             return toDto(g, creator, memberCount, isMember, myRole, myMonthly, myTotal);
         });
+    }
+
+    // ==========================================
+    // ADMIN MODERATION METHODS
+    // ==========================================
+
+    @Transactional(readOnly = true)
+    public Page<ReadingGroupResponseDto> getAdminGroups(String status, Pageable pageable) {
+        Page<ReadingGroup> groups;
+        if (status != null && !status.isBlank() && !"ALL".equalsIgnoreCase(status)) {
+            groups = groupRepository.findByStatusOrderByCreatedAtDesc(status.toUpperCase(), pageable);
+        } else {
+            groups = groupRepository.findAllByOrderByCreatedAtDesc(pageable);
+        }
+
+        return groups.map(g -> {
+            User creator = userRepository.findById(g.getCreatorId()).orElse(null);
+            long memberCount = memberRepository.countByGroupIdAndStatus(g.getId(), "ACTIVE");
+            return toDto(g, creator, memberCount, false, null, 0L, 0L);
+        });
+    }
+
+    @Transactional(readOnly = true)
+    public long getAdminPendingCount() {
+        return groupRepository.countByStatus("PENDING_APPROVAL");
+    }
+
+    @Transactional
+    public ReadingGroupResponseDto approveGroup(String groupId, Boolean isVerified) {
+        ReadingGroup group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new ResourceNotFoundException("Group not found: " + groupId));
+
+        group.setStatus("APPROVED");
+        if (isVerified != null) {
+            group.setIsVerified(isVerified);
+        }
+        group.setAdminNote(null);
+        group.setUpdatedAt(OffsetDateTime.now());
+        ReadingGroup saved = groupRepository.save(group);
+
+        User creator = userRepository.findById(saved.getCreatorId()).orElse(null);
+        long memberCount = memberRepository.countByGroupIdAndStatus(groupId, "ACTIVE");
+        return toDto(saved, creator, memberCount, false, null, 0L, 0L);
+    }
+
+    @Transactional
+    public ReadingGroupResponseDto rejectGroup(String groupId, String note) {
+        ReadingGroup group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new ResourceNotFoundException("Group not found: " + groupId));
+
+        group.setStatus("REJECTED");
+        if (note != null && !note.trim().isBlank()) {
+            group.setAdminNote(note.trim());
+        }
+        group.setUpdatedAt(OffsetDateTime.now());
+        ReadingGroup saved = groupRepository.save(group);
+
+        User creator = userRepository.findById(saved.getCreatorId()).orElse(null);
+        long memberCount = memberRepository.countByGroupIdAndStatus(groupId, "ACTIVE");
+        return toDto(saved, creator, memberCount, false, null, 0L, 0L);
+    }
+
+    @Transactional
+    public ReadingGroupResponseDto warnGroup(String groupId, String note) {
+        ReadingGroup group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new ResourceNotFoundException("Group not found: " + groupId));
+
+        if (note != null && !note.trim().isBlank()) {
+            group.setAdminNote(note.trim());
+        }
+        group.setUpdatedAt(OffsetDateTime.now());
+        ReadingGroup saved = groupRepository.save(group);
+
+        User creator = userRepository.findById(saved.getCreatorId()).orElse(null);
+        long memberCount = memberRepository.countByGroupIdAndStatus(groupId, "ACTIVE");
+        return toDto(saved, creator, memberCount, false, null, 0L, 0L);
+    }
+
+    @Transactional
+    public ReadingGroupResponseDto toggleGroupVerification(String groupId) {
+        ReadingGroup group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new ResourceNotFoundException("Group not found: " + groupId));
+
+        group.setIsVerified(!Boolean.TRUE.equals(group.getIsVerified()));
+        group.setUpdatedAt(OffsetDateTime.now());
+        ReadingGroup saved = groupRepository.save(group);
+
+        User creator = userRepository.findById(saved.getCreatorId()).orElse(null);
+        long memberCount = memberRepository.countByGroupIdAndStatus(groupId, "ACTIVE");
+        return toDto(saved, creator, memberCount, false, null, 0L, 0L);
+    }
+
+    private String normalizeAndValidateUsername(String rawUsername, boolean isPublic, String existingGroupId) {
+        if (!isPublic) {
+            if (rawUsername == null || rawUsername.trim().isBlank()) {
+                return null;
+            }
+        }
+        if (isPublic && (rawUsername == null || rawUsername.trim().isBlank())) {
+            throw new BadRequestException("Ашық топтар үшін юзернейм жазу міндетті (мысалы: abay_club)");
+        }
+
+        String username = rawUsername.trim().toLowerCase();
+        if (username.startsWith("@")) {
+            username = username.substring(1).trim();
+        }
+
+        if (username.length() < 3 || username.length() > 32) {
+            throw new BadRequestException("Топ юзернеймі 3 пен 32 таңба аралығында болуы керек");
+        }
+
+        if (!username.matches("^[a-z0-9_]+$")) {
+            throw new BadRequestException("Юзернейм тек кіші латын әріптері, сандар және астын сызу (_) таңбасынан тұруы керек");
+        }
+
+        if (isPublic && !username.endsWith("club")) {
+            throw new BadRequestException("Ашық топ юзернеймінің соңы міндетті түрде «club» сөзімен аяқталуы керек (мысалы: abay_club)");
+        }
+
+        boolean exists = (existingGroupId == null)
+                ? groupRepository.existsByUsernameIgnoreCase(username)
+                : groupRepository.existsByUsernameIgnoreCaseAndIdNot(username, existingGroupId);
+
+        if (exists) {
+            throw new BadRequestException("Бұл юзернейм (@" + username + ") бос емес. Басқасын таңдаңыз.");
+        }
+
+        return username;
     }
 
     @Transactional(readOnly = true)
@@ -625,6 +773,10 @@ public class ReadingGroupService {
                 .description(g.getDescription())
                 .coverImageUrl(g.getCoverImageUrl())
                 .isPublic(g.getIsPublic())
+                .username(g.getUsername())
+                .status(g.getStatus() != null ? g.getStatus() : "APPROVED")
+                .isVerified(Boolean.TRUE.equals(g.getIsVerified()))
+                .adminNote(g.getAdminNote())
                 .creatorId(g.getCreatorId())
                 .creatorName(creator != null ? creator.getName() : null)
                 .creatorAvatarUrl(creator != null ? creator.getAvatarUrl() : null)

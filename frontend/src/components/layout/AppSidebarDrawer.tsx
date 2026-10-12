@@ -12,9 +12,10 @@ import { hasAdminPermission } from '../../utils/permissions';
 import { api } from '../../lib/api';
 import tandaLogo from '../../assets/tanda-logo.png';
 import tandaPremiumWhite from '../../assets/tanda-premium-white.png';
-import { Crown, CreditCard, Sliders, Gift, Coins, X, Headphones } from 'lucide-react';
+import { Crown, CreditCard, Sliders, Gift, Coins, X, Headphones, Users } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { premiumApi } from '../../shared/api/premium.api';
+import { paraqtaApi } from '../../shared/api/paraqta.api';
 import { systemApi } from '../../shared/api/system.api';
 import { PWAInstallSidebarCard } from './PWAInstallBanner';
 
@@ -90,6 +91,14 @@ export const AppSidebarDrawer: React.FC = () => {
   });
 
   const pendingSubscriptionCount = pendingRequests.length;
+
+  const { data: pendingGroupsCount = 0 } = useQuery({
+    queryKey: ['adminGroupPendingCount'],
+    queryFn: paraqtaApi.getAdminPendingCount,
+    enabled: Boolean(role === 'admin' && isAuthenticated),
+    staleTime: 30 * 1000,
+    refetchInterval: 30 * 1000,
+  });
 
   const isAuthor = Boolean(
     isAuthenticated && user && (role === 'author' || user.role === 'author' || user.isAuthor)
@@ -577,6 +586,20 @@ export const AppSidebarDrawer: React.FC = () => {
               >
                 <Gift className="w-[18px] h-[18px]" />
                 <span>Бонустар</span>
+              </Link>
+
+              <Link
+                to="/admin/paraqta"
+                className={`sidebar-nav-link ${location.pathname.startsWith('/admin/paraqta') ? 'active' : ''}`}
+                onClick={closeSidebar}
+              >
+                <Users className="w-[18px] h-[18px]" />
+                <span>Парақта (Оқу топтары)</span>
+                {pendingGroupsCount > 0 && (
+                  <span className="sidebar-badge orange">
+                    {pendingGroupsCount}
+                  </span>
+                )}
               </Link>
 
               <Link

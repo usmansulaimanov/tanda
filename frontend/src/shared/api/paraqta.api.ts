@@ -34,9 +34,13 @@ export interface UserReadingStats {
 export interface ReadingGroup {
   id: string;
   name: string;
+  username?: string;
   description?: string;
   coverImageUrl?: string;
   isPublic: boolean;
+  status: 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED';
+  isVerified: boolean;
+  adminNote?: string;
   creatorId: string;
   creatorName?: string;
   creatorAvatarUrl?: string;
@@ -83,6 +87,7 @@ export interface ReadingGroupDetail {
 
 export interface ReadingGroupCreateRequest {
   name: string;
+  username?: string;
   description?: string;
   coverImageUrl?: string;
   isPublic?: boolean;
@@ -91,6 +96,7 @@ export interface ReadingGroupCreateRequest {
 
 export interface ReadingGroupUpdateRequest {
   name?: string;
+  username?: string;
   description?: string;
   coverImageUrl?: string;
   isPublic?: boolean;
@@ -227,6 +233,41 @@ export const paraqtaApi = {
     const res = await apiClient.get<UserSearchResult[]>('/api/v1/reading-groups/users/search', {
       params: { query },
     });
+    return res.data;
+  },
+
+  // Admin moderation endpoints
+  getAdminGroups: async (status?: string, page = 0, size = 20): Promise<PageResponse<ReadingGroup>> => {
+    const params = new URLSearchParams();
+    if (status && status !== 'ALL') params.append('status', status);
+    params.append('page', page.toString());
+    params.append('size', size.toString());
+    const res = await apiClient.get<PageResponse<ReadingGroup>>(`/api/v1/admin/reading-groups?${params.toString()}`);
+    return res.data;
+  },
+
+  getAdminPendingCount: async (): Promise<number> => {
+    const res = await apiClient.get<{ pendingCount: number }>('/api/v1/admin/reading-groups/pending-count');
+    return res.data?.pendingCount || 0;
+  },
+
+  approveGroup: async (id: string, isVerified = false): Promise<ReadingGroup> => {
+    const res = await apiClient.post<ReadingGroup>(`/api/v1/admin/reading-groups/${id}/approve`, { isVerified });
+    return res.data;
+  },
+
+  rejectGroup: async (id: string, adminNote?: string): Promise<ReadingGroup> => {
+    const res = await apiClient.post<ReadingGroup>(`/api/v1/admin/reading-groups/${id}/reject`, { adminNote });
+    return res.data;
+  },
+
+  warnGroup: async (id: string, adminNote: string): Promise<ReadingGroup> => {
+    const res = await apiClient.post<ReadingGroup>(`/api/v1/admin/reading-groups/${id}/warn`, { adminNote });
+    return res.data;
+  },
+
+  toggleGroupVerification: async (id: string): Promise<ReadingGroup> => {
+    const res = await apiClient.post<ReadingGroup>(`/api/v1/admin/reading-groups/${id}/toggle-verify`);
     return res.data;
   },
 };
