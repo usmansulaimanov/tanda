@@ -687,68 +687,72 @@ export const ParaqtaPage: React.FC = () => {
                 />
               </div>
 
-              <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700">
-                <input
-                  type="checkbox"
-                  id="publicGroup"
-                  checked={groupIsPublic}
-                  onChange={(e) => {
-                    const checked = e.target.checked;
-                    setGroupIsPublic(checked);
-                    if (!checked) {
-                      setGroupUsername('');
-                      setGroupUsernameError('');
-                    }
-                  }}
-                  className="w-4 h-4 text-[#F08000] rounded focus:ring-orange-500"
-                />
-                <div>
-                  <label htmlFor="publicGroup" className="text-xs font-bold text-slate-800 dark:text-slate-200 cursor-pointer block">
-                    Ашық топ
-                  </label>
-                  <p className="text-[11px] text-slate-500">
-                    Ашық топты алдымен әкімші тексереді. Мақұлданған соң барлық оқырмандарға көрінеді.
-                  </p>
-                </div>
-              </div>
-
-              {groupIsPublic && (
-                <div className="animate-fadeIn space-y-1">
-                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
-                    Топтың юзернеймі *
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-mono font-bold text-sm">
-                      @
-                    </span>
-                    <input
-                      type="text"
-                      required={groupIsPublic}
-                      placeholder="kitap_club"
-                      value={groupUsername}
-                      onChange={(e) => {
-                        const val = e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '');
-                        setGroupUsername(val);
-                        if (val && !val.endsWith('club')) {
-                          setGroupUsernameError("Юзернеймнің соңы «club» сөзімен аяқталуы керек (мысалы: abay_club)");
-                        } else {
-                          setGroupUsernameError('');
-                        }
-                      }}
-                      className={`w-full pl-8 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border rounded-xl text-sm font-mono focus:ring-2 focus:ring-[#F08000] focus:outline-none ${
-                        groupUsernameError ? 'border-rose-500' : 'border-slate-200 dark:border-slate-700'
-                      }`}
-                    />
-                  </div>
-                  {groupUsernameError ? (
-                    <p className="text-[11px] text-rose-500 font-semibold">{groupUsernameError}</p>
-                  ) : (
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                      Ашық топтар үшін юзернейм соңы міндетті түрде <span className="font-mono font-bold text-orange-600">club</span> деп аяқталуы тиіс. Осы юзернейм арқылы адамдар топты іздеуден табады.
+              <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700 transition-all">
+                {/* Checkbox Header */}
+                <div className="flex items-start gap-3">
+                  <input
+                    type="checkbox"
+                    id="publicGroup"
+                    checked={groupIsPublic}
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      setGroupIsPublic(checked);
+                      if (!checked) {
+                        setGroupUsername('');
+                        setGroupUsernameError('');
+                      }
+                    }}
+                    className="w-4 h-4 mt-0.5 text-[#F08000] rounded focus:ring-orange-500 shrink-0 cursor-pointer"
+                  />
+                  <div className="flex-1">
+                    <label htmlFor="publicGroup" className="text-xs font-bold text-slate-800 dark:text-slate-200 cursor-pointer block">
+                      Ашық топ
+                    </label>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">
+                      Ашық топты алдымен әкімші тексереді. Мақұлданған соң барлық оқырмандарға көрінеді.
                     </p>
-                  )}
+                  </div>
                 </div>
-              )}
+
+                {/* Username Input Inside The Same Box */}
+                {groupIsPublic && (
+                  <div className="mt-3.5 pt-3.5 border-t border-slate-200/80 dark:border-slate-700/80 animate-fadeIn space-y-1.5">
+                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
+                      Топтың юзернеймі *
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-mono font-bold text-sm select-none">
+                        @
+                      </span>
+                      <input
+                        type="text"
+                        required={groupIsPublic}
+                        placeholder="kitap_club"
+                        value={groupUsername}
+                        onChange={(e) => {
+                          const val = e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '');
+                          setGroupUsername(val);
+                          if (val && !val.endsWith('club')) {
+                            setGroupUsernameError("Юзернеймнің соңы «club» сөзімен аяқталуы керек (мысалы: abay_club)");
+                          } else {
+                            setGroupUsernameError('');
+                          }
+                        }}
+                        className={`w-full pl-8 pr-4 py-2.5 bg-white dark:bg-slate-900 border rounded-xl text-sm font-mono focus:ring-2 focus:ring-[#F08000] focus:outline-none transition-all ${
+                          groupUsernameError ? 'border-rose-500' : 'border-slate-200 dark:border-slate-700'
+                        }`}
+                      />
+                    </div>
+                    {groupUsernameError ? (
+                      <p className="text-[11px] text-rose-500 font-semibold">{groupUsernameError}</p>
+                    ) : (
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                        Ашық топтар үшін юзернейм соңы міндетті түрде <span className="font-mono font-bold text-orange-600 dark:text-orange-400">club</span> деп аяқталуы тиіс. Осы юзернейм арқылы адамдар топты іздеуден табады.
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
 
               {/* Add User Invitation by Email */}
               <div>
