@@ -418,9 +418,8 @@ export const AdminParaqtaPage: React.FC = () => {
                         onChange={() => toggleVerifyMutation.mutate(group.id)}
                         className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 dark:border-slate-600 cursor-pointer accent-blue-600"
                       />
-                      <span className="flex items-center gap-1 text-slate-800 dark:text-slate-200">
-                        <span>Растау</span>
-                        {group.isVerified && <VerifiedBadge size="w-3.5 h-3.5" title="Расталған топ" />}
+                      <span className="text-slate-800 dark:text-slate-200">
+                        Растау
                       </span>
                     </label>
 
@@ -886,18 +885,18 @@ export const AdminParaqtaPage: React.FC = () => {
             </div>
 
             {/* External Link & Quick Actions */}
-            <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
+            <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-wrap sm:flex-nowrap items-center justify-between gap-3">
               <a
                 href={`/paraqta/groups/${activeDetailGroup.id}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-[#F08000] hover:underline"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-[#F08000] hover:underline shrink-0"
               >
                 <span>Сайттан топты ашу</span>
                 <ExternalLink className="w-3.5 h-3.5" />
               </a>
 
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2 shrink-0">
                 {/* Toggle Verified Checkbox */}
                 <label className="px-3 py-2 text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700/60 flex items-center gap-2 cursor-pointer select-none transition-all">
                   <input
@@ -907,9 +906,8 @@ export const AdminParaqtaPage: React.FC = () => {
                     onChange={() => toggleVerifyMutation.mutate(activeDetailGroup.id)}
                     className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 dark:border-slate-600 cursor-pointer accent-blue-600"
                   />
-                  <span className="flex items-center gap-1 text-slate-800 dark:text-slate-200">
-                    <span>Растау</span>
-                    {activeDetailGroup.isVerified && <VerifiedBadge size="w-3.5 h-3.5" title="Расталған топ" />}
+                  <span className="text-slate-800 dark:text-slate-200">
+                    Растау
                   </span>
                 </label>
 
