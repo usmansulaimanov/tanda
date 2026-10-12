@@ -13,6 +13,9 @@ import {
   MessageSquare,
   RefreshCw,
   ExternalLink,
+  X,
+  User,
+  Calendar,
 } from 'lucide-react';
 import { paraqtaApi, ReadingGroup } from '../../shared/api/paraqta.api';
 import { useToastStore } from '../../store/useToastStore';
@@ -29,6 +32,8 @@ export const AdminParaqtaPage: React.FC = () => {
   const [pageSize] = useState<number>(20);
 
   // Modals state
+  const [detailModalGroup, setDetailModalGroup] = useState<ReadingGroup | null>(null);
+
   const [approveModalGroup, setApproveModalGroup] = useState<ReadingGroup | null>(null);
   const [approveWithVerified, setApproveWithVerified] = useState<boolean>(false);
 
@@ -37,6 +42,13 @@ export const AdminParaqtaPage: React.FC = () => {
 
   const [warnModalGroup, setWarnModalGroup] = useState<ReadingGroup | null>(null);
   const [warnNote, setWarnNote] = useState<string>('');
+
+  // Fetch full detail when viewing group info modal
+  const { data: groupDetail, isLoading: isLoadingDetail } = useQuery({
+    queryKey: ['adminGroupDetail', detailModalGroup?.id],
+    queryFn: () => paraqtaApi.getGroupDetail(detailModalGroup!.id),
+    enabled: !!detailModalGroup?.id,
+  });
 
   // Fetch pending count for badge
   const { data: pendingCount = 0 } = useQuery({
@@ -133,6 +145,17 @@ export const AdminParaqtaPage: React.FC = () => {
       return '';
     }
   };
+
+  const formatMinutes = (sec?: number) => {
+    if (!sec || sec <= 0) return '0 мин';
+    const hours = Math.floor(sec / 3600);
+    const minutes = Math.floor((sec % 3600) / 60);
+    if (hours > 0) return `${hours} сағ ${minutes} мин`;
+    return `${minutes} мин`;
+  };
+
+  const activeDetailGroup =
+    groups.find((g) => g.id === detailModalGroup?.id) || groupDetail?.group || detailModalGroup;
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-4 sm:p-6 lg:p-8">
@@ -271,13 +294,14 @@ export const AdminParaqtaPage: React.FC = () => {
               return (
                 <div
                   key={group.id}
-                  className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-all flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6"
+                  onClick={() => setDetailModalGroup(group)}
+                  className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md hover:border-orange-200 dark:hover:border-orange-950 transition-all flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 cursor-pointer group/card"
                 >
                   {/* Left Info */}
                   <div className="space-y-3 flex-1 min-w-0">
                     {/* Header Row: Title + Badges */}
                     <div className="flex flex-wrap items-center gap-2.5">
-                      <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-1.5">
+                      <h3 className="text-lg font-black text-slate-900 dark:text-white group-hover/card:text-[#F08000] transition-colors flex items-center gap-1.5">
                         <span>{group.name}</span>
                         {group.isVerified && <VerifiedBadge size="w-4 h-4" title="Расталған топ" />}
                       </h3>
@@ -368,7 +392,10 @@ export const AdminParaqtaPage: React.FC = () => {
                   </div>
 
                   {/* Right Actions */}
-                  <div className="flex flex-wrap lg:flex-nowrap items-center gap-2 self-stretch lg:self-center shrink-0 pt-2 lg:pt-0 border-t lg:border-t-0 border-slate-100 dark:border-slate-800">
+                  <div
+                    onClick={(e) => e.stopPropagation()}
+                    className="flex flex-wrap lg:flex-nowrap items-center gap-2 self-stretch lg:self-center shrink-0 pt-2 lg:pt-0 border-t lg:border-t-0 border-slate-100 dark:border-slate-800 cursor-default"
+                  >
                     {/* Toggle Verified Badge Button */}
                     <button
                       type="button"
@@ -649,6 +676,286 @@ export const AdminParaqtaPage: React.FC = () => {
               >
                 {warnMutation.isPending ? 'Жіберілуде...' : 'Ескертуді сақтау'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* ===================== GROUP DETAILS MODAL ===================== */}
+      {detailModalGroup && activeDetailGroup && (
+        <div
+          onClick={() => setDetailModalGroup(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm animate-fadeIn cursor-pointer"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 sm:p-7 max-w-2xl w-full shadow-2xl relative cursor-default space-y-6 max-h-[92vh] overflow-y-auto"
+          >
+            {/* Top Bar with Title & Close */}
+            <div className="flex items-start justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-1.5">
+                    <span>{activeDetailGroup.name}</span>
+                    {activeDetailGroup.isVerified && <VerifiedBadge size="w-5 h-5" title="Расталған топ" />}
+                  </h2>
+                  {activeDetailGroup.username && (
+                    <span className="font-mono text-xs font-bold text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-950/40 px-2 py-0.5 rounded-lg border border-orange-200 dark:border-orange-900/40">
+                      @{activeDetailGroup.username}
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Топ ID: <span className="font-mono text-[11px] select-all">{activeDetailGroup.id}</span>
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setDetailModalGroup(null)}
+                className="w-9 h-9 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white flex items-center justify-center shrink-0 transition-colors"
+                title="Жабу"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Badges Row */}
+            <div className="flex flex-wrap items-center gap-2">
+              {activeDetailGroup.isPublic ? (
+                <span className="inline-flex items-center gap-1 text-xs font-bold text-sky-700 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/40 px-2.5 py-1 rounded-full border border-sky-200 dark:border-sky-800">
+                  <Globe className="w-3.5 h-3.5" />
+                  Ашық топ
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 text-xs font-bold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-full">
+                  <Lock className="w-3.5 h-3.5" />
+                  Жабық топ
+                </span>
+              )}
+
+              {activeDetailGroup.status === 'PENDING_APPROVAL' && (
+                <span className="inline-flex items-center gap-1 text-xs font-black text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/50 px-2.5 py-1 rounded-full border border-amber-300 dark:border-amber-700 animate-pulse">
+                  <Clock className="w-3.5 h-3.5" />
+                  Модерацияда (Күтілуде)
+                </span>
+              )}
+
+              {activeDetailGroup.status === 'APPROVED' && (
+                <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 px-2.5 py-1 rounded-full border border-emerald-300 dark:border-emerald-700">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  Мақұлданған (Сайтта жарияланған)
+                </span>
+              )}
+
+              {activeDetailGroup.status === 'REJECTED' && (
+                <span className="inline-flex items-center gap-1 text-xs font-bold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/50 px-2.5 py-1 rounded-full border border-rose-300 dark:border-rose-700">
+                  <XCircle className="w-3.5 h-3.5" />
+                  Қабылданбаған
+                </span>
+              )}
+
+              {activeDetailGroup.isVerified && (
+                <span className="inline-flex items-center gap-1 text-xs font-bold text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 px-2.5 py-1 rounded-full border border-blue-200 dark:border-blue-800">
+                  <BadgeCheck className="w-3.5 h-3.5 text-blue-600" />
+                  Ресми расталған топ
+                </span>
+              )}
+            </div>
+
+            {/* Description Card */}
+            <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-200/70 dark:border-slate-800 space-y-1.5">
+              <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                Топ сипаттамасы:
+              </span>
+              <p className="text-sm text-slate-800 dark:text-slate-200 whitespace-pre-wrap leading-relaxed">
+                {activeDetailGroup.description || 'Сипаттама жазылмаған.'}
+              </p>
+            </div>
+
+            {/* Info Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div className="p-3.5 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200/60 dark:border-slate-800 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-orange-500/10 text-orange-600 flex items-center justify-center shrink-0">
+                  <User className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-slate-400 font-medium text-[11px]">Құрушы</div>
+                  <div className="font-bold text-slate-800 dark:text-slate-100">
+                    {activeDetailGroup.creatorName || activeDetailGroup.creatorId}
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-3.5 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200/60 dark:border-slate-800 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-sky-500/10 text-sky-600 flex items-center justify-center shrink-0">
+                  <Users className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-slate-400 font-medium text-[11px]">Қатысушылар саны</div>
+                  <div className="font-bold text-slate-800 dark:text-slate-100">
+                    {activeDetailGroup.memberCount} / {activeDetailGroup.maxMembers} адам
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-3.5 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200/60 dark:border-slate-800 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
+                  <Calendar className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-slate-400 font-medium text-[11px]">Құрылған күні</div>
+                  <div className="font-bold font-mono text-slate-800 dark:text-slate-100">
+                    {formatDate(activeDetailGroup.createdAt)}
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-3.5 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200/60 dark:border-slate-800 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-purple-500/10 text-purple-600 flex items-center justify-center shrink-0">
+                  <Globe className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-slate-400 font-medium text-[11px]">Түрі / Қолжетімділік</div>
+                  <div className="font-bold text-slate-800 dark:text-slate-100">
+                    {activeDetailGroup.isPublic ? 'Ашық топ (іздеуде бар)' : 'Жабық топ (тек шақырумен)'}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Admin Warning Note if exists */}
+            {activeDetailGroup.adminNote && (
+              <div className="p-3.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 rounded-2xl flex items-start gap-3 text-xs text-amber-800 dark:text-amber-300">
+                <AlertTriangle className="w-4 h-4 shrink-0 text-amber-600 mt-0.5" />
+                <div className="space-y-0.5">
+                  <div className="font-bold">Әкімші ескертуі:</div>
+                  <div>{activeDetailGroup.adminNote}</div>
+                </div>
+              </div>
+            )}
+
+            {/* Members List */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300">
+                <span className="flex items-center gap-1.5">
+                  <Users className="w-4 h-4 text-orange-600" />
+                  Топ мүшелері ({groupDetail?.members?.length || activeDetailGroup.memberCount})
+                </span>
+                {isLoadingDetail && <span className="text-[11px] text-slate-400">Жүктелуде...</span>}
+              </div>
+
+              {groupDetail?.members && groupDetail.members.length > 0 ? (
+                <div className="max-h-48 overflow-y-auto rounded-2xl border border-slate-200 dark:border-slate-800 divide-y divide-slate-100 dark:divide-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+                  {groupDetail.members.map((m) => (
+                    <div key={m.id} className="p-3 flex items-center justify-between gap-3 text-xs">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-7 h-7 rounded-full bg-orange-500/10 text-orange-600 flex items-center justify-center font-bold text-[11px] shrink-0">
+                          {m.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="font-bold text-slate-800 dark:text-slate-200 truncate">
+                            {m.name}
+                          </div>
+                          {m.email && (
+                            <div className="text-[11px] text-slate-400 truncate">{m.email}</div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-right shrink-0 space-y-0.5">
+                        <span className={`inline-block px-2 py-0.5 rounded-md text-[10px] font-bold ${
+                          m.role === 'CREATOR'
+                            ? 'bg-orange-500/10 text-orange-600'
+                            : m.role === 'ADMIN'
+                            ? 'bg-blue-500/10 text-blue-600'
+                            : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
+                        }`}>
+                          {m.role === 'CREATOR' ? 'Құрушы' : m.role === 'ADMIN' ? 'Модератор' : 'Мүше'}
+                        </span>
+                        <div className="text-[11px] text-slate-400">
+                          {formatMinutes(m.monthlyReadingSeconds)} (айлық) &bull; {formatDate(m.joinedAt)}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-4 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 text-center text-xs text-slate-400">
+                  {isLoadingDetail ? 'Мүшелер жүктелуде...' : 'Мүшелер табылмады'}
+                </div>
+              )}
+            </div>
+
+            {/* External Link & Quick Actions */}
+            <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
+              <a
+                href={`/paraqta/groups/${activeDetailGroup.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-[#F08000] hover:underline"
+              >
+                <span>Сайттан топты ашу</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+
+              <div className="flex flex-wrap items-center gap-2">
+                {/* Toggle Verified */}
+                <button
+                  type="button"
+                  disabled={toggleVerifyMutation.isPending}
+                  onClick={() => toggleVerifyMutation.mutate(activeDetailGroup.id)}
+                  className={`px-3 py-2 text-xs font-bold rounded-xl border flex items-center gap-1.5 transition-all ${
+                    activeDetailGroup.isVerified
+                      ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 hover:bg-blue-100'
+                      : 'bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-300 hover:bg-slate-100'
+                  }`}
+                >
+                  <BadgeCheck className={`w-3.5 h-3.5 ${activeDetailGroup.isVerified ? 'text-blue-600' : 'text-slate-400'}`} />
+                  <span>{activeDetailGroup.isVerified ? 'Белгіні алу' : 'Белгі беру'}</span>
+                </button>
+
+                {/* Warn */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setWarnModalGroup(activeDetailGroup);
+                    setWarnNote(activeDetailGroup.adminNote || '');
+                  }}
+                  className="px-3 py-2 text-xs font-bold rounded-xl bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 hover:bg-amber-100 border border-amber-200 dark:border-amber-900/50 flex items-center gap-1.5"
+                >
+                  <MessageSquare className="w-3.5 h-3.5" />
+                  <span>Ескерту</span>
+                </button>
+
+                {/* Reject */}
+                {activeDetailGroup.status !== 'REJECTED' && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setRejectModalGroup(activeDetailGroup);
+                      setRejectNote('');
+                    }}
+                    className="px-3 py-2 text-xs font-bold rounded-xl bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 hover:bg-rose-100 border border-rose-200 dark:border-rose-900/50 flex items-center gap-1.5"
+                  >
+                    <XCircle className="w-3.5 h-3.5" />
+                    <span>Қабылдамау</span>
+                  </button>
+                )}
+
+                {/* Approve */}
+                {activeDetailGroup.status !== 'APPROVED' && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setApproveModalGroup(activeDetailGroup);
+                      setApproveWithVerified(activeDetailGroup.isVerified || false);
+                    }}
+                    className="px-4 py-2 text-xs font-bold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1.5 shadow-md"
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>Қабылдау</span>
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
