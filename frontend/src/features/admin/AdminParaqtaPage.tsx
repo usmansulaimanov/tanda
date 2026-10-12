@@ -721,7 +721,7 @@ export const AdminParaqtaPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setDetailModalGroup(null)}
-                className="w-9 h-9 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white flex items-center justify-center shrink-0 transition-colors"
+                className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-white shrink-0 transition-colors"
                 title="Жабу"
               >
                 <X className="w-5 h-5" />
