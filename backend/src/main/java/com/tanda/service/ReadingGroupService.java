@@ -227,9 +227,9 @@ public class ReadingGroupService {
     public Page<ReadingGroupResponseDto> getAdminGroups(String status, Pageable pageable) {
         Page<ReadingGroup> groups;
         if (status != null && !status.isBlank() && !"ALL".equalsIgnoreCase(status)) {
-            groups = groupRepository.findByStatusOrderByCreatedAtDesc(status.toUpperCase(), pageable);
+            groups = groupRepository.findByIsPublicTrueAndStatusOrderByCreatedAtDesc(status.toUpperCase(), pageable);
         } else {
-            groups = groupRepository.findAllByOrderByCreatedAtDesc(pageable);
+            groups = groupRepository.findByIsPublicTrueOrderByCreatedAtDesc(pageable);
         }
 
         return groups.map(g -> {
@@ -241,7 +241,7 @@ public class ReadingGroupService {
 
     @Transactional(readOnly = true)
     public long getAdminPendingCount() {
-        return groupRepository.countByStatus("PENDING_APPROVAL");
+        return groupRepository.countByIsPublicTrueAndStatus("PENDING_APPROVAL");
     }
 
     @Transactional

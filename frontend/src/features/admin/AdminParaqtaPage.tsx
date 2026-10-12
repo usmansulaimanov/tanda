@@ -63,9 +63,11 @@ export const AdminParaqtaPage: React.FC = () => {
     queryFn: () => paraqtaApi.getAdminGroups(activeTab, page, pageSize),
   });
 
-  const groups = pageData?.content || [];
+  const rawGroups = pageData?.content || [];
+  // Админ тек ашық топтарды модерациялайды (жабық топтар тізімде көрсетілмейді)
+  const groups = rawGroups.filter((g) => g.isPublic);
   const totalPages = pageData?.totalPages || 1;
-  const totalElements = pageData?.totalElements || 0;
+  const totalElements = groups.length;
 
   // Mutations
   const approveMutation = useMutation({

@@ -28,6 +28,10 @@ public interface ReadingGroupRepository extends JpaRepository<ReadingGroup, Stri
 
     List<ReadingGroup> findByCreatorIdOrderByCreatedAtDesc(String creatorId);
 
+    Page<ReadingGroup> findByIsPublicTrueOrderByCreatedAtDesc(Pageable pageable);
+
+    long countByIsPublicTrueAndStatus(String status);
+
     Page<ReadingGroup> findByStatusOrderByCreatedAtDesc(String status, Pageable pageable);
 
     Page<ReadingGroup> findAllByOrderByCreatedAtDesc(Pageable pageable);
