@@ -413,7 +413,7 @@ export const AdminParaqtaPage: React.FC = () => {
                         className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 dark:border-slate-600 cursor-pointer accent-blue-600"
                       />
                       <span className="flex items-center gap-1 text-slate-800 dark:text-slate-200">
-                        <span>Көк белгі</span>
+                        <span>Растау</span>
                         {group.isVerified && <VerifiedBadge size="w-3.5 h-3.5" title="Расталған топ" />}
                       </span>
                     </label>
@@ -910,7 +910,7 @@ export const AdminParaqtaPage: React.FC = () => {
                     className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 dark:border-slate-600 cursor-pointer accent-blue-600"
                   />
                   <span className="flex items-center gap-1 text-slate-800 dark:text-slate-200">
-                    <span>Көк белгі</span>
+                    <span>Растау</span>
                     {activeDetailGroup.isVerified && <VerifiedBadge size="w-3.5 h-3.5" title="Расталған топ" />}
                   </span>
                 </label>
