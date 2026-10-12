@@ -33,11 +33,12 @@ spring:
 app:
   cookie:
     secure: ${APP_COOKIE_SECURE:true}
+    domain: ${APP_COOKIE_DOMAIN:}
   admin:
     initial-password: ${ADMIN_INITIAL_PASSWORD:admin123}
   auth:
     max-concurrent-devices: ${MAX_CONCURRENT_DEVICES:5}
-    rotation-grace-period-seconds: ${ROTATION_GRACE_PERIOD_SECONDS:30}
+    rotation-grace-period-seconds: ${ROTATION_GRACE_PERIOD_SECONDS:60}
   rate-limiting:
     enabled: ${RATE_LIMITING_ENABLED:true}
   cors:

@@ -121,8 +121,15 @@ public class RefreshTokenService {
             // Benign rotation race condition within grace period (parallel or in-flight requests from same device)
             if ("ROTATED".equals(reason) && rotationGracePeriodSeconds > 0 && existing.getLastActiveAt() != null
                     && existing.getLastActiveAt().isAfter(OffsetDateTime.now().minusSeconds(rotationGracePeriodSeconds))) {
-                log.info("Benign token rotation replay detected within {}s grace period for userId={}", rotationGracePeriodSeconds, existing.getUserId());
-                throw new UnauthorizedException("Token already rotated");
+                log.info("Benign token rotation race detected within {}s grace period for userId={}. Resolving session seamlessly.", rotationGracePeriodSeconds, existing.getUserId());
+                User user = userRepository.findById(existing.getUserId())
+                        .orElseThrow(() -> new UnauthorizedException("User not found"));
+                if (Boolean.FALSE.equals(user.getIsActive())) {
+                    throw new UnauthorizedException("User account is deactivated");
+                }
+                String newRawRefreshToken = createRefreshToken(user, userAgent, ipAddress);
+                String newAccessToken = jwtTokenProvider.generateToken(user);
+                return new TokenRotationResult(newAccessToken, newRawRefreshToken, user);
             }
 
             // Suspicious reuse detection outside grace period: revoke all sessions

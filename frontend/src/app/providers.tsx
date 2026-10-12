@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ToastContainer } from '../components/ui/Toast';
-import { useAuthStore } from '../store/useAuthStore';
+import { useAuthStore, saveStoredUser, broadcastAuth } from '../store/useAuthStore';
 import { useToastStore } from '../store/useToastStore';
 import { authApi } from '../shared/api/auth.api';
 
@@ -39,6 +39,12 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
             if (data.refreshToken) {
               localStorage.setItem('tanda_refresh_token', data.refreshToken);
             }
+            saveStoredUser(data.user);
+            broadcastAuth({
+              type: 'AUTH_LOGIN',
+              user: data.user,
+              role: data.user.role as 'admin' | 'client',
+            });
             useAuthStore.setState({
               user: data.user,
               role: data.user.role as 'admin' | 'client',

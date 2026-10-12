@@ -198,6 +198,38 @@ export const saveStoredUser = (user: User | null) => {
   } catch {}
 };
 
+export const isTokenExpired = (token: string | null): boolean => {
+  if (!token) return true;
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return true;
+    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const json = atob(base64);
+    const payload = JSON.parse(json);
+    if (typeof payload.exp !== 'number') return false;
+    return payload.exp * 1000 < Date.now() + 30000;
+  } catch {
+    return false;
+  }
+};
+
+type AuthBroadcastMessage =
+  | { type: 'AUTH_LOGIN'; user: User; role: 'admin' | 'client' | 'author' }
+  | { type: 'AUTH_LOGOUT' };
+
+let authChannel: BroadcastChannel | null = null;
+if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+  try {
+    authChannel = new BroadcastChannel('tanda_auth_channel');
+  } catch {}
+}
+
+export const broadcastAuth = (message: AuthBroadcastMessage) => {
+  try {
+    authChannel?.postMessage(message);
+  } catch {}
+};
+
 const storedUser = getStoredUser();
 const storedToken = typeof window !== 'undefined' ? localStorage.getItem('tanda_token') : null;
 const storedRefreshToken = typeof window !== 'undefined' ? localStorage.getItem('tanda_refresh_token') : null;
@@ -1152,6 +1184,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
           }
           const normalized = normalizeUser(data.user);
           saveStoredUser(normalized);
+          broadcastAuth({ type: 'AUTH_LOGIN', user: normalized, role: data.user.role as 'admin' | 'client' | 'author' });
           set({
             user: normalized,
             role: data.user.role as 'admin' | 'client' | 'author',
@@ -1196,6 +1229,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
           }
           const normalized = normalizeUser(data.user);
           saveStoredUser(normalized);
+          broadcastAuth({ type: 'AUTH_LOGIN', user: normalized, role: data.user.role as 'admin' | 'client' | 'author' });
           set({
             user: normalized,
             role: data.user.role as 'admin' | 'client' | 'author',
@@ -1253,6 +1287,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
           }
           const normalized = normalizeUser(data.user);
           saveStoredUser(normalized);
+          broadcastAuth({ type: 'AUTH_LOGIN', user: normalized, role: data.user.role as 'admin' | 'client' | 'author' });
           set({
             user: normalized,
             role: data.user.role as 'admin' | 'client' | 'author',
@@ -1269,6 +1304,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
         localStorage.removeItem('tanda_token');
         localStorage.removeItem('tanda_refresh_token');
         saveStoredUser(null);
+        broadcastAuth({ type: 'AUTH_LOGOUT' });
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new CustomEvent('tanda:logout'));
         }
@@ -1319,7 +1355,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
               return { token: null, isAuthError: false };
             };
 
-            if (!token || token.startsWith('mock-')) {
+            if (!token || token.startsWith('mock-') || isTokenExpired(token)) {
               if (token?.startsWith('mock-')) {
                 localStorage.removeItem('tanda_token');
                 localStorage.removeItem('tanda_refresh_token');
@@ -1345,6 +1381,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
               const { data } = await api.get('/api/v1/auth/me');
               const normalized = normalizeUser(data);
               saveStoredUser(normalized);
+              broadcastAuth({ type: 'AUTH_LOGIN', user: normalized, role: data.role as 'admin' | 'client' | 'author' });
               set({
                 user: normalized,
                 role: data.role as 'admin' | 'client' | 'author',
@@ -1366,6 +1403,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
                     const { data } = await api.get('/api/v1/auth/me');
                     const normalized = normalizeUser(data);
                     saveStoredUser(normalized);
+                    broadcastAuth({ type: 'AUTH_LOGIN', user: normalized, role: data.role as 'admin' | 'client' | 'author' });
                     set({
                       user: normalized,
                       role: data.role as 'admin' | 'client' | 'author',
@@ -1412,5 +1450,64 @@ if (typeof window !== 'undefined') {
   } catch {
     // Ignore storage errors in restricted contexts
   }
+
+  // Cross-tab synchronization via BroadcastChannel
+  if (authChannel) {
+    authChannel.onmessage = (event: MessageEvent<AuthBroadcastMessage>) => {
+      const msg = event.data;
+      if (!msg || !msg.type) return;
+
+      if (msg.type === 'AUTH_LOGIN') {
+        const currentUser = useAuthStore.getState().user;
+        if (!currentUser || currentUser.id !== msg.user.id) {
+          useAuthStore.setState({
+            user: msg.user,
+            role: msg.role,
+            isAuthenticated: true,
+            isAuthInitialized: true,
+          });
+        }
+      } else if (msg.type === 'AUTH_LOGOUT') {
+        if (useAuthStore.getState().isAuthenticated) {
+          useAuthStore.setState({
+            user: null,
+            role: 'client',
+            isAuthenticated: false,
+            isAuthInitialized: true,
+          });
+        }
+      }
+    };
+  }
+
+  // Fallback cross-tab synchronization via window storage events
+  window.addEventListener('storage', (event: StorageEvent) => {
+    if (event.key === 'tanda_user') {
+      if (event.newValue) {
+        try {
+          const user = JSON.parse(event.newValue);
+          const currentUser = useAuthStore.getState().user;
+          if (!currentUser || currentUser.id !== user.id) {
+            useAuthStore.setState({
+              user,
+              role: (user.role as 'admin' | 'client' | 'author') || 'client',
+              isAuthenticated: true,
+              isAuthInitialized: true,
+            });
+          }
+        } catch {}
+      } else {
+        if (useAuthStore.getState().isAuthenticated) {
+          useAuthStore.setState({
+            user: null,
+            role: 'client',
+            isAuthenticated: false,
+            isAuthInitialized: true,
+          });
+        }
+      }
+    }
+  });
 }
+
 
