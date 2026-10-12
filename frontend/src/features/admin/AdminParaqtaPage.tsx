@@ -815,9 +815,9 @@ export const AdminParaqtaPage: React.FC = () => {
                   <Globe className="w-4 h-4" />
                 </div>
                 <div>
-                  <div className="text-slate-400 font-medium text-[11px]">Түрі / Қолжетімділік</div>
+                  <div className="text-slate-400 font-medium text-[11px]">Қолжетімділік</div>
                   <div className="font-bold text-slate-800 dark:text-slate-100">
-                    {activeDetailGroup.isPublic ? 'Ашық топ (іздеуде бар)' : 'Жабық топ (тек шақырумен)'}
+                    {activeDetailGroup.isPublic ? 'Ашық топ' : 'Жабық топ'}
                   </div>
                 </div>
               </div>
