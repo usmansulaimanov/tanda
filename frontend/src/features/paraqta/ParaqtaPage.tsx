@@ -520,9 +520,9 @@ export const ParaqtaPage: React.FC = () => {
 
                     {/* Moderation / Admin note badges */}
                     {group.isPublic && group.status === 'PENDING_APPROVAL' && (
-                      <div className="mt-2.5 p-2 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 rounded-xl text-[11px] font-bold text-amber-700 dark:text-amber-300 flex items-center gap-1.5">
-                        <Clock className="w-3.5 h-3.5 shrink-0" />
-                        <span>Модерацияда (сайтта әлі жарияланбаған)</span>
+                      <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-500/10 border border-amber-500/20 rounded-lg text-[11px] font-semibold text-amber-800 dark:text-amber-300">
+                        <Clock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                        <span>Бұл топ тексерілуде</span>
                       </div>
                     )}
                     {group.status === 'REJECTED' && (

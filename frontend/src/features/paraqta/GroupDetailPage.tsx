@@ -310,9 +310,9 @@ export const GroupDetailPage: React.FC = () => {
 
               {/* Moderation / Admin note banners */}
               {group.isPublic && group.status === 'PENDING_APPROVAL' && (
-                <div className="mt-2.5 p-2.5 bg-amber-500/10 border border-amber-500/30 rounded-2xl text-xs font-bold text-amber-800 dark:text-amber-200 flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-amber-600 shrink-0" />
-                  <span>Бұл топ модерацияда (тексерілуде). Әкімші мақұлдағаннан кейін көпшілікке жарияланады.</span>
+                <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-500/10 border border-amber-500/30 rounded-xl text-xs font-semibold text-amber-800 dark:text-amber-200">
+                  <Clock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                  <span>Бұл топ тексерілуде</span>
                 </div>
               )}
               {group.status === 'REJECTED' && (
