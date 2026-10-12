@@ -773,6 +773,11 @@ export const AdminParaqtaPage: React.FC = () => {
                   <div className="font-bold text-slate-800 dark:text-slate-100">
                     {activeDetailGroup.creatorName || activeDetailGroup.creatorId}
                   </div>
+                  {activeDetailGroup.creatorEmail && (
+                    <div className="text-[11px] font-mono text-slate-500 dark:text-slate-400">
+                      {activeDetailGroup.creatorEmail}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -846,8 +851,12 @@ export const AdminParaqtaPage: React.FC = () => {
                           <div className="font-bold text-slate-800 dark:text-slate-200 truncate">
                             {m.name}
                           </div>
-                          {m.email && (
-                            <div className="text-[11px] text-slate-400 truncate">{m.email}</div>
+                          {m.email ? (
+                            <div className="text-[11px] font-mono text-slate-500 dark:text-slate-400 truncate">
+                              {m.email}
+                            </div>
+                          ) : (
+                            <div className="text-[11px] text-slate-400 italic">Почтасы жасырын</div>
                           )}
                         </div>
                       </div>

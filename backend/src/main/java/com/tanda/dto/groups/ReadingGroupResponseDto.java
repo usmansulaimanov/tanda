@@ -22,6 +22,7 @@ public class ReadingGroupResponseDto {
     private Boolean isPublic;
     private String creatorId;
     private String creatorName;
+    private String creatorEmail;
     private String creatorAvatarUrl;
     private Integer maxMembers;
     private Long memberCount;

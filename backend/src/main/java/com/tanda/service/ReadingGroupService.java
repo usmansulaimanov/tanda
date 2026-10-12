@@ -403,8 +403,13 @@ public class ReadingGroupService {
             todayMap.put(uId, sec);
         }
 
+        User currentUser = currentUserId != null ? userRepository.findById(currentUserId).orElse(null) : null;
+        boolean isPlatformAdmin = currentUser != null && currentUser.getRole() != null
+                && ("admin".equalsIgnoreCase(currentUser.getRole()) || currentUser.getRole().toUpperCase().contains("ADMIN"));
+
         boolean isGroupAdmin = "CREATOR".equalsIgnoreCase(myRole) || "ADMIN".equalsIgnoreCase(myRole)
                 || (group.getCreatorId() != null && group.getCreatorId().equals(currentUserId));
+        boolean canSeeEmails = isPlatformAdmin || isGroupAdmin;
 
         AtomicInteger rankCounter = new AtomicInteger(1);
         List<ReadingGroupMemberDto> memberDtos = members.stream().map(m -> {
@@ -415,7 +420,7 @@ public class ReadingGroupService {
                     .userId(m.getUserId())
                     .name(u != null ? u.getName() : "Оқырман")
                     .username(u != null ? u.getUsername() : null)
-                    .email(isGroupAdmin && u != null ? u.getEmail() : null)
+                    .email(canSeeEmails && u != null ? u.getEmail() : null)
                     .avatarUrl(u != null ? u.getAvatarUrl() : null)
                     .role(m.getRole())
                     .todayReadingSeconds(todaySec)
@@ -779,6 +784,7 @@ public class ReadingGroupService {
                 .adminNote(g.getAdminNote())
                 .creatorId(g.getCreatorId())
                 .creatorName(creator != null ? creator.getName() : null)
+                .creatorEmail(creator != null ? creator.getEmail() : null)
                 .creatorAvatarUrl(creator != null ? creator.getAvatarUrl() : null)
                 .maxMembers(g.getMaxMembers())
                 .memberCount(memberCount)

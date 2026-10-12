@@ -43,6 +43,7 @@ export interface ReadingGroup {
   adminNote?: string;
   creatorId: string;
   creatorName?: string;
+  creatorEmail?: string;
   creatorAvatarUrl?: string;
   maxMembers: number;
   memberCount: number;
