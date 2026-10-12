@@ -689,7 +689,7 @@ export const ParaqtaPage: React.FC = () => {
 
               <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700 transition-all">
                 {/* Checkbox Header */}
-                <div className="flex items-start gap-3">
+                <div className="flex items-center gap-3">
                   <input
                     type="checkbox"
                     id="publicGroup"
@@ -702,16 +702,11 @@ export const ParaqtaPage: React.FC = () => {
                         setGroupUsernameError('');
                       }
                     }}
-                    className="w-4 h-4 mt-0.5 text-[#F08000] rounded focus:ring-orange-500 shrink-0 cursor-pointer"
+                    className="w-4 h-4 text-[#F08000] rounded focus:ring-orange-500 shrink-0 cursor-pointer"
                   />
-                  <div className="flex-1">
-                    <label htmlFor="publicGroup" className="text-xs font-bold text-slate-800 dark:text-slate-200 cursor-pointer block">
-                      Ашық топ
-                    </label>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">
-                      Ашық топты алдымен әкімші тексереді. Мақұлданған соң барлық оқырмандарға көрінеді.
-                    </p>
-                  </div>
+                  <label htmlFor="publicGroup" className="text-xs font-bold text-slate-800 dark:text-slate-200 cursor-pointer select-none">
+                    Ашық топ
+                  </label>
                 </div>
 
                 {/* Username Input Inside The Same Box */}
