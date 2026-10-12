@@ -32,6 +32,9 @@ public class AuthController {
     @Value("${app.cookie.secure:true}")
     private boolean cookieSecure;
 
+    @Value("${app.cookie.domain:}")
+    private String cookieDomain;
+
     public static final String REFRESH_COOKIE_NAME = "refreshToken";
     public static final long REFRESH_COOKIE_MAX_AGE = 30L * 24 * 60 * 60; // 30 days
 
@@ -196,13 +199,18 @@ public class AuthController {
     }
 
     private ResponseCookie createRefreshTokenCookie(String token, long maxAge) {
-        return ResponseCookie.from(REFRESH_COOKIE_NAME, token)
+        ResponseCookie.ResponseCookieBuilder builder = ResponseCookie.from(REFRESH_COOKIE_NAME, token)
                 .httpOnly(true)
                 .secure(cookieSecure)
                 .path("/")
                 .maxAge(maxAge)
-                .sameSite("Lax")
-                .build();
+                .sameSite(cookieSecure ? "None" : "Lax");
+
+        if (cookieDomain != null && !cookieDomain.isBlank()) {
+            builder.domain(cookieDomain.trim());
+        }
+
+        return builder.build();
     }
 
     private String getClientIp(HttpServletRequest request) {
