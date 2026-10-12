@@ -307,9 +307,12 @@ export const AdminParaqtaPage: React.FC = () => {
                       </h3>
 
                       {group.username && (
-                        <span className="font-mono text-xs font-bold text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-950/40 px-2 py-0.5 rounded-lg border border-orange-200 dark:border-orange-900/40">
-                          @{group.username}
-                        </span>
+                        <>
+                          <span className="text-slate-400 dark:text-slate-500 select-none">|</span>
+                          <span className="font-mono text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
+                            @{group.username}
+                          </span>
+                        </>
                       )}
 
                       {group.isPublic ? (
@@ -699,9 +702,12 @@ export const AdminParaqtaPage: React.FC = () => {
                     {activeDetailGroup.isVerified && <VerifiedBadge size="w-5 h-5" title="Расталған топ" />}
                   </h2>
                   {activeDetailGroup.username && (
-                    <span className="font-mono text-xs font-bold text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-950/40 px-2 py-0.5 rounded-lg border border-orange-200 dark:border-orange-900/40">
-                      @{activeDetailGroup.username}
-                    </span>
+                    <>
+                      <span className="text-slate-400 dark:text-slate-500 select-none">|</span>
+                      <span className="font-mono text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
+                        @{activeDetailGroup.username}
+                      </span>
+                    </>
                   )}
                 </div>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
