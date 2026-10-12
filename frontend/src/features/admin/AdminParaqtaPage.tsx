@@ -119,13 +119,7 @@ export const AdminParaqtaPage: React.FC = () => {
 
   const toggleVerifyMutation = useMutation({
     mutationFn: (id: string) => paraqtaApi.toggleGroupVerification(id),
-    onSuccess: (data) => {
-      showToast(
-        data.isVerified
-          ? `«${data.name}» тобына расталған көк белгі берілді!`
-          : `«${data.name}» тобынан көк белгі алынды`,
-        'success'
-      );
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['adminReadingGroups'] });
     },
     onError: (err: any) => {
