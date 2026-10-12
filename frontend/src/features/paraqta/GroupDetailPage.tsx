@@ -281,19 +281,25 @@ export const GroupDetailPage: React.FC = () => {
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 mb-0.5 sm:mb-1 flex-wrap">
-                <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight truncate flex items-center gap-1.5">
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-1.5">
                   <span>{group.name}</span>
                   {group.isVerified && <VerifiedBadge size="w-5 h-5 sm:w-6 sm:h-6" title="Расталған топ" />}
                 </h1>
                 {group.username && (
-                  <span className="font-mono text-xs font-bold text-orange-600 dark:text-orange-400 bg-orange-500/10 px-2.5 py-0.5 rounded-lg border border-orange-500/20">
-                    @{group.username}
-                  </span>
+                  <>
+                    <span className="text-slate-400 dark:text-slate-500 select-none">|</span>
+                    <span className="font-mono text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
+                      @{group.username}
+                    </span>
+                  </>
                 )}
                 {group.isPublic && (
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 shrink-0">
-                    Ашық топ
-                  </span>
+                  <>
+                    <span className="text-slate-400 dark:text-slate-500 select-none">|</span>
+                    <span className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white shrink-0">
+                      Ашық топ
+                    </span>
+                  </>
                 )}
               </div>
               {group.description && (
