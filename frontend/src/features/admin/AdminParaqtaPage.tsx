@@ -17,7 +17,7 @@ import {
   User,
   Calendar,
 } from 'lucide-react';
-import { paraqtaApi, ReadingGroup } from '../../shared/api/paraqta.api';
+import { paraqtaApi, ReadingGroup, PageResponse } from '../../shared/api/paraqta.api';
 import { useToastStore } from '../../store/useToastStore';
 import { VerifiedBadge } from '../../components/ui/VerifiedBadge';
 
@@ -119,12 +119,55 @@ export const AdminParaqtaPage: React.FC = () => {
 
   const toggleVerifyMutation = useMutation({
     mutationFn: (id: string) => paraqtaApi.toggleGroupVerification(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['adminReadingGroups'] });
+    onMutate: async (id: string) => {
+      // 1. Ағымдағы сұраныстарды тоқтатып, кэшті сақтап аламыз
+      await queryClient.cancelQueries({ queryKey: ['adminReadingGroups'] });
+
+      const previousQueries = queryClient.getQueriesData<PageResponse<ReadingGroup>>({
+        queryKey: ['adminReadingGroups'],
+      });
+
+      // 2. Барлық парақтардағы топтар кэшіндегі isVerified мәнін лезде өзгертеміз (0ms)
+      queryClient.setQueriesData<PageResponse<ReadingGroup>>(
+        { queryKey: ['adminReadingGroups'] },
+        (old) => {
+          if (!old?.content) return old;
+          return {
+            ...old,
+            content: old.content.map((group) =>
+              group.id === id ? { ...group, isVerified: !group.isVerified } : group
+            ),
+          };
+        }
+      );
+
+      // 3. Егер топ модалі ашық тұрса, оның кэші мен жергілікті күйін де бірден өзгертеміз
+      queryClient.setQueryData<any>(['adminGroupDetail', id], (old: any) => {
+        if (!old?.group) return old;
+        return {
+          ...old,
+          group: { ...old.group, isVerified: !old.group.isVerified },
+        };
+      });
+
+      setDetailModalGroup((prev) =>
+        prev && prev.id === id ? { ...prev, isVerified: !prev.isVerified } : prev
+      );
+
+      return { previousQueries };
     },
-    onError: (err: any) => {
+    onError: (err: any, _id, context) => {
+      // Қате кетсе бұрынғы күйге қайтарамыз (rollback)
+      if (context?.previousQueries) {
+        context.previousQueries.forEach(([queryKey, data]) => {
+          queryClient.setQueryData(queryKey, data);
+        });
+      }
       const msg = err?.response?.data?.message || 'Күйді өзгертуде қате кетті';
       showToast(msg, 'error');
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['adminReadingGroups'] });
     },
   });
 
@@ -414,7 +457,6 @@ export const AdminParaqtaPage: React.FC = () => {
                       <input
                         type="checkbox"
                         checked={Boolean(group.isVerified)}
-                        disabled={toggleVerifyMutation.isPending}
                         onChange={() => toggleVerifyMutation.mutate(group.id)}
                         className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 dark:border-slate-600 cursor-pointer accent-blue-600"
                       />
@@ -902,7 +944,6 @@ export const AdminParaqtaPage: React.FC = () => {
                   <input
                     type="checkbox"
                     checked={Boolean(activeDetailGroup.isVerified)}
-                    disabled={toggleVerifyMutation.isPending}
                     onChange={() => toggleVerifyMutation.mutate(activeDetailGroup.id)}
                     className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 dark:border-slate-600 cursor-pointer accent-blue-600"
                   />
