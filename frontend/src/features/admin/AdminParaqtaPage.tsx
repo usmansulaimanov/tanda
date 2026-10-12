@@ -854,23 +854,15 @@ export const AdminParaqtaPage: React.FC = () => {
                           <div className="font-bold text-slate-800 dark:text-slate-200 truncate">
                             {m.name}
                           </div>
-                          {m.email ? (
+                          {m.email && (
                             <div className="text-[11px] font-mono text-slate-500 dark:text-slate-400 truncate">
                               {m.email}
                             </div>
-                          ) : (
-                            <div className="text-[11px] text-slate-400 italic">Почтасы жасырын</div>
                           )}
                         </div>
                       </div>
                       <div className="text-right shrink-0 space-y-0.5">
-                        <span className={`inline-block px-2 py-0.5 rounded-md text-[10px] font-bold ${
-                          m.role === 'CREATOR'
-                            ? 'bg-orange-500/10 text-orange-600'
-                            : m.role === 'ADMIN'
-                            ? 'bg-blue-500/10 text-blue-600'
-                            : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
-                        }`}>
+                        <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
                           {m.role === 'CREATOR' ? 'Құрушы' : m.role === 'ADMIN' ? 'Модератор' : 'Мүше'}
                         </span>
                         <div className="text-[11px] text-slate-400">
