@@ -433,9 +433,6 @@ export const AdminRoyaltyTab: React.FC = () => {
                   </span>
                 )}
               </div>
-              <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#64748B' }}>
-                Таза пайданы 50/50 формуласы бойынша бөлу және авторлардың нақты тыңдалған уақытына сәйкес төлеу
-              </p>
             </div>
 
             {/* Month Selector & Action Buttons */}
