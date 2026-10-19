@@ -571,7 +571,7 @@ export const AdminRoyaltyTab: React.FC = () => {
                 >
                   {availableMonths.map((m) => (
                     <option key={m} value={m}>
-                      {getMonthLabel(m)} {m === defaultMonth ? '(Ағымдағы)' : ''}
+                      {getMonthLabel(m)}
                     </option>
                   ))}
                 </select>
