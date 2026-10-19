@@ -20,14 +20,18 @@ export function resolveMediaUrl(url: string | undefined | null): string {
     trimmed.startsWith('data:') ||
     trimmed.startsWith('blob:')
   ) {
+    if (trimmed.includes('/api/v1/media/telegram/') && !trimmed.includes('?v=')) {
+      return `${trimmed}${trimmed.includes('?') ? '&' : '?'}v=2`;
+    }
     return trimmed;
   }
 
   const apiBase = (import.meta.env.VITE_API_URL || 'https://tandamen.kz').replace(/\/$/, '');
-  if (trimmed.startsWith('/')) {
-    return `${apiBase}${trimmed}`;
+  const fullUrl = trimmed.startsWith('/') ? `${apiBase}${trimmed}` : `${apiBase}/${trimmed}`;
+  if (fullUrl.includes('/api/v1/media/telegram/') && !fullUrl.includes('?v=')) {
+    return `${fullUrl}${fullUrl.includes('?') ? '&' : '?'}v=2`;
   }
-  return `${apiBase}/${trimmed}`;
+  return fullUrl;
 }
 
 export function isTelegramLink(url: string | undefined | null): boolean {
