@@ -101,6 +101,8 @@ export const BookCard: React.FC<BookCardProps> = ({ book }) => {
           <img
             src={resolveMediaUrl(book.coverImage)}
             alt={book.title}
+            loading="lazy"
+            decoding="async"
             referrerPolicy="no-referrer"
             style={{
               position: 'absolute',

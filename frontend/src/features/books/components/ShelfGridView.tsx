@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Book } from '../../../types';
 import { BookShelfStatus, useMyBooksStore } from '../../../store/useMyBooksStore';
 import { TandaPremiumBadge } from '../../../components/ui/TandaPremiumBadge';
+import { resolveMediaUrl } from '../../../utils/mediaUtils';
 
 interface ShelfGridViewProps {
   items: { book: Book; record: { bookId: string | number; status: BookShelfStatus } }[];
@@ -63,8 +64,10 @@ export const ShelfGridView: React.FC<ShelfGridViewProps> = ({
             >
               {book.coverImage && (
                 <img
-                  src={book.coverImage}
+                  src={resolveMediaUrl(book.coverImage)}
                   alt={book.title}
+                  loading="lazy"
+                  decoding="async"
                   referrerPolicy="no-referrer"
                   style={{
                     position: 'absolute',

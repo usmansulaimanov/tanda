@@ -361,18 +361,111 @@ public class TelegramMediaService {
         }
     }
 
+    private File getOrCreateCompressedImage(File originalFile, String contentType) {
+        // Only compress large PNG or JPEG images (> 300 KB)
+        if (originalFile.length() <= 300 * 1024) {
+            return null;
+        }
+        if (!"image/png".equals(contentType) && !"image/jpeg".equals(contentType)) {
+            return null;
+        }
+
+        try {
+            File cacheDir = new File(System.getProperty("java.io.tmpdir"), "tanda_img_cache");
+            if (!cacheDir.exists()) {
+                cacheDir.mkdirs();
+            }
+            String cacheKey = originalFile.getName() + "_" + originalFile.length() + "_" + originalFile.lastModified() + ".jpg";
+            File cachedFile = new File(cacheDir, cacheKey);
+            if (cachedFile.exists() && cachedFile.length() > 0) {
+                return cachedFile;
+            }
+
+            java.awt.image.BufferedImage srcImg = javax.imageio.ImageIO.read(originalFile);
+            if (srcImg == null) {
+                return null;
+            }
+
+            int srcWidth = srcImg.getWidth();
+            int srcHeight = srcImg.getHeight();
+            int targetWidth = srcWidth > 640 ? 640 : srcWidth;
+            int targetHeight = (int) Math.round((double) srcHeight * targetWidth / srcWidth);
+
+            java.awt.image.BufferedImage rgbImg = new java.awt.image.BufferedImage(
+                    targetWidth, targetHeight, java.awt.image.BufferedImage.TYPE_INT_RGB);
+            java.awt.Graphics2D g2d = rgbImg.createGraphics();
+            g2d.setRenderingHint(java.awt.RenderingHints.KEY_INTERPOLATION, java.awt.RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+            g2d.setRenderingHint(java.awt.RenderingHints.KEY_RENDERING, java.awt.RenderingHints.VALUE_RENDER_QUALITY);
+            g2d.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+            g2d.drawImage(srcImg, 0, 0, targetWidth, targetHeight, java.awt.Color.WHITE, null);
+            g2d.dispose();
+
+            java.util.Iterator<javax.imageio.ImageWriter> writers = javax.imageio.ImageIO.getImageWritersByFormatName("jpg");
+            if (writers.hasNext()) {
+                javax.imageio.ImageWriter writer = writers.next();
+                javax.imageio.ImageWriteParam param = writer.getDefaultWriteParam();
+                if (param.canWriteCompressed()) {
+                    param.setCompressionMode(javax.imageio.ImageWriteParam.MODE_EXPLICIT);
+                    param.setCompressionQuality(0.84f);
+                }
+                File tempOut = new File(cacheDir, cacheKey + ".tmp");
+                try (javax.imageio.stream.ImageOutputStream ios = javax.imageio.ImageIO.createImageOutputStream(tempOut)) {
+                    writer.setOutput(ios);
+                    writer.write(null, new javax.imageio.IIOImage(rgbImg, null, null), param);
+                } finally {
+                    writer.dispose();
+                }
+                if (tempOut.exists() && tempOut.length() > 0) {
+                    tempOut.renameTo(cachedFile);
+                    return cachedFile;
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Image compression skipped for {}: {}", originalFile.getName(), e.getMessage());
+        }
+        return null;
+    }
+
     private void streamLocalFile(File file, String path, HttpServletRequest request, HttpServletResponse response) {
+        byte[] magic = new byte[32];
+        int readMagic = 0;
+        try (InputStream headerIn = new java.io.FileInputStream(file)) {
+            readMagic = headerIn.read(magic, 0, magic.length);
+        } catch (Exception e) {
+            log.debug("Failed to read magic bytes for local file {}: {}", path, e.getMessage());
+        }
+
+        String contentType = detectContentType(path, magic, readMagic, null);
+
+        // If this is a large image (e.g. 2.6MB PNG cover), serve compressed JPEG (~60KB) for fast mobile loading
+        File compressedImg = getOrCreateCompressedImage(file, contentType);
+        if (compressedImg != null && compressedImg.exists()) {
+            file = compressedImg;
+            contentType = "image/jpeg";
+        }
+
         long fileLength = file.length();
-        String contentType = detectContentType(path, null, 0, null);
         response.setContentType(contentType);
         response.setHeader("Accept-Ranges", "bytes");
         response.setHeader("Access-Control-Allow-Origin", "*");
         response.setHeader("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS");
         response.setHeader("Access-Control-Allow-Headers", "Range, Authorization, Content-Type, Accept");
         response.setHeader("Access-Control-Expose-Headers", "Content-Range, Content-Length, Accept-Ranges");
-        response.setHeader("Cache-Control", "public, max-age=86400");
+        response.setHeader("Cache-Control", "public, max-age=604800, stale-while-revalidate=86400");
 
         String filename = path.contains("/") ? path.substring(path.lastIndexOf('/') + 1) : "file";
+        if (!filename.contains(".")) {
+            if ("image/png".equals(contentType)) filename += ".png";
+            else if ("image/jpeg".equals(contentType)) filename += ".jpg";
+            else if ("image/webp".equals(contentType)) filename += ".webp";
+            else if ("image/gif".equals(contentType)) filename += ".gif";
+            else if ("application/pdf".equals(contentType)) filename += ".pdf";
+            else if ("application/epub+zip".equals(contentType)) filename += ".epub";
+            else if ("audio/mp4".equals(contentType)) filename += ".m4a";
+            else if ("audio/ogg".equals(contentType)) filename += ".ogg";
+            else if ("audio/wav".equals(contentType)) filename += ".wav";
+            else if ("audio/mpeg".equals(contentType)) filename += ".mp3";
+        }
         response.setHeader("Content-Disposition", "inline; filename=\"" + filename + "\"");
 
         String rangeHeader = request.getHeader("Range");

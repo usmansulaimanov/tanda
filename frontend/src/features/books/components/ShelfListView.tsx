@@ -4,6 +4,7 @@ import { Headphones, BookOpen, MoreVertical, Play, CheckCircle2, Clock, Bookmark
 import { Book } from '../../../types';
 import { BookShelfStatus, useMyBooksStore } from '../../../store/useMyBooksStore';
 import { TandaPremiumBadge } from '../../../components/ui/TandaPremiumBadge';
+import { resolveMediaUrl } from '../../../utils/mediaUtils';
 
 interface ShelfListViewProps {
   items: { book: Book; record: { bookId: string | number; status: BookShelfStatus } }[];
@@ -61,8 +62,10 @@ export const ShelfListView: React.FC<ShelfListViewProps> = ({
             >
               {book.coverImage ? (
                 <img
-                  src={book.coverImage}
+                  src={resolveMediaUrl(book.coverImage)}
                   alt={book.title}
+                  loading="lazy"
+                  decoding="async"
                   referrerPolicy="no-referrer"
                   className="w-full h-full object-cover"
                   onError={(e) => {
