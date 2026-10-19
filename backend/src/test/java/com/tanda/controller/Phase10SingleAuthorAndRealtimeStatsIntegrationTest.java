@@ -600,7 +600,8 @@ public class Phase10SingleAuthorAndRealtimeStatsIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status", is("CALCULATED")))
                 .andExpect(jsonPath("$.netPool", is(80000.0)))
-                .andExpect(jsonPath("$.companyShare", is(40000.0)))
+                .andExpect(jsonPath("$.ratePerMinute", is(10.0)))
+                .andExpect(jsonPath("$.ebookRatePerMinute", is(5.0)))
                 .andExpect(jsonPath("$.royaltyPool", is(40000.0)));
 
         // 3. Admin finalizes royalty period

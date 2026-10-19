@@ -49,6 +49,14 @@ public class AudioDailyStats {
     @Builder.Default
     private Long totalSeconds = 0L;
 
+    @Column(name = "reading_seconds")
+    @Builder.Default
+    private Long readingSeconds = 0L;
+
+    @Column(name = "read_count")
+    @Builder.Default
+    private Integer readCount = 0;
+
     @Column(name = "unique_listeners")
     @Builder.Default
     private Integer uniqueListeners = 0;

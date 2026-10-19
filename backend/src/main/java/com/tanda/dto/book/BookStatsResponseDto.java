@@ -41,6 +41,17 @@ public class BookStatsResponseDto {
     private Double allTimeMinutes;
     private Double allTimeHours;
 
+    private Long todayReadingSeconds;
+    private Double todayReadingMinutes;
+
+    private Long monthReadingSeconds;
+    private Double monthReadingMinutes;
+    private Double monthReadingHours;
+
+    private Long allTimeReadingSeconds;
+    private Double allTimeReadingMinutes;
+    private Double allTimeReadingHours;
+
     private Long monthUniqueListeners;
     private Long allTimeUniqueListeners;
 

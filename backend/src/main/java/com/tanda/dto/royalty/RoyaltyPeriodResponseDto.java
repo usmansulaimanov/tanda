@@ -27,7 +27,11 @@ public class RoyaltyPeriodResponseDto {
     private BigDecimal companyShare;
     private BigDecimal royaltyPool;
     private Long totalMinutes;
+    private Long totalReadingMinutes;
     private BigDecimal ratePerMinute;
+    private BigDecimal maxRatePerMinute;
+    private BigDecimal ebookRateCoefficient;
+    private BigDecimal ebookRatePerMinute;
     private String adminNote;
     private OffsetDateTime calculatedAt;
     private OffsetDateTime finalizedAt;

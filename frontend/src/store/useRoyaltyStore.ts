@@ -18,6 +18,8 @@ export interface AuthorEarningDetail {
   assignedBookIds: string[];
   totalMinutes: number;
   totalSeconds?: number;
+  readingMinutes?: number;
+  readingSeconds?: number;
   totalEarned: number;
   status: 'calculated' | 'paid';
 }
@@ -34,7 +36,11 @@ export interface RoyaltyPeriod {
   companyShare: number;
   authorRoyaltyPool: number;
   totalMinutesListened: number;
+  totalMinutesRead?: number;
   ratePerMinute: number;
+  maxRatePerMinute?: number;
+  ebookRateCoefficient?: number;
+  ebookRatePerMinute?: number;
   authorEarnings: AuthorEarningDetail[];
   dailyActivity?: { date: string; dayLabel: string; seconds: number; minutes: number }[];
   isFinalized: boolean;
@@ -82,8 +88,11 @@ export interface AuthorStatsData {
   authorBooks: any[];
   totalMinutes: number;
   totalSeconds: number;
+  readingMinutes?: number;
+  readingSeconds?: number;
   estimatedEarned: number;
   ratePerMinute: number;
+  ebookRatePerMinute?: number;
   currentBalance: number;
   periodStatus: 'calculated' | 'paid' | 'estimated';
   dailyList: AuthorDailyStat[];
@@ -110,7 +119,13 @@ interface RoyaltyState {
   fetchPeriod: (monthKey: string) => Promise<RoyaltyPeriod | null>;
   calculateRoyalty: (
     monthKey: string,
-    params: { totalRevenue: number; adminExpense: number; adminNote?: string },
+    params: {
+      totalRevenue: number;
+      adminExpense: number;
+      maxRatePerMinute?: number;
+      ebookRateCoefficient?: number;
+      adminNote?: string;
+    },
     authors?: User[],
     books?: Book[]
   ) => Promise<RoyaltyPeriod | null>;
@@ -135,8 +150,11 @@ interface RoyaltyState {
     authorBooks: Book[];
     totalMinutes: number;
     totalSeconds: number;
+    readingMinutes?: number;
+    readingSeconds?: number;
     estimatedEarned: number;
     ratePerMinute: number;
+    ebookRatePerMinute?: number;
     currentBalance: number;
     periodStatus?: 'calculated' | 'paid' | 'estimated';
   };
@@ -171,6 +189,14 @@ export const getMonthLabel = (monthKey: string): string => {
 
 const mapBackendPeriod = (dto: any): RoyaltyPeriod => {
   const isFinal = dto.status === 'FINALIZED';
+  const maxRate = dto.maxRatePerMinute !== undefined && Number(dto.maxRatePerMinute) > 0 ? Number(dto.maxRatePerMinute) : 10;
+  const coeff = dto.ebookRateCoefficient !== undefined && Number(dto.ebookRateCoefficient) > 0 ? Number(dto.ebookRateCoefficient) : 0.5;
+  const rawRate = Number(dto.ratePerMinute) || 0;
+  const cappedAudioRate = rawRate > 0 ? Math.min(rawRate, maxRate) : 0;
+  const ebookRate = dto.ebookRatePerMinute !== undefined && Number(dto.ebookRatePerMinute) > 0
+    ? Number(dto.ebookRatePerMinute)
+    : Number((cappedAudioRate * coeff).toFixed(4));
+
   return {
     id: dto.month || dto.id,
     month: dto.month,
@@ -183,7 +209,11 @@ const mapBackendPeriod = (dto: any): RoyaltyPeriod => {
     companyShare: Number(dto.companyShare) || 0,
     authorRoyaltyPool: Number(dto.royaltyPool) || 0,
     totalMinutesListened: Number(dto.totalMinutes) || 0,
-    ratePerMinute: Number(dto.ratePerMinute) || 0,
+    totalMinutesRead: Number(dto.totalReadingMinutes) || 0,
+    ratePerMinute: cappedAudioRate,
+    maxRatePerMinute: maxRate,
+    ebookRateCoefficient: coeff,
+    ebookRatePerMinute: ebookRate,
     authorEarnings: (dto.authorEarnings || []).map((ae: any) => ({
       authorId: ae.authorId,
       authorUserId: ae.authorUserId,
@@ -191,6 +221,8 @@ const mapBackendPeriod = (dto: any): RoyaltyPeriod => {
       assignedBookIds: ae.assignedBookIds || [],
       totalMinutes: Number(ae.totalMinutes) || 0,
       totalSeconds: Number(ae.totalSeconds) || (Number(ae.totalMinutes) || 0) * 60,
+      readingMinutes: Number(ae.readingMinutes) || 0,
+      readingSeconds: Number(ae.readingSeconds) || (Number(ae.readingMinutes) || 0) * 60,
       totalEarned: Number(ae.totalEarned) || 0,
       status: ae.status === 'paid' ? 'paid' : 'calculated',
     })),
@@ -286,6 +318,8 @@ export const useRoyaltyStore = create<RoyaltyState>((set, get) => ({
       const res = await api.post(`/api/v1/admin/royalty/periods/${monthKey}/calculate`, {
         totalRevenue: params.totalRevenue,
         adminExpense: params.adminExpense,
+        maxRatePerMinute: params.maxRatePerMinute ?? 10,
+        ebookRateCoefficient: params.ebookRateCoefficient ?? 0.5,
         adminNote: params.adminNote,
       });
       const period = mapBackendPeriod(res.data);
@@ -339,6 +373,11 @@ export const useRoyaltyStore = create<RoyaltyState>((set, get) => ({
       }
       const res = await api.get('/api/v1/authors/me/stats', { params });
       const data = res.data;
+      const rawRate = Number(data.ratePerMinute) || 0;
+      const cappedRate = rawRate > 0 ? Math.min(rawRate, 10) : 0;
+      const ebookRate = data.ebookRatePerMinute !== undefined && Number(data.ebookRatePerMinute) > 0
+        ? Number(data.ebookRatePerMinute)
+        : Number((cappedRate * 0.5).toFixed(4));
       const statsObj: AuthorStatsData = {
         authorId: data.authorId,
         authorName: data.authorName,
@@ -346,8 +385,11 @@ export const useRoyaltyStore = create<RoyaltyState>((set, get) => ({
         authorBooks: data.authorBooks || [],
         totalMinutes: Number(data.totalMinutes) || 0,
         totalSeconds: Number(data.totalSeconds) || 0,
+        readingMinutes: Number(data.readingMinutes) || 0,
+        readingSeconds: Number(data.readingSeconds) || 0,
         estimatedEarned: Number(data.estimatedEarned) || 0,
-        ratePerMinute: Number(data.ratePerMinute) || 0,
+        ratePerMinute: cappedRate,
+        ebookRatePerMinute: ebookRate,
         currentBalance: Number(data.currentBalance) || 0,
         periodStatus: data.periodStatus || 'estimated',
         dailyList: data.dailyList || [],

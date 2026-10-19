@@ -21,8 +21,11 @@ public class AuthorBookItemDto {
     private Long readsCount;
     private Long totalMinutes;
     private Long totalSeconds;
+    private Long readingMinutes;
+    private Long readingSeconds;
     private Long savedCount;
     private Boolean hasAudio;
+    private Boolean hasEbook;
     private String audioUrl;
     private String audioDuration;
     private String category;

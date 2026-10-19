@@ -256,9 +256,10 @@ export const AuthorStatsPage: React.FC = () => {
         const storeBook = storeBooksById.get(bookId);
         const isDeleted = Boolean(ab.isDeleted ?? storeBook?.isDeleted);
         const trackedSec = Number(ab.totalSeconds ?? (Number(ab.totalMinutes || 0) * 60)) || 0;
+        const readingSec = Number(ab.readingSeconds ?? (Number(ab.readingMinutes || 0) * 60)) || 0;
 
-        // Deleted books are only shown if they have listening time in this month
-        if (isDeleted && trackedSec <= 0) return;
+        // Deleted books are only shown if they have listening or reading time in this month
+        if (isDeleted && trackedSec <= 0 && readingSec <= 0) return;
 
         const rawCover = ab.coverUrl || ab.coverImage || storeBook?.coverImage;
         result.push({
@@ -342,7 +343,17 @@ export const AuthorStatsPage: React.FC = () => {
   // Royalty and listening earnings
   const royalty = useMemo(() => {
     if (!targetAuthor) {
-      return { totalMinutes: 0, totalSeconds: 0, estimatedEarned: 0, ratePerMinute: 0, currentBalance: 0, periodStatus: 'estimated' as const };
+      return {
+        totalMinutes: 0,
+        totalSeconds: 0,
+        readingMinutes: 0,
+        readingSeconds: 0,
+        estimatedEarned: 0,
+        ratePerMinute: 0,
+        ebookRatePerMinute: 0,
+        currentBalance: 0,
+        periodStatus: 'estimated' as const,
+      };
     }
     const targetBalance =
       authorBalances[targetAuthor.authorId || targetAuthor.id] ??
@@ -351,11 +362,15 @@ export const AuthorStatsPage: React.FC = () => {
       0;
 
     if (currentAuthorStats) {
+      const rPerMin = currentAuthorStats.ratePerMinute || 0;
       return {
         totalMinutes: currentAuthorStats.totalMinutes,
         totalSeconds: currentAuthorStats.totalSeconds,
+        readingMinutes: currentAuthorStats.readingMinutes || 0,
+        readingSeconds: currentAuthorStats.readingSeconds || 0,
         estimatedEarned: currentAuthorStats.estimatedEarned,
-        ratePerMinute: currentAuthorStats.ratePerMinute,
+        ratePerMinute: rPerMin,
+        ebookRatePerMinute: currentAuthorStats.ebookRatePerMinute || Number((rPerMin * 0.5).toFixed(2)),
         currentBalance: targetBalance,
         periodStatus: currentAuthorStats.periodStatus,
       };
@@ -363,8 +378,11 @@ export const AuthorStatsPage: React.FC = () => {
     return {
       totalMinutes: 0,
       totalSeconds: 0,
+      readingMinutes: 0,
+      readingSeconds: 0,
       estimatedEarned: 0,
       ratePerMinute: 0,
+      ebookRatePerMinute: 0,
       currentBalance: targetBalance,
       periodStatus: 'estimated' as const,
     };
@@ -672,7 +690,7 @@ export const AuthorStatsPage: React.FC = () => {
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <h2 style={{ fontSize: '20px', fontWeight: 900, margin: 0 }}>
-                  Аудиокітап тыңдалымдары мен роялти табысы
+                  Тыңдалымдар, оқылымдар және роялти табысы
                 </h2>
               </div>
             </div>
@@ -681,7 +699,7 @@ export const AuthorStatsPage: React.FC = () => {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(175px, 1fr))',
               gap: '14px',
             }}
           >
@@ -696,7 +714,7 @@ export const AuthorStatsPage: React.FC = () => {
             </div>
 
             <div style={{ background: 'rgba(255,255,255,0.12)', borderRadius: '16px', padding: '16px 20px' }}>
-              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)', fontWeight: 600 }}>Нақты тыңдалған уақыт</div>
+              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)', fontWeight: 600 }}>🎧 Тыңдалған уақыт</div>
               <div style={{ fontSize: '24px', fontWeight: 900, marginTop: '4px' }}>
                 {formatListeningTime(royalty.totalSeconds).minutesFormatted}
               </div>
@@ -707,12 +725,25 @@ export const AuthorStatsPage: React.FC = () => {
             </div>
 
             <div style={{ background: 'rgba(255,255,255,0.12)', borderRadius: '16px', padding: '16px 20px' }}>
-              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)', fontWeight: 600 }}>1 минуттың құны</div>
-              <div style={{ fontSize: '24px', fontWeight: 900, marginTop: '4px' }}>
-                {royalty.periodStatus === 'paid' ? `${royalty.ratePerMinute} ₸` : '—'}
+              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)', fontWeight: 600 }}>📖 Оқылған уақыт (Эл. кітап)</div>
+              <div style={{ fontSize: '24px', fontWeight: 900, marginTop: '4px', color: '#86EFAC' }}>
+                {formatListeningTime(royalty.readingSeconds).minutesFormatted}
               </div>
-              <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.7)', marginTop: '2px' }}>
-                {royalty.periodStatus === 'paid' ? '✓ Ай соңында бекітілді' : 'Ай соңында анықталады'}
+              <div style={{ fontSize: '11.5px', color: 'rgba(255,255,255,0.85)', marginTop: '4px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                <span>🕒 {formatListeningTime(royalty.readingSeconds).hoursFormatted} ({formatListeningTime(royalty.readingSeconds).hours} сағат)</span>
+                <span>⏱️ {formatListeningTime(royalty.readingSeconds).secondsFormatted}</span>
+              </div>
+            </div>
+
+            <div style={{ background: 'rgba(255,255,255,0.12)', borderRadius: '16px', padding: '16px 20px' }}>
+              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)', fontWeight: 600 }}>1 минуттың құны</div>
+              <div style={{ fontSize: '22px', fontWeight: 900, marginTop: '4px' }}>
+                {royalty.periodStatus === 'paid' ? `🎧 ${royalty.ratePerMinute} ₸` : '—'}
+              </div>
+              <div style={{ fontSize: '11.5px', color: 'rgba(255,255,255,0.85)', marginTop: '2px' }}>
+                {royalty.periodStatus === 'paid'
+                  ? `📖 Эл. кітап: ${royalty.ebookRatePerMinute} ₸`
+                  : 'Ай соңында анықталады'}
               </div>
             </div>
 
@@ -720,7 +751,14 @@ export const AuthorStatsPage: React.FC = () => {
               <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)', fontWeight: 600 }}>{formatMonthLabel(selectedMonthKey)} табысы</div>
               <div style={{ fontSize: '24px', fontWeight: 900, marginTop: '4px', color: royalty.periodStatus === 'paid' ? '#86EFAC' : '#FDE047' }}>
                 {royalty.periodStatus === 'paid'
-                  ? `${Number((Math.floor(dailyAnalytics.totalSeconds / 60) * royalty.ratePerMinute).toFixed(2)).toLocaleString()} ₸`
+                  ? `${Number(
+                      (
+                        royalty.estimatedEarned > 0
+                          ? royalty.estimatedEarned
+                          : Math.floor(dailyAnalytics.totalSeconds / 60) * royalty.ratePerMinute +
+                            royalty.readingMinutes * royalty.ebookRatePerMinute
+                      ).toFixed(2)
+                    ).toLocaleString()} ₸`
                   : 'Жинақталуда'}
               </div>
               <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.7)', marginTop: '2px' }}>
@@ -755,7 +793,7 @@ export const AuthorStatsPage: React.FC = () => {
           >
             <span style={{ fontSize: '16px' }}>ℹ️</span>
             <span>
-              <strong>Нақты уақыттағы тыңдалым ережесі:</strong> Оқырман аудионы 60 секундтан асырып тыңдаған сәтте автор есебіне бірден жазылады. Ал роялтидің ресми ақшалай сомасы әр айдың соңында әкімшілік түсім мен шығынды бекіткенде қолжетімді балансқа түседі.
+              <strong>Нақты уақыттағы есептеу ережесі:</strong> Оқырман аудионы тыңдаған немесе электронды кітапты оқыған сәтте (60 секундтан асқанда) автор есебіне бірден жазылады. Роялтидің ресми ақшалай сомасы әр айдың соңында бекітілгенде қолжетімді балансқа түседі.
             </span>
           </div>
         </div>
@@ -1009,7 +1047,7 @@ export const AuthorStatsPage: React.FC = () => {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap', gap: '12px' }}>
             <div>
               <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-dark)', margin: 0 }}>
-                Автор кітаптарының нақты тыңдалым кестесі: {authorBooks.length}
+                Автор кітаптарының тыңдалым мен оқылым кестесі: {authorBooks.length}
               </h3>
             </div>
           </div>
@@ -1025,7 +1063,8 @@ export const AuthorStatsPage: React.FC = () => {
                   <tr style={{ borderBottom: '2px solid #E2E8F0', color: '#64748B', fontWeight: 800 }}>
                     <th style={{ padding: '12px 14px' }}>Кітап</th>
                     <th style={{ padding: '12px 14px' }}>Санаты</th>
-                    <th style={{ padding: '12px 14px' }}>Тыңдалған уақыт</th>
+                    <th style={{ padding: '12px 14px' }}>🎧 Тыңдалған уақыт</th>
+                    <th style={{ padding: '12px 14px' }}>📖 Оқылған уақыт</th>
                     <th style={{ padding: '12px 14px' }}>Үлесі (%)</th>
                     <th style={{ padding: '12px 14px', textAlign: 'right' }}>Әрекет</th>
                   </tr>
@@ -1034,8 +1073,12 @@ export const AuthorStatsPage: React.FC = () => {
                   {authorBooks.map((book) => {
                     const authorBookStat = currentAuthorStats?.authorBooks?.find((ab: any) => ab.id === book.id || ab.bookId === book.id);
                     const trackedSec = authorBookStat?.totalSeconds ?? ((authorBookStat?.totalMinutes ?? 0) * 60);
+                    const readingSec = authorBookStat?.readingSeconds ?? ((authorBookStat?.readingMinutes ?? 0) * 60);
                     const bookTime = formatListeningTime(trackedSec);
-                    const share = royalty.totalMinutes > 0 ? Math.round((bookTime.minutes / royalty.totalMinutes) * 100) : 0;
+                    const bookReadTime = formatListeningTime(readingSec);
+                    const totalAuthorCombinedMin = royalty.totalMinutes + royalty.readingMinutes;
+                    const bookCombinedMin = bookTime.minutes + bookReadTime.minutes;
+                    const share = totalAuthorCombinedMin > 0 ? Math.round((bookCombinedMin / totalAuthorCombinedMin) * 100) : 0;
                     const statsPath = (role === 'author' || currentUser?.isAuthor || currentUser?.role === 'author')
                       ? `/author/books/${book.id}/stats`
                       : `/admin/books/${book.id}/stats`;
@@ -1093,6 +1136,13 @@ export const AuthorStatsPage: React.FC = () => {
                           <div>{bookTime.minutesFormatted}</div>
                           <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600, marginTop: '2px' }}>
                             ⏱ {bookTime.secondsFormatted} • 🕒 {bookTime.hoursFormatted}
+                          </div>
+                        </td>
+
+                        <td style={{ padding: '14px', fontWeight: 800, color: '#059669' }}>
+                          <div>{bookReadTime.minutesFormatted}</div>
+                          <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600, marginTop: '2px' }}>
+                            ⏱ {bookReadTime.secondsFormatted} • 🕒 {bookReadTime.hoursFormatted}
                           </div>
                         </td>
 

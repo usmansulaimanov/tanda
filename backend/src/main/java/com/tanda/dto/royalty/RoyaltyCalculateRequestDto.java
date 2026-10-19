@@ -16,5 +16,7 @@ import java.math.BigDecimal;
 public class RoyaltyCalculateRequestDto {
     private BigDecimal totalRevenue;
     private BigDecimal adminExpense;
+    private BigDecimal maxRatePerMinute;
+    private BigDecimal ebookRateCoefficient;
     private String adminNote;
 }

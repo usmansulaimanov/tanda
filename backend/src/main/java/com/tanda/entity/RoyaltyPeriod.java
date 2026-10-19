@@ -59,9 +59,25 @@ public class RoyaltyPeriod {
     @Builder.Default
     private Long totalMinutes = 0L;
 
+    @Column(name = "total_reading_minutes", nullable = false)
+    @Builder.Default
+    private Long totalReadingMinutes = 0L;
+
     @Column(name = "rate_per_minute", precision = 10, scale = 4, nullable = false)
     @Builder.Default
     private BigDecimal ratePerMinute = BigDecimal.ZERO;
+
+    @Column(name = "max_rate_per_minute", precision = 10, scale = 4, nullable = false)
+    @Builder.Default
+    private BigDecimal maxRatePerMinute = new BigDecimal("10.0000");
+
+    @Column(name = "ebook_rate_coefficient", precision = 5, scale = 2, nullable = false)
+    @Builder.Default
+    private BigDecimal ebookRateCoefficient = new BigDecimal("0.50");
+
+    @Column(name = "ebook_rate_per_minute", precision = 10, scale = 4, nullable = false)
+    @Builder.Default
+    private BigDecimal ebookRatePerMinute = BigDecimal.ZERO;
 
     @Column(name = "admin_note", columnDefinition = "TEXT")
     private String adminNote;
@@ -96,7 +112,11 @@ public class RoyaltyPeriod {
         if (this.companyShare == null) this.companyShare = BigDecimal.ZERO;
         if (this.royaltyPool == null) this.royaltyPool = BigDecimal.ZERO;
         if (this.totalMinutes == null) this.totalMinutes = 0L;
+        if (this.totalReadingMinutes == null) this.totalReadingMinutes = 0L;
         if (this.ratePerMinute == null) this.ratePerMinute = BigDecimal.ZERO;
+        if (this.maxRatePerMinute == null) this.maxRatePerMinute = new BigDecimal("10.0000");
+        if (this.ebookRateCoefficient == null) this.ebookRateCoefficient = new BigDecimal("0.50");
+        if (this.ebookRatePerMinute == null) this.ebookRatePerMinute = BigDecimal.ZERO;
     }
 
     @PreUpdate

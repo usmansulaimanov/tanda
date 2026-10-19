@@ -179,6 +179,15 @@ export interface BookStatsResponse {
   monthHours: number;
   allTimeSeconds: number;
   allTimeMinutes: number;
+  allTimeHours?: number;
+  todayReadingSeconds?: number;
+  todayReadingMinutes?: number;
+  monthReadingSeconds?: number;
+  monthReadingMinutes?: number;
+  monthReadingHours?: number;
+  allTimeReadingSeconds?: number;
+  allTimeReadingMinutes?: number;
+  allTimeReadingHours?: number;
   monthUniqueListeners: number;
   allTimeUniqueListeners: number;
   monthListeners?: number;

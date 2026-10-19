@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useBookStore } from '../../store/useBookStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useMyBooksStore } from '../../store/useMyBooksStore';
+import { useAudioPlayerStore } from '../../store/useAudioPlayerStore';
 import { api } from '../../lib/api';
 import { progressApi } from '../../shared/api/progress.api';
 import { Book } from '../../types';
@@ -20,6 +21,10 @@ export const ReaderPage: React.FC = () => {
   const [book, setBook] = useState<Book | null>(books.find((b) => b.id === id) || null);
   const [isBookLoading, setIsBookLoading] = useState<boolean>(!books.find((b) => b.id === id));
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const currentPageRef = useRef<number>(1);
+  const ebookSessionIdRef = useRef<string | null>(null);
+  const interactionCountRef = useRef<number>(0);
+  const lastInteractionAtRef = useRef<number>(Date.now());
   const [fontSize, setFontSize] = useState<number>(17);
   const [theme, setTheme] = useState<'light' | 'sepia' | 'gray' | 'dark'>(() => {
     if (typeof window !== 'undefined') {
@@ -164,6 +169,8 @@ export const ReaderPage: React.FC = () => {
       if (!book) return;
       // Track latest CFI for settings-change saves
       lastCfiRef.current = locationCfi;
+      interactionCountRef.current += 1;
+      lastInteractionAtRef.current = Date.now();
 
       // Instant local persistence for zero-delay page refresh survival
       try {
@@ -172,6 +179,7 @@ export const ReaderPage: React.FC = () => {
 
       const totPages = book.pages ? parseInt(String(book.pages)) : 100;
       const calculatedPage = Math.max(1, Math.round((pct / 100) * totPages));
+      currentPageRef.current = calculatedPage;
       setCurrentPage((prev) => (prev !== calculatedPage ? calculatedPage : prev));
 
       if (isAuthenticated) {
@@ -207,6 +215,15 @@ export const ReaderPage: React.FC = () => {
       setIsBookLoading(false);
     }
   }, [book, id, fetchBookById]);
+
+  // Auto-pause audio player when opening e-book reader so user cannot double-dip audio + e-book time
+  useEffect(() => {
+    if (book) {
+      try {
+        useAudioPlayerStore.getState().pause();
+      } catch {}
+    }
+  }, [book]);
 
   useEffect(() => {
     if (book && isAuthenticated) {
@@ -246,6 +263,7 @@ export const ReaderPage: React.FC = () => {
         }
         // Restore page counter for shelf display
         if (data.currentPage) {
+          currentPageRef.current = data.currentPage;
           setCurrentPage(data.currentPage);
         }
       })
@@ -256,6 +274,83 @@ export const ReaderPage: React.FC = () => {
   const rawEbookUrl = book?.ebookUrl || (book as any)?.pdfUrl || (book as any)?.epubUrl;
   const resolvedEbookUrl = resolveMediaUrl(rawEbookUrl);
   const isTg = isTelegramLink(resolvedEbookUrl);
+
+  // E-book reading session & 30s heartbeat tracking (for royalty & book stats)
+  useEffect(() => {
+    if (!book?.id || !isAuthenticated || isTg) return;
+
+    let isCancelled = false;
+    const totalPagesVal = book.pages ? parseInt(String(book.pages), 10) : 100;
+
+    const recordUserInteraction = () => {
+      interactionCountRef.current += 1;
+      lastInteractionAtRef.current = Date.now();
+    };
+
+    window.addEventListener('keydown', recordUserInteraction, { passive: true });
+    window.addEventListener('pointerdown', recordUserInteraction, { passive: true });
+    window.addEventListener('wheel', recordUserInteraction, { passive: true });
+    window.addEventListener('touchstart', recordUserInteraction, { passive: true });
+
+    api
+      .post('/api/v1/ebook/sessions', {
+        bookId: book.id,
+        currentPage: currentPageRef.current || 1,
+        totalPages: totalPagesVal || 100,
+        currentCfi: lastCfiRef.current,
+      })
+      .then((res) => {
+        if (!isCancelled && res.data?.id) {
+          ebookSessionIdRef.current = res.data.id;
+        }
+      })
+      .catch(() => {});
+
+    const heartbeatInterval = setInterval(() => {
+      const sid = ebookSessionIdRef.current;
+      if (!sid) return;
+      if (typeof document !== 'undefined' && document.visibilityState !== 'visible') return;
+      // 2-minute idle timeout: pause heartbeat if no page turn or interaction for > 120s
+      if (Date.now() - lastInteractionAtRef.current > 120_000) return;
+
+      api
+        .post(`/api/v1/ebook/sessions/${sid}/heartbeat`, {
+          currentPage: currentPageRef.current || 1,
+          totalPages: totalPagesVal || 100,
+          currentCfi: lastCfiRef.current,
+          interactionCount: interactionCountRef.current,
+        })
+        .catch(() => {});
+    }, 30_000);
+
+    const endEbookSession = () => {
+      const sid = ebookSessionIdRef.current;
+      if (!sid) return;
+      ebookSessionIdRef.current = null;
+      api
+        .patch(`/api/v1/ebook/sessions/${sid}/end`, {
+          currentPage: currentPageRef.current || 1,
+          totalPages: totalPagesVal || 100,
+          currentCfi: lastCfiRef.current,
+        })
+        .catch(() => {});
+    };
+
+    window.addEventListener('beforeunload', endEbookSession);
+    window.addEventListener('pagehide', endEbookSession);
+
+    return () => {
+      isCancelled = true;
+      clearInterval(heartbeatInterval);
+      window.removeEventListener('keydown', recordUserInteraction);
+      window.removeEventListener('pointerdown', recordUserInteraction);
+      window.removeEventListener('wheel', recordUserInteraction);
+      window.removeEventListener('touchstart', recordUserInteraction);
+      window.removeEventListener('beforeunload', endEbookSession);
+      window.removeEventListener('pagehide', endEbookSession);
+      endEbookSession();
+    };
+  }, [book?.id, book?.pages, isAuthenticated, isTg]);
   const isEpub = Boolean(
     resolvedEbookUrl &&
       !isTg &&

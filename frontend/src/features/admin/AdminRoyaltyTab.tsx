@@ -35,13 +35,12 @@ const formatDate = (dateStr?: string): string => {
   try {
     const d = new Date(dateStr);
     if (isNaN(d.getTime())) return dateStr;
-    return d.toLocaleString('kk-KZ', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    return `${day}.${month}.${year} ${hours}:${minutes}`;
   } catch {
     return dateStr;
   }
@@ -93,6 +92,7 @@ export const AdminRoyaltyTab: React.FC = () => {
   const [revenueInput, setRevenueInput] = useState<number>(() => currentPeriod?.totalRevenue || 0);
   const [expenseInput, setExpenseInput] = useState<number>(() => currentPeriod?.adminExpense || 0);
   const [noteInput, setNoteInput] = useState<string>(() => currentPeriod?.adminNote || '');
+  const [maxRateInput, setMaxRateInput] = useState<number>(() => currentPeriod?.maxRatePerMinute || 10);
 
   // Payouts state
   const [payouts, setPayouts] = useState<PayoutRecord[]>([]);
@@ -127,6 +127,7 @@ export const AdminRoyaltyTab: React.FC = () => {
       setRevenueInput(p.totalRevenue || 0);
       setExpenseInput(p.adminExpense || 0);
       setNoteInput(p.adminNote || '');
+      setMaxRateInput(p.maxRatePerMinute && p.maxRatePerMinute > 0 ? p.maxRatePerMinute : 10);
     }
   }, [selectedMonth, periods]);
 
@@ -157,6 +158,8 @@ export const AdminRoyaltyTab: React.FC = () => {
         totalRevenue: Number(newVal),
         adminExpense: Number(expenseInput),
         adminNote: noteInput,
+        maxRatePerMinute: Number(maxRateInput || 10),
+        ebookRateCoefficient: 0.5,
       });
     }, 600);
   };
@@ -169,6 +172,23 @@ export const AdminRoyaltyTab: React.FC = () => {
         totalRevenue: Number(revenueInput),
         adminExpense: Number(newVal),
         adminNote: noteInput,
+        maxRatePerMinute: Number(maxRateInput || 10),
+        ebookRateCoefficient: 0.5,
+      });
+    }, 600);
+  };
+
+  const handleMaxRateChange = (newVal: number) => {
+    const validVal = newVal >= 0 ? newVal : 10;
+    setMaxRateInput(validVal);
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    saveTimeoutRef.current = setTimeout(() => {
+      calculateRoyalty(selectedMonth, {
+        totalRevenue: Number(revenueInput),
+        adminExpense: Number(expenseInput),
+        adminNote: noteInput,
+        maxRatePerMinute: Number(validVal > 0 ? validVal : 10),
+        ebookRateCoefficient: 0.5,
       });
     }, 600);
   };
@@ -183,6 +203,19 @@ export const AdminRoyaltyTab: React.FC = () => {
     }
     return 0;
   }, [currentPeriod]);
+
+  // Platform e-book reading minutes from backend period (or sum of author earnings)
+  const totalPlatformReadingMinutes = useMemo(() => {
+    if (currentPeriod?.totalMinutesRead && currentPeriod.totalMinutesRead > 0) {
+      return currentPeriod.totalMinutesRead;
+    }
+    if (currentPeriod?.authorEarnings && currentPeriod.authorEarnings.length > 0) {
+      return currentPeriod.authorEarnings.reduce((acc, ae) => acc + (ae.readingMinutes || 0), 0);
+    }
+    return 0;
+  }, [currentPeriod]);
+
+  const totalCombinedPlatformMinutes = totalPlatformMinutes + totalPlatformReadingMinutes;
 
   // Daily activity metrics for selected month
   const dailyActivityList = useMemo(() => {
@@ -220,9 +253,21 @@ export const AdminRoyaltyTab: React.FC = () => {
   }, []);
 
   const netPool = Math.max(0, revenueInput - expenseInput);
-  const companyShare = Math.round(netPool * 0.5);
-  const authorRoyaltyPool = netPool - companyShare;
-  const previewRatePerMinute = totalPlatformMinutes > 0 ? Number((authorRoyaltyPool / totalPlatformMinutes).toFixed(2)) : 0;
+  const baseCompanyShare = Math.round(netPool * 0.5);
+  const authorRoyaltyPool = netPool - baseCompanyShare;
+  const effectiveMaxRate = maxRateInput > 0 ? maxRateInput : 10;
+  const rawRatePerMinute = totalCombinedPlatformMinutes > 0 ? authorRoyaltyPool / totalCombinedPlatformMinutes : 0;
+  const previewRatePerMinute = totalCombinedPlatformMinutes > 0
+    ? Number(Math.min(rawRatePerMinute, effectiveMaxRate).toFixed(2))
+    : Number(effectiveMaxRate.toFixed(2));
+  const previewEbookRatePerMinute = Number((previewRatePerMinute * 0.5).toFixed(2));
+  const totalAuthorsPayout = Number(
+    (totalPlatformMinutes * previewRatePerMinute + totalPlatformReadingMinutes * previewEbookRatePerMinute).toFixed(2)
+  );
+  const companyShare = totalCombinedPlatformMinutes > 0 && netPool > 0
+    ? Number(Math.max(baseCompanyShare, netPool - totalAuthorsPayout).toFixed(2))
+    : baseCompanyShare;
+  const retainedCompanySavings = Math.max(0, Number((companyShare - baseCompanyShare).toFixed(2)));
 
   const handleRecalculate = async () => {
     if (expenseInput < 0) {
@@ -240,6 +285,8 @@ export const AdminRoyaltyTab: React.FC = () => {
         totalRevenue: Number(revenueInput),
         adminExpense: Number(expenseInput),
         adminNote: noteInput,
+        maxRatePerMinute: Number(effectiveMaxRate),
+        ebookRateCoefficient: 0.5,
       }
     );
 
@@ -427,7 +474,7 @@ export const AdminRoyaltyTab: React.FC = () => {
                     ✓ Бекітілді (Балансқа түсті)
                     {currentPeriod.finalizedAt && (
                       <span style={{ fontSize: '11px', opacity: 0.85 }}>
-                        • {new Date(currentPeriod.finalizedAt).toLocaleDateString('kk-KZ')}
+                        • {formatDate(currentPeriod.finalizedAt).split(' ')[0]}
                       </span>
                     )}
                   </span>
@@ -653,7 +700,7 @@ export const AdminRoyaltyTab: React.FC = () => {
           </div>
         </div>
 
-        {/* Card 4: Company Share 50% */}
+        {/* Card 4: Company Share 50% + Retained Savings */}
         <div
           style={{
             background: 'linear-gradient(135deg, #003763 0%, #005494 100%)',
@@ -664,11 +711,16 @@ export const AdminRoyaltyTab: React.FC = () => {
           }}
         >
           <div style={{ fontSize: '12.5px', fontWeight: 700, color: 'rgba(255,255,255,0.8)', marginBottom: '8px' }}>
-            Компанияның пайдасы | 50%
+            Компанияның пайдасы | 50%+
           </div>
           <div style={{ fontSize: '24px', fontWeight: 900, color: '#FFFFFF' }}>
-            {companyShare.toLocaleString()} ₸
+            {formatCurrencyWithDecimals(companyShare)} ₸
           </div>
+          {retainedCompanySavings > 0 && (
+            <div style={{ fontSize: '11px', color: '#86EFAC', fontWeight: 700, marginTop: '4px' }}>
+              Негізгі 50%: {baseCompanyShare.toLocaleString()} ₸ (+{formatCurrencyWithDecimals(retainedCompanySavings)} ₸ үнем)
+            </div>
+          )}
         </div>
 
         {/* Card 5: Author Royalty Pool 50% */}
@@ -682,35 +734,69 @@ export const AdminRoyaltyTab: React.FC = () => {
           }}
         >
           <div style={{ fontSize: '12.5px', fontWeight: 700, color: 'rgba(255,255,255,0.9)', marginBottom: '8px' }}>
-            Авторлардың пайдасы | 50%
+            Авторлардың қоры | 50%
           </div>
           <div style={{ fontSize: '24px', fontWeight: 900, color: '#FFFFFF' }}>
             {authorRoyaltyPool.toLocaleString()} ₸
           </div>
+          <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.85)', marginTop: '4px' }}>
+            Макс. лимит: {effectiveMaxRate} ₸ / мин
+          </div>
         </div>
 
-        {/* Card 6: 1 Minute Rate */}
+        {/* Card 6: 1 Minute Rate (Audio vs E-book + Max Cap Input) */}
         <div
           style={{
             background: '#FFFFFF',
             borderRadius: '18px',
-            padding: '20px',
+            padding: '18px 20px',
             border: '2px solid var(--blue)',
             boxShadow: '0 4px 16px rgba(0, 84, 148, 0.08)',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
           }}
         >
-          <div style={{ fontSize: '12.5px', fontWeight: 700, color: 'var(--blue)', marginBottom: '8px' }}>
-            1 минуттың бағасы
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+            <span style={{ fontSize: '12.5px', fontWeight: 700, color: 'var(--blue)' }}>
+              1 минуттың бағасы
+            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }} title="Әдепкі макс. шектеу: 10 ₸">
+              <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748B' }}>Шек:</span>
+              <input
+                type="number"
+                min={1}
+                step={1}
+                value={maxRateInput}
+                onChange={(e) => handleMaxRateChange(Number(e.target.value))}
+                style={{
+                  width: '54px',
+                  fontSize: '12px',
+                  fontWeight: 800,
+                  color: '#0F172A',
+                  border: '1.5px solid #CBD5E1',
+                  borderRadius: '6px',
+                  padding: '2px 6px',
+                  textAlign: 'center',
+                  outline: 'none',
+                }}
+              />
+              <span style={{ fontSize: '11px', fontWeight: 800, color: '#0F172A' }}>₸</span>
+            </div>
           </div>
-          <div style={{ fontSize: '24px', fontWeight: 900, color: 'var(--blue)' }}>
-            {previewRatePerMinute} ₸ <span style={{ fontSize: '13px', fontWeight: 700, color: '#64748B' }}>/ мин</span>
-          </div>
-          <div style={{ fontSize: '11.5px', color: '#64748B', marginTop: '4px' }}>
-            1 сағатқа ≈ {(previewRatePerMinute * 60).toFixed(1)} ₸
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', flexWrap: 'wrap' }}>
+            <div>
+              <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748B', display: 'block' }}>🎧 Аудио (1.0x)</span>
+              <span style={{ fontSize: '21px', fontWeight: 900, color: 'var(--blue)' }}>{previewRatePerMinute} ₸</span>
+            </div>
+            <div style={{ borderLeft: '1.5px solid #E2E8F0', paddingLeft: '10px' }}>
+              <span style={{ fontSize: '11px', fontWeight: 700, color: '#059669', display: 'block' }}>📖 Эл. кітап (0.5x)</span>
+              <span style={{ fontSize: '21px', fontWeight: 900, color: '#059669' }}>{previewEbookRatePerMinute} ₸</span>
+            </div>
           </div>
         </div>
 
-        {/* Card 7: Total Author Listening Minutes */}
+        {/* Card 7: Total Author Listening & Reading Minutes */}
         <div
           style={{
             background: '#FFFFFF',
@@ -721,17 +807,17 @@ export const AdminRoyaltyTab: React.FC = () => {
           }}
         >
           <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#64748B', marginBottom: '8px' }}>
-            Айлық тыңдалым
+            Айлық уақыт (Тыңдалым + Оқылым)
           </div>
-          <div style={{ fontSize: '24px', fontWeight: 900, color: 'var(--blue)' }}>
-            {totalPlatformMinutes.toLocaleString()} мин
+          <div style={{ fontSize: '22px', fontWeight: 900, color: 'var(--blue)' }}>
+            {totalCombinedPlatformMinutes.toLocaleString()} мин
           </div>
-          <div style={{ fontSize: '11.5px', color: '#64748B', marginTop: '4px' }}>
-            {totalPlatformMinutes > 0 ? `≈ ${(totalPlatformMinutes / 60).toFixed(1)} сағат тыңдалды` : 'Барлық авторлардың кітаптары бойынша'}
+          <div style={{ fontSize: '11.5px', color: '#475569', marginTop: '4px', fontWeight: 600 }}>
+            🎧 {totalPlatformMinutes.toLocaleString()} мин • 📖 {totalPlatformReadingMinutes.toLocaleString()} мин
           </div>
         </div>
 
-        {/* Card 8: Product of 1 Min Rate & Total Minutes */}
+        {/* Card 8: Total Payout to Authors */}
         <div
           style={{
             background: '#FFFFFF',
@@ -742,13 +828,13 @@ export const AdminRoyaltyTab: React.FC = () => {
           }}
         >
           <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#64748B', marginBottom: '8px' }}>
-            Жалпы төлем сомасы
+            Жалпы төлем сомасы (Авторларға)
           </div>
           <div style={{ fontSize: '24px', fontWeight: 900, color: '#16A34A' }}>
-            {formatCurrencyWithDecimals(previewRatePerMinute * totalPlatformMinutes)} ₸
+            {formatCurrencyWithDecimals(totalAuthorsPayout)} ₸
           </div>
-          <div style={{ fontSize: '11.5px', color: '#64748B', marginTop: '4px' }}>
-            {previewRatePerMinute} ₸ × {totalPlatformMinutes.toLocaleString()} мин
+          <div style={{ fontSize: '11px', color: '#64748B', marginTop: '4px' }}>
+            🎧 {formatCurrencyWithDecimals(totalPlatformMinutes * previewRatePerMinute)} ₸ + 📖 {formatCurrencyWithDecimals(totalPlatformReadingMinutes * previewEbookRatePerMinute)} ₸
           </div>
         </div>
       </div>
@@ -992,7 +1078,8 @@ export const AdminRoyaltyTab: React.FC = () => {
                 <tr style={{ borderBottom: '2px solid #E2E8F0', color: '#64748B', fontWeight: 800 }}>
                   <th style={{ padding: '12px 14px' }}>Автор</th>
                   <th style={{ padding: '12px 14px' }}>Кітаптары</th>
-                  <th style={{ padding: '12px 14px' }}>Тыңдалған уақыт</th>
+                  <th style={{ padding: '12px 14px' }}>🎧 Тыңдалған уақыт</th>
+                  <th style={{ padding: '12px 14px' }}>📖 Оқылған уақыт</th>
                   <th style={{ padding: '12px 14px' }}>1 мин бағасы</th>
                   <th style={{ padding: '12px 14px' }}>Роялти сомасы (₸)</th>
                   <th style={{ padding: '12px 14px' }}>Мәртебесі</th>
@@ -1029,7 +1116,14 @@ export const AdminRoyaltyTab: React.FC = () => {
                   const minutes = earningDetail?.totalMinutes ?? 0;
                   const seconds = earningDetail?.totalSeconds ?? (minutes * 60);
                   const hrs = Number((seconds / 3600).toFixed(1));
-                  const earned = previewRatePerMinute > 0 ? Number((minutes * previewRatePerMinute).toFixed(2)) : (earningDetail?.totalEarned ?? 0);
+
+                  const readingMinutes = earningDetail?.readingMinutes ?? 0;
+                  const readingSeconds = earningDetail?.readingSeconds ?? (readingMinutes * 60);
+                  const readingHrs = Number((readingSeconds / 3600).toFixed(1));
+
+                  const earned = previewRatePerMinute > 0
+                    ? Number(((minutes * previewRatePerMinute) + (readingMinutes * previewEbookRatePerMinute)).toFixed(2))
+                    : (earningDetail?.totalEarned ?? 0);
                   const isPaid = currentPeriod?.isFinalized || earningDetail?.status === 'paid';
 
                   return (
@@ -1069,8 +1163,16 @@ export const AdminRoyaltyTab: React.FC = () => {
                         </div>
                       </td>
 
+                      <td style={{ padding: '14px', fontWeight: 800, color: '#059669' }}>
+                        <div>{readingMinutes.toLocaleString('ru-RU')} мин</div>
+                        <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600, marginTop: '2px' }}>
+                          🕒 {readingHrs} сағ • ⏱ {readingSeconds.toLocaleString('ru-RU')} сек
+                        </div>
+                      </td>
+
                       <td style={{ padding: '14px', fontWeight: 800, color: 'var(--text-dark)' }}>
-                        {previewRatePerMinute} ₸
+                        <div>🎧 {previewRatePerMinute} ₸</div>
+                        <div style={{ fontSize: '11.5px', color: '#059669', marginTop: '2px' }}>📖 {previewEbookRatePerMinute} ₸</div>
                       </td>
 
                       <td style={{ padding: '14px' }}>

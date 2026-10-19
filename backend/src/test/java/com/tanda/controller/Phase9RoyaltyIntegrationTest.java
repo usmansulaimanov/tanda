@@ -200,7 +200,9 @@ public class Phase9RoyaltyIntegrationTest {
                 .andExpect(jsonPath("$.netPool", is(90000.0)))
                 .andExpect(jsonPath("$.royaltyPool", is(45000.0)))
                 .andExpect(jsonPath("$.totalMinutes", is(200)))
-                .andExpect(jsonPath("$.ratePerMinute", is(225.0))); // 45000 / 200 = 225
+                .andExpect(jsonPath("$.ratePerMinute", is(10.0))) // Capped at default maxRatePerMinute = 10.00 ₸
+                .andExpect(jsonPath("$.ebookRatePerMinute", is(5.0))) // 0.5x of audio rate = 5.00 ₸
+                .andExpect(jsonPath("$.companyShare", is(88000.0))); // 90,000 - (200 * 10) = 88,000 retained by company
     }
 
     @Test

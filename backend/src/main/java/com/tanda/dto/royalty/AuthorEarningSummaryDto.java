@@ -21,6 +21,8 @@ public class AuthorEarningSummaryDto {
     private List<String> assignedBookIds;
     private Long totalMinutes;
     private Long totalSeconds;
+    private Long readingMinutes;
+    private Long readingSeconds;
     private BigDecimal totalEarned;
     private String status;
 }

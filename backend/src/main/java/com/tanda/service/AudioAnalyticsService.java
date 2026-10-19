@@ -386,24 +386,30 @@ public class AudioAnalyticsService {
 
         // Daily stats map for the month
         Map<String, Long> dateSecondsMap = new HashMap<>();
+        Map<String, Long> dateReadingSecondsMap = new HashMap<>();
 
         List<AudioDailyStats> dailyStats = audioDailyStatsRepository.findByBookIdAndStatDateBetween(bookId, startDate, endDate);
         for (AudioDailyStats s : dailyStats) {
             String d = s.getStatDate().toString();
             long sec = s.getTotalSeconds() != null ? s.getTotalSeconds() : 0L;
+            long readSec = s.getReadingSeconds() != null ? s.getReadingSeconds() : 0L;
             dateSecondsMap.put(d, Math.max(dateSecondsMap.getOrDefault(d, 0L), sec));
+            dateReadingSecondsMap.put(d, Math.max(dateReadingSecondsMap.getOrDefault(d, 0L), readSec));
         }
 
         List<AuthorDailyBookStats> authorDailyStats = authorDailyBookStatsRepository.findByBookIdAndStatDateBetween(bookId, startDate, endDate);
         for (AuthorDailyBookStats s : authorDailyStats) {
             String d = s.getStatDate().toString();
             long sec = s.getTotalSeconds() != null ? s.getTotalSeconds() : 0L;
+            long readSec = s.getReadingSeconds() != null ? s.getReadingSeconds() : 0L;
             dateSecondsMap.put(d, Math.max(dateSecondsMap.getOrDefault(d, 0L), sec));
+            dateReadingSecondsMap.put(d, Math.max(dateReadingSecondsMap.getOrDefault(d, 0L), readSec));
         }
 
         int daysInMonth = ym.lengthOfMonth();
         List<AuthorDailyStatDto> dailyList = new ArrayList<>(daysInMonth);
         long monthTotalSec = 0L;
+        long monthTotalReadSec = 0L;
         long peakSec = 0L;
         String peakDateStr = null;
 
@@ -411,11 +417,13 @@ public class AudioAnalyticsService {
             LocalDate date = ym.atDay(day);
             String iso = date.toString();
             long sec = dateSecondsMap.getOrDefault(iso, 0L);
+            long readSec = dateReadingSecondsMap.getOrDefault(iso, 0L);
             if (sec > peakSec) {
                 peakSec = sec;
                 peakDateStr = iso;
             }
             monthTotalSec += sec;
+            monthTotalReadSec += readSec;
 
             String dayNum = String.format("%02d", day);
             String monthNum = String.format("%02d", ym.getMonthValue());
@@ -450,21 +458,30 @@ public class AudioAnalyticsService {
         }
 
         long todaySec = dateSecondsMap.getOrDefault(today.toString(), 0L);
+        long todayReadSec = dateReadingSecondsMap.getOrDefault(today.toString(), 0L);
 
         // All-time seconds calculation
         long allTimeSec = 0L;
+        long allTimeReadSec = 0L;
         List<AudioDailyStats> allDaily = audioDailyStatsRepository.findByBookId(bookId);
         for (AudioDailyStats s : allDaily) {
             allTimeSec += s.getTotalSeconds() != null ? s.getTotalSeconds() : 0L;
+            allTimeReadSec += s.getReadingSeconds() != null ? s.getReadingSeconds() : 0L;
         }
         List<AuthorDailyBookStats> allAuthorDaily = authorDailyBookStatsRepository.findByBookId(bookId);
         long allAuthorDailySec = 0L;
+        long allAuthorDailyReadSec = 0L;
         for (AuthorDailyBookStats s : allAuthorDaily) {
             allAuthorDailySec += s.getTotalSeconds() != null ? s.getTotalSeconds() : 0L;
+            allAuthorDailyReadSec += s.getReadingSeconds() != null ? s.getReadingSeconds() : 0L;
         }
         allTimeSec = Math.max(allTimeSec, allAuthorDailySec);
         if (monthTotalSec > allTimeSec) {
             allTimeSec = monthTotalSec;
+        }
+        allTimeReadSec = Math.max(allTimeReadSec, allAuthorDailyReadSec);
+        if (monthTotalReadSec > allTimeReadSec) {
+            allTimeReadSec = monthTotalReadSec;
         }
 
         // Unique listeners (3 engagement tiers: >=1m, >=15m, >=1h)
@@ -523,6 +540,14 @@ public class AudioAnalyticsService {
                 .allTimeSeconds(allTimeSec)
                 .allTimeMinutes(Math.round((allTimeSec / 60.0) * 10.0) / 10.0)
                 .allTimeHours(Math.round((allTimeSec / 3600.0) * 10.0) / 10.0)
+                .todayReadingSeconds(todayReadSec)
+                .todayReadingMinutes(Math.round((todayReadSec / 60.0) * 10.0) / 10.0)
+                .monthReadingSeconds(monthTotalReadSec)
+                .monthReadingMinutes(Math.round((monthTotalReadSec / 60.0) * 10.0) / 10.0)
+                .monthReadingHours(Math.round((monthTotalReadSec / 3600.0) * 10.0) / 10.0)
+                .allTimeReadingSeconds(allTimeReadSec)
+                .allTimeReadingMinutes(Math.round((allTimeReadSec / 60.0) * 10.0) / 10.0)
+                .allTimeReadingHours(Math.round((allTimeReadSec / 3600.0) * 10.0) / 10.0)
                 .monthUniqueListeners(monthListeners)
                 .allTimeUniqueListeners(allTimeListeners)
                 .monthListeners(monthListeners)

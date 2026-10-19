@@ -80,7 +80,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/me", "/api/v1/auth/me").authenticated()
                 .requestMatchers("/api/saved-books", "/api/saved-books/**", "/api/v1/saved-books", "/api/v1/saved-books/**").authenticated()
                 .requestMatchers("/api/progress", "/api/progress/**", "/api/v1/progress", "/api/v1/progress/**").authenticated()
-                .requestMatchers("/api/v1/me/**", "/api/v1/audio/**").authenticated()
+                .requestMatchers("/api/v1/me/**", "/api/v1/audio/**", "/api/v1/ebook/**").authenticated()
                 .requestMatchers("/media/stream/audio/**", "/api/media/stream/audio/**", "/api/v1/media/stream/audio/**", "/uploads/audio/**").authenticated()
                 .requestMatchers("/api/premium/subscription-requests/**", "/api/v1/premium/subscription-requests/**").authenticated()
                 .requestMatchers("/api/premium/**", "/api/v1/premium/**").authenticated()

@@ -18,6 +18,7 @@ import com.tanda.entity.Author;
 import com.tanda.entity.AuthorBook;
 import com.tanda.entity.AuthorDailyBookStats;
 import com.tanda.entity.Book;
+import com.tanda.entity.EbookSession;
 import com.tanda.entity.PayoutRequest;
 import com.tanda.entity.PayoutTransaction;
 import com.tanda.entity.RoyaltyEarning;
@@ -32,6 +33,7 @@ import com.tanda.repository.AuthorBookRepository;
 import com.tanda.repository.AuthorDailyBookStatsRepository;
 import com.tanda.repository.AuthorRepository;
 import com.tanda.repository.BookRepository;
+import com.tanda.repository.EbookSessionRepository;
 import com.tanda.repository.PayoutRequestRepository;
 import com.tanda.repository.PayoutTransactionRepository;
 import com.tanda.repository.RoyaltyEarningRepository;
@@ -64,6 +66,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class RoyaltyService {
 
+    public static final BigDecimal DEFAULT_MAX_RATE_PER_MINUTE = new BigDecimal("10.0000");
+    public static final BigDecimal DEFAULT_EBOOK_COEFFICIENT = new BigDecimal("0.50");
+
     private final RoyaltyPeriodRepository royaltyPeriodRepository;
     private final RoyaltyEarningRepository royaltyEarningRepository;
     private final PayoutRequestRepository payoutRequestRepository;
@@ -74,6 +79,7 @@ public class RoyaltyService {
     private final AudioDailyStatsRepository audioDailyStatsRepository;
     private final AuthorDailyBookStatsRepository authorDailyBookStatsRepository;
     private final AudioSessionRepository audioSessionRepository;
+    private final EbookSessionRepository ebookSessionRepository;
     private final UserRepository userRepository;
 
     private static final Map<String, String> MONTH_NAMES_KZ = Map.ofEntries(
@@ -120,6 +126,8 @@ public class RoyaltyService {
             return calculatePeriod(month, RoyaltyCalculateRequestDto.builder()
                     .totalRevenue(BigDecimal.ZERO)
                     .adminExpense(BigDecimal.ZERO)
+                    .maxRatePerMinute(DEFAULT_MAX_RATE_PER_MINUTE)
+                    .ebookRateCoefficient(DEFAULT_EBOOK_COEFFICIENT)
                     .adminNote("")
                     .build());
         }
@@ -127,6 +135,8 @@ public class RoyaltyService {
             return calculatePeriod(month, RoyaltyCalculateRequestDto.builder()
                     .totalRevenue(period.getTotalRevenue() != null ? period.getTotalRevenue() : BigDecimal.ZERO)
                     .adminExpense(period.getAdminExpense() != null ? period.getAdminExpense() : BigDecimal.ZERO)
+                    .maxRatePerMinute(period.getMaxRatePerMinute() != null ? period.getMaxRatePerMinute() : DEFAULT_MAX_RATE_PER_MINUTE)
+                    .ebookRateCoefficient(period.getEbookRateCoefficient() != null ? period.getEbookRateCoefficient() : DEFAULT_EBOOK_COEFFICIENT)
                     .adminNote(period.getAdminNote() != null ? period.getAdminNote() : "")
                     .build());
         }
@@ -149,12 +159,16 @@ public class RoyaltyService {
         OffsetDateTime monthStart = ym.atDay(1).atStartOfDay(almatyZone).toOffsetDateTime();
         OffsetDateTime monthEnd = ym.plusMonths(1).atDay(1).atStartOfDay(almatyZone).toOffsetDateTime();
 
-        // 1. Audio statistics for this month from daily snapshots and live audio sessions
+        // 1. Audio & E-book statistics for this month from daily snapshots and live sessions
         List<AudioDailyStats> dailyStats = audioDailyStatsRepository.findByStatDateBetween(startDate, endDate);
         Map<String, Long> bookSecondsMap = new HashMap<>();
+        Map<String, Long> bookReadingSecondsMap = new HashMap<>();
         for (AudioDailyStats s : dailyStats) {
             String bId = s.getBook().getId();
-            bookSecondsMap.put(bId, bookSecondsMap.getOrDefault(bId, 0L) + s.getTotalSeconds());
+            long audioSec = s.getTotalSeconds() != null ? s.getTotalSeconds() : 0L;
+            long readSec = s.getReadingSeconds() != null ? s.getReadingSeconds() : 0L;
+            bookSecondsMap.put(bId, bookSecondsMap.getOrDefault(bId, 0L) + audioSec);
+            bookReadingSecondsMap.put(bId, bookReadingSecondsMap.getOrDefault(bId, 0L) + readSec);
         }
 
         List<Object[]> liveBookStats = audioSessionRepository.findTopAudioSessionsBetween(monthStart, monthEnd, Pageable.unpaged());
@@ -162,6 +176,13 @@ public class RoyaltyService {
             String bId = (String) row[0];
             long sec = ((Number) row[2]).longValue();
             bookSecondsMap.put(bId, Math.max(bookSecondsMap.getOrDefault(bId, 0L), sec));
+        }
+
+        List<Object[]> liveEbookStats = ebookSessionRepository.findTopEbookSessionsBetween(monthStart, monthEnd, Pageable.unpaged());
+        for (Object[] row : liveEbookStats) {
+            String bId = (String) row[0];
+            long sec = ((Number) row[2]).longValue();
+            bookReadingSecondsMap.put(bId, Math.max(bookReadingSecondsMap.getOrDefault(bId, 0L), sec));
         }
 
         // 2. Authors and book assignments
@@ -173,32 +194,51 @@ public class RoyaltyService {
         Map<String, Book> allBooks = bookRepository.findAll().stream()
                 .collect(Collectors.toMap(Book::getId, b -> b));
 
-        // 3. Financial pools
+        // 3. Financial pools & configurable rates
         BigDecimal revenue = (request != null && request.getTotalRevenue() != null)
                 ? request.getTotalRevenue().max(BigDecimal.ZERO)
-                : (existingPeriod != null ? existingPeriod.getTotalRevenue() : BigDecimal.ZERO);
+                : (existingPeriod != null && existingPeriod.getTotalRevenue() != null ? existingPeriod.getTotalRevenue() : BigDecimal.ZERO);
         BigDecimal expense = (request != null && request.getAdminExpense() != null)
                 ? request.getAdminExpense().max(BigDecimal.ZERO)
-                : (existingPeriod != null ? existingPeriod.getAdminExpense() : BigDecimal.ZERO);
+                : (existingPeriod != null && existingPeriod.getAdminExpense() != null ? existingPeriod.getAdminExpense() : BigDecimal.ZERO);
         String note = (request != null && request.getAdminNote() != null)
                 ? request.getAdminNote()
-                : (existingPeriod != null ? existingPeriod.getAdminNote() : "");
+                : (existingPeriod != null && existingPeriod.getAdminNote() != null ? existingPeriod.getAdminNote() : "");
+
+        BigDecimal maxRatePerMinute = DEFAULT_MAX_RATE_PER_MINUTE;
+        if (request != null && request.getMaxRatePerMinute() != null && request.getMaxRatePerMinute().compareTo(BigDecimal.ZERO) > 0) {
+            maxRatePerMinute = request.getMaxRatePerMinute().setScale(4, RoundingMode.HALF_UP);
+        } else if (existingPeriod != null && existingPeriod.getMaxRatePerMinute() != null && existingPeriod.getMaxRatePerMinute().compareTo(BigDecimal.ZERO) > 0) {
+            maxRatePerMinute = existingPeriod.getMaxRatePerMinute().setScale(4, RoundingMode.HALF_UP);
+        }
+
+        BigDecimal ebookRateCoefficient = DEFAULT_EBOOK_COEFFICIENT;
+        if (request != null && request.getEbookRateCoefficient() != null && request.getEbookRateCoefficient().compareTo(BigDecimal.ZERO) > 0) {
+            ebookRateCoefficient = request.getEbookRateCoefficient().setScale(2, RoundingMode.HALF_UP);
+        } else if (existingPeriod != null && existingPeriod.getEbookRateCoefficient() != null && existingPeriod.getEbookRateCoefficient().compareTo(BigDecimal.ZERO) > 0) {
+            ebookRateCoefficient = existingPeriod.getEbookRateCoefficient().setScale(2, RoundingMode.HALF_UP);
+        }
 
         BigDecimal netPool = revenue.subtract(expense).max(BigDecimal.ZERO);
-        BigDecimal companyShare = netPool.multiply(new BigDecimal("0.50")).setScale(2, RoundingMode.HALF_UP);
-        BigDecimal royaltyPool = netPool.subtract(companyShare);
+        BigDecimal baseCompanyShare = netPool.multiply(new BigDecimal("0.50")).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal royaltyPool = netPool.subtract(baseCompanyShare);
 
-        // 4. Calculate author listening minutes
-        long totalPlatformMinutes = 0L;
-        // Temporary holding structure: authorId -> list of {bookId, minutes}
+        // 4. Calculate author listening & reading minutes
+        long totalPlatformAudioMinutes = 0L;
+        long totalPlatformReadingMinutes = 0L;
         Map<String, Map<String, Long>> authorBookMinutesMap = new HashMap<>();
+        Map<String, Map<String, Long>> authorBookReadingMinutesMap = new HashMap<>();
 
         List<AuthorDailyBookStats> monthlyDailyAuthorStats = authorDailyBookStatsRepository.findByStatDateBetween(startDate, endDate);
         Map<String, Map<String, Long>> authorBookSecFromDaily = new HashMap<>();
+        Map<String, Map<String, Long>> authorBookReadSecFromDaily = new HashMap<>();
         for (AuthorDailyBookStats st : monthlyDailyAuthorStats) {
             authorBookSecFromDaily
                     .computeIfAbsent(st.getAuthorId(), k -> new HashMap<>())
                     .merge(st.getBookId(), st.getTotalSeconds() != null ? st.getTotalSeconds() : 0L, Long::sum);
+            authorBookReadSecFromDaily
+                    .computeIfAbsent(st.getAuthorId(), k -> new HashMap<>())
+                    .merge(st.getBookId(), st.getReadingSeconds() != null ? st.getReadingSeconds() : 0L, Long::sum);
         }
 
         for (Author author : authors) {
@@ -208,15 +248,16 @@ public class RoyaltyService {
                     .map(AuthorBook::getBookId)
                     .collect(Collectors.toSet());
 
-            // Also include books where author had stats recorded this month (preserves historical continuity)
             if (authorBookSecFromDaily.containsKey(authorId)) {
                 assignedBookIds.addAll(authorBookSecFromDaily.get(authorId).keySet());
+            }
+            if (authorBookReadSecFromDaily.containsKey(authorId)) {
+                assignedBookIds.addAll(authorBookReadSecFromDaily.get(authorId).keySet());
             }
 
             Map<String, BigDecimal> shareMap = explicitAssignments.stream()
                     .collect(Collectors.toMap(AuthorBook::getBookId, AuthorBook::getRoyaltyShare, (s1, s2) -> s1));
 
-            // Also check name matching for books not explicitly in author_books
             String matchName = author.getDisplayName() != null ? author.getDisplayName().toLowerCase().trim() : "";
             for (Book b : allBooks.values()) {
                 if (!assignedBookIds.contains(b.getId()) && b.getAuthor() != null) {
@@ -228,6 +269,7 @@ public class RoyaltyService {
             }
 
             Map<String, Long> authorBooksResult = new HashMap<>();
+            Map<String, Long> authorBooksReadingResult = new HashMap<>();
             for (String bookId : assignedBookIds) {
                 long liveBookSec = bookSecondsMap.getOrDefault(bookId, 0L);
                 long dailyAuthorSec = (authorBookSecFromDaily.containsKey(authorId) && authorBookSecFromDaily.get(authorId).containsKey(bookId))
@@ -235,19 +277,36 @@ public class RoyaltyService {
                         : 0L;
                 long sec = Math.max(liveBookSec, dailyAuthorSec);
                 long min = sec / 60;
+
+                long liveReadSec = bookReadingSecondsMap.getOrDefault(bookId, 0L);
+                long dailyAuthorReadSec = (authorBookReadSecFromDaily.containsKey(authorId) && authorBookReadSecFromDaily.get(authorId).containsKey(bookId))
+                        ? authorBookReadSecFromDaily.get(authorId).get(bookId)
+                        : 0L;
+                long readSec = Math.max(liveReadSec, dailyAuthorReadSec);
+                long readMin = readSec / 60;
+
                 BigDecimal share = shareMap.getOrDefault(bookId, new BigDecimal("100.00"));
                 long authorMin = (long) Math.floor(min * (share.doubleValue() / 100.0));
+                long authorReadMin = (long) Math.floor(readMin * (share.doubleValue() / 100.0));
+
                 authorBooksResult.put(bookId, authorMin);
-                totalPlatformMinutes += authorMin;
+                authorBooksReadingResult.put(bookId, authorReadMin);
+                totalPlatformAudioMinutes += authorMin;
+                totalPlatformReadingMinutes += authorReadMin;
             }
             authorBookMinutesMap.put(authorId, authorBooksResult);
+            authorBookReadingMinutesMap.put(authorId, authorBooksReadingResult);
         }
 
-        BigDecimal ratePerMinute = totalPlatformMinutes > 0
-                ? royaltyPool.divide(BigDecimal.valueOf(totalPlatformMinutes), 4, RoundingMode.HALF_UP)
+        long totalCombinedPlatformMinutes = totalPlatformAudioMinutes + totalPlatformReadingMinutes;
+        BigDecimal rawRatePerMinute = totalCombinedPlatformMinutes > 0
+                ? royaltyPool.divide(BigDecimal.valueOf(totalCombinedPlatformMinutes), 4, RoundingMode.HALF_UP)
                 : BigDecimal.ZERO;
 
-        // 5. Persist or update RoyaltyPeriod
+        BigDecimal ratePerMinute = rawRatePerMinute.min(maxRatePerMinute);
+        BigDecimal ebookRatePerMinute = ratePerMinute.multiply(ebookRateCoefficient).setScale(4, RoundingMode.HALF_UP);
+
+        // 5. Persist earnings and compute actual author payout + retained companyShare
         RoyaltyPeriod period = existingPeriod != null ? existingPeriod : new RoyaltyPeriod();
         period.setId(month);
         period.setMonth(month);
@@ -255,26 +314,35 @@ public class RoyaltyService {
         period.setTotalRevenue(revenue);
         period.setAdminExpense(expense);
         period.setNetPool(netPool);
-        period.setCompanyShare(companyShare);
         period.setRoyaltyPool(royaltyPool);
-        period.setTotalMinutes(totalPlatformMinutes);
+        period.setTotalMinutes(totalPlatformAudioMinutes);
+        period.setTotalReadingMinutes(totalPlatformReadingMinutes);
         period.setRatePerMinute(ratePerMinute);
+        period.setMaxRatePerMinute(maxRatePerMinute);
+        period.setEbookRateCoefficient(ebookRateCoefficient);
+        period.setEbookRatePerMinute(ebookRatePerMinute);
         period.setAdminNote(note);
         period.setCalculatedAt(OffsetDateTime.now());
 
-        period = royaltyPeriodRepository.save(period);
-
-        // 6. Persist earnings
         royaltyEarningRepository.deleteByPeriodId(period.getId());
 
         List<RoyaltyEarning> earningsToSave = new ArrayList<>();
+        BigDecimal totalAuthorRoyaltiesPaid = BigDecimal.ZERO;
+
         for (Author author : authors) {
             String authorId = author.getId();
             Map<String, Long> bookMins = authorBookMinutesMap.getOrDefault(authorId, Collections.emptyMap());
-            for (Map.Entry<String, Long> entry : bookMins.entrySet()) {
-                String bookId = entry.getKey();
-                long minutes = entry.getValue();
-                BigDecimal amount = ratePerMinute.multiply(BigDecimal.valueOf(minutes)).setScale(2, RoundingMode.HALF_UP);
+            Map<String, Long> bookReadMins = authorBookReadingMinutesMap.getOrDefault(authorId, Collections.emptyMap());
+            Set<String> allAuthorBookKeys = new HashSet<>(bookMins.keySet());
+            allAuthorBookKeys.addAll(bookReadMins.keySet());
+
+            for (String bookId : allAuthorBookKeys) {
+                long minutes = bookMins.getOrDefault(bookId, 0L);
+                long readMinutes = bookReadMins.getOrDefault(bookId, 0L);
+                BigDecimal audioAmount = ratePerMinute.multiply(BigDecimal.valueOf(minutes));
+                BigDecimal ebookAmount = ebookRatePerMinute.multiply(BigDecimal.valueOf(readMinutes));
+                BigDecimal amount = audioAmount.add(ebookAmount).setScale(2, RoundingMode.HALF_UP);
+                totalAuthorRoyaltiesPaid = totalAuthorRoyaltiesPaid.add(amount);
 
                 RoyaltyEarning earning = RoyaltyEarning.builder()
                         .id("earn-" + UUID.randomUUID().toString().substring(0, 12))
@@ -282,16 +350,26 @@ public class RoyaltyService {
                         .authorId(authorId)
                         .bookId(bookId)
                         .minutesListened(minutes)
+                        .minutesRead(readMinutes)
                         .amount(amount)
                         .status("CALCULATED")
                         .build();
                 earningsToSave.add(earning);
             }
         }
+
+        // Savings from the maxRatePerMinute cap and 0.5x e-book coefficient stay in companyShare
+        BigDecimal companyShare = baseCompanyShare;
+        if (netPool.compareTo(BigDecimal.ZERO) > 0 && totalCombinedPlatformMinutes > 0) {
+            companyShare = netPool.subtract(totalAuthorRoyaltiesPaid).max(baseCompanyShare).setScale(2, RoundingMode.HALF_UP);
+        }
+        period.setCompanyShare(companyShare);
+
+        period = royaltyPeriodRepository.save(period);
         royaltyEarningRepository.saveAll(earningsToSave);
 
-        log.info("Royalty period {} calculated: revenue={}, pool={}, totalMinutes={}, ratePerMin={}",
-                month, revenue, royaltyPool, totalPlatformMinutes, ratePerMinute);
+        log.info("Royalty period {} calculated: revenue={}, netPool={}, companyShare={}, audioMin={}, readMin={}, audioRate={}, ebookRate={}",
+                month, revenue, netPool, companyShare, totalPlatformAudioMinutes, totalPlatformReadingMinutes, ratePerMinute, ebookRatePerMinute);
 
         return toPeriodDto(period);
     }
@@ -387,7 +465,9 @@ public class RoyaltyService {
 
         Map<String, Long> dateSecondsMap = new HashMap<>();
         Map<String, Long> bookSecondsMap = new HashMap<>();
+        Map<String, Long> bookReadingSecondsMap = new HashMap<>();
         Set<String> coveredBookDates = new HashSet<>();
+        Set<String> coveredReadBookDates = new HashSet<>();
         OffsetDateTime latestListenedAt = null;
 
         if (!matchedIds.isEmpty()) {
@@ -407,6 +487,18 @@ public class RoyaltyService {
                     latestListenedAt = sessionTime;
                 }
             }
+
+            List<EbookSession> liveReadSessions = ebookSessionRepository.findSessionsForBooksBetween(matchedIds, monthStart, monthEnd);
+            for (EbookSession es : liveReadSessions) {
+                String bId = es.getBook().getId();
+                LocalDate sessionDate = es.getStartedAt().atZoneSameInstant(almatyZone).toLocalDate();
+                String dateStr = sessionDate.toString();
+                long readSec = es.getCreditedSeconds() != null ? es.getCreditedSeconds() : 0L;
+                if (readSec > 0) {
+                    bookReadingSecondsMap.put(bId, bookReadingSecondsMap.getOrDefault(bId, 0L) + readSec);
+                    coveredReadBookDates.add(bId + "_" + dateStr);
+                }
+            }
         }
 
         for (AuthorDailyBookStats s : authorSpecificStats) {
@@ -420,6 +512,13 @@ public class RoyaltyService {
 
                 if (s.getUpdatedAt() != null && (latestListenedAt == null || s.getUpdatedAt().isAfter(latestListenedAt))) {
                     latestListenedAt = s.getUpdatedAt();
+                }
+            }
+            if (!coveredReadBookDates.contains(bId + "_" + dateStr)) {
+                long readSec = s.getReadingSeconds() != null ? s.getReadingSeconds() : 0L;
+                if (readSec > 0) {
+                    bookReadingSecondsMap.put(bId, bookReadingSecondsMap.getOrDefault(bId, 0L) + readSec);
+                    coveredReadBookDates.add(bId + "_" + dateStr);
                 }
             }
         }
@@ -439,12 +538,25 @@ public class RoyaltyService {
                         latestListenedAt = s.getUpdatedAt();
                     }
                 }
+                if (!coveredReadBookDates.contains(bId + "_" + dateStr)) {
+                    long readSec = s.getReadingSeconds() != null ? s.getReadingSeconds() : 0L;
+                    if (readSec > 0) {
+                        bookReadingSecondsMap.put(bId, bookReadingSecondsMap.getOrDefault(bId, 0L) + readSec);
+                    }
+                }
             }
         }
 
         Map<String, Long> bookMinutesMap = new HashMap<>();
         for (Map.Entry<String, Long> entry : bookSecondsMap.entrySet()) {
             bookMinutesMap.put(entry.getKey(), entry.getValue() / 60);
+        }
+
+        Map<String, Long> bookReadingMinutesMap = new HashMap<>();
+        long monthTotalReadSec = 0L;
+        for (Map.Entry<String, Long> entry : bookReadingSecondsMap.entrySet()) {
+            bookReadingMinutesMap.put(entry.getKey(), entry.getValue() / 60);
+            monthTotalReadSec += entry.getValue();
         }
 
         // 3. Build day list
@@ -508,10 +620,16 @@ public class RoyaltyService {
 
         // 4. Period & Rate
         RoyaltyPeriod period = royaltyPeriodRepository.findByMonth(targetMonth).orElse(null);
-        BigDecimal rate = period != null ? period.getRatePerMinute() : BigDecimal.ZERO;
+        BigDecimal rate = (period != null && period.getRatePerMinute() != null) ? period.getRatePerMinute() : BigDecimal.ZERO;
+        BigDecimal ebookRate = (period != null && period.getEbookRatePerMinute() != null && period.getEbookRatePerMinute().compareTo(BigDecimal.ZERO) > 0)
+                ? period.getEbookRatePerMinute()
+                : rate.multiply(DEFAULT_EBOOK_COEFFICIENT).setScale(4, RoundingMode.HALF_UP);
 
         long authorMonthMinutes = monthTotalSec / 60;
-        BigDecimal estimatedEarned = rate.multiply(BigDecimal.valueOf(authorMonthMinutes)).setScale(2, RoundingMode.HALF_UP);
+        long authorMonthReadMinutes = monthTotalReadSec / 60;
+        BigDecimal estimatedEarned = rate.multiply(BigDecimal.valueOf(authorMonthMinutes))
+                .add(ebookRate.multiply(BigDecimal.valueOf(authorMonthReadMinutes)))
+                .setScale(2, RoundingMode.HALF_UP);
 
         String periodStatus = "estimated";
         if (period != null) {
@@ -520,9 +638,11 @@ public class RoyaltyService {
 
         // 5. Author Book Item DTOs:
         // Include all non-deleted books (both active and archived),
-        // plus any deleted book that has listening activity (> 0 sec) in the target month.
+        // plus any deleted book that has listening or reading activity (> 0 sec) in the target month.
         List<AuthorBookItemDto> bookItems = matchedBooks.stream()
-                .filter(b -> !Boolean.TRUE.equals(b.getIsDeleted()) || bookSecondsMap.getOrDefault(b.getId(), 0L) > 0L)
+                .filter(b -> !Boolean.TRUE.equals(b.getIsDeleted())
+                        || bookSecondsMap.getOrDefault(b.getId(), 0L) > 0L
+                        || bookReadingSecondsMap.getOrDefault(b.getId(), 0L) > 0L)
                 .map(b -> AuthorBookItemDto.builder()
                         .id(b.getId())
                         .title(b.getTitle())
@@ -535,8 +655,11 @@ public class RoyaltyService {
                         .readsCount(0L)
                         .totalMinutes(bookMinutesMap.getOrDefault(b.getId(), 0L))
                         .totalSeconds(bookSecondsMap.getOrDefault(b.getId(), 0L))
+                        .readingMinutes(bookReadingMinutesMap.getOrDefault(b.getId(), 0L))
+                        .readingSeconds(bookReadingSecondsMap.getOrDefault(b.getId(), 0L))
                         .savedCount(0L)
                         .hasAudio(Boolean.TRUE.equals(b.getHasAudio()) || (b.getAudioUrl() != null && !b.getAudioUrl().isBlank()))
+                        .hasEbook(Boolean.TRUE.equals(b.getHasEbook()) || (b.getEbookUrl() != null && !b.getEbookUrl().isBlank()))
                         .audioUrl(b.getAudioUrl())
                         .audioDuration(b.getAudioDuration())
                         .isArchived(Boolean.TRUE.equals(b.getIsArchived()))
@@ -552,8 +675,11 @@ public class RoyaltyService {
                 .authorBooks(bookItems)
                 .totalMinutes(authorMonthMinutes)
                 .totalSeconds(monthTotalSec)
+                .readingMinutes(authorMonthReadMinutes)
+                .readingSeconds(monthTotalReadSec)
                 .estimatedEarned(estimatedEarned)
                 .ratePerMinute(rate)
+                .ebookRatePerMinute(ebookRate)
                 .currentBalance(author.getBalance() != null ? author.getBalance() : BigDecimal.ZERO)
                 .periodStatus(periodStatus)
                 .dailyList(dailyList)
@@ -718,10 +844,16 @@ public class RoyaltyService {
         // 1. Live stats from author_daily_book_stats across all books
         List<AuthorDailyBookStats> monthlyDailyAuthorStats = authorDailyBookStatsRepository.findByStatDateBetween(startDate, endDate);
         Map<String, Long> authorLiveSecondsSum = new HashMap<>();
+        Map<String, Long> authorLiveReadingSecondsSum = new HashMap<>();
         for (AuthorDailyBookStats st : monthlyDailyAuthorStats) {
             authorLiveSecondsSum.merge(
                     st.getAuthorId(),
                     st.getTotalSeconds() != null ? st.getTotalSeconds() : 0L,
+                    Long::sum
+            );
+            authorLiveReadingSecondsSum.merge(
+                    st.getAuthorId(),
+                    st.getReadingSeconds() != null ? st.getReadingSeconds() : 0L,
                     Long::sum
             );
         }
@@ -740,7 +872,8 @@ public class RoyaltyService {
 
         Map<String, Set<String>> authorPeriodListenedBookIds = new HashMap<>();
         for (AuthorDailyBookStats st : monthlyDailyAuthorStats) {
-            if (st.getTotalSeconds() != null && st.getTotalSeconds() > 0) {
+            if ((st.getTotalSeconds() != null && st.getTotalSeconds() > 0)
+                    || (st.getReadingSeconds() != null && st.getReadingSeconds() > 0)) {
                 authorPeriodListenedBookIds
                         .computeIfAbsent(st.getAuthorId(), k -> new HashSet<>())
                         .add(st.getBookId());
@@ -748,37 +881,63 @@ public class RoyaltyService {
         }
 
         Map<String, Long> authorMinutesSum = new HashMap<>();
+        Map<String, Long> authorReadingMinutesSum = new HashMap<>();
         Map<String, BigDecimal> authorEarnedSum = new HashMap<>();
 
         for (RoyaltyEarning e : earnings) {
+            long minListened = e.getMinutesListened() != null ? e.getMinutesListened() : 0L;
+            long minRead = e.getMinutesRead() != null ? e.getMinutesRead() : 0L;
             authorMinutesSum.put(e.getAuthorId(),
-                    authorMinutesSum.getOrDefault(e.getAuthorId(), 0L) + e.getMinutesListened());
+                    authorMinutesSum.getOrDefault(e.getAuthorId(), 0L) + minListened);
+            authorReadingMinutesSum.put(e.getAuthorId(),
+                    authorReadingMinutesSum.getOrDefault(e.getAuthorId(), 0L) + minRead);
             authorEarnedSum.put(e.getAuthorId(),
                     authorEarnedSum.getOrDefault(e.getAuthorId(), BigDecimal.ZERO).add(e.getAmount()));
-            if (e.getMinutesListened() != null && e.getMinutesListened() > 0) {
+            if (minListened > 0 || minRead > 0) {
                 authorPeriodListenedBookIds
                         .computeIfAbsent(e.getAuthorId(), k -> new HashSet<>())
                         .add(e.getBookId());
             }
         }
 
+        BigDecimal effectiveMaxRate = (p.getMaxRatePerMinute() != null && p.getMaxRatePerMinute().compareTo(BigDecimal.ZERO) > 0)
+                ? p.getMaxRatePerMinute()
+                : DEFAULT_MAX_RATE_PER_MINUTE;
+        BigDecimal effectiveCoeff = (p.getEbookRateCoefficient() != null && p.getEbookRateCoefficient().compareTo(BigDecimal.ZERO) > 0)
+                ? p.getEbookRateCoefficient()
+                : DEFAULT_EBOOK_COEFFICIENT;
+        BigDecimal effectiveAudioRate = p.getRatePerMinute() != null ? p.getRatePerMinute() : BigDecimal.ZERO;
+        BigDecimal effectiveEbookRate = (p.getEbookRatePerMinute() != null && p.getEbookRatePerMinute().compareTo(BigDecimal.ZERO) > 0)
+                ? p.getEbookRatePerMinute()
+                : effectiveAudioRate.multiply(effectiveCoeff).setScale(4, RoundingMode.HALF_UP);
+
         long totalPlatformLiveMinutes = 0L;
+        long totalPlatformLiveReadingMinutes = 0L;
         List<AuthorEarningSummaryDto> summaryList = new ArrayList<>();
         for (Author author : authorMap.values()) {
             long liveSec = authorLiveSecondsSum.getOrDefault(author.getId(), 0L);
             long liveMin = liveSec / 60;
+            long liveReadSec = authorLiveReadingSecondsSum.getOrDefault(author.getId(), 0L);
+            long liveReadMin = liveReadSec / 60;
 
-            // If earnings exist (period was calculated or finalized), use authorMinutesSum; otherwise use live minutes
             long mins = (!earnings.isEmpty() || "FINALIZED".equalsIgnoreCase(p.getStatus()))
                     ? authorMinutesSum.getOrDefault(author.getId(), 0L)
                     : (liveMin > 0 ? liveMin : authorMinutesSum.getOrDefault(author.getId(), 0L));
             long totalSec = mins * 60;
 
+            long readMins = (!earnings.isEmpty() || "FINALIZED".equalsIgnoreCase(p.getStatus()))
+                    ? authorReadingMinutesSum.getOrDefault(author.getId(), 0L)
+                    : (liveReadMin > 0 ? liveReadMin : authorReadingMinutesSum.getOrDefault(author.getId(), 0L));
+            long totalReadSec = readMins * 60;
+
             totalPlatformLiveMinutes += mins;
+            totalPlatformLiveReadingMinutes += readMins;
 
             BigDecimal earned = authorEarnedSum.getOrDefault(author.getId(), BigDecimal.ZERO);
-            if (!"FINALIZED".equalsIgnoreCase(p.getStatus()) && p.getRatePerMinute() != null && p.getRatePerMinute().compareTo(BigDecimal.ZERO) > 0) {
-                earned = p.getRatePerMinute().multiply(BigDecimal.valueOf(mins)).setScale(2, RoundingMode.HALF_UP);
+            if (!"FINALIZED".equalsIgnoreCase(p.getStatus()) && effectiveAudioRate.compareTo(BigDecimal.ZERO) > 0) {
+                earned = effectiveAudioRate.multiply(BigDecimal.valueOf(mins))
+                        .add(effectiveEbookRate.multiply(BigDecimal.valueOf(readMins)))
+                        .setScale(2, RoundingMode.HALF_UP);
             }
 
             Set<String> effectiveBookIds = new HashSet<>();
@@ -811,6 +970,8 @@ public class RoyaltyService {
                     .assignedBookIds(new ArrayList<>(effectiveBookIds))
                     .totalMinutes(mins)
                     .totalSeconds(totalSec)
+                    .readingMinutes(readMins)
+                    .readingSeconds(totalReadSec)
                     .totalEarned(earned)
                     .status("FINALIZED".equalsIgnoreCase(p.getStatus()) ? "paid" : "calculated")
                     .build());
@@ -819,6 +980,10 @@ public class RoyaltyService {
         long finalTotalMinutes = "FINALIZED".equalsIgnoreCase(p.getStatus())
                 ? (p.getTotalMinutes() != null ? p.getTotalMinutes() : 0L)
                 : (totalPlatformLiveMinutes > 0 ? totalPlatformLiveMinutes : (p.getTotalMinutes() != null ? p.getTotalMinutes() : 0L));
+
+        long finalTotalReadingMinutes = "FINALIZED".equalsIgnoreCase(p.getStatus())
+                ? (p.getTotalReadingMinutes() != null ? p.getTotalReadingMinutes() : 0L)
+                : (totalPlatformLiveReadingMinutes > 0 ? totalPlatformLiveReadingMinutes : (p.getTotalReadingMinutes() != null ? p.getTotalReadingMinutes() : 0L));
 
         // 2. Build daily listening activity breakdown for the month
         ZoneId almatyZone = ZoneId.of("Asia/Almaty");
@@ -872,7 +1037,11 @@ public class RoyaltyService {
                 .companyShare(p.getCompanyShare())
                 .royaltyPool(p.getRoyaltyPool())
                 .totalMinutes(finalTotalMinutes)
-                .ratePerMinute(p.getRatePerMinute())
+                .totalReadingMinutes(finalTotalReadingMinutes)
+                .ratePerMinute(effectiveAudioRate)
+                .maxRatePerMinute(effectiveMaxRate)
+                .ebookRateCoefficient(effectiveCoeff)
+                .ebookRatePerMinute(effectiveEbookRate)
                 .adminNote(p.getAdminNote())
                 .calculatedAt(p.getCalculatedAt())
                 .finalizedAt(p.getFinalizedAt())
@@ -902,6 +1071,7 @@ public class RoyaltyService {
                     .bookId(e.getBookId())
                     .bookTitle(book != null ? book.getTitle() : null)
                     .minutesListened(e.getMinutesListened())
+                    .minutesRead(e.getMinutesRead() != null ? e.getMinutesRead() : 0L)
                     .amount(e.getAmount())
                     .status(e.getStatus())
                     .createdAt(e.getCreatedAt())

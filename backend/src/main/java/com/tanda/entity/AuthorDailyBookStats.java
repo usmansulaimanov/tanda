@@ -48,6 +48,14 @@ public class AuthorDailyBookStats {
     @Builder.Default
     private Integer listenCount = 0;
 
+    @Column(name = "reading_seconds", nullable = false)
+    @Builder.Default
+    private Long readingSeconds = 0L;
+
+    @Column(name = "read_count", nullable = false)
+    @Builder.Default
+    private Integer readCount = 0;
+
     @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
 
@@ -68,6 +76,12 @@ public class AuthorDailyBookStats {
         }
         if (this.listenCount == null) {
             this.listenCount = 0;
+        }
+        if (this.readingSeconds == null) {
+            this.readingSeconds = 0L;
+        }
+        if (this.readCount == null) {
+            this.readCount = 0;
         }
     }
 

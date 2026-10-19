@@ -22,8 +22,11 @@ public class AuthorStatsResponseDto {
     private List<AuthorBookItemDto> authorBooks;
     private Long totalMinutes;
     private Long totalSeconds;
+    private Long readingMinutes;
+    private Long readingSeconds;
     private BigDecimal estimatedEarned;
     private BigDecimal ratePerMinute;
+    private BigDecimal ebookRatePerMinute;
     private BigDecimal currentBalance;
     private String periodStatus; // "calculated", "paid", "estimated", "draft"
     private List<AuthorDailyStatDto> dailyList;

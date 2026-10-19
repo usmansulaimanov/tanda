@@ -40,6 +40,10 @@ public class RoyaltyEarning {
     @Builder.Default
     private Long minutesListened = 0L;
 
+    @Column(name = "minutes_read", nullable = false)
+    @Builder.Default
+    private Long minutesRead = 0L;
+
     @Column(name = "amount", precision = 15, scale = 2, nullable = false)
     @Builder.Default
     private BigDecimal amount = BigDecimal.ZERO;
@@ -61,6 +65,9 @@ public class RoyaltyEarning {
         }
         if (this.minutesListened == null) {
             this.minutesListened = 0L;
+        }
+        if (this.minutesRead == null) {
+            this.minutesRead = 0L;
         }
         if (this.amount == null) {
             this.amount = BigDecimal.ZERO;

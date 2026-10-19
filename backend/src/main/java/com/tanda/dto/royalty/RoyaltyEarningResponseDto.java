@@ -22,6 +22,7 @@ public class RoyaltyEarningResponseDto {
     private String bookId;
     private String bookTitle;
     private Long minutesListened;
+    private Long minutesRead;
     private BigDecimal amount;
     private String status;
     private OffsetDateTime createdAt;

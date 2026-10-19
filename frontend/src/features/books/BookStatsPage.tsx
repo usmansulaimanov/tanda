@@ -162,6 +162,9 @@ export const BookStatsPage: React.FC = () => {
   const todayTime = formatListeningTime(stats?.todaySeconds);
   const monthTime = formatListeningTime(stats?.monthSeconds);
   const allTime = formatListeningTime(stats?.allTimeSeconds);
+  const todayReadingTime = formatListeningTime(stats?.todayReadingSeconds);
+  const monthReadingTime = formatListeningTime(stats?.monthReadingSeconds);
+  const allTimeReading = formatListeningTime(stats?.allTimeReadingSeconds);
   const peakTime = formatListeningTime(stats?.peakDay?.seconds);
 
   const maxSecInPeriod = useMemo(() => {
@@ -392,7 +395,7 @@ export const BookStatsPage: React.FC = () => {
             <div
               className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-[1fr_1fr_1fr_1fr_1.45fr] gap-4 mb-6"
             >
-              {/* 1. Today Listening */}
+              {/* 1. Today Listening & Reading */}
               <div
                 style={{
                   background: '#FFFFFF',
@@ -407,15 +410,23 @@ export const BookStatsPage: React.FC = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                   <span style={{ fontSize: '13px', fontWeight: 700, color: '#64748B' }}>Бүгін</span>
                 </div>
-                <div style={{ fontSize: '24px', fontWeight: 900, color: '#2563EB' }}>
-                  {todayTime.minutesFormatted}
+                <div style={{ fontSize: '22px', fontWeight: 900, color: '#2563EB' }}>
+                  🎧 {todayTime.minutesFormatted}
                 </div>
-                <div style={{ fontSize: '12px', fontWeight: 600, color: '#64748B', marginTop: '4px' }}>
+                <div style={{ fontSize: '11.5px', fontWeight: 600, color: '#64748B', marginTop: '2px' }}>
                   {todayTime.secondsFormatted}
+                </div>
+                <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px dashed #E2E8F0' }}>
+                  <div style={{ fontSize: '15px', fontWeight: 800, color: '#059669' }}>
+                    📖 {todayReadingTime.minutesFormatted}
+                  </div>
+                  <div style={{ fontSize: '11px', fontWeight: 600, color: '#64748B' }}>
+                    Эл. кітап • {todayReadingTime.secondsFormatted}
+                  </div>
                 </div>
               </div>
 
-              {/* 2. Month Listening */}
+              {/* 2. Month Listening & Reading */}
               <div
                 style={{
                   background: '#FFFFFF',
@@ -429,15 +440,23 @@ export const BookStatsPage: React.FC = () => {
                   <span style={{ fontSize: '13px', fontWeight: 700, color: '#64748B' }}>Бұл айда</span>
                 </div>
 
-                <div style={{ fontSize: '24px', fontWeight: 900, color: 'var(--blue)' }}>
-                  {monthTime.minutesFormatted}
+                <div style={{ fontSize: '22px', fontWeight: 900, color: 'var(--blue)' }}>
+                  🎧 {monthTime.minutesFormatted}
                 </div>
-                <div style={{ fontSize: '12px', fontWeight: 600, color: '#64748B', marginTop: '4px' }}>
+                <div style={{ fontSize: '11.5px', fontWeight: 600, color: '#64748B', marginTop: '2px' }}>
                   {monthTime.hoursFormatted} • {monthTime.secondsFormatted}
+                </div>
+                <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px dashed #E2E8F0' }}>
+                  <div style={{ fontSize: '15px', fontWeight: 800, color: '#059669' }}>
+                    📖 {monthReadingTime.minutesFormatted}
+                  </div>
+                  <div style={{ fontSize: '11px', fontWeight: 600, color: '#64748B' }}>
+                    {monthReadingTime.hoursFormatted} • {monthReadingTime.secondsFormatted}
+                  </div>
                 </div>
               </div>
 
-              {/* 3. All-Time Listening */}
+              {/* 3. All-Time Listening & Reading */}
               <div
                 style={{
                   background: '#FFFFFF',
@@ -451,11 +470,19 @@ export const BookStatsPage: React.FC = () => {
                   <span style={{ fontSize: '13px', fontWeight: 700, color: '#64748B' }}>Жалпы</span>
                 </div>
 
-                <div style={{ fontSize: '24px', fontWeight: 900, color: '#0F172A' }}>
-                  {allTime.hoursFormatted}
+                <div style={{ fontSize: '22px', fontWeight: 900, color: '#0F172A' }}>
+                  🎧 {allTime.hoursFormatted}
                 </div>
-                <div style={{ fontSize: '12px', fontWeight: 600, color: '#64748B', marginTop: '4px' }}>
+                <div style={{ fontSize: '11.5px', fontWeight: 600, color: '#64748B', marginTop: '2px' }}>
                   {allTime.minutesFormatted} • {allTime.secondsFormatted}
+                </div>
+                <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px dashed #E2E8F0' }}>
+                  <div style={{ fontSize: '15px', fontWeight: 800, color: '#059669' }}>
+                    📖 {allTimeReading.hoursFormatted}
+                  </div>
+                  <div style={{ fontSize: '11px', fontWeight: 600, color: '#64748B' }}>
+                    {allTimeReading.minutesFormatted} • {allTimeReading.secondsFormatted}
+                  </div>
                 </div>
               </div>
 
