@@ -384,51 +384,6 @@ export const AdminRoyaltyTab: React.FC = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      {/* Sub-tab Navigation */}
-      <div
-        style={{
-          display: 'flex',
-          gap: '10px',
-          borderBottom: '2px solid #E2E8F0',
-          paddingBottom: '12px',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-        }}
-      >
-        <button
-          type="button"
-          onClick={() => setActiveSubTab('calculator')}
-          style={{
-            padding: '10px 22px',
-            borderRadius: '12px',
-            border: 'none',
-            background: activeSubTab === 'calculator' ? 'var(--blue)' : '#F1F5F9',
-            color: activeSubTab === 'calculator' ? '#FFFFFF' : '#475569',
-            fontWeight: 800,
-            fontSize: '14px',
-            cursor: 'pointer',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '8px',
-            transition: 'all 0.15s ease',
-          }}
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-            <rect x="4" y="2" width="16" height="20" rx="2"></rect>
-            <line x1="8" y1="6" x2="16" y2="6"></line>
-            <line x1="16" y1="14" x2="16" y2="18"></line>
-            <path d="M16 10h.01"></path>
-            <path d="M12 10h.01"></path>
-            <path d="M8 10h.01"></path>
-            <path d="M12 14h.01"></path>
-            <path d="M8 14h.01"></path>
-            <path d="M12 18h.01"></path>
-            <path d="M8 18h.01"></path>
-          </svg>
-          Роялти калькуляторы (50/50)
-        </button>
-
-      </div>
 
       {/* ========================================================================= */}
       {/* SUB-TAB 1: ROYALTY CALCULATOR (50/50)                                     */}
