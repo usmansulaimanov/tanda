@@ -455,7 +455,7 @@ export const AdminRoyaltyTab: React.FC = () => {
                 <h2 style={{ fontSize: '20px', fontWeight: 900, color: 'var(--text-dark)', margin: 0 }}>
                   Роялти және табысты бөлу калькуляторы
                 </h2>
-                {currentPeriod?.isFinalized ? (
+                {currentPeriod?.isFinalized && (
                   <span
                     style={{
                       background: '#DCFCE7',
@@ -475,32 +475,6 @@ export const AdminRoyaltyTab: React.FC = () => {
                         • {new Date(currentPeriod.finalizedAt).toLocaleDateString('kk-KZ')}
                       </span>
                     )}
-                  </span>
-                ) : currentPeriod ? (
-                  <span
-                    style={{
-                      background: '#FEF3C7',
-                      color: '#D97706',
-                      fontSize: '12px',
-                      fontWeight: 800,
-                      padding: '4px 12px',
-                      borderRadius: '12px',
-                    }}
-                  >
-                    ⏳ Есептелді (Бекітілмеген)
-                  </span>
-                ) : (
-                  <span
-                    style={{
-                      background: '#F1F5F9',
-                      color: '#64748B',
-                      fontSize: '12px',
-                      fontWeight: 800,
-                      padding: '4px 12px',
-                      borderRadius: '12px',
-                    }}
-                  >
-                    Жаңа кезең
                   </span>
                 )}
               </div>
