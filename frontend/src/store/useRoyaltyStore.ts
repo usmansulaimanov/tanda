@@ -206,7 +206,12 @@ const mapBackendPeriod = (dto: any): RoyaltyPeriod => {
   };
 };
 
-const currentMonthKey = '2026-09';
+const getNowMonthKey = (): string => {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+};
+
+const currentMonthKey = getNowMonthKey();
 
 // Clean up legacy localStorage keys
 try {

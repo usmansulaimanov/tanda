@@ -85,8 +85,8 @@ export const AdminRoyaltyTab: React.FC = () => {
     return months;
   }, [periods]);
 
-  const defaultMonth = availableMonths[0] || '2026-09';
-  const [selectedMonth, setSelectedMonth] = useState<string>(activeMonth || defaultMonth);
+  const defaultMonth = availableMonths[0];
+  const [selectedMonth, setSelectedMonth] = useState<string>(defaultMonth || activeMonth);
   const currentPeriod = periods[selectedMonth];
 
   // Form states initialized from current period
