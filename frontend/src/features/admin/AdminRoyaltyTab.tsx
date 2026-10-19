@@ -109,7 +109,7 @@ export const AdminRoyaltyTab: React.FC = () => {
   useEffect(() => {
     fetchPeriods();
     fetchAuthors();
-    fetchBooks();
+    fetchBooks({ includeArchived: true, includeDeleted: true });
   }, [fetchPeriods, fetchAuthors, fetchBooks]);
 
   const saveTimeoutRef = useRef<any>(null);
@@ -1005,14 +1005,26 @@ export const AdminRoyaltyTab: React.FC = () => {
                   const earningDetail = currentPeriod?.authorEarnings?.find(
                     (ae) => ae.authorId === author.id || ae.authorUserId === author.id || (ae.authorName && ae.authorName.toLowerCase().trim() === matchName)
                   );
-                  const assignedIds = new Set(author.assignedBookIds || []);
+                  const periodBookIds = new Set(earningDetail?.assignedBookIds || []);
+                  const assignedIds = new Set([
+                    ...(author.assignedBookIds || []),
+                    ...(earningDetail?.assignedBookIds || []),
+                  ]);
 
                   const authorBooks = books.filter((b) => {
+                    if (b.isDeleted && !periodBookIds.has(b.id)) return false;
                     if (assignedIds.has(b.id)) return true;
+                    if (b.isDeleted) return false;
                     if (!b.author) return false;
                     const bAuthor = b.author.toLowerCase().trim();
                     return bAuthor === matchName || bAuthor.includes(matchName);
                   });
+
+                  const booksCount = Math.max(
+                    authorBooks.length,
+                    earningDetail?.assignedBookIds?.length || 0,
+                    author.assignedBookIds?.length || 0
+                  );
 
                   const minutes = earningDetail?.totalMinutes ?? 0;
                   const seconds = earningDetail?.totalSeconds ?? (minutes * 60);
@@ -1047,7 +1059,7 @@ export const AdminRoyaltyTab: React.FC = () => {
                       </td>
 
                       <td style={{ padding: '14px', fontWeight: 800, color: 'var(--text-dark)' }}>
-                        {authorBooks.length} кітап
+                        {booksCount} кітап
                       </td>
 
                       <td style={{ padding: '14px', fontWeight: 800, color: 'var(--text-dark)' }}>

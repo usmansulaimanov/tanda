@@ -24,4 +24,10 @@ public class AuthorBookItemDto {
     private Long savedCount;
     private Boolean hasAudio;
     private String audioUrl;
+    private String audioDuration;
+    private String category;
+    private String gradient;
+    private Boolean isArchived;
+    private Boolean isDeleted;
+    private Boolean isFree;
 }

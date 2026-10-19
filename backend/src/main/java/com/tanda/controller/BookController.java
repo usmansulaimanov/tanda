@@ -63,8 +63,10 @@ public class BookController {
             @RequestParam(defaultValue = "20") int size) {
         boolean isAdmin = authentication != null && authentication.getAuthorities() != null &&
                 authentication.getAuthorities().stream().anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
+        boolean isAuthor = authentication != null && authentication.getAuthorities() != null &&
+                authentication.getAuthorities().stream().anyMatch(a -> "ROLE_AUTHOR".equals(a.getAuthority()));
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        Page<BookResponseDto> books = bookService.getBooks(category, search, includeArchived, includeDeleted, isAdmin, pageable);
+        Page<BookResponseDto> books = bookService.getBooks(category, search, includeArchived && (isAdmin || isAuthor), includeDeleted && isAdmin, isAdmin || isAuthor, pageable);
         return ResponseEntity.ok(books);
     }
 

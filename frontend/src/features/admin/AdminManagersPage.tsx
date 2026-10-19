@@ -151,7 +151,7 @@ export const AdminManagersPage: React.FC = () => {
   const [isAuthorSubmitting, setIsAuthorSubmitting] = useState(false);
 
   useEffect(() => {
-    fetchBooks();
+    fetchBooks({ includeArchived: true, includeDeleted: true });
   }, [fetchBooks]);
 
   // Refresh managers & authors list

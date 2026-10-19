@@ -64,20 +64,28 @@ public class AuthorService {
         return authors.stream()
                 .map(a -> {
                     User u = a.getUserId() != null ? userMap.get(a.getUserId()) : null;
-                    List<String> assignedBookIds = authorBookIdsMap.getOrDefault(a.getId(), Collections.emptyList());
+                    List<String> rawAssignedIds = authorBookIdsMap.getOrDefault(a.getId(), Collections.emptyList());
 
-                    // Calculate stats from books
-                    String matchName = a.getDisplayName().toLowerCase().trim();
+                    // Calculate stats from non-deleted books (includes active + archived)
+                    String matchName = a.getDisplayName() != null ? a.getDisplayName().toLowerCase().trim() : "";
                     List<Book> matchedBooks = bookMap.values().stream()
-                            .filter(b -> (b.getAuthor() != null && b.getAuthor().toLowerCase().trim().equals(matchName))
-                                    || assignedBookIds.contains(b.getId()))
+                            .filter(b -> !Boolean.TRUE.equals(b.getIsDeleted()))
+                            .filter(b -> (!matchName.isEmpty() && b.getAuthor() != null && b.getAuthor().toLowerCase().trim().equals(matchName))
+                                    || rawAssignedIds.contains(b.getId()))
+                            .collect(Collectors.toList());
+
+                    List<String> effectiveAssignedIds = matchedBooks.stream()
+                            .map(Book::getId)
+                            .distinct()
                             .collect(Collectors.toList());
 
                     long totalReads = 0L;
                     long totalViews = 0L;
-                    long totalAudios = matchedBooks.stream().filter(b -> b.getAudioUrl() != null && !b.getAudioUrl().isBlank()).count();
+                    long totalAudios = matchedBooks.stream()
+                            .filter(b -> Boolean.TRUE.equals(b.getHasAudio()) || (b.getAudioUrl() != null && !b.getAudioUrl().isBlank()))
+                            .count();
 
-                    return toDto(a, u, assignedBookIds, matchedBooks.size(), totalReads, totalViews, totalAudios);
+                    return toDto(a, u, effectiveAssignedIds, matchedBooks.size(), totalReads, totalViews, totalAudios);
                 })
                 .collect(Collectors.toList());
     }
@@ -89,21 +97,29 @@ public class AuthorService {
                 .orElseThrow(() -> new ResourceNotFoundException("Автор табылмады id: " + id));
 
         User user = author.getUserId() != null ? userRepository.findById(author.getUserId()).orElse(null) : null;
-        List<String> assignedBookIds = authorBookRepository.findByAuthorIdAndIsActiveTrue(id).stream()
+        List<String> rawAssignedIds = authorBookRepository.findByAuthorIdAndIsActiveTrue(author.getId()).stream()
                 .map(AuthorBook::getBookId)
                 .collect(Collectors.toList());
 
-        String matchName = author.getDisplayName().toLowerCase().trim();
+        String matchName = author.getDisplayName() != null ? author.getDisplayName().toLowerCase().trim() : "";
         List<Book> matchedBooks = bookRepository.findAll().stream()
-                .filter(b -> (b.getAuthor() != null && b.getAuthor().toLowerCase().trim().equals(matchName))
-                        || assignedBookIds.contains(b.getId()))
+                .filter(b -> !Boolean.TRUE.equals(b.getIsDeleted()))
+                .filter(b -> (!matchName.isEmpty() && b.getAuthor() != null && b.getAuthor().toLowerCase().trim().equals(matchName))
+                        || rawAssignedIds.contains(b.getId()))
+                .collect(Collectors.toList());
+
+        List<String> effectiveAssignedIds = matchedBooks.stream()
+                .map(Book::getId)
+                .distinct()
                 .collect(Collectors.toList());
 
         long totalReads = 0L;
         long totalViews = 0L;
-        long totalAudios = matchedBooks.stream().filter(b -> b.getAudioUrl() != null && !b.getAudioUrl().isBlank()).count();
+        long totalAudios = matchedBooks.stream()
+                .filter(b -> Boolean.TRUE.equals(b.getHasAudio()) || (b.getAudioUrl() != null && !b.getAudioUrl().isBlank()))
+                .count();
 
-        return toDto(author, user, assignedBookIds, matchedBooks.size(), totalReads, totalViews, totalAudios);
+        return toDto(author, user, effectiveAssignedIds, matchedBooks.size(), totalReads, totalViews, totalAudios);
     }
 
     @Transactional

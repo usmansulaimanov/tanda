@@ -5,7 +5,8 @@ import { useBookStore } from '../../store/useBookStore';
 import { useToastStore } from '../../store/useToastStore';
 import { useRoyaltyStore } from '../../store/useRoyaltyStore';
 import { api } from '../../lib/api';
-import { User } from '../../types';
+import { User, Book } from '../../types';
+import { resolveMediaUrl } from '../../utils/mediaUtils';
 
 interface PeakDayInfo {
   date: string;
@@ -81,7 +82,7 @@ export const AuthorStatsPage: React.FC = () => {
     getAllAuthors,
   } = useAuthStore();
 
-  const { books } = useBookStore();
+  const { books, fetchBooks } = useBookStore();
   const { showToast } = useToastStore();
   const { fetchAuthorStats, authorStatsCache, authorBalances } = useRoyaltyStore();
 
@@ -114,6 +115,8 @@ export const AuthorStatsPage: React.FC = () => {
       return;
     }
 
+    fetchBooks({ includeArchived: true, includeDeleted: isUserAdmin });
+
     if (isUserAdmin) {
       fetchAuthors()
         .then(() => setIsAuthorsLoaded(true))
@@ -121,7 +124,7 @@ export const AuthorStatsPage: React.FC = () => {
     } else {
       setIsAuthorsLoaded(true);
     }
-  }, [isAuthInitialized, isAuthenticated, currentUser, navigate, showToast, fetchAuthors]);
+  }, [isAuthInitialized, isAuthenticated, currentUser, navigate, showToast, fetchAuthors, fetchBooks]);
 
   const isAdmin = currentUser?.role === 'admin' || Boolean(currentUser?.isSuperAdmin);
 
@@ -230,25 +233,70 @@ export const AuthorStatsPage: React.FC = () => {
     return match || null;
   }, [targetAuthor, selectedMonthKey, authorStatsCache, authorName]);
 
-  // Filter books belonging to this author
+  // Build author books list using backend stats response as primary source of truth
   const authorBooks = useMemo(() => {
     if (!targetAuthor) return [];
+
+    const storeBooksById = new Map<string, Book>();
+    books.forEach((b) => {
+      if (b?.id) storeBooksById.set(b.id, b);
+    });
+
+    // When backend stats for the selected month are loaded, use its authorBooks list
+    // (which includes active books, archived books, and deleted books with > 0 sec in that month)
+    if (currentAuthorStats && Array.isArray(currentAuthorStats.authorBooks)) {
+      const seenIds = new Set<string>();
+      const result: Book[] = [];
+
+      currentAuthorStats.authorBooks.forEach((ab: any) => {
+        const bookId = ab.id || ab.bookId;
+        if (!bookId || seenIds.has(bookId)) return;
+        seenIds.add(bookId);
+
+        const storeBook = storeBooksById.get(bookId);
+        const isDeleted = Boolean(ab.isDeleted ?? storeBook?.isDeleted);
+        const trackedSec = Number(ab.totalSeconds ?? (Number(ab.totalMinutes || 0) * 60)) || 0;
+
+        // Deleted books are only shown if they have listening time in this month
+        if (isDeleted && trackedSec <= 0) return;
+
+        const rawCover = ab.coverUrl || ab.coverImage || storeBook?.coverImage;
+        result.push({
+          id: bookId,
+          title: ab.title || storeBook?.title || 'Кітап',
+          author: ab.author || storeBook?.author || authorName,
+          category: ab.category || storeBook?.category || 'Аудиокітап',
+          pages: ab.pages ?? storeBook?.pages ?? null,
+          hasAudio: Boolean(ab.hasAudio ?? storeBook?.hasAudio ?? ab.audioUrl ?? storeBook?.audioUrl),
+          audioUrl: ab.audioUrl || storeBook?.audioUrl,
+          audioDuration: ab.audioDuration || storeBook?.audioDuration,
+          coverImage: rawCover ? resolveMediaUrl(rawCover) : undefined,
+          gradient: ab.gradient || storeBook?.gradient || '#005494',
+          description: storeBook?.description || '',
+          isFree: ab.isFree ?? storeBook?.isFree ?? true,
+          isArchived: Boolean(ab.isArchived ?? storeBook?.isArchived),
+          isDeleted,
+          viewsCount: Number(ab.viewsCount ?? storeBook?.viewsCount ?? 0),
+          readsCount: Number(ab.readsCount ?? storeBook?.readsCount ?? 0),
+          savedCount: Number(ab.savedCount ?? storeBook?.savedCount ?? 0),
+        });
+      });
+
+      return result;
+    }
+
+    // Fallback while backend stats are still loading
     if (!authorName && (!targetAuthor.assignedBookIds || targetAuthor.assignedBookIds.length === 0)) {
       return [];
     }
 
     const lowAuthor = authorName.toLowerCase();
     const assignedIds = new Set(targetAuthor.assignedBookIds || []);
-    if (currentAuthorStats?.authorBooks) {
-      currentAuthorStats.authorBooks.forEach((b: any) => {
-        if (b.id) assignedIds.add(b.id);
-        if (b.bookId) assignedIds.add(b.bookId);
-      });
-    }
 
     return books.filter((b) => {
+      if (b.isDeleted) return false;
       if (assignedIds.has(b.id)) return true;
-      if (!b.author) return false;
+      if (!b.author || !lowAuthor) return false;
       const bAuthor = b.author.toLowerCase().trim();
       return bAuthor === lowAuthor || bAuthor.includes(lowAuthor) || lowAuthor.includes(bAuthor);
     });
@@ -1019,6 +1067,15 @@ export const AuthorStatsPage: React.FC = () => {
                                   🕒 Тарихи тыңдалым
                                 </span>
                               )}
+                              {book.isDeleted ? (
+                                <span style={{ fontSize: '10px', fontWeight: 700, color: '#B91C1C', background: '#FEF2F2', border: '1px solid #FECACA', padding: '1px 6px', borderRadius: '4px' }}>
+                                  Өшірілген
+                                </span>
+                              ) : book.isArchived ? (
+                                <span style={{ fontSize: '10px', fontWeight: 700, color: '#B45309', background: '#FFFBEB', border: '1px solid #FDE68A', padding: '1px 6px', borderRadius: '4px' }}>
+                                  Архивте
+                                </span>
+                              ) : null}
                             </div>
                             <div style={{ fontSize: '11.5px', color: '#64748B', marginTop: '2px' }}>
                               {book.pages ? `${book.pages} бет` : ''} {book.hasAudio ? '• 🎧 Аудио' : ''}

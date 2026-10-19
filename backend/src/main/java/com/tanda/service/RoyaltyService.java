@@ -518,22 +518,32 @@ public class RoyaltyService {
             periodStatus = "FINALIZED".equalsIgnoreCase(period.getStatus()) ? "paid" : "calculated";
         }
 
-        // 5. Author Book Item DTOs
-        List<AuthorBookItemDto> bookItems = matchedBooks.stream().map(b -> AuthorBookItemDto.builder()
-                .id(b.getId())
-                .title(b.getTitle())
-                .author(b.getAuthor())
-                .coverUrl(b.getCoverImage())
-                .pages(b.getPages())
-                .viewsCount(0L)
-                .readsCount(0L)
-                .totalMinutes(bookMinutesMap.getOrDefault(b.getId(), 0L))
-                .totalSeconds(bookSecondsMap.getOrDefault(b.getId(), 0L))
-                .savedCount(0L)
-                .hasAudio(Boolean.TRUE.equals(b.getHasAudio()) || (b.getAudioUrl() != null && !b.getAudioUrl().isBlank()))
-                .audioUrl(b.getAudioUrl())
-                .build()
-        ).collect(Collectors.toList());
+        // 5. Author Book Item DTOs:
+        // Include all non-deleted books (both active and archived),
+        // plus any deleted book that has listening activity (> 0 sec) in the target month.
+        List<AuthorBookItemDto> bookItems = matchedBooks.stream()
+                .filter(b -> !Boolean.TRUE.equals(b.getIsDeleted()) || bookSecondsMap.getOrDefault(b.getId(), 0L) > 0L)
+                .map(b -> AuthorBookItemDto.builder()
+                        .id(b.getId())
+                        .title(b.getTitle())
+                        .author(b.getAuthor())
+                        .coverUrl(b.getCoverImage())
+                        .category(b.getCategory())
+                        .gradient(b.getGradient())
+                        .pages(b.getPages())
+                        .viewsCount(0L)
+                        .readsCount(0L)
+                        .totalMinutes(bookMinutesMap.getOrDefault(b.getId(), 0L))
+                        .totalSeconds(bookSecondsMap.getOrDefault(b.getId(), 0L))
+                        .savedCount(0L)
+                        .hasAudio(Boolean.TRUE.equals(b.getHasAudio()) || (b.getAudioUrl() != null && !b.getAudioUrl().isBlank()))
+                        .audioUrl(b.getAudioUrl())
+                        .audioDuration(b.getAudioDuration())
+                        .isArchived(Boolean.TRUE.equals(b.getIsArchived()))
+                        .isDeleted(Boolean.TRUE.equals(b.getIsDeleted()))
+                        .isFree(b.getIsFree() != null ? b.getIsFree() : true)
+                        .build()
+                ).collect(Collectors.toList());
 
         return AuthorStatsResponseDto.builder()
                 .authorId(authorUserIdOrId != null && !authorUserIdOrId.isBlank() ? authorUserIdOrId : author.getId())
@@ -722,12 +732,20 @@ public class RoyaltyService {
         // Summarize per author
         Map<String, Author> authorMap = authorRepository.findAll().stream()
                 .collect(Collectors.toMap(Author::getId, a -> a));
+        Map<String, Book> allBooksMap = bookRepository.findAll().stream()
+                .collect(Collectors.toMap(Book::getId, b -> b));
         List<AuthorBook> allAuthorBooks = authorBookRepository.findAll();
-        Map<String, List<String>> authorBookIdsMap = allAuthorBooks.stream()
-                .collect(Collectors.groupingBy(
-                        AuthorBook::getAuthorId,
-                        Collectors.mapping(AuthorBook::getBookId, Collectors.toList())
-                ));
+        Map<String, List<AuthorBook>> authorBooksByAuthor = allAuthorBooks.stream()
+                .collect(Collectors.groupingBy(AuthorBook::getAuthorId));
+
+        Map<String, Set<String>> authorPeriodListenedBookIds = new HashMap<>();
+        for (AuthorDailyBookStats st : monthlyDailyAuthorStats) {
+            if (st.getTotalSeconds() != null && st.getTotalSeconds() > 0) {
+                authorPeriodListenedBookIds
+                        .computeIfAbsent(st.getAuthorId(), k -> new HashSet<>())
+                        .add(st.getBookId());
+            }
+        }
 
         Map<String, Long> authorMinutesSum = new HashMap<>();
         Map<String, BigDecimal> authorEarnedSum = new HashMap<>();
@@ -737,6 +755,11 @@ public class RoyaltyService {
                     authorMinutesSum.getOrDefault(e.getAuthorId(), 0L) + e.getMinutesListened());
             authorEarnedSum.put(e.getAuthorId(),
                     authorEarnedSum.getOrDefault(e.getAuthorId(), BigDecimal.ZERO).add(e.getAmount()));
+            if (e.getMinutesListened() != null && e.getMinutesListened() > 0) {
+                authorPeriodListenedBookIds
+                        .computeIfAbsent(e.getAuthorId(), k -> new HashSet<>())
+                        .add(e.getBookId());
+            }
         }
 
         long totalPlatformLiveMinutes = 0L;
@@ -758,11 +781,34 @@ public class RoyaltyService {
                 earned = p.getRatePerMinute().multiply(BigDecimal.valueOf(mins)).setScale(2, RoundingMode.HALF_UP);
             }
 
+            Set<String> effectiveBookIds = new HashSet<>();
+            Set<String> listenedIds = authorPeriodListenedBookIds.getOrDefault(author.getId(), Collections.emptySet());
+            effectiveBookIds.addAll(listenedIds);
+
+            for (AuthorBook ab : authorBooksByAuthor.getOrDefault(author.getId(), Collections.emptyList())) {
+                if (Boolean.TRUE.equals(ab.getIsActive())) {
+                    Book b = allBooksMap.get(ab.getBookId());
+                    if (b != null && !Boolean.TRUE.equals(b.getIsDeleted())) {
+                        effectiveBookIds.add(b.getId());
+                    }
+                }
+            }
+
+            String matchName = author.getDisplayName() != null ? author.getDisplayName().toLowerCase().trim() : "";
+            if (!matchName.isEmpty()) {
+                for (Book b : allBooksMap.values()) {
+                    if (!Boolean.TRUE.equals(b.getIsDeleted()) && b.getAuthor() != null
+                            && b.getAuthor().toLowerCase().trim().equals(matchName)) {
+                        effectiveBookIds.add(b.getId());
+                    }
+                }
+            }
+
             summaryList.add(AuthorEarningSummaryDto.builder()
                     .authorId(author.getId())
                     .authorUserId(author.getUserId())
                     .authorName(author.getDisplayName())
-                    .assignedBookIds(authorBookIdsMap.getOrDefault(author.getId(), Collections.emptyList()))
+                    .assignedBookIds(new ArrayList<>(effectiveBookIds))
                     .totalMinutes(mins)
                     .totalSeconds(totalSec)
                     .totalEarned(earned)
