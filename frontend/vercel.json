@@ -9,7 +9,7 @@
       "destination": "https://tandamen.kz/uploads/:path*"
     },
     {
-      "source": "/(.*)",
+      "source": "/((?!api/|uploads/|assets/).*)",
       "destination": "/index.html"
     }
   ]

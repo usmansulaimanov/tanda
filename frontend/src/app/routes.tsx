@@ -11,12 +11,13 @@ function lazyWithRetry<T extends React.ComponentType<any>>(
     try {
       return await factory();
     } catch (error: any) {
-      const msg = error?.message || '';
+      const msg = String(error?.message || error || '');
       const isChunkError =
         msg.includes('Failed to fetch dynamically imported module') ||
         msg.includes('Importing a module script failed') ||
         msg.includes('error loading dynamically imported module') ||
-        msg.includes('Loading chunk');
+        msg.includes('Loading chunk') ||
+        msg.includes('MIME type');
 
       const lastReload = typeof window !== 'undefined' ? sessionStorage.getItem('chunk_reload_ts') : null;
       const now = Date.now();
@@ -25,7 +26,6 @@ function lazyWithRetry<T extends React.ComponentType<any>>(
       if (isChunkError && canReload && typeof window !== 'undefined') {
         sessionStorage.setItem('chunk_reload_ts', String(now));
         window.location.reload();
-        return new Promise<{ default: T }>(() => {});
       }
       throw error;
     }
@@ -102,7 +102,7 @@ import { useAuthStore } from '../store/useAuthStore';
 const ReaderLandingRoute: React.FC = () => {
   const { user, role, isAuthenticated, isAuthInitialized } = useAuthStore();
 
-  if (!isAuthInitialized) {
+  if (!isAuthInitialized && !isAuthenticated) {
     return <PageLoader />;
   }
 
@@ -127,7 +127,7 @@ const ReaderLandingRoute: React.FC = () => {
 const AdminRouteGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, role, isAuthenticated, isAuthInitialized } = useAuthStore();
 
-  if (!isAuthInitialized) {
+  if (!isAuthInitialized && (!isAuthenticated || !user)) {
     return <PageLoader />;
   }
 
@@ -152,7 +152,7 @@ const AdminRouteGuard: React.FC<{ children: React.ReactNode }> = ({ children }) 
 const AuthorRouteGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, role, isAuthenticated, isAuthInitialized } = useAuthStore();
 
-  if (!isAuthInitialized) {
+  if (!isAuthInitialized && (!isAuthenticated || !user)) {
     return <PageLoader />;
   }
 
@@ -176,7 +176,7 @@ const AuthorRouteGuard: React.FC<{ children: React.ReactNode }> = ({ children })
 const ReaderOnlyRouteGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, role, isAuthenticated, isAuthInitialized } = useAuthStore();
 
-  if (!isAuthInitialized) {
+  if (!isAuthInitialized && !isAuthenticated) {
     return <PageLoader />;
   }
 
